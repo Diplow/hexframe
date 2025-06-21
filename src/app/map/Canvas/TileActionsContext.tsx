@@ -78,13 +78,7 @@ export function TileActionsProvider({
   activeTool: controlledActiveTool,
   setActiveTool: controlledSetActiveTool,
 }: TileActionsProviderProps) {
-  const [internalActiveTool, setInternalActiveTool] = useState<ToolType>(() => {
-    // Initialize from localStorage, default to 'expand'
-    const savedTool = localStorage.getItem('active-tool') as ToolType | null;
-    return savedTool && ['select', 'navigate', 'create', 'edit', 'delete', 'expand', 'drag'].includes(savedTool) 
-      ? savedTool 
-      : 'expand';
-  });
+  const [internalActiveTool, setInternalActiveTool] = useState<ToolType>('expand');
   const [isDragging, setIsDragging] = useState(false);
   const [disabledTools, setDisabledTools] = useState<Set<ToolType>>(new Set());
 
@@ -92,16 +86,29 @@ export function TileActionsProvider({
   const activeTool = controlledActiveTool ?? internalActiveTool;
   const setActiveTool = controlledSetActiveTool ?? setInternalActiveTool;
 
+  // Initialize from localStorage after hydration
+  useEffect(() => {
+    if (controlledActiveTool) return; // Skip if controlled
+    
+    try {
+      const savedTool = localStorage.getItem('active-tool') as ToolType | null;
+      if (savedTool && ['select', 'navigate', 'create', 'edit', 'delete', 'expand', 'drag'].includes(savedTool)) {
+        setInternalActiveTool(savedTool);
+      }
+    } catch (error) {
+      console.warn('Failed to load active tool from localStorage:', error);
+    }
+  }, [controlledActiveTool]);
+
   const handleSetActiveTool = useCallback((tool: ToolType) => {
     setActiveTool(tool);
-    // Save to localStorage
-    localStorage.setItem('active-tool', tool);
+    // Save to localStorage with error handling
+    try {
+      localStorage.setItem('active-tool', tool);
+    } catch (error) {
+      console.warn('Failed to save active tool to localStorage:', error);
+    }
   }, [setActiveTool]);
-  
-  // Save active tool to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('active-tool', activeTool);
-  }, [activeTool]);
 
   const onTileClick = useCallback((tileData: TileData) => {
     switch (activeTool) {

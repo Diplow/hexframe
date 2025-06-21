@@ -10,8 +10,8 @@
 const fs = require('fs');
 const path = require('path');
 
-// Check if REFACTOR_CLARITY.md exists
-const refactorGuideFile = path.join(process.cwd(), 'prompts', 'claude', 'REFACTOR_CLARITY.md');
+// Check if refactor-clarity.md exists
+const refactorGuideFile = path.join(process.cwd(), '.claude', 'commands', 'refactor-clarity.md');
 if (!fs.existsSync(refactorGuideFile)) {
   console.error(`Error: Required file ".claude/commands/refactor-clarity.md" not found`);
   console.error('This file contains the refactoring workflow and principles.');

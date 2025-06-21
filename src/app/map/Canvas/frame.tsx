@@ -199,7 +199,8 @@ const FrameSlot = (props: {
   if (!item && !isCenter) {
     const parentCoords = CoordSystem.getParentCoord(CoordSystem.parseId(coordId));
     if (!parentCoords) {
-      throw new Error("Failed to get parent coordinates");
+      console.error(`Failed to get parent coordinates for ${coordId}`);
+      return null;
     }
     
     const parentCoordsId = CoordSystem.createId(parentCoords);

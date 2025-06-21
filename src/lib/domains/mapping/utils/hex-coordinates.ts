@@ -175,4 +175,19 @@ export class CoordSystem {
       (dir1 === Direction.East && dir2 === Direction.West)
     );
   }
+
+  static isDescendant(childId: string, parentId: string): boolean {
+    // A tile is a descendant if its coordId starts with the parent's coordId
+    // Handle special cases for tiles without paths
+    if (parentId.includes(":")) {
+      return childId.startsWith(parentId + ",") || childId === parentId;
+    } else {
+      return childId.startsWith(parentId + ":");
+    }
+  }
+
+  static isAncestor(parentId: string, childId: string): boolean {
+    // An ancestor check is just the inverse of descendant
+    return CoordSystem.isDescendant(childId, parentId);
+  }
 }

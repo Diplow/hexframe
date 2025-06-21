@@ -70,10 +70,7 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
         }
         
         // Check if the expanded item is a descendant of the new center
-        // Need to handle the case where center has no path (e.g., "1,0")
-        const isDescendant = itemCoordId.includes(":") 
-          ? expandedCoordId.startsWith(itemCoordId + ",") || expandedCoordId === itemCoordId
-          : expandedCoordId.startsWith(itemCoordId + ":");
+        const isDescendant = CoordSystem.isDescendant(expandedCoordId, itemCoordId);
           
         if (isDescendant) {
           // It's a descendant - check generation distance
@@ -84,10 +81,7 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
         }
         
         // Check if the new center is a descendant of the expanded item
-        // Need to handle the case where expanded has no path (e.g., "1,0")
-        const isAncestor = expandedCoordId.includes(":")
-          ? itemCoordId.startsWith(expandedCoordId + ",") || itemCoordId === expandedCoordId
-          : itemCoordId.startsWith(expandedCoordId + ":");
+        const isAncestor = CoordSystem.isAncestor(expandedCoordId, itemCoordId);
           
         if (isAncestor) {
           // The expanded item is an ancestor of the new center - keep ALL ancestors expanded
