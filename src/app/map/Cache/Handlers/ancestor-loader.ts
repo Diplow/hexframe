@@ -4,6 +4,7 @@ import type { ServerService } from "../Services/types";
 import type { TileData } from "../../types/tile-data";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import { cacheActions } from "../State/actions";
+import { getColor } from "../../types/tile-data";
 
 export interface AncestorCheckResult {
   hasAllAncestors: boolean;
@@ -71,7 +72,7 @@ export async function loadAncestorsForItem(
             name: ancestor.name,
             description: ancestor.descr,
             url: ancestor.url,
-            color: '#000000',
+            color: getColor(ancestorCoords),
           },
           metadata: {
             coordId,
