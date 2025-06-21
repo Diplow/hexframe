@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   createNavigationHandler,
@@ -18,8 +19,25 @@ describe("Navigation Handler", () => {
   let mockDataHandler: DataOperations;
   let mockState: CacheState;
   let config: NavigationHandlerConfig;
+  let originalHistory: History;
 
   beforeEach(() => {
+    // Mock window.history
+    originalHistory = window.history;
+    Object.defineProperty(window, 'history', {
+      writable: true,
+      value: {
+        pushState: vi.fn(),
+        replaceState: vi.fn(),
+        back: vi.fn(),
+        forward: vi.fn(),
+        go: vi.fn(),
+        length: 1,
+        state: null,
+        scrollRestoration: 'auto'
+      }
+    });
+    
     mockDispatch = vi.fn();
     mockRouter = {
       push: vi.fn(),
@@ -81,6 +99,11 @@ describe("Navigation Handler", () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+    // Restore original window.history
+    Object.defineProperty(window, 'history', {
+      writable: true,
+      value: originalHistory
+    });
   });
 
   describe("navigateToItem", () => {
@@ -160,7 +183,9 @@ describe("Navigation Handler", () => {
       expect(mockDataHandler.prefetchRegion).toHaveBeenCalledWith("1,2");
       expect(mockDispatch).toHaveBeenCalledWith(cacheActions.setCenter("1,2"));
       // Should update URL with the new center and maintain expanded items
-      expect(mockRouter.push).toHaveBeenCalledWith(
+      expect(window.history.pushState).toHaveBeenCalledWith(
+        {},
+        '',
         "/map?center=123&expandedItems=item1%2Citem2"
       );
       expect(result).toEqual({
@@ -228,8 +253,11 @@ describe("Navigation Handler", () => {
       expect(result).toEqual({
         success: true,
         centerUpdated: true,
-        urlUpdated: false,
+        urlUpdated: true, // Now uses window.history
       });
+      
+      // Verify URL was updated via history API
+      expect(window.history.pushState).toHaveBeenCalled();
     });
   });
 
@@ -465,8 +493,10 @@ describe("Navigation Handler", () => {
       const handler = createNavigationHandler(configWithoutRouter);
 
       expect(() => handler.toggleItemExpansionWithURL("1")).not.toThrow();
-      expect(mockDispatch).not.toHaveBeenCalled();
-      expect(mockRouter.push).not.toHaveBeenCalled();
+      // Should still toggle expansion
+      expect(mockDispatch).toHaveBeenCalledWith(cacheActions.toggleItemExpansion("1"));
+      // Should update URL via history API
+      expect(window.history.replaceState).toHaveBeenCalled();
     });
 
     test("handles missing center item gracefully", () => {
@@ -523,7 +553,9 @@ describe("Navigation Handler", () => {
         cacheActions.toggleItemExpansion("2")
       );
       // URL should be updated with expanded items removed
-      expect(mockRouter.replace).toHaveBeenCalledWith(
+      expect(window.history.replaceState).toHaveBeenCalledWith(
+        {},
+        '',
         "/map?center=123&expandedItems=1%2C3%2C4"
       );
     });
@@ -545,7 +577,9 @@ describe("Navigation Handler", () => {
         cacheActions.toggleItemExpansion("1")
       );
       // URL should be updated without expandedItems param when empty
-      expect(mockRouter.replace).toHaveBeenCalledWith(
+      expect(window.history.replaceState).toHaveBeenCalledWith(
+        {},
+        '',
         "/map?center=123"
       );
     });
@@ -568,7 +602,9 @@ describe("Navigation Handler", () => {
         cacheActions.toggleItemExpansion("2")
       );
       // URL should be updated with new expanded item
-      expect(mockRouter.replace).toHaveBeenCalledWith(
+      expect(window.history.replaceState).toHaveBeenCalledWith(
+        {},
+        '',
         "/map?center=123&expandedItems=2"
       );
     });

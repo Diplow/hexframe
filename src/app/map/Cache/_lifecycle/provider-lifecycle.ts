@@ -5,6 +5,7 @@ import type { DataOperations } from "../Handlers/types";
 import type { SyncOperations } from "../Sync/types";
 import type { ServerService } from "../Services/types";
 import { cacheActions } from "../State/actions";
+import { checkAncestors, loadAncestorsForItem } from "../Handlers/ancestor-loader";
 
 export interface LifecycleHookConfig {
   dispatch: Dispatch<CacheAction>;
@@ -74,6 +75,21 @@ export function useCacheLifecycle(config: LifecycleHookConfig): void {
         
         // Clear loading state after successful load
         config.dispatch(cacheActions.setLoading(false));
+        
+        // Check if ancestors need to be loaded for the center item
+        const centerItem = items.find(item => item.coordinates === currentCenter);
+        if (centerItem?.coordinates?.includes(':')) {
+          // This is a sub-tile, check if we need to load ancestors
+          const { hasAllAncestors } = checkAncestors(currentCenter, items);
+          
+          // Load ancestors if missing
+          if (!hasAllAncestors && centerItem.id) {
+            const centerDbId = typeof centerItem.id === 'string' ? parseInt(centerItem.id) : centerItem.id;
+            if (!isNaN(centerDbId)) {
+              void loadAncestorsForItem(centerDbId, config.serverService, config.dispatch, "Initial Load");
+            }
+          }
+        }
       } catch (error) {
         console.error('[MapCache] Failed to load region:', error);
         config.dispatch(cacheActions.setError(error as Error));

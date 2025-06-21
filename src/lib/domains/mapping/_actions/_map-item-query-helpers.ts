@@ -65,6 +65,48 @@ export class MapItemQueryHelpers {
     }
   }
 
+  async getAncestors(itemId: number): Promise<MapItemWithId[]> {
+    try {
+      const item = await this.mapItems.getOne(itemId);
+      if (!item) {
+        console.error(
+          `Item with ID ${itemId} not found for getAncestors.`,
+        );
+        return [];
+      }
+
+      const ancestors: MapItemWithId[] = [];
+      let currentCoords = item.attrs.coords;
+
+      // Walk up the tree from the item to the root
+      while (!CoordSystem.isCenter(currentCoords)) {
+        const parentCoords = CoordSystem.getParentCoord(currentCoords);
+        if (!parentCoords) break;
+
+        const parent = await this.mapItems.getOneByIdr({
+          idr: {
+            attrs: {
+              coords: parentCoords,
+            },
+          },
+        });
+
+        if (parent) {
+          ancestors.unshift(parent); // Add to beginning to maintain root->item order
+          currentCoords = parent.attrs.coords;
+        } else {
+          // Parent not found, stop traversing
+          break;
+        }
+      }
+
+      return ancestors;
+    } catch (error) {
+      console.error(`Failed to get ancestors for item ${itemId}:`, error);
+      return [];
+    }
+  }
+
   async getItemsForOwnerGroup({
     userId,
     groupId,

@@ -216,4 +216,15 @@ export const mapItemsRouter = createTRPCRouter({
       });
       return descendants.map(contractToApiAdapters.mapItem);
     }),
+
+  // Get ancestors of an item (all items in the path from root to the item)
+  getAncestors: publicProcedure
+    .use(mappingServiceMiddleware)
+    .input(z.object({ itemId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const ancestors = await ctx.mappingService.items.query.getAncestors({
+        itemId: input.itemId,
+      });
+      return ancestors.map(contractToApiAdapters.mapItem);
+    }),
 });

@@ -202,6 +202,10 @@ export class MapItemActions {
     return await this.queryHelpers.getDescendants(parentId);
   }
 
+  public async getAncestors(itemId: number): Promise<MapItemWithId[]> {
+    return await this.queryHelpers.getAncestors(itemId);
+  }
+
   private async _getItemAndDescendants(idr: MapItemIdr) {
     let item: MapItemWithId | null = null;
 

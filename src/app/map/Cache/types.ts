@@ -90,6 +90,7 @@ export interface MapCacheHook {
     pauseSync: () => void;
     resumeSync: () => void;
     getSyncStatus: () => SyncStatus;
+    serverService?: ServerService; // Expose server service for advanced usage
   };
 
   // Configuration

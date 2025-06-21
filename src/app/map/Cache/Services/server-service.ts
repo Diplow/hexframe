@@ -215,6 +215,17 @@ export function createServerService(
         : withErrorTransform(operation);
     },
 
+    getAncestors: async (itemId: number) => {
+      const operation = async () => {
+        const ancestors = await utils.map.getAncestors.fetch({ itemId });
+        return ancestors;
+      };
+
+      return finalConfig.enableRetry
+        ? withRetry(() => withErrorTransform(operation), finalConfig)
+        : withErrorTransform(operation);
+    },
+
     // Mutations are explicitly NOT implemented here
     // They should be handled through the mutation layer using tRPC hooks
     createItem: async () => {
@@ -295,6 +306,11 @@ export function createMockServerService(
       }),
     getDescendants:
       mockResponses.getDescendants ??
+      (async () => {
+        throw new ServiceErrorClass("Mock not implemented", "NOT_IMPLEMENTED");
+      }),
+    getAncestors:
+      mockResponses.getAncestors ??
       (async () => {
         throw new ServiceErrorClass("Mock not implemented", "NOT_IMPLEMENTED");
       }),

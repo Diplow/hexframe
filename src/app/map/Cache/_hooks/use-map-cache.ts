@@ -169,6 +169,7 @@ export function useMapCache(): MapCacheHook {
       pauseSync: syncOperations.pauseSync,
       resumeSync: syncOperations.resumeSync,
       getSyncStatus: syncOperations.getSyncStatus,
+      serverService: context.serverService,
     },
 
     // Configuration

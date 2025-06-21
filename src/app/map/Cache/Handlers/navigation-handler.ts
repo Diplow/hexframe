@@ -3,11 +3,14 @@ import type { CacheAction, CacheState } from "../State/types";
 import { cacheActions } from "../State/actions";
 import type { DataOperations, NavigationOperations } from "./types";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
+import type { ServerService } from "../Services/types";
+import { checkAncestors, loadAncestorsForItem } from "./ancestor-loader";
 
 export interface NavigationHandlerConfig {
   dispatch: React.Dispatch<CacheAction>;
   getState: () => CacheState;
   dataHandler: DataOperations;
+  serverService?: ServerService;
   // For testing, we can inject these dependencies
   router?: {
     push: (url: string) => void;
@@ -29,7 +32,7 @@ export interface NavigationOptions {
 }
 
 export function createNavigationHandler(config: NavigationHandlerConfig) {
-  const { dispatch, getState, dataHandler, router } = config;
+  const { dispatch, getState, dataHandler } = config;
 
   const navigateToItem = async (
     itemCoordId: string,
@@ -97,34 +100,75 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
         dispatch(cacheActions.setExpandedItems(filteredExpandedDbIds));
       }
       
-      // 3. Update the cache center (this changes the view immediately)
+      // 3. Update the cache center first (this changes the view immediately)
       dispatch(cacheActions.setCenter(itemCoordId));
       
-      // 4. Only load region data if we don't have it or if it needs more depth
-      if (!existingItem || !getState().regionMetadata[itemCoordId]) {
-        // Load the region data in the background (without showing loader)
-        dataHandler.prefetchRegion(itemCoordId).catch(error => {
-          console.error('[NAV] Background region load failed:', error);
-        });
-      } else {
-      }
-
+      // 4. Handle URL update
+      let itemToNavigate = existingItem;
       let urlUpdated = false;
-
-      // Update URL with new center and filtered expanded items
-      if (router && existingItem) {
+      
+      if (existingItem) {
+        // We have the item, update URL immediately without triggering re-render
         const newUrl = buildMapUrl(
           existingItem.metadata.dbId,
           filteredExpandedDbIds,
         );
         
-        // Use push or replace based on navigation options
-        if (options.pushToHistory ?? true) {
-          router.push(newUrl);
-        } else {
-          router.replace(newUrl);
+        // Use native history API to avoid React re-renders
+        if (typeof window !== 'undefined') {
+          if (options.pushToHistory ?? true) {
+            window.history.pushState({}, '', newUrl);
+          } else {
+            window.history.replaceState({}, '', newUrl);
+          }
+          urlUpdated = true;
         }
-        urlUpdated = true;
+      } else if (!existingItem) {
+        // We don't have the item, try to load it for URL update
+        try {
+          // Load the item data in the background
+          await dataHandler.loadRegion(itemCoordId, 0); // Load just the center item
+          itemToNavigate = getState().itemsById[itemCoordId];
+          
+          if (itemToNavigate && typeof window !== 'undefined') {
+            const newUrl = buildMapUrl(
+              itemToNavigate.metadata.dbId,
+              filteredExpandedDbIds,
+            );
+            
+            if (options.pushToHistory ?? true) {
+              window.history.pushState({}, '', newUrl);
+            } else {
+              window.history.replaceState({}, '', newUrl);
+            }
+            urlUpdated = true;
+          }
+        } catch (error) {
+          console.error('[NAV] Failed to load item for URL update:', error);
+          // Navigation succeeds but URL won't be updated
+        }
+      }
+      
+      // 5. Load additional region data if needed (in background)
+      if (!getState().regionMetadata[itemCoordId]) {
+        dataHandler.prefetchRegion(itemCoordId).catch(error => {
+          console.error('[NAV] Background region load failed:', error);
+        });
+      }
+      
+      // 6. Check if ancestors need to be loaded
+      const centerItem = getState().itemsById[itemCoordId];
+      if (centerItem && centerItem.metadata.coordinates.path.length > 0) {
+        const { hasAllAncestors } = checkAncestors(itemCoordId, getState().itemsById);
+        
+        // Load ancestors if missing
+        if (!hasAllAncestors && centerItem.metadata.dbId && config.serverService) {
+          const centerDbId = parseInt(centerItem.metadata.dbId);
+          if (!isNaN(centerDbId)) {
+            // Load ancestors in background
+            void loadAncestorsForItem(centerDbId, config.serverService, dispatch, "Navigation");
+          }
+        }
       }
 
       return {
@@ -150,9 +194,9 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
   };
 
   const updateURL = (centerItemId: string, expandedItems: string[]): void => {
-    if (router) {
+    if (typeof window !== 'undefined') {
       const newUrl = buildMapUrl(centerItemId, expandedItems);
-      router.push(newUrl);
+      window.history.pushState({}, '', newUrl);
     }
   };
 
@@ -167,12 +211,12 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
       ? state.itemsById[state.currentCenter]
       : null;
 
-    if (centerItem && router) {
+    if (centerItem && typeof window !== 'undefined') {
       const newUrl = buildMapUrl(
         centerItem.metadata.dbId,
         state.expandedItemIds,
       );
-      router.replace(newUrl);
+      window.history.replaceState({}, '', newUrl);
     }
   };
 
@@ -226,10 +270,6 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
   };
 
   const toggleItemExpansionWithURL = (itemId: string): void => {
-    if (!router) {
-      return;
-    }
-
     const state = getState();
     const centerItem = state.currentCenter
       ? state.itemsById[state.currentCenter]
@@ -252,12 +292,14 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
     // Update the cache state
     dispatch(cacheActions.toggleItemExpansion(itemId));
     
-    // Update URL using replaceState to avoid adding to browser history
-    const newUrl = buildMapUrl(
-      centerItem.metadata.dbId,
-      currentExpanded,
-    );
-    router.replace(newUrl);
+    // Update URL using native history API to avoid React re-renders
+    if (typeof window !== 'undefined') {
+      const newUrl = buildMapUrl(
+        centerItem.metadata.dbId,
+        currentExpanded,
+      );
+      window.history.replaceState({}, '', newUrl);
+    }
   };
 
   return {
@@ -297,6 +339,7 @@ export function useNavigationHandler(
   dispatch: React.Dispatch<CacheAction>,
   getState: () => CacheState,
   dataHandler: DataOperations,
+  serverService?: ServerService,
 ) {
   // Always call hooks unconditionally
   const router = useRouter();
@@ -307,6 +350,7 @@ export function useNavigationHandler(
     dispatch,
     getState,
     dataHandler,
+    serverService,
     router,
     searchParams,
     pathname,

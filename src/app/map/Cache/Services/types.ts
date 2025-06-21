@@ -53,6 +53,17 @@ export interface ServerService {
     itemType: MapItemType;
     ownerId: string;
   }[]>;
+  getAncestors: (itemId: number) => Promise<{
+    id: string;
+    coordinates: string;
+    depth: number;
+    name: string;
+    descr: string;
+    url: string;
+    parentId: string | null;
+    itemType: MapItemType;
+    ownerId: string;
+  }[]>;
 
   // Mutation operations (architectural placeholders - should use mutation layer)
   createItem: (params: { coordId: string; data: Record<string, unknown> }) => Promise<unknown>;

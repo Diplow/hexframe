@@ -26,4 +26,5 @@ export const mapRouter = createTRPCRouter({
   updateItem: mapItemsRouter.updateItem,
   moveMapItem: mapItemsRouter.moveMapItem,
   getDescendants: mapItemsRouter.getDescendants,
+  getAncestors: mapItemsRouter.getAncestors,
 });

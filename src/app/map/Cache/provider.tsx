@@ -125,6 +125,9 @@ export function MapCacheProvider({
       deleteItem: async () => {
         throw new Error('Mutations not available in offline mode');
       },
+      getAncestors: async () => {
+        return [];
+      },
     };
   }, [serverService, isOffline]);
   
@@ -147,6 +150,7 @@ export function MapCacheProvider({
     dispatch,
     getState,
     dataOperations,
+    wrappedServerService,
   );
 
   const syncOperations = useSyncEngine(dispatch, state, dataOperations, {
