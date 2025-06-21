@@ -29,7 +29,7 @@ export interface NavigationOptions {
 }
 
 export function createNavigationHandler(config: NavigationHandlerConfig) {
-  const { dispatch, getState, dataHandler, router } = config;
+  const { dispatch, getState, dataHandler } = config;
 
   const navigateToItem = async (
     itemCoordId: string,
@@ -104,37 +104,39 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
       let itemToNavigate = existingItem;
       let urlUpdated = false;
       
-      if (existingItem && router) {
-        // We have the item, update URL immediately
+      if (existingItem) {
+        // We have the item, update URL immediately without triggering re-render
         const newUrl = buildMapUrl(
           existingItem.metadata.dbId,
           filteredExpandedDbIds,
         );
         
-        // Use push or replace based on navigation options
-        if (options.pushToHistory ?? true) {
-          router.push(newUrl);
-        } else {
-          router.replace(newUrl);
+        // Use native history API to avoid React re-renders
+        if (typeof window !== 'undefined') {
+          if (options.pushToHistory ?? true) {
+            window.history.pushState({}, '', newUrl);
+          } else {
+            window.history.replaceState({}, '', newUrl);
+          }
+          urlUpdated = true;
         }
-        urlUpdated = true;
-      } else if (!existingItem && router) {
+      } else if (!existingItem) {
         // We don't have the item, try to load it for URL update
         try {
           // Load the item data in the background
           await dataHandler.loadRegion(itemCoordId, 0); // Load just the center item
           itemToNavigate = getState().itemsById[itemCoordId];
           
-          if (itemToNavigate) {
+          if (itemToNavigate && typeof window !== 'undefined') {
             const newUrl = buildMapUrl(
               itemToNavigate.metadata.dbId,
               filteredExpandedDbIds,
             );
             
             if (options.pushToHistory ?? true) {
-              router.push(newUrl);
+              window.history.pushState({}, '', newUrl);
             } else {
-              router.replace(newUrl);
+              window.history.replaceState({}, '', newUrl);
             }
             urlUpdated = true;
           }
@@ -174,9 +176,9 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
   };
 
   const updateURL = (centerItemId: string, expandedItems: string[]): void => {
-    if (router) {
+    if (typeof window !== 'undefined') {
       const newUrl = buildMapUrl(centerItemId, expandedItems);
-      router.push(newUrl);
+      window.history.pushState({}, '', newUrl);
     }
   };
 
@@ -191,12 +193,12 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
       ? state.itemsById[state.currentCenter]
       : null;
 
-    if (centerItem && router) {
+    if (centerItem && typeof window !== 'undefined') {
       const newUrl = buildMapUrl(
         centerItem.metadata.dbId,
         state.expandedItemIds,
       );
-      router.replace(newUrl);
+      window.history.replaceState({}, '', newUrl);
     }
   };
 
@@ -250,10 +252,6 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
   };
 
   const toggleItemExpansionWithURL = (itemId: string): void => {
-    if (!router) {
-      return;
-    }
-
     const state = getState();
     const centerItem = state.currentCenter
       ? state.itemsById[state.currentCenter]
@@ -276,12 +274,14 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
     // Update the cache state
     dispatch(cacheActions.toggleItemExpansion(itemId));
     
-    // Update URL using replaceState to avoid adding to browser history
-    const newUrl = buildMapUrl(
-      centerItem.metadata.dbId,
-      currentExpanded,
-    );
-    router.replace(newUrl);
+    // Update URL using native history API to avoid React re-renders
+    if (typeof window !== 'undefined') {
+      const newUrl = buildMapUrl(
+        centerItem.metadata.dbId,
+        currentExpanded,
+      );
+      window.history.replaceState({}, '', newUrl);
+    }
   };
 
   return {
