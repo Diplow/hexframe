@@ -59,6 +59,24 @@ export class ItemQueryService {
   }
 
   /**
+   * Get all ancestors of a specific item ID (path from root to item)
+   */
+  async getAncestors({
+    itemId,
+  }: {
+    itemId: number;
+  }): Promise<MapItemContract[]> {
+    const item = await this.actions.mapItems.getOne(itemId);
+    if (!item) throw new Error(`Item with id ${itemId} not found.`);
+
+    const ancestors = await this.actions.getAncestors(itemId);
+    return ancestors.map((ancestor) => {
+      const userId = ancestor.attrs.coords.userId;
+      return adapt.mapItem(ancestor, userId);
+    });
+  }
+
+  /**
    * Get a specific item by its ID
    */
   async getItemById({ itemId }: { itemId: number }): Promise<MapItemContract> {

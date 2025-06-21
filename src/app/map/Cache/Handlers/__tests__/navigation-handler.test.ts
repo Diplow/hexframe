@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   createNavigationHandler,
@@ -182,7 +183,7 @@ describe("Navigation Handler", () => {
       expect(mockDataHandler.prefetchRegion).toHaveBeenCalledWith("1,2");
       expect(mockDispatch).toHaveBeenCalledWith(cacheActions.setCenter("1,2"));
       // Should update URL with the new center and maintain expanded items
-      expect((window.history as any).pushState).toHaveBeenCalledWith(
+      expect(window.history.pushState).toHaveBeenCalledWith(
         {},
         '',
         "/map?center=123&expandedItems=item1%2Citem2"
@@ -256,7 +257,7 @@ describe("Navigation Handler", () => {
       });
       
       // Verify URL was updated via history API
-      expect((window.history as any).pushState).toHaveBeenCalled();
+      expect(window.history.pushState).toHaveBeenCalled();
     });
   });
 
@@ -495,7 +496,7 @@ describe("Navigation Handler", () => {
       // Should still toggle expansion
       expect(mockDispatch).toHaveBeenCalledWith(cacheActions.toggleItemExpansion("1"));
       // Should update URL via history API
-      expect((window.history as any).replaceState).toHaveBeenCalled();
+      expect(window.history.replaceState).toHaveBeenCalled();
     });
 
     test("handles missing center item gracefully", () => {
@@ -552,7 +553,7 @@ describe("Navigation Handler", () => {
         cacheActions.toggleItemExpansion("2")
       );
       // URL should be updated with expanded items removed
-      expect((window.history as any).replaceState).toHaveBeenCalledWith(
+      expect(window.history.replaceState).toHaveBeenCalledWith(
         {},
         '',
         "/map?center=123&expandedItems=1%2C3%2C4"
@@ -576,7 +577,7 @@ describe("Navigation Handler", () => {
         cacheActions.toggleItemExpansion("1")
       );
       // URL should be updated without expandedItems param when empty
-      expect((window.history as any).replaceState).toHaveBeenCalledWith(
+      expect(window.history.replaceState).toHaveBeenCalledWith(
         {},
         '',
         "/map?center=123"
@@ -601,7 +602,7 @@ describe("Navigation Handler", () => {
         cacheActions.toggleItemExpansion("2")
       );
       // URL should be updated with new expanded item
-      expect((window.history as any).replaceState).toHaveBeenCalledWith(
+      expect(window.history.replaceState).toHaveBeenCalledWith(
         {},
         '',
         "/map?center=123&expandedItems=2"

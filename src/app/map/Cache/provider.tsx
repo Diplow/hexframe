@@ -125,6 +125,9 @@ export function MapCacheProvider({
       deleteItem: async () => {
         throw new Error('Mutations not available in offline mode');
       },
+      getAncestors: async () => {
+        return [];
+      },
     };
   }, [serverService, isOffline]);
   

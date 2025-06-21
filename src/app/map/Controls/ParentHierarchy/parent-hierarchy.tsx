@@ -11,6 +11,7 @@ import {
   HIERARCHY_TILE_BASE_SIZE,
   HIERARCHY_TILE_SCALE,
 } from "../../constants";
+import { useLoadAncestors } from "./useLoadAncestors";
 
 interface ParentHierarchyProps {
   centerCoordId: string;
@@ -90,11 +91,25 @@ export const ParentHierarchy = ({
   
   // Use items from cache if the prop is empty
   const effectiveItems = Object.keys(items).length > 0 ? items : cacheItems;
+  
+  // Load ancestors if missing
+  const { isLoadingAncestors } = useLoadAncestors(effectiveCenter, effectiveItems);
 
   const hierarchy = _getParentHierarchy(effectiveCenter, effectiveItems);
 
   if (!_shouldShowHierarchy(hierarchy, effectiveCenter)) {
     return null;
+  }
+  
+  // Show loading state while ancestors are being loaded
+  if (isLoadingAncestors) {
+    return (
+      <div className="fixed right-4 top-1/2 z-30 -translate-y-1/2">
+        <div className="flex flex-col items-center gap-2 rounded-lg bg-transparent px-3 py-4">
+          <div className="text-sm text-gray-500">Loading hierarchy...</div>
+        </div>
+      </div>
+    );
   }
 
   return (
