@@ -3,8 +3,8 @@ import type { CacheAction, CacheState } from "../State/types";
 import { cacheActions } from "../State/actions";
 import type { DataOperations, NavigationOperations } from "./types";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
-import type { TileData } from "../../types/tile-data";
 import type { ServerService } from "../Services/types";
+import { checkAncestors, loadAncestorsForItem } from "./ancestor-loader";
 
 export interface NavigationHandlerConfig {
   dispatch: React.Dispatch<CacheAction>;
@@ -159,76 +159,15 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
       // 6. Check if ancestors need to be loaded
       const centerItem = getState().itemsById[itemCoordId];
       if (centerItem && centerItem.metadata.coordinates.path.length > 0) {
-        // Check if we have all ancestors by walking up the tree
-        let currentCoordId = itemCoordId;
-        let hasAllAncestors = true;
-        const missingAncestorLevels: string[] = [];
-        
-        while (true) {
-          const parentCoordId = CoordSystem.getParentCoordFromId(currentCoordId);
-          if (!parentCoordId) break; // Reached root
-          
-          if (!getState().itemsById[parentCoordId]) {
-            hasAllAncestors = false;
-            missingAncestorLevels.push(parentCoordId);
-          }
-          currentCoordId = parentCoordId;
-        }
+        const { hasAllAncestors } = checkAncestors(itemCoordId, getState().itemsById);
         
         // Load ancestors if missing
-        if (!hasAllAncestors && centerItem.metadata.dbId) {
-          const loadAncestors = async () => {
-            try {
-              const centerDbId = parseInt(centerItem.metadata.dbId);
-              if (!isNaN(centerDbId) && config.serverService) {
-                const ancestors = await config.serverService.getAncestors(centerDbId);
-                
-                if (ancestors.length > 0) {
-                  // Convert to TileData format
-                  const ancestorItems: Record<string, TileData> = {};
-                  
-                  ancestors.forEach(ancestor => {
-                    const coordId = ancestor.coordinates;
-                    const coords = CoordSystem.parseId(coordId);
-                    
-                    ancestorItems[coordId] = {
-                      data: {
-                        name: ancestor.name,
-                        description: ancestor.descr,
-                        url: ancestor.url,
-                        color: '#000000', // Default color
-                      },
-                      metadata: {
-                        coordId,
-                        dbId: ancestor.id,
-                        depth: coords.path.length,
-                        parentId: ancestor.parentId ? ancestor.parentId.toString() : undefined,
-                        coordinates: coords,
-                        ownerId: ancestor.ownerId,
-                      },
-                      state: {
-                        isDragged: false,
-                        isHovered: false,
-                        isSelected: false,
-                        isExpanded: false,
-                        isDragOver: false,
-                        isHovering: false,
-                      },
-                    };
-                  });
-                  
-                  // Dispatch ancestors to cache
-                  dispatch(cacheActions.updateItems(ancestorItems));
-                  console.log('[NAV] Loaded', ancestors.length, 'ancestors for', itemCoordId);
-                }
-              }
-            } catch (error) {
-              console.error('[NAV] Failed to load ancestors:', error);
-            }
-          };
-          
-          // Load ancestors in background
-          void loadAncestors();
+        if (!hasAllAncestors && centerItem.metadata.dbId && config.serverService) {
+          const centerDbId = parseInt(centerItem.metadata.dbId);
+          if (!isNaN(centerDbId)) {
+            // Load ancestors in background
+            void loadAncestorsForItem(centerDbId, config.serverService, dispatch, "Navigation");
+          }
         }
       }
 
