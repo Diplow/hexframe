@@ -150,6 +150,7 @@ export function MapCacheProvider({
     dispatch,
     getState,
     dataOperations,
+    wrappedServerService,
   );
 
   const syncOperations = useSyncEngine(dispatch, state, dataOperations, {
