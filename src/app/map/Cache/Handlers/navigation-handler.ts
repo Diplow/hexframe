@@ -100,13 +100,44 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
       // 3. Update the cache center first (this changes the view immediately)
       dispatch(cacheActions.setCenter(itemCoordId));
       
-      // 4. If we don't have the item, try to load it to get the dbId for URL update
+      // 4. Handle URL update
       let itemToNavigate = existingItem;
-      if (!existingItem) {
+      let urlUpdated = false;
+      
+      if (existingItem && router) {
+        // We have the item, update URL immediately
+        const newUrl = buildMapUrl(
+          existingItem.metadata.dbId,
+          filteredExpandedDbIds,
+        );
+        
+        // Use push or replace based on navigation options
+        if (options.pushToHistory ?? true) {
+          router.push(newUrl);
+        } else {
+          router.replace(newUrl);
+        }
+        urlUpdated = true;
+      } else if (!existingItem && router) {
+        // We don't have the item, try to load it for URL update
         try {
           // Load the item data in the background
           await dataHandler.loadRegion(itemCoordId, 0); // Load just the center item
           itemToNavigate = getState().itemsById[itemCoordId];
+          
+          if (itemToNavigate) {
+            const newUrl = buildMapUrl(
+              itemToNavigate.metadata.dbId,
+              filteredExpandedDbIds,
+            );
+            
+            if (options.pushToHistory ?? true) {
+              router.push(newUrl);
+            } else {
+              router.replace(newUrl);
+            }
+            urlUpdated = true;
+          }
         } catch (error) {
           console.error('[NAV] Failed to load item for URL update:', error);
           // Navigation succeeds but URL won't be updated
@@ -118,24 +149,6 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
         dataHandler.prefetchRegion(itemCoordId).catch(error => {
           console.error('[NAV] Background region load failed:', error);
         });
-      }
-
-      let urlUpdated = false;
-
-      // 6. Update URL with new center and filtered expanded items
-      if (router && itemToNavigate) {
-        const newUrl = buildMapUrl(
-          itemToNavigate.metadata.dbId,
-          filteredExpandedDbIds,
-        );
-        
-        // Use push or replace based on navigation options
-        if (options.pushToHistory ?? true) {
-          router.push(newUrl);
-        } else {
-          router.replace(newUrl);
-        }
-        urlUpdated = true;
       }
 
       return {

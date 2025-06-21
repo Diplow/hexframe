@@ -160,9 +160,16 @@ export function DynamicMapCanvas({
     return fallback ?? <MapLoadingSkeleton />;
   }
   
-  // Don't show loading if we have the center item already
+  // Get the center item to check if we have data
   const centerItem = items[center ?? centerInfo.center];
-  if (isLoading && !centerItem) {
+  
+  // Only show loading if:
+  // 1. We're loading AND
+  // 2. We don't have the center item AND  
+  // 3. We don't have any items at all (initial load)
+  const shouldShowLoading = isLoading && !centerItem && Object.keys(items).length === 0;
+  
+  if (shouldShowLoading) {
     return fallback ?? <MapLoadingSkeleton />;
   }
 
