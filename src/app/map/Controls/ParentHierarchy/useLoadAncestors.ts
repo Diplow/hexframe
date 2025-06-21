@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import type { TileData } from "../../types/tile-data";
-import { useMapCache } from "../../Cache/map-cache";
+import { useMapCache, useMapCacheContext } from "../../Cache/map-cache";
+import { cacheActions } from "../../Cache/State/actions";
 
 /**
  * Hook to ensure ancestors are loaded for the current item
@@ -12,6 +13,7 @@ export function useLoadAncestors(centerCoordId: string, items: Record<string, Ti
   const [isLoadingAncestors, setIsLoadingAncestors] = useState(false);
   const [ancestorsLoaded, setAncestorsLoaded] = useState(false);
   const mapCache = useMapCache();
+  const { dispatch } = useMapCacheContext();
   
   useEffect(() => {
     const loadMissingAncestors = async () => {
@@ -98,11 +100,13 @@ export function useLoadAncestors(centerCoordId: string, items: Record<string, Ti
           };
         });
         
-        // Load ancestors into the cache by dispatching directly
-        // Since loadRegion is async, we'll update the cache state directly
-        // This is a simplified approach - in production you might want to 
-        // properly integrate with the cache's data loading mechanisms
-        console.log('Loaded', Object.keys(ancestorTileData).length, 'ancestors');
+        // Load ancestors into the cache
+        if (ancestors.length > 0 && Object.keys(ancestorTileData).length > 0) {
+          console.log('Loading', ancestors.length, 'ancestors into cache');
+          
+          // Dispatch updateItems action to add ancestors to the cache
+          dispatch(cacheActions.updateItems(ancestorTileData));
+        }
         
         setAncestorsLoaded(true);
       } catch (error) {
@@ -113,7 +117,7 @@ export function useLoadAncestors(centerCoordId: string, items: Record<string, Ti
     };
     
     void loadMissingAncestors();
-  }, [centerCoordId, items, mapCache]);
+  }, [centerCoordId, items, mapCache, dispatch]);
   
   return { isLoadingAncestors, ancestorsLoaded };
 }

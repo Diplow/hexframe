@@ -6,6 +6,7 @@ import type {
 } from "./types";
 import { ACTION_TYPES } from "./types";
 import type { MapItemAPIContract } from "~/server/api/types/contracts";
+import type { TileData } from "../../types/tile-data";
 
 // Action creators - pure functions that return action objects
 
@@ -81,6 +82,11 @@ export const removeItem = (coordId: string): CacheAction => ({
   payload: coordId,
 });
 
+export const updateItems = (items: Record<string, TileData | undefined>): CacheAction => ({
+  type: ACTION_TYPES.UPDATE_ITEMS,
+  payload: items,
+});
+
 // Grouped action creators for better organization
 export const cacheActions = {
   loadRegion,
@@ -94,6 +100,7 @@ export const cacheActions = {
   invalidateAll,
   updateCacheConfig,
   removeItem,
+  updateItems,
 };
 
 // Type-safe action creators with payload validation
