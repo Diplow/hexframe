@@ -97,24 +97,35 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
         dispatch(cacheActions.setExpandedItems(filteredExpandedDbIds));
       }
       
-      // 3. Update the cache center (this changes the view immediately)
+      // 3. Update the cache center first (this changes the view immediately)
       dispatch(cacheActions.setCenter(itemCoordId));
       
-      // 4. Only load region data if we don't have it or if it needs more depth
-      if (!existingItem || !getState().regionMetadata[itemCoordId]) {
-        // Load the region data in the background (without showing loader)
+      // 4. If we don't have the item, try to load it to get the dbId for URL update
+      let itemToNavigate = existingItem;
+      if (!existingItem) {
+        try {
+          // Load the item data in the background
+          await dataHandler.loadRegion(itemCoordId, 0); // Load just the center item
+          itemToNavigate = getState().itemsById[itemCoordId];
+        } catch (error) {
+          console.error('[NAV] Failed to load item for URL update:', error);
+          // Navigation succeeds but URL won't be updated
+        }
+      }
+      
+      // 5. Load additional region data if needed (in background)
+      if (!getState().regionMetadata[itemCoordId]) {
         dataHandler.prefetchRegion(itemCoordId).catch(error => {
           console.error('[NAV] Background region load failed:', error);
         });
-      } else {
       }
 
       let urlUpdated = false;
 
-      // Update URL with new center and filtered expanded items
-      if (router && existingItem) {
+      // 6. Update URL with new center and filtered expanded items
+      if (router && itemToNavigate) {
         const newUrl = buildMapUrl(
-          existingItem.metadata.dbId,
+          itemToNavigate.metadata.dbId,
           filteredExpandedDbIds,
         );
         
