@@ -146,6 +146,30 @@ describe("Navigation Handler", () => {
       });
     });
 
+    test("updates URL with expanded items when navigating", async () => {
+      const stateWithExpandedItems = {
+        ...mockState,
+        expandedItemIds: ["item1", "item2"],
+      };
+      config.getState = () => stateWithExpandedItems;
+      
+      const handler = createNavigationHandler(config);
+
+      const result = await handler.navigateToItem("1,2", { pushToHistory: true });
+
+      expect(mockDataHandler.prefetchRegion).toHaveBeenCalledWith("1,2");
+      expect(mockDispatch).toHaveBeenCalledWith(cacheActions.setCenter("1,2"));
+      // Should update URL with the new center and maintain expanded items
+      expect(mockRouter.push).toHaveBeenCalledWith(
+        "/map?center=123&expandedItems=item1%2Citem2"
+      );
+      expect(result).toEqual({
+        success: true,
+        centerUpdated: true,
+        urlUpdated: true,
+      });
+    });
+
     test("handles missing item gracefully", async () => {
       const stateWithoutItem: CacheState = {
         ...mockState,
@@ -498,8 +522,10 @@ describe("Navigation Handler", () => {
       expect(mockDispatch).toHaveBeenCalledWith(
         cacheActions.toggleItemExpansion("2")
       );
-      // URL is not updated in current implementation
-      expect(mockRouter.push).not.toHaveBeenCalled();
+      // URL should be updated with expanded items removed
+      expect(mockRouter.replace).toHaveBeenCalledWith(
+        "/map?center=123&expandedItems=1%2C3%2C4"
+      );
     });
 
     test("removes all expanded items when last one is toggled", () => {
@@ -518,8 +544,33 @@ describe("Navigation Handler", () => {
       expect(mockDispatch).toHaveBeenCalledWith(
         cacheActions.toggleItemExpansion("1")
       );
-      // URL is not updated in current implementation
-      expect(mockRouter.push).not.toHaveBeenCalled();
+      // URL should be updated without expandedItems param when empty
+      expect(mockRouter.replace).toHaveBeenCalledWith(
+        "/map?center=123"
+      );
+    });
+
+    test("adds item to expanded list and updates URL", () => {
+      // Start with empty expanded items for this test
+      const stateWithNoExpanded: CacheState = {
+        ...mockState,
+        expandedItemIds: [],
+      };
+
+      const handler = createNavigationHandler({
+        ...config,
+        getState: () => stateWithNoExpanded,
+      });
+
+      handler.toggleItemExpansionWithURL("2");
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        cacheActions.toggleItemExpansion("2")
+      );
+      // URL should be updated with new expanded item
+      expect(mockRouter.replace).toHaveBeenCalledWith(
+        "/map?center=123&expandedItems=2"
+      );
     });
   });
 

@@ -1,5 +1,5 @@
 import type { DragEvent } from "react";
-import type { TileActionsContextValue } from "~/app/map/Canvas";
+import type { LegacyTileActionsContextValue } from "~/app/map/Canvas";
 
 export interface DragProps {
   draggable: boolean;
@@ -20,9 +20,9 @@ export interface DragProps {
  */
 export function createDragProps(
   coordId: string,
-  actions: TileActionsContextValue | null,
+  actions: LegacyTileActionsContextValue | null,
   isDraggable: boolean,
-  isBeingDragged: boolean
+  _isBeingDragged: boolean
 ): DragProps {
   // No drag props if not draggable or no actions context
   if (!isDraggable || !actions) {
@@ -34,8 +34,6 @@ export function createDragProps(
     onDragStart: (e: DragEvent<HTMLDivElement>) => 
       actions.dragHandlers.onDragStart(coordId, e),
     onDragEnd: actions.dragHandlers.onDragEnd,
-    style: {
-      cursor: isBeingDragged ? 'grabbing' : 'grab',
-    },
+    // Don't override cursor style - let useTileInteraction handle it
   };
 }

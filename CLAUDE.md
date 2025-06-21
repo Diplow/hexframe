@@ -31,7 +31,7 @@ pnpm storybook    # Component development with Storybook
 
 ## Code Quality
 
-After completing any task, refactor for clarity following the workflow in `prompts/claude/REFACTOR_CLARITY.md`:
+After completing any task, refactor for clarity following the workflow in `.claude/commands/refactor-clarity.md`:
 
 1. **Pre-Refactoring Analysis**: Identify concepts and get user validation BEFORE refactoring
 2. **Apply Core Principles**:
@@ -84,11 +84,11 @@ pnpm test:e2e:headed         # Run tests with visible browser window
 
 ## Development Workflows
 
-### 1. Debugging Workflow (`prompts/claude/DEBUG.md`)
+### 1. Debugging Workflow (`.claude/commands/debug.md`)
 
 When debugging issues:
 
-1. **Create Debug Session**: `prompts/bugs/YYYY-MM-DD-explicit-title.md`
+1. **Create Debug Session**: Use `/issue` command to create issue documentation
 2. **Understand Architecture**: Check README files before investigating
 3. **Make Assumptions**: Make working assumptions rather than asking for clarification
 4. **Fix Linter Errors**: Immediately fix any linter errors in investigated files
@@ -96,18 +96,18 @@ When debugging issues:
 6. **Add Tests**: Write tests that would have caught the bug
 7. **Consider Refactoring**: Complex bugs often hide in complex code
 
-### 2. Feature Implementation (`prompts/claude/FEATURE.md`)
+### 2. Feature Implementation (`.claude/commands/feature.md`)
 
 When implementing new features:
 
-1. **Create Feature Doc**: `prompts/features/YYYY-MM-DD-feature-name.md`
+1. **Create Feature Doc**: Use `/issue` command to create issue documentation
 2. **Understanding Phase**: Clarify requirements, define problem, challenge assumptions
 3. **Analysis Phase**: Study architecture, check existing patterns
 4. **Design Phase**: Propose solution with alternatives
 5. **Implementation**: Incremental changes, test happy path first
 6. **Verification**: Review and ensure quality
 
-### 3. Refactoring for Clarity (`prompts/claude/REFACTOR_CLARITY.md`)
+### 3. Refactoring for Clarity (`.claude/commands/refactor-clarity.md`)
 
 The project follows the "Rule of 6" - consistent with Hexframe's hexagonal structure:
 
@@ -123,7 +123,7 @@ The project follows the "Rule of 6" - consistent with Hexframe's hexagonal struc
 - **Arguments**: Max 3 arguments, or 1 object with max 6 keys
 
 #### Refactoring Process
-1. **Create Session**: `prompts/refactors/YYYY-MM-DD-explicit-title.md`
+1. **Create Session**: Use `/refactor` command for clarity refactoring
 2. **Pre-Analysis**: Identify existing and new domain concepts
 3. **Validation**: Get user approval on new concepts BEFORE refactoring
 4. **Execute**: Complete the entire refactoring independently

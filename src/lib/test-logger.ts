@@ -19,8 +19,8 @@ const isClientTestEnvironment =
     // Check our custom flag (set by layout.tsx)
     (window as unknown as { __E2E_TEST__?: boolean }).__E2E_TEST__ === true ||
     // Check URL for test indicators
-    window.location.hostname === 'localhost' && 
-    (window.location.port === '3001' || window.location.port === '3002')
+    (window.location?.hostname === 'localhost' && 
+     (window.location?.port === '3001' || window.location?.port === '3002'))
   );
 
 const isTestEnvironment = isServerTestEnvironment || isClientTestEnvironment;

@@ -284,7 +284,7 @@ This mirrors hexframe philosophy: Once you reach a level simple enough for AI to
 ## Pre-Refactoring Analysis
 
 ### Step 1: Start Refactor Session
-- Create a new file in `prompts/refactors/` with format: `YYYY-MM-DD-explicit-title.md`
+- Create a new file in `issues/` with format: `YYYY-MM-DD-explicit-title.md`
 - Begin with identifying the code to refactor and its current state
 - Document your pre-refactoring analysis as you discover concepts
 - Update the file with user feedback and validation
@@ -341,7 +341,7 @@ Document your findings in the refactor session file and present to the user for 
 
 ## Refactor Session Documentation
 
-Each refactor session file (`prompts/refactors/YYYY-MM-DD-explicit-title.md`) should include:
+Each refactor session file (`issues/YYYY-MM-DD-explicit-title.md`) should include:
 
 ### Initial Section
 - **Target Code**: File(s) to be refactored and current line count
@@ -369,7 +369,7 @@ Each refactor session file (`prompts/refactors/YYYY-MM-DD-explicit-title.md`) sh
 ## Refactoring Workflow
 
 ### Step 1: Pre-Refactoring Analysis
-1. Create refactor session file in `prompts/refactors/YYYY-MM-DD-explicit-title.md`
+1. Create refactor session file in `issues/YYYY-MM-DD-explicit-title.md`
 2. Analyze the code to identify responsibilities and patterns
 3. Document findings in the refactor session file
 4. List potential domain concepts that need naming
@@ -481,15 +481,15 @@ git commit -m "docs: document new transformer utilities in mapping domain"
    ```bash
    # To develop (if refactoring from develop)
    gh pr create --base develop --title "Refactor: [Description]" \
-     --body-file prompts/refactors/YYYY-MM-DD-title.md
+     --body-file issues/YYYY-MM-DD-title.md
    
    # To feature branch (if refactoring within feature)
    gh pr create --base feature/current-feature --title "Refactor: [Description]" \
-     --body-file prompts/refactors/YYYY-MM-DD-title.md
+     --body-file issues/YYYY-MM-DD-title.md
    ```
 
 3. **PR Description**: Use entire refactor document
-   - Copy complete content of `prompts/refactors/YYYY-MM-DD-title.md`
+   - Copy complete content of `issues/YYYY-MM-DD-title.md`
    - This includes:
      - Pre-refactoring analysis
      - Domain concepts identified

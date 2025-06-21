@@ -92,6 +92,10 @@ jobs:
           TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
           SKIP_ENV_VALIDATION: true
+          # CI=true flag triggers exclusion of problematic Storybook tests
+          # Due to Vitest 3.0 compatibility issue with @storybook/experimental-addon-test
+          # See: https://github.com/storybookjs/storybook/issues/30308
+          CI: true
 
       - name: Build project
         run: pnpm build

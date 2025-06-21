@@ -31,7 +31,7 @@ This file provides debugging principles and workflow for Claude to follow when i
 - One fix at a time - don't bundle multiple fixes
 - **Exception**: If struggling to find the bug, consider clarity refactoring
   - Complex, unclear code often hides bugs
-  - See `prompts/claude/REFACTOR_CLARITY.md` for systematic approach
+  - See `.claude/commands/refactor-clarity.md` for systematic approach
   - Sometimes making code clearer reveals the issue immediately
 
 ### 4. Verification
@@ -42,7 +42,7 @@ This file provides debugging principles and workflow for Claude to follow when i
 ## Debugging Workflow
 
 1. **Start Debug Session**
-   - Create a new file in `prompts/bugs/` with format: `YYYY-MM-DD-explicit-title.md`
+   - Create a new file in `issues/` with format: `YYYY-MM-DD-explicit-title.md`
    - Begin with a brief architectural overview of where you understand the bug to be located
    - Document your progression throughout the debugging session
 
@@ -135,7 +135,7 @@ This file provides debugging principles and workflow for Claude to follow when i
 ### When Stuck on Complex Bugs
 - **Consider clarity refactoring**: If the bug persists despite investigation
   - Complex code often conceals bugs
-  - Follow `prompts/claude/REFACTOR_CLARITY.md` guidelines
+  - Follow `.claude/commands/refactor-clarity.md` guidelines
   - Apply the Fundamental Rule: name → what, arguments → what's needed, body → how
   - Use Rule of 6 to break down complexity
   - Often the bug becomes obvious once code is clear

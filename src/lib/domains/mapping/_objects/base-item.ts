@@ -23,8 +23,7 @@ export type BaseItemIdr = {
 };
 
 const DEFAULT_CENTER_TITLE = "The center of the map";
-const DEFAULT_CENTER_DESCRIPTION =
-  "This is the ultimate context for users consulting your map, please be descriptive.";
+const DEFAULT_CENTER_DESCRIPTION = "";
 
 export class BaseItem extends GenericAggregate<
   Attrs,

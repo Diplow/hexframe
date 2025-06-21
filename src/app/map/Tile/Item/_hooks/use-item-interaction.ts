@@ -1,7 +1,7 @@
 "use client";
 
 import { useContext } from "react";
-import { TileActionsContext } from "~/app/map/Canvas";
+import { LegacyTileActionsContext } from "~/app/map/Canvas";
 
 export interface ItemInteractionState {
   isDraggable: boolean;
@@ -19,7 +19,7 @@ export interface ItemInteractionState {
  * @returns Combined interaction state including drag, drop, and edit status
  */
 export function useItemInteraction(coordId: string): ItemInteractionState {
-  const context = useContext(TileActionsContext);
+  const context = useContext(LegacyTileActionsContext);
   
   // Return default state if no context (not within Canvas)
   if (!context) {

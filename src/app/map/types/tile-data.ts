@@ -5,6 +5,17 @@ import {
 } from "~/lib/domains/mapping/utils/hex-coordinates";
 import { DEFAULT_MAP_COLORS } from "../constants";
 
+export interface TileState {
+  isDragged: boolean;
+  isHovered: boolean;
+  isSelected: boolean;
+  isExpanded: boolean;
+  isDragOver: boolean;
+  isHovering: boolean;
+  canExpand?: boolean;
+  canEdit?: boolean;
+}
+
 function getColor(coordinates: Coord): string {
   if (coordinates.path.length < 1) {
     return "zinc-50";
@@ -39,7 +50,7 @@ const adapt = (item: MapItemAPIContract) => {
       isExpanded: false,
       isDragOver: false,
       isHovering: false,
-    },
+    } as TileState,
   };
 };
 

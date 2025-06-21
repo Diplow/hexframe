@@ -1,5 +1,5 @@
 import type { DragEvent } from "react";
-import type { TileActionsContextValue } from "~/app/map/Canvas";
+import type { LegacyTileActionsContextValue } from "~/app/map/Canvas";
 
 export interface DropProps {
   onDragOver?: (e: DragEvent<HTMLDivElement>) => void;
@@ -18,7 +18,7 @@ export interface DropProps {
  */
 export function createDropProps(
   coordId: string,
-  actions: TileActionsContextValue | null,
+  actions: LegacyTileActionsContextValue | null,
   isValidDropTarget: boolean
 ): DropProps {
   // No drop props if not a valid target or no actions context

@@ -87,7 +87,8 @@ export const mapUserRouter = createTRPCRouter({
         const map = await ctx.mappingService.maps.createMap({
           userId,
           groupId: 0,
-          title: `${userName}'s Map`,
+          title: userName,
+          descr: "",
         });
         return _createSuccessResponse({ mapId: map.id });
       } catch (error) {

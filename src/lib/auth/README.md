@@ -166,6 +166,6 @@ This ensures a smooth onboarding experience where new users automatically get a 
 - **Auth UI Tile:** `src/app/map/Tile/Auth/auth.tsx`
 - **Database Schema:** `src/server/db/schema/users.ts`, `accounts.ts`, etc.
 - **User Map Flow:** `src/app/_hooks/use-user-map-flow.ts`, `src/app/page.tsx`
-- **Feature Plan:** `prompts/features/2025-05-16-better-auth.md`, `prompts/features/2025-05-18-homepage.md` (for historical context and planning)
+- **Feature Plan:** `issues/archive/features/2025-05-16-better-auth.md`, `issues/archive/features/2025-05-18-homepage.md` (for historical context and planning)
 
 This setup provides a solid foundation for authentication, leveraging `better-auth` for core functionality while integrating smoothly with the project's tRPC and Next.js architecture.

@@ -204,6 +204,75 @@ function CreateItemModal({ coordId, onClose }: Props) {
 - **Type-safe**: Full TypeScript support with strict types
 - **Progressive enhancement**: Works with SSR and hydration
 
+## URL Synchronization
+
+The cache system maintains bidirectional synchronization between application state and the URL, making map views shareable and bookmarkable.
+
+### URL Parameters
+
+The map URL contains two key parameters:
+
+1. **`center`**: The database ID of the current center tile
+   - Example: `/map?center=123`
+   - Updated when navigating to a new tile
+
+2. **`expandedItems`**: Comma-separated list of database IDs for expanded tiles
+   - Example: `/map?center=123&expandedItems=456,789,101`
+   - Updated when tiles are expanded or collapsed
+   - Omitted when no tiles are expanded
+
+### Navigation Behavior
+
+When navigating to a new center:
+- The URL is updated using `router.push()` (adds to browser history)
+- Expanded items are filtered to keep only those within 1 generation of the new center
+- Unrelated expanded tiles are automatically collapsed
+
+### Expansion Behavior
+
+When expanding or collapsing tiles:
+- The URL is updated using `router.replace()` (no browser history)
+- This allows sharing the exact view without cluttering the back button
+- Multiple expanded tiles are comma-separated in the URL
+
+### Initial Load
+
+On page load, the cache reads from URL parameters:
+- The `center` parameter determines the initial center tile
+- The `expandedItems` parameter restores previously expanded tiles
+- Invalid or inaccessible tile IDs are silently ignored
+
+### Example URLs
+
+```
+# Simple view with no expansions
+/map?center=123
+
+# View with one expanded tile
+/map?center=123&expandedItems=456
+
+# View with multiple expanded tiles
+/map?center=123&expandedItems=456,789,101
+
+# After navigation, unrelated expansions are removed
+# Before: /map?center=123&expandedItems=456,789,999
+# After:  /map?center=789&expandedItems=456
+# (999 was removed as it's not within 1 generation of new center 789)
+```
+
+### Implementation Details
+
+The URL synchronization is handled by the navigation handler:
+- `toggleItemExpansionWithURL()` updates the URL when tiles are expanded/collapsed
+- `navigateToItem()` updates both center and filters expanded items
+- The router instance is accessed via Next.js navigation hooks
+
+This design ensures that:
+- Map views are fully shareable via URL
+- The browser back button is reserved for actual navigation, not UI state changes
+- URLs remain clean and human-readable
+- State is preserved across page refreshes
+
 ## Architecture Notes
 
 ### Service Layer and Mutations

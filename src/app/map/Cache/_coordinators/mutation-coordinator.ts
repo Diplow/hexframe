@@ -247,8 +247,8 @@ export class MutationCoordinator {
   }
 
   private async _rollbackCreate(coordId: string, changeId: string): Promise<void> {
-    this.config.dispatch(cacheActions.invalidateRegion(coordId));
-    await this.config.dataOperations.loadRegion(coordId, 1);
+    // Simply remove the optimistically created item
+    this.config.dispatch(cacheActions.removeItem(coordId));
     this.tracker.removeChange(changeId);
   }
 

@@ -7,7 +7,7 @@ This document defines the structured workflow for discussing and implementing fe
 When a user requests a feature implementation, follow these steps:
 
 ### 0. Documentation Phase
-- **Create Feature Document**: Create a new file in `prompts/features/` with format: `YYYY-MM-DD-feature-name.md`
+- **Create Feature Document**: Create a new file in `issues/` with format: `YYYY-MM-DD-feature-name.md`
 - **Initialize Checklist**: Start with a checklist that will be updated throughout implementation
 - **Track Progress**: Update the checklist as tasks are completed
 
@@ -73,11 +73,11 @@ When a user requests a feature implementation, follow these steps:
 ## Example Usage
 
 ```
-User: "I would like you to implement feature X according to principles defined in @prompts/claude/FEATURE.md"
+User: "I would like you to implement feature X according to principles defined in @.claude/commands/feature.md"
 
 Claude: Following the FEATURE workflow, I'll create a feature document and analyze the request.
 
-[Creates prompts/features/YYYY-MM-DD-feature-x.md]
+[Creates issues/YYYY-MM-DD-feature-x.md]
 
 Based on my analysis:
 
@@ -218,13 +218,13 @@ Follow conventional commits for clear history:
    ```bash
    # Using GitHub CLI
    gh pr create --base develop --title "Feature: [Feature name]" \
-     --body-file prompts/features/YYYY-MM-DD-feature-name.md
+     --body-file issues/YYYY-MM-DD-feature-name.md
    
    # Or manually on GitHub, using the feature document as PR description
    ```
 
 3. **PR Description**: Use entire feature document content
-   - Copy the complete content of `prompts/features/YYYY-MM-DD-feature-name.md`
+   - Copy the complete content of `issues/YYYY-MM-DD-feature-name.md`
    - This includes:
      - Feature understanding and context
      - Architecture analysis

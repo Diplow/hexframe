@@ -2,6 +2,7 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import type { CacheAction, CacheState } from "../State/types";
 import { cacheActions } from "../State/actions";
 import type { DataOperations, NavigationOperations } from "./types";
+import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 
 export interface NavigationHandlerConfig {
   dispatch: React.Dispatch<CacheAction>;
@@ -35,14 +36,71 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
     options: NavigationOptions = {},
   ): Promise<NavigationResult> => {
     const { } = options; // Options reserved for future use
+    
     try {
       // 1. Check if we already have the item
       const existingItem = getState().itemsById[itemCoordId];
       
-      // 2. Update the cache center first (this changes the view immediately)
+      // 2. Collapse tiles that are more than 1 generation away from the new center
+      const currentState = getState();
+      const newCenterDepth = CoordSystem.getDepthFromId(itemCoordId);
+      
+      // Get the dbId of the new center if it exists
+      const newCenterItem = currentState.itemsById[itemCoordId];
+      const newCenterDbId = newCenterItem?.metadata.dbId;
+      
+      // Build a map of dbId -> coordId for all items
+      const dbIdToCoordId: Record<string, string> = {};
+      Object.values(currentState.itemsById).forEach(item => {
+        dbIdToCoordId[item.metadata.dbId] = item.metadata.coordId;
+      });
+      
+      // Filter expanded items (which are dbIds) to keep only those within 1 generation
+      const filteredExpandedDbIds = currentState.expandedItemIds.filter(expandedDbId => {
+        // Get the coordId for this dbId
+        const expandedCoordId = dbIdToCoordId[expandedDbId];
+        if (!expandedCoordId) {
+          // If we don't have the item data, keep it for now
+          return true;
+        }
+        
+        // Keep the new center itself if it was expanded
+        if (newCenterDbId && expandedDbId === newCenterDbId) {
+          return true;
+        }
+        
+        // Check if the expanded item is a descendant of the new center
+        const isDescendant = CoordSystem.isDescendant(expandedCoordId, itemCoordId);
+          
+        if (isDescendant) {
+          // It's a descendant - check generation distance
+          const expandedDepth = CoordSystem.getDepthFromId(expandedCoordId);
+          const generationDistance = expandedDepth - newCenterDepth;
+          const keep = generationDistance <= 1;
+          return keep;
+        }
+        
+        // Check if the new center is a descendant of the expanded item
+        const isAncestor = CoordSystem.isAncestor(expandedCoordId, itemCoordId);
+          
+        if (isAncestor) {
+          // The expanded item is an ancestor of the new center - keep ALL ancestors expanded
+          return true;
+        }
+        
+        // For items that are neither ancestors nor descendants, collapse them
+        return false;
+      });
+      
+      // Update expanded items if there are changes
+      if (filteredExpandedDbIds.length !== currentState.expandedItemIds.length) {
+        dispatch(cacheActions.setExpandedItems(filteredExpandedDbIds));
+      }
+      
+      // 3. Update the cache center (this changes the view immediately)
       dispatch(cacheActions.setCenter(itemCoordId));
       
-      // 3. Only load region data if we don't have it or if it needs more depth
+      // 4. Only load region data if we don't have it or if it needs more depth
       if (!existingItem || !getState().regionMetadata[itemCoordId]) {
         // Load the region data in the background (without showing loader)
         dataHandler.prefetchRegion(itemCoordId).catch(error => {
@@ -53,8 +111,21 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
 
       let urlUpdated = false;
 
-      // Skip URL updates for now - just update cache state
-      urlUpdated = false;
+      // Update URL with new center and filtered expanded items
+      if (router && existingItem) {
+        const newUrl = buildMapUrl(
+          existingItem.metadata.dbId,
+          filteredExpandedDbIds,
+        );
+        
+        // Use push or replace based on navigation options
+        if (options.pushToHistory ?? true) {
+          router.push(newUrl);
+        } else {
+          router.replace(newUrl);
+        }
+        urlUpdated = true;
+      }
 
       return {
         success: true,
@@ -155,14 +226,18 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
   };
 
   const toggleItemExpansionWithURL = (itemId: string): void => {
-    if (!router) return;
+    if (!router) {
+      return;
+    }
 
     const state = getState();
     const centerItem = state.currentCenter
       ? state.itemsById[state.currentCenter]
       : null;
 
-    if (!centerItem) return;
+    if (!centerItem) {
+      return;
+    }
 
     // Toggle the item in the expanded list
     const currentExpanded = [...state.expandedItemIds];
@@ -177,7 +252,12 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
     // Update the cache state
     dispatch(cacheActions.toggleItemExpansion(itemId));
     
-    // Skip URL updates for now
+    // Update URL using replaceState to avoid adding to browser history
+    const newUrl = buildMapUrl(
+      centerItem.metadata.dbId,
+      currentExpanded,
+    );
+    router.replace(newUrl);
   };
 
   return {

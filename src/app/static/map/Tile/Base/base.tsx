@@ -5,10 +5,13 @@ export type TileCursor =
   | "cursor-pointer"
   | "cursor-grab" // for draggable tiles
   | "cursor-grabbing" // for dragging tiles
-  | "cursor-crosshair" // for selecting tiles
+  | "cursor-move" // for drag tool
+  | "cursor-crosshair" // for delete tool
   | "cursor-not-allowed" // for locked tiles
   | "cursor-zoom-in" // for expandable tiles
-  | "cursor-zoom-out"; // for expanded tiles
+  | "cursor-zoom-out" // for expanded tiles
+  | "cursor-cell" // for create tool
+  | "cursor-text"; // for edit tool
 
 export type TileStroke = {
   color: "transparent" | "zinc-950" | "zinc-900" | "zinc-800" | "zinc-50";
@@ -83,7 +86,7 @@ export const StaticBaseTileLayout = ({
 
   return (
     <div
-      className={`flex flex-col items-center justify-center ${
+      className={`flex flex-col items-center justify-center ${cursor} ${
         isFocusable ? "outline-none" : "" // Remove default outline if focusable
       }`}
       tabIndex={isFocusable ? 0 : undefined}
@@ -105,7 +108,7 @@ export const StaticBaseTileLayout = ({
         }}
       >
         <svg
-          className={`absolute inset-0 h-full w-full ${cursor} pointer-events-none`} // SVG is absolute to fill the focusable div
+          className={`absolute inset-0 h-full w-full pointer-events-none`} // SVG is absolute to fill the focusable div
           // style={{ zIndex: 20 - scale }} // SVG zIndex
           viewBox={svgViewBox}
           xmlns="http://www.w3.org/2000/svg"

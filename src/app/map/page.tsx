@@ -8,6 +8,10 @@ import { MapControls } from "./Controls";
 import { useMapIdResolution } from "./_hooks/use-map-id-resolution";
 import { MapLoadingSkeleton } from "./Canvas/LifeCycle/loading-skeleton";
 import { OfflineIndicator } from "./_components/offline-indicator";
+import { TileActionsProvider } from "./Canvas/TileActionsContext";
+import { Toolbox } from "./Controls/Toolbox/Toolbox";
+import { ToolStateManager } from "./Controls/Toolbox/ToolStateManager";
+import { MapContent } from "./_components/MapContent";
 
 interface MapPageProps {
   searchParams: Promise<{
@@ -84,21 +88,24 @@ export default function MapPage({ searchParams }: MapPageProps) {
 
   return (
     <div className="relative flex h-full w-full flex-col">
-      <MapCacheProvider
-        initialItems={{}} // Start with empty items - cache will load from server
-        initialCenter={centerCoordinate} // Now always a proper coordinate!
-        initialExpandedItems={params.expandedItems?.split(",") ?? []}
-        cacheConfig={CACHE_CONFIG}
-        offlineMode={isOffline}
-        mapContext={{
-          rootItemId,
-          userId,
-          groupId,
-        }}
-        testingOverrides={{
-          disableSync: true, // Disable sync until basic cache is working
-        }}
-      >
+      <TileActionsProvider>
+        <ToolStateManager mapCenterCoordId={centerCoordinate}>
+          <MapContent>
+            <MapCacheProvider
+            initialItems={{}} // Start with empty items - cache will load from server
+            initialCenter={centerCoordinate} // Now always a proper coordinate!
+            initialExpandedItems={params.expandedItems?.split(",") ?? []}
+            cacheConfig={CACHE_CONFIG}
+            offlineMode={isOffline}
+            mapContext={{
+              rootItemId,
+              userId,
+              groupId,
+            }}
+            testingOverrides={{
+              disableSync: true, // Disable sync until basic cache is working
+            }}
+          >
         <DynamicMapCanvas
           centerInfo={{
             center: centerCoordinate,
@@ -152,9 +159,13 @@ export default function MapPage({ searchParams }: MapPageProps) {
             itemCount: 0,
           }}
         />
-      </MapCacheProvider>
-      
-      <OfflineIndicator isOffline={isOffline} />
+            </MapCacheProvider>
+            
+            <Toolbox />
+            <OfflineIndicator isOffline={isOffline} />
+          </MapContent>
+        </ToolStateManager>
+      </TileActionsProvider>
     </div>
   );
 }

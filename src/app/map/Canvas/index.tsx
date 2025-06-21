@@ -19,8 +19,8 @@ import { MapErrorBoundary } from "./LifeCycle/error-boundary";
 import { useDragAndDropWithMutation } from "./hooks/useDragAndDropWithMutation";
 import type { DragEvent } from "react";
 
-// Simplified Tile Actions Context
-export interface TileActionsContextValue {
+// Legacy Tile Actions Context for drag and drop
+export interface LegacyTileActionsContextValue {
   handleTileClick: (coordId: string, event: MouseEvent) => void;
   handleTileHover: (coordId: string, isHovering: boolean) => void;
   onCreateTileRequested?: (coordId: string) => void;
@@ -40,19 +40,19 @@ export interface TileActionsContextValue {
   getDropOperation: (coordId: string) => 'move' | 'swap' | null;
 }
 
-export const TileActionsContext = createContext<TileActionsContextValue | null>(
+export const LegacyTileActionsContext = createContext<LegacyTileActionsContextValue | null>(
   null,
 );
 
-export function useTileActionsContext() {
-  const context = useContext(TileActionsContext);
+export function useLegacyTileActionsContext() {
+  const context = useContext(LegacyTileActionsContext);
 
   if (!context) {
     console.error(
-      "useTileActionsContext: No context found! Component is not within DynamicMapCanvas",
+      "useLegacyTileActionsContext: No context found! Component is not within DynamicMapCanvas",
     );
     throw new Error(
-      "useTileActionsContext must be used within DynamicMapCanvas",
+      "useLegacyTileActionsContext must be used within DynamicMapCanvas",
     );
   }
   return context;
@@ -191,7 +191,7 @@ export function DynamicMapCanvas({
   // Rendering canvas with current state
 
   return (
-    <TileActionsContext.Provider value={tileActions}>
+    <LegacyTileActionsContext.Provider value={tileActions}>
       <div className="relative flex h-full w-full flex-col">
         <div
           data-canvas-id={dynamicCenterInfo.center}
@@ -208,6 +208,6 @@ export function DynamicMapCanvas({
           />
         </div>
       </div>
-    </TileActionsContext.Provider>
+    </LegacyTileActionsContext.Provider>
   );
 }

@@ -59,7 +59,7 @@ export const DynamicBaseTileLayout = ({
 
   return (
     <div
-      className={`flex flex-col items-center justify-center ${
+      className={`flex flex-col items-center justify-center ${cursor} ${
         isFocusable ? "outline-none" : "" // Remove default outline if focusable
       }`}
       tabIndex={isFocusable ? 0 : undefined}
@@ -81,7 +81,7 @@ export const DynamicBaseTileLayout = ({
         }}
       >
         <svg
-          className={`absolute inset-0 h-full w-full ${cursor} pointer-events-none`} // SVG is absolute to fill the focusable div
+          className={`absolute inset-0 h-full w-full pointer-events-none`} // SVG is absolute to fill the focusable div
           viewBox={svgViewBox}
           xmlns="http://www.w3.org/2000/svg"
           preserveAspectRatio="xMidYMid meet"

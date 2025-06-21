@@ -4,16 +4,16 @@
  * /refactor command implementation
  * 
  * This command instructs Claude to refactor a file for clarity
- * according to the workflow in prompts/claude/REFACTOR_CLARITY.md
+ * according to the workflow in .claude/commands/refactor-clarity.md
  */
 
 const fs = require('fs');
 const path = require('path');
 
-// Check if REFACTOR_CLARITY.md exists
-const refactorGuideFile = path.join(process.cwd(), 'prompts', 'claude', 'REFACTOR_CLARITY.md');
+// Check if refactor-clarity.md exists
+const refactorGuideFile = path.join(process.cwd(), '.claude', 'commands', 'refactor-clarity.md');
 if (!fs.existsSync(refactorGuideFile)) {
-  console.error(`Error: Required file "prompts/claude/REFACTOR_CLARITY.md" not found`);
+  console.error(`Error: Required file ".claude/commands/refactor-clarity.md" not found`);
   console.error('This file contains the refactoring workflow and principles.');
   process.exit(1);
 }
@@ -47,11 +47,11 @@ const sessionFileName = `${date}-${fileName}-clarity.md`;
 
 // Generate the command for Claude
 const command = `
-I need you to refactor the file "${filePath}" for clarity according to the workflow and principles described in @prompts/claude/REFACTOR_CLARITY.md.
+I need you to refactor the file "${filePath}" for clarity according to the workflow and principles described in @.claude/commands/refactor-clarity.md.
 
 Please follow the complete workflow from that guide:
 
-1. **Create Refactor Session**: Create a new file at "prompts/refactors/${sessionFileName}" following the documentation format described in the guide (sections 342-367)
+1. **Create Refactor Session**: Create a new file at "issues/${sessionFileName}" following the documentation format described in the guide (sections 342-367)
 
 2. **Pre-Refactoring Analysis**: Follow the analysis steps in the guide (sections 284-340):
    - Discover existing domain concepts from documented domains
@@ -70,7 +70,7 @@ Please follow the complete workflow from that guide:
 
 6. **Update Documentation**: Complete the session file with post-refactoring summary
 
-All details about the workflow, principles, and examples are in @prompts/claude/REFACTOR_CLARITY.md - please reference it directly for the complete methodology.
+All details about the workflow, principles, and examples are in @.claude/commands/refactor-clarity.md - please reference it directly for the complete methodology.
 `;
 
 // Output the command for Claude
