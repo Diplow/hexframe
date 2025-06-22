@@ -117,3 +117,18 @@ The implementation would follow existing patterns:
 - Identified the Toolbox as already implementing dark mode patterns
 
 ---
+
+## 2025-06-22 11:20 - Additional Context: Map Layout Background
+
+*Updated by @Diplow identifying map layout gradients*
+
+### Additional Finding
+**Map Layout Background**:
+- The `/src/app/map/layout.tsx` uses a complex gradient background system
+- Three layered gradients using the directional colors in dark shades (900)
+- Includes an SVG noise texture overlay for visual depth
+- Currently hardcoded for dark mode only - will need light mode variant
+
+This is more localized than the Canvas color system but still needs adaptation.
+
+---

@@ -64,6 +64,12 @@ Components that would be affected by dark mode:
 - **Hardcoded classes**: Uses direct Tailwind classes like `fill-amber-200` without dark variants
 - **Affected components**: All tile rendering, strokes, and map visualization
 
+**Map Layout Background** (Dark-only design):
+- **Gradient system**: Three layered gradients using directional colors
+- **Dark hardcoded**: Uses 900 shades (indigo-900, amber-900, etc.) 
+- **Noise texture**: SVG noise overlay for visual depth
+- **Located in**: `/src/app/map/layout.tsx`
+
 **Styling Patterns**:
 - Utility-first approach with Tailwind classes
 - `cn()` utility for class name merging
