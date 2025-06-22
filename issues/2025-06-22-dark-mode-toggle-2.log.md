@@ -132,3 +132,54 @@ The implementation would follow existing patterns:
 This is more localized than the Canvas color system but still needs adaptation.
 
 ---
+
+## 2025-06-22 11:30 - Solution Design
+
+*Added by @Diplow via /solution command*
+
+### Design Process
+Analyzed three different implementation approaches based on:
+- Context findings (CSS ready, Canvas colors need work)
+- Existing patterns (Storage Service, React Context)
+- Implementation complexity vs user value
+- Incremental delivery possibilities
+
+### Solution Approaches
+
+**Solution 1: Minimal Dark Mode**
+- Basic toggle without Canvas color adaptation
+- 1-2 day implementation
+- Leaves tiles light (functional but incomplete)
+
+**Solution 2: Full Dark Mode with Inverted Tints**
+- Complete implementation with tint inversion strategy
+- Light: 200→900 (darker), Dark: 800→100 (lighter)
+- 3-4 day implementation
+- Maintains visual hierarchy
+
+**Solution 3: Advanced Theme System**
+- Custom OKLCH palettes for each theme
+- System preference detection
+- Smooth transitions
+- 5-7 day implementation
+
+### Recommendation
+Selected Solution 2 as the best balance of:
+- Complete user experience
+- Reasonable implementation effort
+- Leverages existing color system
+- Can be enhanced incrementally
+
+### Implementation Plan
+Phased approach over 3 days:
+1. Theme infrastructure (provider, toggle, persistence)
+2. Canvas color adaptation (inverted tints)
+3. UI refinements (strokes, buttons, text)
+
+### Key Design Decisions
+- Use tint inversion for Canvas colors (simple, effective)
+- Place toggle in Toolbox (consistent with existing controls)
+- Use Storage Service for persistence (existing pattern)
+- Apply `.dark` class to `<html>` element (Tailwind convention)
+
+---
