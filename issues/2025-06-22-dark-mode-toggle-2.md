@@ -135,39 +135,53 @@ Components that would be affected by dark mode:
 - Incomplete dark mode experience
 - May confuse users expecting full dark mode
 
-### Solution 2: Full Dark Mode with Inverted Tints
+### Solution 2: Full Dark Mode with CSS Variables (Recommended)
 
-**Overview**: Complete dark mode including Canvas color adaptation using tint inversion.
+**Overview**: Complete dark mode using Tailwind CSS variables for theme-aware colors.
 
 **Implementation**:
 1. Everything from Solution 1
-2. Create `getThemeAwareColor()` function that inverts tints in dark mode
-3. Update all tile components to use theme-aware colors
-4. Add dark mode stroke colors
-5. Update button and text colors throughout
+2. Define directional depth colors as CSS variables (e.g., `--color-nw-depth-1`)
+3. Create Tailwind classes for each direction/depth combination
+4. Update tile components to use semantic color classes
+5. Add theme-aware stroke and UI colors
 
-**Color Mapping Strategy**:
+**Color System**:
+```css
+/* Light mode */
+--color-nw-depth-1: var(--amber-200);
+--color-nw-depth-2: var(--amber-300);
+/* ... up to depth-9 */
+
+/* Dark mode (.dark) */
+--color-nw-depth-1: var(--amber-800);
+--color-nw-depth-2: var(--amber-700);
+/* ... inverted progression */
 ```
-Light mode: color-200 → color-900 (darker with depth)
-Dark mode: color-800 → color-100 (lighter with depth)
+
+**Tailwind Classes**:
+```
+fill-nw-depth-1, fill-ne-depth-2, etc.
+text-tile-primary, bg-tile-stroke, etc.
 ```
 
 **Components**:
 - Everything from Solution 1
-- New: `/src/app/map/types/theme-colors.ts`
-- Modified: `/src/app/map/types/tile-data.ts` (theme-aware getColor)
-- Modified: All tile components using colors
-- Modified: `/src/app/map/Tile/utils/stroke.ts`
+- Modified: `/src/styles/globals.css` (CSS variables)
+- Modified: `/config/tailwind.config.ts` (custom color classes)
+- Modified: `/src/app/map/types/tile-data.ts` (return semantic classes)
+- Modified: All tile components (use new classes)
 
 **Pros**:
-- Complete dark mode experience
-- Maintains visual hierarchy in both themes
-- Relatively straightforward mapping
+- Clean CSS-based solution
+- Foundation for future enhancements
+- Easier debugging and maintenance
+- No runtime color calculations
 
 **Cons**:
-- More complex implementation (3-4 days)
-- May need color adjustments for optimal contrast
-- Larger changeset
+- More initial CSS setup
+- Need to update safelist in Tailwind config
+- Larger CSS file (but better performance)
 
 ### Solution 3: Advanced Theme System with Custom Palettes
 
@@ -205,13 +219,14 @@ Dark mode: color-800 → color-100 (lighter with depth)
 - Requires color design expertise
 - More complex to maintain
 
-### Recommended Approach: Solution 2 (Full Dark Mode with Inverted Tints)
+### Recommended Approach: Solution 2 (Full Dark Mode with CSS Variables)
 
 **Rationale**:
-- Provides complete dark mode experience
-- Reasonable implementation effort
-- Uses existing color system intelligently
-- Can be enhanced later (Solution 3)
+- Clean CSS-based solution aligned with Tailwind patterns
+- Sets foundation for future theme enhancements
+- Better performance (no runtime calculations)
+- Easier to debug and maintain
+- Natural path to Solution 3 features
 
 **Implementation Phases**:
 
@@ -222,9 +237,10 @@ Dark mode: color-800 → color-100 (lighter with depth)
 - Basic theme switching
 
 **Phase 2** (Day 2):
-- Map layout gradients
-- Theme-aware color functions
-- Update tile components
+- Define CSS variables for all direction/depth combinations
+- Update Tailwind config with custom color classes
+- Modify getColor() to return semantic classes
+- Update tile components to use new classes
 
 **Phase 3** (Day 3):
 - Stroke and text colors

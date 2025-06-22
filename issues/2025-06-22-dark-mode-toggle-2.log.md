@@ -183,3 +183,34 @@ Phased approach over 3 days:
 - Apply `.dark` class to `<html>` element (Tailwind convention)
 
 ---
+
+## 2025-06-22 11:40 - Solution Refinement
+
+*Updated by @Diplow based on CSS variable suggestion*
+
+### Design Improvement
+@Diplow suggested using CSS variables instead of JavaScript functions for theme-aware colors:
+- Define variables like `--color-nw-depth-1` through `--color-nw-depth-9` for each direction
+- Create Tailwind classes that reference these variables
+- Let CSS handle the theme switching rather than runtime calculations
+
+### Benefits of CSS Variable Approach
+1. **Cleaner architecture** - All theming logic stays in CSS
+2. **Better performance** - No runtime color calculations
+3. **Easier debugging** - Can inspect colors in DevTools
+4. **Foundation for future** - Natural path to advanced theming features
+5. **Tailwind alignment** - Uses Tailwind's intended patterns
+
+### Updated Solution 2
+Changed from:
+- JavaScript `getThemeAwareColor()` function
+- Runtime tint calculations
+
+To:
+- CSS variables for each direction/depth combination
+- Tailwind classes like `fill-nw-depth-1`
+- Semantic color names for UI elements
+
+This is essentially taking the CSS foundation from Solution 3 without the complexity of transitions, system preferences, etc. Perfect middle ground!
+
+---
