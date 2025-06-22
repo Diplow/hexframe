@@ -40,7 +40,7 @@ export const DynamicTileContent = ({ data, scale, tileId, isHovered = false, dep
         <div
           className={`${marginClass} ${horizontalPadding} flex h-full w-full flex-col items-center justify-center gap-2 overflow-hidden`}
         >
-          <DescriptionSection description={combinedContent} scale={scale} tileId={tileId} />
+          <DescriptionSection description={combinedContent} scale={scale} tileId={tileId} textClasses={textClasses} />
         </div>
       );
     }
