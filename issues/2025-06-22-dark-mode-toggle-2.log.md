@@ -87,3 +87,33 @@ The implementation would follow existing patterns:
 - Key insight: Dark mode CSS exists but needs activation logic
 
 ---
+
+## 2025-06-22 11:15 - Additional Context: Canvas Color System
+
+*Updated by @Diplow based on reflection about Canvas color system*
+
+### Additional Findings
+**Canvas/Map Color System Analysis**:
+- The `getColor()` function maps tile coordinates to colors based on:
+  - Direction (first path segment) → Base color (amber, green, cyan, indigo, purple, rose)
+  - Depth (path length) → Tint intensity (200, 300, 400... up to 900)
+- This creates a visual hierarchy optimized for light backgrounds
+- Colors are applied as hardcoded Tailwind classes without dark variants
+- The system affects all tile rendering, making this the most complex part of dark mode implementation
+
+**Scope of Color System**:
+- Used in: StaticBaseTileLayout, DynamicFrame, DynamicEmptyTile
+- Stroke colors also hardcoded for light mode (zinc-950, zinc-900)
+- Button colors in tiles (amber-600, rose-600, blue-800) lack dark variants
+- Text colors (zinc-950, cyan-800) assume light backgrounds
+
+**Positive Finding**: 
+- The Toolbox component already demonstrates proper dark mode patterns with classes like `bg-cyan-100 dark:bg-cyan-900/20`
+- This provides a template for updating other components
+
+### Updated Context Section
+- Added "Canvas/Map Color System" subsection highlighting the direction/depth color mapping
+- Noted that this system was designed for light backgrounds only
+- Identified the Toolbox as already implementing dark mode patterns
+
+---

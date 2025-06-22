@@ -57,11 +57,19 @@ Components that would be affected by dark mode:
 - Chart colors: 5 predefined colors for data visualization
 - Sidebar-specific color variables
 
+**Canvas/Map Color System** (Not dark-mode ready):
+- **Direction-based colors**: Each hexagon direction maps to a color (amber, green, cyan, indigo, purple, rose)
+- **Depth-based tints**: Colors darken with depth (200→300→400...→900)
+- **Light-only design**: System assumes light backgrounds throughout
+- **Hardcoded classes**: Uses direct Tailwind classes like `fill-amber-200` without dark variants
+- **Affected components**: All tile rendering, strokes, and map visualization
+
 **Styling Patterns**:
 - Utility-first approach with Tailwind classes
 - `cn()` utility for class name merging
 - Limited CSS modules usage (only auth tile)
 - No CSS-in-JS solutions
+- **Exception**: Toolbox already implements dark mode patterns
 
 **Dark Mode Configuration**:
 - Tailwind: `darkMode: ["class"]` in config
