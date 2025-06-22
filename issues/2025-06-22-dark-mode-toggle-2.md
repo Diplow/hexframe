@@ -146,24 +146,33 @@ Components that would be affected by dark mode:
 4. Update tile components to use semantic color classes
 5. Add theme-aware stroke and UI colors
 
-**Color System**:
+**Design System Foundation**:
 ```css
-/* Light mode */
+/* Semantic action colors */
+--color-action-create: var(--green);
+--color-action-edit: var(--amber);
+--color-action-delete: var(--destructive);
+--color-action-navigate: var(--primary);
+--color-action-external: var(--accent);
+
+/* Canvas depth colors */
 --color-nw-depth-1: var(--amber-200);
 --color-nw-depth-2: var(--amber-300);
 /* ... up to depth-9 */
 
 /* Dark mode (.dark) */
+--color-action-create: var(--green);
+--color-action-edit: var(--amber);
+/* Canvas colors inverted */
 --color-nw-depth-1: var(--amber-800);
 --color-nw-depth-2: var(--amber-700);
-/* ... inverted progression */
 ```
 
-**Tailwind Classes**:
-```
-fill-nw-depth-1, fill-ne-depth-2, etc.
-text-tile-primary, bg-tile-stroke, etc.
-```
+**Benefits**:
+- Consistent action colors across the app
+- Single source of truth for theming
+- Easy to maintain and extend
+- Automatic dark mode support
 
 **Components**:
 - Everything from Solution 1
@@ -235,6 +244,7 @@ text-tile-primary, bg-tile-stroke, etc.
 - Theme toggle component
 - localStorage persistence
 - Basic theme switching
+- Define semantic color variables for actions
 
 **Phase 2** (Day 2):
 - Define CSS variables for all direction/depth combinations
@@ -243,8 +253,9 @@ text-tile-primary, bg-tile-stroke, etc.
 - Update tile components to use new classes
 
 **Phase 3** (Day 3):
-- Stroke and text colors
-- Button variants
+- Migrate hardcoded buttons to semantic variants
+- Update stroke and text colors
+- Establish consistent action-to-color mapping
 - Testing and refinement
 
 **Future Enhancements**:

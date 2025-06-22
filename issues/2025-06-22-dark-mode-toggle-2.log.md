@@ -214,3 +214,36 @@ To:
 This is essentially taking the CSS foundation from Solution 3 without the complexity of transitions, system preferences, etc. Perfect middle ground!
 
 ---
+
+## 2025-06-22 11:45 - Design System Foundation
+
+*Updated by @Diplow identifying need for design system basics*
+
+### Current State Analysis
+@Diplow correctly identified that the codebase lacks a consistent design system:
+- Login buttons use `bg-indigo-600`
+- Delete buttons vary between `rose-500` and `rose-600`
+- Edit buttons use `bg-amber-600`
+- No semantic meaning to color choices
+
+Found two parallel systems:
+1. **Proper system**: shadcn components with CSS variables
+2. **Ad-hoc system**: Hardcoded Tailwind colors everywhere
+
+### Design System Integration
+Updated Solution 2 to include establishing design system foundations:
+- Define semantic action colors (create, edit, delete, navigate)
+- Use CSS variables for consistency
+- Migrate hardcoded colors to semantic variants
+- Single source of truth for both light and dark modes
+
+Example:
+```css
+--color-action-create: var(--green);
+--color-action-edit: var(--amber);
+--color-action-delete: var(--destructive);
+```
+
+This makes dark mode implementation cleaner and establishes patterns for future development.
+
+---
