@@ -111,6 +111,7 @@ export function ItemTileContent({
             scale={scale}
             tileId={testId.replace("tile-", "")}
             isHovered={isHovered}
+            depth={item.metadata.depth}
           />
         </DynamicBaseTileLayout>
       </div>

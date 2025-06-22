@@ -79,6 +79,78 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Canvas depth colors - Light mode */
+  /* Center (zinc) */
+  --color-center-depth-0: theme(colors.zinc.50);
+  --color-center-depth-1: theme(colors.zinc.200);
+  --color-center-depth-2: theme(colors.zinc.300);
+  --color-center-depth-3: theme(colors.zinc.400);
+  --color-center-depth-4: theme(colors.zinc.500);
+  --color-center-depth-5: theme(colors.zinc.600);
+  --color-center-depth-6: theme(colors.zinc.700);
+  --color-center-depth-7: theme(colors.zinc.800);
+  --color-center-depth-8: theme(colors.zinc.900);
+
+  /* NorthWest (amber) */
+  --color-nw-depth-1: theme(colors.amber.200);
+  --color-nw-depth-2: theme(colors.amber.300);
+  --color-nw-depth-3: theme(colors.amber.400);
+  --color-nw-depth-4: theme(colors.amber.500);
+  --color-nw-depth-5: theme(colors.amber.600);
+  --color-nw-depth-6: theme(colors.amber.700);
+  --color-nw-depth-7: theme(colors.amber.800);
+  --color-nw-depth-8: theme(colors.amber.900);
+
+  /* NorthEast (green) */
+  --color-ne-depth-1: theme(colors.green.200);
+  --color-ne-depth-2: theme(colors.green.300);
+  --color-ne-depth-3: theme(colors.green.400);
+  --color-ne-depth-4: theme(colors.green.500);
+  --color-ne-depth-5: theme(colors.green.600);
+  --color-ne-depth-6: theme(colors.green.700);
+  --color-ne-depth-7: theme(colors.green.800);
+  --color-ne-depth-8: theme(colors.green.900);
+
+  /* East (cyan) */
+  --color-e-depth-1: theme(colors.cyan.200);
+  --color-e-depth-2: theme(colors.cyan.300);
+  --color-e-depth-3: theme(colors.cyan.400);
+  --color-e-depth-4: theme(colors.cyan.500);
+  --color-e-depth-5: theme(colors.cyan.600);
+  --color-e-depth-6: theme(colors.cyan.700);
+  --color-e-depth-7: theme(colors.cyan.800);
+  --color-e-depth-8: theme(colors.cyan.900);
+
+  /* SouthEast (indigo) */
+  --color-se-depth-1: theme(colors.indigo.200);
+  --color-se-depth-2: theme(colors.indigo.300);
+  --color-se-depth-3: theme(colors.indigo.400);
+  --color-se-depth-4: theme(colors.indigo.500);
+  --color-se-depth-5: theme(colors.indigo.600);
+  --color-se-depth-6: theme(colors.indigo.700);
+  --color-se-depth-7: theme(colors.indigo.800);
+  --color-se-depth-8: theme(colors.indigo.900);
+
+  /* SouthWest (purple) */
+  --color-sw-depth-1: theme(colors.purple.200);
+  --color-sw-depth-2: theme(colors.purple.300);
+  --color-sw-depth-3: theme(colors.purple.400);
+  --color-sw-depth-4: theme(colors.purple.500);
+  --color-sw-depth-5: theme(colors.purple.600);
+  --color-sw-depth-6: theme(colors.purple.700);
+  --color-sw-depth-7: theme(colors.purple.800);
+  --color-sw-depth-8: theme(colors.purple.900);
+
+  /* West (rose) */
+  --color-w-depth-1: theme(colors.rose.200);
+  --color-w-depth-2: theme(colors.rose.300);
+  --color-w-depth-3: theme(colors.rose.400);
+  --color-w-depth-4: theme(colors.rose.500);
+  --color-w-depth-5: theme(colors.rose.600);
+  --color-w-depth-6: theme(colors.rose.700);
+  --color-w-depth-7: theme(colors.rose.800);
+  --color-w-depth-8: theme(colors.rose.900);
 }
 
 .dark {
@@ -113,6 +185,78 @@
   --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.551 0.027 264.364);
+
+  /* Canvas depth colors - Dark mode (inverted) */
+  /* Center (zinc) */
+  --color-center-depth-0: theme(colors.zinc.900);
+  --color-center-depth-1: theme(colors.zinc.800);
+  --color-center-depth-2: theme(colors.zinc.700);
+  --color-center-depth-3: theme(colors.zinc.600);
+  --color-center-depth-4: theme(colors.zinc.500);
+  --color-center-depth-5: theme(colors.zinc.400);
+  --color-center-depth-6: theme(colors.zinc.300);
+  --color-center-depth-7: theme(colors.zinc.200);
+  --color-center-depth-8: theme(colors.zinc.100);
+
+  /* NorthWest (amber) */
+  --color-nw-depth-1: theme(colors.amber.800);
+  --color-nw-depth-2: theme(colors.amber.700);
+  --color-nw-depth-3: theme(colors.amber.600);
+  --color-nw-depth-4: theme(colors.amber.500);
+  --color-nw-depth-5: theme(colors.amber.400);
+  --color-nw-depth-6: theme(colors.amber.300);
+  --color-nw-depth-7: theme(colors.amber.200);
+  --color-nw-depth-8: theme(colors.amber.100);
+
+  /* NorthEast (green) */
+  --color-ne-depth-1: theme(colors.green.800);
+  --color-ne-depth-2: theme(colors.green.700);
+  --color-ne-depth-3: theme(colors.green.600);
+  --color-ne-depth-4: theme(colors.green.500);
+  --color-ne-depth-5: theme(colors.green.400);
+  --color-ne-depth-6: theme(colors.green.300);
+  --color-ne-depth-7: theme(colors.green.200);
+  --color-ne-depth-8: theme(colors.green.100);
+
+  /* East (cyan) */
+  --color-e-depth-1: theme(colors.cyan.800);
+  --color-e-depth-2: theme(colors.cyan.700);
+  --color-e-depth-3: theme(colors.cyan.600);
+  --color-e-depth-4: theme(colors.cyan.500);
+  --color-e-depth-5: theme(colors.cyan.400);
+  --color-e-depth-6: theme(colors.cyan.300);
+  --color-e-depth-7: theme(colors.cyan.200);
+  --color-e-depth-8: theme(colors.cyan.100);
+
+  /* SouthEast (indigo) */
+  --color-se-depth-1: theme(colors.indigo.800);
+  --color-se-depth-2: theme(colors.indigo.700);
+  --color-se-depth-3: theme(colors.indigo.600);
+  --color-se-depth-4: theme(colors.indigo.500);
+  --color-se-depth-5: theme(colors.indigo.400);
+  --color-se-depth-6: theme(colors.indigo.300);
+  --color-se-depth-7: theme(colors.indigo.200);
+  --color-se-depth-8: theme(colors.indigo.100);
+
+  /* SouthWest (purple) */
+  --color-sw-depth-1: theme(colors.purple.800);
+  --color-sw-depth-2: theme(colors.purple.700);
+  --color-sw-depth-3: theme(colors.purple.600);
+  --color-sw-depth-4: theme(colors.purple.500);
+  --color-sw-depth-5: theme(colors.purple.400);
+  --color-sw-depth-6: theme(colors.purple.300);
+  --color-sw-depth-7: theme(colors.purple.200);
+  --color-sw-depth-8: theme(colors.purple.100);
+
+  /* West (rose) */
+  --color-w-depth-1: theme(colors.rose.800);
+  --color-w-depth-2: theme(colors.rose.700);
+  --color-w-depth-3: theme(colors.rose.600);
+  --color-w-depth-4: theme(colors.rose.500);
+  --color-w-depth-5: theme(colors.rose.400);
+  --color-w-depth-6: theme(colors.rose.300);
+  --color-w-depth-7: theme(colors.rose.200);
+  --color-w-depth-8: theme(colors.rose.100);
 }
 
 @layer base {
