@@ -8,6 +8,7 @@ import { useToolboxKeyboard } from './_hooks/useToolboxKeyboard';
 import { calculateToolboxTopOffset } from './_utils/toolbox-layout';
 import { ToolboxToggle } from './_components/ToolboxToggle';
 import { ToolButton, type ToolConfig } from './_components/ToolButton';
+import { ThemeToggle } from '~/components/ThemeToggle';
 import { 
   Navigation, 
   Plus, 
@@ -85,6 +86,20 @@ export function Toolbox() {
             ))}
           </div>
         </div>
+
+        {/* Theme toggle section */}
+        {displayMode !== 'closed' && (
+          <>
+            <div className="h-px bg-gray-200 dark:bg-gray-700" />
+            <div className="p-2">
+              <ThemeToggle 
+                className="w-full justify-center"
+                showLabel={displayMode === 'full'}
+                size={displayMode === 'full' ? 'md' : 'sm'}
+              />
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
