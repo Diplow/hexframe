@@ -3,7 +3,7 @@
 **Date**: 2025-06-22
 **Status**: Open
 **Tags**: #feature #design #accessibility #medium
-**GitHub Issue**: #2
+**GitHub Issue**: #56
 **Branch**: issue-2-dark-mode-toggle
 
 ## Problem Statement
