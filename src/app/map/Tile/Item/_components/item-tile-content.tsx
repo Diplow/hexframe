@@ -15,7 +15,7 @@ interface ItemTileContentProps {
   item: TileData;
   scale: TileScale;
   baseHexSize: number;
-  tileColor: TileColor;
+  tileColor: TileColor | string; // Allow both old format and new semantic format
   testId: string;
   interactive: boolean;
   isBeingDragged: boolean;
@@ -111,6 +111,7 @@ export function ItemTileContent({
             scale={scale}
             tileId={testId.replace("tile-", "")}
             isHovered={isHovered}
+            depth={item.metadata.depth}
           />
         </DynamicBaseTileLayout>
       </div>

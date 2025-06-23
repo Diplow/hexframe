@@ -6,11 +6,11 @@ import { useMapCache } from "../../Cache/map-cache";
 import { _getParentHierarchy, _shouldShowHierarchy } from "./hierarchy.utils";
 import type { URLInfo } from "../../types/url-info";
 import { StaticBaseTileLayout } from "~/app/static/map/Tile/Base/base";
-import { getColorFromItem } from "~/app/static/map/Tile/Item/item";
 import {
   HIERARCHY_TILE_BASE_SIZE,
   HIERARCHY_TILE_SCALE,
 } from "../../constants";
+import { getTextColorForDepth } from "~/app/map/types/theme-colors";
 
 interface ParentHierarchyProps {
   centerCoordId: string;
@@ -48,7 +48,7 @@ const DynamicHierarchyTile = ({
         <StaticBaseTileLayout
           coordId={item.metadata.coordId}
           scale={HIERARCHY_TILE_SCALE}
-          color={getColorFromItem(item)}
+          color={item.data.color}
           baseHexSize={HIERARCHY_TILE_BASE_SIZE}
           isFocusable={false}
         >
@@ -60,10 +60,12 @@ const DynamicHierarchyTile = ({
 };
 
 const HierarchyTileContent = ({ item }: { item: TileData }) => {
+  const textColorClass = getTextColorForDepth(item.metadata.depth);
+  
   return (
     <div className="flex h-full w-full items-center justify-center p-2">
       <span
-        className="text-center text-xs font-medium leading-tight text-slate-800"
+        className={`text-center text-xs font-medium leading-tight ${textColorClass}`}
         style={{
           display: "-webkit-box",
           WebkitLineClamp: 3,

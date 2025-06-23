@@ -7,12 +7,12 @@ import type {
   TileStroke, 
   TileCursor 
 } from "~/app/static/map/Tile/Base/base";
-import { getDefaultStroke } from "../utils/stroke";
+import { getDefaultStroke, getStrokeHexColor } from "../utils/stroke";
 
 export interface DynamicBaseTileLayoutProps {
   coordId: string;
   scale: TileScale;
-  color?: TileColor;
+  color?: TileColor | string; // Allow both old format and new semantic format
   stroke?: TileStroke;
   children?: ReactNode;
   cursor?: TileCursor;
@@ -53,8 +53,11 @@ export const DynamicBaseTileLayout = ({
   const svgViewBox = strokePadding > 0 
     ? `-${strokePadding} -${strokePadding} ${100 + strokePadding * 2} ${115.47 + strokePadding * 2}`
     : "0 0 100 115.47";
+  // Handle both old format (color object) and new format (semantic string)
   const fillClass = color
-    ? `fill-${color.color}-${color.tint}`
+    ? typeof color === 'string'
+      ? `fill-${color}` // New semantic format like "nw-depth-1"
+      : `fill-${color.color}-${color.tint}` // Old format
     : "fill-transparent";
 
   return (
@@ -89,13 +92,7 @@ export const DynamicBaseTileLayout = ({
           <path
             d={svgPath}
             className={`transition-all duration-300 ${fillClass}`}
-            stroke={
-              finalStroke.color === "zinc-950" ? "rgba(24, 24, 27, 0.6)" : // 60% opacity 
-              finalStroke.color === "zinc-900" ? "rgba(39, 39, 42, 0.5)" : // 50% opacity
-              finalStroke.color === "zinc-800" ? "rgba(63, 63, 70, 0.4)" : // 40% opacity
-              finalStroke.color === "zinc-50" ? "#fafafa" : 
-              "transparent"
-            }
+            stroke={getStrokeHexColor(finalStroke.color)}
             strokeWidth={finalStroke.width}
             strokeLinejoin="round"
             fill={color ? undefined : "none"}

@@ -1,5 +1,8 @@
 import { Direction } from "~/lib/domains/mapping/utils/hex-coordinates";
 
+// Re-export Direction for convenience
+export { Direction };
+
 // Map-related constants used across components
 
 // Default colors for map items - maps each hex direction to a Tailwind color name

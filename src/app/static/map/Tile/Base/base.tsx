@@ -39,7 +39,7 @@ export type TileColor = {
 export interface StaticBaseTileLayoutProps {
   coordId: string;
   scale: TileScale;
-  color?: TileColor;
+  color?: TileColor | string; // Allow both old format and new semantic format
   stroke?: TileStroke;
   children?: ReactNode;
   cursor?: TileCursor;
@@ -80,8 +80,11 @@ export const StaticBaseTileLayout = ({
   const svgViewBox = strokePadding > 0 
     ? `-${strokePadding} -${strokePadding} ${100 + strokePadding * 2} ${115.47 + strokePadding * 2}`
     : "0 0 100 115.47";
+  // Handle both old format (color object) and new format (semantic string)
   const fillClass = color
-    ? `fill-${color.color}-${color.tint}`
+    ? typeof color === 'string'
+      ? `fill-${color}` // New semantic format like "nw-depth-1"
+      : `fill-${color.color}-${color.tint}` // Old format
     : "fill-transparent";
 
   return (

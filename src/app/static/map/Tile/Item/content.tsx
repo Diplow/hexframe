@@ -11,7 +11,7 @@ export interface StaticTileContentProps {
   tileId?: string; // For unique test IDs
 }
 
-const TEXT_CLASSES = "max-w-[90%] break-words text-zinc-950";
+const TEXT_CLASSES = "max-w-[90%] break-words text-gray-900 dark:text-gray-100";
 
 export const StaticTileContent = ({ data, scale, tileId }: StaticTileContentProps) => {
   if (!data) return null;
@@ -75,9 +75,9 @@ const DescriptionSection = (description: string, scale: TileScale) => {
           ul: ({ children }) => <ul className="list-disc list-inside mb-1 text-center">{children}</ul>,
           ol: ({ children }) => <ol className="list-decimal list-inside mb-1 text-center">{children}</ol>,
           li: ({ children }) => <li className="mb-0.5">{children}</li>,
-          code: ({ children }) => <code className="bg-gray-100 px-0.5 rounded text-xs">{children}</code>,
+          code: ({ children }) => <code className="bg-gray-100 dark:bg-gray-800 px-0.5 rounded text-xs">{children}</code>,
           a: ({ href, children }) => (
-            <a href={href} target="_blank" rel="noopener noreferrer" className="text-cyan-800 hover:text-cyan-950 underline">
+            <a href={href} target="_blank" rel="noopener noreferrer" className="text-cyan-800 dark:text-cyan-400 hover:text-cyan-950 dark:hover:text-cyan-300 underline">
               {children}
             </a>
           ),
@@ -101,7 +101,7 @@ const UrlSection = (url: string, scale: TileScale) => {
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-cyan-800 hover:text-cyan-950 hover:underline"
+        className="text-cyan-800 dark:text-cyan-400 hover:text-cyan-950 dark:hover:text-cyan-300 hover:underline"
       >
         {displayUrl}
       </a>

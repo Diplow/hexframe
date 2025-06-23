@@ -27,7 +27,7 @@ export function ToolboxToggle({ displayMode, cyclePosition, onToggle }: ToolboxT
         displayMode === 'full' ? "justify-start gap-2 px-6" : "justify-center"
       )}>
         <ChevronRight 
-          className="w-5 h-5 flex-shrink-0 transition-transform ease-in-out"
+          className="w-5 h-5 flex-shrink-0 transition-transform ease-in-out text-gray-700 dark:text-gray-300"
           style={{
             transform: `rotate(${getChevronRotation(cyclePosition)}deg)`,
             transitionDuration: `${getChevronTransitionDuration(cyclePosition)}ms`
