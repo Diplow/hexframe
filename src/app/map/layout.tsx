@@ -4,9 +4,9 @@ export default function MapLayout({ children }: { children: React.ReactNode }) {
       {/* Theme-aware gradient background */}
       <div className="absolute inset-0">
         {/* Light mode: subtle gradients */}
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-100 to-amber-100 dark:from-indigo-900 dark:to-amber-900">
-          <div className="absolute inset-0 bg-gradient-to-r from-cyan-100/50 to-rose-100/50 dark:from-cyan-900/70 dark:to-rose-900/70">
-            <div className="absolute inset-0 bg-gradient-to-tr from-green-100/40 to-purple-100/40 dark:from-green-900/60 dark:to-purple-900/60">
+        <div className="absolute inset-0 bg-gradient-to-br dark:from-indigo-400 dark:to-amber-400 from-indigo-900 to-amber-900">
+          <div className="absolute inset-0 bg-gradient-to-r dark:from-cyan-400/50 dark:to-rose-400/50 from-cyan-900/70 to-rose-900/70">
+            <div className="absolute inset-0 bg-gradient-to-tr dark:from-green-400/40 dark:to-purple-400/40 from-green-900/60 to-purple-900/60">
               {/* Subtle noise texture overlay for depth */}
               <div className="absolute inset-0 opacity-20 dark:opacity-30" 
                 style={{

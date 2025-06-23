@@ -95,7 +95,7 @@ export function Toolbox() {
               <ThemeToggle 
                 className="w-full justify-center"
                 showLabel={displayMode === 'full'}
-                size={displayMode === 'full' ? 'md' : 'sm'}
+                size="md"
               />
             </div>
           </>

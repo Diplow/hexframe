@@ -22,13 +22,13 @@ export function getDefaultStroke(scale: TileScale, isExpanded = false): StrokeCo
 export function getStrokeHexColor(color: StrokeConfig["color"]): string {
   switch (color) {
     case "zinc-950":
-      return "rgba(24, 24, 27, 0.6)";
+      return "var(--stroke-color-950)";
     case "zinc-900":
-      return "rgba(39, 39, 42, 0.5)";
+      return "var(--stroke-color-900)";
     case "zinc-800":
-      return "rgba(63, 63, 70, 0.4)";
+      return "var(--stroke-color-800)";
     case "zinc-50":
-      return "#fafafa";
+      return "var(--stroke-color-50)";
     default:
       return "transparent";
   }

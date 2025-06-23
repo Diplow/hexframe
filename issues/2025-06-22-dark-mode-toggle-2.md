@@ -1,7 +1,8 @@
 # Issue: Add Dark Mode Toggle
 
 **Date**: 2025-06-22
-**Status**: Open
+**Status**: In Progress
+**Updated**: 2025-06-22
 **Tags**: #feature #design #accessibility #medium
 **GitHub Issue**: #56
 **Branch**: issue-2-dark-mode-toggle
@@ -263,3 +264,35 @@ Components that would be affected by dark mode:
 - Smooth transitions
 - Custom color palettes
 - Theme customization UI
+
+## Implementation Progress
+
+### Completed (Phase 1 & 2)
+✅ Created ThemeContext with provider pattern
+✅ Added ThemeToggle component with sun/moon icons
+✅ Integrated toggle into app layout and Toolbox
+✅ localStorage persistence for theme preference
+✅ Made map layout gradients theme-aware
+✅ Created CSS variables for all direction/depth combinations
+✅ Updated Tailwind config with semantic color classes
+✅ Modified getColor() to return semantic classes
+✅ Updated tile components to handle both color formats
+✅ Added dynamic text colors based on tile depth
+✅ Fixed TypeScript errors related to color type changes
+✅ Fixed center tile dark mode color (was black, now zinc-800)
+✅ Fixed tile stroke colors for dark mode using CSS variables
+✅ Fixed hierarchy tile colors and text contrast
+✅ Fixed toolbox chevron color in dark mode
+✅ Fixed dynamic tile hardcoded strokes
+
+### Issues Resolved
+1. **Scale 2 tile strokes**: Fixed hardcoded stroke colors in DynamicBaseTileLayout
+2. **Hierarchy tiles**: Now use semantic color system with proper text contrast
+3. **Toolbox chevron**: Added explicit color classes for visibility
+4. **Center tile**: Changed from zinc-900 to zinc-800 for better visibility
+
+### Remaining Tasks (Phase 3)
+⏳ Update hardcoded button colors to semantic variants
+⏳ Add design system color variables for actions
+⏳ Establish consistent action-to-color mapping
+⏳ Testing and refinement

@@ -82,7 +82,7 @@
 
   /* Canvas depth colors - Light mode */
   /* Center (zinc) */
-  --color-center-depth-0: theme(colors.zinc.50);
+  --color-center-depth-0: theme(colors.zinc.200);
   --color-center-depth-1: theme(colors.zinc.200);
   --color-center-depth-2: theme(colors.zinc.300);
   --color-center-depth-3: theme(colors.zinc.400);
@@ -151,6 +151,12 @@
   --color-w-depth-6: theme(colors.rose.700);
   --color-w-depth-7: theme(colors.rose.800);
   --color-w-depth-8: theme(colors.rose.900);
+
+  /* Tile stroke colors - Light mode */
+  --stroke-color-950: rgba(24, 24, 27, 0.6);
+  --stroke-color-900: rgba(39, 39, 42, 0.5);
+  --stroke-color-800: rgba(63, 63, 70, 0.4);
+  --stroke-color-50: #fafafa;
 }
 
 .dark {
@@ -188,7 +194,7 @@
 
   /* Canvas depth colors - Dark mode (inverted) */
   /* Center (zinc) */
-  --color-center-depth-0: theme(colors.zinc.900);
+  --color-center-depth-0: theme(colors.zinc.700);
   --color-center-depth-1: theme(colors.zinc.800);
   --color-center-depth-2: theme(colors.zinc.700);
   --color-center-depth-3: theme(colors.zinc.600);
@@ -257,6 +263,12 @@
   --color-w-depth-6: theme(colors.rose.300);
   --color-w-depth-7: theme(colors.rose.200);
   --color-w-depth-8: theme(colors.rose.100);
+
+  /* Tile stroke colors - Dark mode */
+  --stroke-color-950: rgba(250, 250, 250, 0.8);
+  --stroke-color-900: rgba(244, 244, 245, 0.7);
+  --stroke-color-800: rgba(228, 228, 231, 0.6);
+  --stroke-color-50: #18181b;
 }
 
 @layer base {

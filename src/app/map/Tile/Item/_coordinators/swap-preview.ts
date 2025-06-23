@@ -2,7 +2,6 @@ import type { TileData } from "~/app/map/types/tile-data";
 import type { TileColor } from "~/app/static/map/Tile/Base/base";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import { getColor as calculateColor } from "~/app/map/types/tile-data";
-import { getColorFromItem } from "../_utils/color";
 
 /**
  * Calculates the preview color for a tile during a swap operation
@@ -20,7 +19,7 @@ export function getSwapPreviewColor(
 ): TileColor | string {
   // If not an active swap target, use normal color
   if (!isDropTargetActive || dropOperation !== 'swap') {
-    return getColorFromItem(item);
+    return item.data.color;
   }
 
   try {
@@ -34,6 +33,6 @@ export function getSwapPreviewColor(
     return previewColorString;
   } catch (error) {
     console.error(`Error calculating swap preview color:`, error);
-    return getColorFromItem(item); // Fallback to current color on any error
+    return item.data.color; // Fallback to current color on any error
   }
 }
