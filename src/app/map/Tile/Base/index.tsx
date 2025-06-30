@@ -8,7 +8,7 @@ import type {
   TileCursor 
 } from "~/app/static/map/Tile/Base/base";
 import { getDefaultStroke, getStrokeHexColor } from "../utils/stroke";
-import { CoordSystem, Direction } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { CoordSystem, type Direction } from "~/lib/domains/mapping/utils/hex-coordinates";
 import { renderTileGradient } from "./gradient";
 
 export interface DynamicBaseTileLayoutProps {
@@ -51,9 +51,9 @@ export const DynamicBaseTileLayout = ({
   
   try {
     coord = CoordSystem.parseId(coordId);
-    lastDirection = coord.path.length > 0 ? coord.path[coord.path.length - 1] as Direction : null;
+    lastDirection = coord.path.length > 0 ? coord.path[coord.path.length - 1]! as Direction : null;
     hasPath = coord.path.length > 0;
-  } catch (error) {
+  } catch {
     // For special tiles like "auth", use default values
     coord = { userId: 0, groupId: 0, path: [] };
   }
@@ -118,7 +118,7 @@ export const DynamicBaseTileLayout = ({
             fill={color ? undefined : "none"}
           />
           {/* Gradient overlay for faceted effect */}
-          {(color || (isExpanded && !_shallow)) && (
+          {(color ?? (isExpanded && !_shallow)) && (
             <path
               d={svgPath}
               fill={`url(#tile-gradient-${coordId})`}
