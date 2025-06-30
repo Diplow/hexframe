@@ -1,0 +1,132 @@
+{
+  "tiles": [
+    {
+      "id": "express-wills",
+      "position": "NW",
+      "title": "Express Wills",
+      "description": "Capture and articulate what we want the world to become",
+      "details": {
+        "what": "A system for transforming vague desires into clear, actionable intentions",
+        "how": "Visual hexagonal mapping that makes implicit goals explicit",
+        "why": "Because change starts with clearly expressing what we want"
+      },
+      "color": "#4A90E2",
+      "icon": "✍️"
+    },
+    {
+      "id": "legitimize-sharing",
+      "position": "NE",
+      "title": "Legitimize Through Sharing",
+      "description": "Defend and validate our wills by making them public and discussable",
+      "details": {
+        "what": "A platform for sharing systems openly for scrutiny and validation",
+        "how": "Public system galleries with discussion and critique features",
+        "why": "Because legitimacy comes from transparency and defendability"
+      },
+      "color": "#50C878",
+      "icon": "🤝"
+    },
+    {
+      "id": "test-ai-first",
+      "position": "E",
+      "title": "Test with AI First",
+      "description": "Use AI as a sandbox for practicing deliberate system design",
+      "details": {
+        "what": "AI systems as a training ground for deliberation skills",
+        "how": "Build AI workflows that embody clear intentions and logic",
+        "why": "Because AI interaction teaches us to be explicit about goals"
+      },
+      "color": "#9B59B6",
+      "icon": "🤖"
+    },
+    {
+      "id": "democratic-deliberation",
+      "position": "SE",
+      "title": "Enable Democratic Deliberation",
+      "description": "Scale individual deliberation to collective decision-making",
+      "details": {
+        "what": "Tools for group deliberation and shared governance",
+        "how": "Collaborative hexagonal maps for collective decision processes",
+        "why": "Because deliberation must scale from personal to societal"
+      },
+      "color": "#E74C3C",
+      "icon": "🗳️"
+    },
+    {
+      "id": "make-visible",
+      "position": "SW",
+      "title": "Make Intentions Visible",
+      "description": "Reveal the what, how, and why behind every system",
+      "details": {
+        "what": "Transparency layer showing system logic and tradeoffs",
+        "how": "Automatic documentation of priorities and decision paths",
+        "why": "Because understanding requires seeing the full picture"
+      },
+      "color": "#F39C12",
+      "icon": "👁️"
+    },
+    {
+      "id": "enrich-discussion",
+      "position": "W",
+      "title": "Enrich Through Discussion",
+      "description": "Improve and evolve wills through collective input",
+      "details": {
+        "what": "Collaborative refinement of systems through discourse",
+        "how": "Comment threads, forks, and merge proposals for systems",
+        "why": "Because wills grow stronger through constructive critique"
+      },
+      "color": "#1ABC9C",
+      "icon": "💬"
+    }
+  ],
+  "relationships": {
+    "opposites": [
+      {
+        "pair": ["express-wills", "democratic-deliberation"],
+        "tension": "Individual expression vs collective decision-making",
+        "synergy": "Personal clarity enables group deliberation"
+      },
+      {
+        "pair": ["legitimize-sharing", "make-visible"],
+        "tension": "External validation vs internal transparency",
+        "synergy": "Visibility enables meaningful sharing"
+      },
+      {
+        "pair": ["test-ai-first", "enrich-discussion"],
+        "tension": "Technical experimentation vs human discourse",
+        "synergy": "AI practice informs human discussion"
+      }
+    ],
+    "neighbors": [
+      {
+        "pair": ["express-wills", "legitimize-sharing"],
+        "connection": "Expression naturally leads to sharing for validation"
+      },
+      {
+        "pair": ["legitimize-sharing", "test-ai-first"],
+        "connection": "Shared systems can be tested and refined with AI"
+      },
+      {
+        "pair": ["test-ai-first", "democratic-deliberation"],
+        "connection": "AI experiments inform democratic processes"
+      },
+      {
+        "pair": ["democratic-deliberation", "make-visible"],
+        "connection": "Democracy requires transparent decision-making"
+      },
+      {
+        "pair": ["make-visible", "enrich-discussion"],
+        "connection": "Visibility enables meaningful discussion"
+      },
+      {
+        "pair": ["enrich-discussion", "express-wills"],
+        "connection": "Discussion refines and clarifies expression"
+      }
+    ]
+  },
+  "center": {
+    "title": "Deliberate World",
+    "description": "Making the world more the result of what we want rather than circumstances",
+    "unifying_principle": "Transform implicit desires into explicit, shared, and actionable systems"
+  }
+}

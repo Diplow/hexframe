@@ -1,5 +1,6 @@
 import { cn } from '~/lib/utils';
 import type { ToolType } from '../../../Canvas/TileActionsContext';
+import { TOOL_COLOR_DESIGN_SYSTEM as TOOL_COLOR_MAPPING } from './tool-color-design-system';
 
 export type ToolColor = 'cyan' | 'indigo' | 'purple' | 'green' | 'amber' | 'rose';
 
@@ -19,92 +20,86 @@ export function getToolButtonStyles(
   isDisabled: boolean,
   displayMode: 'closed' | 'icons' | 'full'
 ) {
+  const colorMap = TOOL_COLOR_MAPPING[toolColor];
+  
   const baseStyles = cn(
-    "w-full h-12 flex items-center justify-start rounded-lg transition-all duration-200 relative overflow-hidden",
-    displayMode === 'full' ? 'gap-2 px-2' : 'px-2',
-    !isDisabled && displayMode !== 'closed' && "hover:bg-gray-100 dark:hover:bg-gray-800 hover:scale-105",
-    "focus:outline-none focus:ring-2"
+    "w-full h-10 flex items-center rounded-lg relative",
+    "transition-all duration-200",
+    displayMode === 'full' ? 'justify-start gap-2 px-2' : 'justify-center px-2',
+    "focus:outline-none focus-visible:outline-none outline-none",
   );
 
   if (isDisabled) {
-    return cn(baseStyles, 'opacity-50 cursor-not-allowed text-gray-400 dark:text-gray-600');
+    return cn(baseStyles, 'opacity-50 cursor-not-allowed');
   }
 
   if (isActive) {
-    const activeStyles = {
-      'cyan': 'bg-cyan-100 dark:bg-cyan-900/20 ring-2 ring-cyan-500 text-cyan-700 dark:text-cyan-400 focus:ring-cyan-500',
-      'indigo': 'bg-indigo-100 dark:bg-indigo-900/20 ring-2 ring-indigo-500 text-indigo-700 dark:text-indigo-400 focus:ring-indigo-500',
-      'purple': 'bg-purple-100 dark:bg-purple-900/20 ring-2 ring-purple-500 text-purple-700 dark:text-purple-400 focus:ring-purple-500',
-      'green': 'bg-green-100 dark:bg-green-900/20 ring-2 ring-green-500 text-green-700 dark:text-green-400 focus:ring-green-500',
-      'amber': 'bg-amber-100 dark:bg-amber-900/20 ring-2 ring-amber-500 text-amber-700 dark:text-amber-400 focus:ring-amber-500',
-      'rose': 'bg-rose-100 dark:bg-rose-900/20 ring-2 ring-rose-500 text-rose-700 dark:text-rose-400 focus:ring-rose-500',
-    };
-    return cn(baseStyles, activeStyles[toolColor]);
+    return cn(
+      baseStyles,
+      colorMap.text
+    );
   }
 
-  const inactiveStyles = {
-    'cyan': 'text-gray-700 dark:text-gray-300 focus:ring-cyan-500',
-    'indigo': 'text-gray-700 dark:text-gray-300 focus:ring-indigo-500',
-    'purple': 'text-gray-700 dark:text-gray-300 focus:ring-purple-500',
-    'green': 'text-gray-700 dark:text-gray-300 focus:ring-green-500',
-    'amber': 'text-gray-700 dark:text-gray-300 focus:ring-amber-500',
-    'rose': 'text-gray-700 dark:text-gray-300 focus:ring-rose-500',
-  };
-  return cn(baseStyles, inactiveStyles[toolColor]);
+  // Non-active state
+  return cn(
+    baseStyles, 
+    'text-neutral-700 dark:text-neutral-300'
+  );
 }
 
 export function getToolIconStyles(
   toolColor: ToolColor,
   isActive: boolean,
-  isDisabled: boolean
+  isDisabled: boolean,
+  isHovering?: boolean
 ) {
-  const baseStyles = "w-5 h-5 flex-shrink-0";
+  const baseStyles = "w-5 h-5 flex-shrink-0 transition-colors duration-200";
 
   if (isDisabled) {
-    return cn(baseStyles, 'text-gray-400 dark:text-gray-600');
+    return cn(baseStyles, 'text-neutral-500 dark:text-neutral-500');
   }
 
-  if (isActive) {
-    const activeStyles = {
-      'cyan': 'text-cyan-600 dark:text-cyan-400',
-      'indigo': 'text-indigo-600 dark:text-indigo-400',
-      'purple': 'text-purple-600 dark:text-purple-400',
-      'green': 'text-green-600 dark:text-green-400',
-      'amber': 'text-amber-600 dark:text-amber-400',
-      'rose': 'text-rose-600 dark:text-rose-400',
-    };
-    return cn(baseStyles, activeStyles[toolColor]);
+  const colorMap = TOOL_COLOR_MAPPING[toolColor];
+  
+  if (isActive || isHovering) {
+    return cn(baseStyles, colorMap.icon);
   }
 
-  return baseStyles;
+  return cn(baseStyles, 'text-neutral-700 dark:text-neutral-300');
 }
 
 export function getToolLabelStyles(
   toolColor: ToolColor,
   isActive: boolean,
   isDisabled: boolean,
-  displayMode: 'closed' | 'icons' | 'full'
+  displayMode: 'closed' | 'icons' | 'full',
+  isHovering?: boolean,
+  isFocused?: boolean
 ) {
   const baseStyles = cn(
     "text-sm font-medium transition-all duration-300",
-    displayMode === 'full' ? "opacity-100 flex-1 w-auto" : "opacity-0 w-0"
+    displayMode === 'full' ? "opacity-100 flex-1 w-auto" : "hidden"
   );
 
   if (isDisabled) {
-    return cn(baseStyles, 'text-gray-400 dark:text-gray-600');
+    return cn(baseStyles, 'text-neutral-500 dark:text-neutral-500');
   }
 
-  if (isActive) {
-    const activeStyles = {
-      'cyan': 'text-cyan-700 dark:text-cyan-400',
-      'indigo': 'text-indigo-700 dark:text-indigo-400',
-      'purple': 'text-purple-700 dark:text-purple-400',
-      'green': 'text-green-700 dark:text-green-400',
-      'amber': 'text-amber-700 dark:text-amber-400',
-      'rose': 'text-rose-700 dark:text-rose-400',
-    };
-    return cn(baseStyles, activeStyles[toolColor]);
+  const colorMap = TOOL_COLOR_MAPPING[toolColor];
+  
+  if (isActive || isHovering) {
+    return cn(
+      baseStyles, 
+      colorMap.text,
+      // Underline on focus
+      isFocused && "underline"
+    );
   }
 
-  return cn(baseStyles, 'text-gray-700 dark:text-gray-300');
+  return cn(
+    baseStyles, 
+    'text-neutral-700 dark:text-neutral-300',
+    // Underline on focus
+    isFocused && "underline"
+  );
 }

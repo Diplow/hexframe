@@ -33,7 +33,7 @@ export function StaticLoginForm({
       <div>
         <label
           htmlFor="email-login-static"
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-neutral-700"
         >
           Email address
         </label>
@@ -46,13 +46,13 @@ export function StaticLoginForm({
           value={emailValue}
           onChange={onEmailChange}
           disabled={isLoading}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+          className="mt-1 block w-full rounded-md border border-neutral-300 px-3 py-2 shadow-sm focus:border-se focus:outline-none focus:ring-se sm:text-sm"
         />
       </div>
       <div>
         <label
           htmlFor="password-login-static"
-          className="block text-sm font-medium text-gray-700"
+          className="block text-sm font-medium text-neutral-700"
         >
           Password
         </label>
@@ -65,15 +65,15 @@ export function StaticLoginForm({
           value={passwordValue}
           onChange={onPasswordChange}
           disabled={isLoading}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+          className="mt-1 block w-full rounded-md border border-neutral-300 px-3 py-2 shadow-sm focus:border-se focus:outline-none focus:ring-se sm:text-sm"
         />
       </div>
-      {error && <p className="text-sm text-rose-600">{error}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
       <div>
         <button
           type="submit"
           disabled={isLoading}
-          className="flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+          className="flex w-full justify-center rounded-md border border-transparent bg-se px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-se-dark focus:outline-none focus:ring-2 focus:ring-se focus:ring-offset-2 disabled:opacity-50"
         >
           {isLoading ? "Logging in..." : "Login"}
         </button>

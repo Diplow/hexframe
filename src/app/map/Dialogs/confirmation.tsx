@@ -36,13 +36,13 @@ export function ConfirmationDialog({
         <div className="flex justify-end space-x-2">
           <button
             onClick={onClose}
-            className="rounded bg-gray-200 px-4 py-2 hover:bg-gray-300"
+            className="rounded bg-neutral-200 px-4 py-2 hover:bg-neutral-300"
           >
             {cancelLabel}
           </button>
           <button
             onClick={handleConfirm}
-            className="rounded bg-rose-500 px-4 py-2 text-white hover:bg-rose-600"
+            className="rounded bg-destructive px-4 py-2 text-white hover:bg-destructive-light"
           >
             {confirmLabel}
           </button>

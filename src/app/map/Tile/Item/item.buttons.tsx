@@ -152,7 +152,7 @@ export const DynamicTileButtons = ({
         <button
           onClick={handleEdit}
           aria-label={`Edit ${item.data.name}`}
-          className={`${buttonSizeClasses} pointer-events-auto flex items-center justify-center rounded-md bg-amber-600 text-white opacity-0 shadow-lg hover:bg-amber-500 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-amber-500 group-hover:opacity-100`}
+          className={`${buttonSizeClasses} pointer-events-auto flex items-center justify-center rounded-md bg-secondary text-white opacity-0 shadow-lg hover:bg-secondary-light focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-secondary group-hover:opacity-100`}
         >
           <Pencil size={iconSize} />
         </button>
@@ -163,7 +163,7 @@ export const DynamicTileButtons = ({
         <button
           onClick={handleDelete}
           aria-label={`Delete ${item.data.name}`}
-          className={`${buttonSizeClasses} pointer-events-auto flex items-center justify-center rounded-md bg-rose-600 text-white opacity-0 shadow-lg hover:bg-rose-500 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-rose-500 group-hover:opacity-100`}
+          className={`${buttonSizeClasses} pointer-events-auto flex items-center justify-center rounded-md bg-destructive text-white opacity-0 shadow-lg hover:bg-destructive-light focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-destructive group-hover:opacity-100`}
         >
           <Trash2 size={iconSize} />
         </button>
@@ -191,10 +191,10 @@ export const DynamicTileButtons = ({
           aria-label={ariaLabelForExpandButton}
           aria-pressed={isExpanded}
           data-testid={`${isExpanded ? "collapse" : "expand"}-button-${item.metadata.coordinates.userId}-${item.metadata.coordinates.groupId}${item.metadata.coordinates.path.length > 0 ? `-${item.metadata.coordinates.path.join("-")}` : ''}`}
-          className={`${buttonSizeClasses} pointer-events-auto flex items-center justify-center rounded-md text-white opacity-0 shadow-lg focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-slate-500 group-hover:opacity-100 ${
+          className={`${buttonSizeClasses} pointer-events-auto flex items-center justify-center rounded-md text-white opacity-0 shadow-lg focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-neutral-500 group-hover:opacity-100 ${
             isToggling
-              ? "animate-pulse bg-slate-600 hover:bg-slate-600"
-              : "bg-slate-800 hover:bg-slate-700"
+              ? "animate-pulse bg-neutral-600 hover:bg-neutral-600"
+              : "bg-neutral-800 hover:bg-neutral-700"
           }`}
         >
           {isExpanded ? (
@@ -212,10 +212,10 @@ export const DynamicTileButtons = ({
           disabled={isNavigating}
           aria-label={`Navigate to ${item.data.name}`}
           data-testid={`navigate-button-${item.metadata.coordinates.userId}-${item.metadata.coordinates.groupId}${item.metadata.coordinates.path.length > 0 ? `-${item.metadata.coordinates.path.join("-")}` : ''}`}
-          className={`${buttonSizeClasses} pointer-events-auto flex items-center justify-center rounded-md text-white opacity-0 shadow-lg focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-slate-500 group-hover:opacity-100 ${
+          className={`${buttonSizeClasses} pointer-events-auto flex items-center justify-center rounded-md text-white opacity-0 shadow-lg focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-neutral-500 group-hover:opacity-100 ${
             isNavigating
-              ? "animate-pulse bg-blue-600 hover:bg-blue-600"
-              : "bg-slate-800 hover:bg-slate-700"
+              ? "animate-pulse bg-link hover:bg-link"
+              : "bg-neutral-800 hover:bg-neutral-700"
           }`}
         >
           <Crosshair size={iconSize} />

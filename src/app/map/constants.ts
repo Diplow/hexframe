@@ -17,5 +17,5 @@ export const DEFAULT_MAP_COLORS: Record<Direction, string> = {
 } as const;
 
 // Hierarchy tile sizing constants
-export const HIERARCHY_TILE_BASE_SIZE = 60;
+export const HIERARCHY_TILE_BASE_SIZE = 56;
 export const HIERARCHY_TILE_SCALE = 1;

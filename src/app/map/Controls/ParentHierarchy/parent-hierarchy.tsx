@@ -3,7 +3,7 @@
 import { ChevronDown } from "lucide-react";
 import type { TileData } from "../../types/tile-data";
 import { useMapCache } from "../../Cache/map-cache";
-import { _getParentHierarchy, _shouldShowHierarchy } from "./hierarchy.utils";
+import { _getParentHierarchy } from "./hierarchy.utils";
 import type { URLInfo } from "../../types/url-info";
 import { StaticBaseTileLayout } from "~/app/static/map/Tile/Base/base";
 import {
@@ -11,6 +11,7 @@ import {
   HIERARCHY_TILE_SCALE,
 } from "../../constants";
 import { getTextColorForDepth } from "~/app/map/types/theme-colors";
+import { Logo } from "~/components/ui/logo";
 
 interface ParentHierarchyProps {
   centerCoordId: string;
@@ -95,13 +96,15 @@ export const ParentHierarchy = ({
 
   const hierarchy = _getParentHierarchy(effectiveCenter, effectiveItems);
 
-  if (!_shouldShowHierarchy(hierarchy, effectiveCenter)) {
-    return null;
-  }
-
   return (
-    <div className="fixed right-4 top-1/2 z-30 -translate-y-1/2">
-      <div className="flex flex-col items-center gap-2 rounded-lg bg-transparent px-3 py-4">
+    <div className="fixed right-0 top-0 bottom-0 z-30 p-0">
+      <div className="h-full flex flex-col items-center gap-2 bg-center-depth-0 px-3 py-4 border-l-[1px] border-[color:var(--stroke-color-950)] overflow-y-auto">
+        <div className="transition-transform duration-200 hover:scale-105 focus:scale-105">
+          <Logo className="w-[104px] h-[120px] flex-shrink-0" />
+        </div>
+        {hierarchy.length > 0 && (
+          <ChevronDown size={16} className="flex-shrink-0 text-neutral-400" />
+        )}
         {hierarchy.map((item, index) => (
           <div
             key={`hierarchy-${item.metadata.coordId}`}
@@ -114,7 +117,7 @@ export const ParentHierarchy = ({
               _urlInfo={urlInfo}
             />
             {index < hierarchy.length - 1 && (
-              <ChevronDown size={16} className="flex-shrink-0 text-zinc-400" />
+              <ChevronDown size={16} className="flex-shrink-0 text-neutral-400" />
             )}
           </div>
         ))}

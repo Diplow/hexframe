@@ -41,7 +41,7 @@ export default async function CreateItemPage({
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-neutral-900 text-white">
       <div className="container mx-auto max-w-5xl p-6">
         <StaticCreateItemForm
           targetCoords={targetCoords}

@@ -3,46 +3,259 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Make shadcn/ui Drawer (vaul) overlay transparent */
-[vaul-overlay] {
-  background-color: transparent !important;
-}
-
 :root {
+  /* ================================
+     Base Theme Variables
+     ================================ */
+  
+  /* Border Radius */
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 
-  /* Theme variables mapped to base variables */
+  /* ================================
+     Core Color System
+     ================================ */
+  
+  /* Primary - Violet (emerges from indigo/purple) */
+  --color-primary-light: theme(colors.violet.400);
+  --color-primary: theme(colors.violet.600);
+  --color-primary-dark: theme(colors.violet.800);
+  
+  /* Primary RGB format for opacity support */
+  --color-primary-rgb: 124 58 237; /* violet-600 */
+  --color-primary-light-rgb: 167 139 250; /* violet-400 */
+  --color-primary-dark-rgb: 91 33 182; /* violet-800 */
+  
+  /* Neutral - Custom light palette */
+  --color-neutral-50: #ffffff;
+  --color-neutral-100: #f8f9fa;
+  --color-neutral-200: #e9ecef;
+  --color-neutral-300: #dee2e6;
+  --color-neutral-400: #ced4da;
+  --color-neutral-500: #adb5bd;
+  --color-neutral-600: #6c757d;
+  --color-neutral-700: #495057;
+  --color-neutral-800: #343a40;
+  --color-neutral-900: #212529;
+  --color-neutral-950: #0d1117;
+
+  /* ================================
+     Spatial Colors (Position + Function)
+     ================================ */
+  
+  /* Northwest - Amber (Secondary/Warning) */
+  --color-nw: theme(colors.amber.600);
+  --color-nw-light: theme(colors.amber.400);
+  --color-nw-dark: theme(colors.amber.800);
+  
+  /* Northeast - Green (Success) */
+  --color-ne: theme(colors.green.600);
+  --color-ne-light: theme(colors.green.400);
+  --color-ne-dark: theme(colors.green.800);
+  
+  /* East - Cyan (Links/Navigation) */
+  --color-e: theme(colors.cyan.600);
+  --color-e-light: theme(colors.cyan.400);
+  --color-e-dark: theme(colors.cyan.800);
+  
+  /* Southeast - Indigo (Deep thought - spatial only) */
+  --color-se: theme(colors.indigo.600);
+  --color-se-light: theme(colors.indigo.400);
+  --color-se-dark: theme(colors.indigo.800);
+  
+  /* Southwest - Purple (Imagination - spatial only) */
+  --color-sw: theme(colors.purple.600);
+  --color-sw-light: theme(colors.purple.400);
+  --color-sw-dark: theme(colors.purple.800);
+  
+  /* West - Rose (Destructive) */
+  --color-w: theme(colors.rose.600);
+  --color-w-light: theme(colors.rose.400);
+  --color-w-dark: theme(colors.rose.800);
+
+  /* ================================
+     Semantic Aliases (RGB format for opacity support)
+     ================================ */
+  
+  /* Secondary/Warning - Amber (NW) */
+  --color-secondary-rgb: 217 119 6; /* amber-600 */
+  --color-secondary-light-rgb: 251 191 36; /* amber-400 */
+  --color-secondary-dark-rgb: 146 64 14; /* amber-800 */
+  
+  /* Success - Green (NE) */
+  --color-success-rgb: 22 163 74; /* green-600 */
+  --color-success-light-rgb: 74 222 128; /* green-400 */
+  --color-success-dark-rgb: 22 101 52; /* green-800 */
+  
+  /* Link/Navigation - Cyan (E) */
+  --color-link-rgb: 8 145 178; /* cyan-600 */
+  --color-link-light-rgb: 34 211 238; /* cyan-400 */
+  --color-link-dark-rgb: 21 94 117; /* cyan-800 */
+  
+  /* Destructive - Rose (W) */
+  --color-destructive-rgb: 225 29 72; /* rose-600 */
+  --color-destructive-light-rgb: 251 113 133; /* rose-400 */
+  --color-destructive-dark-rgb: 159 18 57; /* rose-800 */
+  
+  /* Legacy aliases for backward compatibility */
+  --color-secondary: var(--color-nw);
+  --color-secondary-light: var(--color-nw-light);
+  --color-secondary-dark: var(--color-nw-dark);
+  
+  --color-success: var(--color-ne);
+  --color-success-light: var(--color-ne-light);
+  --color-success-dark: var(--color-ne-dark);
+  
+  --color-link: var(--color-e);
+  --color-link-light: var(--color-e-light);
+  --color-link-dark: var(--color-e-dark);
+  
+  --color-destructive: var(--color-w);
+  --color-destructive-light: var(--color-w-light);
+  --color-destructive-dark: var(--color-w-dark);
+
+  /* ================================
+     Tile Depth System
+     ================================ */
+  
+  /* Center (Slate) - Light mode */
+  --color-center-depth-0: var(--color-neutral-100);
+  --color-center-depth-1: var(--color-neutral-200);
+  --color-center-depth-2: var(--color-neutral-300);
+  --color-center-depth-3: var(--color-neutral-400);
+  --color-center-depth-4: var(--color-neutral-500);
+  --color-center-depth-5: var(--color-neutral-600);
+  --color-center-depth-6: var(--color-neutral-700);
+  --color-center-depth-7: var(--color-neutral-800);
+  --color-center-depth-8: var(--color-neutral-900);
+
+  /* Northwest (Amber) */
+  --color-nw-depth-1: theme(colors.amber.300);
+  --color-nw-depth-2: theme(colors.amber.400);
+  --color-nw-depth-3: theme(colors.amber.500);
+  --color-nw-depth-4: theme(colors.amber.600);
+  --color-nw-depth-5: theme(colors.amber.700);
+  --color-nw-depth-6: theme(colors.amber.800);
+  --color-nw-depth-7: theme(colors.amber.900);
+  --color-nw-depth-8: theme(colors.amber.950);
+
+  /* Northeast (Green) */
+  --color-ne-depth-1: theme(colors.green.300);
+  --color-ne-depth-2: theme(colors.green.400);
+  --color-ne-depth-3: theme(colors.green.500);
+  --color-ne-depth-4: theme(colors.green.600);
+  --color-ne-depth-5: theme(colors.green.700);
+  --color-ne-depth-6: theme(colors.green.800);
+  --color-ne-depth-7: theme(colors.green.900);
+  --color-ne-depth-8: theme(colors.green.950);
+
+  /* East (Cyan) */
+  --color-e-depth-1: theme(colors.cyan.300);
+  --color-e-depth-2: theme(colors.cyan.400);
+  --color-e-depth-3: theme(colors.cyan.500);
+  --color-e-depth-4: theme(colors.cyan.600);
+  --color-e-depth-5: theme(colors.cyan.700);
+  --color-e-depth-6: theme(colors.cyan.800);
+  --color-e-depth-7: theme(colors.cyan.900);
+  --color-e-depth-8: theme(colors.cyan.950);
+
+  /* Southeast (Indigo) */
+  --color-se-depth-1: theme(colors.indigo.300);
+  --color-se-depth-2: theme(colors.indigo.400);
+  --color-se-depth-3: theme(colors.indigo.500);
+  --color-se-depth-4: theme(colors.indigo.600);
+  --color-se-depth-5: theme(colors.indigo.700);
+  --color-se-depth-6: theme(colors.indigo.800);
+  --color-se-depth-7: theme(colors.indigo.900);
+  --color-se-depth-8: theme(colors.indigo.950);
+
+  /* Southwest (Purple) */
+  --color-sw-depth-1: theme(colors.purple.300);
+  --color-sw-depth-2: theme(colors.purple.400);
+  --color-sw-depth-3: theme(colors.purple.500);
+  --color-sw-depth-4: theme(colors.purple.600);
+  --color-sw-depth-5: theme(colors.purple.700);
+  --color-sw-depth-6: theme(colors.purple.800);
+  --color-sw-depth-7: theme(colors.purple.900);
+  --color-sw-depth-8: theme(colors.purple.950);
+
+  /* West (Rose) */
+  --color-w-depth-1: theme(colors.rose.300);
+  --color-w-depth-2: theme(colors.rose.400);
+  --color-w-depth-3: theme(colors.rose.500);
+  --color-w-depth-4: theme(colors.rose.600);
+  --color-w-depth-5: theme(colors.rose.700);
+  --color-w-depth-6: theme(colors.rose.800);
+  --color-w-depth-7: theme(colors.rose.900);
+  --color-w-depth-8: theme(colors.rose.950);
+
+  /* ================================
+     UI Theme Variables
+     ================================ */
+  
+  --background: var(--color-neutral-300);
+  --foreground: var(--color-neutral-900);
+  
+  --card: var(--color-neutral-50);
+  --card-foreground: var(--color-neutral-900);
+  
+  --popover: var(--color-neutral-50);
+  --popover-foreground: var(--color-neutral-900);
+  
+  --primary: var(--color-primary);
+  --primary-foreground: var(--color-neutral-50);
+  
+  --secondary: var(--color-neutral-100);
+  --secondary-foreground: var(--color-neutral-900);
+  
+  --muted: var(--color-neutral-100);
+  --muted-foreground: var(--color-neutral-500);
+  
+  --accent: var(--color-neutral-100);
+  --accent-foreground: var(--color-neutral-900);
+  
+  --destructive: var(--color-destructive);
+  --destructive-foreground: var(--color-neutral-50);
+  
+  --border: var(--color-neutral-200);
+  --input: var(--color-neutral-200);
+  --ring: var(--color-primary);
+
+  /* Sidebar specific */
+  --sidebar: var(--color-neutral-50);
+  --sidebar-foreground: var(--color-neutral-900);
+  --sidebar-primary: var(--color-primary);
+  --sidebar-primary-foreground: var(--color-neutral-50);
+  --sidebar-accent: var(--color-neutral-100);
+  --sidebar-accent-foreground: var(--color-neutral-900);
+  --sidebar-border: var(--color-neutral-200);
+  --sidebar-ring: var(--color-primary);
+
+  /* Chart colors (reusing spatial colors) */
+  --chart-1: var(--color-nw);
+  --chart-2: var(--color-ne);
+  --chart-3: var(--color-e);
+  --chart-4: var(--color-se);
+  --chart-5: var(--color-sw);
+
+  /* ================================
+     Canvas-specific Variables
+     ================================ */
+  
+  /* Tile stroke colors - Light mode */
+  --stroke-color-950: rgba(13, 17, 23, 0.3); /* neutral-950 with reduced opacity */
+  --stroke-color-900: rgba(33, 37, 41, 0.25); /* neutral-900 with reduced opacity */
+  --stroke-color-800: rgba(52, 58, 64, 0.2); /* neutral-800 with reduced opacity */
+  --stroke-color-50: rgba(222, 226, 230, 0.5); /* neutral-300 with opacity */
+
+  /* ================================
+     shadcn/ui Component Overrides
+     ================================ */
+  
+  /* Theme-aware color variables */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -62,15 +275,6 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -79,205 +283,164 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-
-  /* Canvas depth colors - Light mode */
-  /* Center (zinc) */
-  --color-center-depth-0: theme(colors.zinc.200);
-  --color-center-depth-1: theme(colors.zinc.200);
-  --color-center-depth-2: theme(colors.zinc.300);
-  --color-center-depth-3: theme(colors.zinc.400);
-  --color-center-depth-4: theme(colors.zinc.500);
-  --color-center-depth-5: theme(colors.zinc.600);
-  --color-center-depth-6: theme(colors.zinc.700);
-  --color-center-depth-7: theme(colors.zinc.800);
-  --color-center-depth-8: theme(colors.zinc.900);
-
-  /* NorthWest (amber) */
-  --color-nw-depth-1: theme(colors.amber.200);
-  --color-nw-depth-2: theme(colors.amber.300);
-  --color-nw-depth-3: theme(colors.amber.400);
-  --color-nw-depth-4: theme(colors.amber.500);
-  --color-nw-depth-5: theme(colors.amber.600);
-  --color-nw-depth-6: theme(colors.amber.700);
-  --color-nw-depth-7: theme(colors.amber.800);
-  --color-nw-depth-8: theme(colors.amber.900);
-
-  /* NorthEast (green) */
-  --color-ne-depth-1: theme(colors.green.200);
-  --color-ne-depth-2: theme(colors.green.300);
-  --color-ne-depth-3: theme(colors.green.400);
-  --color-ne-depth-4: theme(colors.green.500);
-  --color-ne-depth-5: theme(colors.green.600);
-  --color-ne-depth-6: theme(colors.green.700);
-  --color-ne-depth-7: theme(colors.green.800);
-  --color-ne-depth-8: theme(colors.green.900);
-
-  /* East (cyan) */
-  --color-e-depth-1: theme(colors.cyan.200);
-  --color-e-depth-2: theme(colors.cyan.300);
-  --color-e-depth-3: theme(colors.cyan.400);
-  --color-e-depth-4: theme(colors.cyan.500);
-  --color-e-depth-5: theme(colors.cyan.600);
-  --color-e-depth-6: theme(colors.cyan.700);
-  --color-e-depth-7: theme(colors.cyan.800);
-  --color-e-depth-8: theme(colors.cyan.900);
-
-  /* SouthEast (indigo) */
-  --color-se-depth-1: theme(colors.indigo.200);
-  --color-se-depth-2: theme(colors.indigo.300);
-  --color-se-depth-3: theme(colors.indigo.400);
-  --color-se-depth-4: theme(colors.indigo.500);
-  --color-se-depth-5: theme(colors.indigo.600);
-  --color-se-depth-6: theme(colors.indigo.700);
-  --color-se-depth-7: theme(colors.indigo.800);
-  --color-se-depth-8: theme(colors.indigo.900);
-
-  /* SouthWest (purple) */
-  --color-sw-depth-1: theme(colors.purple.200);
-  --color-sw-depth-2: theme(colors.purple.300);
-  --color-sw-depth-3: theme(colors.purple.400);
-  --color-sw-depth-4: theme(colors.purple.500);
-  --color-sw-depth-5: theme(colors.purple.600);
-  --color-sw-depth-6: theme(colors.purple.700);
-  --color-sw-depth-7: theme(colors.purple.800);
-  --color-sw-depth-8: theme(colors.purple.900);
-
-  /* West (rose) */
-  --color-w-depth-1: theme(colors.rose.200);
-  --color-w-depth-2: theme(colors.rose.300);
-  --color-w-depth-3: theme(colors.rose.400);
-  --color-w-depth-4: theme(colors.rose.500);
-  --color-w-depth-5: theme(colors.rose.600);
-  --color-w-depth-6: theme(colors.rose.700);
-  --color-w-depth-7: theme(colors.rose.800);
-  --color-w-depth-8: theme(colors.rose.900);
-
-  /* Tile stroke colors - Light mode */
-  --stroke-color-950: rgba(24, 24, 27, 0.6);
-  --stroke-color-900: rgba(39, 39, 42, 0.5);
-  --stroke-color-800: rgba(63, 63, 70, 0.4);
-  --stroke-color-50: #fafafa;
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
 }
 
+/* ================================
+   Dark Mode
+   ================================ */
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+  /* Override neutral colors with custom dark palette */
+  --color-neutral-50: #f8f9fa;
+  --color-neutral-100: #e9ecef;
+  --color-neutral-200: #dee2e6;
+  --color-neutral-300: #adb5bd;
+  --color-neutral-400: #6c757d;
+  --color-neutral-500: #495057;
+  --color-neutral-600: #343a40;
+  --color-neutral-700: #212529;
+  --color-neutral-800: #1a1e21;
+  --color-neutral-900: #0d1117;
+  --color-neutral-950: #010409;
+
+  /* UI Theme Variables - Dark */
+  --background: var(--color-neutral-900);
+  --foreground: var(--color-neutral-50);
+  
+  --card: var(--color-neutral-950);
+  --card-foreground: var(--color-neutral-50);
+  
+  --popover: var(--color-neutral-950);
+  --popover-foreground: var(--color-neutral-50);
+  
+  --primary: var(--color-primary);
+  --primary-foreground: var(--color-neutral-50);
+  
+  --secondary: var(--color-neutral-800);
+  --secondary-foreground: var(--color-neutral-50);
+  
+  --muted: var(--color-neutral-800);
+  --muted-foreground: var(--color-neutral-300);
+  
+  --accent: var(--color-neutral-800);
+  --accent-foreground: var(--color-neutral-50);
+  
+  --destructive: var(--color-destructive);
+  --destructive-foreground: var(--color-neutral-50);
+  
+  --border: var(--color-neutral-800);
+  --input: var(--color-neutral-800);
+  --ring: var(--color-primary-light);
+
+  /* Sidebar - Dark */
+  --sidebar: var(--color-neutral-950);
+  --sidebar-foreground: var(--color-neutral-50);
+  --sidebar-primary: var(--color-primary);
+  --sidebar-primary-foreground: var(--color-neutral-50);
+  --sidebar-accent: var(--color-neutral-800);
+  --sidebar-accent-foreground: var(--color-neutral-50);
+  --sidebar-border: var(--color-neutral-800);
+  --sidebar-ring: var(--color-primary-light);
 
   /* Canvas depth colors - Dark mode (inverted) */
-  /* Center (zinc) */
-  --color-center-depth-0: theme(colors.zinc.700);
-  --color-center-depth-1: theme(colors.zinc.800);
-  --color-center-depth-2: theme(colors.zinc.700);
-  --color-center-depth-3: theme(colors.zinc.600);
-  --color-center-depth-4: theme(colors.zinc.500);
-  --color-center-depth-5: theme(colors.zinc.400);
-  --color-center-depth-6: theme(colors.zinc.300);
-  --color-center-depth-7: theme(colors.zinc.200);
-  --color-center-depth-8: theme(colors.zinc.100);
+  /* Center (Slate) - using new neutral palette */
+  --color-center-depth-0: var(--color-neutral-800);
+  --color-center-depth-1: var(--color-neutral-800);
+  --color-center-depth-2: var(--color-neutral-700);
+  --color-center-depth-3: var(--color-neutral-600);
+  --color-center-depth-4: var(--color-neutral-500);
+  --color-center-depth-5: var(--color-neutral-400);
+  --color-center-depth-6: var(--color-neutral-300);
+  --color-center-depth-7: var(--color-neutral-200);
+  --color-center-depth-8: var(--color-neutral-100);
 
-  /* NorthWest (amber) */
-  --color-nw-depth-1: theme(colors.amber.800);
-  --color-nw-depth-2: theme(colors.amber.700);
-  --color-nw-depth-3: theme(colors.amber.600);
-  --color-nw-depth-4: theme(colors.amber.500);
-  --color-nw-depth-5: theme(colors.amber.400);
-  --color-nw-depth-6: theme(colors.amber.300);
-  --color-nw-depth-7: theme(colors.amber.200);
-  --color-nw-depth-8: theme(colors.amber.100);
+  /* Northwest (Amber) */
+  --color-nw-depth-1: theme(colors.amber.700);
+  --color-nw-depth-2: theme(colors.amber.600);
+  --color-nw-depth-3: theme(colors.amber.500);
+  --color-nw-depth-4: theme(colors.amber.400);
+  --color-nw-depth-5: theme(colors.amber.300);
+  --color-nw-depth-6: theme(colors.amber.200);
+  --color-nw-depth-7: theme(colors.amber.100);
+  --color-nw-depth-8: theme(colors.amber.50);
 
-  /* NorthEast (green) */
-  --color-ne-depth-1: theme(colors.green.800);
-  --color-ne-depth-2: theme(colors.green.700);
-  --color-ne-depth-3: theme(colors.green.600);
-  --color-ne-depth-4: theme(colors.green.500);
-  --color-ne-depth-5: theme(colors.green.400);
-  --color-ne-depth-6: theme(colors.green.300);
-  --color-ne-depth-7: theme(colors.green.200);
-  --color-ne-depth-8: theme(colors.green.100);
+  /* Northeast (Green) */
+  --color-ne-depth-1: theme(colors.green.700);
+  --color-ne-depth-2: theme(colors.green.600);
+  --color-ne-depth-3: theme(colors.green.500);
+  --color-ne-depth-4: theme(colors.green.400);
+  --color-ne-depth-5: theme(colors.green.300);
+  --color-ne-depth-6: theme(colors.green.200);
+  --color-ne-depth-7: theme(colors.green.100);
+  --color-ne-depth-8: theme(colors.green.50);
 
-  /* East (cyan) */
-  --color-e-depth-1: theme(colors.cyan.800);
-  --color-e-depth-2: theme(colors.cyan.700);
-  --color-e-depth-3: theme(colors.cyan.600);
-  --color-e-depth-4: theme(colors.cyan.500);
-  --color-e-depth-5: theme(colors.cyan.400);
-  --color-e-depth-6: theme(colors.cyan.300);
-  --color-e-depth-7: theme(colors.cyan.200);
-  --color-e-depth-8: theme(colors.cyan.100);
+  /* East (Cyan) */
+  --color-e-depth-1: theme(colors.cyan.700);
+  --color-e-depth-2: theme(colors.cyan.600);
+  --color-e-depth-3: theme(colors.cyan.500);
+  --color-e-depth-4: theme(colors.cyan.400);
+  --color-e-depth-5: theme(colors.cyan.300);
+  --color-e-depth-6: theme(colors.cyan.200);
+  --color-e-depth-7: theme(colors.cyan.100);
+  --color-e-depth-8: theme(colors.cyan.50);
 
-  /* SouthEast (indigo) */
-  --color-se-depth-1: theme(colors.indigo.800);
-  --color-se-depth-2: theme(colors.indigo.700);
-  --color-se-depth-3: theme(colors.indigo.600);
-  --color-se-depth-4: theme(colors.indigo.500);
-  --color-se-depth-5: theme(colors.indigo.400);
-  --color-se-depth-6: theme(colors.indigo.300);
-  --color-se-depth-7: theme(colors.indigo.200);
-  --color-se-depth-8: theme(colors.indigo.100);
+  /* Southeast (Indigo) */
+  --color-se-depth-1: theme(colors.indigo.700);
+  --color-se-depth-2: theme(colors.indigo.600);
+  --color-se-depth-3: theme(colors.indigo.500);
+  --color-se-depth-4: theme(colors.indigo.400);
+  --color-se-depth-5: theme(colors.indigo.300);
+  --color-se-depth-6: theme(colors.indigo.200);
+  --color-se-depth-7: theme(colors.indigo.100);
+  --color-se-depth-8: theme(colors.indigo.50);
 
-  /* SouthWest (purple) */
-  --color-sw-depth-1: theme(colors.purple.800);
-  --color-sw-depth-2: theme(colors.purple.700);
-  --color-sw-depth-3: theme(colors.purple.600);
-  --color-sw-depth-4: theme(colors.purple.500);
-  --color-sw-depth-5: theme(colors.purple.400);
-  --color-sw-depth-6: theme(colors.purple.300);
-  --color-sw-depth-7: theme(colors.purple.200);
-  --color-sw-depth-8: theme(colors.purple.100);
+  /* Southwest (Purple) */
+  --color-sw-depth-1: theme(colors.purple.700);
+  --color-sw-depth-2: theme(colors.purple.600);
+  --color-sw-depth-3: theme(colors.purple.500);
+  --color-sw-depth-4: theme(colors.purple.400);
+  --color-sw-depth-5: theme(colors.purple.300);
+  --color-sw-depth-6: theme(colors.purple.200);
+  --color-sw-depth-7: theme(colors.purple.100);
+  --color-sw-depth-8: theme(colors.purple.50);
 
-  /* West (rose) */
-  --color-w-depth-1: theme(colors.rose.800);
-  --color-w-depth-2: theme(colors.rose.700);
-  --color-w-depth-3: theme(colors.rose.600);
-  --color-w-depth-4: theme(colors.rose.500);
-  --color-w-depth-5: theme(colors.rose.400);
-  --color-w-depth-6: theme(colors.rose.300);
-  --color-w-depth-7: theme(colors.rose.200);
-  --color-w-depth-8: theme(colors.rose.100);
+  /* West (Rose) */
+  --color-w-depth-1: theme(colors.rose.700);
+  --color-w-depth-2: theme(colors.rose.600);
+  --color-w-depth-3: theme(colors.rose.500);
+  --color-w-depth-4: theme(colors.rose.400);
+  --color-w-depth-5: theme(colors.rose.300);
+  --color-w-depth-6: theme(colors.rose.200);
+  --color-w-depth-7: theme(colors.rose.100);
+  --color-w-depth-8: theme(colors.rose.50);
 
   /* Tile stroke colors - Dark mode */
-  --stroke-color-950: rgba(250, 250, 250, 0.8);
-  --stroke-color-900: rgba(244, 244, 245, 0.7);
-  --stroke-color-800: rgba(228, 228, 231, 0.6);
-  --stroke-color-50: #18181b;
+  --stroke-color-950: rgba(248, 249, 250, 0.4); /* neutral-50 with reduced opacity */
+  --stroke-color-900: rgba(233, 236, 239, 0.35); /* neutral-100 with reduced opacity */
+  --stroke-color-800: rgba(222, 226, 230, 0.3); /* neutral-200 with reduced opacity */
+  --stroke-color-50: rgba(1, 4, 9, 0.5); /* neutral-950 with opacity */
 }
 
+/* ================================
+   Base Styles
+   ================================ */
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* ================================
+   Component Styles
+   ================================ */
+
+/* Make shadcn/ui Drawer (vaul) overlay transparent */
+[vaul-overlay] {
+  background-color: transparent !important;
 }
 
 /* Drag and drop styles */

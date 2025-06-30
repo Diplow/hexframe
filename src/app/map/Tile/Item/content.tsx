@@ -58,7 +58,7 @@ export const DynamicTileContent = ({ data, scale, tileId, isHovered = false, dep
       >
         {data.title && <TitleSection title={data.title} scale={scale} tileId={tileId} textClasses={textClasses} />}
         {truncatedDescription && (
-          <div className={`w-full text-xs ${textClasses} prose prose-xs prose-zinc max-w-full text-center`}>
+          <div className={`w-full text-xs ${textClasses} prose prose-xs prose-neutral max-w-full text-center`}>
             <ReactMarkdown
               components={{
                 // Simplified components for truncated view
@@ -69,9 +69,9 @@ export const DynamicTileContent = ({ data, scale, tileId, isHovered = false, dep
                 ul: ({ children }) => <span>{children}</span>,
                 ol: ({ children }) => <span>{children}</span>,
                 li: ({ children }) => <span>• {children} </span>,
-                code: ({ children }) => <code className="bg-gray-100 dark:bg-gray-800 px-0.5 rounded text-xs">{children}</code>,
+                code: ({ children }) => <code className="bg-neutral-100 dark:bg-neutral-800 px-0.5 rounded text-xs">{children}</code>,
                 a: ({ href, children }) => (
-                  <a href={href} target="_blank" rel="noopener noreferrer" className="text-cyan-800 dark:text-cyan-400 hover:text-cyan-950 dark:hover:text-cyan-300 underline">
+                  <a href={href} target="_blank" rel="noopener noreferrer" className="text-link-800 dark:text-link-400 hover:text-link-950 dark:hover:text-link-300 underline">
                     {children}
                   </a>
                 ),
@@ -157,7 +157,7 @@ const DescriptionSection = ({ description, scale, tileId, textClasses }: { descr
   
     return (
       <div className={`w-full flex items-center`}>
-        <div className={`w-full ${textSize} ${textClasses} ${maxHeight} overflow-y-auto prose ${proseSize} prose-zinc max-w-full scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent relative z-30 text-center`}>
+        <div className={`w-full ${textSize} ${textClasses} ${maxHeight} overflow-y-auto prose ${proseSize} prose-neutral max-w-full scrollbar-thin scrollbar-thumb-neutral-300 scrollbar-track-transparent relative z-30 text-center`}>
         <ReactMarkdown
           components={{
             // Override default styles to fit within tile - scale-aware sizing
@@ -168,11 +168,11 @@ const DescriptionSection = ({ description, scale, tileId, textClasses }: { descr
             ul: ({ children }) => <ul className={`list-disc list-inside ${scale === 2 ? 'mb-1' : 'mb-2'} text-center`}>{children}</ul>,
             ol: ({ children }) => <ol className={`list-decimal list-inside ${scale === 2 ? 'mb-1' : 'mb-2'} text-center`}>{children}</ol>,
             li: ({ children }) => <li className={`${scale === 2 ? 'mb-0.5' : 'mb-1'} text-left`}>{children}</li>,
-            code: ({ children }) => <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded text-xs">{children}</code>,
-            pre: ({ children }) => <pre className={`bg-gray-100 dark:bg-gray-800 ${scale === 2 ? 'p-1' : 'p-2'} rounded text-xs overflow-auto ${scale === 2 ? 'mb-1' : 'mb-2'}`}>{children}</pre>,
-            blockquote: ({ children }) => <blockquote className={`border-l-2 border-gray-300 ${scale === 2 ? 'pl-1' : 'pl-2'} italic`}>{children}</blockquote>,
+            code: ({ children }) => <code className="bg-neutral-100 dark:bg-neutral-800 px-1 rounded text-xs">{children}</code>,
+            pre: ({ children }) => <pre className={`bg-neutral-100 dark:bg-neutral-800 ${scale === 2 ? 'p-1' : 'p-2'} rounded text-xs overflow-auto ${scale === 2 ? 'mb-1' : 'mb-2'}`}>{children}</pre>,
+            blockquote: ({ children }) => <blockquote className={`border-l-2 border-neutral-300 ${scale === 2 ? 'pl-1' : 'pl-2'} italic`}>{children}</blockquote>,
             a: ({ href, children }) => (
-              <a href={href} target="_blank" rel="noopener noreferrer" className="text-cyan-800 dark:text-cyan-400 hover:text-cyan-950 dark:hover:text-cyan-300 underline">
+              <a href={href} target="_blank" rel="noopener noreferrer" className="text-link-800 dark:text-link-400 hover:text-link-950 dark:hover:text-link-300 underline">
                 {children}
               </a>
             ),
@@ -201,7 +201,7 @@ const UrlSection = ({ url, scale, textClasses }: { url: string; scale: TileScale
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-cyan-800 dark:text-cyan-400 hover:text-cyan-950 dark:hover:text-cyan-300 hover:underline"
+        className="text-link-800 dark:text-link-400 hover:text-link-950 dark:hover:text-link-300 hover:underline"
       >
         {displayUrl}
       </a>
