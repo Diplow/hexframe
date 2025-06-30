@@ -234,13 +234,18 @@ describe('Toolbox', () => {
         </TestWrapper>
       )
 
-      // Open toolbox
+      // The toolbox starts in 'full' mode (position 2)
+      // We need to cycle it to 'icons' mode (position 1) for tooltips to show
       const toggleButton = screen.getByRole('button', { name: /toggle toolbox/i })
+      
+      // Click twice to go from full (2) -> icons (3) -> closed (0) -> icons (1)
+      fireEvent.click(toggleButton)
+      fireEvent.click(toggleButton)
       fireEvent.click(toggleButton)
 
-      // Hover over navigate tool
+      // Now hover over navigate tool button directly
       const navigateTool = screen.getByRole('button', { name: /navigate tool/i })
-      fireEvent.mouseEnter(navigateTool.parentElement!)
+      fireEvent.mouseEnter(navigateTool)
 
       // Tooltip should show label and shortcut
       const tooltips = screen.getAllByRole('tooltip')
