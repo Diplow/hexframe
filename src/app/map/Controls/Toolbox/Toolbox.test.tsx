@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { Toolbox } from './Toolbox'
 import { TileActionsContext, type ToolType } from '../../Canvas/TileActionsContext'
+import { ThemeProvider } from '~/contexts/ThemeContext'
 import type { ReactNode } from 'react'
 
 // Mock context provider
@@ -11,21 +12,23 @@ const mockActiveTool = 'navigate'
 
 function TestWrapper({ children }: { children: ReactNode }) {
   return (
-    <TileActionsContext.Provider
-      value={{
-        activeTool: mockActiveTool,
-        setActiveTool: mockSetActiveTool,
-        disabledTools: new Set<ToolType>(),
-        setDisabledTools: mockSetDisabledTools,
-        onTileClick: vi.fn(),
-        onTileHover: vi.fn(),
-        onTileDragStart: vi.fn(),
-        onTileDrop: vi.fn(),
-        isDragging: false,
-      }}
-    >
-      {children}
-    </TileActionsContext.Provider>
+    <ThemeProvider>
+      <TileActionsContext.Provider
+        value={{
+          activeTool: mockActiveTool,
+          setActiveTool: mockSetActiveTool,
+          disabledTools: new Set<ToolType>(),
+          setDisabledTools: mockSetDisabledTools,
+          onTileClick: vi.fn(),
+          onTileHover: vi.fn(),
+          onTileDragStart: vi.fn(),
+          onTileDrop: vi.fn(),
+          isDragging: false,
+        }}
+      >
+        {children}
+      </TileActionsContext.Provider>
+    </ThemeProvider>
   )
 }
 
@@ -138,21 +141,23 @@ describe('Toolbox', () => {
       let currentActiveTool: ToolType = 'navigate'
       const TestComponent = () => {
         return (
-          <TileActionsContext.Provider
-            value={{
-              activeTool: currentActiveTool,
-              setActiveTool: mockSetActiveTool,
-              disabledTools: new Set<ToolType>(),
-              setDisabledTools: mockSetDisabledTools,
-              onTileClick: vi.fn(),
-              onTileHover: vi.fn(),
-              onTileDragStart: vi.fn(),
-              onTileDrop: vi.fn(),
-              isDragging: false,
-            }}
-          >
-            <Toolbox />
-          </TileActionsContext.Provider>
+          <ThemeProvider>
+            <TileActionsContext.Provider
+              value={{
+                activeTool: currentActiveTool,
+                setActiveTool: mockSetActiveTool,
+                disabledTools: new Set<ToolType>(),
+                setDisabledTools: mockSetDisabledTools,
+                onTileClick: vi.fn(),
+                onTileHover: vi.fn(),
+                onTileDragStart: vi.fn(),
+                onTileDrop: vi.fn(),
+                isDragging: false,
+              }}
+            >
+              <Toolbox />
+            </TileActionsContext.Provider>
+          </ThemeProvider>
         )
       }
 
@@ -177,21 +182,23 @@ describe('Toolbox', () => {
     it('disables tools that are in the disabled set', () => {
       const TestComponent = () => {
         return (
-          <TileActionsContext.Provider
-            value={{
-              activeTool: 'navigate',
-              setActiveTool: mockSetActiveTool,
-              disabledTools: new Set<ToolType>(['create', 'delete']),
-              setDisabledTools: mockSetDisabledTools,
-              onTileClick: vi.fn(),
-              onTileHover: vi.fn(),
-              onTileDragStart: vi.fn(),
-              onTileDrop: vi.fn(),
-              isDragging: false,
-            }}
-          >
-            <Toolbox />
-          </TileActionsContext.Provider>
+          <ThemeProvider>
+            <TileActionsContext.Provider
+              value={{
+                activeTool: 'navigate',
+                setActiveTool: mockSetActiveTool,
+                disabledTools: new Set<ToolType>(['create', 'delete']),
+                setDisabledTools: mockSetDisabledTools,
+                onTileClick: vi.fn(),
+                onTileHover: vi.fn(),
+                onTileDragStart: vi.fn(),
+                onTileDrop: vi.fn(),
+                isDragging: false,
+              }}
+            >
+              <Toolbox />
+            </TileActionsContext.Provider>
+          </ThemeProvider>
         )
       }
       
