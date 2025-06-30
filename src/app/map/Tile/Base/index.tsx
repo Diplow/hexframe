@@ -46,12 +46,12 @@ export const DynamicBaseTileLayout = ({
   // Parse coordinate to get direction info
   // Handle special coordIds that don't follow the normal pattern
   let coord;
-  let lastDirection = null;
+  let lastDirection: Direction | null = null;
   let hasPath = false;
   
   try {
     coord = CoordSystem.parseId(coordId);
-    lastDirection = coord.path.length > 0 ? coord.path[coord.path.length - 1] as Direction : null;
+    lastDirection = coord.path.length > 0 ? coord.path[coord.path.length - 1]! : null;
     hasPath = coord.path.length > 0;
   } catch {
     // For special tiles like "auth", use default values
