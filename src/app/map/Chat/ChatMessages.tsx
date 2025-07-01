@@ -98,7 +98,7 @@ function ChatMessageItem({ message, isExpanded }: ChatMessageItemProps) {
         <span className={`font-bold ${getNameColor()}`}>{getName()}:</span>
         <div className="flex-1">
           {typeof message.content === 'string' ? (
-            <div className="prose prose-sm max-w-none dark:prose-invert prose-pre:bg-transparent prose-code:bg-transparent">
+            <div className="prose prose-sm max-w-none dark:prose-invert">
               <ReactMarkdown 
                 remarkPlugins={[remarkGfm]}
                 components={{
@@ -114,17 +114,17 @@ function ChatMessageItem({ message, isExpanded }: ChatMessageItemProps) {
                   code: ({ node, className, children, ...props }: any) => {
                     const match = /language-(\w+)/.exec(className || '');
                     return match ? (
-                      <code className="block bg-neutral-400 dark:bg-neutral-700 p-2 rounded overflow-x-auto" {...props}>
+                      <code className="block bg-neutral-400 dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 p-2 rounded overflow-x-auto" {...props}>
                         {children}
                       </code>
                     ) : (
-                      <code className="bg-neutral-400 dark:bg-neutral-700 px-1 py-0.5 rounded" {...props}>
+                      <code className="bg-neutral-400 dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 px-1 py-0.5 rounded" {...props}>
                         {children}
                       </code>
                     );
                   },
                   pre: ({ children }) => (
-                    <pre className="bg-neutral-400 dark:bg-neutral-700 p-4 rounded-lg overflow-x-auto my-2">
+                    <pre className="bg-neutral-400 dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 p-4 rounded-lg overflow-x-auto my-2">
                       {children}
                     </pre>
                   ),

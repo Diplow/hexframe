@@ -9,7 +9,7 @@ vi.mock('../Widgets/PreviewWidget', () => ({
 }));
 
 describe('Chat Code Styling', () => {
-  it('should apply neutral-400 background to inline code in light mode', () => {
+  it('should apply neutral-400 background and dark text to inline code', () => {
     const messages: ChatMessage[] = [
       {
         id: '1',
@@ -24,9 +24,10 @@ describe('Chat Code Styling', () => {
     const codeElement = screen.getByText('inline code');
     expect(codeElement.tagName).toBe('CODE');
     expect(codeElement).toHaveClass('bg-neutral-400', 'dark:bg-neutral-700');
+    expect(codeElement).toHaveClass('text-neutral-900', 'dark:text-neutral-100');
   });
 
-  it('should apply neutral-400 background to code blocks', () => {
+  it('should apply neutral-400 background and dark text to code blocks', () => {
     const messages: ChatMessage[] = [
       {
         id: '1',
@@ -45,6 +46,7 @@ describe('Chat Code Styling', () => {
     // Find the pre element
     const preElement = codeContent.closest('pre');
     expect(preElement).toHaveClass('bg-neutral-400', 'dark:bg-neutral-700');
+    expect(preElement).toHaveClass('text-neutral-900', 'dark:text-neutral-100');
   });
 
   it('should have proper padding and rounding for code blocks', () => {
