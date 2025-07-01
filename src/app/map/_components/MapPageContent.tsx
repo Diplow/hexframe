@@ -55,12 +55,12 @@ export function MapPageContent({
               <ChatPanel className="flex-1 border-r border-[color:var(--stroke-color-950)] overflow-hidden" />
               
               {/* Fixed: Toolbox */}
-              <div className="relative">
+              <div className="relative flex-grow-0 flex-shrink-0">
                 <Toolbox />
               </div>
               
-              {/* Canvas area - minimum width for scale 3 tile */}
-              <div className="flex-shrink-0 px-32" >
+              {/* Canvas area - fixed space, doesn't grow */}
+              <div className="flex-grow-0 flex-shrink-0 px-32" >
                 <DynamicMapCanvas
                   centerInfo={{
                     center: centerCoordinate,
