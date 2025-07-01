@@ -51,16 +51,16 @@ export function MapPageContent({
           <div className="flex h-full w-full relative">
             {/* Main content area */}
             <div className="flex flex-1 pr-[130px]">
-              {/* Flexible Left: Chat takes remaining space */}
-              <ChatPanel className="flex-1 border-r border-[color:var(--stroke-color-950)] overflow-hidden" />
+              {/* Fixed width Chat panel */}
+              <ChatPanel className="w-[300px] flex-shrink-0 border-r border-[color:var(--stroke-color-950)] overflow-hidden" />
               
               {/* Fixed: Toolbox */}
               <div className="relative">
                 <Toolbox />
               </div>
               
-              {/* Min-width Center: Canvas (scale 3 tile = 400px) */}
-              <div className="flex-1 flex-shrink-0" style={{ minWidth: '400px' }}>
+              {/* Flexible Canvas area */}
+              <div className="flex-1" style={{ minWidth: '400px' }}>
                 <DynamicMapCanvas
                   centerInfo={{
                     center: centerCoordinate,
