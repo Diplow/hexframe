@@ -67,9 +67,8 @@ For technical issues (bugs, performance, etc.), this includes meta-technical con
 ## Workflow
 
 ### 1. Issue File Creation
-Creates two files:
-- **Issue file**: `/issues/YYYY-MM-DD-<slug-title>-<issue-number>.md` (synthetic, kept up to date)
-- **Log file**: `/issues/YYYY-MM-DD-<slug-title>-<issue-number>.log.md` (detailed history)
+Creates the issue file:
+- **Issue file**: `/issues/YYYY-MM-DD-<slug-title>-<issue-number>.md`
 
 **Important**: Use `date +%Y-%m-%d` command to get the current date. Do not guess or hardcode dates.
 
@@ -77,10 +76,9 @@ Example:
 ```bash
 DATE=$(date +%Y-%m-%d)
 ISSUE_FILE="/issues/${DATE}-auth-tiles-mobile-click-123.md"
-LOG_FILE="/issues/${DATE}-auth-tiles-mobile-click-123.log.md"
 ```
 
-Initial issue file content (kept synthetic):
+Initial issue file content:
 ```markdown
 # Issue: <Title>
 
@@ -112,30 +110,10 @@ Initial issue file content (kept synthetic):
 - [Links to related issues based on tags]
 ```
 
-Initial log file content:
-```markdown
-# Issue #<number> Log: <Title>
-
-This file documents the complete history and evolution of issue #<number>.
-
-## YYYY-MM-DD HH:MM - Issue Created
-
-*Created by @<username> via /issue command*
-
-### Initial Problem Statement
-<Copy of initial problem statement>
-
-### Initial Tags
-<Initial tags selected>
-
----
-```
-
 ### File Management Strategy
 - **Issue file**: Updated with each command to reflect current state
-- **Log file**: Appended with each action, preserving full history
-- Both files are committed together
-- GitHub comments link to specific log entries when relevant
+- Each command adds or updates relevant sections
+- GitHub comments post the updated sections
 
 ### 2. Branch Creation
 Automatically creates: `issue-<number>-<slug-title>`
@@ -194,41 +172,22 @@ This ensures transparency about AI-generated content.
 
 ## Integration with Other Commands
 
-When subsequent commands are used, they update both files:
+When subsequent commands are used, they update the issue file:
 
-### For the Issue File
+### Issue File Updates
 - **Update relevant sections** - Replace or append to existing sections
-- **Keep it synthetic** - Only current state, no history
 - **Maintain structure** - Consistent section organization
+- **Progressive completion** - Each command fills in more detail
 
-### For the Log File
-- **Append new entries** - Each command adds a timestamped section
-- **Preserve all details** - Complete context, analysis, decisions
-- **Document changes** - What changed in the issue file and why
-
-Example log entry for `/context`:
-```markdown
-## YYYY-MM-DD HH:MM - Context Analysis Added
-
-*Added by @<username> via /context command*
-
-### Architecture Findings
-<Detailed architecture analysis>
-
-### Current Implementation Details
-<Complete investigation results>
-
-### Changes to Issue File
-- Added Context section with key findings
-- Updated affected areas list
-- Identified scope restrictions
-
----
-```
+For example:
+- `/context` adds the "## Context" section
+- `/solution` adds the "## Solution" section  
+- `/architecture` adds the "## Architecture" section
+- Each command posts its section to GitHub as a comment
 
 ## Next Steps
 After creating an issue with `/issue`, use:
-- `/context #<issue>` - Gather technical context (updates both files)
-- `/solution #<issue>` - Design solution approach (updates both files)
-- `/archi #<issue>` - Document architecture decisions (updates both files)
+- `/context #<issue>` - Gather technical context
+- `/solution #<issue>` - Design solution approach
+- `/archi #<issue>` - Document architecture decisions
 - See `.claude/commands/README.md` for complete workflow

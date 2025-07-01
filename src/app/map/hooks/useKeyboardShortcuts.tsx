@@ -3,6 +3,8 @@ import { useTileActions } from '../Canvas/TileActionsContext';
 import type { ToolType } from '../Canvas/TileActionsContext';
 
 const TOOL_SHORTCUTS: Record<string, ToolType> = {
+  's': 'select',
+  'S': 'select',
   'n': 'navigate',
   'N': 'navigate',
   'm': 'drag',

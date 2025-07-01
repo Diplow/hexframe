@@ -1,11 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import type { TileData } from "~/app/map/types/tile-data";
 import { DynamicBaseTileLayout } from "~/app/map/Tile/Base";
 import type { TileScale, TileColor } from "~/app/static/map/Tile/Base/base";
 import { DynamicTileContent } from "../content";
-import { DynamicTileButtons } from "../item.buttons";
 import type { URLInfo } from "~/app/map/types/url-info";
 import { useTileInteraction } from "~/app/map/hooks/useTileInteraction";
 import { useRouter } from "next/navigation";
@@ -27,6 +25,7 @@ interface ItemTileContentProps {
   canEdit: boolean;
   onEditClick: () => void;
   onDeleteClick: () => void;
+  isSelected?: boolean;
 }
 
 /**
@@ -48,8 +47,8 @@ export function ItemTileContent({
   canEdit,
   onEditClick,
   onDeleteClick,
+  isSelected,
 }: ItemTileContentProps) {
-  const [isHovered, setIsHovered] = useState(false);
   const router = useRouter();
   const { navigateToItem, toggleItemExpansionWithURL } = useMapCache();
   const { isDarkMode } = useCanvasTheme();
@@ -71,7 +70,7 @@ export function ItemTileContent({
   };
   
   // Use tile interaction hook for tool-based behavior
-  const { handleClick, cursor, activeTool } = useTileInteraction({
+  const { handleClick, cursor } = useTileInteraction({
     coordId: item.metadata.coordId,
     type: 'item',
     tileData: tileDataWithExpanded,
@@ -91,8 +90,6 @@ export function ItemTileContent({
   return (
     <>
       <div
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
         onClick={interactive ? (e) => void handleClick(e) : undefined}
       >
         <DynamicBaseTileLayout
@@ -113,22 +110,13 @@ export function ItemTileContent({
             }}
             scale={scale}
             tileId={testId.replace("tile-", "")}
-            isHovered={isHovered}
+            isHovered={false}
             depth={item.metadata.depth}
+            isSelected={isSelected}
           />
         </DynamicBaseTileLayout>
       </div>
-      {interactive && !isBeingDragged && activeTool === 'select' && (
-        <DynamicTileButtons
-          item={item}
-          urlInfo={urlInfo}
-          displayConfig={{ scale, isCenter }}
-          expansionState={{ allExpandedItemIds, hasChildren }}
-          canEdit={canEdit}
-          onEditClick={onEditClick}
-          onDeleteClick={onDeleteClick}
-        />
-      )}
+      {/* Buttons are disabled for now */}
     </>
   );
 }
