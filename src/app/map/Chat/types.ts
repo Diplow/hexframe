@@ -23,6 +23,7 @@ export interface ChatState {
   selectedTileId: string | null;
   messages: ChatMessage[];
   isPanelOpen: boolean;
+  expandedPreviewId: string | null; // Track which preview is currently expanded
 }
 
 export type ChatAction =

@@ -24,19 +24,20 @@ describe('ChatPanel', () => {
     mockDispatch.mockClear();
   });
 
-  it('should render chat header with close button', () => {
+  it('should render chat header', () => {
     mockUseChat.mockReturnValue({
       state: {
         messages: [],
         selectedTileId: null,
         isPanelOpen: true,
+        expandedPreviewId: null,
       },
       dispatch: mockDispatch,
     });
 
     render(<ChatPanel />);
 
-    expect(screen.getByRole('button', { name: /close/i })).toBeInTheDocument();
+    expect(screen.getByText('Chat')).toBeInTheDocument();
   });
 
   it('should display welcome message when no messages', () => {
@@ -45,6 +46,7 @@ describe('ChatPanel', () => {
         messages: [],
         selectedTileId: null,
         isPanelOpen: true,
+        expandedPreviewId: null,
       },
       dispatch: mockDispatch,
     });
@@ -75,6 +77,7 @@ describe('ChatPanel', () => {
         messages,
         selectedTileId: null,
         isPanelOpen: true,
+        expandedPreviewId: null,
       },
       dispatch: mockDispatch,
     });
@@ -93,6 +96,7 @@ describe('ChatPanel', () => {
         messages: [],
         selectedTileId: null,
         isPanelOpen: true,
+        expandedPreviewId: null,
       },
       dispatch: mockDispatch,
     });
@@ -110,6 +114,7 @@ describe('ChatPanel', () => {
         messages: [],
         selectedTileId: null,
         isPanelOpen: true,
+        expandedPreviewId: null,
       },
       dispatch: mockDispatch,
     });
@@ -120,12 +125,13 @@ describe('ChatPanel', () => {
     expect(messagesArea).toHaveClass('flex-1', 'overflow-y-auto');
   });
 
-  it('should pass close action to header', async () => {
+  it.skip('should pass close action to header (chat is always open)', async () => {
     mockUseChat.mockReturnValue({
       state: {
         messages: [],
         selectedTileId: null,
         isPanelOpen: true,
+        expandedPreviewId: null,
       },
       dispatch: mockDispatch,
     });

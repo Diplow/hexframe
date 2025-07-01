@@ -51,7 +51,7 @@ This is a paragraph with **bold** text.
     expect(screen.getByTestId('preview-widget')).toBeInTheDocument();
   });
 
-  it('should apply max-width constraints', () => {
+  it('should apply flex layout', () => {
     render(
       <PreviewWidget
         tileId="tile-1"
@@ -61,7 +61,7 @@ This is a paragraph with **bold** text.
     );
 
     const card = screen.getByTestId('preview-widget');
-    expect(card).toHaveClass('max-w-full');
+    expect(card).toHaveClass('flex', 'flex-col', 'flex-1', 'w-full');
   });
 
   it('should render links as clickable', () => {

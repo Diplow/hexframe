@@ -8,6 +8,7 @@ const initialState: ChatState = {
   selectedTileId: null,
   messages: [],
   isPanelOpen: false,
+  expandedPreviewId: null,
 };
 
 function chatReducer(state: ChatState, action: ChatAction): ChatState {
@@ -26,20 +27,24 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       if (existingPreviewIndex !== -1) {
         // Move existing preview to the end
         const messages = [...state.messages];
-        const [existingPreview] = messages.splice(existingPreviewIndex, 1);
-        messages.push(existingPreview);
-        
-        return {
-          ...state,
-          selectedTileId: tileId,
-          isPanelOpen: true,
-          messages,
-        };
+        const existingPreview = messages[existingPreviewIndex];
+        if (existingPreview) {
+          messages.splice(existingPreviewIndex, 1);
+          messages.push(existingPreview);
+          
+          return {
+            ...state,
+            selectedTileId: tileId,
+            isPanelOpen: true,
+            messages,
+            expandedPreviewId: existingPreview.id, // Set this preview as expanded
+          };
+        }
       }
       
       // Create a new preview message if it doesn't exist
       const previewMessage: ChatMessage = {
-        id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
         type: 'system',
         content: {
           type: 'preview',
@@ -60,6 +65,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         selectedTileId: tileId,
         isPanelOpen: true,
         messages: [...state.messages, previewMessage],
+        expandedPreviewId: previewMessage.id, // Set new preview as expanded
       };
     }
 
@@ -68,6 +74,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         ...state,
         isPanelOpen: false,
         selectedTileId: null,
+        expandedPreviewId: null,
       };
 
     case 'ADD_MESSAGE':

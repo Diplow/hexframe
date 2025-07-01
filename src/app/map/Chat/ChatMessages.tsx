@@ -6,15 +6,16 @@ import { PreviewWidget } from './Widgets/PreviewWidget';
 
 interface ChatMessagesProps {
   messages: ChatMessage[];
+  expandedPreviewId: string | null;
 }
 
-export function ChatMessages({ messages }: ChatMessagesProps) {
+export function ChatMessages({ messages, expandedPreviewId }: ChatMessagesProps) {
   return (
     <div data-testid="chat-messages" className="flex-1 overflow-y-auto flex flex-col p-4 space-y-4">
       <SystemMessage />
       
       {messages.map((message) => (
-        <ChatMessageItem key={message.id} message={message} />
+        <ChatMessageItem key={message.id} message={message} isExpanded={message.id === expandedPreviewId} />
       ))}
     </div>
   );
@@ -30,9 +31,10 @@ function SystemMessage() {
 
 interface ChatMessageItemProps {
   message: ChatMessage;
+  isExpanded: boolean;
 }
 
-function ChatMessageItem({ message }: ChatMessageItemProps) {
+function ChatMessageItem({ message, isExpanded }: ChatMessageItemProps) {
   const testId = `chat-message-${message.id}`;
 
   if (message.type === 'system' && typeof message.content === 'object') {
@@ -45,6 +47,7 @@ function ChatMessageItem({ message }: ChatMessageItemProps) {
             tileId={widgetData.tileId}
             title={widgetData.title}
             content={widgetData.content}
+            forceExpanded={isExpanded}
           />
         </div>
       );

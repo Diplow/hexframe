@@ -20,7 +20,7 @@ vi.mock('../Widgets/PreviewWidget', () => ({
 
 describe('ChatMessages', () => {
   it('should render empty state with welcome message', () => {
-    render(<ChatMessages messages={[]} />);
+    render(<ChatMessages messages={[]} expandedPreviewId={null} />);
 
     expect(screen.getByText(/Welcome to Hexframe! Select a tile to explore its content./)).toBeInTheDocument();
   });
@@ -35,7 +35,7 @@ describe('ChatMessages', () => {
       },
     ];
 
-    render(<ChatMessages messages={messages} />);
+    render(<ChatMessages messages={messages} expandedPreviewId={null} />);
 
     const message = screen.getByTestId('chat-message-1');
     expect(message).toHaveTextContent('This is a system message');
@@ -59,7 +59,7 @@ describe('ChatMessages', () => {
       },
     ];
 
-    render(<ChatMessages messages={messages} />);
+    render(<ChatMessages messages={messages} expandedPreviewId={null} />);
 
     const widget = screen.getByTestId('preview-widget');
     expect(widget).toBeInTheDocument();
@@ -77,7 +77,7 @@ describe('ChatMessages', () => {
       },
     ];
 
-    const { rerender } = render(<ChatMessages messages={messages} />);
+    const { rerender } = render(<ChatMessages messages={messages} expandedPreviewId={null} />);
     
     const scrollContainer = screen.getByTestId('chat-messages');
     
@@ -92,7 +92,7 @@ describe('ChatMessages', () => {
       },
     ];
 
-    rerender(<ChatMessages messages={moreMessages} />);
+    rerender(<ChatMessages messages={moreMessages} expandedPreviewId={null} />);
 
     // Check that the container has overflow-y-auto for scrolling
     expect(scrollContainer).toHaveClass('overflow-y-auto');
@@ -114,7 +114,7 @@ describe('ChatMessages', () => {
       },
     ];
 
-    render(<ChatMessages messages={messages} />);
+    render(<ChatMessages messages={messages} expandedPreviewId={null} />);
 
     const container = screen.getByTestId('chat-messages');
     expect(container).toHaveClass('space-y-4');

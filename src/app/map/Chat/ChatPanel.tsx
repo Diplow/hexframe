@@ -14,7 +14,7 @@ export function ChatPanel({ className }: ChatPanelProps) {
   return (
     <div data-testid="chat-panel" className={cn('flex flex-col h-full bg-center-depth-0', className)}>
       <ChatHeader />
-      <ChatMessages messages={state.messages} />
+      <ChatMessages messages={state.messages} expandedPreviewId={state.expandedPreviewId} />
     </div>
   );
 }

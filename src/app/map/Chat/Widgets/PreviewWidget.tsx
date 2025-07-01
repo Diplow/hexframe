@@ -10,30 +10,40 @@ interface PreviewWidgetProps {
   tileId: string;
   title: string;
   content: string;
+  forceExpanded?: boolean;
 }
 
-export function PreviewWidget({ tileId, title, content }: PreviewWidgetProps) {
+export function PreviewWidget({ tileId, title, content, forceExpanded }: PreviewWidgetProps) {
   // Start collapsed if content is empty
   const [isExpanded, setIsExpanded] = useState(!!content);
 
+  // Update expansion state when forceExpanded changes
+  useEffect(() => {
+    if (forceExpanded !== undefined) {
+      setIsExpanded(forceExpanded && !!content);
+    }
+  }, [forceExpanded, content]);
+
   // Update expansion state when tileId or content changes
   useEffect(() => {
-    if (!content) {
-      // Keep collapsed if no content
-      setIsExpanded(false);
-    } else {
-      // Collapse briefly then expand for animation
-      setIsExpanded(false);
-      const timer = setTimeout(() => setIsExpanded(true), 100);
-      return () => clearTimeout(timer);
+    if (forceExpanded === undefined) {
+      if (!content) {
+        // Keep collapsed if no content
+        setIsExpanded(false);
+      } else {
+        // Collapse briefly then expand for animation
+        setIsExpanded(false);
+        const timer = setTimeout(() => setIsExpanded(true), 100);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [tileId, content]);
+  }, [tileId, content, forceExpanded]);
 
   return (
     <div 
       data-testid="preview-widget" 
       className={cn(
-        "flex flex-col flex-1 w-full bg-neutral-50 dark:bg-neutral-900/50",
+        "flex flex-col flex-1 w-full bg-neutral-400 dark:bg-neutral-600",
         "rounded-lg shadow-md",
         "overflow-hidden"
       )}
