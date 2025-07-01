@@ -48,25 +48,66 @@ export function MapPageContent({
       <ToolStateManager mapCenterCoordId={centerCoordinate}>
         <MapContent>
           {/* New flex layout for desktop: Chat -> Toolbox -> Canvas -> Hierarchy */}
-          <div className="flex h-full w-full">
-            {/* Flexible Left: Chat takes remaining space */}
-            <ChatPanel className="flex-1 border-r border-[color:var(--stroke-color-950)] overflow-hidden" />
-            
-            {/* Fixed: Toolbox */}
-            <div className="relative">
-              <Toolbox />
+          <div className="flex h-full w-full relative">
+            {/* Main content area */}
+            <div className="flex flex-1 pr-[130px]">
+              {/* Flexible Left: Chat takes remaining space */}
+              <ChatPanel className="flex-1 border-r border-[color:var(--stroke-color-950)] overflow-hidden" />
+              
+              {/* Fixed: Toolbox */}
+              <div className="relative">
+                <Toolbox />
+              </div>
+              
+              {/* Min-width Center: Canvas (scale 3 tile = 400px) */}
+              <div className="flex-1 flex-shrink-0" style={{ minWidth: '400px' }}>
+                <DynamicMapCanvas
+                  centerInfo={{
+                    center: centerCoordinate,
+                    rootItemId,
+                    userId,
+                    groupId,
+                  }}
+                  expandedItemIds={params.expandedItems?.split(",") ?? []}
+                  urlInfo={{
+                    pathname: `/map`,
+                    searchParamsString: new URLSearchParams(params as Record<string, string>).toString(),
+                    rootItemId: params.center!,
+                    scale: params.scale,
+                    expandedItems: params.expandedItems,
+                    focus: params.focus,
+                  }}
+                  enableBackgroundSync={true}
+                  syncInterval={30000}
+                  cacheConfig={CACHE_CONFIG}
+                />
+                <MapControls
+                  urlInfo={{
+                    pathname: `/map`,
+                    searchParamsString: new URLSearchParams(params as Record<string, string>).toString(),
+                    rootItemId: params.center!,
+                    scale: params.scale,
+                    expandedItems: params.expandedItems,
+                    focus: params.focus,
+                  }}
+                  expandedItemIds={params.expandedItems?.split(",") ?? []}
+                  minimapItemsData={{}} // Will get items from cache context
+                  currentMapCenterCoordId={centerCoordinate}
+                  cacheStatus={{
+                    isLoading: false, // Cache will manage its own loading state
+                    lastUpdated: Date.now(),
+                    error: null,
+                    itemCount: 0,
+                  }}
+                />
+              </div>
             </div>
             
-            {/* Min-width Center: Canvas (scale 3 tile = 400px) */}
-            <div className="flex-1 flex-shrink-0" style={{ minWidth: '400px' }}>
-              <DynamicMapCanvas
-                centerInfo={{
-                  center: centerCoordinate,
-                  rootItemId,
-                  userId,
-                  groupId,
-                }}
-                expandedItemIds={params.expandedItems?.split(",") ?? []}
+            {/* Fixed Right: Hierarchy - positioned absolutely */}
+            <div className="absolute right-0 top-0 bottom-0">
+              <ParentHierarchy
+                centerCoordId={centerCoordinate}
+                items={{}} // Will get items from cache context
                 urlInfo={{
                   pathname: `/map`,
                   searchParamsString: new URLSearchParams(params as Record<string, string>).toString(),
@@ -75,44 +116,8 @@ export function MapPageContent({
                   expandedItems: params.expandedItems,
                   focus: params.focus,
                 }}
-                enableBackgroundSync={true}
-                syncInterval={30000}
-                cacheConfig={CACHE_CONFIG}
-              />
-              <MapControls
-                urlInfo={{
-                  pathname: `/map`,
-                  searchParamsString: new URLSearchParams(params as Record<string, string>).toString(),
-                  rootItemId: params.center!,
-                  scale: params.scale,
-                  expandedItems: params.expandedItems,
-                  focus: params.focus,
-                }}
-                expandedItemIds={params.expandedItems?.split(",") ?? []}
-                minimapItemsData={{}} // Will get items from cache context
-                currentMapCenterCoordId={centerCoordinate}
-                cacheStatus={{
-                  isLoading: false, // Cache will manage its own loading state
-                  lastUpdated: Date.now(),
-                  error: null,
-                  itemCount: 0,
-                }}
               />
             </div>
-            
-            {/* Fixed Right: Hierarchy */}
-            <ParentHierarchy
-              centerCoordId={centerCoordinate}
-              items={{}} // Will get items from cache context
-              urlInfo={{
-                pathname: `/map`,
-                searchParamsString: new URLSearchParams(params as Record<string, string>).toString(),
-                rootItemId: params.center!,
-                scale: params.scale,
-                expandedItems: params.expandedItems,
-                focus: params.focus,
-              }}
-            />
           </div>
           
           <OfflineIndicator isOffline={isOffline} />
