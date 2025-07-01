@@ -98,7 +98,7 @@ function ChatMessageItem({ message, isExpanded }: ChatMessageItemProps) {
         <span className={`font-bold ${getNameColor()}`}>{getName()}:</span>
         <div className="flex-1">
           {typeof message.content === 'string' ? (
-            <div className="prose prose-sm max-w-none dark:prose-invert">
+            <div className="prose prose-sm max-w-none dark:prose-invert prose-pre:bg-transparent prose-code:bg-transparent">
               <ReactMarkdown 
                 remarkPlugins={[remarkGfm]}
                 components={{
@@ -110,6 +110,24 @@ function ChatMessageItem({ message, isExpanded }: ChatMessageItemProps) {
                   ),
                   // Remove default paragraph margins for better chat layout
                   p: ({ children }) => <p className="my-0">{children}</p>,
+                  // Custom code styling for better light/dark mode support
+                  code: ({ node, className, children, ...props }: any) => {
+                    const match = /language-(\w+)/.exec(className || '');
+                    return match ? (
+                      <code className="block bg-neutral-400 dark:bg-neutral-700 p-2 rounded overflow-x-auto" {...props}>
+                        {children}
+                      </code>
+                    ) : (
+                      <code className="bg-neutral-400 dark:bg-neutral-700 px-1 py-0.5 rounded" {...props}>
+                        {children}
+                      </code>
+                    );
+                  },
+                  pre: ({ children }) => (
+                    <pre className="bg-neutral-400 dark:bg-neutral-700 p-4 rounded-lg overflow-x-auto my-2">
+                      {children}
+                    </pre>
+                  ),
                 }}
               >
                 {message.content}
