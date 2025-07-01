@@ -19,11 +19,13 @@ import {
   Move,
   Sun,
   Moon,
+  MousePointer,
 } from 'lucide-react';
 import { useTheme } from '~/contexts/ThemeContext';
 import type { ToolType } from '../../Canvas/TileActionsContext';
 
 const TOOLS: ToolConfig[] = [
+  { id: 'select', label: 'Select', icon: MousePointer, shortcut: 'S', color: 'indigo' },
   { id: 'expand', label: 'Expand', icon: Maximize2, shortcut: 'X', color: 'indigo' },
   { id: 'navigate', label: 'Navigate', icon: Navigation, shortcut: 'N', color: 'cyan' },
   { id: 'create', label: 'Create', icon: Plus, shortcut: 'C', color: 'green' },
