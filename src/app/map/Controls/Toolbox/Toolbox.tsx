@@ -6,7 +6,6 @@ import { useTileActions } from '../../Canvas/TileActionsContext';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { useToolboxCycle } from './_hooks/useToolboxCycle';
 import { useToolboxKeyboard } from './_hooks/useToolboxKeyboard';
-import { calculateToolboxTopOffset } from './_utils/toolbox-layout';
 import { ToolboxToggle } from './_components/ToolboxToggle';
 import { ToolButton, type ToolConfig } from './_components/ToolButton';
 import { ToolTooltip } from './_components/ToolTooltip';
@@ -54,14 +53,12 @@ export function Toolbox() {
     openToIconsMode();
   };
 
-  const topOffset = calculateToolboxTopOffset(TOOLS.length);
-
   return (
-    <div className="fixed left-4 z-50" style={{ top: topOffset }}>
+    <div className="h-full flex items-center justify-center px-2">
       <div className={cn(
         "bg-center-depth-0 shadow-lg border rounded-lg",
         "border-[color:var(--stroke-color-950)]",
-        "transition-all duration-300 ease-in-out origin-top-left",
+        "transition-all duration-300 ease-in-out origin-center",
         displayMode === 'closed' ? 'w-16' : displayMode === 'icons' ? 'w-16' : 'w-48'
       )}>
         <ToolboxToggle

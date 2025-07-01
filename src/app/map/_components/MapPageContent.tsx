@@ -10,7 +10,6 @@ import { MapContent } from "./MapContent";
 import { ChatPanel } from "../Chat/ChatPanel";
 import { OfflineIndicator } from "./offline-indicator";
 import { useTileSelectForChat } from "../hooks/useTileSelectForChat";
-import { useChat } from "../Chat/ChatProvider";
 
 interface MapPageContentProps {
   centerCoordinate: string;
@@ -43,16 +42,20 @@ export function MapPageContent({
   isOffline,
 }: MapPageContentProps) {
   const { handleTileSelect } = useTileSelectForChat();
-  const { state: chatState } = useChat();
   
   return (
     <TileActionsProvider onSelectClick={handleTileSelect}>
       <ToolStateManager mapCenterCoordId={centerCoordinate}>
         <MapContent>
-          {/* New flex layout for desktop */}
+          {/* New flex layout for desktop: Chat -> Toolbox -> Canvas -> Hierarchy */}
           <div className="flex h-full w-full">
-            {/* Fixed Left: Toolbox */}
-            <Toolbox />
+            {/* Flexible Left: Chat takes remaining space */}
+            <ChatPanel className="flex-1 border-r overflow-hidden" />
+            
+            {/* Fixed: Toolbox */}
+            <div className="relative">
+              <Toolbox />
+            </div>
             
             {/* Min-width Center: Canvas (scale 3 tile = 400px) */}
             <div className="flex-shrink-0" style={{ minWidth: '400px' }}>
@@ -110,11 +113,6 @@ export function MapPageContent({
                 focus: params.focus,
               }}
             />
-            
-            {/* Flexible: Chat takes remaining space */}
-            {chatState.isPanelOpen && (
-              <ChatPanel className="flex-1 border-l overflow-hidden" />
-            )}
           </div>
           
           <OfflineIndicator isOffline={isOffline} />

@@ -18,6 +18,7 @@ import { MapLoadingSkeleton } from "./LifeCycle/loading-skeleton";
 import { MapErrorBoundary } from "./LifeCycle/error-boundary";
 import { useDragAndDropWithMutation } from "./hooks/useDragAndDropWithMutation";
 import type { DragEvent } from "react";
+import { useChat } from "../Chat/ChatProvider";
 
 // Theme Context for tiles
 export interface ThemeContextValue {
@@ -113,6 +114,7 @@ export function DynamicMapCanvas({
   const [isHydrated, setIsHydrated] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const { mappingUserId } = useAuth();
+  const { state: chatState } = useChat();
   
   // Initialize drag and drop functionality
   const {
@@ -243,6 +245,7 @@ export function DynamicMapCanvas({
               scale={3 as TileScale}
               urlInfo={urlInfo}
               currentUserId={mappingUserId}
+              selectedTileId={chatState.selectedTileId}
             />
           </div>
         </div>

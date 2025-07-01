@@ -27,6 +27,7 @@ interface ItemTileContentProps {
   canEdit: boolean;
   onEditClick: () => void;
   onDeleteClick: () => void;
+  isSelected?: boolean;
 }
 
 /**
@@ -115,10 +116,11 @@ export function ItemTileContent({
             tileId={testId.replace("tile-", "")}
             isHovered={isHovered}
             depth={item.metadata.depth}
+            isSelected={props.isSelected}
           />
         </DynamicBaseTileLayout>
       </div>
-      {interactive && !isBeingDragged && activeTool === 'select' && (
+      {interactive && !isBeingDragged && activeTool !== 'select' && isHovered && (
         <DynamicTileButtons
           item={item}
           urlInfo={urlInfo}

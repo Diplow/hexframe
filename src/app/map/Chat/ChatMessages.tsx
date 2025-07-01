@@ -10,7 +10,7 @@ interface ChatMessagesProps {
 
 export function ChatMessages({ messages }: ChatMessagesProps) {
   return (
-    <div data-testid="chat-messages" className="flex-1 overflow-y-auto p-4 space-y-4">
+    <div data-testid="chat-messages" className="flex-1 overflow-y-auto flex flex-col">
       {messages.length === 0 && <SystemMessage />}
       
       {messages.map((message) => (
@@ -40,7 +40,7 @@ function ChatMessageItem({ message }: ChatMessageItemProps) {
     if (message.content.type === 'preview') {
       const widgetData = message.content.data as PreviewWidgetData;
       return (
-        <div data-testid={testId}>
+        <div data-testid={testId} className="flex-1 p-4">
           <PreviewWidget
             tileId={widgetData.tileId}
             title={widgetData.title}

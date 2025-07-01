@@ -2,8 +2,6 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ChatPanel } from '../ChatPanel';
-import { ChatProvider } from '../ChatProvider';
-import type { ReactNode } from 'react';
 
 // Mock the useChat hook for isolated testing
 vi.mock('../ChatProvider', async () => {

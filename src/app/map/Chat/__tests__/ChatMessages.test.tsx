@@ -3,9 +3,14 @@ import { render, screen } from '@testing-library/react';
 import { ChatMessages } from '../ChatMessages';
 import type { ChatMessage } from '../types';
 
+interface MockPreviewWidgetProps {
+  title: string;
+  content: string;
+}
+
 // Mock the PreviewWidget component
 vi.mock('../Widgets/PreviewWidget', () => ({
-  PreviewWidget: ({ title, content }: any) => (
+  PreviewWidget: ({ title, content }: MockPreviewWidgetProps) => (
     <div data-testid="preview-widget">
       <h3>{title}</h3>
       <p>{content}</p>
@@ -112,6 +117,6 @@ describe('ChatMessages', () => {
     render(<ChatMessages messages={messages} />);
 
     const container = screen.getByTestId('chat-messages');
-    expect(container).toHaveClass('space-y-4');
+    expect(container).toHaveClass('flex-1');
   });
 });
