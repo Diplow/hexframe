@@ -6,7 +6,7 @@ export default function StaticMapLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="h-screen w-screen overflow-hidden bg-gray-900">
+    <div className="h-screen w-screen overflow-hidden bg-neutral-900">
       {children}
       <StaticIndicator />
     </div>

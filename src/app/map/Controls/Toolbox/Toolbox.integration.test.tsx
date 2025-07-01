@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { Toolbox } from './Toolbox'
 import { TileActionsProvider, useTileActions } from '../../Canvas/TileActionsContext'
 import { createMockTileData } from '../../test-utils/mockTileData'
+import { ThemeProvider } from '~/contexts/ThemeContext'
 
 describe('Toolbox Integration', () => {
   const localStorageMock = {
@@ -46,15 +47,17 @@ describe('Toolbox Integration', () => {
 
   function TestApp({ onNavigateClick, onCreateClick, onEditClick, onDeleteClick }: TestAppProps) {
     return (
-      <TileActionsProvider
-        onNavigateClick={onNavigateClick}
-        onCreateClick={onCreateClick}
-        onEditClick={onEditClick}
-        onDeleteClick={onDeleteClick}
-      >
-        <Toolbox />
-        <ToolDisplay />
-      </TileActionsProvider>
+      <ThemeProvider>
+        <TileActionsProvider
+          onNavigateClick={onNavigateClick}
+          onCreateClick={onCreateClick}
+          onEditClick={onEditClick}
+          onDeleteClick={onDeleteClick}
+        >
+          <Toolbox />
+          <ToolDisplay />
+        </TileActionsProvider>
+      </ThemeProvider>
     )
   }
 

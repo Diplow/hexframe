@@ -14,14 +14,13 @@
  */
 
 import { DynamicItemTile, getColorFromItem } from "../Tile/Item";
-import {
-  StaticBaseTileLayout,
-  type TileScale,
-} from "~/app/static/map/Tile/Base/base";
+import { DynamicBaseTileLayout } from "../Tile/Base";
+import type { TileScale } from "~/app/static/map/Tile/Base/base";
 import { DynamicEmptyTile } from "../Tile/Empty/empty";
 import type { TileData } from "../types/tile-data";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import type { URLInfo } from "../types/url-info";
+import { useCanvasTheme } from ".";
 
 const CHILD_INDICES = [1, 2, 3, 4, 5, 6] as const;
 
@@ -45,6 +44,7 @@ export interface DynamicFrameProps {
 export const DynamicFrame = (props: DynamicFrameProps) => {
   const { center, mapItems, scale = 3 } = props;
   const centerItem = mapItems[center];
+  const { isDarkMode } = useCanvasTheme();
 
   if (!centerItem) return null;
 
@@ -71,12 +71,14 @@ export const DynamicFrame = (props: DynamicFrameProps) => {
   const nextScale: TileScale = scale > 1 ? ((scale - 1) as TileScale) : 1;
 
   return (
-    <StaticBaseTileLayout
+    <DynamicBaseTileLayout
       baseHexSize={props.baseHexSize ?? 50}
       scale={scale}
       color={getColorFromItem(centerItem)}
       coordId={centerItem.metadata.coordId}
       _shallow={true}
+      isExpanded={true}
+      isDarkMode={isDarkMode}
     >
       <div className="scale-90 transform" style={{ position: "relative", zIndex: 5 }}>
         <FrameInterior
@@ -90,7 +92,7 @@ export const DynamicFrame = (props: DynamicFrameProps) => {
           currentUserId={props.currentUserId}
         />
       </div>
-    </StaticBaseTileLayout>
+    </DynamicBaseTileLayout>
   );
 };
 

@@ -12,6 +12,11 @@ vi.mock("~/components/auth/register-form", () => ({
   RegisterForm: () => <div>Register Form</div>,
 }));
 
+// Mock the Canvas theme hook
+vi.mock("~/app/map/Canvas", () => ({
+  useCanvasTheme: () => ({ isDarkMode: false })
+}));
+
 describe("AuthTile", () => {
   it("renders with scale 3 hexagon shape", () => {
     const { container } = render(<AuthTile />);
@@ -34,7 +39,7 @@ describe("AuthTile", () => {
     // Check SVG structure
     const svg = container.querySelector("svg");
     expect(svg).toBeTruthy();
-    expect(svg?.getAttribute("viewBox")).toBe("-2 -2 104 119.47"); // Padded for scale 3
+    expect(svg?.getAttribute("viewBox")).toBe("0 0 100 115.47");
     
     // Check hexagon path
     const path = svg?.querySelector("path");

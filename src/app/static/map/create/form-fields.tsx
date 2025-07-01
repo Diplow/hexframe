@@ -125,7 +125,7 @@ export function CreateItemFormFields({
       <div>
         <label
           htmlFor="title"
-          className="block text-sm font-medium text-gray-300"
+          className="block text-sm font-medium text-neutral-300"
         >
           Title *
         </label>
@@ -135,13 +135,13 @@ export function CreateItemFormFields({
           name="title"
           required
           maxLength={200}
-          className={`mt-1 block w-full rounded-md border bg-gray-700 px-3 py-2 text-white placeholder-gray-400 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-            errors?.title ? "border-rose-500" : "border-gray-600"
+          className={`mt-1 block w-full rounded-md border bg-neutral-700 px-3 py-2 text-white placeholder-neutral-400 shadow-sm focus:border-link-500 focus:outline-none focus:ring-1 focus:ring-link-500 ${
+            errors?.title ? "border-destructive-500" : "border-neutral-600"
           }`}
           placeholder="Enter item title"
         />
         {errors?.title && (
-          <p className="mt-1 text-sm text-rose-400">{errors.title}</p>
+          <p className="mt-1 text-sm text-destructive-400">{errors.title}</p>
         )}
       </div>
 
@@ -149,7 +149,7 @@ export function CreateItemFormFields({
       <div>
         <label
           htmlFor="description"
-          className="block text-sm font-medium text-gray-300"
+          className="block text-sm font-medium text-neutral-300"
         >
           Description
         </label>
@@ -158,13 +158,13 @@ export function CreateItemFormFields({
           name="description"
           rows={4}
           maxLength={2000}
-          className={`mt-1 block w-full rounded-md border bg-gray-700 px-3 py-2 text-white placeholder-gray-400 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-            errors?.description ? "border-rose-500" : "border-gray-600"
+          className={`mt-1 block w-full rounded-md border bg-neutral-700 px-3 py-2 text-white placeholder-neutral-400 shadow-sm focus:border-link-500 focus:outline-none focus:ring-1 focus:ring-link-500 ${
+            errors?.description ? "border-destructive-500" : "border-neutral-600"
           }`}
           placeholder="Enter item description (optional)"
         />
         {errors?.description && (
-          <p className="mt-1 text-sm text-rose-400">{errors.description}</p>
+          <p className="mt-1 text-sm text-destructive-400">{errors.description}</p>
         )}
       </div>
 
@@ -172,7 +172,7 @@ export function CreateItemFormFields({
       <div>
         <label
           htmlFor="url"
-          className="block text-sm font-medium text-gray-300"
+          className="block text-sm font-medium text-neutral-300"
         >
           URL
         </label>
@@ -180,13 +180,13 @@ export function CreateItemFormFields({
           type="url"
           id="url"
           name="url"
-          className={`mt-1 block w-full rounded-md border bg-gray-700 px-3 py-2 text-white placeholder-gray-400 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-            errors?.url ? "border-rose-500" : "border-gray-600"
+          className={`mt-1 block w-full rounded-md border bg-neutral-700 px-3 py-2 text-white placeholder-neutral-400 shadow-sm focus:border-link-500 focus:outline-none focus:ring-1 focus:ring-link-500 ${
+            errors?.url ? "border-destructive-500" : "border-neutral-600"
           }`}
           placeholder="https://example.com (optional)"
         />
         {errors?.url && (
-          <p className="mt-1 text-sm text-rose-400">{errors.url}</p>
+          <p className="mt-1 text-sm text-destructive-400">{errors.url}</p>
         )}
       </div>
 
@@ -194,13 +194,13 @@ export function CreateItemFormFields({
       <div className="flex gap-3">
         <button
           type="submit"
-          className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 rounded-md bg-link-600 px-4 py-2 text-white transition-colors hover:bg-link-700 focus:outline-none focus:ring-2 focus:ring-link-500"
         >
           Create Item
         </button>
         <a
           href={returnUrl}
-          className="flex-1 rounded-md border border-gray-600 px-4 py-2 text-center text-gray-300 transition-colors hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+          className="flex-1 rounded-md border border-neutral-600 px-4 py-2 text-center text-neutral-300 transition-colors hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-500"
         >
           Cancel
         </a>

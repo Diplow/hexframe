@@ -35,12 +35,7 @@ export async function StaticCreateItemForm({
   const coordId = CoordSystem.createId(targetCoords);
 
   // Get color for the future tile based on its position
-  const colorString = getColor(targetCoords);
-  const [colorName, tint] = colorString.split("-") as [string, string];
-  const tileColor = {
-    color: colorName as "zinc" | "amber" | "green" | "fuchsia" | "rose" | "indigo" | "cyan",
-    tint: tint as "50" | "100" | "200" | "300" | "400" | "500" | "600" | "700" | "800" | "900" | "950",
-  };
+  const tileColor = getColor(targetCoords);
 
   // Get all items for hierarchy building
   let items: Record<string, TileData> = {};
@@ -116,7 +111,7 @@ export async function StaticCreateItemForm({
       <div className="flex items-center gap-4">
         <Link
           href={returnUrl}
-          className="flex items-center gap-2 text-sm text-gray-400 transition-colors hover:text-gray-300"
+          className="flex items-center gap-2 text-sm text-neutral-400 transition-colors hover:text-neutral-300"
         >
           <ArrowLeft size={16} />
           Back to Map
@@ -126,7 +121,7 @@ export async function StaticCreateItemForm({
       <div className="space-y-4">
         <h1 className="text-3xl font-bold text-white">Create New Item</h1>
 
-        <div className="flex items-center gap-2 text-sm text-gray-400">
+        <div className="flex items-center gap-2 text-sm text-neutral-400">
           <MapPin size={16} />
           <span>Position: {coordsDisplay}</span>
         </div>
@@ -138,8 +133,8 @@ export async function StaticCreateItemForm({
         <div className="flex-1 space-y-6">
           {/* Parent Info */}
           {parentItem && (
-            <div className="rounded-lg border border-gray-700 bg-gray-800 p-4">
-              <p className="text-sm font-medium text-gray-300">
+            <div className="rounded-lg border border-neutral-700 bg-neutral-800 p-4">
+              <p className="text-sm font-medium text-neutral-300">
                 Creating child of:{" "}
                 <span className="font-normal text-white">
                   {parentItem.name}
@@ -149,7 +144,7 @@ export async function StaticCreateItemForm({
           )}
 
           {/* Form */}
-          <div className="rounded-lg border border-gray-700 bg-gray-800 p-6">
+          <div className="rounded-lg border border-neutral-700 bg-neutral-800 p-6">
             <CreateItemFormFields
               targetCoords={targetCoords}
               parentId={parentItem?.id}
@@ -163,7 +158,7 @@ export async function StaticCreateItemForm({
         <div className="lg:w-96">
           {/* Hierarchy */}
           {(hierarchy.length > 0 || parentItem) && (
-            <div className="rounded-lg border border-gray-700 bg-gray-800 p-6">
+            <div className="rounded-lg border border-neutral-700 bg-neutral-800 p-6">
               <h2 className="mb-4 text-lg font-semibold text-white">Hierarchy</h2>
               <div className="flex flex-col items-center gap-2">
               {hierarchy.map((item, index) => (
@@ -180,7 +175,7 @@ export async function StaticCreateItemForm({
                   {(index < hierarchy.length - 1 || parentItem) && (
                     <ChevronDown
                       size={16}
-                      className="flex-shrink-0 text-zinc-400"
+                      className="flex-shrink-0 text-neutral-400"
                     />
                   )}
                 </div>
@@ -228,7 +223,7 @@ export async function StaticCreateItemForm({
                       />
                       <ChevronDown
                         size={16}
-                        className="flex-shrink-0 text-zinc-400"
+                        className="flex-shrink-0 text-neutral-400"
                       />
                     </div>
                   );
@@ -246,7 +241,7 @@ export async function StaticCreateItemForm({
                   >
                     <div className="flex h-full w-full items-center justify-center p-2">
                       <span
-                        className="text-center text-xs font-medium leading-tight text-slate-800"
+                        className="text-center text-xs font-medium leading-tight text-neutral-800"
                         style={{
                           display: "-webkit-box",
                           WebkitLineClamp: 3,

@@ -36,7 +36,7 @@ export const ParentHierarchy = ({
               urlInfo={urlInfo}
             />
             {index < hierarchy.length - 1 && (
-              <ChevronDown size={16} className="flex-shrink-0 text-zinc-400" />
+              <ChevronDown size={16} className="flex-shrink-0 text-neutral-400" />
             )}
           </div>
         ))}

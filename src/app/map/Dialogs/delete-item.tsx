@@ -83,23 +83,23 @@ export function DeleteItemDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="rounded-md bg-amber-50 p-4">
-            <p className="text-sm text-amber-800">
+          <div className="rounded-md bg-secondary-50 p-4">
+            <p className="text-sm text-secondary-800">
               Are you sure you want to delete{" "}
               <span className="font-semibold">{item.data.name}</span>?
             </p>
             {isUserRootMap ? (
-              <p className="mt-2 text-xs text-amber-700">
+              <p className="mt-2 text-xs text-secondary-700">
                 This is a user&apos;s root map and cannot be deleted.
               </p>
             ) : (
               <>
-                <p className="mt-2 text-xs text-amber-700">
+                <p className="mt-2 text-xs text-secondary-700">
                   This action cannot be undone. All child items will also be
                   deleted.
                 </p>
                 {isCurrentCenter && (
-                  <p className="mt-2 text-xs text-amber-700">
+                  <p className="mt-2 text-xs text-secondary-700">
                     <strong>Note:</strong> Since this is the current center, you will be
                     redirected to the parent item after deletion.
                   </p>
@@ -109,17 +109,17 @@ export function DeleteItemDialog({
           </div>
 
           {error && (
-            <div className="rounded-md bg-rose-50 p-3">
-              <p className="text-sm text-rose-600">{error}</p>
+            <div className="rounded-md bg-destructive-50 p-3">
+              <p className="text-sm text-destructive-600">{error}</p>
             </div>
           )}
 
           {/* Progress indicator for optimistic deletion */}
           {isDeleting && (
-            <div className="rounded-md bg-blue-50 p-3">
+            <div className="rounded-md bg-link-50 p-3">
               <div className="flex items-center gap-2">
                 <svg
-                  className="h-4 w-4 animate-spin text-blue-600"
+                  className="h-4 w-4 animate-spin text-link-600"
                   viewBox="0 0 24 24"
                 >
                   <circle
@@ -146,7 +146,7 @@ export function DeleteItemDialog({
                     />
                   </circle>
                 </svg>
-                <p className="text-sm text-blue-700">
+                <p className="text-sm text-link-700">
                   Deleting item... (it disappears immediately!)
                 </p>
               </div>
@@ -158,7 +158,7 @@ export function DeleteItemDialog({
             <button
               onClick={handleDelete}
               disabled={isDeleting || isUserRootMap}
-              className="flex-1 rounded-md bg-rose-600 px-4 py-2 text-white transition-colors hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex-1 rounded-md bg-destructive-600 px-4 py-2 text-white transition-colors hover:bg-destructive-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isDeleting ? (
                 <span className="flex items-center justify-center gap-2">
@@ -197,7 +197,7 @@ export function DeleteItemDialog({
               type="button"
               onClick={onClose}
               disabled={isDeleting}
-              className="flex-1 rounded-md border border-gray-300 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex-1 rounded-md border border-neutral-300 px-4 py-2 text-neutral-700 transition-colors hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Cancel
             </button>

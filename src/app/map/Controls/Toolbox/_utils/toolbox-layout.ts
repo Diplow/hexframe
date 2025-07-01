@@ -26,5 +26,5 @@ export function calculateToolboxHeight(toolCount: number): number {
 
 export function calculateToolboxTopOffset(toolCount: number): string {
   const openHeight = calculateToolboxHeight(toolCount);
-  return `calc(50% - ${openHeight / 2}px)`;
+  return `calc(44% - ${openHeight / 2}px)`;
 }

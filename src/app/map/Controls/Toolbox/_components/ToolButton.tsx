@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { cn } from '~/lib/utils';
 import type { ToolType } from '../../../Canvas/TileActionsContext';
 import { 
@@ -41,6 +42,8 @@ export function ToolButton({
 }: ToolButtonProps) {
   const Icon = tool.icon;
   const visibility = getToolVisibility(index, totalTools, displayMode, cyclePosition, isActive);
+  const [isHovering, setIsHovering] = React.useState(false);
+  const [isFocused, setIsFocused] = React.useState(false);
 
   const handleClick = () => {
     onClick(tool.id);
@@ -56,14 +59,17 @@ export function ToolButton({
   return (
     <div 
       className={cn(
-        "relative group overflow-visible transition-all duration-300 ease-in-out",
-        visibility.shouldHide ? "opacity-0 max-h-0 scale-95" : "opacity-100 max-h-[48px] scale-100",
-        !visibility.shouldHide && !visibility.isLastVisible && "mb-1.5"
+        "relative overflow-visible transition-all duration-300 ease-in-out",
+        visibility.shouldHide ? "opacity-0 max-h-0 scale-95" : "opacity-100 max-h-10 scale-100",
       )}
     >
       <button
         onClick={handleClick}
         onKeyDown={handleKeyDown}
+        onMouseEnter={() => !isDisabled && setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
         disabled={isDisabled}
         className={getToolButtonStyles(tool.color, isActive, isDisabled, displayMode)}
         aria-label={`${tool.label} tool${isDisabled ? ' (disabled)' : ''}`}
@@ -71,29 +77,37 @@ export function ToolButton({
         aria-disabled={isDisabled}
       >
         <div className={cn(
-          "w-full h-full flex items-center transition-all duration-300 ease-in-out",
-          displayMode === 'full' ? "justify-start gap-2 px-2" : "justify-center"
+          "w-full h-full flex items-center",
+          displayMode === 'full' ? "justify-between gap-2 px-3.5" : "justify-center"
         )}>
-          <Icon className={getToolIconStyles(tool.color, isActive, isDisabled)} />
+          <div className="flex items-center justify-center gap-4">
+            <div className="w-5 flex items-center justify-start">
+              <Icon className={getToolIconStyles(tool.color, isActive, isDisabled, isHovering && displayMode !== 'closed')} />
+            </div>
+            <span className={getToolLabelStyles(tool.color, isActive, isDisabled, displayMode, isHovering && displayMode !== 'closed', isFocused)}>
+              {tool.label}
+            </span>
+          </div>
           
-          <span className={getToolLabelStyles(tool.color, isActive, isDisabled, displayMode)}>
-            {tool.label}
-          </span>
-          
-          <span className={cn(
-            "text-xs font-medium px-1.5 py-0.5 rounded transition-all duration-300",
-            "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400",
-            displayMode === 'full' ? "opacity-100" : "opacity-0 w-0 px-0"
-          )}>
-            {tool.shortcut}
-          </span>
+          {tool.shortcut && (
+            <span className={cn(
+              "text-xs font-medium px-1.5 py-0.5 rounded transition-all duration-300",
+              "min-w-[1.5rem] text-center", // Added consistent minimum width and center text
+              isDisabled 
+                ? "bg-neutral-200 dark:bg-neutral-700 text-neutral-500 dark:text-neutral-500" 
+                : "bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400",
+              displayMode === 'full' ? "opacity-100 ml-auto" : "hidden"
+            )}>
+              {tool.shortcut}
+            </span>
+          )}
         </div>
       </button>
 
       <ToolTooltip
         label={tool.label}
         shortcut={tool.shortcut}
-        show={visibility.showTooltip}
+        show={isHovering && displayMode === 'icons'}
       />
     </div>
   );

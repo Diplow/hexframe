@@ -18,7 +18,7 @@ export function ErrorState({
   showTimestamp = false 
 }: ErrorStateProps) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-600 p-4">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-600 p-4">
       <ErrorTile 
         title={title}
         message={message}

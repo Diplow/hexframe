@@ -80,7 +80,7 @@ function EmptyTileContent({
 }: EmptyTileContentProps) {
   if (!interactive) {
     return (
-      <div className="flex h-full w-full items-center justify-center text-zinc-400">
+      <div className="flex h-full w-full items-center justify-center text-neutral-400">
         <div className="text-center">
           <div className="text-xs opacity-50">Empty</div>
         </div>
@@ -93,14 +93,14 @@ function EmptyTileContent({
       {userOwnsThisSpace ? (
         <Link
           href={createUrl}
-          className="create-button pointer-events-auto relative z-20 flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-white opacity-70 shadow-lg transition-opacity duration-200 hover:bg-green-600 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-green-400 group-hover:opacity-100"
+          className="create-button pointer-events-auto relative z-20 flex h-8 w-8 items-center justify-center rounded-full bg-success-500 text-white opacity-70 shadow-lg transition-opacity duration-200 hover:bg-success-600 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-success-400 group-hover:opacity-100"
           aria-label={`Create new item${parentItem ? ` under ${parentItem.name}` : ""}`}
           title={`Create new item${parentItem ? ` under ${parentItem.name}` : ""}`}
         >
           <Plus size={16} />
         </Link>
       ) : (
-        <div className="text-center text-xs text-zinc-400">
+        <div className="text-center text-xs text-neutral-400">
           You don&apos;t own this space
         </div>
       )}

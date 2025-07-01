@@ -20,10 +20,10 @@ export const StaticAuthTile = ({
       <div className="flex h-full w-full items-center justify-center p-8">
         <div className="mx-auto w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
           <div className="mb-6">
-            <h2 className="text-center text-2xl font-bold text-gray-800">
+            <h2 className="text-center text-2xl font-bold text-neutral-800">
               {showLogin ? "Welcome Back" : "Create Account"}
             </h2>
-            <p className="mt-2 text-center text-gray-600">
+            <p className="mt-2 text-center text-neutral-600">
               {showLogin
                 ? "Please login to continue."
                 : "Sign up to get started."}
@@ -36,7 +36,7 @@ export const StaticAuthTile = ({
             <Button
               variant="link"
               onClick={onToggleView}
-              className="text-sm text-indigo-600 hover:text-indigo-500 focus:outline-none"
+              className="text-sm text-se-600 hover:text-se-500 focus:outline-none"
             >
               {showLogin
                 ? "Need an account? Register"

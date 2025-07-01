@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import { getDefaultStroke, getStrokeHexColor } from "~/app/map/Tile/utils/stroke";
+import { CoordSystem, type Direction } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { renderStaticTileGradients } from "~/app/map/Tile/Base/gradient";
 
 export type TileCursor =
   | "cursor-pointer"
@@ -39,7 +41,7 @@ export type TileColor = {
 export interface StaticBaseTileLayoutProps {
   coordId: string;
   scale: TileScale;
-  color?: TileColor;
+  color?: TileColor | string; // Allow both old format and new semantic format
   stroke?: TileStroke;
   children?: ReactNode;
   cursor?: TileCursor;
@@ -61,10 +63,25 @@ export const StaticBaseTileLayout = ({
   _shallow = false,
   isExpanded = false,
 }: StaticBaseTileLayoutProps) => {
-  // Calculate default stroke based on scale and expansion
-  const defaultStroke = getDefaultStroke(scale, isExpanded);
+  // Calculate default stroke based on scale, expansion, and shallow state
+  const defaultStroke = getDefaultStroke(scale, isExpanded, _shallow);
   
   const finalStroke = stroke ?? defaultStroke;
+  
+  // Parse coordinate to get direction info
+  // Handle special coordIds that don't follow the normal pattern
+  let coord;
+  let lastDirection: Direction | null = null;
+  let hasPath = false;
+  
+  try {
+    coord = CoordSystem.parseId(coordId);
+    lastDirection = coord.path.length > 0 ? coord.path[coord.path.length - 1]! : null;
+    hasPath = coord.path.length > 0;
+  } catch {
+    // For special tiles like "auth-static", use default values
+    coord = { userId: 0, groupId: 0, path: [] };
+  }
   // Calculate dimensions based on scale
   const width =
     scale === 1
@@ -74,14 +91,14 @@ export const StaticBaseTileLayout = ({
   const height =
     scale === 1 ? baseHexSize * 2 : baseHexSize * 2 * Math.pow(3, scale - 1);
 
-  // SVG constants with padding for stroke
-  const strokePadding = scale === 3 ? 2 : 0; // Add padding for scale 3 tiles
+  // SVG constants
   const svgPath = "M50 0 L100 28.87 L100 86.6 L50 115.47 L0 86.6 L0 28.87Z";
-  const svgViewBox = strokePadding > 0 
-    ? `-${strokePadding} -${strokePadding} ${100 + strokePadding * 2} ${115.47 + strokePadding * 2}`
-    : "0 0 100 115.47";
+  const svgViewBox = "0 0 100 115.47";
+  // Handle both old format (color object) and new format (semantic string)
   const fillClass = color
-    ? `fill-${color.color}-${color.tint}`
+    ? typeof color === 'string'
+      ? `fill-${color}` // New semantic format like "nw-depth-1"
+      : `fill-${color.color}-${color.tint}` // Old format
     : "fill-transparent";
 
   return (
@@ -114,14 +131,35 @@ export const StaticBaseTileLayout = ({
           xmlns="http://www.w3.org/2000/svg"
           preserveAspectRatio="xMidYMid meet"
         >
+          <defs>
+            {renderStaticTileGradients(coordId, isExpanded, _shallow, hasPath, lastDirection, scale)}
+          </defs>
           <path
             d={svgPath}
             className={`transition-all duration-300 ${fillClass}`}
             stroke={getStrokeHexColor(finalStroke.color)}
             strokeWidth={finalStroke.width}
             strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
             fill={color ? undefined : "none"}
           />
+          {/* Gradient overlay for faceted effect */}
+          {(color ?? (isExpanded && !_shallow)) && (
+            <>
+              <path
+                d={svgPath}
+                fill={`url(#tile-gradient-${coordId}-light)`}
+                stroke="none"
+                className="pointer-events-none dark:hidden"
+              />
+              <path
+                d={svgPath}
+                fill={`url(#tile-gradient-${coordId}-dark)`}
+                stroke="none"
+                className="pointer-events-none hidden dark:block"
+              />
+            </>
+          )}
         </svg>
 
         <div className="pointer-events-auto absolute inset-0 z-10 flex items-center justify-center overflow-hidden">

@@ -105,7 +105,7 @@ export default async function StaticMapPage({
 
   // Server-side rendered static map
   return (
-    <div className="relative flex h-screen w-full flex-col bg-gray-900">
+    <div className="relative flex h-screen w-full flex-col bg-neutral-900">
       <StaticMapCanvas
         centerInfo={centerInfo}
         items={mapItems}

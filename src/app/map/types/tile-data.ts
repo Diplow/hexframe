@@ -3,7 +3,8 @@ import {
   CoordSystem,
   type Coord,
 } from "~/lib/domains/mapping/utils/hex-coordinates";
-import { DEFAULT_MAP_COLORS } from "../constants";
+import { Direction } from "../constants";
+import { getSemanticColorClass } from "./theme-colors";
 
 export interface TileState {
   isDragged: boolean;
@@ -17,12 +18,16 @@ export interface TileState {
 }
 
 function getColor(coordinates: Coord): string {
+  // Root tile (center)
   if (coordinates.path.length < 1) {
-    return "zinc-50";
+    return getSemanticColorClass(Direction.Center, 0);
   }
-  return `${DEFAULT_MAP_COLORS[coordinates.path[0]!]}-${
-    100 + 100 * coordinates.path.length
-  }`;
+  
+  // Get direction from first path element
+  const direction = coordinates.path[0]!;
+  const depth = coordinates.path.length;
+  
+  return getSemanticColorClass(direction, depth);
 }
 
 const adapt = (item: MapItemAPIContract) => {
