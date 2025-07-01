@@ -58,7 +58,7 @@ export function MapPageContent({
             </div>
             
             {/* Min-width Center: Canvas (scale 3 tile = 400px) */}
-            <div className="flex-shrink-0" style={{ minWidth: '400px' }}>
+            <div className="flex-1 flex-shrink-0" style={{ minWidth: '400px' }}>
               <DynamicMapCanvas
                 centerInfo={{
                   center: centerCoordinate,

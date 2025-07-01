@@ -33,7 +33,7 @@ export function PreviewWidget({ tileId, title, content }: PreviewWidgetProps) {
     <div 
       data-testid="preview-widget" 
       className={cn(
-        "flex flex-col w-full bg-neutral-50 dark:bg-neutral-900/50",
+        "flex flex-col w-full bg-neutral-700 dark:bg-neutral-900/50",
         "border rounded-lg border-[color:var(--stroke-color-950)]",
         "overflow-hidden"
       )}
