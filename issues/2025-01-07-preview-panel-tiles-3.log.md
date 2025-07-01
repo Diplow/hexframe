@@ -13,3 +13,57 @@ We need a preview panel to read the content of the tiles. Then we can simplify t
 #feature #design #tiles #high
 
 ---
+
+## 2025-01-07 - Solution Design Added
+
+*Added via /solution command*
+
+### Architecture Analysis
+
+Investigated the current map view architecture:
+- Dual-route architecture (dynamic /map and static /static/map)
+- Hierarchical component structure: Page → Canvas → Frame → Tile
+- Context-based state management with MapCacheProvider, TileActionsProvider
+- Current layout: Toolbox (left), Canvas (center), ParentHierarchy (right)
+- Tiles render markdown content directly with scale-based display
+- Tool-based interaction system for tile actions
+
+### Solution Approaches Evaluated
+
+1. **Resizable Split Panel** - Vertical split with map left, preview right
+2. **Overlay Drawer Panel** - Floating panel sliding from right
+3. **Bottom Sheet Panel** - Slide-up panel from bottom
+
+### Recommended Solution
+
+Selected **Approach 1: Resizable Split Panel** with progressive enhancement:
+
+**Phase 1**: Basic implementation
+- Add PreviewPanel component with markdown rendering
+- 60/40 split layout with flexbox
+- Selection state in MapCacheProvider
+- Simplify tiles to show only titles
+
+**Phase 2**: Enhanced features
+- Resizable splitter functionality
+- Collapsible panel
+- Preview toolbar for future features
+
+**Phase 3**: Mobile optimization
+- Adaptive layout switching to overlay on mobile
+- Touch gestures and responsive breakpoints
+
+### Technical Decisions
+
+- Extend MapCacheProvider with preview state
+- Create new Preview subdirectory for components
+- Modify DynamicTileContent for simplified display
+- Update main page layout to accommodate split view
+
+### Changes to Issue File
+- Added complete Solution section with three approaches
+- Included technical implementation details
+- Defined phased implementation plan
+- Listed specific components and next steps
+
+---
