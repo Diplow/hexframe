@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ChatProvider } from '../ChatProvider';
 import { ChatWithCenterTracking } from '../ChatWithCenterTracking';
@@ -23,6 +23,7 @@ describe('Chat Center Tracking', () => {
     mockUseMapCache.mockReturnValue({
       center: null,
       items: {},
+      navigateToItem: vi.fn(),
     } as any);
   });
 
@@ -35,6 +36,7 @@ describe('Chat Center Tracking', () => {
           data: { name: 'Home Tile' },
         },
       },
+      navigateToItem: vi.fn(),
     } as any);
 
     render(
@@ -64,6 +66,7 @@ describe('Chat Center Tracking', () => {
           data: { name: 'Home Tile' },
         },
       },
+      navigateToItem: vi.fn(),
     } as any);
 
     rerender(
@@ -81,6 +84,7 @@ describe('Chat Center Tracking', () => {
           data: { name: 'Projects' },
         },
       },
+      navigateToItem: vi.fn(),
     } as any);
 
     rerender(
@@ -92,6 +96,8 @@ describe('Chat Center Tracking', () => {
     // Should show navigation message
     expect(screen.getByText(/📍 Navigated to/)).toBeInTheDocument();
     expect(screen.getByText('Projects')).toBeInTheDocument();
+    // Should NOT show "System:" for navigation messages
+    expect(screen.queryByText('System:')).not.toBeInTheDocument();
   });
 
   it('should use coordinate ID when tile has no name', () => {
@@ -104,6 +110,7 @@ describe('Chat Center Tracking', () => {
           data: { name: 'Home' },
         },
       },
+      navigateToItem: vi.fn(),
     } as any);
 
     const { rerender } = render(
@@ -121,6 +128,7 @@ describe('Chat Center Tracking', () => {
           data: { name: null },
         },
       },
+      navigateToItem: vi.fn(),
     } as any);
 
     rerender(
@@ -133,6 +141,8 @@ describe('Chat Center Tracking', () => {
     const messages = screen.getAllByText(/📍 Navigated to/);
     expect(messages).toHaveLength(1);
     expect(screen.getByText('Untitled')).toBeInTheDocument();
+    // Should NOT show "System:" for navigation messages
+    expect(screen.queryByText('System:')).not.toBeInTheDocument();
   });
 
   it('should not show duplicate messages for same center', () => {
@@ -145,6 +155,7 @@ describe('Chat Center Tracking', () => {
           data: { name: 'Home' },
         },
       },
+      navigateToItem: vi.fn(),
     } as any);
 
     const { rerender } = render(
@@ -162,6 +173,7 @@ describe('Chat Center Tracking', () => {
           data: { name: 'About' },
         },
       },
+      navigateToItem: vi.fn(),
     } as any);
 
     rerender(

@@ -4,6 +4,7 @@ import { cn } from '~/lib/utils';
 import { useChat } from './ChatProvider';
 import { ChatMessages } from './ChatMessages';
 import { ChatInput } from './ChatInput';
+import { ThemeToggle } from '~/components/ThemeToggle';
 
 interface ChatPanelProps {
   className?: string;
@@ -25,6 +26,7 @@ function ChatHeader() {
   return (
     <div className="flex items-center justify-between p-4 border-b border-[color:var(--stroke-color-950)]">
       <h2 className="text-lg font-semibold">Chat</h2>
+      <ThemeToggle size="sm" />
     </div>
   );
 }

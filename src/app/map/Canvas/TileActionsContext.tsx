@@ -6,34 +6,25 @@ import {
   useState,
   useCallback,
   useMemo,
-  useEffect,
   type ReactNode,
 } from "react";
 import type { TileData } from "../types/tile-data";
-
-export type ToolType = 'select' | 'navigate' | 'create' | 'edit' | 'delete' | 'expand' | 'drag';
+import { TileContextMenu } from "./TileContextMenu";
 
 export interface TileActionsContextValue {
-  // Tool state
-  activeTool: ToolType;
-  setActiveTool: (tool: ToolType) => void;
-  
-  // Tool availability
-  disabledTools: Set<ToolType>;
-  setDisabledTools: (tools: Set<ToolType>) => void;
-  
-  // Generic handlers that dispatch based on active tool
-  onTileClick: (tileData: TileData) => void;
+  // Click handlers
+  onTileClick: (tileData: TileData, event: React.MouseEvent) => void;
+  onTileDoubleClick: (tileData: TileData) => void;
+  onTileRightClick: (tileData: TileData, event: React.MouseEvent) => void;
   onTileHover: (tileData: TileData) => void;
   
-  // Tool-specific handlers (optional, for testing)
+  // Action handlers
   onSelectClick?: (tileData: TileData) => void;
   onNavigateClick?: (tileData: TileData) => void;
   onExpandClick?: (tileData: TileData) => void;
   onCreateClick?: (tileData: TileData) => void;
   onEditClick?: (tileData: TileData) => void;
   onDeleteClick?: (tileData: TileData) => void;
-  onDragClick?: (tileData: TileData) => void;
   
   // Drag and drop
   onTileDragStart: (tileData: TileData) => void;
@@ -53,17 +44,20 @@ export function useTileActions() {
 
 interface TileActionsProviderProps {
   children: ReactNode;
-  // Optional handlers for testing
+  // Optional handlers
   onSelectClick?: (tileData: TileData) => void;
   onNavigateClick?: (tileData: TileData) => void;
   onExpandClick?: (tileData: TileData) => void;
   onCreateClick?: (tileData: TileData) => void;
   onEditClick?: (tileData: TileData) => void;
   onDeleteClick?: (tileData: TileData) => void;
-  onDragClick?: (tileData: TileData) => void;
-  // Additional provider props
-  activeTool?: ToolType;
-  setActiveTool?: (tool: ToolType) => void;
+}
+
+interface ContextMenuState {
+  tileData: TileData;
+  position: { x: number; y: number };
+  canEdit: boolean;
+  isEmptyTile?: boolean;
 }
 
 export function TileActionsProvider({
@@ -74,67 +68,40 @@ export function TileActionsProvider({
   onCreateClick,
   onEditClick,
   onDeleteClick,
-  onDragClick,
-  activeTool: controlledActiveTool,
-  setActiveTool: controlledSetActiveTool,
 }: TileActionsProviderProps) {
-  const [internalActiveTool, setInternalActiveTool] = useState<ToolType>('expand');
   const [isDragging, setIsDragging] = useState(false);
-  const [disabledTools, setDisabledTools] = useState<Set<ToolType>>(new Set());
+  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
 
-  // Use controlled values if provided, otherwise use internal state
-  const activeTool = controlledActiveTool ?? internalActiveTool;
-  const setActiveTool = controlledSetActiveTool ?? setInternalActiveTool;
+  const onTileClick = useCallback((tileData: TileData, event: React.MouseEvent) => {
+    // Default click behavior - select for preview
+    if (event.ctrlKey || event.metaKey) {
+      // Ctrl/Cmd+click for navigation
+      onNavigateClick?.(tileData);
+    } else {
+      // Regular click for selection/preview
+      onSelectClick?.(tileData);
+    }
+  }, [onNavigateClick, onSelectClick]);
 
-  // Initialize from localStorage after hydration
-  useEffect(() => {
-    if (controlledActiveTool) return; // Skip if controlled
+  const onTileDoubleClick = useCallback((tileData: TileData) => {
+    // Double-click to expand
+    onExpandClick?.(tileData);
+  }, [onExpandClick]);
+
+  const onTileRightClick = useCallback((tileData: TileData, event: React.MouseEvent) => {
+    // Right-click shows context menu
+    event.preventDefault();
     
-    try {
-      const savedTool = localStorage.getItem('active-tool') as ToolType | null;
-      if (savedTool && ['select', 'navigate', 'create', 'edit', 'delete', 'expand', 'drag'].includes(savedTool)) {
-        setInternalActiveTool(savedTool);
-      }
-    } catch (error) {
-      console.warn('Failed to load active tool from localStorage:', error);
-    }
-  }, [controlledActiveTool]);
-
-  const handleSetActiveTool = useCallback((tool: ToolType) => {
-    setActiveTool(tool);
-    // Save to localStorage with error handling
-    try {
-      localStorage.setItem('active-tool', tool);
-    } catch (error) {
-      console.warn('Failed to save active tool to localStorage:', error);
-    }
-  }, [setActiveTool]);
-
-  const onTileClick = useCallback((tileData: TileData) => {
-    switch (activeTool) {
-      case 'select':
-        onSelectClick?.(tileData);
-        break;
-      case 'navigate':
-        onNavigateClick?.(tileData);
-        break;
-      case 'expand':
-        onExpandClick?.(tileData);
-        break;
-      case 'create':
-        onCreateClick?.(tileData);
-        break;
-      case 'edit':
-        onEditClick?.(tileData);
-        break;
-      case 'delete':
-        onDeleteClick?.(tileData);
-        break;
-      case 'drag':
-        onDragClick?.(tileData);
-        break;
-    }
-  }, [activeTool, onNavigateClick, onExpandClick, onCreateClick, onEditClick, onDeleteClick, onSelectClick, onDragClick]);
+    const canEdit = 'state' in tileData && tileData.state?.canEdit === true;
+    const isEmptyTile = !tileData.metadata.dbId || tileData.metadata.dbId === 0;
+    
+    setContextMenu({
+      tileData,
+      position: { x: event.clientX, y: event.clientY },
+      canEdit,
+      isEmptyTile,
+    });
+  }, []);
 
   const onTileHover = useCallback((_tileData: TileData) => {
     // Tool-specific hover behavior can be added here
@@ -149,28 +116,24 @@ export function TileActionsProvider({
   }, []);
 
   const value = useMemo(() => ({
-    activeTool,
-    setActiveTool: handleSetActiveTool,
-    disabledTools,
-    setDisabledTools,
     onTileClick,
+    onTileDoubleClick,
+    onTileRightClick,
     onTileHover,
     onTileDragStart,
     onTileDrop,
     isDragging,
-    // Include optional handlers for testing
+    // Include optional handlers
     onSelectClick,
     onNavigateClick,
     onExpandClick,
     onCreateClick,
     onEditClick,
     onDeleteClick,
-    onDragClick,
   }), [
-    activeTool,
-    handleSetActiveTool,
-    disabledTools,
     onTileClick,
+    onTileDoubleClick,
+    onTileRightClick,
     onTileHover,
     onTileDragStart,
     onTileDrop,
@@ -181,12 +144,26 @@ export function TileActionsProvider({
     onCreateClick,
     onEditClick,
     onDeleteClick,
-    onDragClick,
   ]);
 
   return (
     <TileActionsContext.Provider value={value}>
       {children}
+      {contextMenu && (
+        <TileContextMenu
+          tileData={contextMenu.tileData}
+          position={contextMenu.position}
+          onClose={() => setContextMenu(null)}
+          onSelect={() => onSelectClick?.(contextMenu.tileData)}
+          onExpand={() => onExpandClick?.(contextMenu.tileData)}
+          onNavigate={() => onNavigateClick?.(contextMenu.tileData)}
+          onEdit={() => onEditClick?.(contextMenu.tileData)}
+          onDelete={() => onDeleteClick?.(contextMenu.tileData)}
+          onCreate={() => onCreateClick?.(contextMenu.tileData)}
+          canEdit={contextMenu.canEdit}
+          isEmptyTile={contextMenu.isEmptyTile}
+        />
+      )}
     </TileActionsContext.Provider>
   );
 }

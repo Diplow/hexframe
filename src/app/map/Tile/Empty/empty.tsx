@@ -17,7 +17,7 @@ interface DynamicEmptyTileProps {
   scale?: TileScale;
   baseHexSize?: number;
   urlInfo: URLInfo;
-  parentItem?: { id: string; name: string };
+  parentItem?: { id: string; name: string; ownerId?: string };
   interactive?: boolean;
   currentUserId?: number;
 }
@@ -51,10 +51,16 @@ export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
   // Calculate default stroke for this scale
   const defaultStroke = getDefaultStroke(props.scale ?? 1, false);
   
-  // Use tile interaction hook for tool-based behavior
-  const { handleClick, cursor, shouldShowHoverEffects } = useTileInteraction({
+  // Check if user owns the parent tile (can create in this domain)
+  const canEdit = props.parentItem?.ownerId && props.currentUserId 
+    ? props.currentUserId.toString() === props.parentItem.ownerId 
+    : false;
+  
+  // Use tile interaction hook for contextual behavior
+  const { handleClick, handleDoubleClick, handleRightClick, cursor, shouldShowHoverEffects } = useTileInteraction({
     coordId: props.coordId,
     type: 'empty',
+    canEdit,
     onCreate: () => {
       setShowModal(true);
     },
@@ -97,7 +103,11 @@ export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
         {/* Invisible hover area overlay to ensure full tile responds to hover */}
         <div className="pointer-events-auto absolute inset-0 z-10" />
 
-        <div onClick={handleClick}>
+        <div 
+          onClick={props.interactive && canEdit ? (e) => void handleClick(e) : undefined}
+          onDoubleClick={props.interactive && canEdit ? (e) => void handleDoubleClick(e) : undefined}
+          onContextMenu={props.interactive && canEdit ? (e) => void handleRightClick(e) : undefined}
+        >
           <DynamicBaseTileLayout
             coordId={props.coordId}
             scale={props.scale ?? 1}

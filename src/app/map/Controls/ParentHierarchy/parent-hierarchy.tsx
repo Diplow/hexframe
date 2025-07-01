@@ -97,7 +97,7 @@ export const ParentHierarchy = ({
   const hierarchy = _getParentHierarchy(effectiveCenter, effectiveItems);
 
   return (
-    <div className="h-full flex-shrink-0 flex flex-col items-center gap-2 bg-center-depth-0 px-3 py-4 border-l border-[color:var(--stroke-color-950)] overflow-y-auto">
+    <div className="h-full flex-shrink-0 flex flex-col items-center gap-2 bg-transparent px-3 py-4 overflow-y-auto">
         <div className="transition-transform duration-200 hover:scale-105 focus:scale-105">
           <Logo className="w-[104px] h-[120px] flex-shrink-0" />
         </div>

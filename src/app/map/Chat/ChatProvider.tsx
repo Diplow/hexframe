@@ -95,9 +95,10 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       const navigationMessage: ChatMessage = {
         id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
         type: 'system',
-        content: `📍 Navigated to **${title || newCenter}**`,
+        content: `📍 Navigated to **${title ?? newCenter}**`,
         metadata: {
           timestamp: new Date(),
+          tileId: newCenter, // Store the coordId for navigation
         },
       };
       

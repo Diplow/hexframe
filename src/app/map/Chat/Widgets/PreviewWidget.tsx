@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, MoreVertical, Edit, Trash2 } from 'lucide-react';
 import { cn } from '~/lib/utils';
 import { Button } from '~/components/ui/button';
 
@@ -11,11 +11,15 @@ interface PreviewWidgetProps {
   title: string;
   content: string;
   forceExpanded?: boolean;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
-export function PreviewWidget({ tileId, title, content, forceExpanded }: PreviewWidgetProps) {
+export function PreviewWidget({ tileId, title, content, forceExpanded, onEdit, onDelete }: PreviewWidgetProps) {
   // Start collapsed if content is empty
   const [isExpanded, setIsExpanded] = useState(!!content);
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   // Update expansion state when forceExpanded changes
   useEffect(() => {
@@ -39,6 +43,22 @@ export function PreviewWidget({ tileId, title, content, forceExpanded }: Preview
     }
   }, [tileId, content, forceExpanded]);
 
+  // Handle click outside to close menu
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    }
+
+    if (showMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showMenu]);
+
   return (
     <div 
       data-testid="preview-widget" 
@@ -50,25 +70,76 @@ export function PreviewWidget({ tileId, title, content, forceExpanded }: Preview
     >
       <div 
         className={cn(
-          "flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800 cursor-pointer",
+          "flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800",
           isExpanded ? "p-4" : "p-2"
         )}
-        onClick={() => content && setIsExpanded(!isExpanded)}
       >
-        <h3 className={cn(
-          "text-sm",
-          isExpanded && "font-semibold"
-        )}>{title}</h3>
-        {content && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0"
-            aria-label={isExpanded ? "Collapse" : "Expand"}
-          >
-            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </Button>
-        )}
+        <h3 
+          className={cn(
+            "text-sm flex-1 cursor-pointer",
+            isExpanded && "font-semibold"
+          )}
+          onClick={() => content && setIsExpanded(!isExpanded)}
+        >{title}</h3>
+        <div className="flex items-center gap-1">
+          {content && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0"
+              aria-label={isExpanded ? "Collapse" : "Expand"}
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
+              {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+          )}
+          {(onEdit ?? onDelete) && (
+            <div className="relative" ref={menuRef}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0"
+                aria-label="More options"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowMenu(!showMenu);
+                }}
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+              {showMenu && (
+                <div className="absolute right-0 top-full mt-1 z-50 min-w-[120px] rounded-md border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-lg">
+                  {onEdit && (
+                    <button
+                      className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowMenu(false);
+                        onEdit();
+                      }}
+                    >
+                      <Edit className="h-3 w-3" />
+                      Edit
+                    </button>
+                  )}
+                  {onDelete && (
+                    <button
+                      className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-[color:var(--destructive-color-600)] dark:text-[color:var(--destructive-color-400)]"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowMenu(false);
+                        onDelete();
+                      }}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                      Delete
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
       
       {content && (

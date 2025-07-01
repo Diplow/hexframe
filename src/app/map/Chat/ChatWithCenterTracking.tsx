@@ -24,7 +24,7 @@ export function ChatWithCenterTracking({ className }: ChatWithCenterTrackingProp
     // Check if center actually changed
     if (previousCenterRef.current !== center && center) {
       const centerTile = items[center];
-      const title = centerTile?.data?.name || 'Untitled';
+      const title = centerTile?.data?.name ?? 'Untitled';
       
       dispatch({
         type: 'CENTER_CHANGED',
