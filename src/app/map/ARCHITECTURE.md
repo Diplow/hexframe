@@ -192,6 +192,39 @@ interface RegionMetadata {
 }
 ```
 
+#### Important: Understanding dbId vs coordId
+
+The system uses two distinct identifier types that serve different purposes:
+
+**dbId (Database ID)**:
+- Type: `number`
+- Purpose: Uniquely identifies a mapItem (tile) in the database
+- Persistence: Stays constant even when a tile is moved to a different position
+- Usage: CRUD operations, references in the database
+
+**coordId (Coordinate ID)**:
+- Type: `string`
+- Format: `"{userId},{groupId}:{path}"`
+- Purpose: Uniquely identifies a position in the hexagonal map hierarchy
+- Persistence: Changes when an item moves - the coordId will then identify whatever item is at that position
+- Usage: Cache keys, navigation, position-based operations
+
+**Example**:
+```typescript
+// A tile with dbId=123 at position "1,2:A1B2"
+const tile = {
+  metadata: {
+    dbId: 123,        // Permanent identifier for this tile
+    coordId: "1,2:A1B2"  // Current position identifier
+  }
+};
+
+// If this tile moves to position "1,2:C3D4":
+// - dbId remains 123
+// - coordId becomes "1,2:C3D4"
+// - The old coordId "1,2:A1B2" now refers to whatever tile occupies that position
+```
+
 **Benefits**:
 
 - **No Duplication**: Each item exists once in cache
