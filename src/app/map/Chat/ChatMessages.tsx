@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import type { ChatMessage, PreviewWidgetData } from './types';
 import { PreviewWidget } from './Widgets/PreviewWidget';
 
@@ -95,7 +97,25 @@ function ChatMessageItem({ message, isExpanded }: ChatMessageItemProps) {
       <div className="flex items-start gap-3">
         <span className={`font-bold ${getNameColor()}`}>{getName()}:</span>
         <div className="flex-1">
-          {typeof message.content === 'string' ? message.content : null}
+          {typeof message.content === 'string' ? (
+            <div className="prose prose-sm max-w-none dark:prose-invert">
+              <ReactMarkdown 
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  // Ensure links open in new tab for security
+                  a: ({ href, children }) => (
+                    <a href={href} target="_blank" rel="noopener noreferrer">
+                      {children}
+                    </a>
+                  ),
+                  // Remove default paragraph margins for better chat layout
+                  p: ({ children }) => <p className="my-0">{children}</p>,
+                }}
+              >
+                {message.content}
+              </ReactMarkdown>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>
