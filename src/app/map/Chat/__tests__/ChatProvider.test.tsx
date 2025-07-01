@@ -36,7 +36,7 @@ describe('ChatProvider', () => {
     expect(result.current.state.isPanelOpen).toBe(true);
     expect(result.current.state.messages).toHaveLength(1);
     
-    const message = result.current.state.messages[0];
+    const message = result.current.state.messages[0]!;
     expect(message.type).toBe('system');
     expect(message.metadata?.tileId).toBe('tile-1');
     expect(message.content).toMatchObject({
@@ -56,7 +56,7 @@ describe('ChatProvider', () => {
     act(() => {
       result.current.dispatch({ 
         type: 'SELECT_TILE', 
-        payload: { tileId: 'tile-1', tileData: { title: 'Test' } } 
+        payload: { tileId: 'tile-1', tileData: { id: 'tile-1', title: 'Test', content: '' } } 
       });
     });
 
@@ -78,7 +78,7 @@ describe('ChatProvider', () => {
     act(() => {
       result.current.dispatch({ 
         type: 'SELECT_TILE', 
-        payload: { tileId: 'tile-1', tileData: { title: 'Tile 1' } } 
+        payload: { tileId: 'tile-1', tileData: { id: 'tile-1', title: 'Tile 1', content: '' } } 
       });
     });
 
@@ -86,13 +86,13 @@ describe('ChatProvider', () => {
     act(() => {
       result.current.dispatch({ 
         type: 'SELECT_TILE', 
-        payload: { tileId: 'tile-2', tileData: { title: 'Tile 2' } } 
+        payload: { tileId: 'tile-2', tileData: { id: 'tile-2', title: 'Tile 2', content: '' } } 
       });
     });
 
     expect(result.current.state.messages).toHaveLength(2);
-    expect(result.current.state.messages[0].metadata?.tileId).toBe('tile-1');
-    expect(result.current.state.messages[1].metadata?.tileId).toBe('tile-2');
+    expect(result.current.state.messages[0]!.metadata?.tileId).toBe('tile-1');
+    expect(result.current.state.messages[1]!.metadata?.tileId).toBe('tile-2');
   });
 
   it('should generate unique message IDs', () => {
@@ -102,14 +102,14 @@ describe('ChatProvider', () => {
     act(() => {
       result.current.dispatch({ 
         type: 'SELECT_TILE', 
-        payload: { tileId: 'tile-1', tileData: { title: 'Tile 1' } } 
+        payload: { tileId: 'tile-1', tileData: { id: 'tile-1', title: 'Tile 1', content: '' } } 
       });
     });
 
     act(() => {
       result.current.dispatch({ 
         type: 'SELECT_TILE', 
-        payload: { tileId: 'tile-2', tileData: { title: 'Tile 2' } } 
+        payload: { tileId: 'tile-2', tileData: { id: 'tile-2', title: 'Tile 2', content: '' } } 
       });
     });
 
@@ -125,7 +125,7 @@ describe('ChatProvider', () => {
     act(() => {
       result.current.dispatch({ 
         type: 'SELECT_TILE', 
-        payload: { tileId: 'tile-1', tileData: { title: 'Test' } } 
+        payload: { tileId: 'tile-1', tileData: { id: 'tile-1', title: 'Test', content: '' } } 
       });
     });
 

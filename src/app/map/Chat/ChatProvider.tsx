@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext, useContext, useReducer, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useReducer } from 'react';
+import type { ReactNode } from 'react';
 import type { ChatState, ChatAction, ChatContextValue, ChatMessage, PreviewWidgetData } from './types';
 
 const initialState: ChatState = {
@@ -24,7 +25,7 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
             tileId,
             title: tileData.title || 'Untitled',
             content: tileData.content || '',
-          } as PreviewWidgetData,
+          } satisfies PreviewWidgetData,
         },
         metadata: {
           tileId,

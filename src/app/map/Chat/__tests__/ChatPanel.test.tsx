@@ -16,11 +16,8 @@ vi.mock('../ChatProvider', async () => {
 
 import { useChat } from '../ChatProvider';
 
-const mockUseChat = useChat as any;
+const mockUseChat = vi.mocked(useChat);
 
-const wrapper = ({ children }: { children: ReactNode }) => (
-  <ChatProvider>{children}</ChatProvider>
-);
 
 describe('ChatPanel', () => {
   const mockDispatch = vi.fn();

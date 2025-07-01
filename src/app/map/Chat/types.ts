@@ -10,7 +10,7 @@ export interface ChatMessage {
 
 export interface ChatWidget {
   type: 'preview' | 'search' | 'comparison' | 'action';
-  data: any; // Widget-specific data
+  data: unknown; // Widget-specific data
 }
 
 export interface PreviewWidgetData {
@@ -26,7 +26,7 @@ export interface ChatState {
 }
 
 export type ChatAction =
-  | { type: 'SELECT_TILE'; payload: { tileId: string; tileData: any } }
+  | { type: 'SELECT_TILE'; payload: { tileId: string; tileData: { id: string; title: string; content: string; } } }
   | { type: 'CLOSE_CHAT' }
   | { type: 'ADD_MESSAGE'; payload: ChatMessage }
   | { type: 'CLEAR_MESSAGES' };

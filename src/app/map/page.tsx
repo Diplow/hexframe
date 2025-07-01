@@ -1,17 +1,11 @@
 "use client";
 
 import { use } from "react";
-import { DynamicMapCanvas } from "./Canvas";
 import { MapCacheProvider } from "./Cache/map-cache";
-import { ParentHierarchy } from "./Controls/ParentHierarchy/parent-hierarchy";
-import { MapControls } from "./Controls";
 import { useMapIdResolution } from "./_hooks/use-map-id-resolution";
 import { MapLoadingSkeleton } from "./Canvas/LifeCycle/loading-skeleton";
-import { OfflineIndicator } from "./_components/offline-indicator";
-import { TileActionsProvider } from "./Canvas/TileActionsContext";
-import { Toolbox } from "./Controls/Toolbox/Toolbox";
-import { ToolStateManager } from "./Controls/Toolbox/ToolStateManager";
-import { MapContent } from "./_components/MapContent";
+import { ChatProvider } from "./Chat/ChatProvider";
+import { MapPageContent } from "./_components/MapPageContent";
 
 interface MapPageProps {
   searchParams: Promise<{
@@ -87,85 +81,33 @@ export default function MapPage({ searchParams }: MapPageProps) {
   }
 
   return (
-    <div className="relative flex h-full w-full flex-col">
-      <TileActionsProvider>
-        <ToolStateManager mapCenterCoordId={centerCoordinate}>
-          <MapContent>
-            <MapCacheProvider
-            initialItems={{}} // Start with empty items - cache will load from server
-            initialCenter={centerCoordinate} // Now always a proper coordinate!
-            initialExpandedItems={params.expandedItems?.split(",") ?? []}
-            cacheConfig={CACHE_CONFIG}
-            offlineMode={isOffline}
-            mapContext={{
-              rootItemId,
-              userId,
-              groupId,
-            }}
-            testingOverrides={{
-              disableSync: true, // Disable sync until basic cache is working
-            }}
-          >
-        <DynamicMapCanvas
-          centerInfo={{
-            center: centerCoordinate,
-            rootItemId,
-            userId,
-            groupId,
-          }}
-          expandedItemIds={params.expandedItems?.split(",") ?? []}
-          urlInfo={{
-            pathname: `/map`,
-            searchParamsString: new URLSearchParams(params as Record<string, string>).toString(),
-            rootItemId: params.center,
-            scale: params.scale,
-            expandedItems: params.expandedItems,
-            focus: params.focus,
-          }}
-          enableBackgroundSync={true}
-          syncInterval={30000}
-          cacheConfig={CACHE_CONFIG}
-        />
-
-        <ParentHierarchy
-          centerCoordId={centerCoordinate}
-          items={{}} // Will get items from cache context
-          urlInfo={{
-            pathname: `/map`,
-            searchParamsString: new URLSearchParams(params as Record<string, string>).toString(),
-            rootItemId: params.center,
-            scale: params.scale,
-            expandedItems: params.expandedItems,
-            focus: params.focus,
-          }}
-        />
-
-        <MapControls
-          urlInfo={{
-            pathname: `/map`,
-            searchParamsString: new URLSearchParams(params as Record<string, string>).toString(),
-            rootItemId: params.center,
-            scale: params.scale,
-            expandedItems: params.expandedItems,
-            focus: params.focus,
-          }}
-          expandedItemIds={params.expandedItems?.split(",") ?? []}
-          minimapItemsData={{}} // Will get items from cache context
-          currentMapCenterCoordId={centerCoordinate}
-          cacheStatus={{
-            isLoading: false, // Cache will manage its own loading state
-            lastUpdated: Date.now(),
-            error: null,
-            itemCount: 0,
-          }}
-        />
-            </MapCacheProvider>
-            
-            <Toolbox />
-            <OfflineIndicator isOffline={isOffline} />
-          </MapContent>
-        </ToolStateManager>
-      </TileActionsProvider>
+    <div className="relative flex h-full w-full">
+      <MapCacheProvider
+        initialItems={{}} // Start with empty items - cache will load from server
+        initialCenter={centerCoordinate} // Now always a proper coordinate!
+        initialExpandedItems={params.expandedItems?.split(",") ?? []}
+        cacheConfig={CACHE_CONFIG}
+        offlineMode={isOffline}
+        mapContext={{
+          rootItemId,
+          userId,
+          groupId,
+        }}
+        testingOverrides={{
+          disableSync: true, // Disable sync until basic cache is working
+        }}
+      >
+        <ChatProvider>
+          <MapPageContent
+            centerCoordinate={centerCoordinate}
+            params={params}
+            rootItemId={rootItemId}
+            userId={userId ? parseInt(userId) : 0}
+            groupId={groupId ? parseInt(groupId) : 0}
+            isOffline={isOffline}
+          />
+        </ChatProvider>
+      </MapCacheProvider>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '~/lib/utils';
-import type { ChatMessage } from './types';
+import type { ChatMessage, PreviewWidgetData } from './types';
 import { PreviewWidget } from './Widgets/PreviewWidget';
 
 interface ChatMessagesProps {
@@ -38,12 +38,13 @@ function ChatMessageItem({ message }: ChatMessageItemProps) {
   if (message.type === 'system' && typeof message.content === 'object') {
     // Handle widget content
     if (message.content.type === 'preview') {
+      const widgetData = message.content.data as PreviewWidgetData;
       return (
         <div data-testid={testId}>
           <PreviewWidget
-            tileId={message.content.data.tileId}
-            title={message.content.data.title}
-            content={message.content.data.content}
+            tileId={widgetData.tileId}
+            title={widgetData.title}
+            content={widgetData.content}
           />
         </div>
       );
