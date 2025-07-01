@@ -22,7 +22,7 @@ describe('Chat Integration', () => {
     await user.click(sendButton);
     
     // Check that the message appears in the chat
-    expect(screen.getByText('You')).toBeInTheDocument();
+    expect(screen.getByText('You:')).toBeInTheDocument();
     expect(screen.getByText('Hello, this is my first message')).toBeInTheDocument();
     
     // Send second message
@@ -30,7 +30,7 @@ describe('Chat Integration', () => {
     await user.keyboard('{Enter}');
     
     // Check that both messages are displayed
-    expect(screen.getAllByText('You')).toHaveLength(2);
+    expect(screen.getAllByText('You:')).toHaveLength(2);
     expect(screen.getByText('This is another message')).toBeInTheDocument();
   });
   
@@ -73,7 +73,7 @@ describe('Chat Integration', () => {
       </ChatProvider>
     );
     
-    expect(screen.getByText('Hexframe')).toBeInTheDocument();
+    expect(screen.getByText('Hexframe:')).toBeInTheDocument();
     expect(screen.getByText(/Welcome to Hexframe! Select a tile to explore its content./)).toBeInTheDocument();
   });
 });

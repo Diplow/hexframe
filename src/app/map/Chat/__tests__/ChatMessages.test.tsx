@@ -22,7 +22,7 @@ describe('ChatMessages', () => {
   it('should render empty state with welcome message', () => {
     render(<ChatMessages messages={[]} expandedPreviewId={null} />);
 
-    expect(screen.getByText('Hexframe')).toBeInTheDocument();
+    expect(screen.getByText('Hexframe:')).toBeInTheDocument();
     expect(screen.getByText(/Welcome to Hexframe! Select a tile to explore its content./)).toBeInTheDocument();
   });
 
@@ -39,7 +39,7 @@ describe('ChatMessages', () => {
     render(<ChatMessages messages={messages} expandedPreviewId={null} />);
 
     const message = screen.getByTestId('chat-message-1');
-    expect(message).toHaveTextContent('System');
+    expect(message).toHaveTextContent('System:');
     expect(message).toHaveTextContent('This is a system message');
   });
 

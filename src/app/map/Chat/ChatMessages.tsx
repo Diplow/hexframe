@@ -38,7 +38,7 @@ function SystemMessage() {
   return (
     <div className="w-full">
       <div className="flex items-start gap-3">
-        <span className="font-bold text-primary">Hexframe</span>
+        <span className="font-bold text-primary">Hexframe:</span>
         <div className="flex-1 text-muted-foreground">
           Welcome to Hexframe! Select a tile to explore its content.
         </div>
@@ -86,10 +86,14 @@ function ChatMessageItem({ message, isExpanded }: ChatMessageItemProps) {
     }
   };
   
+  const getNameColor = () => {
+    return message.type === 'user' ? 'text-secondary' : 'text-primary';
+  };
+  
   return (
     <div data-testid={testId} className="w-full">
       <div className="flex items-start gap-3">
-        <span className="font-bold text-primary">{getName()}</span>
+        <span className={`font-bold ${getNameColor()}`}>{getName()}:</span>
         <div className="flex-1">
           {typeof message.content === 'string' ? message.content : null}
         </div>

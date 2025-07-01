@@ -21,7 +21,7 @@ describe('ChatMessages Formatting', () => {
 
     render(<ChatMessages messages={messages} expandedPreviewId={null} />);
 
-    expect(screen.getByText('You')).toBeInTheDocument();
+    expect(screen.getByText('You:')).toBeInTheDocument();
     expect(screen.getByText('Hello, I need help')).toBeInTheDocument();
   });
 
@@ -37,7 +37,7 @@ describe('ChatMessages Formatting', () => {
 
     render(<ChatMessages messages={messages} expandedPreviewId={null} />);
 
-    expect(screen.getByText('Lucy')).toBeInTheDocument();
+    expect(screen.getByText('Lucy:')).toBeInTheDocument();
     expect(screen.getByText('I can help you with that!')).toBeInTheDocument();
   });
 
@@ -53,24 +53,33 @@ describe('ChatMessages Formatting', () => {
 
     render(<ChatMessages messages={messages} expandedPreviewId={null} />);
 
-    expect(screen.getByText('System')).toBeInTheDocument();
+    expect(screen.getByText('System:')).toBeInTheDocument();
     expect(screen.getByText('Connection established')).toBeInTheDocument();
   });
 
-  it('should style names with bold font and primary color', () => {
+  it('should style names with bold font and appropriate colors', () => {
     const messages: ChatMessage[] = [
       {
         id: '1',
+        type: 'user',
+        content: 'User message',
+        metadata: { timestamp: new Date() },
+      },
+      {
+        id: '2',
         type: 'assistant',
-        content: 'Test message',
+        content: 'Assistant message',
         metadata: { timestamp: new Date() },
       },
     ];
 
     render(<ChatMessages messages={messages} expandedPreviewId={null} />);
 
-    const nameElement = screen.getByText('Lucy');
-    expect(nameElement).toHaveClass('font-bold', 'text-primary');
+    const userNameElement = screen.getByText('You:');
+    expect(userNameElement).toHaveClass('font-bold', 'text-secondary');
+    
+    const assistantNameElement = screen.getByText('Lucy:');
+    expect(assistantNameElement).toHaveClass('font-bold', 'text-primary');
   });
 
   it('should auto-scroll to latest message', () => {
