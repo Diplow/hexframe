@@ -3,7 +3,7 @@
 **Date**: 2025-01-07
 **Status**: Open
 **Tags**: #feature #design #tiles #high
-**GitHub Issue**: #[pending]
+**GitHub Issue**: #65
 **Branch**: issue-3-preview-panel-tiles
 
 ## Problem Statement
