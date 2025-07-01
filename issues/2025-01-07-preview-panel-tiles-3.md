@@ -651,3 +651,230 @@ interface WidgetRegistry {
 5. Simplify DynamicTileContent to show only titles
 6. Implement tile selection flow
 7. Add preview widget for tile content
+
+## Tests
+
+### Unit Tests
+
+#### ChatProvider Tests (`/src/app/map/Chat/__tests__/ChatProvider.test.tsx`)
+```typescript
+describe('ChatProvider', () => {
+  it('should initialize with empty message state');
+  it('should handle SELECT_TILE action and add preview message');
+  it('should handle CLOSE_CHAT action');
+  it('should maintain message history across tile selections');
+  it('should generate unique message IDs');
+  it('should clear messages on provider unmount (no persistence)');
+});
+```
+
+#### ChatPanel Tests (`/src/app/map/Chat/__tests__/ChatPanel.test.tsx`)
+```typescript
+describe('ChatPanel', () => {
+  it('should render chat header with close button');
+  it('should display welcome message when no messages');
+  it('should render messages in chronological order');
+  it('should apply correct layout classes for desktop');
+  it('should handle overflow with scrollable message area');
+  it('should pass close action to header');
+});
+```
+
+#### ChatMessages Tests (`/src/app/map/Chat/__tests__/ChatMessages.test.tsx`)
+```typescript
+describe('ChatMessages', () => {
+  it('should render empty state with welcome message');
+  it('should render system messages with correct styling');
+  it('should render preview widgets for tile content');
+  it('should maintain scroll position when new messages added');
+  it('should apply correct spacing between messages');
+});
+```
+
+#### PreviewWidget Tests (`/src/app/map/Chat/Widgets/__tests__/PreviewWidget.test.tsx`)
+```typescript
+describe('PreviewWidget', () => {
+  it('should render tile title in card header');
+  it('should render markdown content with proper formatting');
+  it('should handle empty content gracefully');
+  it('should apply max-width constraints');
+  it('should render links as clickable');
+  it('should escape dangerous HTML in markdown');
+});
+```
+
+#### Simplified Tile Display Tests (`/src/app/map/Tile/Item/__tests__/content.test.tsx`)
+```typescript
+describe('DynamicTileContent - Simplified', () => {
+  it('should only display title regardless of scale');
+  it('should truncate long titles appropriately');
+  it('should show "Untitled" for tiles without title');
+  it('should apply selected state ring when selected');
+  it('should center title text in tile');
+  it('should not show description or URL at any scale');
+});
+```
+
+### Integration Tests
+
+#### Chat-Map Integration (`/src/app/map/__tests__/chat-integration.test.tsx`)
+```typescript
+describe('Chat-Map Integration', () => {
+  it('should open chat panel when select tool is active and tile clicked');
+  it('should update chat with preview when different tile selected');
+  it('should highlight selected tile on map');
+  it('should access tile data from MapCache in chat');
+  it('should maintain chat state when switching tools');
+  it('should clear tile selection when chat closed');
+});
+```
+
+#### Layout Integration (`/src/app/map/__tests__/layout-integration.test.tsx`)
+```typescript
+describe('Layout with Chat Panel', () => {
+  it('should render toolbox, canvas, hierarchy, and chat in correct order');
+  it('should give chat panel flex-1 to take remaining space');
+  it('should maintain minimum width for canvas (400px)');
+  it('should keep toolbox and hierarchy at fixed widths');
+  it('should hide chat panel when isPanelOpen is false');
+  it('should apply correct border between map and chat');
+});
+```
+
+#### Provider Integration (`/src/app/map/__tests__/provider-integration.test.tsx`)
+```typescript
+describe('Provider Integration', () => {
+  it('should nest ChatProvider inside MapCacheProvider');
+  it('should allow ChatPanel to read MapCache data');
+  it('should keep chat state separate from map data state');
+  it('should not persist chat messages on refresh');
+  it('should dispatch chat actions through ChatProvider');
+});
+```
+
+### E2E Tests
+
+#### Basic Chat Workflow (`/e2e/chat/basic-workflow.spec.ts`)
+```typescript
+test.describe('Chat Panel - Basic Workflow', () => {
+  test('should show chat panel when selecting tiles', async ({ page }) => {
+    // Navigate to map
+    // Click select tool in toolbox
+    // Verify chat panel not visible initially
+    // Click a tile
+    // Verify chat panel appears
+    // Verify welcome message shown
+    // Verify tile content displayed as preview widget
+    // Click another tile
+    // Verify both previews in chat history
+    // Close chat panel
+    // Verify chat panel hidden
+  });
+});
+```
+
+#### Desktop Layout (`/e2e/chat/desktop-layout.spec.ts`)
+```typescript
+test.describe('Chat Panel - Desktop Layout', () => {
+  test('should allocate space correctly on desktop', async ({ page }) => {
+    // Set desktop viewport (1920x1080)
+    // Open chat panel
+    // Measure toolbox width (fixed)
+    // Measure canvas width (>= 400px)
+    // Measure hierarchy width (fixed)
+    // Measure chat width (remaining space)
+    // Verify no horizontal scroll
+    // Verify chat takes maximum available width
+  });
+});
+```
+
+#### Conversation History (`/e2e/chat/conversation-history.spec.ts`)
+```typescript
+test.describe('Chat Panel - Conversation History', () => {
+  test('should build conversation as user explores', async ({ page }) => {
+    // Select first tile
+    // Verify preview appears with timestamp
+    // Select second tile
+    // Verify both previews visible in order
+    // Scroll to top of chat
+    // Verify first message still visible
+    // Select multiple tiles quickly
+    // Verify all selections recorded
+    // Refresh page
+    // Verify chat history cleared (no persistence)
+  });
+});
+```
+
+#### Tile Selection Visual Feedback (`/e2e/chat/selection-feedback.spec.ts`)
+```typescript
+test.describe('Tile Selection - Visual Feedback', () => {
+  test('should highlight selected tile', async ({ page }) => {
+    // Activate select tool
+    // Click tile
+    // Verify tile has selection ring
+    // Click different tile
+    // Verify previous tile ring removed
+    // Verify new tile has ring
+    // Close chat
+    // Verify selection ring removed
+  });
+});
+```
+
+### Performance Tests
+
+#### Message Rendering Performance
+```typescript
+describe('Chat Performance', () => {
+  it('should handle 100+ messages without lag');
+  it('should virtualize long message lists');
+  it('should not re-render unchanged messages');
+  it('should debounce rapid tile selections');
+});
+```
+
+### Accessibility Tests
+
+#### Keyboard Navigation
+```typescript
+describe('Chat Accessibility', () => {
+  it('should support keyboard navigation to chat panel');
+  it('should trap focus within chat when open');
+  it('should announce new messages to screen readers');
+  it('should provide ARIA labels for all interactive elements');
+  it('should support Escape key to close chat');
+});
+```
+
+### Visual Regression Tests
+
+#### Chat Component Snapshots
+- ChatPanel in empty state
+- ChatPanel with messages
+- PreviewWidget with various content types
+- System messages styling
+- Selected tile visual state
+
+### Test Implementation Notes
+
+1. **Mock Requirements**:
+   - Mock MapCacheProvider for isolated tests
+   - Mock markdown rendering for unit tests
+   - Mock tile data for consistent testing
+
+2. **Test Data**:
+   - Create fixture tiles with various content types
+   - Include edge cases (empty content, very long titles)
+   - Test with different markdown features
+
+3. **Coverage Goals**:
+   - 90%+ coverage for new Chat components
+   - Integration tests for all user workflows
+   - E2E tests for critical paths
+
+4. **Desktop-Only Focus**:
+   - Skip mobile viewport tests in Phase 1
+   - Document mobile tests for future phases
+   - Focus on desktop layout scenarios
