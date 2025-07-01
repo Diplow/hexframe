@@ -263,10 +263,11 @@ Key architectural patterns:
 
 **Phase 1**: Chat Foundation
 1. Add ChatPanel component with message-based interface
-2. Implement basic 60/40 split layout
-3. Add chat state management with conversation history
+2. Implement layout with chat taking maximum available space
+3. Add chat state management with conversation history (no persistence yet)
 4. Simplify tile display to show only titles
 5. Display tile content as preview widget in chat flow
+6. Desktop-only focus for initial implementation
 
 **Phase 2**: Enhanced Interaction
 1. Add resizable splitter
@@ -387,30 +388,31 @@ MapPage (page.tsx)
 ├── TileActionsProvider (extended with 'select' tool)
 │   └── ToolStateManager
 │       └── MapContent
-│           └── MapCacheProvider (extended with chat state)
-│               └── SplitLayout (NEW)
-│                   ├── MapSection
-│                   │   ├── DynamicMapCanvas
-│                   │   ├── Toolbox
-│                   │   └── ParentHierarchy
-│                   └── ChatPanel (NEW)
-│                       ├── ChatHeader
-│                       ├── ChatMessages
-│                       │   ├── SystemMessage
-│                       │   └── PreviewWidget
-│                       └── ChatInput (future)
+│           └── MapCacheProvider (data only - no UI state)
+│               └── ChatProvider (NEW - separate chat state)
+│                   └── FlexLayout (NEW)
+│                       ├── LeftSection (fixed)
+│                       │   └── Toolbox
+│                       ├── CenterSection (min-width for scale 3 tile)
+│                       │   └── DynamicMapCanvas
+│                       ├── RightSection (fixed)
+│                       │   └── ParentHierarchy
+│                       └── ChatPanel (NEW - takes remaining space)
+│                           ├── ChatHeader
+│                           ├── ChatMessages
+│                           │   ├── SystemMessage
+│                           │   └── PreviewWidget
+│                           └── ChatInput (future)
 ```
 
-**Extended MapCache State**:
+**Separate Chat State (ChatProvider)**:
 ```typescript
-// In MapCacheProvider state
-interface ExtendedCacheState extends CacheState {
-  chatState: {
-    selectedTileId: string | null;
-    messages: ChatMessage[];
-    isPanelOpen: boolean;
-    panelWidth: number; // Percentage or pixels
-  };
+// New ChatProvider - separate from MapCacheProvider
+interface ChatState {
+  selectedTileId: string | null;
+  messages: ChatMessage[];
+  isPanelOpen: boolean;
+  // No persistence in Phase 1 - stored in memory only
 }
 
 interface ChatMessage {
@@ -427,34 +429,41 @@ interface ChatWidget {
   type: 'preview' | 'search' | 'comparison' | 'action';
   data: any; // Widget-specific data
 }
+
+// MapCacheProvider remains focused on data only
+// UI state separation can be addressed in future refactoring
 ```
 
 **Layout Changes**:
 ```tsx
-// New split layout structure
+// New flex layout structure - desktop only
 <div className="relative flex h-full w-full">
   <TileActionsProvider>
     <ToolStateManager>
       <MapContent>
         <MapCacheProvider>
-          <div className="flex h-full w-full">
-            {/* Map Section */}
-            <div className="relative flex-1 flex">
-              <Toolbox />
-              <div className="flex-1">
+          <ChatProvider>
+            <div className="flex h-full w-full">
+              {/* Fixed Left: Toolbox */}
+              <Toolbox className="flex-shrink-0" />
+              
+              {/* Min-width Center: Canvas (scale 3 tile) */}
+              <div className="flex-shrink-0" style={{ minWidth: '400px' }}>
                 <DynamicMapCanvas />
                 <MapControls />
               </div>
-              <ParentHierarchy />
+              
+              {/* Fixed Right: Hierarchy */}
+              <ParentHierarchy className="flex-shrink-0" />
+              
+              {/* Flexible: Chat takes remaining space */}
+              {chatState.isPanelOpen && (
+                <ChatPanel className="flex-1 border-l overflow-hidden" />
+              )}
             </div>
             
-            {/* Chat Panel */}
-            {chatState.isPanelOpen && (
-              <ChatPanel className="w-[40%] border-l" />
-            )}
-          </div>
-          
-          <OfflineIndicator />
+            <OfflineIndicator />
+          </ChatProvider>
         </MapCacheProvider>
       </MapContent>
     </ToolStateManager>
@@ -497,14 +506,13 @@ export const DynamicTileContent = ({ data, scale, tileId, isSelected }) => {
 ```typescript
 // /src/app/map/Chat/ChatPanel.tsx
 export function ChatPanel({ className }: { className?: string }) {
-  const { chatState, dispatch } = useMapCache();
-  const { selectedTileId, messages } = chatState;
+  const { selectedTileId, messages, dispatch } = useChat();
+  const { itemsById } = useMapCache(); // Read tile data
   
   return (
     <div className={cn("flex flex-col h-full", className)}>
       <ChatHeader 
         onClose={() => dispatch({ type: 'CLOSE_CHAT' })}
-        onResize={(width) => dispatch({ type: 'RESIZE_CHAT', payload: width })}
       />
       
       <ChatMessages messages={messages} />
@@ -560,24 +568,32 @@ export function PreviewWidget({ tileId, content, title }: PreviewWidgetProps) {
 ```
 User clicks tile → 
 TileActionsProvider (select tool) → 
-MapCache dispatch → 
-Update chat state → 
+ChatProvider dispatch → 
 Add preview message → 
 Render in ChatPanel
+(MapCache provides tile data via hook)
 ```
+
+**Design Constraints**:
+- Desktop-only for Phase 1 (no mobile optimization)
+- No persistence (messages lost on refresh)
+- Chat takes maximum available screen space
+- Fixed toolbox, minimum canvas, fixed hierarchy
 
 **Future Extensibility**:
 - Message types ready for AI responses
 - Widget system supports rich interactions
 - State structure supports personas and modes
-- Layout supports responsive behavior
+- Persistence can be added later
+- Mobile layout can be addressed separately
 
 ### Key Implementation Patterns
 
 **1. Provider-Based State Management**
-- Extend existing MapCacheProvider rather than creating new context
-- Chat state lives alongside map data for unified management
-- Actions flow through existing dispatch system
+- Create separate ChatProvider for chat state (not extending MapCache)
+- MapCacheProvider remains focused on data only
+- Clear separation of concerns: data vs UI state
+- ChatProvider reads from MapCache when needed
 
 **2. Component Composition**
 - ChatPanel composed of smaller, focused components
