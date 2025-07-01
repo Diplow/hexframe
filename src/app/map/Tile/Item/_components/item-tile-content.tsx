@@ -10,12 +10,13 @@ import type { URLInfo } from "~/app/map/types/url-info";
 import { useTileInteraction } from "~/app/map/hooks/useTileInteraction";
 import { useRouter } from "next/navigation";
 import { useMapCache } from "~/app/map/Cache/map-cache";
+import { useCanvasTheme } from "~/app/map/Canvas";
 
 interface ItemTileContentProps {
   item: TileData;
   scale: TileScale;
   baseHexSize: number;
-  tileColor: TileColor;
+  tileColor: TileColor | string; // Allow both old format and new semantic format
   testId: string;
   interactive: boolean;
   isBeingDragged: boolean;
@@ -51,6 +52,7 @@ export function ItemTileContent({
   const [isHovered, setIsHovered] = useState(false);
   const router = useRouter();
   const { navigateToItem, toggleItemExpansionWithURL } = useMapCache();
+  const { isDarkMode } = useCanvasTheme();
   
   // Check if this tile is expanded
   const isExpanded = allExpandedItemIds.includes(item.metadata.dbId);
@@ -101,6 +103,7 @@ export function ItemTileContent({
           cursor={interactive ? cursor : 'cursor-pointer'}
           isFocusable={false}
           isExpanded={allExpandedItemIds.includes(item.metadata.dbId)}
+          isDarkMode={isDarkMode}
         >
           <DynamicTileContent
             data={{
@@ -111,6 +114,7 @@ export function ItemTileContent({
             scale={scale}
             tileId={testId.replace("tile-", "")}
             isHovered={isHovered}
+            depth={item.metadata.depth}
           />
         </DynamicBaseTileLayout>
       </div>

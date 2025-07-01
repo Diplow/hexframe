@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useContext } from "react";
-import { StaticBaseTileLayout, type TileScale, type TileColor } from "~/app/static/map/Tile/Base/base";
+import { DynamicBaseTileLayout } from "../Base";
+import type { TileScale, TileColor } from "~/app/static/map/Tile/Base/base";
 import { CreateItemModal } from "../../Dialogs/create-item.modal";
 import { DynamicCreateItemDialog } from "../../Dialogs/create-item";
-import { LegacyTileActionsContext } from "../../Canvas";
+import { LegacyTileActionsContext, useCanvasTheme } from "../../Canvas";
 import type { URLInfo } from "../../types/url-info";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import { getColor } from "../../types/tile-data";
@@ -45,6 +46,7 @@ export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
   const [showModal, setShowModal] = useState(false);
   const [useDynamicDialog] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
+  const { isDarkMode } = useCanvasTheme();
   
   // Calculate default stroke for this scale
   const defaultStroke = getDefaultStroke(props.scale ?? 1, false);
@@ -96,7 +98,7 @@ export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
         <div className="pointer-events-auto absolute inset-0 z-10" />
 
         <div onClick={handleClick}>
-          <StaticBaseTileLayout
+          <DynamicBaseTileLayout
             coordId={props.coordId}
             scale={props.scale ?? 1}
             cursor={cursor}
@@ -114,6 +116,7 @@ export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
           stroke={isHovered && shouldShowHoverEffects ? defaultStroke : { color: "transparent", width: 0 }}
           baseHexSize={props.baseHexSize}
           isFocusable={true}
+          isDarkMode={isDarkMode}
         >
           <div className="absolute inset-0">
             {/* Semi-transparent black overlay clipped to hexagon shape */}
@@ -131,7 +134,7 @@ export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
               {/* Green + button removed - creation is now handled via the Create tool */}
             </div>
           </div>
-          </StaticBaseTileLayout>
+          </DynamicBaseTileLayout>
         </div>
       </div>
 

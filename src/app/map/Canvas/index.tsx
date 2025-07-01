@@ -19,6 +19,19 @@ import { MapErrorBoundary } from "./LifeCycle/error-boundary";
 import { useDragAndDropWithMutation } from "./hooks/useDragAndDropWithMutation";
 import type { DragEvent } from "react";
 
+// Theme Context for tiles
+export interface ThemeContextValue {
+  isDarkMode: boolean;
+}
+
+export const CanvasThemeContext = createContext<ThemeContextValue>({
+  isDarkMode: false,
+});
+
+export function useCanvasTheme() {
+  return useContext(CanvasThemeContext);
+}
+
 // Legacy Tile Actions Context for drag and drop
 export interface LegacyTileActionsContextValue {
   handleTileClick: (coordId: string, event: MouseEvent) => void;
@@ -98,6 +111,7 @@ export function DynamicMapCanvas({
     updateCenter,
   } = useMapCache();
   const [isHydrated, setIsHydrated] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const { mappingUserId } = useAuth();
   
   // Initialize drag and drop functionality
@@ -114,6 +128,22 @@ export function DynamicMapCanvas({
   useEffect(() => {
     // Initialize hydration
     setIsHydrated(true);
+    
+    // Check initial dark mode state
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+    
+    checkDarkMode();
+    
+    // Listen for theme changes
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+    
+    return () => observer.disconnect();
   }, []); // Run only once on mount
 
   // Separate effect for center initialization - only on first mount
@@ -198,23 +228,25 @@ export function DynamicMapCanvas({
   // Rendering canvas with current state
 
   return (
-    <LegacyTileActionsContext.Provider value={tileActions}>
-      <div className="relative flex h-full w-full flex-col">
-        <div
-          data-canvas-id={dynamicCenterInfo.center}
-          className="pointer-events-auto grid flex-grow place-items-center overflow-auto p-4"
-        >
-          <DynamicFrame
-            center={dynamicCenterInfo.center}
-            mapItems={items}
-            baseHexSize={50}
-            expandedItemIds={currentExpandedItems}
-            scale={3 as TileScale}
-            urlInfo={urlInfo}
-            currentUserId={mappingUserId}
-          />
+    <CanvasThemeContext.Provider value={{ isDarkMode }}>
+      <LegacyTileActionsContext.Provider value={tileActions}>
+        <div className="relative flex h-full w-full flex-col">
+          <div
+            data-canvas-id={dynamicCenterInfo.center}
+            className="pointer-events-auto grid flex-grow place-items-center overflow-auto py-4"
+          >
+            <DynamicFrame
+              center={dynamicCenterInfo.center}
+              mapItems={items}
+              baseHexSize={50}
+              expandedItemIds={currentExpandedItems}
+              scale={3 as TileScale}
+              urlInfo={urlInfo}
+              currentUserId={mappingUserId}
+            />
+          </div>
         </div>
-      </div>
-    </LegacyTileActionsContext.Provider>
+      </LegacyTileActionsContext.Provider>
+    </CanvasThemeContext.Provider>
   );
 }

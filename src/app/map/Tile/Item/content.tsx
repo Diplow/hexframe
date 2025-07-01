@@ -2,6 +2,7 @@
 
 import type { TileScale } from "~/app/static/map/Tile/Base/base";
 import ReactMarkdown from "react-markdown";
+import { getTextColorForDepth } from "~/app/map/types/theme-colors";
 
 export interface DynamicTileContentProps {
   data: {
@@ -12,12 +13,15 @@ export interface DynamicTileContentProps {
   scale: TileScale;
   tileId?: string;
   isHovered?: boolean;
+  depth?: number; // Add depth prop for text color calculation
 }
 
-const TEXT_CLASSES = "break-words text-zinc-950";
+const getTextClasses = (depth = 0) => `break-words ${getTextColorForDepth(depth)}`;
 
-export const DynamicTileContent = ({ data, scale, tileId, isHovered = false }: DynamicTileContentProps) => {
+export const DynamicTileContent = ({ data, scale, tileId, isHovered = false, depth = 0 }: DynamicTileContentProps) => {
   if (!data) return null;
+  
+  const textClasses = getTextClasses(depth);
 
   const marginClass =
     scale === 1 ? "my-[6px]" : scale === 2 ? "my-[18px]" : "my-[54px]";
@@ -36,7 +40,7 @@ export const DynamicTileContent = ({ data, scale, tileId, isHovered = false }: D
         <div
           className={`${marginClass} ${horizontalPadding} flex h-full w-full flex-col items-center justify-center gap-2 overflow-hidden`}
         >
-          <DescriptionSection description={combinedContent} scale={scale} tileId={tileId} />
+          <DescriptionSection description={combinedContent} scale={scale} tileId={tileId} textClasses={textClasses} />
         </div>
       );
     }
@@ -52,9 +56,9 @@ export const DynamicTileContent = ({ data, scale, tileId, isHovered = false }: D
       <div
         className={`${marginClass} ${horizontalPadding} flex h-full w-full flex-col items-center justify-center gap-2 overflow-hidden`}
       >
-        {data.title && <TitleSection title={data.title} scale={scale} tileId={tileId} />}
+        {data.title && <TitleSection title={data.title} scale={scale} tileId={tileId} textClasses={textClasses} />}
         {truncatedDescription && (
-          <div className="w-full text-xs text-zinc-950 prose prose-xs prose-zinc max-w-full text-center">
+          <div className={`w-full text-xs ${textClasses} prose prose-xs prose-neutral max-w-full text-center`}>
             <ReactMarkdown
               components={{
                 // Simplified components for truncated view
@@ -65,9 +69,9 @@ export const DynamicTileContent = ({ data, scale, tileId, isHovered = false }: D
                 ul: ({ children }) => <span>{children}</span>,
                 ol: ({ children }) => <span>{children}</span>,
                 li: ({ children }) => <span>• {children} </span>,
-                code: ({ children }) => <code className="bg-gray-100 px-0.5 rounded text-xs">{children}</code>,
+                code: ({ children }) => <code className="bg-neutral-100 dark:bg-neutral-800 px-0.5 rounded text-xs">{children}</code>,
                 a: ({ href, children }) => (
-                  <a href={href} target="_blank" rel="noopener noreferrer" className="text-cyan-800 hover:text-cyan-950 underline">
+                  <a href={href} target="_blank" rel="noopener noreferrer" className="text-link-800 dark:text-link-400 hover:text-link-950 dark:hover:text-link-300 underline">
                     {children}
                   </a>
                 ),
@@ -91,8 +95,8 @@ export const DynamicTileContent = ({ data, scale, tileId, isHovered = false }: D
       <div
         className={`${marginClass} ${horizontalPadding} flex h-full w-full flex-col items-center justify-center gap-2 overflow-hidden`}
       >
-        <DescriptionSection description={combinedContent} scale={scale} tileId={tileId} />
-        {data.url && scale > 2 && <UrlSection url={data.url} scale={scale} />}
+        <DescriptionSection description={combinedContent} scale={scale} tileId={tileId} textClasses={textClasses} />
+        {data.url && scale > 2 && <UrlSection url={data.url} scale={scale} textClasses={textClasses} />}
       </div>
     );
   }
@@ -102,14 +106,14 @@ export const DynamicTileContent = ({ data, scale, tileId, isHovered = false }: D
     <div
       className={`${marginClass} ${horizontalPadding} flex h-full w-full flex-col items-center justify-center gap-2 overflow-hidden`}
     >
-      {data.title && <TitleSection title={data.title} scale={scale} tileId={tileId} />}
-      {data.description && <DescriptionSection description={data.description} scale={scale} />}
-      {data.url && scale > 2 && <UrlSection url={data.url} scale={scale} />}
+      {data.title && <TitleSection title={data.title} scale={scale} tileId={tileId} textClasses={textClasses} />}
+      {data.description && <DescriptionSection description={data.description} scale={scale} tileId={tileId} textClasses={textClasses} />}
+      {data.url && scale > 2 && <UrlSection url={data.url} scale={scale} textClasses={textClasses} />}
     </div>
   );
 };
 
-const TitleSection = ({ title, scale, tileId }: { title: string; scale: TileScale; tileId?: string }) => {
+const TitleSection = ({ title, scale, tileId, textClasses }: { title: string; scale: TileScale; tileId?: string; textClasses: string }) => {
   if (scale < 1) return null;
   const baseFontSize =
     scale === 1 ? "text-xs" : scale === 2 ? "text-md" : "text-lg";
@@ -133,7 +137,7 @@ const TitleSection = ({ title, scale, tileId }: { title: string; scale: TileScal
   const displayClass = scale === 2 ? "" : "flex items-center justify-center";
   
   return (
-    <div className={`${baseFontSize} ${fontWeight} ${TEXT_CLASSES} ${widthClass} ${heightStyle} ${textWrapClass} text-center flex-shrink-0 ${displayClass} px-2`} data-testid={testId}>
+    <div className={`${baseFontSize} ${fontWeight} ${textClasses} ${widthClass} ${heightStyle} ${textWrapClass} text-center flex-shrink-0 ${displayClass} px-2`} data-testid={testId}>
       {scale === 2 ? (
         <p className="line-clamp-4 whitespace-normal">{truncatedTitle}</p>
       ) : (
@@ -143,7 +147,7 @@ const TitleSection = ({ title, scale, tileId }: { title: string; scale: TileScal
   );
 };
 
-const DescriptionSection = ({ description, scale, tileId }: { description: string; scale: TileScale; tileId?: string }) => {
+const DescriptionSection = ({ description, scale, tileId, textClasses }: { description: string; scale: TileScale; tileId?: string; textClasses: string }) => {
   if (scale < 2) return null;
   
   // For scale 2 and above, show full description with scrolling
@@ -153,7 +157,7 @@ const DescriptionSection = ({ description, scale, tileId }: { description: strin
   
     return (
       <div className={`w-full flex items-center`}>
-        <div className={`w-full ${textSize} ${TEXT_CLASSES} ${maxHeight} overflow-y-auto prose ${proseSize} prose-zinc max-w-full scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent relative z-30 text-center`}>
+        <div className={`w-full ${textSize} ${textClasses} ${maxHeight} overflow-y-auto prose ${proseSize} prose-neutral max-w-full scrollbar-thin scrollbar-thumb-neutral-300 scrollbar-track-transparent relative z-30 text-center`}>
         <ReactMarkdown
           components={{
             // Override default styles to fit within tile - scale-aware sizing
@@ -164,11 +168,11 @@ const DescriptionSection = ({ description, scale, tileId }: { description: strin
             ul: ({ children }) => <ul className={`list-disc list-inside ${scale === 2 ? 'mb-1' : 'mb-2'} text-center`}>{children}</ul>,
             ol: ({ children }) => <ol className={`list-decimal list-inside ${scale === 2 ? 'mb-1' : 'mb-2'} text-center`}>{children}</ol>,
             li: ({ children }) => <li className={`${scale === 2 ? 'mb-0.5' : 'mb-1'} text-left`}>{children}</li>,
-            code: ({ children }) => <code className="bg-gray-100 px-1 rounded text-xs">{children}</code>,
-            pre: ({ children }) => <pre className={`bg-gray-100 ${scale === 2 ? 'p-1' : 'p-2'} rounded text-xs overflow-auto ${scale === 2 ? 'mb-1' : 'mb-2'}`}>{children}</pre>,
-            blockquote: ({ children }) => <blockquote className={`border-l-2 border-gray-300 ${scale === 2 ? 'pl-1' : 'pl-2'} italic`}>{children}</blockquote>,
+            code: ({ children }) => <code className="bg-neutral-100 dark:bg-neutral-800 px-1 rounded text-xs">{children}</code>,
+            pre: ({ children }) => <pre className={`bg-neutral-100 dark:bg-neutral-800 ${scale === 2 ? 'p-1' : 'p-2'} rounded text-xs overflow-auto ${scale === 2 ? 'mb-1' : 'mb-2'}`}>{children}</pre>,
+            blockquote: ({ children }) => <blockquote className={`border-l-2 border-neutral-300 ${scale === 2 ? 'pl-1' : 'pl-2'} italic`}>{children}</blockquote>,
             a: ({ href, children }) => (
-              <a href={href} target="_blank" rel="noopener noreferrer" className="text-cyan-800 hover:text-cyan-950 underline">
+              <a href={href} target="_blank" rel="noopener noreferrer" className="text-link-800 dark:text-link-400 hover:text-link-950 dark:hover:text-link-300 underline">
                 {children}
               </a>
             ),
@@ -182,7 +186,7 @@ const DescriptionSection = ({ description, scale, tileId }: { description: strin
 
 };
 
-const UrlSection = ({ url, scale }: { url: string; scale: TileScale }) => {
+const UrlSection = ({ url, scale, textClasses }: { url: string; scale: TileScale; textClasses: string }) => {
   if (scale < 2) return null;
   const maxLength = scale === 2 ? 25 : 50;
   const displayUrl =
@@ -192,12 +196,12 @@ const UrlSection = ({ url, scale }: { url: string; scale: TileScale }) => {
   const heightClass = scale === 1 ? "h-12" : scale === 2 ? "h-[60px]" : "h-[72px]";
   
   return (
-    <div className={`${TEXT_CLASSES} truncate text-xs w-[75%] ${heightClass} flex items-center justify-center`}>
+    <div className={`${textClasses} truncate text-xs w-[75%] ${heightClass} flex items-center justify-center`}>
       <a
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-cyan-800 hover:text-cyan-950 hover:underline"
+        className="text-link-800 dark:text-link-400 hover:text-link-950 dark:hover:text-link-300 hover:underline"
       >
         {displayUrl}
       </a>

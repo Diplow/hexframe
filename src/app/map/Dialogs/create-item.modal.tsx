@@ -150,7 +150,7 @@ export function CreateItemModal({
         <DialogHeader>
           <DialogTitle>Create New Item</DialogTitle>
           {parentItem && (
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-neutral-600">
               Creating child of:{" "}
               <span className="font-medium">{parentItem.name}</span>
             </p>
@@ -159,8 +159,8 @@ export function CreateItemModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {errors.general && (
-            <div className="rounded-md bg-rose-50 p-3">
-              <p className="text-sm text-rose-600">{errors.general}</p>
+            <div className="rounded-md bg-destructive-50 p-3">
+              <p className="text-sm text-destructive-600">{errors.general}</p>
             </div>
           )}
 
@@ -168,7 +168,7 @@ export function CreateItemModal({
           <div>
             <label
               htmlFor="title"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-neutral-700"
             >
               Title *
             </label>
@@ -179,14 +179,14 @@ export function CreateItemModal({
               onChange={(e) => handleFormDataChange("title", e.target.value)}
               disabled={isSubmitting}
               maxLength={200}
-              className={`mt-1 block w-full rounded-md border px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-                errors.title ? "border-rose-500" : "border-gray-300"
+              className={`mt-1 block w-full rounded-md border px-3 py-2 shadow-sm focus:border-link-500 focus:outline-none focus:ring-1 focus:ring-link-500 ${
+                errors.title ? "border-destructive-500" : "border-neutral-300"
               }`}
               placeholder="Enter item title"
               required
             />
             {errors.title && (
-              <p className="mt-1 text-sm text-rose-600">{errors.title}</p>
+              <p className="mt-1 text-sm text-destructive-600">{errors.title}</p>
             )}
           </div>
 
@@ -194,7 +194,7 @@ export function CreateItemModal({
           <div>
             <label
               htmlFor="description"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-neutral-700"
             >
               Description
             </label>
@@ -207,13 +207,13 @@ export function CreateItemModal({
               disabled={isSubmitting}
               rows={3}
               maxLength={2000}
-              className={`mt-1 block w-full rounded-md border px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-                errors.description ? "border-rose-500" : "border-gray-300"
+              className={`mt-1 block w-full rounded-md border px-3 py-2 shadow-sm focus:border-link-500 focus:outline-none focus:ring-1 focus:ring-link-500 ${
+                errors.description ? "border-destructive-500" : "border-neutral-300"
               }`}
               placeholder="Enter item description (optional)"
             />
             {errors.description && (
-              <p className="mt-1 text-sm text-rose-600">{errors.description}</p>
+              <p className="mt-1 text-sm text-destructive-600">{errors.description}</p>
             )}
           </div>
 
@@ -221,7 +221,7 @@ export function CreateItemModal({
           <div>
             <label
               htmlFor="url"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-neutral-700"
             >
               URL
             </label>
@@ -231,13 +231,13 @@ export function CreateItemModal({
               value={formData.url}
               onChange={(e) => handleFormDataChange("url", e.target.value)}
               disabled={isSubmitting}
-              className={`mt-1 block w-full rounded-md border px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-                errors.url ? "border-rose-500" : "border-gray-300"
+              className={`mt-1 block w-full rounded-md border px-3 py-2 shadow-sm focus:border-link-500 focus:outline-none focus:ring-1 focus:ring-link-500 ${
+                errors.url ? "border-destructive-500" : "border-neutral-300"
               }`}
               placeholder="https://example.com (optional)"
             />
             {errors.url && (
-              <p className="mt-1 text-sm text-rose-600">{errors.url}</p>
+              <p className="mt-1 text-sm text-destructive-600">{errors.url}</p>
             )}
           </div>
 
@@ -245,7 +245,7 @@ export function CreateItemModal({
             <button
               type="submit"
               disabled={isSubmitting || !formData.title.trim()}
-              className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex-1 rounded-md bg-link-600 px-4 py-2 text-white hover:bg-link-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubmitting ? "Creating..." : "Create Item"}
             </button>
@@ -253,7 +253,7 @@ export function CreateItemModal({
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="flex-1 rounded-md border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex-1 rounded-md border border-neutral-300 px-4 py-2 text-neutral-700 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Cancel
             </button>

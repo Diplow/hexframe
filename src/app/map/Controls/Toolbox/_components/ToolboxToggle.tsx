@@ -14,39 +14,45 @@ export function ToolboxToggle({ displayMode, cyclePosition, onToggle }: ToolboxT
     <button
       onClick={onToggle}
       className={cn(
-        "w-full h-12 flex items-center bg-gray-100 dark:bg-gray-800",
-        "hover:bg-gray-200 dark:hover:bg-gray-700",
-        "focus:bg-gray-200 dark:focus:bg-gray-700",
-        "rounded-t-lg rounded-b-none transition-colors duration-200 focus:outline-none"
+        "relative w-full h-12 flex items-center px-3.5",
+        "bg-white hover:bg-neutral-50 dark:bg-neutral-800 dark:hover:bg-neutral-700",
+        "rounded-t-lg transition-all duration-200 focus:outline-none shadow-sm"
       )}
       aria-label="Toggle toolbox"
       aria-expanded={displayMode !== 'closed'}
     >
       <div className={cn(
         "w-full h-full flex items-center transition-all duration-300 ease-in-out",
-        displayMode === 'full' ? "justify-start gap-2 px-6" : "justify-center"
+        displayMode === 'full' ? "justify-between gap-2 px-2" : "justify-center"
       )}>
-        <ChevronRight 
-          className="w-5 h-5 flex-shrink-0 transition-transform ease-in-out"
-          style={{
-            transform: `rotate(${getChevronRotation(cyclePosition)}deg)`,
-            transitionDuration: `${getChevronTransitionDuration(cyclePosition)}ms`
-          }}
-        />
-        
-        <span className={cn(
-          "text-sm font-medium transition-all duration-300",
-          displayMode === 'full' ? "opacity-100 flex-1 w-auto" : "opacity-0 w-0",
-          "text-gray-700 dark:text-gray-300"
-        )}>
-          Toolbox
-        </span>
+        <div className="flex items-center gap-4">
+          <div className="w-5 flex items-center justify-left">
+            <div className="w-5 h-5 flex items-center justify-center">
+              <ChevronRight 
+                className="w-5 h-5 flex-shrink-0 transition-transform ease-in-out text-neutral-700 dark:text-neutral-300"
+            style={{
+              transform: `rotate(${getChevronRotation(cyclePosition)}deg)`,
+              transitionDuration: `${getChevronTransitionDuration(cyclePosition)}ms`
+            }}
+              />
+          </div>
+
+          </div>
+          
+          <span className={cn(
+            "text-sm font-medium transition-all duration-300",
+            displayMode === 'full' ? "opacity-100 w-auto" : "hidden",
+            "text-neutral-700 dark:text-neutral-300"
+          )}>
+            Toolbox
+          </span>
+        </div>
         
         <span className={cn(
           "text-xs font-medium px-1.5 py-0.5 rounded transition-all duration-300",
-          "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400",
-          displayMode === 'full' ? "opacity-100" : "opacity-0 w-0 px-0"
-        )}>
+          "min-w-[1.5rem] text-center",
+          "bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-400",
+          displayMode === 'full' ? "opacity-100 ml-auto" : "hidden")}>
           T
         </span>
       </div>

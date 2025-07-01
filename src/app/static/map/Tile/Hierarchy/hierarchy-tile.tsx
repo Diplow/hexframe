@@ -1,12 +1,12 @@
 import Link from "next/link";
 import type { TileData } from "~/app/map/types/tile-data";
 import { StaticBaseTileLayout } from "~/app/static/map/Tile/Base/base";
-import { getColorFromItem } from "~/app/static/map/Tile/Item/item";
 import type { URLInfo } from "~/app/map/types/url-info";
 import {
   HIERARCHY_TILE_BASE_SIZE,
   HIERARCHY_TILE_SCALE,
 } from "~/app/map/constants";
+import { getTextColorForDepth } from "~/app/map/types/theme-colors";
 
 export interface HierarchyTileProps {
   item: TileData;
@@ -49,7 +49,7 @@ export const HierarchyTile = ({
         <StaticBaseTileLayout
           coordId={item.metadata.coordId}
           scale={HIERARCHY_TILE_SCALE}
-          color={getColorFromItem(item)}
+          color={item.data.color}
           baseHexSize={HIERARCHY_TILE_BASE_SIZE}
           isFocusable={false}
         >
@@ -61,10 +61,12 @@ export const HierarchyTile = ({
 };
 
 const HierarchyTileContent = ({ item }: { item: TileData }) => {
+  const textColorClass = getTextColorForDepth(item.metadata.depth);
+  
   return (
     <div className="flex h-full w-full items-center justify-center p-2">
       <span
-        className="text-center text-xs font-medium leading-tight text-slate-800"
+        className={`text-center text-xs font-medium leading-tight ${textColorClass}`}
         style={{
           display: "-webkit-box",
           WebkitLineClamp: 3,

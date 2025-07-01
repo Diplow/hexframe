@@ -65,7 +65,7 @@ describe("LogoutPage", () => {
     
     const spinner = container.querySelector(".animate-spin");
     expect(spinner).toBeTruthy();
-    expect(spinner?.classList.contains("border-indigo-600")).toBe(true);
+    expect(spinner?.classList.contains("border-se-600")).toBe(true);
   });
 
   // Note: Testing redirect behavior would require more complex setup

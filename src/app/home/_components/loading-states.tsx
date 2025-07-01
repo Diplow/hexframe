@@ -9,8 +9,8 @@ interface LoadingStateProps {
  */
 export function LoadingState({ message = "Loading..." }: LoadingStateProps) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-600 p-4">
-      <div className="text-xl font-semibold text-white">{message}</div>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 dark:bg-neutral-900 p-4">
+      <div className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">{message}</div>
     </div>
   );
 }

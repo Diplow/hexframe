@@ -59,7 +59,7 @@ export default function MapPage({ searchParams }: MapPageProps) {
       <div className="flex h-screen items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-semibold">No map specified</h1>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-neutral-600">
             Please provide a map center ID in the URL
           </p>
         </div>
@@ -78,7 +78,7 @@ export default function MapPage({ searchParams }: MapPageProps) {
       <div className="flex h-screen items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-semibold">Map not found</h1>
-          <p className="mt-2 text-gray-600">
+          <p className="mt-2 text-neutral-600">
             {resolutionError?.message ?? "Unable to load the requested map"}
           </p>
         </div>

@@ -1,5 +1,8 @@
 import { Direction } from "~/lib/domains/mapping/utils/hex-coordinates";
 
+// Re-export Direction for convenience
+export { Direction };
+
 // Map-related constants used across components
 
 // Default colors for map items - maps each hex direction to a Tailwind color name
@@ -14,5 +17,5 @@ export const DEFAULT_MAP_COLORS: Record<Direction, string> = {
 } as const;
 
 // Hierarchy tile sizing constants
-export const HIERARCHY_TILE_BASE_SIZE = 60;
+export const HIERARCHY_TILE_BASE_SIZE = 56;
 export const HIERARCHY_TILE_SCALE = 1;

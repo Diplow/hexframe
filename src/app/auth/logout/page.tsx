@@ -47,14 +47,14 @@ export default function LogoutPage() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
+    <div className="flex min-h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-900">
       <div className="text-center">
-        <h2 className="mb-2 text-2xl font-semibold text-gray-800">
+        <h2 className="mb-2 text-2xl font-semibold text-neutral-800 dark:text-neutral-100">
           Logging out...
         </h2>
-        <p className="text-gray-600">Please wait while we sign you out.</p>
+        <p className="text-neutral-600 dark:text-neutral-400">Please wait while we sign you out.</p>
         <div className="mt-4">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-se-600 dark:border-se-400 border-r-transparent"></div>
         </div>
       </div>
     </div>

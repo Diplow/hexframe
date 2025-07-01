@@ -31,7 +31,7 @@ export function MapControls({
       {/* Future controls can be added here */}
       {cacheStatus?.isLoading && (
         <div className="rounded bg-white p-2 shadow-md">
-          <div className="text-xs text-gray-500">Syncing...</div>
+          <div className="text-xs text-neutral-500">Syncing...</div>
         </div>
       )}
     </div>

@@ -5,30 +5,26 @@ export type StrokeConfig = {
   width: number;
 };
 
-export function getDefaultStroke(scale: TileScale, isExpanded = false): StrokeConfig {
-  if (isExpanded) {
-    return { color: "transparent" as const, width: 0 };
+export function getDefaultStroke(scale: TileScale, isExpanded = false, isShallow = false): StrokeConfig {
+  // Apply 1px stroke for non-expanded tiles or shallow tiles
+  if (!isExpanded || isShallow) {
+    return { color: "zinc-950" as const, width: 1 };
   }
   
-  return scale === 3 
-    ? { color: "zinc-950" as const, width: 0.75 } 
-    : scale === 2 
-      ? { color: "zinc-900" as const, width: 0.5 } 
-      : scale === 1 
-        ? { color: "zinc-900" as const, width: 0.25 } 
-        : { color: "transparent" as const, width: 0 };
+  // For expanded non-shallow tiles, keep transparent
+  return { color: "transparent" as const, width: 0 };
 }
 
 export function getStrokeHexColor(color: StrokeConfig["color"]): string {
   switch (color) {
     case "zinc-950":
-      return "rgba(24, 24, 27, 0.6)";
+      return "var(--stroke-color-950)";
     case "zinc-900":
-      return "rgba(39, 39, 42, 0.5)";
+      return "var(--stroke-color-900)";
     case "zinc-800":
-      return "rgba(63, 63, 70, 0.4)";
+      return "var(--stroke-color-800)";
     case "zinc-50":
-      return "#fafafa";
+      return "var(--stroke-color-50)";
     default:
       return "transparent";
   }

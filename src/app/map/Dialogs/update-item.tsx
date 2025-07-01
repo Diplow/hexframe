@@ -120,15 +120,15 @@ export function UpdateItemDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Update Item</DialogTitle>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-neutral-600">
             Editing: <span className="font-medium">{item.data.name}</span>
           </p>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {displayError && (
-            <div className="rounded-md bg-rose-50 p-3">
-              <p className="text-sm text-rose-600">{displayError}</p>
+            <div className="rounded-md bg-destructive-50 p-3">
+              <p className="text-sm text-destructive-600">{displayError}</p>
             </div>
           )}
 
@@ -136,7 +136,7 @@ export function UpdateItemDialog({
           <div>
             <label
               htmlFor="title"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-neutral-700"
             >
               Title *
             </label>
@@ -147,17 +147,17 @@ export function UpdateItemDialog({
               onChange={(e) => handleFormDataChange("title", e.target.value)}
               disabled={isSubmitting}
               maxLength={200}
-              className={`mt-1 block w-full rounded-md border px-3 py-2 shadow-sm transition-colors focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-                errors.title ? "border-rose-500" : "border-gray-300"
+              className={`mt-1 block w-full rounded-md border px-3 py-2 shadow-sm transition-colors focus:border-link-500 focus:outline-none focus:ring-1 focus:ring-link-500 ${
+                errors.title ? "border-destructive-500" : "border-neutral-300"
               }`}
               placeholder="Enter item title"
               required
               autoFocus
             />
             {errors.title && (
-              <p className="mt-1 text-sm text-rose-600">{errors.title}</p>
+              <p className="mt-1 text-sm text-destructive-600">{errors.title}</p>
             )}
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-neutral-500">
               {formData.title.length}/200 characters
             </p>
           </div>
@@ -166,7 +166,7 @@ export function UpdateItemDialog({
           <div>
             <label
               htmlFor="description"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-neutral-700"
             >
               Description
             </label>
@@ -179,15 +179,15 @@ export function UpdateItemDialog({
               disabled={isSubmitting}
               rows={3}
               maxLength={2000}
-              className={`mt-1 block w-full rounded-md border px-3 py-2 shadow-sm transition-colors focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-                errors.description ? "border-rose-500" : "border-gray-300"
+              className={`mt-1 block w-full rounded-md border px-3 py-2 shadow-sm transition-colors focus:border-link-500 focus:outline-none focus:ring-1 focus:ring-link-500 ${
+                errors.description ? "border-destructive-500" : "border-neutral-300"
               }`}
               placeholder="Enter item description (optional)"
             />
             {errors.description && (
-              <p className="mt-1 text-sm text-rose-600">{errors.description}</p>
+              <p className="mt-1 text-sm text-destructive-600">{errors.description}</p>
             )}
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-neutral-500">
               {formData.description.length}/2000 characters
             </p>
           </div>
@@ -196,7 +196,7 @@ export function UpdateItemDialog({
           <div>
             <label
               htmlFor="url"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-neutral-700"
             >
               URL
             </label>
@@ -206,22 +206,22 @@ export function UpdateItemDialog({
               value={formData.url}
               onChange={(e) => handleFormDataChange("url", e.target.value)}
               disabled={isSubmitting}
-              className={`mt-1 block w-full rounded-md border px-3 py-2 shadow-sm transition-colors focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-                errors.url ? "border-rose-500" : "border-gray-300"
+              className={`mt-1 block w-full rounded-md border px-3 py-2 shadow-sm transition-colors focus:border-link-500 focus:outline-none focus:ring-1 focus:ring-link-500 ${
+                errors.url ? "border-destructive-500" : "border-neutral-300"
               }`}
               placeholder="https://example.com (optional)"
             />
             {errors.url && (
-              <p className="mt-1 text-sm text-rose-600">{errors.url}</p>
+              <p className="mt-1 text-sm text-destructive-600">{errors.url}</p>
             )}
           </div>
 
           {/* Progress indicator for optimistic updates */}
           {isSubmitting && (
-            <div className="rounded-md bg-blue-50 p-3">
+            <div className="rounded-md bg-link-50 p-3">
               <div className="flex items-center gap-2">
                 <svg
-                  className="h-4 w-4 animate-spin text-blue-600"
+                  className="h-4 w-4 animate-spin text-link-600"
                   viewBox="0 0 24 24"
                 >
                   <circle
@@ -248,7 +248,7 @@ export function UpdateItemDialog({
                     />
                   </circle>
                 </svg>
-                <p className="text-sm text-blue-700">
+                <p className="text-sm text-link-700">
                   Updating item... (changes are visible immediately!)
                 </p>
               </div>
@@ -260,7 +260,7 @@ export function UpdateItemDialog({
             <button
               type="submit"
               disabled={isSubmitting || !formData.title.trim()}
-              className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex-1 rounded-md bg-link-600 px-4 py-2 text-white transition-colors hover:bg-link-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubmitting ? (
                 <span className="flex items-center justify-center gap-2">
@@ -299,7 +299,7 @@ export function UpdateItemDialog({
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="flex-1 rounded-md border border-gray-300 px-4 py-2 text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex-1 rounded-md border border-neutral-300 px-4 py-2 text-neutral-700 transition-colors hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Cancel
             </button>
