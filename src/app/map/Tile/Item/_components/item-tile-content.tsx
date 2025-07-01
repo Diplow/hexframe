@@ -49,6 +49,7 @@ export function ItemTileContent({
   canEdit,
   onEditClick,
   onDeleteClick,
+  isSelected,
 }: ItemTileContentProps) {
   const [isHovered, setIsHovered] = useState(false);
   const router = useRouter();
@@ -116,7 +117,7 @@ export function ItemTileContent({
             tileId={testId.replace("tile-", "")}
             isHovered={isHovered}
             depth={item.metadata.depth}
-            isSelected={props.isSelected}
+            isSelected={isSelected}
           />
         </DynamicBaseTileLayout>
       </div>
