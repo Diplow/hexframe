@@ -41,11 +41,11 @@ describe('ChatProvider', () => {
     expect(message.metadata?.tileId).toBe('tile-1');
     expect(message.content).toMatchObject({
       type: 'preview',
-      data: expect.objectContaining({
+      data: {
         tileId: 'tile-1',
         title: 'Test Tile',
         content: 'Test content'
-      })
+      }
     });
   });
 

@@ -9,9 +9,12 @@ interface ChatMessagesProps {
 }
 
 export function ChatMessages({ messages }: ChatMessagesProps) {
+  const showSystemMessage = messages.length === 0 || 
+    !messages.some(m => m.type === 'system' && typeof m.content === 'object');
+    
   return (
-    <div data-testid="chat-messages" className="flex-1 overflow-y-auto flex flex-col">
-      {messages.length === 0 && <SystemMessage />}
+    <div data-testid="chat-messages" className="flex-1 overflow-y-auto flex flex-col p-4 space-y-4">
+      {showSystemMessage && <SystemMessage />}
       
       {messages.map((message) => (
         <ChatMessageItem key={message.id} message={message} />
@@ -40,7 +43,7 @@ function ChatMessageItem({ message }: ChatMessageItemProps) {
     if (message.content.type === 'preview') {
       const widgetData = message.content.data as PreviewWidgetData;
       return (
-        <div data-testid={testId} className="flex-1 p-4">
+        <div data-testid={testId} className="w-full">
           <PreviewWidget
             tileId={widgetData.tileId}
             title={widgetData.title}

@@ -13,63 +13,79 @@ interface PreviewWidgetProps {
 }
 
 export function PreviewWidget({ tileId, title, content }: PreviewWidgetProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
+  // Start collapsed if content is empty
+  const [isExpanded, setIsExpanded] = useState(!!content);
 
-  // Collapse when tileId changes (new tile selected)
+  // Update expansion state when tileId or content changes
   useEffect(() => {
-    setIsExpanded(false);
-    // Auto-expand after a short delay for better UX
-    const timer = setTimeout(() => setIsExpanded(true), 100);
-    return () => clearTimeout(timer);
-  }, [tileId]);
+    if (!content) {
+      // Keep collapsed if no content
+      setIsExpanded(false);
+    } else {
+      // Collapse briefly then expand for animation
+      setIsExpanded(false);
+      const timer = setTimeout(() => setIsExpanded(true), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [tileId, content]);
 
   return (
     <div 
       data-testid="preview-widget" 
       className={cn(
-        "flex flex-col h-full bg-neutral-700 dark:bg-neutral-900/50",
+        "flex flex-col w-full bg-neutral-50 dark:bg-neutral-900/50",
         "border rounded-lg border-[color:var(--stroke-color-950)]",
         "overflow-hidden"
       )}
     >
       <div 
-        className="flex items-center justify-between p-4 border-b border-[color:var(--stroke-color-950)] cursor-pointer"
-        onClick={() => setIsExpanded(!isExpanded)}
+        className={cn(
+          "flex items-center justify-between border-b border-[color:var(--stroke-color-950)] cursor-pointer",
+          isExpanded ? "p-4" : "p-2"
+        )}
+        onClick={() => content && setIsExpanded(!isExpanded)}
       >
-        <h3 className="font-semibold">{title}</h3>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-6 w-6 p-0"
-          aria-label={isExpanded ? "Collapse" : "Expand"}
-        >
-          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-        </Button>
+        <h3 className={cn(
+          "text-sm",
+          isExpanded && "font-semibold"
+        )}>{title}</h3>
+        {content && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0"
+            aria-label={isExpanded ? "Collapse" : "Expand"}
+          >
+            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </Button>
+        )}
       </div>
       
-      <div 
-        className={cn(
-          "flex-1 overflow-auto transition-all duration-200",
-          isExpanded ? "opacity-100" : "opacity-0 max-h-0"
-        )}
-      >
-        <div className="p-4">
-          <div className="prose prose-sm max-w-none dark:prose-invert">
-            <ReactMarkdown 
-              components={{
-                // Ensure links open in new tab for security
-                a: ({ href, children }) => (
-                  <a href={href} target="_blank" rel="noopener noreferrer">
-                    {children}
-                  </a>
-                ),
-              }}
-            >
-              {content}
-            </ReactMarkdown>
+      {content && (
+        <div 
+          className={cn(
+            "overflow-auto transition-all duration-200",
+            isExpanded ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+          )}
+        >
+          <div className="p-4">
+            <div className="prose prose-sm max-w-none dark:prose-invert">
+              <ReactMarkdown 
+                components={{
+                  // Ensure links open in new tab for security
+                  a: ({ href, children }) => (
+                    <a href={href} target="_blank" rel="noopener noreferrer">
+                      {children}
+                    </a>
+                  ),
+                }}
+              >
+                {content}
+              </ReactMarkdown>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

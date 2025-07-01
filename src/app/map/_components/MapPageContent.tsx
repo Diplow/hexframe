@@ -50,7 +50,7 @@ export function MapPageContent({
           {/* New flex layout for desktop: Chat -> Toolbox -> Canvas -> Hierarchy */}
           <div className="flex h-full w-full">
             {/* Flexible Left: Chat takes remaining space */}
-            <ChatPanel className="flex-1 border-r overflow-hidden" />
+            <ChatPanel className="flex-1 border-r border-[color:var(--stroke-color-950)] overflow-hidden" />
             
             {/* Fixed: Toolbox */}
             <div className="relative">

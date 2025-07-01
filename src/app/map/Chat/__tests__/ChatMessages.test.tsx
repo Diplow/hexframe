@@ -117,6 +117,6 @@ describe('ChatMessages', () => {
     render(<ChatMessages messages={messages} />);
 
     const container = screen.getByTestId('chat-messages');
-    expect(container).toHaveClass('flex-1');
+    expect(container).toHaveClass('space-y-4');
   });
 });
