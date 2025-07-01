@@ -7,7 +7,7 @@ import { TileActionsProvider } from "../Canvas/TileActionsContext";
 import { Toolbox } from "../Controls/Toolbox/Toolbox";
 import { ToolStateManager } from "../Controls/Toolbox/ToolStateManager";
 import { MapContent } from "./MapContent";
-import { ChatPanel } from "../Chat/ChatPanel";
+import { ChatWithCenterTracking } from "../Chat/ChatWithCenterTracking";
 import { OfflineIndicator } from "./offline-indicator";
 import { useTileSelectForChat } from "../hooks/useTileSelectForChat";
 
@@ -52,7 +52,7 @@ export function MapPageContent({
             {/* Main content area */}
             <div className="flex flex-1 pr-[130px]">
               {/* Flexible Chat panel - takes available space with constraints */}
-              <ChatPanel className="flex-1 border-r border-[color:var(--stroke-color-950)] overflow-hidden" />
+              <ChatWithCenterTracking className="flex-1 border-r border-[color:var(--stroke-color-950)] overflow-hidden" />
               
               {/* Fixed: Toolbox */}
               <div className="relative flex-grow-0 flex-shrink-0">

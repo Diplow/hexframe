@@ -30,7 +30,8 @@ export type ChatAction =
   | { type: 'SELECT_TILE'; payload: { tileId: string; tileData: { id: string; title: string; content: string; } } }
   | { type: 'CLOSE_CHAT' }
   | { type: 'ADD_MESSAGE'; payload: ChatMessage }
-  | { type: 'CLEAR_MESSAGES' };
+  | { type: 'CLEAR_MESSAGES' }
+  | { type: 'CENTER_CHANGED'; payload: { newCenter: string; title?: string } };
 
 export interface ChatContextValue {
   state: ChatState;

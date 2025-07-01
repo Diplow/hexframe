@@ -89,6 +89,24 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
         messages: [],
       };
 
+    case 'CENTER_CHANGED': {
+      const { newCenter, title } = action.payload;
+      
+      const navigationMessage: ChatMessage = {
+        id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+        type: 'system',
+        content: `📍 Navigated to **${title || newCenter}**`,
+        metadata: {
+          timestamp: new Date(),
+        },
+      };
+      
+      return {
+        ...state,
+        messages: [...state.messages, navigationMessage],
+      };
+    }
+
     default:
       return state;
   }
