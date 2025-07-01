@@ -199,18 +199,11 @@ module.exports = plugin(function({ addBase, e, theme, variants }) {
     // 3. Validate against the patterns
     // 4. Report violations
     
-    // For now, we'll add CSS comments that document the design system
+    // For now, we'll add CSS variables that document the design system
     addBase({
-      '/* Design System Color Guidelines */': {},
-      '/* Use semantic colors instead of direct Tailwind colors */': {},
-      '/* Primary: primary, primary-light, primary-dark */': {},
-      '/* Secondary: secondary, secondary-light, secondary-dark */': {},
-      '/* Success: success, success-light, success-dark */': {},
-      '/* Link: link, link-light, link-dark */': {},
-      '/* Destructive: destructive, destructive-light, destructive-dark */': {},
-      '/* Neutral: neutral-50 through neutral-950 */': {},
-      '/* Spatial: nw, ne, e, se, sw, w (with -light/-dark variants) */': {},
-      '/* Depth: fill-{position}-depth-{0-8} */': {},
+      ':root': {
+        '--design-system-note': '"Use semantic colors instead of direct Tailwind colors"',
+      },
     });
   }
 }, {
