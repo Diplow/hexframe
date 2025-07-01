@@ -67,3 +67,48 @@ Selected **Approach 1: Resizable Split Panel** with progressive enhancement:
 - Listed specific components and next steps
 
 ---
+
+## 2025-01-07 - Evolved to Chat Panel Vision
+
+*Updated via discussion and CHAT.md creation*
+
+### Major Vision Shift
+
+Changed from "Preview Panel" to "Chat Panel" based on deeper understanding of Hexframe's vision:
+- Chat is the interface for interacting with systems, not just viewing content
+- Systems are living entities users can converse with
+- Preview is just the first widget type in a conversational interface
+
+### Key Design Decisions
+
+1. **Chat-First Architecture**
+   - Use chat terminology from Phase 1
+   - Message-based interface structure
+   - Preview as widget, not entire panel
+
+2. **AI Orchestration Vision**
+   - Systems compose AI behaviors using Hexframe's own spatial model
+   - Orchestrator → Role → Persona hierarchy
+   - Self-referential: Hexframe uses itself to power its AI
+
+3. **Progressive Onboarding**
+   - Experience system creation through conversation
+   - Reveal complexity gradually
+   - Show that users are talking to a system
+
+### Technical Updates
+
+- Changed all "Preview" references to "Chat"
+- Added message-based state structure
+- Prepared for widget system
+- Set foundation for future AI integration
+
+### Documentation
+
+Created `/CHAT.md` to capture:
+- Design philosophy and vision
+- AI orchestration architecture
+- Onboarding flow
+- Phase 1 implementation details
+
+---

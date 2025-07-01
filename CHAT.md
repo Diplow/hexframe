@@ -461,6 +461,140 @@ The onboarding demonstrates Hexframe's core value:
 - Revealing that they've been interacting with such a system all along
 - Natural transition to becoming system creators themselves
 
+## Phase 1 Implementation: Foundation for Chat
+
+### What Phase 1 Is About
+
+Given the broader vision, Phase 1 needs to:
+1. **Establish the chat paradigm** - Not just a preview panel
+2. **Set correct naming/architecture** - Avoid future refactoring
+3. **Enable basic tile interaction** - Foundation for system conversations
+4. **Create extensible structure** - Ready for AI integration
+
+### Phase 1 Scope
+
+#### Core Features
+1. **Chat Panel Layout**
+   - Split panel with resizable divider
+   - Chat-optimized design (not document preview)
+   - Message-based interface structure
+
+2. **Basic Content Display**
+   - Show tile/system content as initial "message"
+   - Markdown rendering in chat format
+   - Visual distinction from future messages
+
+3. **Selection State**
+   - Track selected tile/system
+   - Update chat when selection changes
+   - Prepare for conversation context
+
+4. **Simplified Tile Display**
+   - Show only titles on map
+   - Visual indicator for selected tile
+   - Focus on navigation, not reading
+
+### Key Design Decisions for Phase 1
+
+1. **Component Naming**: Use "Chat" from the start
+   - `ChatPanel` not `PreviewPanel`
+   - `ChatState` not `PreviewState`
+   - Sets correct mental model
+
+2. **Message Structure**: Even static content as "messages"
+   ```typescript
+   interface ChatMessage {
+     id: string;
+     type: 'system' | 'user' | 'assistant';
+     content: string;
+     metadata?: {
+       tileId?: string;
+       timestamp: Date;
+     };
+   }
+   ```
+
+3. **Extensible State**: Prepare for future features
+   ```typescript
+   interface ChatState {
+     selectedTileId: string | null;
+     messages: ChatMessage[];
+     isOpen: boolean;
+     width: number;
+     // Ready for: persona, mode, history
+   }
+   ```
+
+### What Phase 1 Is NOT About
+
+1. **Not**: Full AI integration
+2. **Not**: Interactive conversations
+3. **Not**: Persona switching
+4. **Not**: System composition UI
+
+But everything is named and structured to support these naturally.
+
+### Phase 1 Visual Design
+
+1. **Typical Chat Interface**
+   - Message list with scrollable history
+   - Standard chat UI patterns (bubbles/cards)
+   - System messages with appropriate styling
+
+2. **Preview as Widget**
+   - Tile content displayed as a special widget type
+   - Visually distinct from regular messages
+   - Part of the conversation flow, not the entire interface
+
+3. **Widget Structure Example**
+   ```typescript
+   interface PreviewWidget extends ChatWidget {
+     type: 'preview';
+     tileId: string;
+     content: string; // Markdown
+     title: string;
+   }
+   ```
+
+### Phase 1 Interaction Flow
+
+1. **Empty State**
+   ```
+   System: Welcome to Hexframe! Select a tile to explore its content.
+   ```
+
+2. **Tile Selection Flow**
+   ```
+   [User clicks "Goal Clarification" tile]
+   
+   System: Exploring "Goal Clarification"
+   [Preview Widget: Shows tile content in a card]
+   
+   [User clicks another tile]
+   
+   System: Now viewing "Project Planning"
+   [Preview Widget: Shows new tile content]
+   ```
+
+3. **Conversation History**
+   - Build history as user explores
+   - Each selection adds to the conversation
+   - Scrollable message list maintains context
+
+4. **Tool Integration**
+   - Create new "Select" tool for chat interaction
+   - Clicking tiles in this mode sends them to chat
+   - Other tools (expand, edit, etc.) work as before
+
+### Success Criteria for Phase 1
+
+1. User can select a tile and see its content in the chat panel
+2. Chat panel looks and feels like a conversation interface
+3. Code structure supports natural evolution to full chat
+4. Performance remains excellent with many tiles
+5. Preview widget integrates naturally into chat flow
+6. Conversation history builds naturally as user explores
+
 ## Open Questions
 1. What should we name the different personas?
 2. How seamless should persona transitions be?
