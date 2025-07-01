@@ -2,12 +2,17 @@ import { describe, it, expect } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import { ChatProvider } from '../ChatProvider';
 import { ChatPanel } from '../ChatPanel';
-import { useTileSelectForChat } from '../../hooks/useTileSelectForChat';
 import { useChat } from '../ChatProvider';
 import type { ReactNode } from 'react';
 
+interface TileData {
+  id: string;
+  title: string;
+  content: string;
+}
+
 // Component to test the chat behavior
-function TestComponent({ onTileSelect }: { onTileSelect: (tileId: string, tileData: any) => void }) {
+function TestComponent({ onTileSelect }: { onTileSelect: (tileId: string, tileData: TileData) => void }) {
   const { state } = useChat();
   
   return (
@@ -30,11 +35,11 @@ function TestWrapper({ children }: { children: ReactNode }) {
 
 describe('Chat Preview Collapse Behavior', () => {
   it('should only have one expanded preview at a time', () => {
-    let selectTile: (tileId: string, tileData: any) => void = () => {};
+    let selectTile: (tileId: string, tileData: TileData) => void = () => { /* noop */ };
     
     const TestApp = () => {
       const { dispatch } = useChat();
-      selectTile = (tileId: string, tileData: any) => {
+      selectTile = (tileId: string, tileData: TileData) => {
         dispatch({ type: 'SELECT_TILE', payload: { tileId, tileData } });
       };
       
@@ -83,11 +88,11 @@ describe('Chat Preview Collapse Behavior', () => {
   });
   
   it('should move existing preview to end when selecting same tile again', () => {
-    let selectTile: (tileId: string, tileData: any) => void = () => {};
+    let selectTile: (tileId: string, tileData: TileData) => void = () => { /* noop */ };
     
     const TestApp = () => {
       const { dispatch, state } = useChat();
-      selectTile = (tileId: string, tileData: any) => {
+      selectTile = (tileId: string, tileData: TileData) => {
         dispatch({ type: 'SELECT_TILE', payload: { tileId, tileData } });
       };
       

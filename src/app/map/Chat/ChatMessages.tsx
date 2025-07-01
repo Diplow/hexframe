@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '~/lib/utils';
+import { useEffect, useRef } from 'react';
 import type { ChatMessage, PreviewWidgetData } from './types';
 import { PreviewWidget } from './Widgets/PreviewWidget';
 
@@ -10,8 +10,21 @@ interface ChatMessagesProps {
 }
 
 export function ChatMessages({ messages, expandedPreviewId }: ChatMessagesProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  
+  // Auto-scroll to bottom when new messages are added
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+  
   return (
-    <div data-testid="chat-messages" className="flex-1 overflow-y-auto flex flex-col p-4 space-y-4">
+    <div 
+      ref={scrollRef}
+      data-testid="chat-messages" 
+      className="flex-1 overflow-y-auto flex flex-col p-4 space-y-4"
+    >
       <SystemMessage />
       
       {messages.map((message) => (
@@ -23,8 +36,13 @@ export function ChatMessages({ messages, expandedPreviewId }: ChatMessagesProps)
 
 function SystemMessage() {
   return (
-    <div className="w-full text-center text-muted-foreground py-8 px-4 bg-transparent dark:bg-neutral-900/50 rounded-lg">
-      Welcome to Hexframe! Select a tile to explore its content.
+    <div className="w-full">
+      <div className="flex items-start gap-3">
+        <span className="font-bold text-primary">Hexframe</span>
+        <div className="flex-1 text-muted-foreground">
+          Welcome to Hexframe! Select a tile to explore its content.
+        </div>
+      </div>
     </div>
   );
 }
@@ -55,15 +73,27 @@ function ChatMessageItem({ message, isExpanded }: ChatMessageItemProps) {
   }
 
   // Handle text content
+  const getName = () => {
+    switch (message.type) {
+      case 'user':
+        return 'You';
+      case 'assistant':
+        return 'Lucy';
+      case 'system':
+        return 'System';
+      default:
+        return 'Unknown';
+    }
+  };
+  
   return (
-    <div 
-      data-testid={testId}
-      className={cn(
-        'w-full rounded-lg p-3',
-        message.type === 'system' && 'text-muted-foreground bg-neutral-50 dark:bg-neutral-900/50'
-      )}
-    >
-      {typeof message.content === 'string' ? message.content : null}
+    <div data-testid={testId} className="w-full">
+      <div className="flex items-start gap-3">
+        <span className="font-bold text-primary">{getName()}</span>
+        <div className="flex-1">
+          {typeof message.content === 'string' ? message.content : null}
+        </div>
+      </div>
     </div>
   );
 }
