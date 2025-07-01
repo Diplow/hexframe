@@ -52,7 +52,7 @@ export function MapPageContent({
             {/* Main content area */}
             <div className="flex flex-1 pr-[130px]">
               {/* Flexible Chat panel - takes available space with constraints */}
-              <ChatPanel className="flex-1 max-w-md border-r border-[color:var(--stroke-color-950)] overflow-hidden" />
+              <ChatPanel className="flex-1 border-r border-[color:var(--stroke-color-950)] overflow-hidden" />
               
               {/* Fixed: Toolbox */}
               <div className="relative">
@@ -60,7 +60,7 @@ export function MapPageContent({
               </div>
               
               {/* Canvas area - minimum width for scale 3 tile */}
-              <div className="flex-shrink-0" style={{ minWidth: '400px' }}>
+              <div className="flex-shrink-0 px-32" >
                 <DynamicMapCanvas
                   centerInfo={{
                     center: centerCoordinate,

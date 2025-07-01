@@ -12,7 +12,7 @@ export function ChatPanel({ className }: ChatPanelProps) {
   const { state } = useChat();
 
   return (
-    <div data-testid="chat-panel" className={cn('flex flex-col h-full bg-center-depth-0', className)}>
+    <div data-testid="chat-panel" className={cn('flex flex-col h-full bg-center-depth-0', className)} style={{ minWidth: '300px' }}>
       <ChatHeader />
       <ChatMessages messages={state.messages} />
     </div>

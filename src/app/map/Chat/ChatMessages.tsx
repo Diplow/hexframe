@@ -25,7 +25,7 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
 
 function SystemMessage() {
   return (
-    <div className="text-center text-muted-foreground py-8">
+    <div className="w-full text-center text-muted-foreground py-8 px-4 bg-neutral-50 dark:bg-neutral-900/50 rounded-lg">
       Welcome to Hexframe! Select a tile to explore its content.
     </div>
   );
@@ -59,8 +59,8 @@ function ChatMessageItem({ message }: ChatMessageItemProps) {
     <div 
       data-testid={testId}
       className={cn(
-        'rounded-lg p-3',
-        message.type === 'system' && 'text-muted-foreground'
+        'w-full rounded-lg p-3',
+        message.type === 'system' && 'text-muted-foreground bg-neutral-50 dark:bg-neutral-900/50'
       )}
     >
       {typeof message.content === 'string' ? message.content : null}
