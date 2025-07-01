@@ -595,6 +595,53 @@ But everything is named and structured to support these naturally.
 5. Preview widget integrates naturally into chat flow
 6. Conversation history builds naturally as user explores
 
+## Design Inspiration
+
+### Chat Experiences
+1. **Claude Code** - Chat with codebase context
+   - How it navigates and understands code structure
+   - Similar to how Hexframe chat will navigate systems
+
+2. **Twitch Chat** - Multi-user interaction
+   - @mentions for addressing specific users
+   - Could inspire multi-agent or collaborative features
+
+3. **Obsidian** - Rich text and references
+   - [[wiki-links]] to other notes
+   - Could translate to referencing other systems/tiles
+
+### Visual + Chat Experiences
+1. **Figma/FigJam Comments**
+   - Comments anchored to specific visual elements
+   - Threads maintain context with visual canvas
+   - Cursor presence shows who's looking where
+
+2. **Miro/Mural Collaboration**
+   - Side panel chat while viewing spatial board
+   - Comments can reference specific objects
+   - Visual indicators connect chat to canvas
+
+3. **Game Level Editors** (Unity, Unreal)
+   - Inspector panel describes selected objects
+   - Console provides feedback on visual changes
+   - Properties update as you navigate scene
+
+4. **Google Earth Studio**
+   - Annotations tied to geographic locations
+   - Timeline-based storytelling with visual journey
+   - Context changes as you navigate
+
+5. **Observable Notebooks**
+   - Code/text on left, visualizations on right
+   - Changes in text immediately affect visuals
+   - Explanatory narrative with live examples
+
+### Unique Aspects for Hexframe
+- Chat doesn't just describe the visual, it embodies the system
+- The visual map IS the context for conversation
+- Spatial relationships have semantic meaning
+- Chat can modify/navigate the visual space
+
 ## Open Questions
 1. What should we name the different personas?
 2. How seamless should persona transitions be?
