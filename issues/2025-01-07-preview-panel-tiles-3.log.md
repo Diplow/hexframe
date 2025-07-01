@@ -196,3 +196,46 @@ Key technical decisions:
 - Highlighted key integration points for chat panel
 
 ---
+
+## 2025-01-07 - Architecture Corrections
+
+*Updated based on user feedback*
+
+### Key Architectural Changes
+
+1. **Layout Strategy**
+   - Chat takes maximum available space (not 60/40 split)
+   - Fixed sections: Toolbox (left), ParentHierarchy (right)
+   - Minimum width for center canvas (scale 3 tile)
+   - Chat panel fills remaining horizontal space
+
+2. **State Management**
+   - Separate ChatProvider (not extending MapCacheProvider)
+   - MapCacheProvider remains data-only
+   - Clear separation of concerns between data and UI state
+   - ChatProvider reads from MapCache when needed
+
+3. **Design Constraints**
+   - Desktop-only for Phase 1
+   - No persistence (messages lost on refresh)
+   - Future consideration for mobile layout
+   - Future consideration for chat persistence
+
+### Updated Component Hierarchy
+```
+MapCacheProvider (data only)
+└── ChatProvider (separate chat state)
+    └── FlexLayout
+        ├── Toolbox (fixed)
+        ├── Canvas (min-width)
+        ├── Hierarchy (fixed)
+        └── ChatPanel (flex-1)
+```
+
+### Rationale
+- Maximum chat space provides better conversation experience
+- Separate providers maintain clean architecture
+- Desktop-first allows focus on core experience
+- No persistence simplifies Phase 1 implementation
+
+---
