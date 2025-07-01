@@ -320,9 +320,318 @@ interface ChatMessage {
 - Remove description and URL from tile display
 - Add visual indicator for selected tile
 
+### Technical Architecture
+
+#### Current Architecture
+
+**Component Hierarchy**:
+```
+MapPage (page.tsx)
+├── TileActionsProvider (tool state management)
+│   └── ToolStateManager (keyboard shortcuts, cursor)
+│       └── MapContent (wrapper for keyboard & cursor)
+│           └── MapCacheProvider (data state management)
+│               ├── DynamicMapCanvas (center area)
+│               │   ├── CanvasThemeContext
+│               │   ├── LegacyTileActionsContext (drag/drop)
+│               │   └── DynamicFrame → ItemTile → DynamicTileContent
+│               ├── ParentHierarchy (right side)
+│               └── MapControls (additional controls)
+│           └── Toolbox (left side, fixed position)
+│           └── OfflineIndicator
+```
+
+**State Management**:
+- **MapCacheProvider**: Centralized data cache with region-based loading
+  - `itemsById`: Tile data indexed by coordinate ID
+  - `regionMetadata`: Loading state for hierarchical regions
+  - `currentCenter`, `expandedItemIds`: Navigation state
+  - Handles server sync, mutations, offline mode
+
+- **TileActionsProvider**: Tool-based interaction system
+  - `activeTool`: Current tool (expand, navigate, create, edit, delete, drag)
+  - `setActiveTool`: Tool switching (persisted to localStorage)
+  - Tool-specific click handlers dispatched by active tool
+  - Note: 'select' tool exists but not in UI (reserved for future use)
+
+**Layout Structure**:
+```tsx
+// Current layout in page.tsx
+<div className="relative flex h-full w-full flex-col">
+  <TileActionsProvider>
+    <ToolStateManager>
+      <MapContent>
+        <MapCacheProvider>
+          <DynamicMapCanvas /> // Main map area
+          <ParentHierarchy />  // Right side hierarchy
+          <MapControls />      // Additional controls
+        </MapCacheProvider>
+        <Toolbox />           // Left side toolbox
+        <OfflineIndicator />  // Status indicator
+      </MapContent>
+    </ToolStateManager>
+  </TileActionsProvider>
+</div>
+```
+
+**Tile Content Display** (DynamicTileContent):
+- Scale 1: Title only (truncated to 25 chars)
+- Scale 2: Title + truncated description (200 chars), full on hover
+- Scale 3+: Full markdown content with scrolling
+
+#### New Architecture for Chat Panel
+
+**Component Hierarchy (Updated)**:
+```
+MapPage (page.tsx)
+├── TileActionsProvider (extended with 'select' tool)
+│   └── ToolStateManager
+│       └── MapContent
+│           └── MapCacheProvider (extended with chat state)
+│               └── SplitLayout (NEW)
+│                   ├── MapSection
+│                   │   ├── DynamicMapCanvas
+│                   │   ├── Toolbox
+│                   │   └── ParentHierarchy
+│                   └── ChatPanel (NEW)
+│                       ├── ChatHeader
+│                       ├── ChatMessages
+│                       │   ├── SystemMessage
+│                       │   └── PreviewWidget
+│                       └── ChatInput (future)
+```
+
+**Extended MapCache State**:
+```typescript
+// In MapCacheProvider state
+interface ExtendedCacheState extends CacheState {
+  chatState: {
+    selectedTileId: string | null;
+    messages: ChatMessage[];
+    isPanelOpen: boolean;
+    panelWidth: number; // Percentage or pixels
+  };
+}
+
+interface ChatMessage {
+  id: string;
+  type: 'system' | 'user' | 'assistant';
+  content: string | ChatWidget;
+  metadata?: {
+    tileId?: string;
+    timestamp: Date;
+  };
+}
+
+interface ChatWidget {
+  type: 'preview' | 'search' | 'comparison' | 'action';
+  data: any; // Widget-specific data
+}
+```
+
+**Layout Changes**:
+```tsx
+// New split layout structure
+<div className="relative flex h-full w-full">
+  <TileActionsProvider>
+    <ToolStateManager>
+      <MapContent>
+        <MapCacheProvider>
+          <div className="flex h-full w-full">
+            {/* Map Section */}
+            <div className="relative flex-1 flex">
+              <Toolbox />
+              <div className="flex-1">
+                <DynamicMapCanvas />
+                <MapControls />
+              </div>
+              <ParentHierarchy />
+            </div>
+            
+            {/* Chat Panel */}
+            {chatState.isPanelOpen && (
+              <ChatPanel className="w-[40%] border-l" />
+            )}
+          </div>
+          
+          <OfflineIndicator />
+        </MapCacheProvider>
+      </MapContent>
+    </ToolStateManager>
+  </TileActionsProvider>
+</div>
+```
+
+**Tool System Integration**:
+1. Enable 'select' tool in Toolbox UI
+2. Add select handler to TileActionsProvider:
+   ```typescript
+   onSelectClick: (tileData: TileData) => {
+     dispatch({ 
+       type: 'SELECT_TILE_FOR_CHAT', 
+       payload: tileData.metadata.coordId 
+     });
+   }
+   ```
+3. Update tile visual state for selected tiles
+
+**Simplified Tile Display**:
+```typescript
+// Modified DynamicTileContent
+export const DynamicTileContent = ({ data, scale, tileId, isSelected }) => {
+  // Always show only title, regardless of scale
+  return (
+    <div className={cn(
+      "flex h-full w-full items-center justify-center px-4",
+      isSelected && "ring-2 ring-primary"
+    )}>
+      <h3 className="text-center font-medium truncate">
+        {data.title || 'Untitled'}
+      </h3>
+    </div>
+  );
+};
+```
+
+**Chat Panel Architecture**:
+```typescript
+// /src/app/map/Chat/ChatPanel.tsx
+export function ChatPanel({ className }: { className?: string }) {
+  const { chatState, dispatch } = useMapCache();
+  const { selectedTileId, messages } = chatState;
+  
+  return (
+    <div className={cn("flex flex-col h-full", className)}>
+      <ChatHeader 
+        onClose={() => dispatch({ type: 'CLOSE_CHAT' })}
+        onResize={(width) => dispatch({ type: 'RESIZE_CHAT', payload: width })}
+      />
+      
+      <ChatMessages messages={messages} />
+      
+      {/* Future: ChatInput for interactive mode */}
+    </div>
+  );
+}
+
+// /src/app/map/Chat/ChatMessages.tsx
+export function ChatMessages({ messages }: { messages: ChatMessage[] }) {
+  return (
+    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {messages.length === 0 && (
+        <SystemMessage>
+          Welcome to Hexframe! Select a tile to explore its content.
+        </SystemMessage>
+      )}
+      
+      {messages.map((message) => (
+        <ChatMessageItem key={message.id} message={message} />
+      ))}
+    </div>
+  );
+}
+
+// /src/app/map/Chat/Widgets/PreviewWidget.tsx
+export function PreviewWidget({ tileId, content, title }: PreviewWidgetProps) {
+  return (
+    <Card className="max-w-full">
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ReactMarkdown className="prose prose-sm max-w-none">
+          {content}
+        </ReactMarkdown>
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### Mental Model
+
+**Chat as System Interface**:
+1. **Not just preview**: Chat is the primary interface for system interaction
+2. **Conversation history**: Builds context as users explore tiles
+3. **Widget-based**: Rich interactions beyond text (previews, searches, actions)
+4. **Progressive**: Start with preview, evolve to full AI interaction
+
+**State Flow**:
+```
+User clicks tile → 
+TileActionsProvider (select tool) → 
+MapCache dispatch → 
+Update chat state → 
+Add preview message → 
+Render in ChatPanel
+```
+
+**Future Extensibility**:
+- Message types ready for AI responses
+- Widget system supports rich interactions
+- State structure supports personas and modes
+- Layout supports responsive behavior
+
+### Key Implementation Patterns
+
+**1. Provider-Based State Management**
+- Extend existing MapCacheProvider rather than creating new context
+- Chat state lives alongside map data for unified management
+- Actions flow through existing dispatch system
+
+**2. Component Composition**
+- ChatPanel composed of smaller, focused components
+- Widgets as pluggable message types
+- Reusable message components for different types
+
+**3. Type-Safe Interfaces**
+```typescript
+// Discriminated unions for messages
+type ChatMessage = 
+  | { type: 'system'; content: string; ... }
+  | { type: 'preview'; widget: PreviewWidget; ... }
+  | { type: 'user'; content: string; ... }
+  | { type: 'assistant'; content: string; ... };
+
+// Type-safe widget system
+interface WidgetRegistry {
+  preview: PreviewWidget;
+  search: SearchWidget;
+  comparison: ComparisonWidget;
+}
+```
+
+**4. Progressive Enhancement Ready**
+- Static content display works without JS
+- Chat messages structured for future streaming
+- Widget system supports dynamic loading
+- Layout supports mobile adaptation
+
+### Implementation Steps
+
+1. **Phase 1: Foundation**
+   - Create Chat component structure
+   - Extend MapCache with chat state
+   - Implement basic split layout
+   - Add 'select' tool to UI
+
+2. **Phase 2: Core Features**
+   - Tile selection and preview display
+   - Message history management
+   - Resizable panel with persistence
+   - Simplified tile display
+
+3. **Phase 3: Polish**
+   - Smooth animations
+   - Mobile responsive design
+   - Keyboard navigation
+   - Accessibility features
+
 ### Next Steps
-1. Create PreviewPanel component structure
-2. Implement selection state management
-3. Update tile content display
-4. Adjust layout components
-5. Add responsive breakpoints
+1. Create Chat component structure in `/src/app/map/Chat/`
+2. Extend MapCache state with chat properties
+3. Update page.tsx layout to split view
+4. Enable 'select' tool in Toolbox
+5. Simplify DynamicTileContent to show only titles
+6. Implement tile selection flow
+7. Add preview widget for tile content
