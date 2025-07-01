@@ -65,7 +65,6 @@ Documents the proposed solution approach.
 #### 4. /architecture
 Documents technical architecture and mental models for the solution.
 - Appends "## Architecture" section to the document
-- Creates detailed architecture log file
 - Posts the architecture section as a GitHub comment
 - Optional but recommended follow-up to `/solution`
 

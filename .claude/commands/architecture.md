@@ -67,25 +67,15 @@ Add or update the `## Architecture` section:
 [Architectural patterns that must be followed]
 ```
 
-### Log File Update
-Append detailed technical analysis:
+### GitHub Comment
+Post the architecture section as a comment on the GitHub issue:
 
 ```markdown
-## YYYY-MM-DD HH:MM - Architecture Design
+*I am an AI assistant acting on behalf of @<username>*
 
-*Added via /architecture command*
+## Architecture Design Complete
 
-### Architectural Analysis
-[Detailed findings about current architecture]
-
-### Design Decisions
-[Key architectural choices and rationale]
-
-### Integration Strategy
-[How new architecture fits with existing]
-
-### Future Considerations
-[Scalability, extensibility, maintenance]
+[Paste the Architecture section here]
 ```
 
 ## Best Practices

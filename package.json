@@ -109,6 +109,7 @@
     "@tailwindcss/typography": "^0.5.16",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/eslint": "^9.6.1",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.15.29",

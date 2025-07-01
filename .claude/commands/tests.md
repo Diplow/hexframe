@@ -39,11 +39,12 @@ For each issue, plan tests across these categories:
 
 ## Documentation
 
-### Issue Abstract
-Update the issue file (`/issues/YYYY-MM-DD-<slug>-<issue-number>.md`) by adding or updating the `## Tests` section:
-
-### Issue Log
-Append to the log file (`/issues/YYYY-MM-DD-<slug>-<issue-number>.log.md`):
+### Issue File Update
+Update the issue file (`/issues/YYYY-MM-DD-<slug>-<issue-number>.md`) by adding or updating the `## Tests` section with:
+- Test categories and strategy
+- Specific test cases planned
+- Coverage goals
+- Testing tools and patterns to use
 
 ## Best Practices
 
@@ -126,7 +127,7 @@ After completing test planning:
 
 2. **Commit and Push**:
    ```bash
-   git add issues/YYYY-MM-DD-*.md issues/YYYY-MM-DD-*.log.md
+   git add issues/YYYY-MM-DD-*.md
    git commit -m "test: add test plan for issue #<number>"
    git push
    ```

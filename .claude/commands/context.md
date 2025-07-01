@@ -50,7 +50,7 @@ This context will be handed over to future steps in the workflow (solution desig
 
 ## Documentation
 
-### Issue Abstract
+### Issue File Update
 The issue file (`/issues/YYYY-MM-DD-<slug>-<issue-number>.md`) should already exist from the `/issue` command. This step will add or update the `## Context` section with the following structure:
 
 ```markdown
@@ -90,38 +90,6 @@ Current code structure and patterns:
 - **API Contracts**: How this is exposed to other parts
 - **Database Schema**: Relevant tables and relationships
 
-### Issue Log
-The log file (`/issues/YYYY-MM-DD-<slug>-<issue-number>.log.md`) should also already exist. This step will append a new timestamped entry documenting:
-- The investigation process followed
-- All findings discovered during context gathering
-- The synthesis of discussions that led to the final context section
-- What was added or updated in the issue abstract
-
-Example log entry:
-```markdown
-## YYYY-MM-DD HH:MM - Context Analysis
-
-*Added by @<username> via /context command*
-
-### Investigation Process
-- [List of files examined]
-- [Documentation reviewed]
-- [Search queries performed]
-- [Patterns discovered]
-
-### Detailed Findings
-[Complete analysis with all details, including things that didn't make it to the abstract]
-
-### Synthesis
-[How the findings were distilled into the Context section]
-
-### Changes Made to Issue File
-- Added/Updated Context section with X subsections
-- Key insights: [brief summary]
-
----
-```
-
 ## Best Practices
 
 1. **No Solutions**: Focus on understanding, not fixing
@@ -137,7 +105,7 @@ Example log entry:
 
 After completing the context analysis:
 
-1. **Post to GitHub Issue**: Copy the entire `## Context` section from the issue abstract and post it as a comment on the GitHub issue. Start the comment with:
+1. **Post to GitHub Issue**: Copy the entire `## Context` section from the issue file and post it as a comment on the GitHub issue. Start the comment with:
    ```
    *I am an AI assistant acting on behalf of @<username>*
    
@@ -146,9 +114,9 @@ After completing the context analysis:
    [Paste the Context section here]
    ```
 
-2. **Commit and Push**: Commit both the issue abstract and log files with a descriptive message:
+2. **Commit and Push**: Commit the issue file with a descriptive message:
    ```bash
-   git add issues/YYYY-MM-DD-*.md issues/YYYY-MM-DD-*.log.md
+   git add issues/YYYY-MM-DD-*.md
    git commit -m "feat: add context analysis for issue #<number>"
    git push
    ```
