@@ -101,7 +101,7 @@ describe('Provider Integration', () => {
         initialExpandedItems={[]}
         cacheConfig={{ maxAge: 300000, backgroundRefreshInterval: 30000, enableOptimisticUpdates: true, maxDepth: 3 }}
         offlineMode={false}
-        mapContext={{ rootItemId: 1, userId: '1', groupId: '2' }}
+        mapContext={{ rootItemId: 1, userId: 1, groupId: 2 }}
       >
         <ChatProvider>
           {children}
@@ -130,7 +130,7 @@ describe('Provider Integration', () => {
         initialExpandedItems={[]}
         cacheConfig={{ maxAge: 300000, backgroundRefreshInterval: 30000, enableOptimisticUpdates: true, maxDepth: 3 }}
         offlineMode={false}
-        mapContext={{ rootItemId: 1, userId: '1', groupId: '2' }}
+        mapContext={{ rootItemId: 1, userId: 1, groupId: 2 }}
       >
         <ChatProvider>
           {children}
@@ -161,7 +161,7 @@ describe('Provider Integration', () => {
         initialExpandedItems={[]}
         cacheConfig={{ maxAge: 300000, backgroundRefreshInterval: 30000, enableOptimisticUpdates: true, maxDepth: 3 }}
         offlineMode={false}
-        mapContext={{ rootItemId: 1, userId: '1', groupId: '2' }}
+        mapContext={{ rootItemId: 1, userId: 1, groupId: 2 }}
       >
         <ChatProvider>
           {children}
@@ -198,7 +198,7 @@ describe('Provider Integration', () => {
         initialExpandedItems={[]}
         cacheConfig={{ maxAge: 300000, backgroundRefreshInterval: 30000, enableOptimisticUpdates: true, maxDepth: 3 }}
         offlineMode={false}
-        mapContext={{ rootItemId: 1, userId: '1', groupId: '2' }}
+        mapContext={{ rootItemId: 1, userId: 1, groupId: 2 }}
       >
         <ChatProvider>
           {children}

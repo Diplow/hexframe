@@ -102,8 +102,8 @@ export default function MapPage({ searchParams }: MapPageProps) {
             centerCoordinate={centerCoordinate}
             params={params}
             rootItemId={rootItemId}
-            userId={userId ? parseInt(userId) : 0}
-            groupId={groupId ? parseInt(groupId) : 0}
+            userId={userId}
+            groupId={groupId}
             isOffline={isOffline}
           />
         </ChatProvider>

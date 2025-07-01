@@ -124,7 +124,10 @@ describe('Layout with Chat Panel', () => {
       dispatch: vi.fn(),
     }));
     
-    vi.mocked(vi.importActual('../Chat/ChatProvider')).useChat = mockUseChat;
+    // Re-mock the useChat to return different value
+    vi.doMock('../Chat/ChatProvider', () => ({
+      useChat: mockUseChat,
+    }));
 
     render(
       <ChatProvider>
