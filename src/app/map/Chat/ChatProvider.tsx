@@ -15,7 +15,29 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     case 'SELECT_TILE': {
       const { tileId, tileData } = action.payload;
       
-      // Create a preview message for the selected tile
+      // Check if we already have a preview for this tile
+      const existingPreviewIndex = state.messages.findIndex(
+        msg => msg.type === 'system' && 
+        typeof msg.content === 'object' && 
+        msg.content.type === 'preview' &&
+        (msg.content.data as PreviewWidgetData).tileId === tileId
+      );
+      
+      if (existingPreviewIndex !== -1) {
+        // Move existing preview to the end
+        const messages = [...state.messages];
+        const [existingPreview] = messages.splice(existingPreviewIndex, 1);
+        messages.push(existingPreview);
+        
+        return {
+          ...state,
+          selectedTileId: tileId,
+          isPanelOpen: true,
+          messages,
+        };
+      }
+      
+      // Create a new preview message if it doesn't exist
       const previewMessage: ChatMessage = {
         id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         type: 'system',

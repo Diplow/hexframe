@@ -9,12 +9,9 @@ interface ChatMessagesProps {
 }
 
 export function ChatMessages({ messages }: ChatMessagesProps) {
-  const showSystemMessage = messages.length === 0 || 
-    !messages.some(m => m.type === 'system' && typeof m.content === 'object');
-    
   return (
     <div data-testid="chat-messages" className="flex-1 overflow-y-auto flex flex-col p-4 space-y-4">
-      {showSystemMessage && <SystemMessage />}
+      <SystemMessage />
       
       {messages.map((message) => (
         <ChatMessageItem key={message.id} message={message} />
@@ -25,7 +22,7 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
 
 function SystemMessage() {
   return (
-    <div className="w-full text-center text-muted-foreground py-8 px-4 bg-neutral-50 dark:bg-neutral-900/50 rounded-lg">
+    <div className="w-full text-center text-muted-foreground py-8 px-4 bg-transparent dark:bg-neutral-900/50 rounded-lg">
       Welcome to Hexframe! Select a tile to explore its content.
     </div>
   );

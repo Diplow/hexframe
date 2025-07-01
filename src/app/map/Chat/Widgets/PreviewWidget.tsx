@@ -33,14 +33,14 @@ export function PreviewWidget({ tileId, title, content }: PreviewWidgetProps) {
     <div 
       data-testid="preview-widget" 
       className={cn(
-        "flex flex-col w-full bg-neutral-700 dark:bg-neutral-900/50",
-        "border rounded-lg border-[color:var(--stroke-color-950)]",
+        "flex flex-col flex-1 w-full bg-neutral-50 dark:bg-neutral-900/50",
+        "rounded-lg shadow-md",
         "overflow-hidden"
       )}
     >
       <div 
         className={cn(
-          "flex items-center justify-between border-b border-[color:var(--stroke-color-950)] cursor-pointer",
+          "flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800 cursor-pointer",
           isExpanded ? "p-4" : "p-2"
         )}
         onClick={() => content && setIsExpanded(!isExpanded)}
