@@ -112,3 +112,87 @@ Created `/CHAT.md` to capture:
 - Phase 1 implementation details
 
 ---
+
+## 2025-01-07 15:30 - Context Analysis
+
+*Added by @ulysse via /context command*
+
+### Investigation Process
+
+1. Read `/context` command documentation
+2. Analyzed core architecture documentation:
+   - `/src/app/map/ARCHITECTURE.md` - Map application architecture
+   - `/src/lib/domains/README.md` - Domain structure
+   - `/CHAT.md` - Chat panel vision and design
+3. Examined current implementation:
+   - Map page layout structure (`page.tsx`)
+   - Tile display components (`Tile/Item/`)
+   - State management providers (MapCache, TileActions)
+   - Tool system and interactions
+   - Layout components (Toolbox, ParentHierarchy)
+4. Searched for existing chat/preview components (none found)
+
+### Detailed Findings
+
+**Architecture Insights**:
+- Map app uses dual-route architecture with static/dynamic separation
+- Centralized tile action management avoids hook proliferation
+- Provider-based state management with MapCacheProvider at core
+- Tool-based interaction system with 6 active tools + hidden 'select' tool
+- URL-first state for shareable/bookmarkable features
+
+**Current Layout**:
+- Page wrapper with multiple context providers
+- Fixed toolbox on left side
+- Central canvas for map display
+- Parent hierarchy on right side
+- No existing panel or chat components
+
+**Tile Display Logic**:
+- Scale-based content display (1=title, 2=title+desc, 3=full)
+- Markdown rendering with ReactMarkdown
+- Hover states for expanded content at scale 2
+- Complex truncation and layout logic
+
+**State Management Structure**:
+- MapCacheProvider handles all data and navigation
+- TileActionsProvider manages tool selection and dispatch
+- Both use localStorage for persistence
+- Clean separation of concerns
+
+**Integration Points Identified**:
+1. Layout needs restructuring in page.tsx for split panel
+2. MapCacheProvider needs chat state extension
+3. 'select' tool already exists but needs UI integration
+4. DynamicTileContent needs simplification
+5. New Chat component hierarchy needed
+
+### Synthesis
+
+The codebase is well-structured for adding the chat panel:
+
+1. **Clean Architecture**: Clear separation between layout, state, and display components makes integration straightforward
+2. **Existing Patterns**: Provider pattern and centralized dispatch can be extended for chat
+3. **Tool System**: Hidden 'select' tool suggests this was anticipated
+4. **State Management**: MapCacheProvider is the natural home for chat state
+5. **Layout Flexibility**: Current layout can accommodate split panel with minimal changes
+
+Key technical decisions:
+- Extend MapCacheProvider rather than create new provider
+- Use existing 'select' tool for chat interaction
+- Follow established component organization patterns
+- Maintain URL-first philosophy for panel state (open/closed)
+
+### Changes Made to Issue File
+
+- Added comprehensive Context section with:
+  - Documentation review and accuracy check
+  - Domain overview with architectural patterns
+  - Detailed component breakdown
+  - Implementation details and file organization
+  - Dependencies and integration analysis
+  - Technical constraints identification
+- Positioned before Solution section to inform implementation
+- Highlighted key integration points for chat panel
+
+---

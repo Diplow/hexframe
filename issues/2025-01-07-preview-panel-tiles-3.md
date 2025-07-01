@@ -40,6 +40,152 @@ We need a chat panel to enable interaction with tiles and systems. This panel wi
 - Previous tile display improvements
 - Map canvas layout optimizations
 
+## Context
+
+*I am an AI assistant acting on behalf of @ulysse*
+
+### Existing Documentation
+
+**README Files**:
+- `/src/app/map/ARCHITECTURE.md`: Comprehensive map application architecture
+  - ✅ Dual-route architecture (dynamic `/map` vs static `/static/map`)
+  - ✅ Component hierarchy and state management strategy
+  - ✅ Centralized tile action management pattern
+  - ✅ Region-based caching with hierarchical loading
+- `/src/lib/domains/README.md`: Domain-driven design structure
+  - ✅ Clear separation of entities, actions, services, and repositories
+- `/CHAT.md`: Detailed vision and design philosophy for the chat panel
+  - ✅ Evolution from preview panel to chat interface
+  - ✅ AI orchestration architecture
+  - ✅ Phased implementation approach
+
+**Documentation vs Reality**: 
+- ✅ Architecture matches implementation
+- ✅ Component hierarchy follows documented patterns
+- 📝 No existing chat/preview components (greenfield development)
+
+### Domain Overview
+
+The map application follows a hierarchical architecture:
+- **Page Layer**: Server-side data fetching and URL parameter management
+- **Canvas Layer**: Orchestrates hexagonal frame rendering and manages cache synchronization
+- **Frame Layer**: Recursive hexagonal layout with expansion logic
+- **Tile Layer**: Individual tile rendering with content and interaction buttons
+- **Controls Layer**: Toolbox, ParentHierarchy, and MapControls for UI management
+
+Key architectural patterns:
+- URL-first state management for shareable/bookmarkable state
+- Centralized tile action coordination to avoid hook proliferation
+- Provider-based state management (MapCacheProvider, TileActionsProvider)
+- Tool-based interaction system (select, navigate, expand, create, edit, delete, drag)
+
+### Key Components
+
+**Layout Structure** (`/src/app/map/page.tsx`):
+- Main container with `TileActionsProvider` and `ToolStateManager` wrappers
+- `MapContent` wrapper for keyboard shortcuts and tool cursor
+- `MapCacheProvider` for data management
+- Core layout components:
+  - `DynamicMapCanvas`: Center area for hexagonal map display
+  - `Toolbox`: Left side tool selection (fixed position)
+  - `ParentHierarchy`: Right side breadcrumb navigation
+  - `MapControls`: Additional controls (scale, etc.)
+  - `OfflineIndicator`: Status indicator
+
+**Tile Display** (`/src/app/map/Tile/Item/`):
+- `DynamicItemTile`: Main tile component with interaction logic
+- `ItemTileContent`: Visual presentation layer
+- `DynamicTileContent`: Markdown rendering with scale-based display
+  - Scale 1: Title only (truncated to 25 chars)
+  - Scale 2: Title + truncated description (200 chars), full content on hover
+  - Scale 3+: Full markdown content with scrolling
+
+**State Management**:
+- `MapCacheProvider`: Centralized data cache with offline support
+  - Items stored by coordinate ID
+  - Region metadata for hierarchical loading
+  - Background sync capabilities
+- `TileActionsProvider`: Tool state and tile interaction dispatch
+  - Active tool selection (persisted to localStorage)
+  - Tool-specific click handlers
+  - Drag and drop coordination
+
+**Tool System** (`/src/app/map/Controls/Toolbox/`):
+- Six primary tools: expand, navigate, create, edit, drag, delete
+- 'select' tool exists but not in UI (reserved for future use)
+- Keyboard shortcuts for each tool
+- Visual states: closed, icons, full (with labels)
+
+### Implementation Details
+
+**File Organization**:
+```
+/src/app/map/
+├── page.tsx                    # Main page component
+├── Canvas/                     # Map rendering
+│   ├── index.tsx              # DynamicMapCanvas
+│   ├── frame.tsx              # Hexagonal frame recursion
+│   └── TileActionsContext.tsx # Tool interaction dispatch
+├── Tile/                      
+│   └── Item/                  # Item tile components
+│       ├── item.tsx           # Main tile component
+│       ├── content.tsx        # Markdown content display
+│       └── _components/       # Sub-components
+├── Cache/                     # Data management
+│   └── map-cache.tsx         # Cache provider and hooks
+├── Controls/                  # UI controls
+│   ├── Toolbox/              # Tool selection
+│   ├── ParentHierarchy/      # Breadcrumb navigation
+│   └── index.tsx             # MapControls
+└── _components/              # Shared components
+```
+
+**Design Patterns**:
+- Hook composition for complex state logic
+- Provider pattern for cross-component state sharing
+- Centralized action dispatch to reduce component complexity
+- Progressive enhancement with static fallbacks
+
+**Data Flow**:
+1. URL parameters → Page component → Initial state
+2. MapCache loads data from server/localStorage
+3. Canvas renders tiles from cache
+4. Tool interactions dispatch through TileActionsContext
+5. State changes update cache → Re-render affected tiles
+
+### Dependencies and Integration
+
+**Internal Dependencies**:
+- Auth context for user permissions
+- Theme context for dark mode support
+- Router for navigation
+- tRPC for server communication
+
+**External Consumers**:
+- No direct consumers (top-level page component)
+- Provides contexts consumed by child components
+
+**API Contracts**:
+- Server service interface for data fetching
+- Storage service interface for localStorage
+- Mutation operations for CRUD actions
+
+**Key Integration Points for Chat Panel**:
+1. Layout modification in `page.tsx` to add split panel
+2. State extension in `MapCacheProvider` for chat state
+3. New tool type in `TileActionsProvider` for selection
+4. Simplified `DynamicTileContent` to show only titles
+5. New Chat component hierarchy parallel to existing controls
+
+### Technical Constraints
+
+1. **Performance**: Must handle hundreds of tiles efficiently
+2. **State Management**: Chat state should integrate with existing providers
+3. **Layout**: Must accommodate existing fixed-position controls
+4. **Mobile**: Should gracefully adapt to small screens
+5. **Tool Integration**: Selection behavior must work with tool system
+6. **Offline Support**: Chat should work with cached data
+
 ## Solution
 
 ### Approach 1: Resizable Split Panel (Recommended)
