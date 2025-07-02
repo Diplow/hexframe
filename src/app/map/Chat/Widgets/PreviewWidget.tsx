@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import { ChevronDown, ChevronUp, MoreVertical, Edit, Trash2, Check, X } from 'lucide-react';
 import { cn } from '~/lib/utils';
 import { Button } from '~/components/ui/button';
+import { Portal } from './Portal';
 
 interface PreviewWidgetProps {
   tileId: string;
@@ -24,6 +25,8 @@ export function PreviewWidget({ tileId, title, content, forceExpanded, onEdit, o
   const [editTitle, setEditTitle] = useState(title);
   const [editContent, setEditContent] = useState(content);
   const menuRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
 
   // Update expansion state when forceExpanded changes
   useEffect(() => {
@@ -75,6 +78,31 @@ export function PreviewWidget({ tileId, title, content, forceExpanded, onEdit, o
     setShowMenu(false);
   };
 
+  const handleMenuToggle = () => {
+    if (!showMenu && menuButtonRef.current) {
+      const rect = menuButtonRef.current.getBoundingClientRect();
+      const menuWidth = 120; // Approximate menu width
+      const menuHeight = 80; // Approximate menu height
+      
+      // Calculate position
+      let top = rect.bottom + 4;
+      let left = rect.right - menuWidth;
+      
+      // Check if menu would go off bottom of screen
+      if (top + menuHeight > window.innerHeight) {
+        top = rect.top - menuHeight - 4;
+      }
+      
+      // Check if menu would go off left edge
+      if (left < 0) {
+        left = rect.left;
+      }
+      
+      setMenuPosition({ top, left });
+    }
+    setShowMenu(!showMenu);
+  };
+
   const handleSave = () => {
     if (onSave) {
       onSave(editTitle, editContent);
@@ -94,7 +122,7 @@ export function PreviewWidget({ tileId, title, content, forceExpanded, onEdit, o
       className={cn(
         "flex flex-col flex-1 w-full bg-neutral-400 dark:bg-neutral-600",
         "rounded-lg shadow-md",
-        "overflow-hidden"
+        "overflow-hidden relative"
       )}
     >
       <div 
@@ -160,52 +188,56 @@ export function PreviewWidget({ tileId, title, content, forceExpanded, onEdit, o
             </>
           ) : (
             (onEdit ?? onDelete) && (
-              <div className="relative" ref={menuRef}>
+              <>
                 <Button
+                  ref={menuButtonRef}
                   variant="ghost"
                   size="sm"
                   className="h-6 w-6 p-0"
                   aria-label="More options"
                   onClick={(e) => {
                     e.stopPropagation();
-                    setShowMenu(!showMenu);
+                    handleMenuToggle();
                   }}
                 >
                   <MoreVertical className="h-4 w-4" />
                 </Button>
-                {showMenu && (
-                  <div className={cn(
-                    "absolute right-0 z-50 min-w-[120px] rounded-md border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-lg",
-                    isExpanded ? "top-full mt-1" : "bottom-full mb-1"
-                  )}>
-                    {onEdit && (
-                      <button
-                        className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEdit();
-                        }}
-                      >
-                        <Edit className="h-3 w-3" />
-                        Edit
-                      </button>
-                    )}
-                    {onDelete && (
-                      <button
-                        className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-[color:var(--destructive-color-600)] dark:text-[color:var(--destructive-color-400)]"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowMenu(false);
-                          onDelete();
-                        }}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                        Delete
-                      </button>
-                    )}
-                  </div>
+                {showMenu && menuPosition && (
+                  <Portal>
+                    <div 
+                      ref={menuRef}
+                      className="fixed z-50 min-w-[120px] rounded-md border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-lg"
+                      style={{ top: menuPosition.top, left: menuPosition.left }}
+                    >
+                      {onEdit && (
+                        <button
+                          className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit();
+                          }}
+                        >
+                          <Edit className="h-3 w-3" />
+                          Edit
+                        </button>
+                      )}
+                      {onDelete && (
+                        <button
+                          className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-[color:var(--destructive-color-600)] dark:text-[color:var(--destructive-color-400)]"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowMenu(false);
+                            onDelete();
+                          }}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          Delete
+                        </button>
+                      )}
+                    </div>
+                  </Portal>
                 )}
-              </div>
+              </>
             )
           )}
         </div>

@@ -108,6 +108,32 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       };
     }
 
+    case 'REMOVE_TILE_PREVIEW': {
+      const { tileId } = action.payload;
+      
+      // Filter out any preview messages for this tile
+      const filteredMessages = state.messages.filter(msg => {
+        if (msg.type === 'system' && typeof msg.content === 'object' && msg.content.type === 'preview') {
+          const previewData = msg.content.data as PreviewWidgetData;
+          return previewData.tileId !== tileId;
+        }
+        return true;
+      });
+      
+      return {
+        ...state,
+        messages: filteredMessages,
+        // Clear expanded preview if it was the deleted one
+        expandedPreviewId: state.messages.find(msg => 
+          msg.type === 'system' && 
+          typeof msg.content === 'object' && 
+          msg.content.type === 'preview' &&
+          (msg.content.data as PreviewWidgetData).tileId === tileId &&
+          msg.id === state.expandedPreviewId
+        ) ? null : state.expandedPreviewId,
+      };
+    }
+
     default:
       return state;
   }

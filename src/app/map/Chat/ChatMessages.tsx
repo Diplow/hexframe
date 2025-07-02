@@ -8,6 +8,7 @@ import { PreviewWidget } from './Widgets/PreviewWidget';
 import { useMapCache } from '../Cache/_hooks/use-map-cache';
 import { DeleteItemDialog } from '../Dialogs/delete-item';
 import type { TileData } from '../types/tile-data';
+import { useChat } from './ChatProvider';
 
 interface ChatMessagesProps {
   messages: ChatMessage[];
@@ -16,6 +17,7 @@ interface ChatMessagesProps {
 
 export function ChatMessages({ messages, expandedPreviewId }: ChatMessagesProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { dispatch } = useChat();
   
   // Dialog state
   const [deletingTile, setDeletingTile] = useState<TileData | null>(null);
@@ -55,7 +57,16 @@ export function ChatMessages({ messages, expandedPreviewId }: ChatMessagesProps)
           isOpen={!!deletingTile}
           onClose={() => setDeletingTile(null)}
           item={deletingTile}
-          onSuccess={() => setDeletingTile(null)}
+          onSuccess={() => {
+            // Remove the preview from chat when the item is deleted
+            if (deletingTile) {
+              dispatch({ 
+                type: 'REMOVE_TILE_PREVIEW', 
+                payload: { tileId: deletingTile.metadata.coordId } 
+              });
+            }
+            setDeletingTile(null);
+          }}
         />
       )}
     </>
