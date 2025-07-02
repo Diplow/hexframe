@@ -8,7 +8,6 @@ import { PreviewWidget } from './Widgets/PreviewWidget';
 import { useMapCache } from '../Cache/_hooks/use-map-cache';
 import { DeleteItemDialog } from '../Dialogs/delete-item';
 import type { TileData } from '../types/tile-data';
-import { api } from '~/trpc/react';
 
 interface ChatMessagesProps {
   messages: ChatMessage[];
@@ -83,8 +82,7 @@ interface ChatMessageItemProps {
 }
 
 function ChatMessageItem({ message, isExpanded, onDeleteTile }: ChatMessageItemProps) {
-  const { items, updateItemOptimistically } = useMapCache();
-  const updateItemMutation = api.items.update.useMutation();
+  const { items, updateItemOptimistic } = useMapCache();
   const testId = `chat-message-${message.id}`;
 
   if (message.type === 'system' && typeof message.content === 'object') {
@@ -96,28 +94,18 @@ function ChatMessageItem({ message, isExpanded, onDeleteTile }: ChatMessageItemP
       const handleSave = async (newTitle: string, newContent: string) => {
         if (!tileData) return;
         
-        // Optimistically update the item
-        const updatedItem = {
-          ...tileData,
-          data: {
-            ...tileData.data,
-            name: newTitle,
-            description: newContent,
-          }
-        };
-        
-        updateItemOptimistically(tileData.metadata.dbId, updatedItem);
-        
-        // Send the update to the server
+        // The cache handles everything:
+        // 1. Optimistic update (immediate UI feedback)
+        // 2. Server call (via tRPC mutation)
+        // 3. localStorage sync
+        // 4. Rollback on error
         try {
-          await updateItemMutation.mutateAsync({
-            id: tileData.metadata.dbId,
+          await updateItemOptimistic(tileData.metadata.coordId, {
             name: newTitle,
             description: newContent,
           });
         } catch (error) {
           console.error('Failed to update item:', error);
-          // The optimistic update will be rolled back automatically
         }
       };
       
@@ -128,7 +116,7 @@ function ChatMessageItem({ message, isExpanded, onDeleteTile }: ChatMessageItemP
             title={widgetData.title}
             content={widgetData.content}
             forceExpanded={isExpanded}
-            onEdit={tileData ? () => {} : undefined} // Will be handled by inline editing
+            onEdit={tileData ? undefined : undefined} // Inline editing is handled by onSave
             onDelete={tileData ? () => onDeleteTile(tileData) : undefined}
             onSave={tileData ? handleSave : undefined}
           />
@@ -185,7 +173,7 @@ function ChatMessageItem({ message, isExpanded, onDeleteTile }: ChatMessageItemP
                   p: ({ children }) => <p className="my-0">{children}</p>,
                   // Custom code styling for better light/dark mode support
                   code: ({ className, children, ...props }) => {
-                    const match = /language-(\w+)/.exec(className as string ?? '');
+                    const match = /language-(\w+)/.exec((className as string) ?? '');
                     return match ? (
                       <code className="block bg-neutral-400 dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 p-2 rounded overflow-x-auto" {...props}>
                         {children}

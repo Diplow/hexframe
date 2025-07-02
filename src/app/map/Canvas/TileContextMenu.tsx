@@ -166,7 +166,7 @@ export function TileContextMenu({
             )}
             <button
               className={`w-full px-3 py-2 text-left flex items-center justify-between hover:bg-[color:var(--bg-color-100)] dark:hover:bg-[color:var(--bg-color-700)] transition-colors ${
-                item.className || "text-[color:var(--text-color-700)] dark:text-[color:var(--text-color-300)]"
+                item.className ?? "text-[color:var(--text-color-700)] dark:text-[color:var(--text-color-300)]"
               }`}
               onClick={() => {
                 item.onClick();
