@@ -100,14 +100,14 @@ export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         {...dropProps}>
-        {/* Invisible hover area overlay to ensure full tile responds to hover */}
-        <div className="pointer-events-auto absolute inset-0 z-10" />
-
         <div 
+          className="pointer-events-auto absolute inset-0 z-10"
           onClick={props.interactive && canEdit ? (e) => void handleClick(e) : undefined}
           onDoubleClick={props.interactive && canEdit ? (e) => void handleDoubleClick(e) : undefined}
           onContextMenu={props.interactive && canEdit ? (e) => void handleRightClick(e) : undefined}
-        >
+        />
+        
+        <div>
           <DynamicBaseTileLayout
             coordId={props.coordId}
             scale={props.scale ?? 1}

@@ -35,62 +35,27 @@ export function useTileInteraction({
     e.preventDefault();
     e.stopPropagation();
 
-    // Handle Ctrl+click for navigation
-    if ((e.ctrlKey || e.metaKey) && type === 'item' && onNavigate) {
-      onNavigate();
+    // For empty tiles, trigger create action
+    if (type === 'empty' && canEdit && onCreate) {
+      onCreate();
       return;
     }
 
-    // Regular click - notify context
+    // Let context handle all other click logic
     if (tileData) {
       onTileClick(tileData, e);
-    } else if (type === 'empty') {
-      // Create minimal tile data for empty tiles
-      const emptyTileData: TileData = {
-        metadata: {
-          coordId,
-          dbId: 0,
-          parentId: undefined,
-          coordinates: { path: [] },
-          ownerId: '',
-          depth: 0,
-        },
-        data: {
-          name: '',
-          description: '',
-          url: '',
-          color: 'gray-500',
-        },
-        state: {
-          canEdit,
-          isDragged: false,
-          isHovered: false,
-          isSelected: false,
-          isExpanded: false,
-          canExpand: false,
-        },
-      };
-      onTileClick(emptyTileData, e);
     }
-  }, [canEdit, coordId, onNavigate, onTileClick, tileData, type]);
+  }, [canEdit, onCreate, onTileClick, tileData, type]);
 
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // Double-click to expand
-    if (type === 'item' && onExpand) {
-      // Check if tile can be expanded
-      if (tileData && 'state' in tileData && tileData.state.canExpand !== false) {
-        onExpand();
-      }
-    }
-
-    // Notify context
+    // Let context handle double-click logic
     if (tileData) {
       onTileDoubleClick(tileData);
     }
-  }, [onExpand, onTileDoubleClick, tileData, type]);
+  }, [onTileDoubleClick, tileData]);
 
   const handleRightClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
