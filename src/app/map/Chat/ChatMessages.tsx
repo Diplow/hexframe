@@ -6,9 +6,9 @@ import remarkGfm from 'remark-gfm';
 import type { ChatMessage, PreviewWidgetData } from './types';
 import { PreviewWidget } from './Widgets/PreviewWidget';
 import { useMapCache } from '../Cache/_hooks/use-map-cache';
-import { UpdateItemDialog } from '../Dialogs/update-item';
 import { DeleteItemDialog } from '../Dialogs/delete-item';
 import type { TileData } from '../types/tile-data';
+import { api } from '~/trpc/react';
 
 interface ChatMessagesProps {
   messages: ChatMessage[];
@@ -19,7 +19,6 @@ export function ChatMessages({ messages, expandedPreviewId }: ChatMessagesProps)
   const scrollRef = useRef<HTMLDivElement>(null);
   
   // Dialog state
-  const [editingTile, setEditingTile] = useState<TileData | null>(null);
   const [deletingTile, setDeletingTile] = useState<TileData | null>(null);
   
   // Auto-scroll to bottom when new messages are added
@@ -43,7 +42,6 @@ export function ChatMessages({ messages, expandedPreviewId }: ChatMessagesProps)
             key={message.id} 
             message={message} 
             isExpanded={message.id === expandedPreviewId}
-            onEditTile={setEditingTile}
             onDeleteTile={setDeletingTile}
           />
         ))}
@@ -53,14 +51,6 @@ export function ChatMessages({ messages, expandedPreviewId }: ChatMessagesProps)
       </div>
       
       {/* Dialogs */}
-      {editingTile && (
-        <UpdateItemDialog
-          isOpen={!!editingTile}
-          onClose={() => setEditingTile(null)}
-          item={editingTile}
-          onSuccess={() => setEditingTile(null)}
-        />
-      )}
       {deletingTile && (
         <DeleteItemDialog
           isOpen={!!deletingTile}
@@ -89,12 +79,12 @@ function SystemMessage() {
 interface ChatMessageItemProps {
   message: ChatMessage;
   isExpanded: boolean;
-  onEditTile: (tile: TileData) => void;
   onDeleteTile: (tile: TileData) => void;
 }
 
-function ChatMessageItem({ message, isExpanded, onEditTile, onDeleteTile }: ChatMessageItemProps) {
-  const { items } = useMapCache();
+function ChatMessageItem({ message, isExpanded, onDeleteTile }: ChatMessageItemProps) {
+  const { items, updateItemOptimistically } = useMapCache();
+  const updateItemMutation = api.items.update.useMutation();
   const testId = `chat-message-${message.id}`;
 
   if (message.type === 'system' && typeof message.content === 'object') {
@@ -103,6 +93,34 @@ function ChatMessageItem({ message, isExpanded, onEditTile, onDeleteTile }: Chat
       const widgetData = message.content.data as PreviewWidgetData;
       const tileData = items[widgetData.tileId];
       
+      const handleSave = async (newTitle: string, newContent: string) => {
+        if (!tileData) return;
+        
+        // Optimistically update the item
+        const updatedItem = {
+          ...tileData,
+          data: {
+            ...tileData.data,
+            name: newTitle,
+            description: newContent,
+          }
+        };
+        
+        updateItemOptimistically(tileData.metadata.dbId, updatedItem);
+        
+        // Send the update to the server
+        try {
+          await updateItemMutation.mutateAsync({
+            id: tileData.metadata.dbId,
+            name: newTitle,
+            description: newContent,
+          });
+        } catch (error) {
+          console.error('Failed to update item:', error);
+          // The optimistic update will be rolled back automatically
+        }
+      };
+      
       return (
         <div data-testid={testId} className="w-full">
           <PreviewWidget
@@ -110,8 +128,9 @@ function ChatMessageItem({ message, isExpanded, onEditTile, onDeleteTile }: Chat
             title={widgetData.title}
             content={widgetData.content}
             forceExpanded={isExpanded}
-            onEdit={tileData ? () => onEditTile(tileData) : undefined}
+            onEdit={tileData ? () => {} : undefined} // Will be handled by inline editing
             onDelete={tileData ? () => onDeleteTile(tileData) : undefined}
+            onSave={tileData ? handleSave : undefined}
           />
         </div>
       );
