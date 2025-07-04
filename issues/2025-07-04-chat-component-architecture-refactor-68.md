@@ -353,6 +353,71 @@ Example of future AI integration:
 // This automatically shows: AI message + Creation widget
 ```
 
+### Performance & Implementation Considerations
+
+#### 1. **Performance for Large Chat Histories**
+- **Virtualization**: Use react-window for rendering only visible items
+- **Event Pagination**: Load events in chunks (last 100, then more on scroll)
+- **Memoized Selectors**: Cache heavy computations
+- **Lazy Widget Initialization**: Widgets only mount when visible
+
+#### 2. **Canvas Widget UI Design**
+Canvas widgets should have distinct visual indicators:
+- Border color/style indicating map operations
+- Badge or icon showing "Modifies Map"
+- Consistent visual language across all canvas widgets
+- Clear affordances without being overwhelming
+
+#### 3. **MapCache → ChatCache Synchronization via Event Bus**
+
+```typescript
+// Shared event bus service
+interface EventBusService {
+  emit(event: AppEvent): void;
+  on(eventType: string, listener: (event: AppEvent) => void): () => void;
+}
+
+// MapCache integration
+interface MapCacheContext {
+  // ... existing properties
+  eventBus: EventBusService;  // Injected event bus
+}
+
+// MapCache emits events
+function swapTiles(tile1Id: string, tile2Id: string) {
+  // Perform swap operation...
+  
+  // Emit domain event
+  context.eventBus.emit({
+    type: 'map.tiles_swapped',
+    source: 'map_cache',
+    payload: { tile1Id, tile2Id, tile1Name, tile2Name }
+  });
+}
+
+// ChatCache listens for MapCache events
+useEffect(() => {
+  const unsubscribe = eventBus.on('map.tiles_swapped', (event) => {
+    dispatch(createChatEvent({
+      type: 'operation_completed',
+      actor: 'system',
+      payload: {
+        operation: 'swap',
+        message: `Swapped "${event.payload.tile1Name}" with "${event.payload.tile2Name}"`
+      }
+    }));
+  });
+  
+  return unsubscribe;
+}, [eventBus]);
+```
+
+**Benefits**:
+- MapCache remains independent (just needs event bus interface)
+- Chat can listen to all map operations
+- Other systems can also listen (analytics, undo/redo, etc.)
+- Clear event namespace (map.*, chat.*, auth.*)
+
 ## Context
 
 *I am an AI assistant acting on behalf of @Diplow*
