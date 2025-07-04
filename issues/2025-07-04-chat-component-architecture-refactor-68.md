@@ -126,20 +126,46 @@ Mirroring the MapCache pattern for chat-specific data:
 
 #### 2. Widget System (`/src/app/map/Chat/_widgets/`)
 
-Widgets as interfaces to Canvas operations:
+Widgets using composition pattern for different capabilities:
 
 ```
 /src/app/map/Chat/_widgets/
 ├── _base/
 │   ├── WidgetContainer.tsx     # Common widget wrapper
-│   └── widget.types.ts         # Shared widget interfaces
-├── PreviewWidget/              # View/Edit tile operation
+│   └── widget.types.ts         # Base and capability interfaces
+├── _capabilities/              # Composable widget behaviors
+│   ├── canvas.types.ts         # Canvas operation props
+│   ├── auth.types.ts           # Authentication props
+│   ├── chat.types.ts           # Chat interaction props
+│   └── confirmation.types.ts   # Confirmation props
+├── PreviewWidget/              # Base + Canvas capabilities
 │   ├── PreviewWidget.tsx
 │   └── usePreviewHandlers.ts
-├── CreationWidget/             # Create tile operation
-├── DeleteWidget/               # Delete tile operation
+├── LoginWidget/                # Base + Auth capabilities
+├── DeleteWidget/               # Base + Canvas + Confirmation
 └── ...other widgets
 ```
+
+**Widget Standardization Through Composition:**
+
+All widgets share a base interface for lifecycle and state:
+```typescript
+interface BaseWidgetProps {
+  id: string;
+  onClose?: () => void;
+  isExpanded?: boolean;
+  isLoading?: boolean;
+  error?: { message: string };
+  timestamp?: Date;
+  priority?: 'info' | 'action' | 'critical';
+}
+```
+
+Widgets compose additional capabilities as needed:
+- **Canvas widgets**: Add `CanvasOperationProps` for tile operations
+- **Auth widgets**: Add `AuthenticationProps` for login/logout
+- **Confirmation widgets**: Add `ConfirmationProps` for user decisions
+- **Future AI widgets**: Could add `ChatInteractionProps` for conversation
 
 #### 3. Chat UI Components (Refactored)
 
@@ -192,20 +218,25 @@ Widget states → Managed by ChatCache → UI-only lifecycle
 - **Canvas**: Spatial UI state (coordinates, expansion, etc.)
 - **ChatCache**: Conversation state (messages, active widgets)
 
-#### 3. **Widget as Adapters Pattern**
-Each widget is a UI adapter that:
-- Receives Canvas operation callbacks as props
-- Handles operation-specific UI state
-- Translates user actions to Canvas operations
-- Shows operation feedback (loading, errors)
+#### 3. **Widget as Composable UI Components**
+Widgets are composable UI components that can:
+- **Canvas Widgets**: Adapt Canvas operations to chat UI
+- **Auth Widgets**: Handle authentication flows
+- **Info Widgets**: Display system messages or notifications
+- **Future AI Widgets**: Present AI responses and suggested actions
 
-Example:
+Each widget type composes the capabilities it needs:
 ```typescript
-interface PreviewWidgetProps {
-  tile: TileData;                    // From MapCache via props
-  onUpdate: (id, data) => void;      // Canvas operation callback
-  onClose: () => void;               // Widget lifecycle callback
-}
+// Canvas widget example
+type PreviewWidgetProps = BaseWidgetProps & CanvasOperationProps & {
+  mode: 'view' | 'edit';
+  content: string;
+};
+
+// Non-canvas widget example  
+type LoginWidgetProps = BaseWidgetProps & AuthenticationProps & {
+  message?: string;
+};
 ```
 
 #### 4. **Future Backend Integration Points**
