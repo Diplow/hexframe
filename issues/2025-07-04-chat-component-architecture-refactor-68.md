@@ -109,19 +109,45 @@ Widgets (UI adapters for canvas operations)
 
 #### 1. Chat Cache System (`/src/app/map/Chat/_cache/`)
 
-Mirroring the MapCache pattern for chat-specific data:
+Event-driven state management for chat:
 
 ```
 /src/app/map/Chat/_cache/
 ├── ChatCacheProvider.tsx        # State management for chat
 ├── use-chat-cache.ts           # Hook to access chat state
+├── _events/
+│   ├── event.types.ts          # ChatEvent interfaces
+│   ├── event.creators.ts       # Event factory functions
+│   └── event.handlers.ts       # Event → State transformations
 ├── _reducers/
-│   ├── messages.reducer.ts     # Message state management
-│   ├── widgets.reducer.ts      # Active widget state
+│   ├── events.reducer.ts       # Event log management
+│   ├── ui.reducer.ts           # Derived UI state
 │   └── session.reducer.ts      # Chat session state
-└── _actions/
-    ├── message.actions.ts      # Message operations
-    └── widget.actions.ts       # Widget lifecycle
+└── _selectors/
+    ├── message.selectors.ts    # Derive messages from events
+    └── widget.selectors.ts     # Derive active widgets from events
+```
+
+**Event-Driven Architecture:**
+
+```typescript
+// Events are the source of truth
+interface ChatEvent {
+  id: string;
+  type: 'user_message' | 'system_message' | 'tile_selected' | 
+        'navigation' | 'operation_started' | 'operation_completed' |
+        'auth_required' | 'error_occurred';
+  payload: unknown;
+  timestamp: Date;
+  actor: 'user' | 'system' | 'assistant';
+}
+
+// UI state is derived from events
+interface ChatUIState {
+  events: ChatEvent[];          // The immutable log
+  activeWidgets: Widget[];      // Computed from events
+  visibleMessages: Message[];   // Computed from events
+}
 ```
 
 #### 2. Widget System (`/src/app/map/Chat/_widgets/`)
@@ -187,23 +213,48 @@ Widgets compose additional capabilities as needed:
 
 ### Data Flow Architecture
 
-**1. One-Way Data Flow (Canvas → Chat)**
+**1. Event Flow (Actions → Events → UI)**
 ```
-MapCache updates → Canvas re-renders → Chat receives new props/callbacks
-Canvas navigation → Chat shows navigation message
-Tile selection → Chat displays preview widget
-```
-
-**2. Operation Flow (Chat → Canvas)**
-```
-User action in widget → Widget calls canvas callback → Canvas/MapCache handles operation
-Widget shows loading → Operation completes → Widget updates/closes
+User Action → Create Event → Append to Event Log → UI Derives State
+Canvas Action → Create Event → Append to Event Log → UI Derives State
+System Action → Create Event → Append to Event Log → UI Derives State
 ```
 
-**3. Chat-Specific State (Isolated)**
+**2. Event to UI Derivation**
+```typescript
+// Example: Tile selection flow
+1. User clicks tile → Canvas callback
+2. Chat creates event: { type: 'tile_selected', payload: { tileId, tileData } }
+3. Event appended to log
+4. Selectors derive:
+   - Message: "Viewing [Tile Name]"
+   - Widget: PreviewWidget with tile data
+   
+// Example: Operation flow  
+1. User clicks "Delete" in widget
+2. Chat creates event: { type: 'operation_started', payload: { op: 'delete', tileId } }
+3. Widget shows loading state
+4. Canvas performs deletion
+5. Chat creates event: { type: 'operation_completed', payload: { op: 'delete', tileId } }
+6. Selectors remove widget and add success message
 ```
-Messages array → Managed by ChatCache → Persisted to backend (future)
-Widget states → Managed by ChatCache → UI-only lifecycle
+
+**3. Message vs Widget Distinction**
+- **Messages**: Derived from events that represent communication (user_message, system_message)
+- **Widgets**: Derived from events that require user interaction (tile_selected, auth_required, operation_started)
+
+```typescript
+// Selectors determine what to show
+function deriveVisibleMessages(events: ChatEvent[]): Message[] {
+  return events
+    .filter(e => ['user_message', 'system_message', 'operation_completed'].includes(e.type))
+    .map(eventToMessage);
+}
+
+function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
+  // Complex logic to determine which widgets should be shown
+  // based on the current event state
+}
 ```
 
 ### Key Architectural Decisions
@@ -268,11 +319,39 @@ type LoginWidgetProps = BaseWidgetProps & AuthenticationProps & {
 
 ### Key Benefits
 
-1. **Clear Mental Model**: Canvas is core, Chat is interface
+1. **Clear Mental Model**: Canvas is core, Chat is interface via events
 2. **No Circular Dependencies**: Unidirectional data flow
-3. **Future-Ready**: Clear integration points for backend
+3. **Future-Ready**: Events naturally map to backend persistence/streaming
 4. **Maintainable**: Each piece has single responsibility
-5. **Testable**: Widgets testable in isolation with mock callbacks
+5. **Testable**: Pure functions for event handling and derivation
+6. **Time Travel**: Event log enables debugging and replay
+7. **Flexible UI**: Can show/hide widgets based on complex event patterns
+
+### Event-Driven Benefits
+
+The event-based architecture provides specific advantages:
+
+1. **Backend Integration**: Events can be easily sent to backend chat domain
+2. **AI Integration**: AI responses become events in the same log
+3. **Audit Trail**: Complete history of all interactions
+4. **Derived State**: UI complexity managed through selectors, not imperative updates
+5. **Widget Lifecycle**: Widgets appear/disappear based on event patterns, not manual management
+
+Example of future AI integration:
+```typescript
+// AI request
+{ type: 'user_message', payload: { text: "Create a task tracker" } }
+{ type: 'ai_processing', payload: { requestId: '123' } }
+
+// AI response with suggested widget
+{ type: 'ai_response', payload: { 
+    text: "I'll help you create a task tracker. Let me set up a tile for that.",
+    suggestedAction: { type: 'create_tile', data: { ... } }
+  }
+}
+
+// This automatically shows: AI message + Creation widget
+```
 
 ## Context
 
