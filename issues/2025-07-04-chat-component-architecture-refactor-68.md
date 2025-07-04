@@ -298,24 +298,28 @@ type LoginWidgetProps = BaseWidgetProps & AuthenticationProps & {
 ### Implementation Priorities
 
 1. **Phase 1**: Establish Architecture
-   - Create ChatCache mirroring MapCache pattern
-   - Define clear callback interfaces
-   - Document data flow
+   - Create ChatCache with event-driven pattern
+   - Implement event bus service
+   - Define widget composition interfaces
+   - Create ARCHITECTURE.md documentation
 
 2. **Phase 2**: Refactor State Management
-   - Extract reducers from monolithic reducer
-   - Separate message state from widget state
-   - Create focused action creators
+   - Implement event-based architecture
+   - Create event creators and handlers
+   - Build selectors for deriving UI state
+   - Remove monolithic reducer
 
 3. **Phase 3**: Refactor Widgets
-   - Convert to adapter pattern
+   - Implement widget composition pattern
+   - Create capability interfaces
    - Remove direct MapCache imports
-   - Standardize widget interfaces
+   - Add visual indicators for Canvas widgets
 
 4. **Phase 4**: Component Organization
    - Follow Rule of 6
    - Extract inline components
-   - Add comprehensive documentation
+   - Implement virtual scrolling
+   - Update ARCHITECTURE.md with implementation learnings
 
 ### Key Benefits
 
@@ -352,6 +356,18 @@ Example of future AI integration:
 
 // This automatically shows: AI message + Creation widget
 ```
+
+### Architecture Documentation
+
+A detailed `ARCHITECTURE.md` file has been created at `/src/app/map/Chat/ARCHITECTURE.md` containing:
+- Complete architectural design and patterns
+- Widget composition examples
+- Event bus integration details
+- Complex flow example (cross-user tile import)
+- Performance considerations
+- UI design principles
+
+**Note**: This documentation should be updated after implementation if there are any changes or additional insights discovered during development.
 
 ### Performance & Implementation Considerations
 
