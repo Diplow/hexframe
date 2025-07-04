@@ -32,48 +32,48 @@ The new chat component has been vibe coded and needs architectural organization 
 
 *I am an AI assistant acting on behalf of @Diplow*
 
-### Approach: Domain-Driven Chat Architecture
+### Approach: Frontend-First Chat Architecture
 
-The solution involves restructuring the chat component into a proper domain with clear separation of concerns, following Hexframe's established patterns.
+The solution focuses on organizing the chat component using React patterns and frontend best practices, avoiding unnecessary backend concepts while achieving clear separation of concerns.
 
 **Key Principles**:
-1. Extract business logic into a chat domain
-2. Separate UI components from state management
+1. Use React patterns (hooks, context, reducers) appropriately
+2. Separate UI components from business logic using custom hooks
 3. Create clear boundaries between chat and map operations
-4. Implement proper widget registry pattern
+4. Implement composable widget system
 5. Follow the Rule of 6 for code organization
 
 ### Implementation Strategy
 
-1. **Create Chat Domain** (`/src/lib/domains/chat/`)
-   - Define chat entities and types
-   - Implement chat actions (send message, manage widgets)
-   - Create chat service for coordinating operations
-   - Define repository interfaces for future persistence
+1. **Reorganize State Management**
+   - Split the monolithic reducer into focused reducers
+   - Create custom hooks for chat operations (useChatMessages, useChatWidgets)
+   - Keep ChatProvider focused on state distribution
+   - Separate UI state from business state
 
-2. **Refactor State Management**
-   - Move reducer logic to domain actions
-   - Simplify ChatProvider to be a thin wrapper
-   - Separate UI state from domain state
-   - Create proper action creators
+2. **Extract Business Logic to Hooks**
+   - `useChatOperations`: Handle message sending, widget management
+   - `useMapIntegration`: Bridge between chat and map operations
+   - `useWidgetHandlers`: Widget-specific business logic
+   - Keep hooks composable and testable
 
-3. **Implement Widget Registry**
-   - Create widget registry pattern for extensibility
-   - Define widget interfaces and lifecycle
-   - Separate widget rendering from chat messages
-   - Enable dynamic widget registration
+3. **Implement Composable Widget System**
+   - Create widget components with clear props interfaces
+   - Use composition instead of registry pattern
+   - Define widget lifecycle through React effects
+   - Keep widgets decoupled from chat internals
 
 4. **Decouple from Map Operations**
-   - Use events/callbacks instead of direct coupling
-   - Define clear interfaces for map integration
-   - Move map-specific logic out of widgets
-   - Create adapter layer for map operations
+   - Pass callbacks as props instead of direct imports
+   - Use custom events for cross-component communication
+   - Create clear interfaces at component boundaries
+   - Move map-specific logic to map-specific hooks
 
 5. **Organize Components**
    - Split large files following Rule of 6
    - Extract inline components to separate files
-   - Create proper component hierarchy
-   - Add comprehensive documentation
+   - Group related components in folders
+   - Add README documentation for each major section
 
 ## Architecture
 
@@ -85,186 +85,163 @@ The chat component currently exists as a monolithic React component system with:
 - All logic contained within `/src/app/map/Chat/` directory
 - Mixed concerns between UI, state management, and business logic
 - Direct coupling to map operations through imports
-- No clear domain boundaries or separation of concerns
+- No clear architectural hierarchy or boundaries
 - 23 action types managed in a single reducer
 - Widgets directly importing and using map mutations
 
-### New Components
+### Core Mental Model
 
-#### 1. Chat Domain (`/src/lib/domains/chat/`)
+**Canvas as Core System, Chat as Interface Layer**
 
-**Structure**:
+This architecture treats the Canvas as the primary system that handles all spatial logic and tile operations, while the Chat serves as a conversational interface layer to access Canvas functionality. Widgets act as UI adapters that expose specific Canvas operations in a chat-friendly format.
+
 ```
-/src/lib/domains/chat/
-├── README.md                    # Domain documentation
-├── _objects/                    # Domain entities
-│   ├── message.ts              # Message entity
-│   ├── widget.ts               # Widget entity
-│   └── chat-session.ts         # Session aggregate
-├── _actions/                    # Business logic
-│   ├── message.actions.ts      # Message operations
-│   ├── widget.actions.ts       # Widget lifecycle
-│   └── session.actions.ts      # Session management
-├── _repositories/               # Data interfaces
-│   └── chat.repository.ts      # Repository interface
-├── services/                    # Domain services
-│   └── chat.service.ts         # Main service facade
-└── types/                       # Domain types
-    ├── constants.ts            # Action types, widget types
-    ├── contracts.ts            # Public interfaces
-    └── errors.ts               # Domain errors
+MapCache (tile data source)
+    ↓
+Canvas (spatial UI, coordinate system, core operations)
+    ↓ (exposes operations via callbacks)
+Chat (conversational interface layer)
+    ↓ (renders operations as widgets)
+Widgets (UI adapters for canvas operations)
 ```
 
-#### 2. Widget Registry System (`/src/app/map/Chat/_widgets/`)
+### New Architecture
 
-**Structure**:
+#### 1. Chat Cache System (`/src/app/map/Chat/_cache/`)
+
+Mirroring the MapCache pattern for chat-specific data:
+
+```
+/src/app/map/Chat/_cache/
+├── ChatCacheProvider.tsx        # State management for chat
+├── use-chat-cache.ts           # Hook to access chat state
+├── _reducers/
+│   ├── messages.reducer.ts     # Message state management
+│   ├── widgets.reducer.ts      # Active widget state
+│   └── session.reducer.ts      # Chat session state
+└── _actions/
+    ├── message.actions.ts      # Message operations
+    └── widget.actions.ts       # Widget lifecycle
+```
+
+#### 2. Widget System (`/src/app/map/Chat/_widgets/`)
+
+Widgets as interfaces to Canvas operations:
+
 ```
 /src/app/map/Chat/_widgets/
-├── registry.ts                  # Widget registry
-├── base-widget.tsx             # Base widget component
-├── widget-provider.tsx         # Widget context provider
-└── widgets/                    # Widget implementations
-    ├── preview/
-    ├── creation/
-    ├── confirm-delete/
-    └── ...
+├── _base/
+│   ├── WidgetContainer.tsx     # Common widget wrapper
+│   └── widget.types.ts         # Shared widget interfaces
+├── PreviewWidget/              # View/Edit tile operation
+│   ├── PreviewWidget.tsx
+│   └── usePreviewHandlers.ts
+├── CreationWidget/             # Create tile operation
+├── DeleteWidget/               # Delete tile operation
+└── ...other widgets
 ```
 
 #### 3. Chat UI Components (Refactored)
 
-**Structure**:
 ```
 /src/app/map/Chat/
-├── README.md                    # Component documentation
-├── _components/                 # UI components
-│   ├── ChatHeader.tsx          # Extracted header
-│   ├── ChatMessageList.tsx     # Message rendering
-│   ├── ChatMessageItem.tsx     # Individual message
-│   └── ChatInputBar.tsx        # Input handling
-├── _hooks/                      # React hooks
-│   ├── use-chat-state.ts       # State management
-│   ├── use-chat-actions.ts     # Action dispatching
-│   └── use-widget-renderer.ts  # Widget rendering
-├── _providers/                  # Context providers
-│   ├── ChatProvider.tsx        # Simplified provider
-│   └── ChatBridge.tsx          # Map integration bridge
+├── README.md                   # Architecture documentation
+├── _components/
+│   ├── ChatHeader/
+│   ├── ChatMessageList/
+│   ├── ChatMessageItem/
+│   └── ChatInputBar/
+├── _hooks/
+│   ├── use-canvas-operations.ts # Bridge to canvas callbacks
+│   ├── use-chat-api.ts         # Future backend integration
+│   └── use-widget-lifecycle.ts  # Widget management
 ├── ChatPanel.tsx               # Main container
-└── types.ts                    # UI-specific types
+└── types.ts                    # Chat-specific types
 ```
 
-### Modified Components
+### Data Flow Architecture
 
-1. **ChatProvider**: Simplified to use domain service instead of complex reducer
-2. **ChatMessages**: Refactored to use widget registry for rendering
-3. **Widgets**: Converted to use standardized interfaces and callbacks
-4. **Integration Hooks**: Modified to use event-based communication
-
-### Data Flow
-
+**1. One-Way Data Flow (Canvas → Chat)**
 ```
-User Input → UI Component → Domain Action → State Update → UI Render
-                              ↓
-                        Side Effects
-                              ↓
-                    External Systems (Map)
+MapCache updates → Canvas re-renders → Chat receives new props/callbacks
+Canvas navigation → Chat shows navigation message
+Tile selection → Chat displays preview widget
 ```
 
-**Detailed Flow**:
-1. User interacts with chat (type message, click tile)
-2. UI component captures interaction
-3. Domain action is dispatched through service
-4. Domain logic processes action (validation, transformation)
-5. State is updated through domain-managed store
-6. UI re-renders based on state changes
-7. Side effects (map operations) triggered via callbacks
+**2. Operation Flow (Chat → Canvas)**
+```
+User action in widget → Widget calls canvas callback → Canvas/MapCache handles operation
+Widget shows loading → Operation completes → Widget updates/closes
+```
 
-### Mental Model
+**3. Chat-Specific State (Isolated)**
+```
+Messages array → Managed by ChatCache → Persisted to backend (future)
+Widget states → Managed by ChatCache → UI-only lifecycle
+```
 
-Think of the chat system as three distinct layers:
+### Key Architectural Decisions
 
-1. **Domain Layer** (Business Logic)
-   - What can be done (actions)
-   - What exists (entities)
-   - How things work (services)
+#### 1. **No Circular Dependencies**
+- Canvas doesn't import from Chat
+- Chat receives Canvas operations as callbacks
+- MapCache remains independent of both
 
-2. **UI Layer** (Presentation)
-   - How things look (components)
-   - User interactions (events)
-   - Visual state (local state)
+#### 2. **Clear State Boundaries**
+- **MapCache**: Tile data (source of truth)
+- **Canvas**: Spatial UI state (coordinates, expansion, etc.)
+- **ChatCache**: Conversation state (messages, active widgets)
 
-3. **Integration Layer** (Adapters)
-   - Bridge to map system
-   - Event translation
-   - Callback coordination
+#### 3. **Widget as Adapters Pattern**
+Each widget is a UI adapter that:
+- Receives Canvas operation callbacks as props
+- Handles operation-specific UI state
+- Translates user actions to Canvas operations
+- Shows operation feedback (loading, errors)
 
-**Widget Mental Model**:
-- Widgets are **self-contained UI units** with defined lifecycles
-- Registry pattern allows **dynamic widget types**
-- Widgets communicate via **events**, not direct imports
-- Each widget has **clear input/output contracts**
+Example:
+```typescript
+interface PreviewWidgetProps {
+  tile: TileData;                    // From MapCache via props
+  onUpdate: (id, data) => void;      // Canvas operation callback
+  onClose: () => void;               // Widget lifecycle callback
+}
+```
 
-### Key Patterns
-
-1. **Domain-Driven Design**
-   - Business logic in domain layer
-   - UI is a thin presentation layer
-   - Clear boundaries between domains
-
-2. **Registry Pattern** (for widgets)
-   ```typescript
-   interface WidgetDefinition {
-     type: string;
-     component: React.ComponentType<WidgetProps>;
-     validator: (data: unknown) => boolean;
-   }
-   ```
-
-3. **Event-Driven Integration**
-   ```typescript
-   interface ChatEvent {
-     type: string;
-     payload: unknown;
-   }
-   
-   // Instead of direct imports:
-   onTileOperation?.(event: ChatEvent)
-   ```
-
-4. **Facade Pattern** (ChatService)
-   ```typescript
-   class ChatService {
-     sendMessage(content: string): Promise<void>
-     showWidget(type: string, data: unknown): void
-     handleMapEvent(event: MapEvent): void
-   }
-   ```
-
-5. **Separation of Concerns**
-   - Domain: What and Why
-   - UI: How it looks
-   - Integration: How it connects
+#### 4. **Future Backend Integration Points**
+- ChatCache will sync with backend chat domain
+- Message sending will integrate with agentic domain
+- Widget operations remain frontend-only (Canvas handles backend sync)
 
 ### Implementation Priorities
 
-1. **Phase 1**: Domain extraction
-   - Create domain structure
-   - Move business logic
-   - Define interfaces
+1. **Phase 1**: Establish Architecture
+   - Create ChatCache mirroring MapCache pattern
+   - Define clear callback interfaces
+   - Document data flow
 
-2. **Phase 2**: Widget refactoring
-   - Implement registry
-   - Convert existing widgets
-   - Standardize interfaces
+2. **Phase 2**: Refactor State Management
+   - Extract reducers from monolithic reducer
+   - Separate message state from widget state
+   - Create focused action creators
 
-3. **Phase 3**: UI reorganization
-   - Extract components
-   - Simplify provider
-   - Add documentation
+3. **Phase 3**: Refactor Widgets
+   - Convert to adapter pattern
+   - Remove direct MapCache imports
+   - Standardize widget interfaces
 
-4. **Phase 4**: Integration cleanup
-   - Remove direct coupling
-   - Implement event system
-   - Create adapter layer
+4. **Phase 4**: Component Organization
+   - Follow Rule of 6
+   - Extract inline components
+   - Add comprehensive documentation
+
+### Key Benefits
+
+1. **Clear Mental Model**: Canvas is core, Chat is interface
+2. **No Circular Dependencies**: Unidirectional data flow
+3. **Future-Ready**: Clear integration points for backend
+4. **Maintainable**: Each piece has single responsibility
+5. **Testable**: Widgets testable in isolation with mock callbacks
 
 ## Context
 
