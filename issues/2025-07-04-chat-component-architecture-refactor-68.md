@@ -369,6 +369,293 @@ A detailed `ARCHITECTURE.md` file has been created at `/src/app/map/Chat/ARCHITE
 
 **Note**: This documentation should be updated after implementation if there are any changes or additional insights discovered during development.
 
+## Tests
+
+*I am an AI assistant acting on behalf of @Diplow*
+
+### Testing Strategy
+
+The event-driven architecture requires a comprehensive testing approach that covers infrastructure, individual systems, and cross-system communication.
+
+### 1. Event Bus Infrastructure Tests
+
+```typescript
+// event-bus.test.ts
+describe('EventBus', () => {
+  it('should emit events to registered listeners', () => {
+    const eventBus = new EventBus();
+    const listener = vi.fn();
+    
+    eventBus.on('test.event', listener);
+    eventBus.emit({ type: 'test.event', payload: { data: 'test' } });
+    
+    expect(listener).toHaveBeenCalledWith({ type: 'test.event', payload: { data: 'test' } });
+  });
+  
+  it('should support multiple listeners for same event', () => {
+    // Test multiple listeners
+  });
+  
+  it('should properly unsubscribe listeners', () => {
+    // Test cleanup
+  });
+  
+  it('should handle namespaced events correctly', () => {
+    // Test map.*, chat.*, etc.
+  });
+});
+```
+
+### 2. MapCache Event Emission Tests
+
+Update existing MapCache tests to verify event emission:
+
+```typescript
+// mutation-handler.test.ts updates
+describe('MutationHandler with EventBus', () => {
+  let eventBus: MockEventBus;
+  let mapCache: MapCacheContext;
+  
+  beforeEach(() => {
+    eventBus = createMockEventBus();
+    mapCache = createMapCacheWithEventBus(eventBus);
+  });
+  
+  it('should emit event when tile is created', async () => {
+    await mapCache.createItemOptimistic(coordId, data);
+    
+    expect(eventBus.emit).toHaveBeenCalledWith({
+      type: 'map.tile_created',
+      source: 'map_cache',
+      payload: expect.objectContaining({
+        tileId: expect.any(String),
+        tileName: data.title,
+        coordId
+      })
+    });
+  });
+  
+  // Similar tests for update, delete, swap, move
+});
+```
+
+### 3. ChatCache Event-Driven Tests
+
+```typescript
+// chat-cache.test.ts
+describe('ChatCache Event Processing', () => {
+  it('should derive messages from events', () => {
+    const events = [
+      { type: 'user_message', payload: { text: 'Hello' } },
+      { type: 'tile_selected', payload: { tileId: '123' } }
+    ];
+    
+    const messages = deriveVisibleMessages(events);
+    
+    expect(messages).toHaveLength(1); // Only user_message shown
+    expect(messages[0].content).toBe('Hello');
+  });
+  
+  it('should derive widgets from events', () => {
+    const events = [
+      { type: 'tile_selected', payload: { tileId: '123', tileData: {...} } }
+    ];
+    
+    const widgets = deriveActiveWidgets(events);
+    
+    expect(widgets).toHaveLength(1);
+    expect(widgets[0].type).toBe('preview');
+  });
+  
+  it('should handle widget lifecycle through events', () => {
+    const events = [
+      { type: 'operation_started', payload: { op: 'delete', tileId: '123' } },
+      { type: 'operation_completed', payload: { op: 'delete', tileId: '123' } }
+    ];
+    
+    const widgetsAtStart = deriveActiveWidgets([events[0]]);
+    expect(widgetsAtStart).toHaveLength(1);
+    
+    const widgetsAtEnd = deriveActiveWidgets(events);
+    expect(widgetsAtEnd).toHaveLength(0); // Widget closed after completion
+  });
+});
+```
+
+### 4. Widget Composition Tests
+
+```typescript
+// widget-composition.test.ts
+describe('Widget Composition', () => {
+  it('should compose base widget with canvas capabilities', () => {
+    const props: PreviewWidgetProps = {
+      id: '1',
+      tile: mockTile,
+      onTileUpdate: vi.fn(),
+      onClose: vi.fn()
+    };
+    
+    render(<PreviewWidget {...props} />);
+    
+    // Verify base widget features
+    expect(screen.getByRole('button', { name: /close/i })).toBeInTheDocument();
+    
+    // Verify canvas capabilities
+    expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument();
+  });
+  
+  it('should render canvas widget indicators', () => {
+    render(<PreviewWidget {...canvasWidgetProps} />);
+    
+    expect(screen.getByText(/modifies map/i)).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /map operation/i })).toBeInTheDocument();
+  });
+});
+```
+
+### 5. Integration Tests
+
+```typescript
+// chat-map-integration.test.ts
+describe('Chat-Map Integration via EventBus', () => {
+  it('should show tile preview in chat when tile selected on map', async () => {
+    const { eventBus } = renderMapWithChat();
+    
+    // Simulate tile selection on map
+    const tile = screen.getByTestId('tile-123');
+    await userEvent.click(tile);
+    
+    // Verify event was emitted
+    expect(eventBus.emit).toHaveBeenCalledWith({
+      type: 'map.tile_selected',
+      payload: expect.objectContaining({ tileId: '123' })
+    });
+    
+    // Verify chat shows preview widget
+    await waitFor(() => {
+      expect(screen.getByRole('article', { name: /tile preview/i })).toBeInTheDocument();
+    });
+  });
+  
+  it('should update chat when map operation completes', async () => {
+    const { mapCache, chatPanel } = renderMapWithChat();
+    
+    // Perform tile swap via map
+    await mapCache.swapTiles('123', '456');
+    
+    // Verify chat shows completion message
+    await waitFor(() => {
+      expect(chatPanel).toHaveTextContent(/swapped "Tile A" with "Tile B"/i);
+    });
+  });
+});
+```
+
+### 6. E2E Tests
+
+```typescript
+// chat-refactor.e2e.ts
+test('tile import flow with chat feedback', async ({ page }) => {
+  // Navigate to other user's map
+  await page.goto('/map?center=other-user-tile');
+  
+  // Open tile preview in chat
+  await page.click('[data-testid="tile-to-import"]');
+  await expect(page.locator('[data-testid="preview-widget"]')).toBeVisible();
+  
+  // Navigate to own map
+  await page.goto('/map?center=my-tile');
+  
+  // Verify preview persists
+  await expect(page.locator('[data-testid="preview-widget"]')).toBeVisible();
+  
+  // Drag from preview to map
+  const preview = page.locator('[data-testid="preview-drag-handle"]');
+  const target = page.locator('[data-testid="empty-tile-drop-zone"]');
+  await preview.dragTo(target);
+  
+  // Verify success message in chat
+  await expect(page.locator('text=/import completed/i')).toBeVisible();
+});
+```
+
+### Testing Utilities
+
+Create test utilities for common patterns:
+
+```typescript
+// test-utils/event-bus.ts
+export function createMockEventBus() {
+  return {
+    emit: vi.fn(),
+    on: vi.fn((event, listener) => {
+      // Track listeners for testing
+      return () => {}; // unsubscribe
+    }),
+    listeners: new Map()
+  };
+}
+
+// test-utils/chat-testing.ts
+export function renderChatWithEvents(initialEvents: ChatEvent[] = []) {
+  const eventBus = createMockEventBus();
+  
+  return {
+    ...render(
+      <ChatCacheProvider eventBus={eventBus} initialEvents={initialEvents}>
+        <ChatPanel />
+      </ChatCacheProvider>
+    ),
+    eventBus,
+    emitEvent: (event: ChatEvent) => {
+      // Helper to emit events in tests
+    }
+  };
+}
+```
+
+### Test Coverage Goals
+
+1. **Unit Tests**: 90%+ coverage of:
+   - Event bus infrastructure
+   - Event derivation functions (selectors)
+   - Widget composition logic
+   - Individual widget behavior
+
+2. **Integration Tests**: Cover all cross-system flows:
+   - Map → Chat communication
+   - Widget → Map operations
+   - Event lifecycle scenarios
+
+3. **E2E Tests**: Key user workflows:
+   - Tile selection and preview
+   - Tile operations with feedback
+   - Complex flows (import example)
+
+### Updating Existing Tests
+
+1. **MapCache Tests**: Add `eventBus` to test setup
+   ```typescript
+   const eventBus = createMockEventBus();
+   const provider = <MapCacheProvider eventBus={eventBus}>
+   ```
+
+2. **Mock Event Bus in Tests**: Prevent actual cross-system communication
+   ```typescript
+   vi.mock('./services/event-bus', () => ({
+     EventBus: vi.fn(() => createMockEventBus())
+   }));
+   ```
+
+3. **Assertion Helpers**: Add custom matchers
+   ```typescript
+   expect.extend({
+     toHaveEmittedEvent(eventBus, eventType) {
+       // Custom matcher for event emission
+     }
+   });
+   ```
+
 ### Performance & Implementation Considerations
 
 #### 1. **Performance for Large Chat Histories**
@@ -533,3 +820,235 @@ The chat system consists of several interconnected components:
 - Widgets have direct access to mutation operations
 - No clear boundary between chat UI and business logic
 - Authentication state changes trigger chat message updates
+
+## Implementation Plan
+
+*I am an AI assistant acting on behalf of @Diplow*
+
+### Overview
+
+The implementation is structured in 7 phases, progressing from infrastructure to full integration. Each phase builds on the previous one and can be tested independently.
+
+### Phase 1: Event Bus Infrastructure (2-3 days)
+
+**Goal**: Create the shared event bus service that enables cross-system communication.
+
+**Tasks**:
+1. [ ] Create `EventBus` class in `/src/app/map/Services/event-bus.ts`
+   - Implement emit/on/off methods
+   - Add namespace support (map.*, chat.*, etc.)
+   - Include TypeScript types for events
+
+2. [ ] Create event type definitions in `/src/app/map/types/events.ts`
+   - Define `AppEvent` base interface
+   - Define specific event types for map operations
+   - Define chat-specific event types
+
+3. [ ] Write comprehensive EventBus tests
+   - Unit tests for all EventBus methods
+   - Test namespace filtering
+   - Test memory leak prevention (cleanup)
+
+4. [ ] Create test utilities in `/src/test-utils/event-bus.ts`
+   - `createMockEventBus()` for testing
+   - Custom Jest/Vitest matchers
+
+**Deliverable**: Working EventBus with full test coverage
+
+### Phase 2: MapCache Event Integration (3-4 days)
+
+**Goal**: Update MapCache to emit events for all operations while maintaining backward compatibility.
+
+**Tasks**:
+1. [ ] Update MapCacheProvider to accept eventBus prop
+   - Add optional eventBus to provider props
+   - Pass eventBus to mutation handler
+
+2. [ ] Update MutationHandler to emit events
+   - [ ] Emit `map.tile_created` after successful creation
+   - [ ] Emit `map.tile_updated` after successful update
+   - [ ] Emit `map.tile_deleted` after successful deletion
+   - [ ] Emit `map.tiles_swapped` after successful swap
+   - [ ] Emit `map.tile_moved` after successful move
+
+3. [ ] Update NavigationHandler to emit events
+   - [ ] Emit `map.navigation` on center change
+   - [ ] Emit `map.expansion_changed` on expand/collapse
+
+4. [ ] Update all MapCache tests
+   - Add eventBus to test setup
+   - Verify events are emitted correctly
+   - Ensure existing functionality unaffected
+
+**Deliverable**: MapCache emitting all events, existing tests passing
+
+### Phase 3: Chat Event-Driven Architecture (4-5 days)
+
+**Goal**: Implement the new event-driven chat architecture without breaking existing functionality.
+
+**Tasks**:
+1. [ ] Create ChatCache structure in `/src/app/map/Chat/_cache/`
+   - [ ] Create `ChatCacheProvider.tsx`
+   - [ ] Create event reducers
+   - [ ] Create selectors for deriving UI state
+   - [ ] Create `use-chat-cache.ts` hook
+
+2. [ ] Implement event handling
+   - [ ] Create event creators
+   - [ ] Create event-to-UI derivation logic
+   - [ ] Implement message selectors
+   - [ ] Implement widget selectors
+
+3. [ ] Create migration wrapper
+   - Keep existing ChatProvider working
+   - Gradually migrate to event-based system
+   - Ensure no breaking changes
+
+4. [ ] Write comprehensive tests
+   - Test event processing
+   - Test UI derivation
+   - Test selector memoization
+
+**Deliverable**: Event-driven chat system alongside existing system
+
+### Phase 4: Widget Refactoring (3-4 days)
+
+**Goal**: Implement widget composition pattern and standardize widget interfaces.
+
+**Tasks**:
+1. [ ] Create widget base structure
+   - [ ] Define base widget interface
+   - [ ] Create capability interfaces
+   - [ ] Create `WidgetContainer` component
+
+2. [ ] Refactor existing widgets
+   - [ ] PreviewWidget with composition
+   - [ ] CreationWidget with composition
+   - [ ] DeleteWidget with composition
+   - [ ] LoginWidget with composition
+   - [ ] LoadingWidget with composition
+   - [ ] ErrorWidget with composition
+
+3. [ ] Add Canvas widget indicators
+   - Visual design for map-modifying widgets
+   - Accessibility considerations
+
+4. [ ] Write widget tests
+   - Test composition patterns
+   - Test capability interfaces
+   - Test visual indicators
+
+**Deliverable**: All widgets using new composition pattern
+
+### Phase 5: Integration & Migration (2-3 days)
+
+**Goal**: Connect the refactored systems and migrate from old to new architecture.
+
+**Tasks**:
+1. [ ] Connect EventBus across systems
+   - Wire EventBus in main app layout
+   - Connect MapCache and ChatCache
+
+2. [ ] Implement ChatCache listeners
+   - Listen for map.* events
+   - Convert to chat events
+   - Update UI accordingly
+
+3. [ ] Migrate from old ChatProvider
+   - Switch components to use new system
+   - Remove old reducer/actions
+   - Update all imports
+
+4. [ ] Integration testing
+   - Test full flows (map → chat)
+   - Test widget → map operations
+   - Verify no regressions
+
+**Deliverable**: Fully integrated event-driven system
+
+### Phase 6: Performance & Polish (2-3 days)
+
+**Goal**: Implement performance optimizations and polish the implementation.
+
+**Tasks**:
+1. [ ] Implement virtual scrolling
+   - Add react-window to ChatMessages
+   - Handle variable height items
+   - Test with large histories
+
+2. [ ] Optimize selectors
+   - Add proper memoization
+   - Profile and optimize hot paths
+   - Add performance tests
+
+3. [ ] Implement event pagination
+   - Load events in chunks
+   - Implement infinite scroll
+   - Add loading states
+
+4. [ ] Polish and cleanup
+   - Remove dead code
+   - Update documentation
+   - Add missing TypeScript types
+
+**Deliverable**: Performant, polished implementation
+
+### Phase 7: Documentation & Testing (1-2 days)
+
+**Goal**: Ensure comprehensive documentation and test coverage.
+
+**Tasks**:
+1. [ ] Update documentation
+   - [ ] Update Chat ARCHITECTURE.md with learnings
+   - [ ] Update inline code documentation
+   - [ ] Create migration guide
+
+2. [ ] E2E test scenarios
+   - [ ] Tile selection flow
+   - [ ] Tile operations with feedback
+   - [ ] Complex import flow
+
+3. [ ] Final test coverage
+   - Ensure 90%+ unit test coverage
+   - All integration tests passing
+   - E2E tests for critical paths
+
+4. [ ] Performance benchmarks
+   - Measure render performance
+   - Measure memory usage
+   - Document baselines
+
+**Deliverable**: Fully documented and tested implementation
+
+### Total Timeline: 17-22 days
+
+### Critical Path Dependencies
+
+```
+Phase 1 (EventBus) 
+    ↓
+Phase 2 (MapCache) → Phase 3 (ChatCache)
+                           ↓
+                     Phase 4 (Widgets)
+                           ↓
+                     Phase 5 (Integration)
+                           ↓
+                     Phase 6 (Performance)
+                           ↓
+                     Phase 7 (Documentation)
+```
+
+### Risk Mitigation
+
+1. **Backward Compatibility**: Each phase maintains existing functionality
+2. **Incremental Migration**: Can pause at any phase if issues arise
+3. **Feature Flags**: Consider adding flags to toggle new system
+4. **Rollback Plan**: Old code removed only after new system proven stable
+
+### Success Criteria
+
+1. All existing functionality preserved
+2. Event-driven architecture fully implemented
+3. Performance equal or better than current
+4. 90%+ test coverage maintained
+5. Documentation complete and accurate
