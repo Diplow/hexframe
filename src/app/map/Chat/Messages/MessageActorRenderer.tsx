@@ -16,9 +16,9 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
   const { navigateToItem } = useMapCache();
   const { dispatchMessage, dispatchAuthRequired, dispatchCommandExecution } = useChatEventDispatcher();
   
-  const { data: userMapData } = api.map.user.getUserMap.useQuery(undefined, {
-    enabled: !!user,
-  });
+  const trpcUtils = api.useUtils();
+  
+  // Don't automatically fetch user map data - only fetch when needed for navigation
 
   const formatTimestamp = () => {
     const date = new Date(message.timestamp);
@@ -36,12 +36,24 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
   };
 
   const handleUserClick = async () => {
-    if (user && userMapData?.success && userMapData.map?.id) {
-      await _navigateToUserMap(userMapData.map);
-    } else if (user && (!userMapData || !userMapData.success)) {
-      dispatchMessage('Creating your map...');
-    } else {
+    if (!user) {
       dispatchAuthRequired('Create an account to have your own map');
+      return;
+    }
+
+    try {
+      // Fetch user map data only when clicking on username
+      console.log('[UserNav] 👆 User clicked on username, fetching map data...');
+      const userMapData = await trpcUtils.map.user.getUserMap.fetch();
+      
+      if (userMapData?.success && userMapData.map?.id) {
+        await _navigateToUserMap(userMapData.map);
+      } else {
+        dispatchMessage('Creating your map...');
+      }
+    } catch (error) {
+      console.error('[UserNav] ❌ Failed to fetch user map:', error);
+      dispatchMessage('Failed to load your map');
     }
   };
 
