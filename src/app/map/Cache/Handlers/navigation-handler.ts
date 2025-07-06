@@ -37,21 +37,59 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
   const { dispatch, getState, dataHandler, eventBus } = config;
 
   const navigateToItem = async (
-    itemCoordId: string,
+    itemDbId: string,
     options: NavigationOptions = {},
   ): Promise<NavigationResult> => {
     const { } = options; // Options reserved for future use
     
     try {
-      // 1. Check if we already have the item
-      const existingItem = getState().itemsById[itemCoordId];
+      console.log('[Navigation] 🎯 Starting navigation to database ID:', itemDbId);
       
-      // 2. Collapse tiles that are more than 1 generation away from the new center
+      // 1. Find item by database ID
+      const allItems = Object.values(getState().itemsById);
+      const existingItem = allItems.find(item => item.metadata.dbId.toString() === itemDbId);
+      
+      if (!existingItem) {
+        console.log('[Navigation] ❌ No item found with database ID:', itemDbId);
+        console.log('[Navigation] 📊 Available items in cache:');
+        allItems.forEach((item, index) => {
+          console.log(`  ${index + 1}. dbId: "${item.metadata.dbId}" (type: ${typeof item.metadata.dbId}), coordId: "${item.metadata.coordId}", name: "${item.data.name}"`);
+        });
+        console.log('[Navigation] 🔍 Looking for dbId:', itemDbId, '(type:', typeof itemDbId, ')');
+      } else {
+        console.log('[Navigation] ✅ Found item:', {
+          dbId: existingItem.metadata.dbId,
+          coordId: existingItem.metadata.coordId,
+          name: existingItem.data.name
+        });
+      }
+      
+      const resolvedCoordId = existingItem?.metadata.coordId;
+      
+      // 2. If item not found in cache, we need to load it first
+      if (!existingItem) {
+        try {
+          console.log('[Navigation] 🔄 Item not in cache, loading by database ID...');
+          // We need to load the item, but we only have the database ID
+          // This should trigger the data handler to load the item and convert to coordinate
+          throw new Error(`Item with database ID ${itemDbId} not found in cache and loading by dbId not implemented yet`);
+        } catch (error) {
+          console.error('[Navigation] ❌ Failed to load item:', error);
+          return {
+            success: false,
+            error: error as Error,
+            centerUpdated: false,
+            urlUpdated: false,
+          };
+        }
+      }
+      
+      // 3. Collapse tiles that are more than 1 generation away from the new center
       const currentState = getState();
-      const newCenterDepth = CoordSystem.getDepthFromId(itemCoordId);
+      const newCenterDepth = CoordSystem.getDepthFromId(resolvedCoordId!);
       
       // Get the dbId of the new center if it exists
-      const newCenterItem = currentState.itemsById[itemCoordId];
+      const newCenterItem = existingItem || currentState.itemsById[resolvedCoordId];
       const newCenterDbId = newCenterItem?.metadata.dbId;
       
       // Build a map of dbId -> coordId for all items
@@ -75,7 +113,7 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
         }
         
         // Check if the expanded item is a descendant of the new center
-        const isDescendant = CoordSystem.isDescendant(expandedCoordId, itemCoordId);
+        const isDescendant = CoordSystem.isDescendant(expandedCoordId, resolvedCoordId);
           
         if (isDescendant) {
           // It's a descendant - check generation distance
@@ -86,7 +124,7 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
         }
         
         // Check if the new center is a descendant of the expanded item
-        const isAncestor = CoordSystem.isAncestor(expandedCoordId, itemCoordId);
+        const isAncestor = CoordSystem.isAncestor(expandedCoordId, resolvedCoordId);
           
         if (isAncestor) {
           // The expanded item is an ancestor of the new center - keep ALL ancestors expanded
@@ -102,9 +140,9 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
         dispatch(cacheActions.setExpandedItems(filteredExpandedDbIds));
       }
       
-      // 3. Update the cache center first (this changes the view immediately)
+      // 4. Update the cache center first (this changes the view immediately)
       const previousCenter = currentState.currentCenter;
-      dispatch(cacheActions.setCenter(itemCoordId));
+      dispatch(cacheActions.setCenter(resolvedCoordId));
       
       // Note: Navigation event will be emitted after we ensure item data is loaded
       
@@ -130,13 +168,13 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
         }
         
         // Emit navigation event now that we have the item data
-        emitNavigationEvent(previousCenter, itemCoordId);
+        emitNavigationEvent(previousCenter, resolvedCoordId);
       } else if (!existingItem) {
         // We don't have the item, try to load it for URL update
         try {
           // Load the item data in the background
-          await dataHandler.loadRegion(itemCoordId, 0); // Load just the center item
-          itemToNavigate = getState().itemsById[itemCoordId];
+          await dataHandler.loadRegion(resolvedCoordId, 0); // Load just the center item
+          itemToNavigate = getState().itemsById[resolvedCoordId];
           
           if (itemToNavigate && typeof window !== 'undefined') {
             const newUrl = buildMapUrl(

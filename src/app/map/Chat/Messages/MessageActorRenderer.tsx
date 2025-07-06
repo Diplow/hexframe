@@ -47,13 +47,14 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
 
   const _navigateToUserMap = async (map: { id: number; name?: string }) => {
     const mapName = map.name ?? user?.name ?? 'Your Map';
-    console.log('Navigating to user map:', { mapId: map.id, userName: user?.name });
+    console.log('[UserNav] 🗺️ Navigating to user map:', { mapId: map.id, userName: user?.name, userId: user?.id });
     
     try {
-      // navigateToItem already handles all navigation events internally
+      // navigateToItem now expects database IDs, which is exactly what we have
+      console.log('[UserNav] 🎯 Calling navigateToItem with database ID:', String(map.id));
       await navigateToItem(String(map.id));
     } catch (error) {
-      console.error('Failed to navigate to user map:', error);
+      console.error('[UserNav] ❌ Failed to navigate to user map:', error);
       dispatchMessage(`Failed to navigate to ${mapName} map`);
     }
   };
