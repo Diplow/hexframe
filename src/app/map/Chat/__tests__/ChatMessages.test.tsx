@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { ChatMessages } from '../ChatMessages';
+import { Messages } from '../Messages';
 import { ChatCacheProvider } from '../_cache/ChatCacheProvider';
 import { EventBus } from '../../Services/event-bus';
 import type { Message, Widget } from '../_cache/_events/event.types';
@@ -67,7 +67,7 @@ describe('ChatMessages', () => {
   const renderWithProvider = (messages: Message[] = [], widgets: Widget[] = []) => {
     return render(
       <ChatCacheProvider eventBus={mockEventBus}>
-        <ChatMessages messages={messages} widgets={widgets} />
+        <Messages messages={messages} widgets={widgets} />
       </ChatCacheProvider>
     );
   };
@@ -148,7 +148,7 @@ describe('ChatMessages', () => {
 
     rerender(
       <ChatCacheProvider eventBus={mockEventBus}>
-        <ChatMessages messages={moreMessages} widgets={[]} />
+        <Messages messages={moreMessages} widgets={[]} />
       </ChatCacheProvider>
     );
 

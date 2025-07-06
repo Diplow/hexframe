@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { ChatMessages } from '../ChatMessages';
+import { Messages } from '../Messages';
 import { ChatProvider } from '../ChatProvider';
 
 // Create a mock auth context that can be controlled
@@ -35,7 +35,7 @@ describe('Chat Day Separator', () => {
     
     render(
       <ChatProvider eventBus={mockEventBus as unknown as Parameters<typeof ChatProvider>[0]['eventBus']}>
-        <ChatMessages messages={[]} widgets={[]} />
+        <Messages messages={[]} widgets={[]} />
       </ChatProvider>
     );
     
@@ -62,7 +62,7 @@ describe('Chat Day Separator', () => {
     
     render(
       <ChatProvider eventBus={mockEventBus as unknown as Parameters<typeof ChatProvider>[0]['eventBus']}>
-        <ChatMessages messages={[]} widgets={[]} />
+        <Messages messages={[]} widgets={[]} />
       </ChatProvider>
     );
     
@@ -85,7 +85,7 @@ describe('Chat Day Separator', () => {
     
     render(
       <ChatProvider eventBus={mockEventBus as unknown as Parameters<typeof ChatProvider>[0]['eventBus']}>
-        <ChatMessages messages={messages} widgets={[]} />
+        <Messages messages={messages} widgets={[]} />
       </ChatProvider>
     );
     
@@ -115,7 +115,7 @@ describe('Chat Day Separator', () => {
     
     render(
       <ChatProvider eventBus={mockEventBus as unknown as Parameters<typeof ChatProvider>[0]['eventBus']}>
-        <ChatMessages messages={messages} widgets={[]} />
+        <Messages messages={messages} widgets={[]} />
       </ChatProvider>
     );
     

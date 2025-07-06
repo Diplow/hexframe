@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { ChatMessages } from '../ChatMessages';
+import { Messages } from '../Messages';
 import type { Message } from '../_cache/_events/event.types';
 
 // Mock the PreviewWidget component
@@ -19,7 +19,7 @@ describe('Chat Code Styling', () => {
       },
     ];
 
-    render(<ChatMessages messages={messages} widgets={[]} />);
+    render(<Messages messages={messages} widgets={[]} />);
 
     const codeElement = screen.getByText('inline code');
     expect(codeElement.tagName).toBe('CODE');
@@ -37,7 +37,7 @@ describe('Chat Code Styling', () => {
       },
     ];
 
-    render(<ChatMessages messages={messages} widgets={[]} />);
+    render(<Messages messages={messages} widgets={[]} />);
 
     // Check for the code content
     const codeContent = screen.getByText(/const greeting = "Hello";/);
@@ -59,7 +59,7 @@ describe('Chat Code Styling', () => {
       },
     ];
 
-    render(<ChatMessages messages={messages} widgets={[]} />);
+    render(<Messages messages={messages} widgets={[]} />);
 
     const codeContent = screen.getByText('Code block content');
     const preElement = codeContent.closest('pre');
@@ -77,7 +77,7 @@ describe('Chat Code Styling', () => {
       },
     ];
 
-    render(<ChatMessages messages={messages} widgets={[]} />);
+    render(<Messages messages={messages} widgets={[]} />);
 
     const codeElement = screen.getByText('useState');
     expect(codeElement).toHaveClass('px-1', 'py-0.5', 'rounded');
@@ -93,7 +93,7 @@ describe('Chat Code Styling', () => {
       },
     ];
 
-    render(<ChatMessages messages={messages} widgets={[]} />);
+    render(<Messages messages={messages} widgets={[]} />);
 
     // Check inline code
     const inlineCode = screen.getByText('inline code');

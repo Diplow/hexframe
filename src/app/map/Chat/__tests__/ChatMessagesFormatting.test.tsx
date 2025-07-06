@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { ChatMessages } from '../ChatMessages';
+import { Messages } from '../Messages';
 import type { Message } from '../_cache/_events/event.types';
 
 // Mock the PreviewWidget component
@@ -19,7 +19,7 @@ describe('ChatMessages Formatting', () => {
       },
     ];
 
-    render(<ChatMessages messages={messages} widgets={[]} />);
+    render(<Messages messages={messages} widgets={[]} />);
 
     expect(screen.getByText('You:')).toBeInTheDocument();
     expect(screen.getByText('Hello, I need help')).toBeInTheDocument();
@@ -35,7 +35,7 @@ describe('ChatMessages Formatting', () => {
       },
     ];
 
-    render(<ChatMessages messages={messages} widgets={[]} />);
+    render(<Messages messages={messages} widgets={[]} />);
 
     expect(screen.getByText('Lucy:')).toBeInTheDocument();
     expect(screen.getByText('I can help you with that!')).toBeInTheDocument();
@@ -51,7 +51,7 @@ describe('ChatMessages Formatting', () => {
       },
     ];
 
-    render(<ChatMessages messages={messages} widgets={[]} />);
+    render(<Messages messages={messages} widgets={[]} />);
 
     expect(screen.getByText('System:')).toBeInTheDocument();
     expect(screen.getByText('Connection established')).toBeInTheDocument();
@@ -73,7 +73,7 @@ describe('ChatMessages Formatting', () => {
       },
     ];
 
-    render(<ChatMessages messages={messages} widgets={[]} />);
+    render(<Messages messages={messages} widgets={[]} />);
 
     const userNameElement = screen.getByText('You:');
     expect(userNameElement).toHaveClass('font-bold', 'text-secondary');
@@ -106,7 +106,7 @@ describe('ChatMessages Formatting', () => {
       },
     ];
 
-    const { rerender } = render(<ChatMessages messages={messages} widgets={[]} />);
+    const { rerender } = render(<Messages messages={messages} widgets={[]} />);
 
     // Add a new message
     const newMessages: Message[] = [
@@ -119,7 +119,7 @@ describe('ChatMessages Formatting', () => {
       },
     ];
 
-    rerender(<ChatMessages messages={newMessages} widgets={[]} />);
+    rerender(<Messages messages={newMessages} widgets={[]} />);
 
     // Verify scrollTop was set to scrollHeight
     expect(scrollTopSpy).toHaveBeenCalled();

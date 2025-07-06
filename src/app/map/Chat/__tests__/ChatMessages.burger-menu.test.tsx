@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { ChatMessages } from '../ChatMessages';
+import { Messages } from '../Messages';
 import type { Message } from '../_cache/_events/event.types';
 
 // Mock the dialogs
@@ -63,7 +63,7 @@ describe('ChatMessages - Burger Menu Integration', () => {
 
   it('should render preview widget with burger menu when tile data is available', () => {
     render(
-      <ChatMessages
+      <Messages
         messages={[previewMessage]}
         widgets={[{
           id: 'widget-1',
@@ -89,7 +89,7 @@ describe('ChatMessages - Burger Menu Integration', () => {
 
   it('should open update dialog when Edit is clicked', async () => {
     render(
-      <ChatMessages
+      <Messages
         messages={[previewMessage]}
         widgets={[{
           id: 'widget-1',
@@ -119,7 +119,7 @@ describe('ChatMessages - Burger Menu Integration', () => {
 
   it('should open delete dialog when Delete is clicked', async () => {
     render(
-      <ChatMessages
+      <Messages
         messages={[previewMessage]}
         widgets={[{
           id: 'widget-1',
@@ -155,7 +155,7 @@ describe('ChatMessages - Burger Menu Integration', () => {
     } as ReturnType<typeof mockUseMapCache>));
 
     render(
-      <ChatMessages
+      <Messages
         messages={[previewMessage]}
         widgets={[{
           id: 'widget-1',

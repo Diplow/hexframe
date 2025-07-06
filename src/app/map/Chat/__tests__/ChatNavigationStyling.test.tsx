@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { ChatMessages } from '../ChatMessages';
+import { Messages } from '../Messages';
 import { ChatCacheProvider } from '../_cache/ChatCacheProvider';
 import { EventBus } from '../../Services/event-bus';
 import type { Message } from '../_cache/_events/event.types';
@@ -159,7 +159,7 @@ describe('Chat Navigation Message Styling', () => {
 
     render(
       <TestWrapper>
-        <ChatMessages messages={messages} widgets={[]} />
+        <Messages messages={messages} widgets={[]} />
       </TestWrapper>
     );
 
@@ -183,7 +183,7 @@ describe('Chat Navigation Message Styling', () => {
 
     render(
       <TestWrapper>
-        <ChatMessages messages={messages} widgets={[]} />
+        <Messages messages={messages} widgets={[]} />
       </TestWrapper>
     );
 
@@ -204,7 +204,7 @@ describe('Chat Navigation Message Styling', () => {
 
     render(
       <TestWrapper>
-        <ChatMessages messages={messages} widgets={[]} />
+        <Messages messages={messages} widgets={[]} />
       </TestWrapper>
     );
 
@@ -227,7 +227,7 @@ describe('Chat Navigation Message Styling', () => {
 
     render(
       <TestWrapper>
-        <ChatMessages messages={messages} widgets={[]} />
+        <Messages messages={messages} widgets={[]} />
       </TestWrapper>
     );
 
@@ -260,7 +260,7 @@ describe('Chat Navigation Message Styling', () => {
 
     render(
       <TestWrapper>
-        <ChatMessages messages={messages} widgets={[]} />
+        <Messages messages={messages} widgets={[]} />
       </TestWrapper>
     );
 
@@ -354,7 +354,7 @@ describe('Chat Navigation Message Styling', () => {
 
     render(
       <TestWrapper>
-        <ChatMessages messages={messages} widgets={[]} />
+        <Messages messages={messages} widgets={[]} />
       </TestWrapper>
     );
 

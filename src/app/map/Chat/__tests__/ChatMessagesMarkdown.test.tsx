@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { ChatMessages } from '../ChatMessages';
+import { Messages } from '../Messages';
 import type { Message } from '../_cache/_events/event.types';
 
 // Mock the PreviewWidget component
@@ -19,7 +19,7 @@ describe('ChatMessages Markdown Rendering', () => {
       },
     ];
 
-    render(<ChatMessages messages={messages} widgets={[]} />);
+    render(<Messages messages={messages} widgets={[]} />);
 
     // Check that markdown is rendered
     const boldElement = screen.getByText('Bold text');
@@ -39,7 +39,7 @@ describe('ChatMessages Markdown Rendering', () => {
       },
     ];
 
-    render(<ChatMessages messages={messages} widgets={[]} />);
+    render(<Messages messages={messages} widgets={[]} />);
 
     const link = screen.getByRole('link', { name: 'this link' });
     expect(link).toHaveAttribute('href', 'https://example.com');
@@ -57,7 +57,7 @@ describe('ChatMessages Markdown Rendering', () => {
       },
     ];
 
-    render(<ChatMessages messages={messages} widgets={[]} />);
+    render(<Messages messages={messages} widgets={[]} />);
 
     const codeBlock = screen.getByText('const x = 42;');
     expect(codeBlock.tagName).toBe('CODE');
@@ -73,7 +73,7 @@ describe('ChatMessages Markdown Rendering', () => {
       },
     ];
 
-    render(<ChatMessages messages={messages} widgets={[]} />);
+    render(<Messages messages={messages} widgets={[]} />);
 
     expect(screen.getByText('First item')).toBeInTheDocument();
     expect(screen.getByText('Second item')).toBeInTheDocument();
@@ -90,7 +90,7 @@ describe('ChatMessages Markdown Rendering', () => {
       },
     ];
 
-    render(<ChatMessages messages={messages} widgets={[]} />);
+    render(<Messages messages={messages} widgets={[]} />);
 
     const boldElement = screen.getByText('bold');
     expect(boldElement.tagName).toBe('STRONG');
@@ -109,7 +109,7 @@ describe('ChatMessages Markdown Rendering', () => {
       },
     ];
 
-    render(<ChatMessages messages={messages} widgets={[]} />);
+    render(<Messages messages={messages} widgets={[]} />);
 
     expect(screen.getByText('Line 1')).toBeInTheDocument();
     expect(screen.getByText(/Line 2 with/)).toBeInTheDocument();

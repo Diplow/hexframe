@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
-import { ChatMessages } from '../Chat/ChatMessages';
+import { Messages } from '../Chat/Messages';
 import { ChatCacheProvider } from '../Chat/_cache/ChatCacheProvider';
 import { MapCacheProvider } from '../Cache/map-cache';
 import { AuthContext } from '~/contexts/AuthContext';
@@ -50,7 +50,7 @@ describe('Chat Navigation Integration', () => {
           mapContext={{ rootItemId: 0, userId: 0, groupId: 0 }}
         >
           <ChatCacheProvider eventBus={eventBus}>
-            <ChatMessages messages={messages} widgets={widgets} />
+            <Messages messages={messages} widgets={widgets} />
           </ChatCacheProvider>
         </MapCacheProvider>
       </AuthContext.Provider>
