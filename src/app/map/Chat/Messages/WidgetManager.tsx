@@ -206,15 +206,32 @@ function _renderPreviewWidget(widget: Widget, createWidgetHandlers: (widget: Wid
   const previewData = widget.data as TileSelectedPayload;
   const { handleEdit, handleDelete, handlePreviewSave } = createWidgetHandlers(widget);
 
+  console.log('[PreviewWidget] 📋 Rendering with data:', {
+    tileId: previewData.tileId,
+    widgetDataTitle: previewData.tileData.title,
+    totalItemsInCache: Object.keys(items).length,
+  });
+
   // Get real-time data from the map cache
-  // First, find the item by its database ID
-  const tileItem = Object.values(items).find(item => 
-    item.metadata.dbId.toString() === previewData.tileId
-  );
+  // The tileId is actually a coordinate ID, so we can look it up directly
+  const tileItem = items[previewData.tileId];
+  
+  console.log('[PreviewWidget] 🔍 Found in cache:', {
+    found: !!tileItem,
+    cacheTitle: tileItem?.data.name,
+    cacheContent: tileItem?.data.description,
+    dbId: tileItem?.metadata.dbId,
+    coordId: tileItem?.metadata.coordId,
+  });
   
   // Use real-time data if available, otherwise fall back to widget data
   const currentTitle = tileItem?.data.name ?? previewData.tileData.title;
   const currentContent = tileItem?.data.description ?? previewData.tileData.content ?? '';
+
+  console.log('[PreviewWidget] 📝 Using values:', {
+    currentTitle,
+    currentContent,
+  });
 
   return (
     <PreviewWidget
