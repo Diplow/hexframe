@@ -45,67 +45,18 @@ export function useDragAndDropWithMutation(): Omit<UseDragAndDropReturn, 'dragSt
     return parentItem ? { name: parentItem.data.name, coordId: parentCoordId } : undefined;
   };
   
-  // Create move handler that uses mapCache and dispatches chat messages
+  // Create move handler that uses mapCache
+  // Chat messages are handled by the mutation coordinator via event bus
   const handleMove = async (sourceCoordId: string, targetCoordId: string) => {
     const sourceItem = items[sourceCoordId];
     const targetItem = items[targetCoordId];
     
     if (!sourceItem) return;
     
-    // Show loading widget
-    const startEvent: ChatEvent = {
-      type: 'operation_started',
-      payload: {
-        operation: targetItem ? 'swap' : 'move',
-        tileId: sourceCoordId,
-        data: {
-          sourceName: sourceItem.data.name,
-          targetName: targetItem?.data.name
-        }
-      },
-      id: `op-start-${Date.now()}`,
-      timestamp: new Date(),
-      actor: 'system'
-    };
-    chatDispatch(startEvent);
-    
     try {
       // Use the new moveItemOptimistic from mapCache
-      const result = await moveItemOptimistic(sourceCoordId, targetCoordId);
-      
-      // Dispatch appropriate chat message
-      if (result.isSwap && targetItem) {
-        // It's a swap operation
-        const swapEvent: ChatEvent = {
-          type: 'operation_completed',
-          payload: {
-            operation: 'swap',
-            result: 'success',
-            message: `Swapped ${sourceItem.data.name} with ${targetItem.data.name}`
-          },
-          id: `op-complete-${Date.now()}`,
-          timestamp: new Date(),
-          actor: 'system'
-        };
-        chatDispatch(swapEvent);
-      } else {
-        // It's a move operation
-        const direction = getDirection(targetCoordId);
-        const parentInfo = getParentInfo(targetCoordId);
-        
-        const moveEvent: ChatEvent = {
-          type: 'operation_completed',
-          payload: {
-            operation: 'move',
-            result: 'success',
-            message: `Moved ${sourceItem.data.name}${direction ? ` to ${direction}` : ''}${parentInfo ? ` of ${parentInfo.name}` : ''}`
-          },
-          id: `op-complete-${Date.now()}`,
-          timestamp: new Date(),
-          actor: 'system'
-        };
-        chatDispatch(moveEvent);
-      }
+      // This will trigger the mutation coordinator which emits the appropriate events
+      await moveItemOptimistic(sourceCoordId, targetCoordId);
     } catch (error) {
       console.error('Failed to move/swap tiles:', error);
       

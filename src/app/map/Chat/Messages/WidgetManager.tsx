@@ -96,6 +96,15 @@ export function WidgetManager({ widgets }: WidgetManagerProps) {
     const handleDelete = () => {
       // Dispatch delete confirmation widget
       const previewData = widget.data as TileSelectedPayload;
+      console.log('[WidgetManager] 🔥 handleDelete called for:', {
+        tileId: previewData.tileId,
+        tileName: previewData.tileData.title,
+        coordId: previewData.tileData.coordId
+      });
+      
+      const deleteEventId = `delete-${Date.now()}`;
+      console.log('[WidgetManager] 📤 Dispatching operation_started event:', deleteEventId);
+      
       dispatch({
         type: 'operation_started',
         payload: {
@@ -111,7 +120,7 @@ export function WidgetManager({ widgets }: WidgetManagerProps) {
             }
           }
         },
-        id: `delete-${Date.now()}`,
+        id: deleteEventId,
         timestamp: new Date(),
         actor: 'user',
       });
@@ -266,7 +275,8 @@ function _renderDeleteWidget(widget: Widget) {
     widgetId: widget.id,
     tileCoordId, 
     tileName, 
-    rawData: deleteData 
+    rawData: deleteData,
+    timestamp: new Date().toISOString()
   });
   
   return (

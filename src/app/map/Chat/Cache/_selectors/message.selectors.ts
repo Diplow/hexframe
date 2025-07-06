@@ -57,7 +57,8 @@ export function deriveVisibleMessages(events: ChatEvent[]): Message[] {
                 const match = regex.exec(payload.message);
                 if (match?.[1]) {
                   const tileName = match[1];
-                  const navigationLink = `[**${tileName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
+                  const truncatedName = tileName.length > 25 ? tileName.slice(0, 25) + '...' : tileName;
+                  const navigationLink = `[**${truncatedName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
                   content = `Created tile ${navigationLink}`;
                 }
               } else if (payload.operation === 'delete') {
@@ -66,7 +67,8 @@ export function deriveVisibleMessages(events: ChatEvent[]): Message[] {
                 const match = regex.exec(payload.message);
                 if (match?.[1]) {
                   const tileName = match[1];
-                  const navigationLink = `[**${tileName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
+                  const truncatedName = tileName.length > 25 ? tileName.slice(0, 25) + '...' : tileName;
+                  const navigationLink = `[**${truncatedName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
                   content = `Deleted tile ${navigationLink}`;
                 }
               } else if (payload.operation === 'move') {
@@ -75,7 +77,8 @@ export function deriveVisibleMessages(events: ChatEvent[]): Message[] {
                 const match = regex.exec(payload.message);
                 if (match?.[1]) {
                   const tileName = match[1];
-                  const navigationLink = `[**${tileName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
+                  const truncatedName = tileName.length > 25 ? tileName.slice(0, 25) + '...' : tileName;
+                  const navigationLink = `[**${truncatedName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
                   content = `Moved ${navigationLink}`;
                 }
               } else if (payload.operation === 'update') {
@@ -84,7 +87,8 @@ export function deriveVisibleMessages(events: ChatEvent[]): Message[] {
                 const match = regex.exec(payload.message);
                 if (match?.[1]) {
                   const tileName = match[1];
-                  const navigationLink = `[**${tileName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
+                  const truncatedName = tileName.length > 25 ? tileName.slice(0, 25) + '...' : tileName;
+                  const navigationLink = `[**${truncatedName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
                   content = `Updated tile ${navigationLink}`;
                 }
               }
@@ -100,7 +104,9 @@ export function deriveVisibleMessages(events: ChatEvent[]): Message[] {
                 // For swap, we don't have specific tileIds for each, so just make the text bold
                 const tile1Name = match[1];
                 const tile2Name = match[2];
-                content = `Swapped **${tile1Name}** with **${tile2Name}**`;
+                const truncated1 = tile1Name.length > 25 ? tile1Name.slice(0, 25) + '...' : tile1Name;
+                const truncated2 = tile2Name.length > 25 ? tile2Name.slice(0, 25) + '...' : tile2Name;
+                content = `Swapped **${truncated1}** with **${truncated2}**`;
               }
             }
             
@@ -189,12 +195,18 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
         // Add creation widget for create operations
         if (payload.operation === 'create') {
           const widgetId = `creation-${event.id}`;
+          console.log('[Selectors] 🆕 Setting creation widget active:', widgetId);
           widgetStates.set(widgetId, 'active');
         }
         
         // Add delete widget for delete operations
         if (payload.operation === 'delete') {
           const widgetId = `delete-${event.id}`;
+          console.log('[Selectors] 🗑️ Setting delete widget active:', widgetId, {
+            eventId: event.id,
+            tileId: payload.tileId,
+            data: payload.data
+          });
           widgetStates.set(widgetId, 'active');
         }
         break;
@@ -248,6 +260,11 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
       case 'widget_resolved': {
         const payload = event.payload as { widgetId: string; action: string };
         // Mark widget as completed
+        console.log('[Selectors] ✅ Widget resolved:', {
+          widgetId: payload.widgetId,
+          action: payload.action,
+          previousState: widgetStates.get(payload.widgetId)
+        });
         widgetStates.set(payload.widgetId, 'completed');
         break;
       }
@@ -319,6 +336,11 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
         if (payload.operation === 'delete') {
           const widgetId = `delete-${event.id}`;
           if (widgetStates.get(widgetId) === 'active') {
+            console.log('[Selectors] 📦 Adding delete widget to render:', {
+              widgetId,
+              eventId: event.id,
+              data: payload.data
+            });
             widgets.push({
               id: widgetId,
               type: 'delete',
@@ -326,6 +348,8 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
               priority: 'action',
               timestamp: event.timestamp,
             });
+          } else {
+            console.log('[Selectors] ⚠️ Delete widget not active:', widgetId, widgetStates.get(widgetId));
           }
         }
         break;
@@ -335,6 +359,8 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
 
   // Return only the most recent widget of each type
   const latestWidgets = new Map<string, Widget>();
+  console.log('[Selectors] 📦 Total widgets before filtering:', widgets.length);
+  
   for (const widget of widgets) {
     const key = widget.type === 'preview' ? `${widget.type}-${(widget.data as TileSelectedPayload).tileId}` : widget.type;
     const existing = latestWidgets.get(key);
@@ -343,7 +369,15 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
     }
   }
 
-  return Array.from(latestWidgets.values()).sort((a, b) => 
+  const result = Array.from(latestWidgets.values()).sort((a, b) => 
     b.timestamp.getTime() - a.timestamp.getTime()
   );
+  
+  console.log('[Selectors] 🎯 Final active widgets:', result.map(w => ({
+    id: w.id,
+    type: w.type,
+    timestamp: w.timestamp.toISOString()
+  })));
+  
+  return result;
 }

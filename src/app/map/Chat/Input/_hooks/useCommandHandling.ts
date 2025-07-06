@@ -158,8 +158,17 @@ export function useCommandHandling() {
         const tileId = parts[1];
         const tileName = decodeURIComponent(parts[2]);
         
+        console.log('[CommandHandling] 🦭 Navigation command received:', {
+          tileId,
+          tileName,
+          fullCommand: payload.command
+        });
+        
         try {
+          console.log('[CommandHandling] 🎯 Calling navigateToItem with:', tileId);
           await navigateToItem(tileId);
+          console.log('[CommandHandling] ✅ Navigation successful');
+          
           dispatch({
             type: 'message',
             payload: {
@@ -171,6 +180,7 @@ export function useCommandHandling() {
             actor: 'system',
           });
         } catch (error) {
+          console.error('[CommandHandling] ❌ Navigation failed:', error);
           dispatch({
             type: 'message',
             payload: {

@@ -207,6 +207,11 @@ export function createMutationHandler(
 
         // Emit event for tile deletion
         if (eventBus) {
+          console.log('[MutationHandler] 📤 Emitting map.tile_deleted event:', {
+            tileId: existingItem.metadata.dbId,
+            tileName: existingItem.data.name,
+            coordId
+          });
           eventBus.emit({
             type: 'map.tile_deleted',
             source: 'map_cache',
@@ -216,6 +221,8 @@ export function createMutationHandler(
               coordId
             }
           });
+        } else {
+          console.warn('[MutationHandler] ⚠️ No eventBus available to emit tile_deleted event');
         }
 
         return { success: true, optimisticApplied: true };

@@ -77,7 +77,9 @@ export function useMapCache(): MapCacheHook {
 
   const deleteItemOptimistic = useCallback(
     async (coordId: string) => {
+      console.log('[MapCache] 🗑️ deleteItemOptimistic called with coordId:', coordId);
       await mutationOperations.deleteItem(coordId);
+      console.log('[MapCache] ✅ deleteItemOptimistic completed');
     },
     [mutationOperations],
   );

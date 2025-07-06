@@ -12,6 +12,8 @@ import {
 } from "../../constants";
 import { getTextColorForDepth } from "~/app/map/types/theme-colors";
 import { Logo } from "~/components/ui/logo";
+import { useUnifiedAuth } from "~/contexts/UnifiedAuthContext";
+import { api } from "~/commons/trpc/react";
 
 interface ParentHierarchyProps {
   centerCoordId: string;
@@ -81,6 +83,72 @@ const HierarchyTileContent = ({ item }: { item: TileData }) => {
   );
 };
 
+const UserProfileTile = () => {
+  const { user } = useUnifiedAuth();
+  const { navigateToItem } = useMapCache();
+  const trpcUtils = api.useUtils();
+  
+  const handleUserMapNavigation = async () => {
+    // Only navigate if user is logged in
+    if (!user) return;
+    
+    try {
+      // Fetch user map data when clicking on the profile tile
+      console.log('[UserProfileTile] Fetching user map data...');
+      const userMapData = await trpcUtils.map.user.getUserMap.fetch();
+      
+      if (userMapData?.success && userMapData.map?.id) {
+        console.log('[UserProfileTile] Navigating to user map:', userMapData.map.id);
+        // Navigate using the database ID
+        await navigateToItem(String(userMapData.map.id));
+      } else {
+        console.error('[UserProfileTile] No user map found');
+      }
+    } catch (error) {
+      console.error('[UserProfileTile] Failed to fetch/navigate to user map:', error);
+    }
+  };
+  
+  // Determine display name
+  const displayName = user ? (user.name || user.email.split('@')[0]) : 'Guest';
+  
+  return (
+    <button
+      onClick={handleUserMapNavigation}
+      disabled={!user}
+      aria-label={user ? `Navigate to ${displayName}'s map` : 'Guest user'}
+      className={`group relative flex-shrink-0 rounded-lg border-none bg-transparent transition-transform duration-200 ${
+        user ? 'cursor-pointer hover:scale-105 focus:scale-105' : 'cursor-default'
+      }`}
+    >
+      <div className="pointer-events-none">
+        <StaticBaseTileLayout
+          coordId="user-profile"
+          scale={2} // Scale 2 as requested
+          color="indigo" // A nice color for user profile
+          baseHexSize={HIERARCHY_TILE_BASE_SIZE}
+          isFocusable={false}
+        >
+          <div className="flex h-full w-full items-center justify-center p-2">
+            <span
+              className="text-center text-sm font-semibold leading-tight text-white"
+              style={{
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+              title={displayName}
+            >
+              {displayName}
+            </span>
+          </div>
+        </StaticBaseTileLayout>
+      </div>
+    </button>
+  );
+};
+
 export const ParentHierarchy = ({
   centerCoordId,
   items,
@@ -98,9 +166,7 @@ export const ParentHierarchy = ({
 
   return (
     <div className="h-full flex-shrink-0 flex flex-col items-center gap-2 bg-transparent px-3 py-4 overflow-y-auto">
-        <div className="transition-transform duration-200 hover:scale-105 focus:scale-105">
-          <Logo className="w-[104px] h-[120px] flex-shrink-0" />
-        </div>
+        <UserProfileTile />
         {hierarchy.length > 0 && (
           <ChevronDown size={16} className="flex-shrink-0 text-neutral-400" />
         )}
