@@ -62,7 +62,7 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
     console.log('[UserNav] 🗺️ Navigating to user map:', { mapId: map.id, userName: user?.name, userId: user?.id });
     
     try {
-      // navigateToItem now expects database IDs, which is exactly what we have
+      // navigateToItem accepts both database IDs and coordinate IDs - we're using database ID
       console.log('[UserNav] 🎯 Calling navigateToItem with database ID:', String(map.id));
       await navigateToItem(String(map.id));
     } catch (error) {
