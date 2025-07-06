@@ -8,26 +8,30 @@ import { Trash2, AlertTriangle } from 'lucide-react';
 interface ConfirmDeleteWidgetProps {
   tileId: string;
   tileName: string;
+  widgetId?: string; // Add widget ID to ensure proper resolution
 }
 
-export function ConfirmDeleteWidget({ tileId, tileName }: ConfirmDeleteWidgetProps) {
+export function ConfirmDeleteWidget({ tileId, tileName, widgetId }: ConfirmDeleteWidgetProps) {
   const { deleteItemOptimistic } = useMapCache();
   const { dispatch } = useChatCacheOperations();
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState('');
+
+  console.log('[DeleteWidget] 🗑️ Rendered with:', { tileId, tileName });
 
   const handleDelete = async () => {
     setIsDeleting(true);
     setError('');
 
     try {
+      console.log('[DeleteWidget] 🔥 Attempting to delete tile:', tileId);
       await deleteItemOptimistic(tileId);
       
       // Remove the confirmation widget and notify about deletion
       dispatch({
         type: 'widget_resolved',
         payload: {
-          widgetId: `confirm-delete-${tileId}`,
+          widgetId: widgetId ?? `confirm-delete-${tileId}`,
           action: 'confirmed'
         },
         id: `widget-resolved-${Date.now()}`,
@@ -58,7 +62,7 @@ export function ConfirmDeleteWidget({ tileId, tileName }: ConfirmDeleteWidgetPro
     dispatch({
       type: 'widget_resolved',
       payload: {
-        widgetId: `confirm-delete-${tileId}`,
+        widgetId: widgetId ?? `confirm-delete-${tileId}`,
         action: 'cancelled'
       },
       id: `widget-resolved-${Date.now()}`,

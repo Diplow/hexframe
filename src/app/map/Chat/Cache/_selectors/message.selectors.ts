@@ -49,15 +49,58 @@ export function deriveVisibleMessages(events: ChatEvent[]): Message[] {
           if (shouldShow) {
             let content = payload.message;
             
-            // Special formatting for create operations
-            if (payload.operation === 'create' && payload.tileId) {
-              // Extract tile name from message "Created tile "name""
-              const regex = /Created tile "(.+)"/;
+            // Special formatting for operations with clickable tile names
+            if (payload.tileId) {
+              if (payload.operation === 'create') {
+                // Extract tile name from message "Created tile "name""
+                const regex = /Created tile "(.+)"/;
+                const match = regex.exec(payload.message);
+                if (match?.[1]) {
+                  const tileName = match[1];
+                  const navigationLink = `[**${tileName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
+                  content = `Created tile ${navigationLink}`;
+                }
+              } else if (payload.operation === 'delete') {
+                // Extract tile name from message "Deleted tile "name""
+                const regex = /Deleted tile "(.+)"/;
+                const match = regex.exec(payload.message);
+                if (match?.[1]) {
+                  const tileName = match[1];
+                  const navigationLink = `[**${tileName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
+                  content = `Deleted tile ${navigationLink}`;
+                }
+              } else if (payload.operation === 'move') {
+                // Extract tile name from message "Moved "name""
+                const regex = /Moved "(.+)"/;
+                const match = regex.exec(payload.message);
+                if (match?.[1]) {
+                  const tileName = match[1];
+                  const navigationLink = `[**${tileName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
+                  content = `Moved ${navigationLink}`;
+                }
+              } else if (payload.operation === 'update') {
+                // Extract tile name from message "Updated tile "name""
+                const regex = /Updated tile "(.+)"/;
+                const match = regex.exec(payload.message);
+                if (match?.[1]) {
+                  const tileName = match[1];
+                  const navigationLink = `[**${tileName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
+                  content = `Updated tile ${navigationLink}`;
+                }
+              }
+              // Note: swap operations involve two tiles, handled separately below
+            }
+            
+            // Special handling for swap operations (two tiles)
+            if (payload.operation === 'swap') {
+              // Extract both tile names from message 'Swapped "name1" with "name2"'
+              const regex = /Swapped "(.+)" with "(.+)"/;
               const match = regex.exec(payload.message);
-              if (match?.[1]) {
-                const tileName = match[1];
-                const navigationLink = `[**${tileName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
-                content = `Created tile ${navigationLink}`;
+              if (match?.[1] && match?.[2]) {
+                // For swap, we don't have specific tileIds for each, so just make the text bold
+                const tile1Name = match[1];
+                const tile2Name = match[2];
+                content = `Swapped **${tile1Name}** with **${tile2Name}**`;
               }
             }
             

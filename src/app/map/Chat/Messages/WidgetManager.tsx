@@ -257,10 +257,23 @@ function _renderLoadingWidget(widget: Widget) {
 
 function _renderDeleteWidget(widget: Widget) {
   const deleteData = widget.data as { tileId?: string; tileName?: string; tile?: { id: string; title: string; coordId: string } };
+  
+  // Use coordinate ID for deletion (deleteItemOptimistic expects coordinate ID)
+  const tileCoordId = deleteData.tile?.coordId ?? deleteData.tileId ?? '';
+  const tileName = deleteData.tileName ?? deleteData.tile?.title ?? 'item';
+  
+  console.log('[WidgetManager] 🗑️ Rendering delete widget:', { 
+    widgetId: widget.id,
+    tileCoordId, 
+    tileName, 
+    rawData: deleteData 
+  });
+  
   return (
     <ConfirmDeleteWidget
-      tileId={deleteData.tileId ?? deleteData.tile?.id ?? ''}
-      tileName={deleteData.tileName ?? deleteData.tile?.title ?? 'item'}
+      tileId={tileCoordId}
+      tileName={tileName}
+      widgetId={widget.id}
     />
   );
 }
