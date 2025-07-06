@@ -101,12 +101,38 @@ export function useMapCache(): MapCacheHook {
     [dispatch],
   );
 
-  // Navigation operations
+  // Helper function to convert coordinate ID to database ID
+  const getDbIdFromCoordId = useCallback((coordId: string): string | null => {
+    const item = state.itemsById[coordId];
+    return item ? item.metadata.dbId.toString() : null;
+  }, [state.itemsById]);
+
+  // Navigation operations - now converts coordinate IDs to database IDs
   const navigateToItem = useCallback(
-    async (itemCoordId: string, options?: { pushToHistory?: boolean }) => {
-      await navigationOperations.navigateToItem(itemCoordId, options);
+    async (itemIdentifier: string, options?: { pushToHistory?: boolean }) => {
+      console.log('[MapCache] 🧭 Navigate request for identifier:', itemIdentifier);
+      
+      let dbId: string;
+      
+      // Check if it's already a database ID (pure number) or coordinate ID
+      if (/^\d+$/.test(itemIdentifier)) {
+        // It's already a database ID
+        dbId = itemIdentifier;
+        console.log('[MapCache] ✅ Using provided database ID:', dbId);
+      } else {
+        // It's a coordinate ID, convert to database ID
+        const resolvedDbId = getDbIdFromCoordId(itemIdentifier);
+        if (!resolvedDbId) {
+          console.error('[MapCache] ❌ Cannot find database ID for coordinate:', itemIdentifier);
+          throw new Error(`No item found with coordinate ID: ${itemIdentifier}`);
+        }
+        dbId = resolvedDbId;
+        console.log('[MapCache] 🔄 Converted coordinate ID to database ID:', itemIdentifier, '→', dbId);
+      }
+      
+      await navigationOperations.navigateToItem(dbId, options);
     },
-    [navigationOperations],
+    [navigationOperations, getDbIdFromCoordId],
   );
 
   const updateCenter = useCallback(

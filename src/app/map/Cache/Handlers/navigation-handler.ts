@@ -37,54 +37,34 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
   const { dispatch, getState, dataHandler, eventBus } = config;
 
   const navigateToItem = async (
-    itemIdentifier: string,
+    itemDbId: string,
     options: NavigationOptions = {},
   ): Promise<NavigationResult> => {
     const { } = options; // Options reserved for future use
     
     try {
-      console.log('[Navigation] 🎯 Starting navigation to identifier:', itemIdentifier);
+      console.log('[Navigation] 🎯 Starting navigation to database ID:', itemDbId);
       
-      // 1. Determine if this is a coordinate ID or database ID and find the item
+      // 1. Find item by database ID only
       const allItems = Object.values(getState().itemsById);
-      let existingItem;
-      let resolvedCoordId;
-      
-      // Check if it's a coordinate ID (contains comma or colon)
-      if (itemIdentifier.includes(',') || itemIdentifier.includes(':')) {
-        console.log('[Navigation] 🗺️ Identifier appears to be a coordinate ID');
-        existingItem = getState().itemsById[itemIdentifier];
-        resolvedCoordId = itemIdentifier;
-        
-        if (existingItem) {
-          console.log('[Navigation] ✅ Found item by coordinate ID:', {
-            coordId: existingItem.metadata.coordId,
-            dbId: existingItem.metadata.dbId,
-            name: existingItem.data.name
-          });
-        }
-      } else {
-        console.log('[Navigation] 🏷️ Identifier appears to be a database ID');
-        existingItem = allItems.find(item => item.metadata.dbId.toString() === itemIdentifier);
-        resolvedCoordId = existingItem?.metadata.coordId;
-        
-        if (existingItem) {
-          console.log('[Navigation] ✅ Found item by database ID:', {
-            dbId: existingItem.metadata.dbId,
-            coordId: existingItem.metadata.coordId,
-            name: existingItem.data.name
-          });
-        }
-      }
+      const existingItem = allItems.find(item => item.metadata.dbId.toString() === itemDbId);
       
       if (!existingItem) {
-        console.log('[Navigation] ❌ No item found with identifier:', itemIdentifier);
+        console.log('[Navigation] ❌ No item found with database ID:', itemDbId);
         console.log('[Navigation] 📊 Available items in cache:');
         allItems.forEach((item, index) => {
           console.log(`  ${index + 1}. dbId: "${item.metadata.dbId}" (type: ${typeof item.metadata.dbId}), coordId: "${item.metadata.coordId}", name: "${item.data.name}"`);
         });
-        console.log('[Navigation] 🔍 Looking for identifier:', itemIdentifier, '(type:', typeof itemIdentifier, ')');
+        console.log('[Navigation] 🔍 Looking for dbId:', itemDbId, '(type:', typeof itemDbId, ')');
+      } else {
+        console.log('[Navigation] ✅ Found item by database ID:', {
+          dbId: existingItem.metadata.dbId,
+          coordId: existingItem.metadata.coordId,
+          name: existingItem.data.name
+        });
       }
+      
+      const resolvedCoordId = existingItem?.metadata.coordId;
       
       // 2. If item not found in cache, try to load it
       if (!existingItem) {
@@ -101,7 +81,7 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
             source: 'map_cache',
             payload: {
               fromCenterId: getState().currentCenter ?? '',
-              toCenterId: itemIdentifier,
+              toCenterId: itemDbId,
               toCenterName: 'Loading...'
             }
           });
@@ -143,7 +123,7 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
         }
         
         // Check if the expanded item is a descendant of the new center
-        const isDescendant = CoordSystem.isDescendant(expandedCoordId, resolvedCoordId);
+        const isDescendant = CoordSystem.isDescendant(expandedCoordId, resolvedCoordId!);
           
         if (isDescendant) {
           // It's a descendant - check generation distance
@@ -154,7 +134,7 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
         }
         
         // Check if the new center is a descendant of the expanded item
-        const isAncestor = CoordSystem.isAncestor(expandedCoordId, resolvedCoordId);
+        const isAncestor = CoordSystem.isAncestor(expandedCoordId, resolvedCoordId!);
           
         if (isAncestor) {
           // The expanded item is an ancestor of the new center - keep ALL ancestors expanded
@@ -225,20 +205,20 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
         }
         
         // Emit navigation event after attempting to load item data
-        emitNavigationEvent(previousCenter, itemCoordId);
+        emitNavigationEvent(previousCenter, resolvedCoordId!);
       }
       
       // 5. Load additional region data if needed (in background)
-      if (!getState().regionMetadata[itemCoordId]) {
-        dataHandler.prefetchRegion(itemCoordId).catch(error => {
+      if (!getState().regionMetadata[resolvedCoordId!]) {
+        dataHandler.prefetchRegion(resolvedCoordId!).catch(error => {
           console.error('[NAV] Background region load failed:', error);
         });
       }
       
       // 6. Check if ancestors need to be loaded
-      const centerItem = getState().itemsById[itemCoordId];
+      const centerItem = getState().itemsById[resolvedCoordId!];
       if (centerItem && centerItem.metadata.coordinates.path.length > 0) {
-        const { hasAllAncestors } = checkAncestors(itemCoordId, getState().itemsById);
+        const { hasAllAncestors } = checkAncestors(resolvedCoordId!, getState().itemsById);
         
         // Load ancestors if missing
         if (!hasAllAncestors && centerItem.metadata.dbId && config.serverService) {
