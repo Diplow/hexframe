@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { MapPageContent } from '../_components/MapPageContent';
 import { MapCacheProvider } from '../Cache/map-cache';
 // ChatProvider has been removed in favor of event-driven architecture
-import { ChatCacheProvider } from '../Chat/_cache/ChatCacheProvider';
+import { ChatCacheProvider } from '../Chat/Cache/ChatCacheProvider';
 import { EventBus } from '../Services/event-bus';
 import React from 'react';
 

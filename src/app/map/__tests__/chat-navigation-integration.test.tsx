@@ -2,12 +2,12 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
 import { Messages } from '../Chat/Messages';
-import { ChatCacheProvider } from '../Chat/_cache/ChatCacheProvider';
+import { ChatCacheProvider } from '../Chat/Cache/ChatCacheProvider';
 import { MapCacheProvider } from '../Cache/map-cache';
 import { AuthContext } from '~/contexts/AuthContext';
 import { EventBus } from '../Services/event-bus';
-import type { Widget } from '../Chat/_cache/types';
-import type { Message } from '../Chat/_cache/_events/event.types';
+import type { Widget } from '../Chat/Cache/types';
+import type { Message } from '../Chat/Cache/_events/event.types';
 
 // Mock the navigation hook
 const mockNavigateToItem = vi.fn();

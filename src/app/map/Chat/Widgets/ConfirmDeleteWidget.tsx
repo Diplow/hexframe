@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useMapCache } from '../../Cache/_hooks/use-map-cache';
-import { useChatCacheOperations } from '../_cache/hooks/useChatCacheOperations';
+import { useChatCacheOperations } from '../Cache/hooks/useChatCacheOperations';
 import { Trash2, AlertTriangle } from 'lucide-react';
 
 interface ConfirmDeleteWidgetProps {

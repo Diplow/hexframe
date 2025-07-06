@@ -3,8 +3,8 @@ import { renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 // import MapPage from '../page';
 import { MapCacheProvider, useMapCache } from '../Cache/map-cache';
-import { ChatCacheProvider } from '../Chat/_cache/ChatCacheProvider';
-import { useChatCache } from '../Chat/_cache/ChatCacheProvider';
+import { ChatCacheProvider } from '../Chat/Cache/ChatCacheProvider';
+import { useChatCache } from '../Chat/Cache/ChatCacheProvider';
 import { EventBus } from '../Services/event-bus';
 
 const mockEventBus = new EventBus();

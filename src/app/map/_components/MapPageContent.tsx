@@ -10,7 +10,7 @@ import { MapContent } from "./MapContent";
 import { ChatPanel } from "../Chat/ChatPanel";
 import { OfflineIndicator } from "./offline-indicator";
 import { useTileSelectForChat } from "../hooks/useTileSelectForChat";
-import { useChatCacheOperations } from "../Chat/_cache/hooks/useChatCacheOperations";
+import { useChatCacheOperations } from "../Chat/Cache/hooks/useChatCacheOperations";
 import { useMapCache } from "../Cache/map-cache";
 import { useRouter } from "next/navigation";
 import { MapLoadingSkeleton } from "../Canvas/LifeCycle/loading-skeleton";

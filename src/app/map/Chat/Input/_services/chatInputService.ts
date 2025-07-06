@@ -1,4 +1,4 @@
-import { useChatCacheOperations } from '../../_cache/hooks/useChatCacheOperations';
+import { useChatCacheOperations } from '../../Cache/hooks/useChatCacheOperations';
 
 export function useChatInputService() {
   const { dispatch } = useChatCacheOperations();

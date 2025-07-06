@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Messages } from '../Messages';
-import type { Message } from '../_cache/_events/event.types';
+import type { Message } from '../Cache/_events/event.types';
 
 // Mock the PreviewWidget component
 vi.mock('../Widgets/PreviewWidget', () => ({

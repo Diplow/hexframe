@@ -1,11 +1,11 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { Messages } from '../Chat/Messages';
-import { ChatCacheProvider } from '../Chat/_cache/ChatCacheProvider';
+import { ChatCacheProvider } from '../Chat/Cache/ChatCacheProvider';
 import { AuthContext } from '~/contexts/AuthContext';
 import { EventBus } from '../Services/event-bus';
 // import type { Widget } from '../Chat/_cache/types';
-import type { Message } from '../Chat/_cache/_events/event.types';
+import type { Message } from '../Chat/Cache/_events/event.types';
 
 describe('Chat Date Tooltip', () => {
   const mockAuthValue = {

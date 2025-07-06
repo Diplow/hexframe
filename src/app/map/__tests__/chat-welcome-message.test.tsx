@@ -1,10 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import React from 'react';
-import { ChatCacheProvider } from '../Chat/_cache/ChatCacheProvider';
+import { ChatCacheProvider } from '../Chat/Cache/ChatCacheProvider';
 import { Messages } from '../Chat/Messages';
 import { EventBus } from '../Services/event-bus';
-import type { ChatEvent } from '../Chat/_cache/_events/event.types';
+import type { ChatEvent } from '../Chat/Cache/_events/event.types';
 
 // Mock the required dependencies for ChatMessages
 vi.mock('../Cache/_hooks/use-map-cache', () => ({

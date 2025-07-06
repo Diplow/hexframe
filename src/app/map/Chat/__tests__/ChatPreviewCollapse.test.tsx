@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import { ChatProvider } from '../ChatProvider';
 import { ChatPanel } from '../ChatPanel';
-import { useChatCache } from '../_cache/ChatCacheProvider';
+import { useChatCache } from '../Cache/ChatCacheProvider';
 import { EventBus } from '../../Services/event-bus';
 import type { ReactNode } from 'react';
 

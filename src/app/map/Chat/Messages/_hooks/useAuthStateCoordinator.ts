@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useAuth } from '~/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { api } from '~/commons/trpc/react';
-import type { Widget } from '../../_cache/types';
+import type { Widget } from '../../Cache/types';
 import { useChatEventDispatcher } from './useChatEventDispatcher';
 
 export function useAuthStateCoordinator(widgets: Widget[]) {

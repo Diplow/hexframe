@@ -13,7 +13,7 @@ vi.mock('../_cache/ChatCacheProvider', async () => {
   };
 });
 
-import { useChatCache } from '../_cache/ChatCacheProvider';
+import { useChatCache } from '../Cache/ChatCacheProvider';
 
 const mockUseChatCache = vi.mocked(useChatCache);
 

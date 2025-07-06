@@ -1,10 +1,10 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ChatPanel } from '../Chat/ChatPanel';
-import { ChatCacheProvider } from '../Chat/_cache/ChatCacheProvider';
+import { ChatCacheProvider } from '../Chat/Cache/ChatCacheProvider';
 import { AuthContext } from '~/contexts/AuthContext';
 import { EventBus } from '../Services/event-bus';
-import type { ChatEvent } from '../Chat/_cache/_events/event.types';
+import type { ChatEvent } from '../Chat/Cache/_events/event.types';
 
 // Mock authClient
 const mockAuthClient = {
@@ -100,7 +100,7 @@ describe('Chat Logout Clear', () => {
     ];
 
     // Test the reducer directly
-    const { eventsReducer } = await import('../Chat/_cache/_reducers/events.reducer');
+    const { eventsReducer } = await import('../Chat/Cache/_reducers/events.reducer');
     
     const clearEvent: ChatEvent = {
       id: 'clear-1',
@@ -129,7 +129,7 @@ describe('Chat Logout Clear', () => {
     ];
 
     // Test the reducer directly
-    const { eventsReducer } = await import('../Chat/_cache/_reducers/events.reducer');
+    const { eventsReducer } = await import('../Chat/Cache/_reducers/events.reducer');
     
     const clearEvent: ChatEvent = {
       id: 'clear-1',

@@ -1,10 +1,10 @@
 import { useAuth } from "~/contexts/AuthContext";
 import { useMapCache } from "../../Cache/_hooks/use-map-cache";
 import { useDragAndDrop } from "./useDragAndDrop";
-import { useChatCacheOperations } from "../../Chat/_cache/hooks/useChatCacheOperations";
+import { useChatCacheOperations } from "../../Chat/Cache/hooks/useChatCacheOperations";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import type { UseDragAndDropReturn } from "./types";
-import type { ChatEvent } from "../../Chat/_cache/types";
+import type { ChatEvent } from "../../Chat/Cache/types";
 
 /**
  * Hook that combines drag and drop functionality with tRPC mutation

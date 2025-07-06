@@ -4,7 +4,7 @@ import { use, useEffect, useState, useMemo } from "react";
 import { MapCacheProvider } from "./Cache/map-cache";
 import { useMapIdResolution } from "./_hooks/use-map-id-resolution";
 import { MapLoadingSkeleton } from "./Canvas/LifeCycle/loading-skeleton";
-import { ChatCacheProvider } from "./Chat/_cache/ChatCacheProvider";
+import { ChatCacheProvider } from "./Chat/Cache/ChatCacheProvider";
 import { MapPageContent } from "./_components/MapPageContent";
 import { EventBus } from "./Services/event-bus";
 

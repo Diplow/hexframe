@@ -4,7 +4,7 @@ import remarkBreaks from 'remark-breaks';
 import { useAuth } from '~/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { api } from '~/commons/trpc/react';
-import type { Message } from '../_cache/_events/event.types';
+import type { Message } from '../Cache/_events/event.types';
 import { useChatEventDispatcher } from './_hooks/useChatEventDispatcher';
 
 interface MessageActorRendererProps {

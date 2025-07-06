@@ -1,7 +1,7 @@
 'use client';
 
-import type { Widget } from '../_cache/types';
-import type { Message } from '../_cache/_events/event.types';
+import type { Widget } from '../Cache/types';
+import type { Message } from '../Cache/_events/event.types';
 import { useChatSettings } from '../_settings/useChatSettings';
 import { useAuthStateCoordinator } from './_hooks/useAuthStateCoordinator';
 import { MessageTimeline } from './MessageTimeline';

@@ -1,9 +1,9 @@
 import { vi } from 'vitest';
 import React from 'react';
 import { render } from '@testing-library/react';
-import { ChatCacheProvider } from '../_cache/ChatCacheProvider';
+import { ChatCacheProvider } from '../Cache/ChatCacheProvider';
 import { EventBus } from '../../Services/event-bus';
-import type { ChatEvent } from '../_cache/_events/event.types';
+import type { ChatEvent } from '../Cache/_events/event.types';
 
 // Mock all the required dependencies for Chat components
 export function setupChatMocks() {

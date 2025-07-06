@@ -1,2 +1,2 @@
 // Re-export ChatCacheProvider as ChatProvider for backward compatibility
-export { ChatCacheProvider as ChatProvider } from './_cache/ChatCacheProvider';
+export { ChatCacheProvider as ChatProvider } from './Cache/ChatCacheProvider';

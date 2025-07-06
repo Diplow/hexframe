@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Messages } from '../Messages';
-import { ChatCacheProvider } from '../_cache/ChatCacheProvider';
+import { ChatCacheProvider } from '../Cache/ChatCacheProvider';
 import { EventBus } from '../../Services/event-bus';
-import type { Message, Widget } from '../_cache/_events/event.types';
+import type { Message, Widget } from '../Cache/_events/event.types';
 
 interface MockPreviewWidgetProps {
   title: string;

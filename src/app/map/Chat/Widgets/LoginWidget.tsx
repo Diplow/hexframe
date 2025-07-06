@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { authClient } from '~/lib/auth/auth-client';
 import { api } from '~/commons/trpc/react';
-import { useChatCacheOperations } from '../_cache/hooks/useChatCacheOperations';
+import { useChatCacheOperations } from '../Cache/hooks/useChatCacheOperations';
 import { LogIn, Mail, Key, AlertCircle, UserPlus, Loader2, User } from 'lucide-react';
 
 interface LoginWidgetProps {

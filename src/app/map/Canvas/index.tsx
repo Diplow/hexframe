@@ -18,7 +18,7 @@ import { MapLoadingSkeleton } from "./LifeCycle/loading-skeleton";
 import { MapErrorBoundary } from "./LifeCycle/error-boundary";
 import { useDragAndDropWithMutation } from "./hooks/useDragAndDropWithMutation";
 import type { DragEvent } from "react";
-import { useChatCacheOperations } from "../Chat/_cache/hooks/useChatCacheOperations";
+import { useChatCacheOperations } from "../Chat/Cache/hooks/useChatCacheOperations";
 
 // Theme Context for tiles
 export interface ThemeContextValue {

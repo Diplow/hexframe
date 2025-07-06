@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send } from 'lucide-react';
 import { Button } from '~/components/ui/button';
-import { useChatCacheOperations } from '../_cache/hooks/useChatCacheOperations';
+import { useChatCacheOperations } from '../Cache/hooks/useChatCacheOperations';
 import { useCommandHandling } from './_hooks/useCommandHandling';
 import { useInputHistory } from './_hooks/useInputHistory';
 import { useTextareaController } from './_hooks/useTextareaController';

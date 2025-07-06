@@ -6,8 +6,8 @@ import { EventBus } from '../Services/event-bus';
 import type { AppEvent } from '../types/events';
 
 // These imports will fail initially - that's expected for TDD
-import { ChatCacheProvider } from '../Chat/_cache/ChatCacheProvider';
-import { useChatCacheOperations } from '../Chat/_cache/hooks/useChatCacheOperations';
+import { ChatCacheProvider } from '../Chat/Cache/ChatCacheProvider';
+import { useChatCacheOperations } from '../Chat/Cache/hooks/useChatCacheOperations';
 import { ChatPanel } from '../Chat/ChatPanel';
 // import { Canvas } from '../Canvas';
 

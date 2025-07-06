@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Messages } from '../Messages';
-import { ChatCacheProvider } from '../_cache/ChatCacheProvider';
+import { ChatCacheProvider } from '../Cache/ChatCacheProvider';
 import { EventBus } from '../../Services/event-bus';
-import type { Message } from '../_cache/_events/event.types';
+import type { Message } from '../Cache/_events/event.types';
 import type { ReactNode } from 'react';
 
 // Mock all dependencies

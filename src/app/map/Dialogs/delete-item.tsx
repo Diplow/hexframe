@@ -10,7 +10,7 @@ import {
 } from "~/components/ui/dialog";
 import type { TileData } from "../types/tile-data";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
-import { useChatCacheOperations } from "../Chat/_cache/hooks/useChatCacheOperations";
+import { useChatCacheOperations } from "../Chat/Cache/hooks/useChatCacheOperations";
 
 interface DynamicDeleteItemDialogProps {
   isOpen: boolean;

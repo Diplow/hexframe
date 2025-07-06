@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useChatCacheOperations } from '../Chat/_cache/hooks/useChatCacheOperations';
+import { useChatCacheOperations } from '../Chat/Cache/hooks/useChatCacheOperations';
 import { useMapCache } from '../Cache/_hooks/use-map-cache';
 import type { TileData } from '../types/tile-data';
 

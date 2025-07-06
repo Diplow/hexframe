@@ -1,8 +1,8 @@
 'use client';
 
 import { cn } from '~/lib/utils';
-import { useChatCache } from './_cache/ChatCacheProvider';
-import { useChatCacheOperations } from './_cache/hooks/useChatCacheOperations';
+import { useChatCache } from './Cache/ChatCacheProvider';
+import { useChatCacheOperations } from './Cache/hooks/useChatCacheOperations';
 import { Messages } from './Messages';
 import { Input } from './Input';
 import { ThemeToggle } from '~/components/ThemeToggle';

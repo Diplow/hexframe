@@ -9,7 +9,7 @@ import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import { getColor } from "../../types/tile-data";
 import { getDefaultStroke } from "../utils/stroke";
 import { useTileInteraction } from "../../hooks/useTileInteraction";
-import { useChatCacheOperations } from "../../Chat/_cache/hooks/useChatCacheOperations";
+import { useChatCacheOperations } from "../../Chat/Cache/hooks/useChatCacheOperations";
 
 interface DynamicEmptyTileProps {
   coordId: string;
