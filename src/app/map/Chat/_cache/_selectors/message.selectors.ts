@@ -152,7 +152,6 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
       }
 
       case 'error_occurred': {
-        const payload = event.payload as ErrorOccurredPayload;
         // Add error widget
         const widgetId = `error-${event.id}`;
         widgetStates.set(widgetId, 'active');

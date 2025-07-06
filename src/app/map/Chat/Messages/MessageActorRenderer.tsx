@@ -45,12 +45,12 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
     }
   };
 
-  const _navigateToUserMap = (map: { id: string; name?: string }) => {
+  const _navigateToUserMap = (map: { id: number; name?: string }) => {
     const mapUrl = `/map?center=${map.id}`;
     console.log('Navigating to user map:', { mapId: map.id, mapUrl, userName: user?.name });
     router.push(mapUrl);
     
-    dispatchNavigation(map.id, map.name ?? user?.name ?? 'Your Map');
+    dispatchNavigation(String(map.id), map.name ?? user?.name ?? 'Your Map');
     dispatchMessage(`Navigating to ${map.name ?? user?.name ?? 'your'} map...`);
   };
 
@@ -78,17 +78,17 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
   };
 
   const createMarkdownComponents = () => ({
-    p: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+    p: ({ children, ..._props }: { children?: React.ReactNode } & React.HTMLAttributes<HTMLElement>) => <>{children}</>,
     br: () => <br />,
-    ul: ({ children }: { children: React.ReactNode }) => <ul className="list-disc list-inside mb-1">{children}</ul>,
-    ol: ({ children }: { children: React.ReactNode }) => <ol className="list-decimal list-inside mb-1">{children}</ol>,
-    li: ({ children }: { children: React.ReactNode }) => <li className="ml-2">{children}</li>,
-    strong: ({ children }: { children: React.ReactNode }) => (
+    ul: ({ children, ..._props }: { children?: React.ReactNode } & React.HTMLAttributes<HTMLElement>) => <ul className="list-disc list-inside mb-1">{children}</ul>,
+    ol: ({ children, ..._props }: { children?: React.ReactNode } & React.HTMLAttributes<HTMLElement>) => <ol className="list-decimal list-inside mb-1">{children}</ol>,
+    li: ({ children, ..._props }: { children?: React.ReactNode } & React.LiHTMLAttributes<HTMLLIElement>) => <li className="ml-2" {..._props}>{children}</li>,
+    strong: ({ children, ..._props }: { children?: React.ReactNode } & React.HTMLAttributes<HTMLElement>) => (
       <strong className={`font-semibold ${message.actor === 'system' ? 'text-muted-foreground' : 'text-foreground'}`}>
         {children}
       </strong>
     ),
-    a: ({ href, children }: { href?: string; children: React.ReactNode }) => {
+    a: ({ href, children, ..._props }: { href?: string; children?: React.ReactNode } & React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
       if (href?.startsWith('command:')) {
         return _renderCommandLink(href, children);
       }
@@ -98,19 +98,19 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
         </a>
       );
     },
-    code: ({ className, children, ...props }: { className?: string; children: React.ReactNode; [key: string]: unknown }) => {
+    code: ({ className, children, ..._props }: { className?: string; children?: React.ReactNode } & React.HTMLAttributes<HTMLElement>) => {
       const isInline = !className;
       const mutedStyle = message.actor === 'system' 
         ? 'bg-neutral-300 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-400' 
         : 'bg-neutral-400 dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100';
       
       return isInline ? (
-        <code className={`${mutedStyle} px-1 py-0.5 rounded`} {...props}>
+        <code className={`${mutedStyle} px-1 py-0.5 rounded`} {..._props}>
           {children}
         </code>
       ) : (
         <pre className={`${mutedStyle} p-4 rounded-lg overflow-x-auto my-2`}>
-          <code className={className} {...props}>
+          <code className={className} {..._props}>
             {children}
           </code>
         </pre>

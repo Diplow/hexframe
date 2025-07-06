@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { MapPageContent } from '../_components/MapPageContent';
 import { MapCacheProvider } from '../Cache/map-cache';
 // ChatProvider has been removed in favor of event-driven architecture
 import { ChatCacheProvider } from '../Chat/_cache/ChatCacheProvider';
 import { EventBus } from '../Services/event-bus';
-import type { TileData } from '../types/tile-data';
+// import type { TileData } from '../types/tile-data';
 import React from 'react';
 
 // Mock the hooks
@@ -67,7 +67,7 @@ describe('Chat-Map Integration', () => {
 
   it('should open chat panel when select tool is active and tile clicked', async () => {
     const eventBus = new EventBus();
-    const { container } = render(
+    render(
       <MapCacheProvider
         initialItems={{}}
         initialCenter="1,2:A1"

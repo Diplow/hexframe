@@ -58,6 +58,7 @@ describe('Layout with Chat Panel', () => {
   };
 
   it('should render canvas, hierarchy, and chat in correct order', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { container } = render(
       <MapCacheProvider
         initialItems={{}}
@@ -110,6 +111,7 @@ describe('Layout with Chat Panel', () => {
   });
 
   it('should maintain minimum width for canvas (400px)', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { container } = render(
       <MapCacheProvider
         initialItems={{}}
@@ -131,6 +133,7 @@ describe('Layout with Chat Panel', () => {
   });
 
   it('should keep hierarchy at fixed width', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { container } = render(
       <MapCacheProvider
         initialItems={{}}

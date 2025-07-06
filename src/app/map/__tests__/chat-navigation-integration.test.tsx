@@ -28,13 +28,12 @@ describe('Chat Navigation Integration', () => {
   const renderWithProviders = (
     messages: Message[], 
     widgets: Widget[] = [],
-    user: { id: string; name?: string; email?: string } | null = null
+    user: { id: string; name?: string; email: string } | null = null
   ) => {
     const authValue = {
       user,
       mappingUserId: user ? 123 : undefined,
       isLoading: false,
-      error: null,
       setMappingUserId: vi.fn(),
     };
 
@@ -65,7 +64,7 @@ describe('Chat Navigation Integration', () => {
       timestamp: new Date(),
     }];
 
-    renderWithProviders(messages, [], { id: '123', name: 'John Doe' });
+    renderWithProviders(messages, [], { id: '123', name: 'John Doe', email: 'john@example.com' });
 
     const youButton = screen.getByRole('button', { name: /You:/ });
     expect(youButton).toBeInTheDocument();
@@ -106,7 +105,7 @@ describe('Chat Navigation Integration', () => {
       timestamp: new Date(),
     }];
 
-    renderWithProviders(messages, [], { id: '123', name: 'John Doe' });
+    renderWithProviders(messages, [], { id: '123', name: 'John Doe', email: 'john@example.com' });
 
     const youButton = screen.getByRole('button', { name: /You:/ });
     fireEvent.click(youButton);

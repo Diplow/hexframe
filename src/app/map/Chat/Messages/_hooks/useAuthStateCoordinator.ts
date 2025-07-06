@@ -33,10 +33,11 @@ export function useAuthStateCoordinator(widgets: Widget[]) {
         await _createUserMap();
       }
     }).catch(console.error);
-  }, [user, widgets, dispatchWidgetResolved, trpcUtils, router, createMapMutation, dispatchMessage, dispatchError]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, widgets, dispatchWidgetResolved]);
 
 
-  const _handleExistingMap = (map: { id: string; name?: string }) => {
+  const _handleExistingMap = (map: { id: number; name?: string }) => {
     const returnUrl = sessionStorage.getItem('auth-return-url');
     sessionStorage.removeItem('auth-return-url');
     

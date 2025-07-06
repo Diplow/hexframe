@@ -23,12 +23,11 @@ describe('Chat Logout Clear', () => {
     vi.clearAllMocks();
   });
 
-  const renderWithProviders = (user: { id: string; name?: string; email?: string } | null = null, initialEvents: ChatEvent[] = []) => {
+  const renderWithProviders = (user: { id: string; name?: string; email: string } | null = null, initialEvents: ChatEvent[] = []) => {
     const authValue = {
       user,
       mappingUserId: user ? 123 : undefined,
       isLoading: false,
-      error: null,
       setMappingUserId: vi.fn(),
     };
 
@@ -67,7 +66,7 @@ describe('Chat Logout Clear', () => {
       },
     ];
 
-    renderWithProviders({ name: 'John Doe' }, initialEvents);
+    renderWithProviders({ id: '123', name: 'John Doe', email: 'john@example.com' }, initialEvents);
 
     // Find and click the logout button
     const logoutButton = screen.getByLabelText('Logout');

@@ -22,8 +22,8 @@ const getTextClasses = (depth = 0) => `break-words ${getTextColorForDepth(depth)
 export const DynamicTileContent = ({ 
   data, 
   scale, 
-  tileId, 
-  isHovered = false, 
+  tileId: _tileId, 
+  isHovered: _isHovered = false, 
   depth = 0,
   isSelected = false 
 }: DynamicTileContentProps) => {

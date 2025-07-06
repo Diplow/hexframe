@@ -142,8 +142,10 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
     .map(widget => {
       // Clean up internal properties
       const extWidget = widget as Widget & { _removed?: boolean };
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { _removed, ...cleanWidget } = extWidget;
       if (cleanWidget.data && typeof cleanWidget.data === 'object' && '_widgetId' in cleanWidget.data) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { _widgetId, ...cleanData } = cleanWidget.data as { _widgetId?: string };
         return { ...cleanWidget, data: cleanData };
       }

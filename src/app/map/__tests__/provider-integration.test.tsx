@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, renderHook } from '@testing-library/react';
+import { renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import MapPage from '../page';
+// import MapPage from '../page';
 import { MapCacheProvider, useMapCache } from '../Cache/map-cache';
-import { ChatProvider } from '../Chat/ChatProvider';
+import { ChatCacheProvider } from '../Chat/_cache/ChatCacheProvider';
 import { useChatCache } from '../Chat/_cache/ChatCacheProvider';
 import { EventBus } from '../Services/event-bus';
 
@@ -86,6 +86,7 @@ describe('Provider Integration', () => {
   });
 
   it('should allow ChatPanel to read MapCache data', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const TestComponent = () => {
       const { items } = useMapCache();
       const { state } = useChatCache();
@@ -102,7 +103,7 @@ describe('Provider Integration', () => {
       <MapCacheProvider
         initialItems={{ '1,2:A1': { 
           metadata: { 
-            dbId: 1, 
+            dbId: '1', 
             coordId: '1,2:A1',
             ownerId: '1',
             coordinates: { userId: 1, groupId: 2, path: [] },
@@ -127,9 +128,9 @@ describe('Provider Integration', () => {
         offlineMode={false}
         mapContext={{ rootItemId: 1, userId: 1, groupId: 2 }}
       >
-        <ChatProvider eventBus={mockEventBus}>
+        <ChatCacheProvider eventBus={mockEventBus}>
           {children}
-        </ChatProvider>
+        </ChatCacheProvider>
       </MapCacheProvider>
     );
 
@@ -156,9 +157,9 @@ describe('Provider Integration', () => {
         offlineMode={false}
         mapContext={{ rootItemId: 1, userId: 1, groupId: 2 }}
       >
-        <ChatProvider eventBus={mockEventBus}>
+        <ChatCacheProvider eventBus={mockEventBus}>
           {children}
-        </ChatProvider>
+        </ChatCacheProvider>
       </MapCacheProvider>
     );
 
@@ -187,9 +188,9 @@ describe('Provider Integration', () => {
         offlineMode={false}
         mapContext={{ rootItemId: 1, userId: 1, groupId: 2 }}
       >
-        <ChatProvider eventBus={mockEventBus}>
+        <ChatCacheProvider eventBus={mockEventBus}>
           {children}
-        </ChatProvider>
+        </ChatCacheProvider>
       </MapCacheProvider>
     );
 
@@ -227,9 +228,9 @@ describe('Provider Integration', () => {
         offlineMode={false}
         mapContext={{ rootItemId: 1, userId: 1, groupId: 2 }}
       >
-        <ChatProvider eventBus={mockEventBus}>
+        <ChatCacheProvider eventBus={mockEventBus}>
           {children}
-        </ChatProvider>
+        </ChatCacheProvider>
       </MapCacheProvider>
     );
 

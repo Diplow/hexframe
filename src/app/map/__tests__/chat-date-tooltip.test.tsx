@@ -4,7 +4,7 @@ import { Messages } from '../Chat/Messages';
 import { ChatCacheProvider } from '../Chat/_cache/ChatCacheProvider';
 import { AuthContext } from '~/contexts/AuthContext';
 import { EventBus } from '../Services/event-bus';
-import type { Widget } from '../Chat/_cache/types';
+// import type { Widget } from '../Chat/_cache/types';
 import type { Message } from '../Chat/_cache/_events/event.types';
 
 describe('Chat Date Tooltip', () => {

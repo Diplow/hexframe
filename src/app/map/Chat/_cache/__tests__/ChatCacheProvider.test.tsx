@@ -51,7 +51,7 @@ function TestComponent() {
 
 describe('ChatCacheProvider', () => {
   it('should provide initial empty state', () => {
-    const eventBus = createMockEventBus() as EventBus;
+    const eventBus = createMockEventBus() as unknown as EventBus;
     
     render(
       <ChatCacheProvider eventBus={eventBus}>
@@ -65,7 +65,7 @@ describe('ChatCacheProvider', () => {
   });
   
   it('should add events and derive messages', async () => {
-    const eventBus = createMockEventBus() as EventBus;
+    const eventBus = createMockEventBus() as unknown as EventBus;
     const user = userEvent.setup();
     
     render(
@@ -82,7 +82,7 @@ describe('ChatCacheProvider', () => {
   });
   
   it('should clear all events', async () => {
-    const eventBus = createMockEventBus() as EventBus;
+    const eventBus = createMockEventBus() as unknown as EventBus;
     const user = userEvent.setup();
     
     render(
@@ -102,7 +102,7 @@ describe('ChatCacheProvider', () => {
   });
   
   it.skip('should remove specific event', async () => {
-    const eventBus = createMockEventBus() as EventBus;
+    const eventBus = createMockEventBus() as unknown as EventBus;
     const user = userEvent.setup();
     
     render(
@@ -121,7 +121,7 @@ describe('ChatCacheProvider', () => {
   });
   
   it('should handle initial events', () => {
-    const eventBus = createMockEventBus() as EventBus;
+    const eventBus = createMockEventBus() as unknown as EventBus;
     const initialEvents: ChatEvent[] = [
       {
         id: '1',
@@ -144,7 +144,7 @@ describe('ChatCacheProvider', () => {
   });
   
   it('should derive widgets from events', () => {
-    const eventBus = createMockEventBus() as EventBus;
+    const eventBus = createMockEventBus() as unknown as EventBus;
     const initialEvents: ChatEvent[] = [
       {
         id: '1',
@@ -169,7 +169,7 @@ describe('ChatCacheProvider', () => {
   });
   
   it('should listen to map events from eventBus', () => {
-    const eventBus = createMockEventBus() as EventBus;
+    const eventBus = createMockEventBus() as unknown as EventBus;
     
     render(
       <ChatCacheProvider eventBus={eventBus}>
@@ -196,7 +196,7 @@ describe('ChatCacheProvider', () => {
   });
   
   it('should handle multiple map event types', () => {
-    const eventBus = createMockEventBus() as EventBus;
+    const eventBus = createMockEventBus() as unknown as EventBus;
     
     render(
       <ChatCacheProvider eventBus={eventBus}>
@@ -232,7 +232,7 @@ describe('ChatCacheProvider', () => {
   });
   
   it('should unsubscribe from eventBus on unmount', () => {
-    const eventBus = createMockEventBus() as EventBus;
+    const eventBus = createMockEventBus() as unknown as EventBus;
     const unsubscribeSpy = vi.fn();
     const onSpy = vi.spyOn(eventBus, 'on').mockReturnValue(unsubscribeSpy);
     
