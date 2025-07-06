@@ -6,6 +6,7 @@ import { useMapIdResolution } from "./_hooks/use-map-id-resolution";
 import { ChatCacheProvider } from "./Chat/Cache/ChatCacheProvider";
 import { MapPageContent } from "./_components/MapPageContent";
 import { EventBus } from "./Services/event-bus";
+import { loadPreFetchedData, clearPreFetchedData } from "./Cache/Services/pre-fetch-service";
 
 interface MapPageProps {
   searchParams: Promise<{
@@ -40,8 +41,20 @@ export default function MapPage({ searchParams }: MapPageProps) {
   // Prevent SSR/hydration issues
   const [mounted, setMounted] = useState(false);
   
+  // Check for pre-fetched data
+  const [preFetchedData, setPreFetchedData] = useState<ReturnType<typeof loadPreFetchedData>>(null);
+  
   useEffect(() => {
     setMounted(true);
+    
+    // Check for pre-fetched map data
+    const preFetched = loadPreFetchedData();
+    if (preFetched) {
+      console.log('[MapPage] Found pre-fetched data, using for initial cache');
+      setPreFetchedData(preFetched);
+      // Clear pre-fetched data after using it to avoid stale data issues
+      clearPreFetchedData();
+    }
   }, []);
   
   // Handle missing center
@@ -208,11 +221,21 @@ export default function MapPage({ searchParams }: MapPageProps) {
   }
 
   // Success case - we have all the data
+  // Use pre-fetched data if available, otherwise start with empty cache
+  const initialItems = preFetchedData?.initialItems ?? {};
+  const effectiveCenter = preFetchedData?.centerCoordinate ?? centerCoordinate;
+  
+  console.log('[MapPage] Initializing cache with:', {
+    hasPreFetchedData: !!preFetchedData,
+    itemCount: Object.keys(initialItems).length,
+    center: effectiveCenter,
+  });
+  
   return (
     <div className="relative flex h-full w-full">
       <MapCacheProvider
-        initialItems={{}} // Start with empty items - cache will load from server
-        initialCenter={centerCoordinate} // Now always a proper coordinate!
+        initialItems={initialItems} // Use pre-fetched data or empty cache
+        initialCenter={effectiveCenter} // Use pre-fetched center or resolved coordinate
         initialExpandedItems={params.expandedItems?.split(",") ?? []}
         cacheConfig={CACHE_CONFIG}
         offlineMode={isOffline}
