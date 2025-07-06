@@ -111,7 +111,7 @@ if (typeof window !== "undefined") {
     try {
       Object.defineProperty(navigator, 'clipboard', {
         value: {
-          writeText: async (text: string) => {
+          writeText: async (_text: string) => {
             return Promise.resolve();
           },
           readText: async () => {
@@ -121,7 +121,7 @@ if (typeof window !== "undefined") {
         writable: true,
         configurable: true,
       });
-    } catch (error) {
+    } catch (_error) {
       // Ignore errors if clipboard is already defined
     }
   }

@@ -21,10 +21,10 @@ export function useTileInteraction({
   tileData,
   coordId,
   type,
-  onNavigate,
-  onExpand,
-  onEdit,
-  onDelete,
+  onNavigate: _onNavigate,
+  onExpand: _onExpand,
+  onEdit: _onEdit,
+  onDelete: _onDelete,
   onCreate,
   canEdit = false,
 }: TileInteractionProps) {
@@ -45,7 +45,7 @@ export function useTileInteraction({
     if (tileData) {
       onTileClick(tileData, e);
     }
-  }, [canEdit, onCreate, onTileClick, tileData, type, coordId]);
+  }, [canEdit, onCreate, onTileClick, tileData, type]);
 
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
