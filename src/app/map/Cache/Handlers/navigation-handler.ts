@@ -204,13 +204,24 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
     if (!eventBus || fromCenter === toCoordId) return;
     
     const targetItem = getState().itemsById[toCoordId];
+    const tileName = targetItem?.data.name ?? 'Untitled';
+    
+    console.log('[Navigation] 📡 Emitting navigation event:', {
+      fromCenter,
+      toCoordId,
+      targetItemExists: !!targetItem,
+      tileName,
+      tileDbId: targetItem?.metadata.dbId,
+      allItemKeys: Object.keys(getState().itemsById),
+    });
+    
     eventBus.emit({
       type: 'map.navigation',
       source: 'map_cache',
       payload: {
         fromCenterId: fromCenter ?? '',
         toCenterId: targetItem?.metadata.dbId ?? '',
-        toCenterName: targetItem?.data.name ?? 'Untitled'
+        toCenterName: tileName
       }
     });
   };

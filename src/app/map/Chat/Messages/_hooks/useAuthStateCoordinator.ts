@@ -34,48 +34,65 @@ export function useAuthStateCoordinator(widgets: Widget[]) {
 
   const _handleUserMapNavigation = async () => {
     try {
+      console.log('[Auth] 🚀 Starting user map navigation for user:', user?.id);
+      
       // Get user map info first
       const result = await trpcUtils.map.user.getUserMap.fetch();
+      console.log('[Auth] 📍 getUserMap result:', result);
       
       if (result?.success && result.map?.id) {
+        console.log('[Auth] ✅ Found user map, ID:', result.map.id, 'Name:', result.map.name);
+        
         // Pre-fetch all map data before navigation
         if (user?.id) {
+          console.log('[Auth] 🔄 Starting pre-fetch for user ID:', user.id);
           const preFetchedData = await preloadUserMapData(parseInt(user.id), 0, trpcUtils);
           if (preFetchedData) {
             // Save pre-fetched data for MapCacheProvider to use
             savePreFetchedData(preFetchedData);
-            console.log('[Auth] Pre-fetched user map data successfully');
+            console.log('[Auth] ✅ Pre-fetched user map data successfully');
+          } else {
+            console.log('[Auth] ❌ Pre-fetch returned null');
           }
         }
         
         // Navigate to user map
+        console.log('[Auth] 🧭 Navigating to user map...');
         _handleExistingMap(result.map);
       } else if (!result?.success) {
+        console.log('[Auth] 🆕 No user map found, creating new map');
         await _createUserMap();
       }
     } catch (error) {
-      console.error('[Auth] Failed to handle user map navigation:', error);
+      console.error('[Auth] ❌ Failed to handle user map navigation:', error);
       // Fallback to basic navigation
       try {
+        console.log('[Auth] 🔄 Attempting fallback navigation...');
         const result = await trpcUtils.map.user.getUserMap.fetch();
         if (result?.success && result.map?.id) {
+          console.log('[Auth] ✅ Fallback found map, navigating...');
           _handleExistingMap(result.map);
         }
       } catch (fallbackError) {
-        console.error('[Auth] Fallback navigation also failed:', fallbackError);
+        console.error('[Auth] ❌ Fallback navigation also failed:', fallbackError);
       }
     }
   };
 
   const _handleExistingMap = (map: { id: number; name?: string }) => {
+    console.log('[Auth] 🗺️ Handling existing map navigation:', { mapId: map.id, mapName: map.name });
+    
     const returnUrl = sessionStorage.getItem('auth-return-url');
     sessionStorage.removeItem('auth-return-url');
     
     if (returnUrl?.includes('/map')) {
+      console.log('[Auth] 🔄 Using return URL:', returnUrl);
       window.location.href = returnUrl;
     } else {
+      const newUrl = `/map?center=${map.id}`;
+      console.log('[Auth] 🧭 Navigating to new URL:', newUrl);
       // Use router.replace instead of router.push to avoid adding to history
-      router.replace(`/map?center=${map.id}`);
+      router.replace(newUrl);
     }
   };
 

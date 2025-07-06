@@ -106,13 +106,19 @@ export function transformApiItemsToTileData(
  */
 export function savePreFetchedData(data: PreFetchedMapData): void {
   try {
-    sessionStorage.setItem('hexframe:prefetched-map-data', JSON.stringify({
+    const dataToSave = {
       ...data,
       timestamp: Date.now(),
-    }));
-    console.log('[PreFetch] Saved data to sessionStorage');
+    };
+    sessionStorage.setItem('hexframe:prefetched-map-data', JSON.stringify(dataToSave));
+    console.log('[PreFetch] ✅ Saved data to sessionStorage:', {
+      itemCount: Object.keys(data.initialItems).length,
+      centerCoordinate: data.centerCoordinate,
+      mapName: data.mapInfo.name,
+      sampleTileNames: Object.values(data.initialItems).slice(0, 3).map(tile => tile.data.name),
+    });
   } catch (error) {
-    console.warn('[PreFetch] Failed to save to sessionStorage:', error);
+    console.error('[PreFetch] ❌ Failed to save to sessionStorage:', error);
   }
 }
 
@@ -121,13 +127,20 @@ export function savePreFetchedData(data: PreFetchedMapData): void {
  */
 export function loadPreFetchedData(): PreFetchedMapData | null {
   try {
+    console.log('[PreFetch] 🔍 Checking sessionStorage for pre-fetched data...');
     const stored = sessionStorage.getItem('hexframe:prefetched-map-data');
-    if (!stored) return null;
+    if (!stored) {
+      console.log('[PreFetch] ❌ No pre-fetched data found in sessionStorage');
+      return null;
+    }
 
     const parsed: unknown = JSON.parse(stored);
     
     // Type guard to ensure parsed is the expected structure
-    if (typeof parsed !== 'object' || parsed === null) return null;
+    if (typeof parsed !== 'object' || parsed === null) {
+      console.log('[PreFetch] ❌ Invalid data structure in sessionStorage');
+      return null;
+    }
     
     const parsedData = parsed as { timestamp?: number; [key: string]: unknown };
     
@@ -135,16 +148,23 @@ export function loadPreFetchedData(): PreFetchedMapData | null {
     const age = Date.now() - (parsedData.timestamp ?? 0);
     if (age > 5 * 60 * 1000) {
       sessionStorage.removeItem('hexframe:prefetched-map-data');
-      console.log('[PreFetch] Cleared stale data from sessionStorage');
+      console.log('[PreFetch] ⏰ Cleared stale data from sessionStorage (age:', age, 'ms)');
       return null;
     }
 
     // Remove timestamp before returning
     const { timestamp: _timestamp, ...data } = parsedData;
-    console.log('[PreFetch] Loaded data from sessionStorage');
-    return data as unknown as PreFetchedMapData;
+    const typedData = data as unknown as PreFetchedMapData;
+    console.log('[PreFetch] ✅ Loaded pre-fetched data from sessionStorage:', {
+      itemCount: Object.keys(typedData.initialItems || {}).length,
+      centerCoordinate: typedData.centerCoordinate,
+      mapName: typedData.mapInfo?.name,
+      age: age + 'ms',
+      sampleTileNames: Object.values(typedData.initialItems || {}).slice(0, 3).map(tile => tile.data?.name),
+    });
+    return typedData;
   } catch (error) {
-    console.warn('[PreFetch] Failed to load from sessionStorage:', error);
+    console.error('[PreFetch] ❌ Failed to load from sessionStorage:', error);
     return null;
   }
 }
@@ -155,8 +175,8 @@ export function loadPreFetchedData(): PreFetchedMapData | null {
 export function clearPreFetchedData(): void {
   try {
     sessionStorage.removeItem('hexframe:prefetched-map-data');
-    console.log('[PreFetch] Cleared pre-fetched data');
+    console.log('[PreFetch] 🗑️ Cleared pre-fetched data from sessionStorage');
   } catch (error) {
-    console.warn('[PreFetch] Failed to clear sessionStorage:', error);
+    console.error('[PreFetch] ❌ Failed to clear sessionStorage:', error);
   }
 }

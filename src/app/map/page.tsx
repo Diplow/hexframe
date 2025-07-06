@@ -45,15 +45,18 @@ export default function MapPage({ searchParams }: MapPageProps) {
   const [preFetchedData, setPreFetchedData] = useState<ReturnType<typeof loadPreFetchedData>>(null);
   
   useEffect(() => {
+    console.log('[MapPage] 🏗️ Map page mounting...');
     setMounted(true);
     
     // Check for pre-fetched map data
     const preFetched = loadPreFetchedData();
     if (preFetched) {
-      console.log('[MapPage] Found pre-fetched data, using for initial cache');
+      console.log('[MapPage] ✅ Found pre-fetched data, using for initial cache');
       setPreFetchedData(preFetched);
       // Clear pre-fetched data after using it to avoid stale data issues
       clearPreFetchedData();
+    } else {
+      console.log('[MapPage] ❌ No pre-fetched data found, will use empty cache');
     }
   }, []);
   
@@ -225,10 +228,13 @@ export default function MapPage({ searchParams }: MapPageProps) {
   const initialItems = preFetchedData?.initialItems ?? {};
   const effectiveCenter = preFetchedData?.centerCoordinate ?? centerCoordinate;
   
-  console.log('[MapPage] Initializing cache with:', {
+  console.log('[MapPage] 🎯 Initializing cache with:', {
     hasPreFetchedData: !!preFetchedData,
     itemCount: Object.keys(initialItems).length,
     center: effectiveCenter,
+    urlCenter: centerCoordinate,
+    preFetchedCenter: preFetchedData?.centerCoordinate,
+    sampleTileNames: Object.values(initialItems).slice(0, 3).map(tile => tile.data?.name),
   });
   
   return (
