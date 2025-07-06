@@ -151,54 +151,45 @@ if (typeof window !== "undefined") {
 afterEach(() => {
   cleanup();
   
-  // Ensure DOM containers are clean for next test
-  if (typeof document !== 'undefined') {
-    // Remove any leftover test containers
-    const testContainers = document.querySelectorAll('[data-testid], #test-container');
-    testContainers.forEach(container => {
-      if (container.parentNode) {
-        container.parentNode.removeChild(container);
-      }
-    });
+  // More aggressive DOM cleanup for test isolation
+  if (typeof document !== 'undefined' && document.body) {
+    // Clear the entire body and start fresh
+    document.body.innerHTML = '';
     
-    // Ensure body is reset to a clean state
-    if (document.body) {
-      while (document.body.firstChild) {
-        document.body.removeChild(document.body.firstChild);
-      }
-      
-      // Re-add the root element for next test
-      const root = document.createElement('div');
-      root.id = 'root';
-      document.body.appendChild(root);
-    }
+    // Re-create the essential containers
+    const root = document.createElement('div');
+    root.id = 'root';
+    document.body.appendChild(root);
+    
+    // Ensure test containers exist
+    const testContainer = document.createElement('div');
+    testContainer.id = 'test-container';
+    document.body.appendChild(testContainer);
   }
 });
 
 // Add a global beforeEach to ensure DOM is ready
 beforeEach(() => {
   // Ensure document.body exists before each test
-  if (typeof document !== 'undefined' && !document.body) {
-    const body = document.createElement('body');
-    if (document.documentElement) {
-      document.documentElement.appendChild(body);
+  if (typeof document !== 'undefined') {
+    if (!document.body) {
+      const body = document.createElement('body');
+      if (document.documentElement) {
+        document.documentElement.appendChild(body);
+      }
     }
-  }
-  
-  // Create a div#root element if it doesn't exist (some tests might expect it)
-  if (typeof document !== 'undefined' && document.body && !document.getElementById('root')) {
-    const root = document.createElement('div');
-    root.id = 'root';
-    document.body.appendChild(root);
-  }
-  
-  // Ensure we have a valid container for createRoot
-  if (typeof document !== 'undefined' && document.body) {
-    const testContainer = document.getElementById('test-container');
-    if (!testContainer) {
-      const container = document.createElement('div');
-      container.id = 'test-container';
-      document.body.appendChild(container);
+    
+    // Always ensure we have essential containers
+    if (!document.getElementById('root')) {
+      const root = document.createElement('div');
+      root.id = 'root';
+      document.body.appendChild(root);
+    }
+    
+    if (!document.getElementById('test-container')) {
+      const testContainer = document.createElement('div');
+      testContainer.id = 'test-container';
+      document.body.appendChild(testContainer);
     }
   }
 });
