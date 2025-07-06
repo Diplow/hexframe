@@ -4,7 +4,7 @@ import { cn } from '~/lib/utils';
 import { useChatCache } from './_cache/ChatCacheProvider';
 import { useChatCacheOperations } from './_cache/hooks/useChatCacheOperations';
 import { Messages } from './Messages';
-import { ChatInput } from './ChatInput';
+import { Input } from './Input';
 import { ThemeToggle } from '~/components/ThemeToggle';
 import { Logo } from '~/components/ui/logo';
 import { Button } from '~/components/ui/button';
@@ -24,7 +24,7 @@ export function ChatPanel({ className }: ChatPanelProps) {
     <div data-testid="chat-panel" className={cn('flex flex-col h-full bg-center-depth-0', className)}>
       <ChatHeader />
       <Messages messages={visibleMessages} widgets={activeWidgets} />
-      <ChatInput />
+      <Input />
     </div>
   );
 }

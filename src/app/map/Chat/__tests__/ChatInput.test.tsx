@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ChatInput } from '../ChatInput';
+import { Input } from '../Input';
 import { ChatProvider } from '../ChatProvider';
 import type { ReactNode } from 'react';
 
@@ -15,11 +15,11 @@ function TestWrapper({ children }: { children: ReactNode }) {
   return <ChatProvider eventBus={mockEventBus as unknown as Parameters<typeof ChatProvider>[0]['eventBus']}>{children}</ChatProvider>;
 }
 
-describe('ChatInput', () => {
+describe('Input', () => {
   it('should render input field and send button', () => {
     render(
       <TestWrapper>
-        <ChatInput />
+        <Input />
       </TestWrapper>
     );
     
@@ -30,7 +30,7 @@ describe('ChatInput', () => {
   it('should disable send button when input is empty', () => {
     render(
       <TestWrapper>
-        <ChatInput />
+        <Input />
       </TestWrapper>
     );
     
@@ -43,7 +43,7 @@ describe('ChatInput', () => {
     
     render(
       <TestWrapper>
-        <ChatInput />
+        <Input />
       </TestWrapper>
     );
     
@@ -60,7 +60,7 @@ describe('ChatInput', () => {
     
     render(
       <TestWrapper>
-        <ChatInput />
+        <Input />
       </TestWrapper>
     );
     
@@ -80,7 +80,7 @@ describe('ChatInput', () => {
     
     render(
       <TestWrapper>
-        <ChatInput />
+        <Input />
       </TestWrapper>
     );
     
@@ -98,7 +98,7 @@ describe('ChatInput', () => {
     
     render(
       <TestWrapper>
-        <ChatInput />
+        <Input />
       </TestWrapper>
     );
     
@@ -116,7 +116,7 @@ describe('ChatInput', () => {
     
     render(
       <TestWrapper>
-        <ChatInput />
+        <Input />
       </TestWrapper>
     );
     
