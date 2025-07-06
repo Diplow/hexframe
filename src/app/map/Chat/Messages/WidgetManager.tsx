@@ -1,5 +1,6 @@
 import type { Widget } from '../Cache/types';
 import type { TileSelectedPayload, AuthRequiredPayload, ErrorOccurredPayload } from '../Cache/_events/event.types';
+import type { TileData } from '../../types/tile-data';
 import { PreviewWidget } from '../Widgets/PreviewWidget';
 import { CreationWidget } from '../Widgets/CreationWidget';
 import { LoginWidget } from '../Widgets/LoginWidget';
@@ -14,7 +15,7 @@ interface WidgetManagerProps {
 }
 
 export function WidgetManager({ widgets }: WidgetManagerProps) {
-  const { createItemOptimistic, updateItemOptimistic } = useMapCache();
+  const { createItemOptimistic, updateItemOptimistic, items } = useMapCache();
   const { dispatch } = useChatCacheOperations();
 
   const createWidgetHandlers = (widget: Widget) => {
@@ -169,17 +170,17 @@ export function WidgetManager({ widgets }: WidgetManagerProps) {
     <>
       {widgets.map((widget) => (
         <div key={widget.id} className="w-full">
-          {renderWidget(widget, createWidgetHandlers)}
+          {renderWidget(widget, createWidgetHandlers, items)}
         </div>
       ))}
     </>
   );
 }
 
-function renderWidget(widget: Widget, createWidgetHandlers: (widget: Widget) => any) {
+function renderWidget(widget: Widget, createWidgetHandlers: (widget: Widget) => any, items: Record<string, TileData>) {
   switch (widget.type) {
     case 'preview':
-      return _renderPreviewWidget(widget, createWidgetHandlers);
+      return _renderPreviewWidget(widget, createWidgetHandlers, items);
     
     case 'login':
       return _renderLoginWidget(widget);
@@ -201,15 +202,25 @@ function renderWidget(widget: Widget, createWidgetHandlers: (widget: Widget) => 
   }
 }
 
-function _renderPreviewWidget(widget: Widget, createWidgetHandlers: (widget: Widget) => any) {
+function _renderPreviewWidget(widget: Widget, createWidgetHandlers: (widget: Widget) => any, items: Record<string, TileData>) {
   const previewData = widget.data as TileSelectedPayload;
   const { handleEdit, handleDelete, handlePreviewSave } = createWidgetHandlers(widget);
+
+  // Get real-time data from the map cache
+  // First, find the item by its database ID
+  const tileItem = Object.values(items).find(item => 
+    item.metadata.dbId.toString() === previewData.tileId
+  );
+  
+  // Use real-time data if available, otherwise fall back to widget data
+  const currentTitle = tileItem?.data.name ?? previewData.tileData.title;
+  const currentContent = tileItem?.data.description ?? previewData.tileData.content ?? '';
 
   return (
     <PreviewWidget
       tileId={previewData.tileId}
-      title={previewData.tileData.title}
-      content={previewData.tileData.content ?? ''}
+      title={currentTitle}
+      content={currentContent}
       onEdit={handleEdit}
       onDelete={handleDelete}
       onSave={handlePreviewSave}

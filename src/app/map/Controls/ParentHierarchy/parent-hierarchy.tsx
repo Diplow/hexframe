@@ -11,9 +11,9 @@ import {
   HIERARCHY_TILE_SCALE,
 } from "../../constants";
 import { getTextColorForDepth } from "~/app/map/types/theme-colors";
-import { Logo } from "~/components/ui/logo";
-import { useUnifiedAuth } from "~/contexts/UnifiedAuthContext";
+import { useAuth } from "~/contexts/AuthContext";
 import { api } from "~/commons/trpc/react";
+import { Logo } from "~/components/ui/logo";
 
 interface ParentHierarchyProps {
   centerCoordId: string;
@@ -30,9 +30,6 @@ interface DynamicHierarchyTileProps {
 
 const DynamicHierarchyTile = ({
   item,
-  _hierarchy,
-  _itemIndex,
-  _urlInfo,
 }: DynamicHierarchyTileProps) => {
   const { navigateToItem } = useMapCache();
 
@@ -84,7 +81,7 @@ const HierarchyTileContent = ({ item }: { item: TileData }) => {
 };
 
 const UserProfileTile = () => {
-  const { user } = useUnifiedAuth();
+  const { user } = useAuth();
   const { navigateToItem } = useMapCache();
   const trpcUtils = api.useUtils();
   
@@ -110,7 +107,7 @@ const UserProfileTile = () => {
   };
   
   // Determine display name
-  const displayName = user ? (user.name || user.email.split('@')[0]) : 'Guest';
+  const displayName = user ? (user.name ?? user.email.split('@')[0]) : 'Guest';
   
   return (
     <button
@@ -121,29 +118,20 @@ const UserProfileTile = () => {
         user ? 'cursor-pointer hover:scale-105 focus:scale-105' : 'cursor-default'
       }`}
     >
-      <div className="pointer-events-none">
-        <StaticBaseTileLayout
-          coordId="user-profile"
-          scale={2} // Scale 2 as requested
-          color="indigo" // A nice color for user profile
-          baseHexSize={HIERARCHY_TILE_BASE_SIZE}
-          isFocusable={false}
+      <div className="relative flex items-center justify-center">
+        <Logo className="w-[97px] h-[112px] flex-shrink-0 scale-110" />
+        <span
+          className="absolute text-center text-xs font-semibold text-white"
+          style={{
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+          }}
+          title={displayName}
         >
-          <div className="flex h-full w-full items-center justify-center p-2">
-            <span
-              className="text-center text-sm font-semibold leading-tight text-white"
-              style={{
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-              }}
-              title={displayName}
-            >
-              {displayName}
-            </span>
-          </div>
-        </StaticBaseTileLayout>
+          {displayName}
+        </span>
       </div>
     </button>
   );
@@ -165,7 +153,7 @@ export const ParentHierarchy = ({
   const hierarchy = _getParentHierarchy(effectiveCenter, effectiveItems);
 
   return (
-    <div className="h-full flex-shrink-0 flex flex-col items-center gap-2 bg-transparent px-3 py-4 overflow-y-auto">
+    <div className="h-full flex-shrink-0 flex flex-col items-center gap-2 bg-transparent p-4 overflow-y-auto">
         <UserProfileTile />
         {hierarchy.length > 0 && (
           <ChevronDown size={16} className="flex-shrink-0 text-neutral-400" />
