@@ -2,6 +2,7 @@ import type { CacheAction, CacheState } from "../State/types";
 import { cacheActions } from "../State/actions";
 import type { DataOperations } from "./types";
 import { MapItemType } from "~/lib/domains/mapping/_objects/map-item";
+import type { EventBusService } from "~/app/map/types/events";
 
 // Note: Server mutations are NOT handled through the server service
 // They should use tRPC mutation hooks directly for proper client-side patterns
@@ -12,6 +13,7 @@ export interface MutationHandlerConfig {
   services: MutationHandlerServices;
   getState: () => CacheState;
   dataHandler: DataOperations;
+  eventBus?: EventBusService;
 }
 
 export interface MutationResult {
@@ -41,7 +43,7 @@ export interface MutationOperations {
 export function createMutationHandler(
   config: MutationHandlerConfig,
 ): MutationOperations {
-  const { dispatch, getState, dataHandler } = config;
+  const { dispatch, getState, dataHandler, eventBus } = config;
 
   // Track optimistic changes
   const pendingChanges = new Map<string, OptimisticChange>();
@@ -78,6 +80,20 @@ export function createMutationHandler(
         };
 
         dispatch(cacheActions.loadRegion([optimisticItem] as Parameters<typeof cacheActions.loadRegion>[0], coordId, 1));
+
+        // Emit event for tile creation
+        if (eventBus) {
+          eventBus.emit({
+            type: 'map.tile_created',
+            source: 'map_cache',
+            payload: {
+              tileId: optimisticItem.id,
+              tileName: optimisticItem.name,
+              coordId,
+              tileData: data
+            }
+          });
+        }
 
         return { success: true, optimisticApplied: true };
       }
@@ -135,6 +151,20 @@ export function createMutationHandler(
         
         dispatch(cacheActions.loadRegion([updatedItem], coordId, 1));
 
+        // Emit event for tile update
+        if (eventBus) {
+          eventBus.emit({
+            type: 'map.tile_updated',
+            source: 'map_cache',
+            payload: {
+              tileId: existingItem.metadata.dbId,
+              tileName: updatedItem.name,
+              coordId,
+              updates: data
+            }
+          });
+        }
+
         return { success: true, optimisticApplied: true };
       }
 
@@ -174,6 +204,19 @@ export function createMutationHandler(
 
         // Optimistically remove by invalidating the region
         dataHandler.invalidateRegion(coordId);
+
+        // Emit event for tile deletion
+        if (eventBus) {
+          eventBus.emit({
+            type: 'map.tile_deleted',
+            source: 'map_cache',
+            payload: {
+              tileId: existingItem.metadata.dbId,
+              tileName: existingItem.data.name,
+              coordId
+            }
+          });
+        }
 
         return { success: true, optimisticApplied: true };
       }
@@ -262,12 +305,14 @@ export function createMutationHandlerForCache(
   dispatch: React.Dispatch<CacheAction>,
   getState: () => CacheState,
   dataHandler: DataOperations,
+  eventBus?: EventBusService,
 ): MutationOperations {
   return createMutationHandler({
     dispatch,
     services: {}, // No services needed for cache-only coordination
     getState,
     dataHandler,
+    eventBus,
   });
 }
 

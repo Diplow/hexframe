@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ChatMessages } from '../ChatMessages';
-import type { ChatMessage } from '../types';
+import type { Message } from '../_cache/_events/event.types';
 
 // Mock the PreviewWidget component
 vi.mock('../Widgets/PreviewWidget', () => ({
@@ -10,16 +10,16 @@ vi.mock('../Widgets/PreviewWidget', () => ({
 
 describe('ChatMessages Markdown Rendering', () => {
   it('should render user messages as markdown', () => {
-    const messages: ChatMessage[] = [
+    const messages: Message[] = [
       {
         id: '1',
-        type: 'user',
+        actor: 'user' as const,
         content: '**Bold text** and *italic text*',
-        metadata: { timestamp: new Date() },
+        timestamp: new Date(),
       },
     ];
 
-    render(<ChatMessages messages={messages} expandedPreviewId={null} />);
+    render(<ChatMessages messages={messages} widgets={[]} />);
 
     // Check that markdown is rendered
     const boldElement = screen.getByText('Bold text');
@@ -30,16 +30,16 @@ describe('ChatMessages Markdown Rendering', () => {
   });
 
   it('should render markdown links with security attributes', () => {
-    const messages: ChatMessage[] = [
+    const messages: Message[] = [
       {
         id: '1',
-        type: 'user',
+        actor: 'user' as const,
         content: 'Check out [this link](https://example.com)',
-        metadata: { timestamp: new Date() },
+        timestamp: new Date(),
       },
     ];
 
-    render(<ChatMessages messages={messages} expandedPreviewId={null} />);
+    render(<ChatMessages messages={messages} widgets={[]} />);
 
     const link = screen.getByRole('link', { name: 'this link' });
     expect(link).toHaveAttribute('href', 'https://example.com');
@@ -48,32 +48,32 @@ describe('ChatMessages Markdown Rendering', () => {
   });
 
   it('should render code blocks in user messages', () => {
-    const messages: ChatMessage[] = [
+    const messages: Message[] = [
       {
         id: '1',
-        type: 'user',
+        actor: 'user' as const,
         content: 'Here is some code:\n```javascript\nconst x = 42;\n```',
-        metadata: { timestamp: new Date() },
+        timestamp: new Date(),
       },
     ];
 
-    render(<ChatMessages messages={messages} expandedPreviewId={null} />);
+    render(<ChatMessages messages={messages} widgets={[]} />);
 
     const codeBlock = screen.getByText('const x = 42;');
     expect(codeBlock.tagName).toBe('CODE');
   });
 
   it('should render lists in user messages', () => {
-    const messages: ChatMessage[] = [
+    const messages: Message[] = [
       {
         id: '1',
-        type: 'user',
+        actor: 'user' as const,
         content: '- First item\n- Second item\n- Third item',
-        metadata: { timestamp: new Date() },
+        timestamp: new Date(),
       },
     ];
 
-    render(<ChatMessages messages={messages} expandedPreviewId={null} />);
+    render(<ChatMessages messages={messages} widgets={[]} />);
 
     expect(screen.getByText('First item')).toBeInTheDocument();
     expect(screen.getByText('Second item')).toBeInTheDocument();
@@ -81,16 +81,16 @@ describe('ChatMessages Markdown Rendering', () => {
   });
 
   it('should render assistant messages as markdown too', () => {
-    const messages: ChatMessage[] = [
+    const messages: Message[] = [
       {
         id: '1',
-        type: 'assistant',
+        actor: 'assistant' as const,
         content: 'Here is a **bold** response with a [link](https://example.com)',
-        metadata: { timestamp: new Date() },
+        timestamp: new Date(),
       },
     ];
 
-    render(<ChatMessages messages={messages} expandedPreviewId={null} />);
+    render(<ChatMessages messages={messages} widgets={[]} />);
 
     const boldElement = screen.getByText('bold');
     expect(boldElement.tagName).toBe('STRONG');
@@ -100,16 +100,16 @@ describe('ChatMessages Markdown Rendering', () => {
   });
 
   it('should handle multi-line messages correctly', () => {
-    const messages: ChatMessage[] = [
+    const messages: Message[] = [
       {
         id: '1',
-        type: 'user',
+        actor: 'user' as const,
         content: 'Line 1\n\nLine 2 with **emphasis**\n\nLine 3',
-        metadata: { timestamp: new Date() },
+        timestamp: new Date(),
       },
     ];
 
-    render(<ChatMessages messages={messages} expandedPreviewId={null} />);
+    render(<ChatMessages messages={messages} widgets={[]} />);
 
     expect(screen.getByText('Line 1')).toBeInTheDocument();
     expect(screen.getByText(/Line 2 with/)).toBeInTheDocument();

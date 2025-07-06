@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ChatMessages } from '../ChatMessages';
-import type { ChatMessage } from '../types';
+import type { Message } from '../_cache/_events/event.types';
 
 // Mock the PreviewWidget component
 vi.mock('../Widgets/PreviewWidget', () => ({
@@ -10,16 +10,16 @@ vi.mock('../Widgets/PreviewWidget', () => ({
 
 describe('Chat Code Styling', () => {
   it('should apply neutral-400 background and dark text to inline code', () => {
-    const messages: ChatMessage[] = [
+    const messages: Message[] = [
       {
         id: '1',
-        type: 'user',
+        actor: 'user',
         content: 'Here is some `inline code` in the message',
-        metadata: { timestamp: new Date() },
+        timestamp: new Date(),
       },
     ];
 
-    render(<ChatMessages messages={messages} expandedPreviewId={null} />);
+    render(<ChatMessages messages={messages} widgets={[]} />);
 
     const codeElement = screen.getByText('inline code');
     expect(codeElement.tagName).toBe('CODE');
@@ -28,16 +28,16 @@ describe('Chat Code Styling', () => {
   });
 
   it('should apply neutral-400 background and dark text to code blocks', () => {
-    const messages: ChatMessage[] = [
+    const messages: Message[] = [
       {
         id: '1',
-        type: 'user',
+        actor: 'user',
         content: '```javascript\nconst greeting = "Hello";\nconsole.log(greeting);\n```',
-        metadata: { timestamp: new Date() },
+        timestamp: new Date(),
       },
     ];
 
-    render(<ChatMessages messages={messages} expandedPreviewId={null} />);
+    render(<ChatMessages messages={messages} widgets={[]} />);
 
     // Check for the code content
     const codeContent = screen.getByText(/const greeting = "Hello";/);
@@ -50,16 +50,16 @@ describe('Chat Code Styling', () => {
   });
 
   it('should have proper padding and rounding for code blocks', () => {
-    const messages: ChatMessage[] = [
+    const messages: Message[] = [
       {
         id: '1',
-        type: 'user',
+        actor: 'user',
         content: '```\nCode block content\n```',
-        metadata: { timestamp: new Date() },
+        timestamp: new Date(),
       },
     ];
 
-    render(<ChatMessages messages={messages} expandedPreviewId={null} />);
+    render(<ChatMessages messages={messages} widgets={[]} />);
 
     const codeContent = screen.getByText('Code block content');
     const preElement = codeContent.closest('pre');
@@ -68,32 +68,32 @@ describe('Chat Code Styling', () => {
   });
 
   it('should apply styling to inline code with proper padding', () => {
-    const messages: ChatMessage[] = [
+    const messages: Message[] = [
       {
         id: '1',
-        type: 'assistant',
+        actor: 'assistant',
         content: 'Use the `useState` hook for state management',
-        metadata: { timestamp: new Date() },
+        timestamp: new Date(),
       },
     ];
 
-    render(<ChatMessages messages={messages} expandedPreviewId={null} />);
+    render(<ChatMessages messages={messages} widgets={[]} />);
 
     const codeElement = screen.getByText('useState');
     expect(codeElement).toHaveClass('px-1', 'py-0.5', 'rounded');
   });
 
   it('should handle mixed content with code properly', () => {
-    const messages: ChatMessage[] = [
+    const messages: Message[] = [
       {
         id: '1',
-        type: 'user',
+        actor: 'user',
         content: 'Regular text with `inline code` and a code block:\n\n```python\ndef hello():\n    print("Hello")\n```\n\nMore text after the code.',
-        metadata: { timestamp: new Date() },
+        timestamp: new Date(),
       },
     ];
 
-    render(<ChatMessages messages={messages} expandedPreviewId={null} />);
+    render(<ChatMessages messages={messages} widgets={[]} />);
 
     // Check inline code
     const inlineCode = screen.getByText('inline code');

@@ -221,6 +221,20 @@ The primary (and currently only) interface:
 
 ---
 
+## 7. Brand Guidelines
+
+### Brand Name
+**HexFrame** - Always styled with distinctive parts
+- **Hex**: Light font weight (font-light)
+- **Frame**: Bold font weight (font-bold)
+- Never use "Hexframe" or "hexframe" - always "HexFrame"
+- This visual treatment reinforces the dual nature: hexagonal structure + framing systems
+
+**Implementation**:
+```jsx
+<span className="font-light">Hex</span><span className="font-bold">Frame</span>
+```
+
 ## Implementation Priority
 
 1. **Core Navigation**: Frictionless exploration

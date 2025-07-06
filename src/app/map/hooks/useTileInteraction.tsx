@@ -45,7 +45,7 @@ export function useTileInteraction({
     if (tileData) {
       onTileClick(tileData, e);
     }
-  }, [canEdit, onCreate, onTileClick, tileData, type]);
+  }, [canEdit, onCreate, onTileClick, tileData, type, coordId]);
 
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -69,9 +69,9 @@ export function useTileInteraction({
       const emptyTileData: TileData = {
         metadata: {
           coordId,
-          dbId: 0,
+          dbId: "0",
           parentId: undefined,
-          coordinates: { path: [] },
+          coordinates: { path: [], userId: 0, groupId: 0 },
           ownerId: '',
           depth: 0,
         },
@@ -88,6 +88,8 @@ export function useTileInteraction({
           isSelected: false,
           isExpanded: false,
           canExpand: false,
+          isDragOver: false,
+          isHovering: false,
         },
       };
       onTileRightClick(emptyTileData, e);

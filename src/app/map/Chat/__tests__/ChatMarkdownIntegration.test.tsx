@@ -3,13 +3,17 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ChatProvider } from '../ChatProvider';
 import { ChatPanel } from '../ChatPanel';
+import { EventBus } from '../../Services/event-bus';
+
+// Create mock EventBus
+const mockEventBus = new EventBus();
 
 describe('Chat Markdown Integration', () => {
   it('should render markdown when user sends formatted messages', async () => {
     const user = userEvent.setup();
     
     render(
-      <ChatProvider>
+      <ChatProvider eventBus={mockEventBus}>
         <ChatPanel />
       </ChatProvider>
     );
@@ -42,7 +46,7 @@ describe('Chat Markdown Integration', () => {
     const user = userEvent.setup();
     
     render(
-      <ChatProvider>
+      <ChatProvider eventBus={mockEventBus}>
         <ChatPanel />
       </ChatProvider>
     );
@@ -68,7 +72,7 @@ describe('Chat Markdown Integration', () => {
     const user = userEvent.setup();
     
     render(
-      <ChatProvider>
+      <ChatProvider eventBus={mockEventBus}>
         <ChatPanel />
       </ChatProvider>
     );

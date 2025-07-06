@@ -5,12 +5,14 @@ import type { DataOperations, NavigationOperations } from "./types";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import type { ServerService } from "../Services/types";
 import { checkAncestors, loadAncestorsForItem } from "./ancestor-loader";
+import type { EventBusService } from "~/app/map/types/events";
 
 export interface NavigationHandlerConfig {
   dispatch: React.Dispatch<CacheAction>;
   getState: () => CacheState;
   dataHandler: DataOperations;
   serverService?: ServerService;
+  eventBus?: EventBusService;
   // For testing, we can inject these dependencies
   router?: {
     push: (url: string) => void;
@@ -32,7 +34,7 @@ export interface NavigationOptions {
 }
 
 export function createNavigationHandler(config: NavigationHandlerConfig) {
-  const { dispatch, getState, dataHandler } = config;
+  const { dispatch, getState, dataHandler, eventBus } = config;
 
   const navigateToItem = async (
     itemCoordId: string,
@@ -101,7 +103,22 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
       }
       
       // 3. Update the cache center first (this changes the view immediately)
+      const previousCenter = currentState.currentCenter;
       dispatch(cacheActions.setCenter(itemCoordId));
+      
+      // Emit navigation event
+      if (eventBus && previousCenter !== itemCoordId) {
+        const targetItem = getState().itemsById[itemCoordId];
+        eventBus.emit({
+          type: 'map.navigation',
+          source: 'map_cache',
+          payload: {
+            fromCenterId: previousCenter ?? '',
+            toCenterId: targetItem?.metadata.dbId ?? '',
+            toCenterName: targetItem?.data.name ?? 'Untitled'
+          }
+        });
+      }
       
       // 4. Handle URL update
       let itemToNavigate = existingItem;
@@ -340,6 +357,7 @@ export function useNavigationHandler(
   getState: () => CacheState,
   dataHandler: DataOperations,
   serverService?: ServerService,
+  eventBus?: EventBusService,
 ) {
   // Always call hooks unconditionally
   const router = useRouter();
@@ -354,6 +372,7 @@ export function useNavigationHandler(
     router,
     searchParams,
     pathname,
+    eventBus,
   });
 }
 

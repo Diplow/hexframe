@@ -2,8 +2,11 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MapPageContent } from '../_components/MapPageContent';
 import { MapCacheProvider } from '../Cache/map-cache';
-import { ChatProvider } from '../Chat/ChatProvider';
+// ChatProvider has been removed in favor of event-driven architecture
+import { ChatCacheProvider } from '../Chat/_cache/ChatCacheProvider';
+import { EventBus } from '../Services/event-bus';
 import type { TileData } from '../types/tile-data';
+import React from 'react';
 
 // Mock the hooks
 vi.mock('../Cache/map-cache', async () => {
@@ -31,16 +34,14 @@ vi.mock('../Cache/map-cache', async () => {
 
 // Mock components
 vi.mock('../Canvas', () => ({
-  DynamicMapCanvas: ({ centerInfo }: any) => (
+  DynamicMapCanvas: ({ centerInfo }: { centerInfo: { center: string } }) => (
     <div data-testid="map-canvas">
       Map Canvas - Center: {centerInfo.center}
     </div>
   ),
 }));
 
-vi.mock('../Controls/Toolbox/Toolbox', () => ({
-  Toolbox: () => <div data-testid="toolbox">Toolbox</div>,
-}));
+// Toolbox has been removed in favor of context menu interactions
 
 vi.mock('../Controls/ParentHierarchy/parent-hierarchy', () => ({
   ParentHierarchy: () => <div data-testid="parent-hierarchy">Parent Hierarchy</div>,
@@ -65,6 +66,7 @@ describe('Chat-Map Integration', () => {
   };
 
   it('should open chat panel when select tool is active and tile clicked', async () => {
+    const eventBus = new EventBus();
     const { container } = render(
       <MapCacheProvider
         initialItems={{}}
@@ -73,10 +75,11 @@ describe('Chat-Map Integration', () => {
         cacheConfig={{ maxAge: 300000, backgroundRefreshInterval: 30000, enableOptimisticUpdates: true, maxDepth: 3 }}
         offlineMode={false}
         mapContext={{ rootItemId: 1, userId: 1, groupId: 2 }}
+        eventBus={eventBus}
       >
-        <ChatProvider>
+        <ChatCacheProvider eventBus={eventBus}>
           <MapPageContent {...defaultProps} />
-        </ChatProvider>
+        </ChatCacheProvider>
       </MapCacheProvider>
     );
 
@@ -88,6 +91,7 @@ describe('Chat-Map Integration', () => {
   });
 
   it('should update chat with preview when different tile selected', () => {
+    const eventBus = new EventBus();
     render(
       <MapCacheProvider
         initialItems={{}}
@@ -96,10 +100,11 @@ describe('Chat-Map Integration', () => {
         cacheConfig={{ maxAge: 300000, backgroundRefreshInterval: 30000, enableOptimisticUpdates: true, maxDepth: 3 }}
         offlineMode={false}
         mapContext={{ rootItemId: 1, userId: 1, groupId: 2 }}
+        eventBus={eventBus}
       >
-        <ChatProvider>
+        <ChatCacheProvider eventBus={eventBus}>
           <MapPageContent {...defaultProps} />
-        </ChatProvider>
+        </ChatCacheProvider>
       </MapCacheProvider>
     );
 

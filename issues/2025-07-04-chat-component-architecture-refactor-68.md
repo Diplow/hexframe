@@ -551,33 +551,6 @@ describe('Chat-Map Integration via EventBus', () => {
 });
 ```
 
-### 6. E2E Tests
-
-```typescript
-// chat-refactor.e2e.ts
-test('tile import flow with chat feedback', async ({ page }) => {
-  // Navigate to other user's map
-  await page.goto('/map?center=other-user-tile');
-  
-  // Open tile preview in chat
-  await page.click('[data-testid="tile-to-import"]');
-  await expect(page.locator('[data-testid="preview-widget"]')).toBeVisible();
-  
-  // Navigate to own map
-  await page.goto('/map?center=my-tile');
-  
-  // Verify preview persists
-  await expect(page.locator('[data-testid="preview-widget"]')).toBeVisible();
-  
-  // Drag from preview to map
-  const preview = page.locator('[data-testid="preview-drag-handle"]');
-  const target = page.locator('[data-testid="empty-tile-drop-zone"]');
-  await preview.dragTo(target);
-  
-  // Verify success message in chat
-  await expect(page.locator('text=/import completed/i')).toBeVisible();
-});
-```
 
 ### Testing Utilities
 
@@ -627,10 +600,6 @@ export function renderChatWithEvents(initialEvents: ChatEvent[] = []) {
    - Widget → Map operations
    - Event lifecycle scenarios
 
-3. **E2E Tests**: Key user workflows:
-   - Tile selection and preview
-   - Tile operations with feedback
-   - Complex flows (import example)
 
 ### Updating Existing Tests
 
@@ -829,198 +798,219 @@ The chat system consists of several interconnected components:
 
 The implementation is structured in 7 phases, progressing from infrastructure to full integration. Each phase builds on the previous one and can be tested independently.
 
-### Phase 1: Event Bus Infrastructure (2-3 days)
+### Phase 1: Event Bus Infrastructure (1-2 days)
 
-**Goal**: Create the shared event bus service that enables cross-system communication.
+**Goal**: Create the shared event bus service using Test-Driven Development (TDD).
 
-**Tasks**:
-1. [ ] Create `EventBus` class in `/src/app/map/Services/event-bus.ts`
-   - Implement emit/on/off methods
-   - Add namespace support (map.*, chat.*, etc.)
-   - Include TypeScript types for events
+**TDD Tasks**:
+1. [x] Create test file `/src/app/map/Services/__tests__/event-bus.test.ts`
+   - Write tests for emit/on/off methods
+   - Write tests for namespace filtering
+   - Write tests for memory leak prevention
+   - All tests should FAIL initially
 
-2. [ ] Create event type definitions in `/src/app/map/types/events.ts`
-   - Define `AppEvent` base interface
-   - Define specific event types for map operations
-   - Define chat-specific event types
+2. [ ] Create interface shells
+   - [ ] Create event types in `/src/app/map/types/events.ts` (types only)
+   - [ ] Create `EventBus` class shell in `/src/app/map/Services/event-bus.ts`
+   - [ ] Methods should throw "not implemented" errors
+   - [ ] Verify all tests fail with expected errors
 
-3. [ ] Write comprehensive EventBus tests
-   - Unit tests for all EventBus methods
-   - Test namespace filtering
-   - Test memory leak prevention (cleanup)
+3. [ ] Implement EventBus one test at a time
+   - [ ] Implement emit() - make emit tests pass
+   - [ ] Implement on() - make listener tests pass
+   - [ ] Implement off() - make unsubscribe tests pass
+   - [ ] Implement namespace filtering - make namespace tests pass
+   - [ ] Fix memory leaks - make cleanup tests pass
 
-4. [ ] Create test utilities in `/src/test-utils/event-bus.ts`
-   - `createMockEventBus()` for testing
-   - Custom Jest/Vitest matchers
+4. [ ] Create test utilities after implementation works
+   - [ ] Create `/src/test-utils/event-bus.ts`
+   - [ ] Implement `createMockEventBus()` based on real interface
+   - [ ] Add custom matchers if needed
 
-**Deliverable**: Working EventBus with full test coverage
+**Deliverable**: Working EventBus with all tests passing (written first)
 
-### Phase 2: MapCache Event Integration (3-4 days)
+### Phase 2: MapCache Event Integration (2-3 days)
 
-**Goal**: Update MapCache to emit events for all operations while maintaining backward compatibility.
+**Goal**: Update MapCache to emit events using TDD approach.
 
-**Tasks**:
-1. [ ] Update MapCacheProvider to accept eventBus prop
-   - Add optional eventBus to provider props
-   - Pass eventBus to mutation handler
+**TDD Tasks**:
+1. [ ] Write tests FIRST for MapCache event emissions
+   - [ ] Update mutation handler tests to expect event emissions
+   - [ ] Update navigation handler tests to expect events
+   - [ ] Add mock event bus to all test setups
+   - [ ] All new assertions should FAIL initially
 
-2. [ ] Update MutationHandler to emit events
-   - [ ] Emit `map.tile_created` after successful creation
-   - [ ] Emit `map.tile_updated` after successful update
-   - [ ] Emit `map.tile_deleted` after successful deletion
-   - [ ] Emit `map.tiles_swapped` after successful swap
-   - [ ] Emit `map.tile_moved` after successful move
+2. [ ] Update interfaces without implementation
+   - [ ] Add eventBus prop to MapCacheProvider interface
+   - [ ] Add eventBus parameter to handler constructors
+   - [ ] Verify tests fail with "eventBus is undefined" errors
 
-3. [ ] Update NavigationHandler to emit events
-   - [ ] Emit `map.navigation` on center change
-   - [ ] Emit `map.expansion_changed` on expand/collapse
+3. [ ] Implement event emissions one operation at a time
+   - [ ] Wire eventBus through provider - make provider tests pass
+   - [ ] Emit `map.tile_created` - make creation tests pass
+   - [ ] Emit `map.tile_updated` - make update tests pass
+   - [ ] Emit `map.tile_deleted` - make deletion tests pass
+   - [ ] Emit `map.tiles_swapped` - make swap tests pass
+   - [ ] Emit `map.tile_moved` - make move tests pass
+   - [ ] Emit `map.navigation` - make navigation tests pass
+   - [ ] Emit `map.expansion_changed` - make expansion tests pass
 
-4. [ ] Update all MapCache tests
-   - Add eventBus to test setup
-   - Verify events are emitted correctly
-   - Ensure existing functionality unaffected
+**Deliverable**: MapCache emitting all events with test-first implementation
 
-**Deliverable**: MapCache emitting all events, existing tests passing
+### Phase 3: Chat Event-Driven Architecture (3-4 days)
 
-### Phase 3: Chat Event-Driven Architecture (4-5 days)
+**Goal**: Replace existing chat implementation with event-driven architecture using TDD.
 
-**Goal**: Implement the new event-driven chat architecture without breaking existing functionality.
+**TDD Tasks**:
+1. [ ] Write tests for ChatCache event processing
+   - [ ] Create test file for event reducers
+   - [ ] Create test file for selectors
+   - [ ] Create test file for ChatCacheProvider
+   - [ ] Write tests for event → UI derivation
+   - [ ] All tests should FAIL initially
 
-**Tasks**:
-1. [ ] Create ChatCache structure in `/src/app/map/Chat/_cache/`
-   - [ ] Create `ChatCacheProvider.tsx`
-   - [ ] Create event reducers
-   - [ ] Create selectors for deriving UI state
-   - [ ] Create `use-chat-cache.ts` hook
+2. [ ] Create ChatCache shells in `/src/app/map/Chat/_cache/`
+   - [ ] Create interfaces and types
+   - [ ] Create `ChatCacheProvider.tsx` shell
+   - [ ] Create reducer shells that return empty state
+   - [ ] Create selector shells that return empty arrays
+   - [ ] Verify tests fail with empty results
 
-2. [ ] Implement event handling
-   - [ ] Create event creators
-   - [ ] Create event-to-UI derivation logic
-   - [ ] Implement message selectors
-   - [ ] Implement widget selectors
+3. [ ] Implement event processing one feature at a time
+   - [ ] Implement event reducer - make event storage tests pass
+   - [ ] Implement message selector - make message derivation tests pass
+   - [ ] Implement widget selector - make widget derivation tests pass
+   - [ ] Implement ChatCacheProvider - make provider tests pass
+   - [ ] Implement use-chat-cache hook - make hook tests pass
 
-3. [ ] Create migration wrapper
-   - Keep existing ChatProvider working
-   - Gradually migrate to event-based system
-   - Ensure no breaking changes
+4. [ ] Replace existing ChatProvider
+   - [ ] Update imports in parent components
+   - [ ] Remove old ChatProvider and reducer
+   - [ ] Update all consuming components
 
-4. [ ] Write comprehensive tests
-   - Test event processing
-   - Test UI derivation
-   - Test selector memoization
+**Deliverable**: New event-driven chat system fully replacing the old one
 
-**Deliverable**: Event-driven chat system alongside existing system
+### Phase 4: Widget Refactoring (2-3 days)
 
-### Phase 4: Widget Refactoring (3-4 days)
+**Goal**: Implement widget composition pattern using TDD.
 
-**Goal**: Implement widget composition pattern and standardize widget interfaces.
+**TDD Tasks**:
+1. [ ] Write tests for widget composition
+   - [ ] Create tests for base widget behavior
+   - [ ] Create tests for each capability interface
+   - [ ] Create tests for WidgetContainer
+   - [ ] Create tests for Canvas widget indicators
+   - [ ] All tests should FAIL initially
 
-**Tasks**:
-1. [ ] Create widget base structure
-   - [ ] Define base widget interface
-   - [ ] Create capability interfaces
-   - [ ] Create `WidgetContainer` component
+2. [ ] Create widget structure shells
+   - [ ] Define interfaces in `/src/app/map/Chat/_widgets/types.ts`
+   - [ ] Create WidgetContainer shell component
+   - [ ] Create capability type definitions
+   - [ ] Verify tests fail with missing implementations
 
-2. [ ] Refactor existing widgets
-   - [ ] PreviewWidget with composition
-   - [ ] CreationWidget with composition
-   - [ ] DeleteWidget with composition
-   - [ ] LoginWidget with composition
-   - [ ] LoadingWidget with composition
-   - [ ] ErrorWidget with composition
+3. [ ] Refactor widgets one at a time using TDD
+   - [ ] Implement WidgetContainer - make container tests pass
+   - [ ] Refactor PreviewWidget - make preview tests pass
+   - [ ] Refactor CreationWidget - make creation tests pass
+   - [ ] Refactor DeleteWidget - make delete tests pass
+   - [ ] Refactor LoginWidget - make login tests pass
+   - [ ] Refactor LoadingWidget - make loading tests pass
+   - [ ] Refactor ErrorWidget - make error tests pass
 
-3. [ ] Add Canvas widget indicators
-   - Visual design for map-modifying widgets
-   - Accessibility considerations
+4. [ ] Implement Canvas widget indicators
+   - [ ] Write tests for visual indicators first
+   - [ ] Implement styles and components
+   - [ ] Verify accessibility with tests
 
-4. [ ] Write widget tests
-   - Test composition patterns
-   - Test capability interfaces
-   - Test visual indicators
+**Deliverable**: All widgets refactored with test-first approach
 
-**Deliverable**: All widgets using new composition pattern
+### Phase 5: Integration (1-2 days)
 
-### Phase 5: Integration & Migration (2-3 days)
+**Goal**: Connect all systems using TDD for integration points.
 
-**Goal**: Connect the refactored systems and migrate from old to new architecture.
+**TDD Tasks**:
+1. [ ] Write integration tests first
+   - [ ] Create tests for EventBus wiring
+   - [ ] Create tests for map→chat event flow
+   - [ ] Create tests for widget→map operations
+   - [ ] All integration tests should FAIL initially
 
-**Tasks**:
-1. [ ] Connect EventBus across systems
-   - Wire EventBus in main app layout
-   - Connect MapCache and ChatCache
+2. [ ] Create integration shells
+   - [ ] Add EventBus props to app layout
+   - [ ] Create listener registration shells
+   - [ ] Verify tests fail with "no events received"
 
-2. [ ] Implement ChatCache listeners
-   - Listen for map.* events
-   - Convert to chat events
-   - Update UI accordingly
+3. [ ] Implement integration one flow at a time
+   - [ ] Wire EventBus - make wiring tests pass
+   - [ ] Connect map events to chat - make map→chat tests pass
+   - [ ] Connect widget callbacks - make widget→map tests pass
+   - [ ] Implement event transformations - make transformation tests pass
 
-3. [ ] Migrate from old ChatProvider
-   - Switch components to use new system
-   - Remove old reducer/actions
-   - Update all imports
-
-4. [ ] Integration testing
-   - Test full flows (map → chat)
-   - Test widget → map operations
-   - Verify no regressions
+4. [ ] Clean up old code
+   - [ ] Remove old chat reducer and actions
+   - [ ] Remove unused types and interfaces
+   - [ ] Update all imports
 
 **Deliverable**: Fully integrated event-driven system
 
-### Phase 6: Performance & Polish (2-3 days)
+### Phase 6: Performance & Polish (1-2 days)
 
-**Goal**: Implement performance optimizations and polish the implementation.
+**Goal**: Implement performance optimizations using TDD where applicable.
 
-**Tasks**:
-1. [ ] Implement virtual scrolling
-   - Add react-window to ChatMessages
-   - Handle variable height items
-   - Test with large histories
+**TDD Tasks**:
+1. [ ] Write performance tests first
+   - [ ] Create tests for virtual scrolling behavior
+   - [ ] Create tests for selector memoization
+   - [ ] Create tests for event pagination
+   - [ ] Define performance benchmarks
 
-2. [ ] Optimize selectors
-   - Add proper memoization
-   - Profile and optimize hot paths
-   - Add performance tests
+2. [ ] Implement virtual scrolling with tests
+   - [ ] Write tests for scroll behavior
+   - [ ] Add react-window to ChatMessages
+   - [ ] Make variable height tests pass
+   - [ ] Verify performance with large datasets
 
-3. [ ] Implement event pagination
-   - Load events in chunks
-   - Implement infinite scroll
-   - Add loading states
+3. [ ] Optimize with measurable tests
+   - [ ] Write performance tests for selectors
+   - [ ] Implement memoization - verify performance improves
+   - [ ] Write tests for pagination logic
+   - [ ] Implement event chunking - make pagination tests pass
 
 4. [ ] Polish and cleanup
-   - Remove dead code
-   - Update documentation
-   - Add missing TypeScript types
+   - [ ] Remove dead code (verify with coverage)
+   - [ ] Add missing TypeScript types (verify with strict mode)
+   - [ ] Update documentation based on implementation
 
-**Deliverable**: Performant, polished implementation
+**Deliverable**: Performant implementation with measurable improvements
 
-### Phase 7: Documentation & Testing (1-2 days)
+### Phase 7: Documentation & Testing (1 day)
 
 **Goal**: Ensure comprehensive documentation and test coverage.
 
 **Tasks**:
-1. [ ] Update documentation
+1. [ ] Run coverage analysis
+   - [ ] Identify any untested code paths
+   - [ ] Write tests for missing coverage
+   - [ ] Achieve 90%+ coverage
+
+2. [ ] Update documentation
    - [ ] Update Chat ARCHITECTURE.md with learnings
    - [ ] Update inline code documentation
-   - [ ] Create migration guide
+   - [ ] Create migration guide for other developers
 
-2. [ ] E2E test scenarios
-   - [ ] Tile selection flow
-   - [ ] Tile operations with feedback
-   - [ ] Complex import flow
+3. [ ] Performance validation
+   - [ ] Run performance benchmarks
+   - [ ] Document performance baselines
+   - [ ] Verify no regressions from old system
 
-3. [ ] Final test coverage
-   - Ensure 90%+ unit test coverage
-   - All integration tests passing
-   - E2E tests for critical paths
-
-4. [ ] Performance benchmarks
-   - Measure render performance
-   - Measure memory usage
-   - Document baselines
+4. [ ] Final quality checks
+   - [ ] Run all tests one final time
+   - [ ] Verify TypeScript strict mode
+   - [ ] Check for any console warnings
 
 **Deliverable**: Fully documented and tested implementation
 
-### Total Timeline: 17-22 days
+### Total Timeline: 10-15 days
 
 ### Critical Path Dependencies
 
@@ -1040,10 +1030,10 @@ Phase 2 (MapCache) → Phase 3 (ChatCache)
 
 ### Risk Mitigation
 
-1. **Backward Compatibility**: Each phase maintains existing functionality
-2. **Incremental Migration**: Can pause at any phase if issues arise
-3. **Feature Flags**: Consider adding flags to toggle new system
-4. **Rollback Plan**: Old code removed only after new system proven stable
+1. **Test Coverage**: TDD ensures all functionality is tested before implementation
+2. **Incremental Development**: Each phase delivers working functionality
+3. **Integration Points**: Clear boundaries between systems minimize risk
+4. **Performance Monitoring**: Benchmarks ensure no regressions
 
 ### Success Criteria
 

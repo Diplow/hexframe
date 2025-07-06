@@ -6,6 +6,7 @@ import {
   useState,
   useCallback,
   useMemo,
+  useRef,
   type ReactNode,
 } from "react";
 import type { TileData } from "../types/tile-data";
@@ -71,19 +72,35 @@ export function TileActionsProvider({
 }: TileActionsProviderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
+  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const onTileClick = useCallback((tileData: TileData, event: React.MouseEvent) => {
-    // Default click behavior - select for preview
-    if (event.ctrlKey || event.metaKey) {
-      // Ctrl/Cmd+click for navigation
-      onNavigateClick?.(tileData);
-    } else {
-      // Regular click for selection/preview
-      onSelectClick?.(tileData);
+    // Clear any existing timeout
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
     }
+
+    // Set a timeout to handle single click
+    clickTimeoutRef.current = setTimeout(() => {
+      if (event.ctrlKey || event.metaKey) {
+        // Ctrl/Cmd+click for navigation
+        onNavigateClick?.(tileData);
+      } else {
+        // Regular click for selection/preview
+        onSelectClick?.(tileData);
+      }
+      clickTimeoutRef.current = null;
+    }, 200); // Wait 200ms to see if it's a double-click
   }, [onNavigateClick, onSelectClick]);
 
   const onTileDoubleClick = useCallback((tileData: TileData) => {
+    // Clear the single click timeout
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+    }
+    
     // Double-click to expand
     onExpandClick?.(tileData);
   }, [onExpandClick]);
@@ -93,7 +110,7 @@ export function TileActionsProvider({
     event.preventDefault();
     
     const canEdit = 'state' in tileData && tileData.state?.canEdit === true;
-    const isEmptyTile = !tileData.metadata.dbId || tileData.metadata.dbId === 0;
+    const isEmptyTile = !tileData.metadata.dbId || tileData.metadata.dbId === "0";
     
     setContextMenu({
       tileData,

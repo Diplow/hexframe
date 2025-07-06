@@ -18,6 +18,24 @@ Chat (conversational interface layer)
 Widgets (UI adapters for canvas operations)
 ```
 
+### Information Flow Patterns
+
+The architecture follows strict unidirectional flow patterns to prevent mutation chains:
+
+#### Pattern 1: Chat Controls Canvas
+```
+Chat Widget → MapCache Operation → Canvas Update
+```
+*Example: User clicks "Create Tile" widget → mapCache.createTile() → Canvas renders new tile*
+
+#### Pattern 2: Canvas Events to Chat (Display Only)
+```
+Canvas Operation → MapCache Event → Event Bus → ChatCache → Chat Message
+```
+*Example: User drags tile → navigation handler emits event → chat shows "Navigated to X"*
+
+**Key Principle**: Canvas events only trigger chat *display* updates, never chat operations that would mutate the canvas again.
+
 ## Architecture Components
 
 ### 1. Event-Driven State Management
@@ -80,36 +98,62 @@ type PreviewWidgetProps = BaseWidgetProps & CanvasOperationProps & {
 
 ### 3. Event Bus Integration
 
-MapCache and ChatCache communicate through a shared event bus:
+MapCache and ChatCache communicate through a shared event bus. ChatCache subscribes to all map events and translates them into chat events for display:
 
 ```typescript
-// MapCache emits events
-function swapTiles(tile1Id: string, tile2Id: string) {
-  // Perform swap operation...
+// MapCache emits events (example: navigation)
+function navigateToCenter(center: string) {
+  // Update cache state...
   
   // Emit domain event
   context.eventBus.emit({
-    type: 'map.tiles_swapped',
+    type: 'map.navigation',
     source: 'map_cache',
-    payload: { tile1Id, tile2Id, tile1Name, tile2Name }
+    payload: { 
+      fromCenterId: previousCenter,
+      toCenterId: center, 
+      toCenterName: getTileName(center) 
+    }
   });
 }
 
-// ChatCache listens and converts to chat events
+// ChatCacheProvider listens to ALL map events and translates them
 useEffect(() => {
-  const unsubscribe = eventBus.on('map.tiles_swapped', (event) => {
-    dispatch(createChatEvent({
-      type: 'operation_completed',
-      actor: 'system',
-      payload: {
-        operation: 'swap',
-        message: `Swapped "${event.payload.tile1Name}" with "${event.payload.tile2Name}"`
-      }
-    }));
+  const unsubscribe = eventBus.on('map.*', (event) => {
+    const chatEvent = createChatEventFromMapEvent(event);
+    if (chatEvent) {
+      dispatch(chatEvent);
+    }
   });
   
   return unsubscribe;
 }, [eventBus]);
+
+// Example translation function
+function createChatEventFromMapEvent(mapEvent: AppEvent): ChatEvent | null {
+  switch (mapEvent.type) {
+    case 'map.navigation':
+      return {
+        type: 'navigation',
+        actor: 'system',
+        payload: {
+          toTileId: mapEvent.payload.toCenterId,
+          toTileName: mapEvent.payload.toCenterName
+        }
+      };
+    case 'map.tiles_swapped':
+      return {
+        type: 'operation_completed',
+        actor: 'system',
+        payload: {
+          operation: 'swap',
+          message: `Swapped "${mapEvent.payload.tile1Name}" with "${mapEvent.payload.tile2Name}"`
+        }
+      };
+    default:
+      return null;
+  }
+}
 ```
 
 ## Complex Flow Example: Cross-User Tile Import

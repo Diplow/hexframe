@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ChatMessages } from '../ChatMessages';
-import type { ChatMessage } from '../types';
+import type { Message } from '../_cache/_events/event.types';
 
 // Mock the PreviewWidget component
 vi.mock('../Widgets/PreviewWidget', () => ({
@@ -10,70 +10,70 @@ vi.mock('../Widgets/PreviewWidget', () => ({
 
 describe('ChatMessages Formatting', () => {
   it('should display user messages with "You" as the name', () => {
-    const messages: ChatMessage[] = [
+    const messages: Message[] = [
       {
         id: '1',
-        type: 'user',
+        actor: 'user' as const,
         content: 'Hello, I need help',
-        metadata: { timestamp: new Date() },
+        timestamp: new Date(),
       },
     ];
 
-    render(<ChatMessages messages={messages} expandedPreviewId={null} />);
+    render(<ChatMessages messages={messages} widgets={[]} />);
 
     expect(screen.getByText('You:')).toBeInTheDocument();
     expect(screen.getByText('Hello, I need help')).toBeInTheDocument();
   });
 
   it('should display assistant messages with "Lucy" as the name', () => {
-    const messages: ChatMessage[] = [
+    const messages: Message[] = [
       {
         id: '1',
-        type: 'assistant',
+        actor: 'assistant',
         content: 'I can help you with that!',
-        metadata: { timestamp: new Date() },
+        timestamp: new Date(),
       },
     ];
 
-    render(<ChatMessages messages={messages} expandedPreviewId={null} />);
+    render(<ChatMessages messages={messages} widgets={[]} />);
 
     expect(screen.getByText('Lucy:')).toBeInTheDocument();
     expect(screen.getByText('I can help you with that!')).toBeInTheDocument();
   });
 
   it('should display system messages with "System" as the name', () => {
-    const messages: ChatMessage[] = [
+    const messages: Message[] = [
       {
         id: '1',
-        type: 'system',
+        actor: 'system' as const,
         content: 'Connection established',
-        metadata: { timestamp: new Date() },
+        timestamp: new Date(),
       },
     ];
 
-    render(<ChatMessages messages={messages} expandedPreviewId={null} />);
+    render(<ChatMessages messages={messages} widgets={[]} />);
 
     expect(screen.getByText('System:')).toBeInTheDocument();
     expect(screen.getByText('Connection established')).toBeInTheDocument();
   });
 
   it('should style names with bold font and appropriate colors', () => {
-    const messages: ChatMessage[] = [
+    const messages: Message[] = [
       {
         id: '1',
-        type: 'user',
+        actor: 'user' as const,
         content: 'User message',
-        metadata: { timestamp: new Date() },
+        timestamp: new Date(),
       },
       {
         id: '2',
-        type: 'assistant',
+        actor: 'assistant',
         content: 'Assistant message',
-        metadata: { timestamp: new Date() },
+        timestamp: new Date(),
       },
     ];
 
-    render(<ChatMessages messages={messages} expandedPreviewId={null} />);
+    render(<ChatMessages messages={messages} widgets={[]} />);
 
     const userNameElement = screen.getByText('You:');
     expect(userNameElement).toHaveClass('font-bold', 'text-secondary');
@@ -97,29 +97,29 @@ describe('ChatMessages Formatting', () => {
       get: () => 1000,
     });
 
-    const messages: ChatMessage[] = [
+    const messages: Message[] = [
       {
         id: '1',
-        type: 'user',
+        actor: 'user' as const,
         content: 'First message',
-        metadata: { timestamp: new Date() },
+        timestamp: new Date(),
       },
     ];
 
-    const { rerender } = render(<ChatMessages messages={messages} expandedPreviewId={null} />);
+    const { rerender } = render(<ChatMessages messages={messages} widgets={[]} />);
 
     // Add a new message
-    const newMessages: ChatMessage[] = [
+    const newMessages: Message[] = [
       ...messages,
       {
         id: '2',
-        type: 'assistant',
+        actor: 'assistant' as const,
         content: 'Second message',
-        metadata: { timestamp: new Date() },
+        timestamp: new Date(),
       },
     ];
 
-    rerender(<ChatMessages messages={newMessages} expandedPreviewId={null} />);
+    rerender(<ChatMessages messages={newMessages} widgets={[]} />);
 
     // Verify scrollTop was set to scrollHeight
     expect(scrollTopSpy).toHaveBeenCalled();

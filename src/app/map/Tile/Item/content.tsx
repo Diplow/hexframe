@@ -30,7 +30,7 @@ export const DynamicTileContent = ({
   if (!data) return null;
   
   const textClasses = getTextClasses(depth);
-  const title = data.title || 'Untitled';
+  const title = data.title ?? 'Untitled';
   
   // Scale-based styling
   const baseFontSize = scale === 1 ? "text-xs" : scale === 2 ? "text-md" : "text-lg";

@@ -9,6 +9,7 @@ import { initialCacheState } from "../../State/reducer";
 import type { NavigationHandlerConfig } from "../navigation-handler";
 import type { CacheState } from "../../State/types";
 import type { DataOperations } from "../types";
+import { createMockEventBus, expectEventEmitted } from "~/test-utils/event-bus";
 
 describe("Navigation Handler", () => {
   let mockDispatch: ReturnType<typeof vi.fn>;
@@ -20,6 +21,7 @@ describe("Navigation Handler", () => {
   let mockState: CacheState;
   let config: NavigationHandlerConfig;
   let originalHistory: History;
+  let mockEventBus: ReturnType<typeof createMockEventBus>;
 
   beforeEach(() => {
     // Mock window.history
@@ -39,6 +41,7 @@ describe("Navigation Handler", () => {
     });
     
     mockDispatch = vi.fn();
+    mockEventBus = createMockEventBus();
     mockRouter = {
       push: vi.fn(),
       replace: vi.fn(),
@@ -94,6 +97,7 @@ describe("Navigation Handler", () => {
       router: mockRouter,
       searchParams: new URLSearchParams("center=123&expandedItems=1,2"),
       pathname: "/map",
+      eventBus: mockEventBus,
     };
   });
 
@@ -166,6 +170,19 @@ describe("Navigation Handler", () => {
         success: true,
         centerUpdated: true,
         urlUpdated: false,
+      });
+    });
+
+    test("emits map.navigation event when navigating to item", async () => {
+      const handler = createNavigationHandler(config);
+
+      await handler.navigateToItem("2,3");
+
+      // Should emit map.navigation event
+      expectEventEmitted(mockEventBus, 'map.navigation', {
+        fromCenterId: "1,2",  // Current center from mockState
+        toCenterId: expect.any(String) as string,
+        toCenterName: expect.any(String) as string
       });
     });
 

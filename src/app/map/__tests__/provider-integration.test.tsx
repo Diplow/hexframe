@@ -3,7 +3,11 @@ import { render, renderHook } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import MapPage from '../page';
 import { MapCacheProvider, useMapCache } from '../Cache/map-cache';
-import { ChatProvider, useChat } from '../Chat/ChatProvider';
+import { ChatProvider } from '../Chat/ChatProvider';
+import { useChatCache } from '../Chat/_cache/ChatCacheProvider';
+import { EventBus } from '../Services/event-bus';
+
+const mockEventBus = new EventBus();
 
 // Mock Next.js router
 vi.mock('next/navigation', () => ({
@@ -74,7 +78,7 @@ describe('Provider Integration', () => {
 
     vi.doMock('../Chat/ChatProvider', () => ({
       ChatProvider: TestChatProvider,
-      useChat: vi.fn(),
+      useChatCache: vi.fn(),
     }));
 
     // Test that providers are nested in correct order
@@ -84,7 +88,7 @@ describe('Provider Integration', () => {
   it('should allow ChatPanel to read MapCache data', () => {
     const TestComponent = () => {
       const { items } = useMapCache();
-      const { state } = useChat();
+      const { state } = useChatCache();
       
       return (
         <div>
@@ -96,14 +100,34 @@ describe('Provider Integration', () => {
 
     const wrapper = ({ children }: { children: ReactNode }) => (
       <MapCacheProvider
-        initialItems={{ '1,2:A1': { metadata: { dbId: 1, coordId: '1,2:A1' }, data: { name: 'Test' } } } as any}
+        initialItems={{ '1,2:A1': { 
+          metadata: { 
+            dbId: 1, 
+            coordId: '1,2:A1',
+            ownerId: '1',
+            coordinates: { userId: 1, groupId: 2, path: [] },
+            depth: 0,
+            parentId: undefined,
+          }, 
+          data: { name: 'Test', description: '', url: '', color: 'blue' },
+          state: {
+            isDragged: false,
+            isHovered: false,
+            isSelected: false,
+            isExpanded: false,
+            isDragOver: false,
+            isHovering: false,
+            canExpand: false,
+            canEdit: false,
+          },
+        } }}
         initialCenter="1,2:A1"
         initialExpandedItems={[]}
         cacheConfig={{ maxAge: 300000, backgroundRefreshInterval: 30000, enableOptimisticUpdates: true, maxDepth: 3 }}
         offlineMode={false}
         mapContext={{ rootItemId: 1, userId: 1, groupId: 2 }}
       >
-        <ChatProvider>
+        <ChatProvider eventBus={mockEventBus}>
           {children}
         </ChatProvider>
       </MapCacheProvider>
@@ -112,7 +136,7 @@ describe('Provider Integration', () => {
     const { result } = renderHook(
       () => ({
         cache: useMapCache(),
-        chat: useChat(),
+        chat: useChatCache(),
       }),
       { wrapper }
     );
@@ -132,7 +156,7 @@ describe('Provider Integration', () => {
         offlineMode={false}
         mapContext={{ rootItemId: 1, userId: 1, groupId: 2 }}
       >
-        <ChatProvider>
+        <ChatProvider eventBus={mockEventBus}>
           {children}
         </ChatProvider>
       </MapCacheProvider>
@@ -141,15 +165,15 @@ describe('Provider Integration', () => {
     const { result } = renderHook(
       () => ({
         cache: useMapCache(),
-        chat: useChat(),
+        chat: useChatCache(),
       }),
       { wrapper }
     );
 
     // Chat state should be independent of cache state
     expect(result.current.cache.items).toBeDefined();
-    expect(result.current.chat.state.messages).toBeDefined();
-    expect(result.current.chat.state.selectedTileId).toBeNull();
+    expect(result.current.chat.state.visibleMessages).toBeDefined();
+    expect(result.current.chat.state.activeWidgets).toBeDefined();
   });
 
   it('should not persist chat messages on refresh', () => {
@@ -163,31 +187,34 @@ describe('Provider Integration', () => {
         offlineMode={false}
         mapContext={{ rootItemId: 1, userId: 1, groupId: 2 }}
       >
-        <ChatProvider>
+        <ChatProvider eventBus={mockEventBus}>
           {children}
         </ChatProvider>
       </MapCacheProvider>
     );
 
-    const { result, unmount } = renderHook(() => useChat(), { wrapper });
+    const { result, unmount } = renderHook(() => useChatCache(), { wrapper });
 
     // Add a message
     result.current.dispatch({
-      type: 'SELECT_TILE',
+      id: 'test-select',
+      type: 'tile_selected',
       payload: {
         tileId: 'test-1',
-        tileData: { id: '1', title: 'Test', content: 'Content' },
+        tileData: { title: 'Test', content: 'Content', coordId: 'test-1' },
       },
+      timestamp: new Date(),
+      actor: 'system'
     });
 
-    expect(result.current.state.messages).toHaveLength(1);
+    expect(result.current.state.visibleMessages).toHaveLength(1);
 
     // Simulate refresh by unmounting
     unmount();
 
     // Remount - messages should be gone
-    const { result: newResult } = renderHook(() => useChat(), { wrapper });
-    expect(newResult.current.state.messages).toHaveLength(0);
+    const { result: newResult } = renderHook(() => useChatCache(), { wrapper });
+    expect(newResult.current.state.visibleMessages).toHaveLength(0);
   });
 
   it('should dispatch chat actions through ChatProvider', () => {
@@ -200,18 +227,24 @@ describe('Provider Integration', () => {
         offlineMode={false}
         mapContext={{ rootItemId: 1, userId: 1, groupId: 2 }}
       >
-        <ChatProvider>
+        <ChatProvider eventBus={mockEventBus}>
           {children}
         </ChatProvider>
       </MapCacheProvider>
     );
 
-    const { result } = renderHook(() => useChat(), { wrapper });
+    const { result } = renderHook(() => useChatCache(), { wrapper });
 
     // Dispatch action
-    result.current.dispatch({ type: 'CLOSE_CHAT' });
+    result.current.dispatch({ 
+      id: 'test-close',
+      type: 'clear_chat',
+      payload: {},
+      timestamp: new Date(),
+      actor: 'system'
+    });
 
     // State should update
-    expect(result.current.state.isPanelOpen).toBe(false);
+    expect(result.current.state.events).toHaveLength(1);
   });
 });

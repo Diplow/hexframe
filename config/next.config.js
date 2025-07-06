@@ -11,6 +11,9 @@ const config = {
   env: {
     E2E_TEST: process.env.E2E_TEST || '',
   },
+   devIndicators: {
+    position: 'bottom-right'
+  },
   // Skip linting and type checking during production builds
   // These checks are run in CI/CD pipeline separately
   // This prevents build failures due to strict linting rules

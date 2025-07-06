@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import { ChatProvider } from '../ChatProvider';
 import { ChatPanel } from '../ChatPanel';
-import { useChat } from '../ChatProvider';
+import { useChatCache } from '../_cache/ChatCacheProvider';
+import { EventBus } from '../../Services/event-bus';
 import type { ReactNode } from 'react';
 
 interface TileData {
@@ -13,7 +14,7 @@ interface TileData {
 
 // Component to test the chat behavior
 function TestComponent({ onTileSelect }: { onTileSelect: (tileId: string, tileData: TileData) => void }) {
-  const { state } = useChat();
+  const { state } = useChatCache();
   
   return (
     <div>
@@ -24,13 +25,14 @@ function TestComponent({ onTileSelect }: { onTileSelect: (tileId: string, tileDa
       <button onClick={() => onTileSelect('tile-2', { id: 'tile-2', title: 'Tile 2', content: 'Content 2' })}>
         Select Tile 2
       </button>
-      <div data-testid="expanded-preview-id">{state.expandedPreviewId}</div>
+      <div data-testid="active-widgets-count">{state.activeWidgets.length}</div>
     </div>
   );
 }
 
 function TestWrapper({ children }: { children: ReactNode }) {
-  return <ChatProvider>{children}</ChatProvider>;
+  const eventBus = new EventBus();
+  return <ChatProvider eventBus={eventBus}>{children}</ChatProvider>;
 }
 
 describe('Chat Preview Collapse Behavior', () => {
@@ -38,9 +40,15 @@ describe('Chat Preview Collapse Behavior', () => {
     let selectTile: (tileId: string, tileData: TileData) => void = () => { /* noop */ };
     
     const TestApp = () => {
-      const { dispatch } = useChat();
+      const { dispatch } = useChatCache();
       selectTile = (tileId: string, tileData: TileData) => {
-        dispatch({ type: 'SELECT_TILE', payload: { tileId, tileData } });
+        dispatch({ 
+          type: 'tile_selected', 
+          payload: { tileId, tileData }, 
+          id: `tile-select-${Date.now()}`,
+          timestamp: new Date(),
+          actor: 'user'
+        });
       };
       
       return <TestComponent onTileSelect={selectTile} />;
@@ -91,15 +99,21 @@ describe('Chat Preview Collapse Behavior', () => {
     let selectTile: (tileId: string, tileData: TileData) => void = () => { /* noop */ };
     
     const TestApp = () => {
-      const { dispatch, state } = useChat();
+      const { dispatch, state } = useChatCache();
       selectTile = (tileId: string, tileData: TileData) => {
-        dispatch({ type: 'SELECT_TILE', payload: { tileId, tileData } });
+        dispatch({ 
+          type: 'tile_selected', 
+          payload: { tileId, tileData }, 
+          id: `tile-select-${Date.now()}`,
+          timestamp: new Date(),
+          actor: 'user'
+        });
       };
       
       return (
         <div>
           <TestComponent onTileSelect={selectTile} />
-          <div data-testid="message-count">{state.messages.length}</div>
+          <div data-testid="message-count">{state.visibleMessages.length}</div>
         </div>
       );
     };

@@ -1,16 +1,16 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ChatMessages } from '../ChatMessages';
-import type { ChatMessage } from '../types';
+import type { Message } from '../_cache/_events/event.types';
 
 // Mock the dialogs
 vi.mock('../../Dialogs/update-item', () => ({
-  UpdateItemDialog: ({ isOpen, onClose }: any) => 
+  UpdateItemDialog: ({ isOpen }: { isOpen: boolean; onClose: () => void }) => 
     isOpen ? <div data-testid="update-dialog">Update Dialog</div> : null
 }));
 
 vi.mock('../../Dialogs/delete-item', () => ({
-  DeleteItemDialog: ({ isOpen, onClose }: any) => 
+  DeleteItemDialog: ({ isOpen }: { isOpen: boolean; onClose: () => void }) => 
     isOpen ? <div data-testid="delete-dialog">Delete Dialog</div> : null
 }));
 
@@ -46,17 +46,11 @@ vi.mock('../../Cache/_hooks/use-map-cache', () => ({
 }));
 
 describe('ChatMessages - Burger Menu Integration', () => {
-  const previewMessage: ChatMessage = {
+  const previewMessage: Message = {
     id: 'msg-1',
-    type: 'system',
-    content: {
-      type: 'preview',
-      data: {
-        tileId: 'tile-123',
-        title: 'Test Tile',
-        content: 'Test content',
-      },
-    },
+    actor: 'system',
+    timestamp: new Date(),
+    content: 'Showing preview for Test Tile',
   };
 
   beforeEach(() => {
@@ -71,7 +65,17 @@ describe('ChatMessages - Burger Menu Integration', () => {
     render(
       <ChatMessages
         messages={[previewMessage]}
-        expandedPreviewId={null}
+        widgets={[{
+          id: 'widget-1',
+          type: 'preview',
+          data: {
+            tileId: 'tile-123',
+            tile: mockItems['tile-123'],
+            mode: 'view',
+          },
+          priority: 'info',
+          timestamp: new Date(),
+        }]}
       />
     );
 
@@ -87,7 +91,17 @@ describe('ChatMessages - Burger Menu Integration', () => {
     render(
       <ChatMessages
         messages={[previewMessage]}
-        expandedPreviewId={null}
+        widgets={[{
+          id: 'widget-1',
+          type: 'preview',
+          data: {
+            tileId: 'tile-123',
+            tile: mockItems['tile-123'],
+            mode: 'view',
+          },
+          priority: 'info',
+          timestamp: new Date(),
+        }]}
       />
     );
 
@@ -107,7 +121,17 @@ describe('ChatMessages - Burger Menu Integration', () => {
     render(
       <ChatMessages
         messages={[previewMessage]}
-        expandedPreviewId={null}
+        widgets={[{
+          id: 'widget-1',
+          type: 'preview',
+          data: {
+            tileId: 'tile-123',
+            tile: mockItems['tile-123'],
+            mode: 'view',
+          },
+          priority: 'info',
+          timestamp: new Date(),
+        }]}
       />
     );
 
@@ -128,12 +152,22 @@ describe('ChatMessages - Burger Menu Integration', () => {
     mockUseMapCache.mockImplementation(() => ({
       items: {},
       navigateToItem: vi.fn(),
-    }));
+    } as ReturnType<typeof mockUseMapCache>));
 
     render(
       <ChatMessages
         messages={[previewMessage]}
-        expandedPreviewId={null}
+        widgets={[{
+          id: 'widget-1',
+          type: 'preview',
+          data: {
+            tileId: 'tile-123',
+            tile: undefined, // No tile data available
+            mode: 'view',
+          },
+          priority: 'info',
+          timestamp: new Date(),
+        }]}
       />
     );
 

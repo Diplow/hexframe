@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useMapCache } from "../Cache/map-cache";
+import { useMapCache } from "../Cache/_hooks/use-map-cache";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,7 @@ import {
 } from "~/components/ui/dialog";
 import type { TileData } from "../types/tile-data";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { useChatCacheOperations } from "../Chat/_cache/hooks/useChatCacheOperations";
 
 interface DynamicDeleteItemDialogProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ export function DeleteItemDialog({
   const [error, setError] = useState<string | null>(null);
 
   const { deleteItemOptimistic, center, navigateToItem } = useMapCache();
+  const { dispatch: chatDispatch } = useChatCacheOperations();
   
   // Check if this is a user's root map item (no path)
   const isUserRootMap = item.metadata.coordinates.path.length === 0;
@@ -60,6 +62,20 @@ export function DeleteItemDialog({
       // 3. localStorage cleanup
       // 4. Rollback on error
       await deleteItemOptimistic(item.metadata.coordId);
+      
+      // Dispatch chat message for deletion
+      chatDispatch({
+        type: 'operation_completed',
+        payload: {
+          operation: 'delete',
+          tileId: item.metadata.coordId,
+          result: 'success',
+          message: `Deleted "${item.data.name}"`,
+        },
+        id: `delete-complete-${Date.now()}`,
+        timestamp: new Date(),
+        actor: 'system',
+      });
 
       onSuccess?.();
       onClose();

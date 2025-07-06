@@ -5,8 +5,14 @@ import { ChatInput } from '../ChatInput';
 import { ChatProvider } from '../ChatProvider';
 import type { ReactNode } from 'react';
 
+const mockEventBus = {
+  emit: vi.fn(),
+  on: vi.fn().mockReturnValue(() => undefined),
+  off: vi.fn(),
+};
+
 function TestWrapper({ children }: { children: ReactNode }) {
-  return <ChatProvider>{children}</ChatProvider>;
+  return <ChatProvider eventBus={mockEventBus as unknown as Parameters<typeof ChatProvider>[0]['eventBus']}>{children}</ChatProvider>;
 }
 
 describe('ChatInput', () => {

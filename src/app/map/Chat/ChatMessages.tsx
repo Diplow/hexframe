@@ -1,257 +1,458 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { ChatMessage, PreviewWidgetData } from './types';
+import remarkBreaks from 'remark-breaks';
+import type { Widget } from './_cache/types';
+import type { Message, TileSelectedPayload, AuthRequiredPayload, ErrorOccurredPayload } from './_cache/_events/event.types';
 import { PreviewWidget } from './Widgets/PreviewWidget';
+import { CreationWidget } from './Widgets/CreationWidget';
+import { LoginWidget } from './Widgets/LoginWidget';
+import { ConfirmDeleteWidget } from './Widgets/ConfirmDeleteWidget';
+import { LoadingWidget } from './Widgets/LoadingWidget';
+import { ErrorWidget } from './Widgets/ErrorWidget';
 import { useMapCache } from '../Cache/_hooks/use-map-cache';
-import { DeleteItemDialog } from '../Dialogs/delete-item';
-import type { TileData } from '../types/tile-data';
-import { useChat } from './ChatProvider';
+import { useChatCacheOperations } from './_cache/hooks/useChatCacheOperations';
+import { useAuth } from '~/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
+import { useChatSettings } from './_settings/useChatSettings';
+import { Calendar } from 'lucide-react';
+import { api } from '~/commons/trpc/react';
 
 interface ChatMessagesProps {
-  messages: ChatMessage[];
-  expandedPreviewId: string | null;
+  messages: Message[];
+  widgets: Widget[];
 }
 
-export function ChatMessages({ messages, expandedPreviewId }: ChatMessagesProps) {
+export function ChatMessages({ messages, widgets }: ChatMessagesProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { dispatch } = useChat();
+  const { dispatch, eventBus } = useChatCacheOperations();
+  const { updateItemOptimistic } = useMapCache();
+  const { user } = useAuth();
+  const router = useRouter();
+  const trpcUtils = api.useUtils();
+  const createMapMutation = api.map.user.createDefaultMapForCurrentUser.useMutation();
+  useChatSettings(); // This will trigger re-render when settings change
   
-  // Dialog state
-  const [deletingTile, setDeletingTile] = useState<TileData | null>(null);
+  // Monitor auth state and handle login widget removal
+  useEffect(() => {
+    if (user) {
+      // User is now logged in, check if there's a login widget active
+      const loginWidget = widgets.find(w => w.type === 'login');
+      if (loginWidget) {
+        // Dispatch event to remove the login widget
+        dispatch({
+          type: 'widget_resolved',
+          payload: {
+            widgetId: loginWidget.id,
+            action: 'authenticated',
+          },
+          id: `auth-success-${Date.now()}`,
+          timestamp: new Date(),
+          actor: 'system',
+        });
+        
+        // Get user's map and navigate
+        trpcUtils.map.user.getUserMap.fetch().then(async (result) => {
+          if (result?.success && result.map?.id) {
+            // Check if we have a return URL from before auth
+            const returnUrl = sessionStorage.getItem('auth-return-url');
+            sessionStorage.removeItem('auth-return-url');
+            
+            // If we were on a specific map before auth, return there
+            if (returnUrl?.includes('/map')) {
+              window.location.href = returnUrl;
+            } else {
+              // Otherwise navigate to user's map
+              router.push(`/map?center=${result.map.id}`);
+            }
+          } else if (!result?.success) {
+            // Map doesn't exist, try to create it
+            try {
+              const createResult = await createMapMutation.mutateAsync();
+              if (createResult?.success && createResult.mapId) {
+                router.push(`/map?center=${createResult.mapId}`);
+                dispatch({
+                  type: 'message',
+                  payload: {
+                    content: 'Welcome! Your personal map has been created.',
+                    actor: 'system',
+                  },
+                  id: `map-created-${Date.now()}`,
+                  timestamp: new Date(),
+                  actor: 'system',
+                });
+              }
+            } catch (error) {
+              console.error('Failed to create user map:', error);
+              dispatch({
+                type: 'error_occurred',
+                payload: {
+                  error: 'Failed to create your map. Please try refreshing the page.',
+                  retryable: true,
+                },
+                id: `map-error-${Date.now()}`,
+                timestamp: new Date(),
+                actor: 'system',
+              });
+            }
+          }
+        }).catch(console.error);
+      }
+    }
+  }, [user, widgets, dispatch, router, trpcUtils, createMapMutation]);
   
-  // Auto-scroll to bottom when new messages are added
+  // Auto-scroll to bottom when new messages or widgets are added
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages]);
-  
-  return (
-    <>
-      <div 
-        ref={scrollRef}
-        data-testid="chat-messages" 
-        className="flex-1 overflow-y-auto flex flex-col px-4 py-6 space-y-4"
-      >
-        <SystemMessage />
-        
-        {messages.map((message) => (
-          <ChatMessageItem 
-            key={message.id} 
-            message={message} 
-            isExpanded={message.id === expandedPreviewId}
-            onDeleteTile={setDeletingTile}
-          />
-        ))}
-        
-        {/* Spacer to ensure last message isn't too close to bottom */}
-        <div className="h-2" />
-      </div>
-      
-      {/* Dialogs */}
-      {deletingTile && (
-        <DeleteItemDialog
-          isOpen={!!deletingTile}
-          onClose={() => setDeletingTile(null)}
-          item={deletingTile}
-          onSuccess={() => {
-            // Remove the preview from chat when the item is deleted
-            if (deletingTile) {
-              dispatch({ 
-                type: 'REMOVE_TILE_PREVIEW', 
-                payload: { tileId: deletingTile.metadata.coordId } 
-              });
-            }
-            setDeletingTile(null);
-          }}
-        />
-      )}
-    </>
-  );
-}
+  }, [messages, widgets]);
 
-function SystemMessage() {
+  // Group messages by day
+  const messagesByDay = messages.reduce((acc, message) => {
+    const date = new Date(message.timestamp);
+    const dateKey = date.toLocaleDateString();
+    if (!acc[dateKey]) {
+      acc[dateKey] = [];
+    }
+    acc[dateKey].push(message);
+    return acc;
+  }, {} as Record<string, Message[]>);
+
   return (
-    <div className="w-full">
-      <div className="flex items-start gap-3">
-        <span className="font-bold text-primary">Hexframe:</span>
-        <div className="flex-1 text-muted-foreground">
-          Welcome to Hexframe! Select a tile to explore its content.
+    <div
+      ref={scrollRef}
+      className="flex-1 overflow-y-auto p-4 space-y-3"
+      data-testid="chat-messages"
+    >
+      {Object.entries(messagesByDay).map(([dateKey, dayMessages]) => (
+        <div key={dateKey}>
+          <DaySeparator date={new Date(dayMessages[0]?.timestamp ?? Date.now())} />
+          {dayMessages.map((message) => (
+            <MessageItem key={message.id} message={message} />
+          ))}
         </div>
-      </div>
+      ))}
+      
+      {/* Render active widgets */}
+      {widgets.map((widget) => (
+        <div key={widget.id} className="w-full">
+          {renderWidget(widget, { dispatch, eventBus, updateItemOptimistic })}
+        </div>
+      ))}
     </div>
   );
 }
 
-interface ChatMessageItemProps {
-  message: ChatMessage;
-  isExpanded: boolean;
-  onDeleteTile: (tile: TileData) => void;
-}
-
-function ChatMessageItem({ message, isExpanded, onDeleteTile }: ChatMessageItemProps) {
-  const { items, updateItemOptimistic } = useMapCache();
-  const testId = `chat-message-${message.id}`;
-
-  if (message.type === 'system' && typeof message.content === 'object') {
-    // Handle widget content
-    if (message.content.type === 'preview') {
-      const widgetData = message.content.data as PreviewWidgetData;
-      const tileData = items[widgetData.tileId];
-      
-      const handleSave = async (newTitle: string, newContent: string) => {
-        if (!tileData) return;
-        
-        // The cache handles everything:
-        // 1. Optimistic update (immediate UI feedback)
-        // 2. Server call (via tRPC mutation)
-        // 3. localStorage sync
-        // 4. Rollback on error
-        try {
-          await updateItemOptimistic(tileData.metadata.coordId, {
-            name: newTitle,
-            description: newContent,
-          });
-        } catch (error) {
-          console.error('Failed to update item:', error);
-        }
-      };
-      
+function renderWidget(
+  widget: Widget,
+  _deps: {
+    dispatch: ReturnType<typeof useChatCacheOperations>['dispatch'];
+    eventBus: ReturnType<typeof useChatCacheOperations>['eventBus'];
+    updateItemOptimistic: ReturnType<typeof useMapCache>['updateItemOptimistic'];
+  }
+) {
+  switch (widget.type) {
+    case 'preview':
+      const previewData = widget.data as TileSelectedPayload;
       return (
-        <div data-testid={testId} className="w-full">
-          <PreviewWidget
-            tileId={widgetData.tileId}
-            title={widgetData.title}
-            content={widgetData.content}
-            forceExpanded={isExpanded}
-            onEdit={tileData ? undefined : undefined} // Inline editing is handled by onSave
-            onDelete={tileData ? () => onDeleteTile(tileData) : undefined}
-            onSave={tileData ? handleSave : undefined}
-          />
-        </div>
+        <PreviewWidget
+          tileId={previewData.tileId}
+          title={previewData.tileData.title}
+          content={previewData.tileData.content ?? ''}
+        />
+      );
+    
+    case 'login':
+      const loginData = widget.data as AuthRequiredPayload;
+      return (
+        <LoginWidget
+          message={loginData.reason}
+        />
+      );
+    
+    case 'error':
+      const errorData = widget.data as ErrorOccurredPayload;
+      return (
+        <ErrorWidget
+          message={errorData.error}
+          error={errorData.context ? JSON.stringify(errorData.context) : undefined}
+          retry={errorData.retryable ? () => {
+            // Retry logic could be implemented here
+            console.log('Retry requested');
+          } : undefined}
+        />
+      );
+    
+    case 'creation': {
+      const creationData = widget.data as { coordId?: string; parentName?: string; parentCoordId?: string };
+      return (
+        <CreationWidget
+          coordId={creationData.coordId ?? ''}
+          parentName={creationData.parentName}
+          parentCoordId={creationData.parentCoordId}
+        />
       );
     }
+    
+    case 'loading': {
+      const loadingData = widget.data as { message?: string; operation?: string };
+      return (
+        <LoadingWidget
+          message={loadingData.message ?? 'Loading...'}
+          operation={loadingData.operation as 'create' | 'update' | 'delete' | 'move' | 'swap' | undefined}
+        />
+      );
+    }
+    
+    case 'delete': {
+      const deleteData = widget.data as { tileId?: string; tileName?: string; tile?: { id: string; title: string; coordId: string } };
+      return (
+        <ConfirmDeleteWidget
+          tileId={deleteData.tileId ?? deleteData.tile?.id ?? ''}
+          tileName={deleteData.tileName ?? deleteData.tile?.title ?? 'item'}
+        />
+      );
+    }
+    
+    default:
+      return null;
   }
+}
 
-  // Check if this is a navigation message
-  const isNavigationMessage = message.type === 'system' && 
-    typeof message.content === 'string' && 
-    message.content.includes('📍 Navigated to');
-  
-  // Handle navigation messages with special styling
-  if (isNavigationMessage) {
-    return <NavigationMessage message={message} testId={testId} />;
-  }
-  
-  // Handle other text content
-  const getName = () => {
-    switch (message.type) {
-      case 'user':
-        return 'You';
-      case 'assistant':
-        return 'Lucy';
-      case 'system':
-        return 'System';
-      default:
-        return 'Unknown';
+function DaySeparator({ date }: { date: Date }) {
+  const formatDate = () => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    const isToday = date.toDateString() === today.toDateString();
+    const isYesterday = date.toDateString() === yesterday.toDateString();
+    
+    if (isToday) {
+      return 'Today';
+    } else if (isYesterday) {
+      return 'Yesterday';
+    } else {
+      return date.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
     }
   };
   
-  const getNameColor = () => {
-    return message.type === 'user' ? 'text-secondary' : 'text-primary';
-  };
-  
   return (
-    <div data-testid={testId} className="w-full">
-      <div className="flex items-start gap-3">
-        <span className={`font-bold ${getNameColor()}`}>{getName()}:</span>
-        <div className="flex-1">
-          {typeof message.content === 'string' ? (
-            <div className="prose prose-sm max-w-none dark:prose-invert">
-              <ReactMarkdown 
-                remarkPlugins={[remarkGfm]}
-                components={{
-                  // Ensure links open in new tab for security
-                  a: ({ href, children }) => (
-                    <a href={href} target="_blank" rel="noopener noreferrer">
-                      {children}
-                    </a>
-                  ),
-                  // Remove default paragraph margins for better chat layout
-                  p: ({ children }) => <p className="my-0">{children}</p>,
-                  // Custom code styling for better light/dark mode support
-                  code: ({ className, children, ...props }) => {
-                    const match = /language-(\w+)/.exec((className as string) ?? '');
-                    return match ? (
-                      <code className="block bg-neutral-400 dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 p-2 rounded overflow-x-auto" {...props}>
-                        {children}
-                      </code>
-                    ) : (
-                      <code className="bg-neutral-400 dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 px-1 py-0.5 rounded" {...props}>
-                        {children}
-                      </code>
-                    );
-                  },
-                  pre: ({ children }) => (
-                    <pre className="bg-neutral-400 dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 p-4 rounded-lg overflow-x-auto my-2">
-                      {children}
-                    </pre>
-                  ),
-                }}
-              >
-                {message.content}
-              </ReactMarkdown>
-            </div>
-          ) : null}
-        </div>
-      </div>
+    <div 
+      className="flex items-center justify-center gap-2 my-4 text-xs text-muted-foreground"
+      title={date.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      })}
+    >
+      <Calendar className="w-3 h-3" />
+      <span data-testid="chat-day-separator">{formatDate()}</span>
     </div>
   );
 }
 
-// Navigation message component with clickable tile name
-interface NavigationMessageProps {
-  message: ChatMessage;
-  testId: string;
-}
-
-function NavigationMessage({ message, testId }: NavigationMessageProps) {
-  const { navigateToItem } = useMapCache();
+function MessageItem({ message }: { message: Message }) {
+  const { user } = useAuth();
+  const { dispatch } = useChatCacheOperations();
+  const router = useRouter();
   
-  // Extract the coordId from metadata
-  const tileCoordId = message.metadata?.tileId;
+  // Get the user's actual map ID
+  const { data: userMapData } = api.map.user.getUserMap.useQuery(undefined, {
+    enabled: !!user,
+  });
   
-  const handleNavigation = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (tileCoordId) {
-      await navigateToItem(tileCoordId);
+  const getTimestamp = () => {
+    const date = new Date(message.timestamp);
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const short = `${hours}:${minutes}`;
+    
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    const seconds = date.getSeconds().toString().padStart(2, '0');
+    const full = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+    
+    return { short, full };
+  };
+  
+  const timestamps = getTimestamp();
+  
+  const handleUserClick = () => {
+    if (user && userMapData?.success && userMapData.map?.id) {
+      // Navigate to user's own map using the router
+      const mapUrl = `/map?center=${userMapData.map.id}`;
+      console.log('Navigating to user map:', { mapId: userMapData.map.id, mapUrl, userName: user.name });
+      router.push(mapUrl);
+      
+      // Also dispatch the navigation event for chat history
+      dispatch({
+        type: 'navigation',
+        payload: {
+          toTileId: userMapData.map.id,
+          toTileName: userMapData.map.name ?? user.name ?? 'Your Map',
+        },
+        id: `nav-user-${Date.now()}`,
+        timestamp: new Date(),
+        actor: 'user',
+      });
+      
+      // Add a message to confirm navigation
+      dispatch({
+        type: 'message',
+        payload: {
+          content: `Navigating to ${userMapData.map.name ?? user.name ?? 'your'} map...`,
+          actor: 'system',
+        },
+        id: `nav-confirm-${Date.now()}`,
+        timestamp: new Date(),
+        actor: 'system',
+      });
+    } else if (user && (!userMapData || !userMapData.success)) {
+      // User exists but doesn't have a map yet
+      dispatch({
+        type: 'message',
+        payload: {
+          content: 'Creating your map...',
+          actor: 'system',
+        },
+        id: `map-creating-${Date.now()}`,
+        timestamp: new Date(),
+        actor: 'system',
+      });
+    } else {
+      // Show register widget for guests
+      dispatch({
+        type: 'auth_required',
+        payload: {
+          reason: 'Create an account to have your own map',
+        },
+        id: `auth-register-${Date.now()}`,
+        timestamp: new Date(),
+        actor: 'system',
+      });
     }
   };
   
   return (
-    <div data-testid={testId} className="w-full">
-      <div className="text-xs text-muted-foreground italic">
-        <div className="prose prose-sm max-w-none dark:prose-invert prose-p:text-muted-foreground">
-          <ReactMarkdown 
-            remarkPlugins={[remarkGfm]}
-            components={{
-              p: ({ children }) => <p className="my-0">{children}</p>,
-              strong: ({ children }) => (
-                <strong 
-                  className="font-semibold cursor-pointer hover:underline"
-                  onClick={handleNavigation}
-                >
-                  {children}
-                </strong>
-              ),
-            }}
+    <div className="w-full">
+      <div className="text-sm whitespace-pre-wrap">
+        <span className="text-xs text-muted-foreground mr-2" title={timestamps.full}>
+          {timestamps.short}
+        </span>
+        {message.actor === 'user' && (
+          <button
+            onClick={handleUserClick}
+            className="font-bold text-secondary mr-2 hover:underline focus:outline-none"
           >
-            {message.content as string}
-          </ReactMarkdown>
-        </div>
+            {user ? 'You:' : 'Guest (you):'}
+          </button>
+        )}
+        {message.actor === 'assistant' && (
+          <span className="font-bold text-primary mr-2">Lucy:</span>
+        )}
+        {message.actor === 'system' && (
+          <span className="font-bold text-muted-foreground mr-2">System:</span>
+        )}
+        <span className={message.actor === 'system' ? 'text-muted-foreground' : ''}>
+          <ReactMarkdown 
+            remarkPlugins={[remarkGfm, remarkBreaks]}
+            components={{
+            p: ({ children }) => <>{children}</>,
+            br: () => <br />,
+            ul: ({ children }) => <ul className="list-disc list-inside mb-1">{children}</ul>,
+            ol: ({ children }) => <ol className="list-decimal list-inside mb-1">{children}</ol>,
+            li: ({ children }) => <li className="ml-2">{children}</li>,
+            strong: ({ children }) => (
+              <strong className={`font-semibold ${message.actor === 'system' ? 'text-muted-foreground' : 'text-foreground'}`}>{children}</strong>
+            ),
+            a: ({ href, children }) => {
+              // Check if this is a command link
+              if (href?.startsWith('command:')) {
+                const command = href.slice(8); // Remove 'command:' prefix
+                return (
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => {
+                      // Show the command being executed
+                      dispatch({
+                        type: 'user_message',
+                        payload: {
+                          text: command,
+                        },
+                        id: `cmd-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+                        timestamp: new Date(),
+                        actor: 'user',
+                      });
+                      
+                      // Dispatch command execution event
+                      dispatch({
+                        type: 'execute_command',
+                        payload: {
+                          command: command,
+                        },
+                        id: `cmd-exec-${Date.now()}`,
+                        timestamp: new Date(),
+                        actor: 'user',
+                      });
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.currentTarget.click();
+                      }
+                    }}
+                    className={`underline transition-colors cursor-pointer ${
+                      message.actor === 'system' 
+                        ? 'text-muted-foreground hover:text-foreground' 
+                        : 'text-primary hover:text-primary/80'
+                    }`}
+                  >
+                    {children}
+                  </span>
+                );
+              }
+              // Regular link
+              return (
+                <a href={href} target="_blank" rel="noopener noreferrer">
+                  {children}
+                </a>
+              );
+            },
+            code: ({ className, children, ...props }) => {
+              const isInline = !className;
+              const mutedStyle = message.actor === 'system' 
+                ? 'bg-neutral-300 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-400' 
+                : 'bg-neutral-400 dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100';
+              
+              return isInline ? (
+                <code className={`${mutedStyle} px-1 py-0.5 rounded`} {...props}>
+                  {children}
+                </code>
+              ) : (
+                <pre className={`${mutedStyle} p-4 rounded-lg overflow-x-auto my-2`}>
+                  <code className={className} {...props}>
+                    {children}
+                  </code>
+                </pre>
+              );
+            },
+          }}
+        >
+          {message.content}
+        </ReactMarkdown>
+        </span>
       </div>
     </div>
   );

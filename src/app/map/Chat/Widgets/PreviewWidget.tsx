@@ -12,16 +12,17 @@ interface PreviewWidgetProps {
   title: string;
   content: string;
   forceExpanded?: boolean;
+  openInEditMode?: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
   onSave?: (title: string, content: string) => void;
 }
 
-export function PreviewWidget({ tileId, title, content, forceExpanded, onEdit, onDelete, onSave }: PreviewWidgetProps) {
+export function PreviewWidget({ tileId, title, content, forceExpanded, openInEditMode, onEdit, onDelete, onSave }: PreviewWidgetProps) {
   // Start collapsed if content is empty
   const [isExpanded, setIsExpanded] = useState(!!content);
   const [showMenu, setShowMenu] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(openInEditMode ?? false);
   const [editTitle, setEditTitle] = useState(title);
   const [editContent, setEditContent] = useState(content);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -34,6 +35,14 @@ export function PreviewWidget({ tileId, title, content, forceExpanded, onEdit, o
       setIsExpanded(forceExpanded && !!content);
     }
   }, [forceExpanded, content]);
+
+  // Handle openInEditMode flag
+  useEffect(() => {
+    if (openInEditMode) {
+      setIsEditing(true);
+      setIsExpanded(true);
+    }
+  }, [openInEditMode]);
 
   // Update expansion state when tileId or content changes
   useEffect(() => {
@@ -116,6 +125,26 @@ export function PreviewWidget({ tileId, title, content, forceExpanded, onEdit, o
     setIsEditing(false);
   };
 
+  const handleTitleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSave();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleCancel();
+    }
+  };
+
+  const handleDescriptionKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      handleSave();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleCancel();
+    }
+  };
+
   return (
     <div 
       data-testid="preview-widget" 
@@ -128,21 +157,19 @@ export function PreviewWidget({ tileId, title, content, forceExpanded, onEdit, o
       <div 
         className={cn(
           "flex items-center gap-2 border-b border-neutral-200 dark:border-neutral-800",
-          isExpanded ? "p-4" : "p-2"
+          "p-2"
         )}
       >
-        {/* Chevron button on the left */}
-        {content && !isEditing && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0 flex-shrink-0"
-            aria-label={isExpanded ? "Collapse" : "Expand"}
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
-            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-          </Button>
-        )}
+        {/* Chevron button on the left - always show */}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 w-6 p-0 flex-shrink-0"
+          aria-label={isExpanded ? "Collapse" : "Expand"}
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </Button>
         
         {/* Title or edit input */}
         {isEditing ? (
@@ -150,7 +177,8 @@ export function PreviewWidget({ tileId, title, content, forceExpanded, onEdit, o
             type="text"
             value={editTitle}
             onChange={(e) => setEditTitle(e.target.value)}
-            className="flex-1 text-sm font-semibold bg-transparent border-b border-neutral-400 dark:border-neutral-600 focus:outline-none focus:border-primary"
+            onKeyDown={handleTitleKeyDown}
+            className="flex-1 text-sm font-semibold bg-neutral-100 dark:bg-neutral-700 px-2 py-1 rounded border border-neutral-300 dark:border-neutral-600 focus:outline-none focus:ring-2 focus:ring-primary"
             autoFocus
           />
         ) : (
@@ -243,36 +271,39 @@ export function PreviewWidget({ tileId, title, content, forceExpanded, onEdit, o
         </div>
       </div>
       
-      {content && (
+      {(content || isEditing) && (
         <div 
           className={cn(
             "overflow-auto transition-all duration-200",
             isExpanded ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
           )}
         >
-          <div className="p-4">
+          <div className="p-2">
             {isEditing ? (
               <textarea
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
-                className="w-full min-h-[100px] p-2 text-sm bg-transparent border border-neutral-400 dark:border-neutral-600 rounded focus:outline-none focus:border-primary resize-y"
+                onKeyDown={handleDescriptionKeyDown}
+                className="w-full min-h-[100px] p-2 text-sm bg-neutral-100 dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded focus:outline-none focus:ring-2 focus:ring-primary resize-y"
                 placeholder="Enter description..."
               />
             ) : (
-              <div className="prose prose-sm max-w-none dark:prose-invert">
-                <ReactMarkdown 
-                  components={{
-                    // Ensure links open in new tab for security
-                    a: ({ href, children }) => (
-                      <a href={href} target="_blank" rel="noopener noreferrer">
-                        {children}
-                      </a>
-                    ),
-                  }}
-                >
-                  {content}
-                </ReactMarkdown>
-              </div>
+              content && (
+                <div className="prose prose-sm max-w-none dark:prose-invert">
+                  <ReactMarkdown 
+                    components={{
+                      // Ensure links open in new tab for security
+                      a: ({ href, children }) => (
+                        <a href={href} target="_blank" rel="noopener noreferrer">
+                          {children}
+                        </a>
+                      ),
+                    }}
+                  >
+                    {content}
+                  </ReactMarkdown>
+                </div>
+              )
             )}
           </div>
         </div>

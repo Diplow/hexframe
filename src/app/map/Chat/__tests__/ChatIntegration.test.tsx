@@ -3,13 +3,17 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ChatProvider } from '../ChatProvider';
 import { ChatPanel } from '../ChatPanel';
+import { EventBus } from '../../Services/event-bus';
+
+// Create mock EventBus
+const mockEventBus = new EventBus();
 
 describe('Chat Integration', () => {
   it('should display sent messages in the chat', async () => {
     const user = userEvent.setup();
     
     render(
-      <ChatProvider>
+      <ChatProvider eventBus={mockEventBus}>
         <ChatPanel />
       </ChatProvider>
     );
@@ -38,7 +42,7 @@ describe('Chat Integration', () => {
     const user = userEvent.setup();
     
     render(
-      <ChatProvider>
+      <ChatProvider eventBus={mockEventBus}>
         <ChatPanel />
       </ChatProvider>
     );
@@ -68,7 +72,7 @@ describe('Chat Integration', () => {
   
   it('should show welcome message initially', () => {
     render(
-      <ChatProvider>
+      <ChatProvider eventBus={mockEventBus}>
         <ChatPanel />
       </ChatProvider>
     );

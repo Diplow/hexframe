@@ -1,201 +1,236 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import { ChatProvider } from '../ChatProvider';
-import { ChatWithCenterTracking } from '../ChatWithCenterTracking';
+import { ChatPanel } from '../ChatPanel';
+import { EventBus } from '../../Services/event-bus';
 import type { ReactNode } from 'react';
 
-// Mock the useMapCache hook
+// Mock the useMapCache hook since ChatPanel uses it for tile selection
 vi.mock('../../Cache/_hooks/use-map-cache', () => ({
-  useMapCache: vi.fn(),
+  useMapCache: vi.fn(() => ({
+    center: null,
+    items: {},
+    navigateToItem: vi.fn(),
+  })),
 }));
 
-import { useMapCache } from '../../Cache/_hooks/use-map-cache';
-const mockUseMapCache = vi.mocked(useMapCache);
+// Mock the auth context
+vi.mock('~/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: null,
+    isAuthenticated: false,
+  }),
+}));
 
-function TestWrapper({ children }: { children: ReactNode }) {
-  return <ChatProvider>{children}</ChatProvider>;
-}
+// Mock the theme context
+vi.mock('~/contexts/ThemeContext', () => ({
+  useTheme: () => ({
+    theme: 'light',
+    setTheme: vi.fn(),
+  }),
+}));
 
-describe('Chat Center Tracking', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    // Reset the mock to initial state
-    mockUseMapCache.mockReturnValue({
-      center: null,
-      items: {},
-      navigateToItem: vi.fn(),
-    } as any);
-  });
+// Mock Next.js navigation
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    refresh: vi.fn(),
+  }),
+  useSearchParams: () => new URLSearchParams(),
+  usePathname: () => '/map',
+}));
 
-  it('should not show navigation message on initial mount', () => {
-    mockUseMapCache.mockReturnValue({
-      center: 'tile-1',
-      items: {
-        'tile-1': {
-          metadata: { coordId: 'tile-1' },
-          data: { name: 'Home Tile' },
+// Mock auth client to prevent actual authentication attempts
+vi.mock('~/lib/auth/auth-client', () => ({
+  authClient: {
+    signOut: vi.fn(),
+  },
+}));
+
+// Mock tRPC
+vi.mock('~/commons/trpc/react', () => ({
+  api: {
+    useUtils: () => ({}),
+    map: {
+      user: {
+        getUserMap: {
+          useQuery: () => ({
+            data: null,
+            isLoading: false,
+            error: null,
+          }),
+          fetch: () => Promise.resolve({
+            success: false,
+            map: null,
+          }),
+        },
+        createDefaultMapForCurrentUser: {
+          useMutation: () => ({
+            mutateAsync: vi.fn().mockResolvedValue({
+              success: true,
+              mapId: 'new-map-id',
+            }),
+          }),
         },
       },
-      navigateToItem: vi.fn(),
-    } as any);
+    },
+  },
+}));
+
+let testEventBus: EventBus;
+
+function TestWrapper({ children }: { children: ReactNode }) {
+  return <ChatProvider eventBus={testEventBus}>{children}</ChatProvider>;
+}
+
+describe('Chat Center Tracking via Event Bus', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    testEventBus = new EventBus();
+  });
+
+  it('should show welcome message without navigation on initial mount', () => {
+    const TestWrapperWithWelcome = ({ children }: { children: ReactNode }) => {
+      return (
+        <ChatProvider 
+          eventBus={testEventBus}
+          initialEvents={[
+            {
+              type: 'message',
+              payload: {
+                content: 'Welcome to **Hexframe**! Navigate the map by clicking on tiles, or use the chat to ask questions.',
+                actor: 'system',
+              },
+              id: 'welcome-message',
+              timestamp: new Date(),
+              actor: 'system',
+            }
+          ]}
+        >
+          {children}
+        </ChatProvider>
+      );
+    };
 
     render(
-      <TestWrapper>
-        <ChatWithCenterTracking />
-      </TestWrapper>
+      <TestWrapperWithWelcome>
+        <ChatPanel />
+      </TestWrapperWithWelcome>
     );
 
-    // Should only show welcome message, not navigation message
-    expect(screen.getByText(/Welcome to Hexframe!/)).toBeInTheDocument();
+    // Should show welcome message
+    expect(screen.getByText(/Welcome to/)).toBeInTheDocument();
+    expect(screen.getByText(/Hexframe/)).toBeInTheDocument();
+    // Should NOT show navigation message on initial mount
     expect(screen.queryByText(/Navigated to/)).not.toBeInTheDocument();
   });
 
-  it('should show navigation message when center changes', () => {
-    const { rerender } = render(
+  it('should show navigation message when navigation event is emitted', () => {
+    render(
       <TestWrapper>
-        <ChatWithCenterTracking />
+        <ChatPanel />
       </TestWrapper>
     );
 
-    // Initial state
-    mockUseMapCache.mockReturnValue({
-      center: 'tile-1',
-      items: {
-        'tile-1': {
-          metadata: { coordId: 'tile-1' },
-          data: { name: 'Home Tile' },
+    // Emit a navigation event through the event bus (simulating MapCache navigation)
+    act(() => {
+      testEventBus.emit({
+        type: 'map.navigation',
+        source: 'map_cache',
+        payload: {
+          fromCenterId: 'tile-1',
+          toCenterId: 'tile-2',
+          toCenterName: 'Projects',
         },
-      },
-      navigateToItem: vi.fn(),
-    } as any);
+        timestamp: new Date(),
+      });
+    });
 
-    rerender(
-      <TestWrapper>
-        <ChatWithCenterTracking />
-      </TestWrapper>
-    );
-
-    // Change center
-    mockUseMapCache.mockReturnValue({
-      center: 'tile-2',
-      items: {
-        'tile-2': {
-          metadata: { coordId: 'tile-2' },
-          data: { name: 'Projects' },
-        },
-      },
-      navigateToItem: vi.fn(),
-    } as any);
-
-    rerender(
-      <TestWrapper>
-        <ChatWithCenterTracking />
-      </TestWrapper>
-    );
-
-    // Should show navigation message
-    expect(screen.getByText(/📍 Navigated to/)).toBeInTheDocument();
+    // Should show navigation messages - get all navigation messages
+    const navigationMessages = screen.getAllByText(/📍 Navigated to/);
+    expect(navigationMessages.length).toBeGreaterThan(0);
+    
+    // Should show the latest navigation to Projects
     expect(screen.getByText('Projects')).toBeInTheDocument();
-    // Should NOT show "System:" for navigation messages
-    expect(screen.queryByText('System:')).not.toBeInTheDocument();
+    
+    // Should show "System:" prefix for system messages
+    expect(screen.getAllByText('System:').length).toBeGreaterThan(0);
   });
 
-  it('should use coordinate ID when tile has no name', () => {
-    // Start with initial tile
-    mockUseMapCache.mockReturnValue({
-      center: 'tile-1',
-      items: {
-        'tile-1': {
-          metadata: { coordId: 'tile-1' },
-          data: { name: 'Home' },
-        },
-      },
-      navigateToItem: vi.fn(),
-    } as any);
-
-    const { rerender } = render(
+  it('should use "Untitled" when tile has no name', () => {
+    render(
       <TestWrapper>
-        <ChatWithCenterTracking />
+        <ChatPanel />
       </TestWrapper>
     );
 
-    // Change to tile without name
-    mockUseMapCache.mockReturnValue({
-      center: 'tile-3',
-      items: {
-        'tile-3': {
-          metadata: { coordId: 'tile-3' },
-          data: { name: null },
+    // Emit navigation event with empty name (simulating tile without name)
+    act(() => {
+      testEventBus.emit({
+        type: 'map.navigation',
+        source: 'map_cache',
+        payload: {
+          fromCenterId: 'tile-1',
+          toCenterId: 'tile-3',
+          toCenterName: 'Untitled', // MapCache sends "Untitled" for tiles without names
         },
-      },
-      navigateToItem: vi.fn(),
-    } as any);
-
-    rerender(
-      <TestWrapper>
-        <ChatWithCenterTracking />
-      </TestWrapper>
-    );
+        timestamp: new Date(),
+      });
+    });
 
     // Should show "Untitled" for tiles without names
     const messages = screen.getAllByText(/📍 Navigated to/);
     expect(messages).toHaveLength(1);
     expect(screen.getByText('Untitled')).toBeInTheDocument();
-    // Should NOT show "System:" for navigation messages
-    expect(screen.queryByText('System:')).not.toBeInTheDocument();
+    // Should show "System:" prefix for system messages
+    expect(screen.getAllByText('System:').length).toBeGreaterThan(0);
   });
 
-  it('should not show duplicate messages for same center', () => {
-    // Start with initial center
-    mockUseMapCache.mockReturnValue({
-      center: 'tile-1',
-      items: {
-        'tile-1': {
-          metadata: { coordId: 'tile-1' },
-          data: { name: 'Home' },
-        },
-      },
-      navigateToItem: vi.fn(),
-    } as any);
-
-    const { rerender } = render(
+  it('should show multiple navigation messages for different centers', () => {
+    render(
       <TestWrapper>
-        <ChatWithCenterTracking />
+        <ChatPanel />
       </TestWrapper>
     );
 
-    // Navigate to new center
-    mockUseMapCache.mockReturnValue({
-      center: 'tile-2',
-      items: {
-        'tile-2': {
-          metadata: { coordId: 'tile-2' },
-          data: { name: 'About' },
+    // Emit first navigation event
+    act(() => {
+      testEventBus.emit({
+        type: 'map.navigation',
+        source: 'map_cache',
+        payload: {
+          fromCenterId: 'tile-1',
+          toCenterId: 'tile-2',
+          toCenterName: 'About',
         },
-      },
-      navigateToItem: vi.fn(),
-    } as any);
+        timestamp: new Date(),
+      });
+    });
 
-    rerender(
-      <TestWrapper>
-        <ChatWithCenterTracking />
-      </TestWrapper>
-    );
-
-    // Should have exactly one navigation message for the change
+    // Should have one navigation message
     let navigationMessages = screen.getAllByText(/📍 Navigated to/);
     expect(navigationMessages).toHaveLength(1);
     expect(screen.getByText('About')).toBeInTheDocument();
 
-    // Re-render with same center (no change)
-    rerender(
-      <TestWrapper>
-        <ChatWithCenterTracking />
-      </TestWrapper>
-    );
+    // Emit second navigation event to different center
+    act(() => {
+      testEventBus.emit({
+        type: 'map.navigation',
+        source: 'map_cache',
+        payload: {
+          fromCenterId: 'tile-2',
+          toCenterId: 'tile-3',
+          toCenterName: 'Projects',
+        },
+        timestamp: new Date(),
+      });
+    });
 
-    // Should still only have one navigation message
+    // Should now have two navigation messages
     navigationMessages = screen.getAllByText(/📍 Navigated to/);
-    expect(navigationMessages).toHaveLength(1);
+    expect(navigationMessages).toHaveLength(2);
+    expect(screen.getByText('About')).toBeInTheDocument();
+    expect(screen.getByText('Projects')).toBeInTheDocument();
   });
 });

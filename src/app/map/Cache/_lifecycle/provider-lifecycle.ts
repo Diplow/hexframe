@@ -99,13 +99,11 @@ export function useCacheLifecycle(config: LifecycleHookConfig): void {
     
     void prefetchRegion();
   }, [
+    config,
     config.state.currentCenter,
-    config.state.regionMetadata,
-    config.state.itemsById,
     config.state.cacheConfig.maxDepth,
     config.state.isLoading,
     config.serverService,
     config.dispatch,
-    config
   ]);
 }

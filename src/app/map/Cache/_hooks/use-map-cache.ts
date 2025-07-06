@@ -82,6 +82,14 @@ export function useMapCache(): MapCacheHook {
     [mutationOperations],
   );
 
+  const moveItemOptimistic = useCallback(
+    async (sourceCoordId: string, targetCoordId: string) => {
+      const result = await mutationOperations.moveItem(sourceCoordId, targetCoordId);
+      return result;
+    },
+    [mutationOperations],
+  );
+
   // Config updates
   const updateConfig = useCallback(
     (newConfig: Partial<MapCacheHook["config"]>) => {
@@ -156,6 +164,7 @@ export function useMapCache(): MapCacheHook {
     createItemOptimistic,
     updateItemOptimistic,
     deleteItemOptimistic,
+    moveItemOptimistic,
     rollbackOptimisticChange: mutationOperations.rollbackOptimisticChange,
     rollbackAllOptimistic: mutationOperations.rollbackAllOptimistic,
     getPendingOptimisticChanges: mutationOperations.getPendingOptimisticChanges,

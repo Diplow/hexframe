@@ -3,14 +3,13 @@
 import { useState, useContext } from "react";
 import { DynamicBaseTileLayout } from "../Base";
 import type { TileScale, TileColor } from "~/app/static/map/Tile/Base/base";
-import { CreateItemModal } from "../../Dialogs/create-item.modal";
-import { DynamicCreateItemDialog } from "../../Dialogs/create-item";
 import { LegacyTileActionsContext, useCanvasTheme } from "../../Canvas";
 import type { URLInfo } from "../../types/url-info";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import { getColor } from "../../types/tile-data";
 import { getDefaultStroke } from "../utils/stroke";
 import { useTileInteraction } from "../../hooks/useTileInteraction";
+import { useChatCacheOperations } from "../../Chat/_cache/hooks/useChatCacheOperations";
 
 interface DynamicEmptyTileProps {
   coordId: string;
@@ -43,9 +42,8 @@ function getDropHandlers(
 }
 
 export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
-  const [showModal, setShowModal] = useState(false);
-  const [useDynamicDialog] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
+  const { dispatch } = useChatCacheOperations();
   const { isDarkMode } = useCanvasTheme();
   
   // Calculate default stroke for this scale
@@ -53,8 +51,9 @@ export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
   
   // Check if user owns the parent tile (can create in this domain)
   const canEdit = props.parentItem?.ownerId && props.currentUserId 
-    ? props.currentUserId.toString() === props.parentItem.ownerId 
+    ? props.currentUserId.toString() === props.parentItem.ownerId.toString() 
     : false;
+  
   
   // Use tile interaction hook for contextual behavior
   const { handleClick, handleDoubleClick, handleRightClick, cursor, shouldShowHoverEffects } = useTileInteraction({
@@ -62,7 +61,28 @@ export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
     type: 'empty',
     canEdit,
     onCreate: () => {
-      setShowModal(true);
+      // Get parent coordId from child coordId
+      const childCoords = CoordSystem.parseId(props.coordId);
+      const parentCoords = CoordSystem.getParentCoord(childCoords);
+      const parentCoordId = parentCoords ? CoordSystem.createId(parentCoords) : undefined;
+      
+      // Dispatch operation started event to show creation widget
+      dispatch({
+        type: 'operation_started',
+        payload: {
+          operation: 'create',
+          tileId: parentCoordId,
+          data: {
+            coordId: props.coordId,
+            parentName: props.parentItem?.name,
+            parentId: props.parentItem?.id,
+            parentCoordId,
+          },
+        },
+        id: `create-${Date.now()}`,
+        timestamp: new Date(),
+        actor: 'user',
+      });
     },
   });
 
@@ -82,30 +102,16 @@ export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
 
 
 
-  // Handle successful creation
-  const handleCreateSuccess = () => {
-    setShowModal(false);
-    // Don't invalidate the cache - the optimistic update handles everything
-  };
-
-  
   // Get drop handlers using helper function
   const dropProps = getDropHandlers(props.coordId, isValidDropTarget, tileActions);
 
   return (
-    <>
-      <div 
+    <div 
         className={`group relative hover:z-10`} 
         data-testid={`empty-tile-${props.coordId}`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         {...dropProps}>
-        <div 
-          className="pointer-events-auto absolute inset-0 z-10"
-          onClick={props.interactive && canEdit ? (e) => void handleClick(e) : undefined}
-          onDoubleClick={props.interactive && canEdit ? (e) => void handleDoubleClick(e) : undefined}
-          onContextMenu={props.interactive && canEdit ? (e) => void handleRightClick(e) : undefined}
-        />
         
         <div>
           <DynamicBaseTileLayout
@@ -129,9 +135,20 @@ export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
           isDarkMode={isDarkMode}
         >
           <div className="absolute inset-0">
+            {/* Clickable area with hexagon shape */}
+            <div 
+              className="pointer-events-auto absolute inset-0 z-10"
+              onClick={props.interactive ? (e) => void handleClick(e) : undefined}
+              onDoubleClick={props.interactive ? (e) => void handleDoubleClick(e) : undefined}
+              onContextMenu={props.interactive ? (e) => void handleRightClick(e) : undefined}
+              style={{
+                clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)"
+              }}
+            />
+            
             {/* Semi-transparent black overlay clipped to hexagon shape */}
             <div 
-              className={`absolute inset-0 transition-colors duration-200 ${
+              className={`absolute inset-0 transition-colors duration-200 pointer-events-none ${
                 isHovered && shouldShowHoverEffects ? 'bg-black/10' : ''
               }`}
               style={{
@@ -140,38 +157,12 @@ export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
             />
             
             {/* Content on top of the overlay */}
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               {/* Green + button removed - creation is now handled via the Create tool */}
             </div>
           </div>
           </DynamicBaseTileLayout>
         </div>
       </div>
-
-      {/* Dynamic dialog with optimistic updates */}
-      {showModal && useDynamicDialog && (
-        <DynamicCreateItemDialog
-          isOpen={showModal}
-          onClose={() => setShowModal(false)}
-          coordId={props.coordId}
-          parentItem={props.parentItem}
-          urlInfo={props.urlInfo}
-          onSuccess={handleCreateSuccess}
-        />
-      )}
-
-      {/* Fallback modal if dynamic dialog is not available */}
-      {showModal && !useDynamicDialog && (
-        <CreateItemModal
-          isOpen={showModal}
-          onClose={() => setShowModal(false)}
-          coordId={props.coordId}
-          parentItem={props.parentItem}
-          urlInfo={props.urlInfo}
-          onSuccess={handleCreateSuccess}
-          preventRedirects={true}
-        />
-      )}
-    </>
   );
 }

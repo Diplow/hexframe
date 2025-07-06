@@ -28,7 +28,7 @@ vi.mock("../use-item-dialogs", () => ({
 }));
 
 vi.mock("../../_utils", () => ({
-  generateTileTestId: (coords: any) => `tile-${coords.path.join("-")}`,
+  generateTileTestId: (coords: { path: number[] }) => `tile-${coords.path.join("-")}`,
 }));
 
 vi.mock("../../_validators", () => ({
@@ -38,7 +38,7 @@ vi.mock("../../_validators", () => ({
 }));
 
 vi.mock("../../_coordinators", () => ({
-  createDragProps: (_coordId: string, _actions: any, isDraggable: boolean) => ({
+  createDragProps: (_coordId: string, _actions: unknown, isDraggable: boolean) => ({
     draggable: isDraggable,
     onDragStart: vi.fn(),
     onDragEnd: vi.fn(),
@@ -65,11 +65,17 @@ describe("useItemState - Drag Functionality", () => {
       name: "Test Tile",
       description: "Test Description",
       url: "",
-      itemType: "default",
+      color: "blue",
     },
     state: {
-      hasChildren: false,
+      isDragged: false,
+      isHovered: false,
+      isSelected: false,
+      isExpanded: false,
+      isDragOver: false,
+      isHovering: false,
       canExpand: true,
+      canEdit: true,
     },
   });
 
