@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { chatSettings } from '../../_settings/chat-settings';
-import { useChatCacheOperations } from '../../_cache/hooks/useChatCacheOperations';
+import { useChatCacheOperations } from '../../Cache/hooks/useChatCacheOperations';
 
 interface Command {
   description: string;
@@ -107,7 +107,7 @@ export function useCommandHandling() {
         payload: {
           content: result,
           actor: 'system',
-        },
+        } as unknown,
         id: `cmd-result-${Date.now()}`,
         timestamp: new Date(),
         actor: 'system',
@@ -137,7 +137,7 @@ export function useCommandHandling() {
         payload: {
           content: helpText,
           actor: 'system',
-        },
+        } as unknown,
         id: `cmd-help-${Date.now()}`,
         timestamp: new Date(),
         actor: 'system',
@@ -158,7 +158,7 @@ export function useCommandHandling() {
           payload: {
             content: result,
             actor: 'system',
-          },
+          } as unknown,
           id: `cmd-result-${Date.now()}`,
           timestamp: new Date(),
           actor: 'system',
@@ -172,7 +172,7 @@ export function useCommandHandling() {
         payload: {
           content: `Command not found: ${payload.command}`,
           actor: 'system',
-        },
+        } as unknown,
         id: `cmd-error-${Date.now()}`,
         timestamp: new Date(),
         actor: 'system',
