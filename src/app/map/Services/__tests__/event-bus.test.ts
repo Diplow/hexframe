@@ -170,6 +170,31 @@ describe('EventBus', () => {
 
       expect(listener).toHaveBeenCalledWith(event);
     });
+
+    it('should support root wildcard listener that catches all events', () => {
+      const rootListener = vi.fn();
+      const specificListener = vi.fn();
+      const events: AppEvent[] = [
+        { type: 'map.navigation', source: 'map_cache', payload: {} },
+        { type: 'chat.message_sent', source: 'chat_cache', payload: {} },
+        { type: 'auth.login', source: 'auth', payload: {} }
+      ];
+
+      eventBus.on('*', rootListener);
+      eventBus.on('map.navigation', specificListener);
+      
+      events.forEach(event => eventBus.emit(event));
+
+      // Root listener should receive all events
+      expect(rootListener).toHaveBeenCalledTimes(3);
+      events.forEach(event => {
+        expect(rootListener).toHaveBeenCalledWith(event);
+      });
+
+      // Specific listener should only receive the map.navigation event
+      expect(specificListener).toHaveBeenCalledTimes(1);
+      expect(specificListener).toHaveBeenCalledWith(events[0]);
+    });
   });
 
   describe('memory leak prevention', () => {

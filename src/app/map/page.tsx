@@ -230,10 +230,10 @@ export default function MapPage({ searchParams }: MapPageProps) {
           eventBus={eventBus}
           initialEvents={[
             {
-              type: 'message',
+              type: 'system_message',
               payload: {
-                content: 'Welcome to **HexFrame**! Navigate the map by clicking on tiles, or use the chat to ask questions.',
-                actor: 'system',
+                message: 'Welcome to **HexFrame**! Navigate the map by clicking on tiles, or use the chat to ask questions.',
+                level: 'info',
               },
               id: 'welcome-message',
               timestamp: new Date(),

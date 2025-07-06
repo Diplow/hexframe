@@ -30,6 +30,14 @@ export function createMockEventBus(): MockEventBus {
       
       // Also check wildcard listeners
       const eventNameParts = event.type.split('.');
+      
+      // Handle root wildcard '*' pattern
+      const rootWildcardListeners = listeners.get('*');
+      if (rootWildcardListeners) {
+        rootWildcardListeners.forEach(listener => listener(event));
+      }
+      
+      // Handle nested namespace wildcards (e.g., 'map.*', 'auth.*')
       for (let i = 1; i < eventNameParts.length; i++) {
         const wildcardPattern = eventNameParts.slice(0, i).join('.') + '.*';
         const wildcardListeners = listeners.get(wildcardPattern);

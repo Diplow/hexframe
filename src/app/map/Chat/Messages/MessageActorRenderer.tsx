@@ -2,10 +2,10 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import { useAuth } from '~/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
 import { api } from '~/commons/trpc/react';
 import type { Message } from '../Cache/_events/event.types';
 import { useChatEventDispatcher } from './_hooks/useChatEventDispatcher';
+import { useMapCache } from '../../Cache/_hooks/use-map-cache';
 
 interface MessageActorRendererProps {
   message: Message;
@@ -13,8 +13,8 @@ interface MessageActorRendererProps {
 
 export function MessageActorRenderer({ message }: MessageActorRendererProps) {
   const { user } = useAuth();
-  const router = useRouter();
-  const { dispatchNavigation, dispatchMessage, dispatchAuthRequired, dispatchUserMessage, dispatchCommandExecution } = useChatEventDispatcher();
+  const { navigateToItem } = useMapCache();
+  const { dispatchMessage, dispatchAuthRequired, dispatchCommandExecution } = useChatEventDispatcher();
   
   const { data: userMapData } = api.map.user.getUserMap.useQuery(undefined, {
     enabled: !!user,
@@ -35,9 +35,9 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
     return { short, full };
   };
 
-  const handleUserClick = () => {
+  const handleUserClick = async () => {
     if (user && userMapData?.success && userMapData.map?.id) {
-      _navigateToUserMap(userMapData.map);
+      await _navigateToUserMap(userMapData.map);
     } else if (user && (!userMapData || !userMapData.success)) {
       dispatchMessage('Creating your map...');
     } else {
@@ -45,13 +45,17 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
     }
   };
 
-  const _navigateToUserMap = (map: { id: number; name?: string }) => {
-    const mapUrl = `/map?center=${map.id}`;
-    console.log('Navigating to user map:', { mapId: map.id, mapUrl, userName: user?.name });
-    router.push(mapUrl);
+  const _navigateToUserMap = async (map: { id: number; name?: string }) => {
+    const mapName = map.name ?? user?.name ?? 'Your Map';
+    console.log('Navigating to user map:', { mapId: map.id, userName: user?.name });
     
-    dispatchNavigation(String(map.id), map.name ?? user?.name ?? 'Your Map');
-    dispatchMessage(`Navigating to ${map.name ?? user?.name ?? 'your'} map...`);
+    try {
+      // navigateToItem already handles all navigation events internally
+      await navigateToItem(String(map.id));
+    } catch (error) {
+      console.error('Failed to navigate to user map:', error);
+      dispatchMessage(`Failed to navigate to ${mapName} map`);
+    }
   };
 
   const renderActorLabel = () => {
@@ -121,12 +125,23 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
   const _renderCommandLink = (href: string, children: React.ReactNode) => {
     const command = href.slice(8); // Remove 'command:' prefix
     
+    // Extract tooltip for navigation commands
+    let tooltip = '';
+    if (command.startsWith('navigate:')) {
+      const parts = command.split(':');
+      if (parts.length >= 3 && parts[2]) {
+        tooltip = decodeURIComponent(parts[2]); // Full tile name for tooltip
+      }
+    }
+    
     return (
       <span
         role="button"
         tabIndex={0}
+        title={tooltip || undefined}
         onClick={() => {
-          dispatchUserMessage(command);
+          // Only dispatch the command execution event
+          // The Input component will handle both showing the command and executing it
           dispatchCommandExecution(command);
         }}
         onKeyDown={(e) => {

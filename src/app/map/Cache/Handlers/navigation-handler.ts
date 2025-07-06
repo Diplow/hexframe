@@ -106,19 +106,7 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
       const previousCenter = currentState.currentCenter;
       dispatch(cacheActions.setCenter(itemCoordId));
       
-      // Emit navigation event
-      if (eventBus && previousCenter !== itemCoordId) {
-        const targetItem = getState().itemsById[itemCoordId];
-        eventBus.emit({
-          type: 'map.navigation',
-          source: 'map_cache',
-          payload: {
-            fromCenterId: previousCenter ?? '',
-            toCenterId: targetItem?.metadata.dbId ?? '',
-            toCenterName: targetItem?.data.name ?? 'Untitled'
-          }
-        });
-      }
+      // Note: Navigation event will be emitted after we ensure item data is loaded
       
       // 4. Handle URL update
       let itemToNavigate = existingItem;
@@ -140,6 +128,9 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
           }
           urlUpdated = true;
         }
+        
+        // Emit navigation event now that we have the item data
+        emitNavigationEvent(previousCenter, itemCoordId);
       } else if (!existingItem) {
         // We don't have the item, try to load it for URL update
         try {
@@ -164,6 +155,9 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
           console.error('[NAV] Failed to load item for URL update:', error);
           // Navigation succeeds but URL won't be updated
         }
+        
+        // Emit navigation event after attempting to load item data
+        emitNavigationEvent(previousCenter, itemCoordId);
       }
       
       // 5. Load additional region data if needed (in background)
@@ -204,6 +198,21 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
         urlUpdated: false,
       };
     }
+  };
+
+  const emitNavigationEvent = (fromCenter: string | null, toCoordId: string): void => {
+    if (!eventBus || fromCenter === toCoordId) return;
+    
+    const targetItem = getState().itemsById[toCoordId];
+    eventBus.emit({
+      type: 'map.navigation',
+      source: 'map_cache',
+      payload: {
+        fromCenterId: fromCenter ?? '',
+        toCenterId: targetItem?.metadata.dbId ?? '',
+        toCenterName: targetItem?.data.name ?? 'Untitled'
+      }
+    });
   };
 
   const updateCenter = (centerCoordId: string): void => {

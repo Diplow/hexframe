@@ -242,10 +242,11 @@ describe('ChatCacheProvider', () => {
       </ChatCacheProvider>
     );
     
-    expect(onSpy).toHaveBeenCalledWith(
-      expect.stringMatching(/^(chat\.\w+|\w+)$/),
-      expect.any(Function)
-    );
+    // Check that all expected listeners are registered
+    expect(onSpy).toHaveBeenCalledWith('map.*', expect.any(Function));
+    expect(onSpy).toHaveBeenCalledWith('auth.*', expect.any(Function));
+    expect(onSpy).toHaveBeenCalledWith('error.*', expect.any(Function));
+    expect(onSpy).toHaveBeenCalledWith('*', expect.any(Function));
     expect(unsubscribeSpy).not.toHaveBeenCalled();
     
     unmount();

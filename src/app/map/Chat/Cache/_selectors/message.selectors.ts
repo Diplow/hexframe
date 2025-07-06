@@ -1,4 +1,4 @@
-import type { ChatEvent, Message, Widget, OperationCompletedPayload, SystemMessagePayload, UserMessagePayload, TileSelectedPayload, AuthRequiredPayload, ErrorOccurredPayload, NavigationPayload } from '../_events/event.types';
+import type { ChatEvent, Message, Widget, OperationStartedPayload, OperationCompletedPayload, SystemMessagePayload, UserMessagePayload, TileSelectedPayload, AuthRequiredPayload, ErrorOccurredPayload, NavigationPayload } from '../_events/event.types';
 import { chatSettings } from '../../_settings/chat-settings';
 
 /**
@@ -47,9 +47,23 @@ export function deriveVisibleMessages(events: ChatEvent[]): Message[] {
           );
           
           if (shouldShow) {
+            let content = payload.message;
+            
+            // Special formatting for create operations
+            if (payload.operation === 'create' && payload.tileId) {
+              // Extract tile name from message "Created tile "name""
+              const regex = /Created tile "(.+)"/;
+              const match = regex.exec(payload.message);
+              if (match?.[1]) {
+                const tileName = match[1];
+                const navigationLink = `[**${tileName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
+                content = `Created tile ${navigationLink}`;
+              }
+            }
+            
             messages.push({
               id: event.id,
-              content: payload.message,
+              content,
               actor: 'system',
               timestamp: event.timestamp,
             });
@@ -72,9 +86,13 @@ export function deriveVisibleMessages(events: ChatEvent[]): Message[] {
       case 'navigation': {
         const payload = event.payload as NavigationPayload;
         const fromText = payload.fromTileName ? `from "${payload.fromTileName}" ` : '';
+        const truncatedTileName = payload.toTileName.length > 25 
+          ? payload.toTileName.slice(0, 25) + '...' 
+          : payload.toTileName;
+        const navigationLink = `[${truncatedTileName}](command:navigate:${payload.toTileId}:${encodeURIComponent(payload.toTileName)})`;
         messages.push({
           id: event.id,
-          content: `📍 Navigated ${fromText}to **${payload.toTileName}**`,
+          content: `📍 Navigated ${fromText}to **${navigationLink}**`,
           actor: 'system',
           timestamp: event.timestamp,
         });
@@ -121,8 +139,21 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
       }
 
       case 'operation_started': {
+        const payload = event.payload as OperationStartedPayload;
         const operationId = `op-${event.id}`;
         activeOperations.add(operationId);
+        
+        // Add creation widget for create operations
+        if (payload.operation === 'create') {
+          const widgetId = `creation-${event.id}`;
+          widgetStates.set(widgetId, 'active');
+        }
+        
+        // Add delete widget for delete operations
+        if (payload.operation === 'delete') {
+          const widgetId = `delete-${event.id}`;
+          widgetStates.set(widgetId, 'active');
+        }
         break;
       }
 
@@ -136,10 +167,23 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
             widgetStates.set(previewId, 'completed');
           }
         }
-        // Mark operation as completed
+        // Mark operation as completed and close associated widgets
         for (const opId of activeOperations) {
           if (opId.includes(payload.tileId ?? '')) {
             activeOperations.delete(opId);
+            // Close creation widgets for create operations
+            if (payload.operation === 'create') {
+              const eventId = opId.replace('op-', '');
+              const creationWidgetId = `creation-${eventId}`;
+              widgetStates.set(creationWidgetId, 'completed');
+            }
+            
+            // Close delete widgets for delete operations
+            if (payload.operation === 'delete') {
+              const eventId = opId.replace('op-', '');
+              const deleteWidgetId = `delete-${eventId}`;
+              widgetStates.set(deleteWidgetId, 'completed');
+            }
           }
         }
         break;
@@ -210,6 +254,36 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
             priority: 'critical',
             timestamp: event.timestamp,
           });
+        }
+        break;
+      }
+
+      case 'operation_started': {
+        const payload = event.payload as OperationStartedPayload;
+        if (payload.operation === 'create') {
+          const widgetId = `creation-${event.id}`;
+          if (widgetStates.get(widgetId) === 'active') {
+            widgets.push({
+              id: widgetId,
+              type: 'creation',
+              data: payload.data,
+              priority: 'action',
+              timestamp: event.timestamp,
+            });
+          }
+        }
+        
+        if (payload.operation === 'delete') {
+          const widgetId = `delete-${event.id}`;
+          if (widgetStates.get(widgetId) === 'active') {
+            widgets.push({
+              id: widgetId,
+              type: 'delete',
+              data: payload.data,
+              priority: 'action',
+              timestamp: event.timestamp,
+            });
+          }
         }
         break;
       }

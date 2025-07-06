@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { chatSettings } from '../../_settings/chat-settings';
 import { useChatCacheOperations } from '../../Cache/hooks/useChatCacheOperations';
+import { useMapCache } from '../../../Cache/_hooks/use-map-cache';
 
 interface Command {
   description: string;
@@ -87,6 +88,7 @@ const commands: Record<string, Command> = {
 
 export function useCommandHandling() {
   const { dispatch } = useChatCacheOperations();
+  const { navigateToItem } = useMapCache();
 
   const findCommand = useCallback((path: string): Command | null => {
     return commands[path] ?? null;
@@ -148,7 +150,56 @@ export function useCommandHandling() {
     return false;
   }, [dispatch, findCommand]);
 
-  const executeCommandFromPayload = useCallback((payload: { command: string }) => {
+  const executeCommandFromPayload = useCallback(async (payload: { command: string }) => {
+    // Handle special navigation commands
+    if (payload.command.startsWith('navigate:')) {
+      const parts = payload.command.split(':');
+      if (parts.length >= 3 && parts[1] && parts[2]) {
+        const tileId = parts[1];
+        const tileName = decodeURIComponent(parts[2]);
+        
+        try {
+          await navigateToItem(tileId);
+          dispatch({
+            type: 'message',
+            payload: {
+              content: `Navigated to "${tileName}"`,
+              actor: 'system',
+            } as unknown,
+            id: `nav-result-${Date.now()}`,
+            timestamp: new Date(),
+            actor: 'system',
+          });
+        } catch (error) {
+          dispatch({
+            type: 'message',
+            payload: {
+              content: `Failed to navigate to "${tileName}": ${error instanceof Error ? error.message : 'Unknown error'}`,
+              actor: 'system',
+            } as unknown,
+            id: `nav-error-${Date.now()}`,
+            timestamp: new Date(),
+            actor: 'system',
+          });
+        }
+        return;
+      }
+    }
+    
+    // First, show the command as a user message in the chat (only for regular commands)
+    if (payload.command.startsWith('/')) {
+      dispatch({
+        type: 'user_message',
+        payload: {
+          text: payload.command,
+        },
+        id: `cmd-user-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+        timestamp: new Date(),
+        actor: 'user',
+      });
+    }
+    
+    // Then execute the command
     const command = commands[payload.command];
     if (command) {
       if (command.action) {
@@ -166,7 +217,7 @@ export function useCommandHandling() {
       } else {
         executeCommand(payload.command);
       }
-    } else {
+    } else if (payload.command.startsWith('/')) {
       dispatch({
         type: 'message',
         payload: {
@@ -178,7 +229,7 @@ export function useCommandHandling() {
         actor: 'system',
       });
     }
-  }, [dispatch, executeCommand]);
+  }, [dispatch, executeCommand, navigateToItem]);
 
   return {
     executeCommand,

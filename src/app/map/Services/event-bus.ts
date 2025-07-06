@@ -28,6 +28,21 @@ export class EventBus implements EventBusService {
 
     // Emit to wildcard listeners
     const eventNameParts = event.type.split('.');
+    
+    // Handle root wildcard '*' pattern
+    const rootWildcardListeners = this.listeners.get('*');
+    if (rootWildcardListeners) {
+      rootWildcardListeners.forEach(listener => {
+        try {
+          listener(event);
+        } catch (error) {
+          // Swallow errors to prevent one listener from affecting others
+          console.error(`Error in wildcard listener for *:`, error);
+        }
+      });
+    }
+    
+    // Handle nested namespace wildcards (e.g., 'map.*', 'auth.*')
     for (let i = 1; i < eventNameParts.length; i++) {
       const wildcardPattern = eventNameParts.slice(0, i).join('.') + '.*';
       const wildcardListeners = this.listeners.get(wildcardPattern);

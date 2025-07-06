@@ -44,7 +44,8 @@ export function useAuthStateCoordinator(widgets: Widget[]) {
     if (returnUrl?.includes('/map')) {
       window.location.href = returnUrl;
     } else {
-      router.push(`/map?center=${map.id}`);
+      // Use router.replace instead of router.push to avoid adding to history
+      router.replace(`/map?center=${map.id}`);
     }
   };
 
@@ -52,7 +53,8 @@ export function useAuthStateCoordinator(widgets: Widget[]) {
     try {
       const createResult = await createMapMutation.mutateAsync();
       if (createResult?.success && createResult.mapId) {
-        router.push(`/map?center=${createResult.mapId}`);
+        // Use router.replace instead of router.push to avoid adding to history
+        router.replace(`/map?center=${createResult.mapId}`);
         dispatchMessage('Welcome! Your personal map has been created.');
       }
     } catch (error) {
