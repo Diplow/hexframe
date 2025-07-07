@@ -26,34 +26,43 @@ export class BetterAuthUserRepository implements UserRepository {
 
   async create(input: CreateUserInput): Promise<User> {
     try {
-      // Create user via better-auth API
-      const response = await this.auth.api.signUpEmail({
-        body: {
+      // Create a mock request to pass to better-auth handler
+      const request = new Request("http://localhost:3000/api/auth/sign-up/email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
           email: input.email,
           password: input.password,
           name: input.name ?? "",
-        },
+        }),
       });
 
-      if (!response.user) {
-        throw new Error("Failed to create user");
+      // Use better-auth's handler to process the signup
+      const response = await this.auth.handler(request);
+      const data = await response.json() as { user?: any; error?: string };
+
+      if (!response.ok || !data.user) {
+        console.error("Better-auth signup failed:", data);
+        throw new Error(data.error || "Failed to create user");
       }
 
       // Create mapping ID immediately
       const mappingId = await UserMappingService.getOrCreateMappingUserId(
-        response.user.id
+        data.user.id
       );
 
       // Create domain User entity
       return User.create({
-        id: response.user.id,
-        email: response.user.email,
-        name: response.user.name ?? undefined,
-        emailVerified: response.user.emailVerified ?? false,
-        image: response.user.image ?? undefined,
+        id: data.user.id,
+        email: data.user.email,
+        name: data.user.name ?? undefined,
+        emailVerified: data.user.emailVerified ?? false,
+        image: data.user.image ?? undefined,
         mappingId,
-        createdAt: new Date(response.user.createdAt),
-        updatedAt: new Date(response.user.updatedAt),
+        createdAt: new Date(data.user.createdAt),
+        updatedAt: new Date(data.user.updatedAt),
       });
     } catch (error) {
       if (error instanceof Error) {
@@ -123,39 +132,48 @@ export class BetterAuthUserRepository implements UserRepository {
     input: AuthenticateUserInput
   ): Promise<AuthenticationResult> {
     try {
-      const response = await this.auth.api.signInEmail({
-        body: {
+      // Create a mock request to pass to better-auth handler
+      const request = new Request("http://localhost:3000/api/auth/sign-in/email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
           email: input.email,
           password: input.password,
-        },
+        }),
       });
 
-      if (!response.user || !response.token) {
+      // Use better-auth's handler to process the signin
+      const response = await this.auth.handler(request);
+      const data = await response.json() as { user?: any; session?: any; error?: string };
+
+      if (!response.ok || !data.user || !data.session) {
+        console.error("Better-auth signin failed:", data);
         throw new Error("Invalid credentials");
       }
 
       const mappingId = await UserMappingService.getOrCreateMappingUserId(
-        response.user.id
+        data.user.id
       );
 
       const user = User.create({
-        id: response.user.id,
-        email: response.user.email,
-        name: response.user.name ?? undefined,
-        emailVerified: response.user.emailVerified ?? false,
-        image: response.user.image ?? undefined,
+        id: data.user.id,
+        email: data.user.email,
+        name: data.user.name ?? undefined,
+        emailVerified: data.user.emailVerified ?? false,
+        image: data.user.image ?? undefined,
         mappingId,
-        createdAt: new Date(response.user.createdAt),
-        updatedAt: new Date(response.user.updatedAt),
+        createdAt: new Date(data.user.createdAt),
+        updatedAt: new Date(data.user.updatedAt),
       });
 
-      // Better-auth returns token directly, we'll create a session structure
       return {
         user,
         session: {
-          id: response.token, // Use token as session ID
-          token: response.token,
-          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days default
+          id: data.session.id,
+          token: data.session.id, // Use session ID as token
+          expiresAt: new Date(data.session.expiresAt),
         },
       };
     } catch (error) {
@@ -171,8 +189,8 @@ export class BetterAuthUserRepository implements UserRepository {
     await this.db
       .update(users)
       .set({
-        name: user.name || null,
-        image: user.image || null,
+        name: user.name ?? null,
+        image: user.image ?? null,
         updatedAt: user.updatedAt,
       })
       .where(eq(users.id, user.id));

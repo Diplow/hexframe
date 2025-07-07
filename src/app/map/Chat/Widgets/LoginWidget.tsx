@@ -58,6 +58,7 @@ export function LoginWidget({ message }: LoginWidgetProps) {
       }
     },
     onError: (error) => {
+      console.error('Registration error:', error);
       setError(error.message || "Failed to create account.");
     }
   });
@@ -142,6 +143,7 @@ export function LoginWidget({ message }: LoginWidgetProps) {
         });
       }
     } catch (err) {
+      console.error('Submit error:', err);
       setError(err instanceof Error ? err.message : 'An unexpected server error occurred.');
     } finally {
       setIsLoading(false);
