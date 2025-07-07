@@ -16,6 +16,11 @@ const registerSchema = z.object({
   createDefaultMap: z.boolean().default(true),
 });
 
+const loginSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  password: z.string(),
+});
+
 const updateProfileSchema = z.object({
   name: z.string().optional(),
   image: z.string().url().optional(),
@@ -61,7 +66,34 @@ export const userRouter = createTRPCRouter({
           }
         }
 
-        // Step 3: Return combined result
+        // Step 3: Create a session for the user (auto-login after registration)
+        // Create a mock request with the new user's credentials to sign them in
+        const signInRequest = new Request(`${process.env.BETTER_AUTH_URL ?? "http://localhost:3000"}/api/auth/sign-in/email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            // Forward cookies from the original request
+            cookie: ctx.req.headers.cookie ?? "",
+          },
+          body: JSON.stringify({
+            email: input.email,
+            password: input.password,
+          }),
+        });
+
+        // Use auth handler to sign in the user
+        const { auth } = await import("~/server/auth");
+        const signInResponse = await auth.handler(signInRequest);
+        
+        // Forward the set-cookie headers to establish the session
+        if (signInResponse.ok) {
+          const setCookieHeaders = signInResponse.headers.getSetCookie();
+          if (setCookieHeaders && setCookieHeaders.length > 0 && ctx.res) {
+            ctx.res.setHeader('Set-Cookie', setCookieHeaders);
+          }
+        }
+
+        // Step 4: Return combined result
         return {
           user: ctx.iamService.userToContract(user),
           defaultMapId,
@@ -76,6 +108,66 @@ export const userRouter = createTRPCRouter({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Registration failed",
+        });
+      }
+    }),
+
+  /**
+   * Login a user
+   */
+  login: publicProcedure
+    .use(iamServiceMiddleware)
+    .input(loginSchema)
+    .mutation(async ({ ctx, input }) => {
+      try {
+        // Use better-auth to handle the login
+        const { auth } = await import("~/server/auth");
+        
+        // Create a mock request for better-auth
+        const loginRequest = new Request(`${process.env.BETTER_AUTH_URL ?? "http://localhost:3000"}/api/auth/sign-in/email`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            // Forward cookies from the original request
+            cookie: ctx.req.headers.cookie ?? "",
+          },
+          body: JSON.stringify({
+            email: input.email,
+            password: input.password,
+          }),
+        });
+
+        // Process the login
+        const loginResponse = await auth.handler(loginRequest);
+        const data = await loginResponse.json() as { user?: any; session?: any; error?: string };
+
+        if (!loginResponse.ok || !data.user) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: data.error || "Invalid email or password",
+          });
+        }
+
+        // Forward the set-cookie headers to establish the session
+        const setCookieHeaders = loginResponse.headers.getSetCookie();
+        if (setCookieHeaders && setCookieHeaders.length > 0 && ctx.res) {
+          ctx.res.setHeader('Set-Cookie', setCookieHeaders);
+        }
+
+        // Get the user with mapping ID
+        const user = await ctx.iamService.getUserByEmail(input.email);
+
+        return {
+          user: ctx.iamService.userToContract(user),
+          session: data.session,
+        };
+      } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Login failed",
         });
       }
     }),
