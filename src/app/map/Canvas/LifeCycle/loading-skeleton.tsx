@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { cn } from "~/lib/utils";
-import { StaticFrame } from "~/app/static/map/Canvas/frame";
+import { BaseFrame } from "~/app/map/components/BaseFrame";
 import type { TileData } from "../../types/tile-data";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import type { URLInfo } from "../../types/url-info";
@@ -113,7 +113,7 @@ export function MapLoadingSkeleton({
       <div className="grid flex-grow place-items-center overflow-auto p-4">
         {/* Accessible loading indicator */}
         <div className="relative" role="status" aria-label={message}>
-          <StaticFrame
+          <BaseFrame
             center={centerCoord}
             mapItems={mockMapItems}
             baseHexSize={50}

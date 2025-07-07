@@ -1,7 +1,7 @@
 "use client";
 
 import type { TileData } from "../../types/tile-data";
-import type { TileScale } from "~/app/static/map/Tile/Base/base";
+import type { TileScale } from "~/app/map/components/BaseTileLayout";
 import type { URLInfo } from "../../types/url-info";
 import { useItemState } from "./_hooks";
 import { ItemDialogs } from "./_components/item-dialogs";

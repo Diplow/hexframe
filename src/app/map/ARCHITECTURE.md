@@ -2,30 +2,26 @@
 
 ## Overview
 
-The map application provides two separate routes:
-- `/map` - Dynamic, JavaScript-required version with full interactivity
-- `/static/map` - Static, server-rendered version that works without JavaScript
+The map application provides a single dynamic route (`/map`) with full JavaScript interactivity, client-side caching, and real-time features. The architecture has been simplified from the previous dual-route approach to focus on delivering the best interactive experience.
 
-This separation allows users to choose the appropriate version based on their needs and capabilities.
-
-**Important Note**: The architecture has evolved from the original progressive enhancement approach (where static components were enhanced) to a **dual-route architecture** where static and dynamic versions maintain separate component hierarchies. This provides clearer separation of concerns and simpler implementation.
+**Architecture Evolution**: The system has evolved from a dual-route architecture (static + dynamic) to a single-route dynamic application. This simplification reduces maintenance overhead while maintaining the ability to render base components without interactivity when needed (e.g., loading states).
 
 ## Core Architectural Principles
 
-### 1. Dual-Route Architecture
+### 1. Single-Route Dynamic Architecture
 
-The application provides two distinct experiences:
+The application provides a unified dynamic experience:
 
-- **Static Route (`/static/map`)**: Pure server-side rendering with URL-based state management
 - **Dynamic Route (`/map`)**: Full client-side interactivity with caching and real-time features
+- **Base Components**: Reusable components (`BaseFrame`, `BaseTileLayout`) for rendering without interactivity when needed
 
-### 2. Component Separation Strategy
+### 2. Component Organization Strategy
 
-**Route-Based Separation**: Static and dynamic components live in separate route hierarchies (`/static/map` vs `/map`), avoiding complexity of progressive enhancement while maintaining clear boundaries.
+**Unified Component Library**: All components live within the `/map` route hierarchy, with base components extracted for reusability in non-interactive contexts (e.g., loading states).
 
-**Shared Business Logic**: While UI components are separate, core business logic (domains, utilities) is shared between routes to maintain consistency.
+**Shared Business Logic**: Core business logic (domains, utilities) is centralized and shared across all components to maintain consistency.
 
-**Parallel Development**: Both routes can evolve independently based on their constraints - static route prioritizes SSR and accessibility, dynamic route prioritizes interactivity and real-time features.
+**Focused Development**: Single architecture allows focused development on interactive features while maintaining clean component boundaries.
 
 ### 3. Event-Driven Communication
 
@@ -75,7 +71,7 @@ The application prioritizes URL parameters for shareable and bookmarkable state:
 
 ### 2. Canvas Layer
 
-#### Dynamic Route Canvas (`/map/Canvas/index.tsx`)
+#### Dynamic Canvas (`/map/Canvas/index.tsx`)
 
 **Type**: Dynamic (Client-Side)
 
@@ -83,19 +79,11 @@ The application prioritizes URL parameters for shareable and bookmarkable state:
 - Provides centralized tile action management
 - Handles client-side state and interactions
 - Integrates with MapCache for data management
-
-#### Static Route Canvas (`/static/map/Canvas/index.tsx`)
-
-**Type**: Static (Pure Rendering)
-
 - Orchestrates layout of hex frames, controls, and overlays
-- Works with server-provided data only
-- No client-side state management or side effects
-- Pure SSR with URL-based interactions
 
 ### 3. Frame Layer
 
-#### Dynamic Route Frame (`/map/Canvas/frame.tsx`)
+#### Dynamic Frame (`/map/Canvas/frame.tsx`)
 
 **Type**: Dynamic (Client-Side)
 
@@ -104,18 +92,18 @@ The application prioritizes URL parameters for shareable and bookmarkable state:
 - Manages drag-and-drop zones
 - Integrates with centralized action management
 
-#### Static Route Frame (`/static/map/Canvas/frame.tsx`)
+#### Base Frame (`/map/components/BaseFrame.tsx`)
 
-**Type**: Static (Pure Rendering)
+**Type**: Base Component (No Interactivity)
 
-- Recursive hexagonal layout rendering
-- Handles expansion logic based on URL parameters
-- No client-side state or interactions
+- Recursive hexagonal layout rendering for non-interactive contexts
+- Used by loading skeleton and other static displays
+- Pure rendering without client-side state
 - Renders tile components in hexagonal patterns
 
 ### 4. Tile Layer
 
-#### Dynamic Route Tiles
+#### Dynamic Tiles
 
 **ItemTile** (`/map/Tile/Item/item.tsx`)
 - Full client-side interactivity
@@ -129,19 +117,13 @@ The application prioritizes URL parameters for shareable and bookmarkable state:
 - Loading states during mutations
 - Context-aware visibility
 
-#### Static Route Tiles
+#### Base Tile Components
 
-**ItemTile** (`/static/map/Tile/Item/item.tsx`)
-- Server-rendered content
-- URL-based expand/collapse
-- Form-based interactions (edit/delete)
-- No JavaScript dependencies
-
-**ItemButtons** (`/static/map/Tile/Item/item.buttons.tsx`)
-- Static links to edit/delete pages
-- Visibility based on server-side permissions
-- Progressive enhancement ready
-- Fallback patterns for mutations
+**BaseTileLayout** (`/map/components/BaseTileLayout.tsx`)
+- Core hexagonal tile rendering
+- Handles sizing, colors, and strokes
+- Used by all tile types for consistent appearance
+- No interactivity or state management
 
 ### 5. Controls Layer
 
@@ -311,143 +293,133 @@ The DynamicMapCanvas acts as a **centralized action coordinator**:
 - **Flexibility**: Easy to add new interaction modes
 - **Memory Efficiency**: Reduced memory footprint for large maps
 
-## Dynamic Requirements Analysis
+## Key Features
 
-### Confirmed Dynamic Requirements
+### Core Dynamic Features
 
 **1. Map Edition (CRUD + Move Operations)**
 
-- **Why Dynamic**: Immediate feedback, optimistic updates, complex state management
-- **Implementation**: Dynamic mutations with cache updates
+- Immediate feedback with optimistic updates
+- Complex state management with MapCache
+- Real-time synchronization
 
 **2. Authentication State Management**
 
-- **Why Dynamic**: Session changes, permission updates, real-time auth status
-- **Implementation**: Auth context with dynamic components
+- Session changes and permission updates
+- Real-time auth status
+- Auth context with dynamic components
 
-### Features That Work Well Pseudo-Static
+**3. URL-Based Navigation**
 
-**3. Tile Navigation**
-
-- **Current Approach**: URL-based navigation (instant, SEO-friendly, shareable)
-- **Recommendation**: Keep pseudo-static - URL navigation is more robust
+- Shareable state via URL parameters
+- Instant navigation with client-side routing
+- SEO-friendly implementation
 
 **4. Tile Expansion/Collapse**
 
-- **Current Approach**: URL expandedItems parameter
-- **Why Superior**: Shareable state, SEO benefits, simple implementation
+- URL expandedItems parameter for shareable state
+- Smooth transitions with client-side animations
+- Maintains state across page refreshes
 
 **5. Scale Changes**
 
-- **Current Approach**: URL parameter with page re-render
-- **Recommendation**: Keep pseudo-static - scale changes are infrequent
+- URL parameter with smooth zoom transitions
+- Client-side rendering optimizations
+- Consistent state management
 
-### Decision Framework
 
-**Make Dynamic If**:
+## Performance Optimizations
 
-- Requires immediate user feedback
-- Involves complex state management
-- Benefits from optimistic updates
-- Needs real-time data synchronization
+### Client-Side Performance
 
-**Keep Pseudo-Static If**:
-
-- State should be shareable via URL
-- Feature is used infrequently
-- SEO/accessibility is important
-- Implementation complexity is high relative to benefit
-
-## Dynamic-to-Static Fallback Strategy
-
-### Selective Fallback Implementation
-
-**Tier 1: Core Features - Full Fallback**
-
-- Essential features that MUST work without JS
-- Examples: View map, navigate tiles, expand tiles, basic auth
-
-**Tier 2: Enhanced Features - Graceful Degradation**
-
-- Features that enhance UX but aren't critical
-- Examples: Create/edit tiles (fallback to dedicated pages), delete tiles (fallback to confirmation pages)
-
-**Tier 3: Dynamic-Only Features - Clear Limitations**
-
-- Features that only work with JS, but clearly communicate this
-- Examples: Drag-and-drop, real-time sync, optimistic updates
-
-## Performance Implications
-
-### Current Benefits
-
-- **Instant Initial Loads**: Full SSR with no hydration delay
-- **SEO Optimized**: All content available to crawlers
-- **Shareable URLs**: All state encoded in URL
-- **No JavaScript Required**: Basic functionality works without JS
-
-### Dynamic Enhancements
-
-- **Smooth Interactions**: Client-side state updates
+- **Smooth Interactions**: Instant client-side state updates
 - **Background Sync**: Fresh data without page reloads
 - **Optimistic Updates**: Immediate feedback for user actions
 - **Intelligent Caching**: Reduced server load and faster navigation
+- **Centralized Actions**: Single set of handlers for hundreds of tiles
+
+### Server-Side Benefits
+
+- **Initial SSR**: Fast first contentful paint
+- **Shareable URLs**: All state encoded in URL
+- **SEO Optimized**: Server-rendered content for crawlers
+- **Progressive Loading**: Hierarchical data loading strategy
 
 ## Development Guidelines
 
-### When to Use Static Components
+### Component Types
 
+**Base Components** (`/map/components/`)
 - Pure rendering logic
-- Server-side rendering requirements
-- Shareable/bookmarkable state
-- SEO-critical content
+- No state or interactivity
+- Used for loading states and non-interactive displays
+- Examples: `BaseFrame`, `BaseTileLayout`
 
-### When to Use Dynamic Components
-
-- Real-time interactions
-- Optimistic updates
-- Complex state management
-- Background data synchronization
+**Dynamic Components** (`/map/`)
+- Full interactivity and state management
+- Real-time updates and mutations
+- Integrated with cache systems
+- Examples: `DynamicItemTile`, `DynamicMapCanvas`
 
 ### Component Naming Convention
 
-- `Static*`: Pure rendering components
+- `Base*`: Pure rendering components without interactivity
 - `Dynamic*`: Client-side enhanced components
-- `*Controller`: Pseudo-static components with URL/localStorage state
+- `*Controller`: Components managing URL/localStorage state
 - `use*Manager`: Hooks for complex state management
+- `use*Cache`: Hooks for cache operations
 
-## Migration Strategy
+## Architecture Evolution
 
-### Phase 1: Foundation (Current)
+### Completed Migration
 
-- ✅ Static components with URL state
-- ✅ Pseudo-static interactions via navigation
-- ✅ Server-side rendering and data fetching
+- ✅ Unified component architecture
+- ✅ Base components extracted for reusability
+- ✅ Validation utilities moved to domain layer
+- ✅ Simplified imports and dependencies
+- ✅ Removed duplicate static/dynamic components
 
-### Phase 2: Cache System
+### Current Architecture
 
-- 🔄 MapCacheProvider and useMapCache hook
-- 🔄 DynamicMapCanvas as bridge component
-- 🔄 Background synchronization
+- ✅ MapCacheProvider and useMapCache hook
+- ✅ DynamicMapCanvas with centralized actions
+- ✅ Background synchronization
+- ✅ Create/Update/Delete flows with dynamic dialogs
+- ✅ Real-time updates with optimistic mutations
 
-### Phase 3-6: Feature Enhancement
+### Future Enhancements
 
-- 📋 Create/Update/Delete flows with dynamic dialogs
 - 📋 Drag-and-drop with DraggableItemTile
 - 📋 Real-time collaboration features
 - 📋 Advanced caching strategies
+- 📋 Progressive enhancement for base components
 
 ---
 
 ## Implementation Examples
 
-### Route-Based Component Separation
+### Base Component Pattern
 
-**Pattern 1: Separate Implementations**
+**Pattern 1: Base Components for Non-Interactive Rendering**
 
 ```typescript
-// Dynamic route component (/map/Tile/Item/item.tsx)
-export function ItemTile({ item, urlInfo }) {
+// Base component for rendering without interactivity (/map/components/BaseFrame.tsx)
+export function BaseFrame({ 
+  center, 
+  mapItems, 
+  expandedItemIds,
+  interactive = false 
+}: BaseFrameProps) {
+  // Pure rendering logic, no hooks or state
+  return (
+    <BaseTileLayout scale={scale} color={color}>
+      {/* Recursive hexagonal layout */}
+    </BaseTileLayout>
+  );
+}
+
+// Dynamic component with full interactivity (/map/Canvas/frame.tsx)
+export function DynamicFrame({ item, urlInfo }) {
   const { updateItem } = useMutations();
   const [isEditing, setIsEditing] = useState(false);
 
@@ -462,63 +434,39 @@ export function ItemTile({ item, urlInfo }) {
     </div>
   );
 }
-
-// Static route component (/static/map/Tile/Item/item.tsx)
-export function ItemTile({ item, urlInfo }) {
-  return (
-    <div className="hex-tile">
-      <ItemContent item={item} />
-      <ItemButtons 
-        editHref={`/map/edit/${item.id}`}
-        deleteHref={`/map/delete/${item.id}`}
-      />
-    </div>
-  );
-}
 ```
 
-**Pattern 2: Route-Specific Data Sources**
+**Pattern 2: Loading States Using Base Components**
 
 ```typescript
-// Dynamic route - uses client-side cache (/map/Canvas/index.tsx)
-export function MapCanvas({ centerInfo }) {
-  const { state } = useMapCache();
-  const { mutations } = useMutations();
+// Loading skeleton using base components (/map/Canvas/LifeCycle/loading-skeleton.tsx)
+export function MapLoadingSkeleton({ message = "Loading map..." }) {
+  const mockMapItems = createMockItems();
   
   return (
-    <Canvas 
-      items={state.itemsById} 
-      centerInfo={centerInfo}
-      onTileAction={mutations.handleAction}
-    />
-  );
-}
-
-// Static route - uses server data (/static/map/Canvas/index.tsx)  
-export function MapCanvas({ items, centerInfo }) {
-  return (
-    <Canvas 
-      items={items} 
-      centerInfo={centerInfo}
-      // Actions handled via URL navigation
+    <BaseFrame
+      center={centerCoord}
+      mapItems={mockMapItems}
+      expandedItemIds={[]}
+      interactive={false}  // No interactivity during loading
     />
   );
 }
 ```
 
-**Pattern 3: Route-Based Selection**
+**Pattern 3: Unified Architecture**
 
 ```typescript
-// Dynamic route (/map/page.tsx)
+// Single route with dynamic capabilities (/map/page.tsx)
 export default async function MapPage({ searchParams }) {
   const { center } = await searchParams;
-  return <DynamicMapPage params={{ id: center }} searchParams={searchParams} />;
-}
-
-// Static route (/static/map/page.tsx)
-export default async function StaticMapPage({ searchParams }) {
-  const data = await fetchData();
-  return <StaticMapCanvas items={data} />;
+  const initialData = await fetchMapData(center);
+  
+  return (
+    <MapCacheProvider initialData={initialData}>
+      <DynamicMapCanvas searchParams={searchParams} />
+    </MapCacheProvider>
+  );
 }
 ```
 
@@ -597,34 +545,3 @@ interface HierarchicalMapCache {
 }
 ```
 
-### Feature Detection Pattern
-
-```typescript
-function useFeatureDetection() {
-  const [capabilities, setCapabilities] = useState({
-    hasJS: false,
-    hasLocalStorage: false,
-    hasWebSockets: false,
-  });
-
-  useEffect(() => {
-    setCapabilities({
-      hasJS: true,
-      hasLocalStorage: typeof localStorage !== "undefined",
-      hasWebSockets: typeof WebSocket !== "undefined",
-    });
-  }, []);
-
-  return capabilities;
-}
-
-function AdaptiveFeature({ children, fallback, requiresJS = true }) {
-  const { hasJS } = useFeatureDetection();
-
-  if (requiresJS && !hasJS) {
-    return fallback;
-  }
-
-  return children;
-}
-```

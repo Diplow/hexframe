@@ -35,8 +35,8 @@ export function validateCreateItemInput(
   }
 
   // Description validation
-  if (cleanData.description.length > 2000) {
-    errors.description = "Description must be less than 2000 characters";
+  if (cleanData.description.length > 20000) {
+    errors.description = "Description must be less than 20000 characters";
   }
 
   // URL validation

@@ -1,11 +1,15 @@
-import { getColorFromItem, StaticItemTile } from "~/app/static/map/Tile/Item/item";
-import { StaticBaseTileLayout, type TileScale } from "~/app/static/map/Tile/Base/base";
-import { StaticEmptyTile } from "~/app/static/map/Tile/Empty/empty";
+import { getColorFromItem } from "~/app/map/Tile/Item/_utils/color";
+import { BaseTileLayout } from "./BaseTileLayout";
+import type { TileScale } from "./BaseTileLayout";
+import { DynamicEmptyTile } from "~/app/map/Tile/Empty/empty";
+import { DynamicItemTile } from "~/app/map/Tile/Item/item";
+import { BaseEmptyTile } from "./BaseEmptyTile";
+import { BaseItemTile } from "./BaseItemTile";
 import type { TileData } from "~/app/map/types/tile-data";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import type { URLInfo } from "~/app/map/types/url-info";
 
-export interface StaticFrameProps {
+export interface BaseFrameProps {
   center: string;
   mapItems: Record<string, TileData>;
   baseHexSize?: number;
@@ -14,9 +18,10 @@ export interface StaticFrameProps {
   urlInfo: URLInfo;
   interactive?: boolean;
   currentUserId?: number;
+  isDarkMode?: boolean;
 }
 
-export const StaticFrame = ({
+export const BaseFrame = ({
   center,
   mapItems,
   baseHexSize = 50,
@@ -25,7 +30,8 @@ export const StaticFrame = ({
   urlInfo,
   interactive = true,
   currentUserId,
-}: StaticFrameProps) => {
+  isDarkMode = false,
+}: BaseFrameProps) => {
   const centerItem = mapItems[center];
 
   const isExpanded = centerItem
@@ -37,8 +43,8 @@ export const StaticFrame = ({
     const parentCoords = center.split(":").slice(0, -1).join(":");
     const parentItem = parentCoords ? mapItems[parentCoords] : undefined;
 
-    return (
-      <StaticEmptyTile
+    return interactive ? (
+      <DynamicEmptyTile
         coordId={center}
         scale={scale}
         baseHexSize={baseHexSize}
@@ -54,6 +60,13 @@ export const StaticFrame = ({
         interactive={interactive}
         currentUserId={currentUserId}
       />
+    ) : (
+      <BaseEmptyTile
+        coordId={center}
+        scale={scale}
+        baseHexSize={baseHexSize}
+        isDarkMode={isDarkMode}
+      />
     );
   }
 
@@ -66,8 +79,8 @@ export const StaticFrame = ({
   );
 
   if (!isExpanded) {
-    return (
-      <StaticItemTile
+    return interactive ? (
+      <DynamicItemTile
         item={centerItem}
         scale={scale}
         baseHexSize={baseHexSize}
@@ -76,6 +89,14 @@ export const StaticFrame = ({
         isCenter={centerItem.metadata.dbId === urlInfo.rootItemId}
         urlInfo={urlInfo}
         interactive={interactive}
+      />
+    ) : (
+      <BaseItemTile
+        item={centerItem}
+        scale={scale}
+        baseHexSize={baseHexSize}
+        isExpanded={false}
+        isDarkMode={isDarkMode}
       />
     );
   }
@@ -105,6 +126,7 @@ export const StaticFrame = ({
           urlInfo={urlInfo}
           interactive={interactive}
           currentUserId={currentUserId}
+          isDarkMode={isDarkMode}
         />
         <RenderChild
           coords={NE}
@@ -115,6 +137,7 @@ export const StaticFrame = ({
           urlInfo={urlInfo}
           interactive={interactive}
           currentUserId={currentUserId}
+          isDarkMode={isDarkMode}
         />
       </div>
       <div className="flex justify-center" style={marginTop}>
@@ -127,17 +150,27 @@ export const StaticFrame = ({
           urlInfo={urlInfo}
           interactive={interactive}
           currentUserId={currentUserId}
+          isDarkMode={isDarkMode}
         />
         <div className="flex flex-col">
-          <StaticItemTile
-            item={centerItem}
-            scale={nextScale}
-            allExpandedItemIds={expandedItemIds}
-            hasChildren={centerItemHasChildren}
-            isCenter={centerItem.metadata.dbId === urlInfo.rootItemId}
-            urlInfo={urlInfo}
-            interactive={interactive}
-          />
+          {interactive ? (
+            <DynamicItemTile
+              item={centerItem}
+              scale={nextScale}
+              allExpandedItemIds={expandedItemIds}
+              hasChildren={centerItemHasChildren}
+              isCenter={centerItem.metadata.dbId === urlInfo.rootItemId}
+              urlInfo={urlInfo}
+              interactive={interactive}
+            />
+          ) : (
+            <BaseItemTile
+              item={centerItem}
+              scale={nextScale}
+              isExpanded={true}
+              isDarkMode={isDarkMode}
+            />
+          )}
         </div>
         <RenderChild
           coords={E}
@@ -148,6 +181,7 @@ export const StaticFrame = ({
           urlInfo={urlInfo}
           interactive={interactive}
           currentUserId={currentUserId}
+          isDarkMode={isDarkMode}
         />
       </div>
       <div className="flex justify-center" style={marginTop}>
@@ -160,6 +194,7 @@ export const StaticFrame = ({
           urlInfo={urlInfo}
           interactive={interactive}
           currentUserId={currentUserId}
+          isDarkMode={isDarkMode}
         />
         <RenderChild
           coords={SE}
@@ -170,13 +205,14 @@ export const StaticFrame = ({
           urlInfo={urlInfo}
           interactive={interactive}
           currentUserId={currentUserId}
+          isDarkMode={isDarkMode}
         />
       </div>
     </div>
   );
 
   return (
-    <StaticBaseTileLayout
+    <BaseTileLayout
       scale={scale}
       color={getColorFromItem(centerItem)}
       coordId={center}
@@ -188,7 +224,7 @@ export const StaticFrame = ({
       >
         {frame}
       </div>
-    </StaticBaseTileLayout>
+    </BaseTileLayout>
   );
 };
 
@@ -201,6 +237,7 @@ interface RenderChildProps {
   urlInfo: URLInfo;
   interactive?: boolean;
   currentUserId?: number;
+  isDarkMode?: boolean;
 }
 
 const RenderChild = ({
@@ -212,6 +249,7 @@ const RenderChild = ({
   urlInfo,
   interactive = true,
   currentUserId,
+  isDarkMode = false,
 }: RenderChildProps) => {
   const item = mapItems[coords];
   const isExpanded = item
@@ -229,8 +267,8 @@ const RenderChild = ({
     const parentCoordsId = CoordSystem.createId(parentCoords);
     const parentItem = parentCoordsId ? mapItems[parentCoordsId] : undefined;
 
-    return (
-      <StaticEmptyTile
+    return interactive ? (
+      <DynamicEmptyTile
         coordId={coords}
         scale={scale}
         baseHexSize={baseHexSize}
@@ -246,6 +284,13 @@ const RenderChild = ({
         interactive={interactive}
         currentUserId={currentUserId}
       />
+    ) : (
+      <BaseEmptyTile
+        coordId={coords}
+        scale={scale}
+        baseHexSize={baseHexSize}
+        isDarkMode={isDarkMode}
+      />
     );
   }
 
@@ -259,7 +304,7 @@ const RenderChild = ({
 
   if (isExpanded) {
     return (
-      <StaticFrame
+      <BaseFrame
         center={coords}
         mapItems={mapItems}
         expandedItemIds={expandedItemIds}
@@ -267,12 +312,13 @@ const RenderChild = ({
         urlInfo={urlInfo}
         interactive={interactive}
         currentUserId={currentUserId}
+        isDarkMode={isDarkMode}
       />
     );
   }
 
-  return (
-    <StaticItemTile
+  return interactive ? (
+    <DynamicItemTile
       item={item}
       scale={scale}
       allExpandedItemIds={expandedItemIds}
@@ -280,6 +326,13 @@ const RenderChild = ({
       isCenter={false}
       urlInfo={urlInfo}
       interactive={interactive}
+    />
+  ) : (
+    <BaseItemTile
+      item={item}
+      scale={scale}
+      isExpanded={false}
+      isDarkMode={isDarkMode}
     />
   );
 };

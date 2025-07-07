@@ -8,8 +8,23 @@ import { testLogger } from "~/lib/test-logger";
 import {
   getButtonPositioning,
   getButtonsSizing,
-  type TileButtonsProps,
-} from "~/app/static/map/Tile/Item/item.buttons";
+} from "./_utils/button-utils";
+import type { TileData } from "../../types/tile-data";
+import type { TileScale } from "~/app/map/components/BaseTileLayout";
+import type { URLInfo } from "../../types/url-info";
+
+export interface TileButtonsProps {
+  item: TileData;
+  displayConfig: {
+    scale?: TileScale;
+    isCenter?: boolean;
+  };
+  expansionState: {
+    allExpandedItemIds: string[];
+    hasChildren: boolean;
+  };
+  urlInfo: URLInfo;
+}
 
 interface DynamicTileButtonsProps extends TileButtonsProps {
   onEditClick?: () => void;
