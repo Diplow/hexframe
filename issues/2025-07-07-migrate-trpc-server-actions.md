@@ -139,3 +139,212 @@ Total procedures: 25 (4 auth + 21 map-related)
 5. Procedure execution with domain services
 6. Response serialization with SuperJSON
 7. Client-side cache update
+
+## Solution
+
+### Solution Overview
+
+Three distinct approaches for migrating from tRPC to server actions, each with different tradeoffs:
+
+1. **Incremental Adapter Pattern** - Build compatibility layer for gradual migration
+2. **Domain-by-Domain Migration** - Replace entire domains (auth, then map) sequentially
+3. **Parallel Implementation with Feature Flags** - Build server actions alongside tRPC
+
+### Approach 1: Incremental Adapter Pattern
+
+#### Implementation Path
+1. Create server action wrapper that mimics tRPC API structure
+2. Build generic adapter for converting tRPC procedures to server actions
+3. Migrate procedures one-by-one behind the adapter
+4. Update client hooks to use server actions transparently
+5. Remove tRPC dependencies once all procedures migrated
+
+#### Components Affected
+- Create: `/src/server/actions/adapter.ts` - tRPC-to-server-action adapter
+- Create: `/src/server/actions/[domain]/[action].ts` - Server action files
+- Modify: `/src/commons/trpc/react.tsx` - Add server action support
+- Create: `/src/hooks/useServerAction.ts` - Custom hook for server actions
+
+#### Technical Details
+```typescript
+// Example adapter pattern
+export function createServerActionFromProcedure<TInput, TOutput>(
+  procedure: TRPCProcedure,
+  validator: ZodSchema<TInput>
+): ServerAction<TInput, TOutput> {
+  return async function(input: TInput) {
+    "use server";
+    
+    // Validation
+    const parsed = validator.parse(input);
+    
+    // Auth check
+    const session = await auth();
+    if (procedure.requiresAuth && !session) {
+      throw new Error("Unauthorized");
+    }
+    
+    // Execute with context
+    return procedure.handler({ input: parsed, ctx: { session } });
+  };
+}
+```
+
+### Approach 2: Domain-by-Domain Migration
+
+#### Implementation Path
+1. Start with auth domain (4 procedures)
+2. Create `/src/server/actions/auth.ts` with all auth server actions
+3. Update auth components to use server actions directly
+4. Test auth flow end-to-end
+5. Repeat for map domain (21 procedures)
+6. Remove tRPC infrastructure after both domains migrated
+
+#### Components Affected
+- Create: `/src/server/actions/auth.ts` - Auth server actions
+- Create: `/src/server/actions/map/user.ts` - Map user actions
+- Create: `/src/server/actions/map/items.ts` - Map items actions
+- Modify: All components using `api.auth.*` and `api.map.*`
+- Create: `/src/lib/server-actions/types.ts` - Shared types
+
+#### Technical Details
+```typescript
+// Auth server actions
+export async function login(input: LoginInput) {
+  "use server";
+  
+  const { email, password } = loginSchema.parse(input);
+  
+  // Use existing auth service
+  const result = await authService.login({ email, password });
+  
+  if (!result.success) {
+    throw new Error(result.error);
+  }
+  
+  // Set cookies, return user
+  return result.user;
+}
+
+// Client usage
+import { login } from "~/server/actions/auth";
+
+function LoginForm() {
+  const handleSubmit = async (data) => {
+    try {
+      const user = await login(data);
+      // Handle success
+    } catch (error) {
+      // Handle error
+    }
+  };
+}
+```
+
+### Approach 3: Parallel Implementation with Feature Flags
+
+#### Implementation Path
+1. Implement all server actions in parallel with tRPC
+2. Use feature flags to control which system is active
+3. Build abstraction layer that routes to either system
+4. Test both systems in production
+5. Gradually shift traffic to server actions
+6. Remove tRPC when confidence is high
+
+#### Components Affected
+- Create: `/src/server/actions/*` - All server actions
+- Create: `/src/lib/feature-flags.ts` - Feature flag system
+- Create: `/src/lib/api-router.ts` - Routes between tRPC/actions
+- Modify: All API consuming components
+
+#### Technical Details
+```typescript
+// API router abstraction
+export function useApiQuery(endpoint: string, input: any) {
+  const flag = useFeatureFlag("use-server-actions");
+  
+  if (flag) {
+    return useServerAction(endpoint, input);
+  } else {
+    return useTRPCQuery(endpoint, input);
+  }
+}
+```
+
+### Tradeoff Analysis
+
+#### Approach 1: Incremental Adapter Pattern
+**Pros:**
+- Minimal disruption to existing code
+- Can migrate gradually, one procedure at a time
+- Type safety maintained throughout
+- Easy rollback per procedure
+
+**Cons:**
+- Additional abstraction layer complexity
+- Longer total migration time
+- Adapter code becomes technical debt
+- May not realize full bundle size benefits until complete
+
+#### Approach 2: Domain-by-Domain Migration
+**Pros:**
+- Clear migration boundaries
+- Faster to see benefits (auth domain first)
+- Simpler than adapter pattern
+- Forces comprehensive testing per domain
+
+**Cons:**
+- Requires updating many components at once
+- Higher risk during domain switchover
+- No gradual rollback option per domain
+- Auth domain migration blocks map domain work
+
+#### Approach 3: Parallel Implementation
+**Pros:**
+- Zero downtime migration
+- A/B testing capability
+- Full rollback capability
+- Can validate performance improvements
+
+**Cons:**
+- Duplicate implementation effort
+- Maintains two systems temporarily
+- Complex routing logic
+- Delayed bundle size benefits
+
+### Recommended Approach
+
+**Recommendation: Approach 2 - Domain-by-Domain Migration**
+
+#### Rationale
+1. **Clear boundaries**: Auth (4 procedures) and Map (21 procedures) are well-separated domains
+2. **Quick wins**: Auth domain can be migrated quickly, providing immediate validation
+3. **Simplicity**: No complex adapters or dual systems to maintain
+4. **Type safety**: Direct server action implementation maintains type safety
+5. **Bundle size**: Immediate reduction after auth migration
+
+#### Implementation Strategy
+1. **Phase 1: Auth Domain** (1 week)
+   - Implement 4 auth server actions
+   - Update auth components
+   - Test authentication flows
+   - Deploy and monitor
+
+2. **Phase 2: Map Domain** (2-3 weeks)
+   - Implement map user actions (7 procedures)
+   - Implement map items actions (14 procedures)
+   - Update map components progressively
+   - Maintain backward compatibility during migration
+
+3. **Phase 3: Cleanup** (3 days)
+   - Remove tRPC dependencies
+   - Update documentation
+   - Clean up unused code
+   - Performance validation
+
+#### Key Considerations
+- Use existing Zod schemas for validation
+- Maintain current error handling patterns
+- Preserve React Query for client-side caching
+- Create server action utilities for common patterns (auth checks, error handling)
+- Implement comprehensive tests for each server action
