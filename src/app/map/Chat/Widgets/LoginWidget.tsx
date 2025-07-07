@@ -24,8 +24,11 @@ export function LoginWidget({ message }: LoginWidgetProps) {
   // Use the new IAM domain login
   const loginMutation = api.user.login.useMutation({
     onSuccess: async (data) => {
-      // Invalidate session to trigger AuthContext update
-      await trpcUtils.auth.getSession.invalidate();
+      // Give the session cookie time to be set
+      setTimeout(async () => {
+        // Invalidate session to trigger AuthContext update
+        await trpcUtils.auth.getSession.invalidate();
+      }, 100);
       
       // Dispatch success event
       dispatch({
@@ -50,6 +53,12 @@ export function LoginWidget({ message }: LoginWidgetProps) {
         timestamp: new Date(),
         actor: 'system',
       });
+      
+      // Navigate to user's map if they have one
+      const userMapResult = await trpcUtils.map.user.getUserMap.fetch();
+      if (userMapResult?.success && userMapResult.map?.id) {
+        router.push(`/map?center=${userMapResult.map.id}`);
+      }
     },
     onError: (error) => {
       console.error('Login error:', error);
@@ -60,8 +69,11 @@ export function LoginWidget({ message }: LoginWidgetProps) {
   // Use the new IAM domain registration
   const registerMutation = api.user.register.useMutation({
     onSuccess: async (data) => {
-      // Invalidate session to trigger AuthContext update
-      await trpcUtils.auth.getSession.invalidate();
+      // Give the session cookie time to be set
+      setTimeout(async () => {
+        // Invalidate session to trigger AuthContext update
+        await trpcUtils.auth.getSession.invalidate();
+      }, 100);
       
       // Dispatch success event
       dispatch({

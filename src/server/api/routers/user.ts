@@ -67,26 +67,24 @@ export const userRouter = createTRPCRouter({
         }
 
         // Step 3: Create a session for the user (auto-login after registration)
-        // Create a mock request with the new user's credentials to sign them in
-        const signInRequest = new Request(`${process.env.BETTER_AUTH_URL ?? "http://localhost:3000"}/api/auth/sign-in/email`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            // Forward cookies from the original request
-            cookie: ctx.req.headers.cookie ?? "",
-          },
-          body: JSON.stringify({
+        const { auth } = await import("~/server/auth");
+        const { convertToHeaders } = await import("~/server/api/trpc");
+        
+        // Convert headers for better-auth
+        const fetchHeaders = convertToHeaders(ctx.req.headers);
+        
+        // Sign in the newly created user
+        const signInResponse = await auth.api.signInEmail({
+          body: {
             email: input.email,
             password: input.password,
-          }),
+          },
+          headers: fetchHeaders,
+          asResponse: true,
         });
 
-        // Use auth handler to sign in the user
-        const { auth } = await import("~/server/auth");
-        const signInResponse = await auth.handler(signInRequest);
-        
-        // Forward the set-cookie headers to establish the session
-        if (signInResponse.ok) {
+        // Forward session cookies if response is a Response object
+        if (signInResponse instanceof Response) {
           const setCookieHeaders = signInResponse.headers.getSetCookie();
           if (setCookieHeaders && setCookieHeaders.length > 0 && ctx.res) {
             ctx.res.setHeader('Set-Cookie', setCookieHeaders);
@@ -120,38 +118,41 @@ export const userRouter = createTRPCRouter({
     .input(loginSchema)
     .mutation(async ({ ctx, input }) => {
       try {
-        // Use better-auth to handle the login
+        // Use better-auth API directly
         const { auth } = await import("~/server/auth");
+        const { convertToHeaders } = await import("~/server/api/trpc");
         
-        // Create a mock request for better-auth
-        const loginRequest = new Request(`${process.env.BETTER_AUTH_URL ?? "http://localhost:3000"}/api/auth/sign-in/email`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            // Forward cookies from the original request
-            cookie: ctx.req.headers.cookie ?? "",
-          },
-          body: JSON.stringify({
+        // Convert headers for better-auth
+        const fetchHeaders = convertToHeaders(ctx.req.headers);
+        
+        // Use the same approach as the auth router
+        const response = await auth.api.signInEmail({
+          body: {
             email: input.email,
             password: input.password,
-          }),
+          },
+          headers: fetchHeaders,
+          asResponse: true, // Get full response to handle cookies
         });
 
-        // Process the login
-        const loginResponse = await auth.handler(loginRequest);
-        const data = await loginResponse.json() as { user?: any; session?: any; error?: string };
-
-        if (!loginResponse.ok || !data.user) {
-          throw new TRPCError({
-            code: "UNAUTHORIZED",
-            message: data.error || "Invalid email or password",
-          });
+        // Check if response is a Response object
+        let data: any;
+        if (response instanceof Response) {
+          // Handle the response and forward cookies
+          const setCookieHeaders = response.headers.getSetCookie();
+          if (setCookieHeaders && setCookieHeaders.length > 0 && ctx.res) {
+            ctx.res.setHeader('Set-Cookie', setCookieHeaders);
+          }
+          data = await response.json();
+        } else {
+          data = response;
         }
 
-        // Forward the set-cookie headers to establish the session
-        const setCookieHeaders = loginResponse.headers.getSetCookie();
-        if (setCookieHeaders && setCookieHeaders.length > 0 && ctx.res) {
-          ctx.res.setHeader('Set-Cookie', setCookieHeaders);
+        if (!data.user) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED", 
+            message: "Invalid email or password",
+          });
         }
 
         // Get the user with mapping ID
