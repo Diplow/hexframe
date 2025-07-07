@@ -9,6 +9,7 @@ import type {
 } from "./Handlers/types";
 import type { ServerService, StorageService, ServiceConfig } from "./Services/types";
 import type { SyncOperations, SyncResult, SyncStatus } from "./Sync/types";
+import type { EventBusService } from "~/app/map/types/events";
 
 // Cache context interface
 export interface MapCacheContextValue {
@@ -72,6 +73,7 @@ export interface MapCacheHook {
     url?: string;
   }) => Promise<void>;
   deleteItemOptimistic: (coordId: string) => Promise<void>;
+  moveItemOptimistic: (sourceCoordId: string, targetCoordId: string) => Promise<{ success: boolean; isSwap?: boolean }>;
   rollbackOptimisticChange: (changeId: string) => void;
   rollbackAllOptimistic: () => void;
   getPendingOptimisticChanges: () => Array<{
@@ -113,6 +115,7 @@ export interface MapCacheProviderProps {
   serverConfig?: ServiceConfig;
   storageConfig?: ServiceConfig;
   offlineMode?: boolean;
+  eventBus?: EventBusService;
   testingOverrides?: {
     disableSync?: boolean;
     mockRouter?: unknown;

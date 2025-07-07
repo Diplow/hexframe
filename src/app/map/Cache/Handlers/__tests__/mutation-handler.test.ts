@@ -11,6 +11,7 @@ import type {
 } from "../mutation-handler";
 import type { CacheState } from "../../State/types";
 import type { DataOperations } from "../types";
+import { createMockEventBus, expectEventEmitted } from "~/test-utils/event-bus";
 
 describe("Mutation Handler", () => {
   let mockDispatch: ReturnType<typeof vi.fn>;
@@ -18,6 +19,7 @@ describe("Mutation Handler", () => {
   let mockDataHandler: DataOperations;
   let mockState: CacheState;
   let config: MutationHandlerConfig;
+  let mockEventBus: ReturnType<typeof createMockEventBus>;
 
   const mockExistingItem = {
     data: {
@@ -46,6 +48,7 @@ describe("Mutation Handler", () => {
 
   beforeEach(() => {
     mockDispatch = vi.fn();
+    mockEventBus = createMockEventBus();
 
     // New simplified services (no server mutations)
     mockServices = {
@@ -79,6 +82,7 @@ describe("Mutation Handler", () => {
       services: mockServices,
       getState: () => mockState,
       dataHandler: mockDataHandler,
+      eventBus: mockEventBus,
     };
   });
 
@@ -113,6 +117,24 @@ describe("Mutation Handler", () => {
       expect(result).toEqual({
         success: true,
         optimisticApplied: true,
+      });
+    });
+
+    test("emits map.tile_created event when creating item", async () => {
+      const handler = createMutationHandler(config);
+      const itemData = { name: "New Item", description: "New Description" };
+
+      await handler.createItem("2,3", itemData);
+
+      // Should emit map.tile_created event
+      expectEventEmitted(mockEventBus, 'map.tile_created', {
+        tileId: expect.any(String) as string,
+        tileName: "New Item",
+        coordId: "2,3",
+        tileData: expect.objectContaining({
+          name: "New Item",
+          description: "New Description"
+        }) as Record<string, unknown>
       });
     });
 
@@ -191,6 +213,21 @@ describe("Mutation Handler", () => {
       });
     });
 
+    test("emits map.tile_updated event when updating item", async () => {
+      const handler = createMutationHandler(config);
+      const updates = { name: "Updated Name" };
+
+      await handler.updateItem("1,2", updates);
+
+      // Should emit map.tile_updated event
+      expectEventEmitted(mockEventBus, 'map.tile_updated', {
+        tileId: "existing-id",
+        tileName: "Updated Name",
+        coordId: "1,2",
+        updates: { name: "Updated Name" }
+      });
+    });
+
     test("handles missing item gracefully", async () => {
       const handler = createMutationHandler(config);
       const updates = { name: "Updated Name" };
@@ -216,6 +253,19 @@ describe("Mutation Handler", () => {
       expect(result).toEqual({
         success: true,
         optimisticApplied: true,
+      });
+    });
+
+    test("emits map.tile_deleted event when deleting item", async () => {
+      const handler = createMutationHandler(config);
+
+      await handler.deleteItem("1,2");
+
+      // Should emit map.tile_deleted event
+      expectEventEmitted(mockEventBus, 'map.tile_deleted', {
+        tileId: "existing-id",
+        tileName: "Existing Item",
+        coordId: "1,2"
       });
     });
 
@@ -315,6 +365,7 @@ describe("Mutation Handler", () => {
         mockDispatch,
         () => mockState,
         mockDataHandler,
+        mockEventBus,
       );
 
       const result = await handler.createItem("2,3", { name: "New Item" });
@@ -331,6 +382,16 @@ describe("Mutation Handler", () => {
           1,
         ),
       );
+
+      // Should emit event
+      expectEventEmitted(mockEventBus, 'map.tile_created', {
+        tileId: expect.any(String) as string,
+        tileName: "New Item",
+        coordId: "2,3",
+        tileData: expect.objectContaining({
+          name: "New Item"
+        }) as Record<string, unknown>
+      });
     });
 
     test("simplified factory focuses on cache coordination", async () => {
@@ -338,6 +399,7 @@ describe("Mutation Handler", () => {
         mockDispatch,
         () => mockState,
         mockDataHandler,
+        mockEventBus,
       );
 
       // The simplified approach should work the same way
@@ -350,6 +412,19 @@ describe("Mutation Handler", () => {
       // 1 dispatch for update optimistic, 1 invalidateRegion for delete
       expect(mockDispatch).toHaveBeenCalledTimes(1); // Just the update optimistic
       expect(mockDataHandler.invalidateRegion).toHaveBeenCalledWith("1,2");
+
+      // Should emit events
+      expectEventEmitted(mockEventBus, 'map.tile_updated', {
+        tileId: "existing-id",
+        tileName: "Updated via simplified factory",
+        coordId: "1,2",
+        updates: { name: "Updated via simplified factory" }
+      });
+      expectEventEmitted(mockEventBus, 'map.tile_deleted', {
+        tileId: "existing-id",
+        tileName: "Existing Item", // Delete uses the name from current state
+        coordId: "1,2"
+      });
     });
   });
 

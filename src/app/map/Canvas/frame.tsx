@@ -33,6 +33,7 @@ export interface DynamicFrameProps {
   urlInfo: URLInfo;
   interactive?: boolean;
   currentUserId?: number;
+  selectedTileId?: string | null;
 }
 
 /**
@@ -62,6 +63,7 @@ export const DynamicFrame = (props: DynamicFrameProps) => {
         urlInfo={props.urlInfo}
         interactive={props.interactive}
         currentUserId={props.currentUserId}
+        isSelected={props.selectedTileId === centerItem.metadata.coordId}
       />
     );
   }
@@ -90,6 +92,7 @@ export const DynamicFrame = (props: DynamicFrameProps) => {
           urlInfo={props.urlInfo}
           interactive={props.interactive}
           currentUserId={props.currentUserId}
+          selectedTileId={props.selectedTileId}
         />
       </div>
     </DynamicBaseTileLayout>
@@ -109,6 +112,7 @@ const FrameInterior = (props: {
   urlInfo: URLInfo;
   interactive?: boolean;
   currentUserId?: number;
+  selectedTileId?: string | null;
 }) => {
   const { centerItem, baseHexSize = 50, childScale } = props;
   
@@ -164,6 +168,7 @@ const FrameInterior = (props: {
                 urlInfo={props.urlInfo}
                 interactive={props.interactive}
                 currentUserId={props.currentUserId}
+                selectedTileId={props.selectedTileId}
               />
             );
           })}
@@ -193,6 +198,7 @@ const FrameSlot = (props: {
   urlInfo: URLInfo;
   interactive?: boolean;
   currentUserId?: number;
+  selectedTileId?: string | null;
 }) => {
   const { coordId, mapItems, slotScale, isCenter } = props;
   const item = mapItems[coordId];
@@ -217,6 +223,7 @@ const FrameSlot = (props: {
         parentItem={parentItem ? {
           id: parentItem.metadata.dbId,
           name: parentItem.data.name,
+          ownerId: parentItem.metadata.ownerId,
         } : undefined}
         interactive={props.interactive}
         currentUserId={props.currentUserId}
@@ -241,6 +248,7 @@ const FrameSlot = (props: {
         urlInfo={props.urlInfo}
         interactive={props.interactive}
         currentUserId={props.currentUserId}
+        isSelected={props.selectedTileId === item.metadata.coordId}
       />
     );
   }
@@ -257,6 +265,7 @@ const FrameSlot = (props: {
         urlInfo={props.urlInfo}
         interactive={props.interactive}
         currentUserId={props.currentUserId}
+        selectedTileId={props.selectedTileId}
       />
     );
   }
@@ -272,6 +281,7 @@ const FrameSlot = (props: {
       urlInfo={props.urlInfo}
       interactive={props.interactive}
       currentUserId={props.currentUserId}
+      isSelected={props.selectedTileId === item.metadata.coordId}
     />
   );
 };

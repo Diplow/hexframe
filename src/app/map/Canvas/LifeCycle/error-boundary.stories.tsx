@@ -147,7 +147,7 @@ export const LongErrorMessage: Story = {
 export const CustomStyling: Story = {
   args: {
     error: new Error("Map loading failed with custom styling"),
-    className: "bg-rose-50 border border-rose-200",
+    className: "bg-destructive/10 border border-destructive/20",
   },
   parameters: {
     docs: {
@@ -166,7 +166,7 @@ export const InContainer: Story = {
   },
   decorators: [
     (Story) => (
-      <div className="h-96 w-96 border-2 border-dashed border-gray-300">
+      <div className="h-96 w-96 border-2 border-dashed border-neutral-300">
         <Story />
       </div>
     ),
@@ -186,11 +186,11 @@ export const InContainer: Story = {
 export const DarkTheme: Story = {
   args: {
     error: new Error("Dark theme error display"),
-    className: "bg-gray-900 text-white",
+    className: "bg-neutral-900 text-white",
   },
   decorators: [
     (Story) => (
-      <div className="bg-gray-900 p-4">
+      <div className="bg-neutral-900 p-4">
         <Story />
       </div>
     ),

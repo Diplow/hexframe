@@ -22,6 +22,10 @@ interface DynamicCreateItemDialogProps {
   parentItem?: { id: string; name: string };
   urlInfo: URLInfo;
   onSuccess?: () => void;
+  initialValues?: {
+    name: string;
+    description: string;
+  };
 }
 
 export function DynamicCreateItemDialog({
@@ -30,10 +34,11 @@ export function DynamicCreateItemDialog({
   coordId,
   parentItem,
   onSuccess,
+  initialValues,
 }: DynamicCreateItemDialogProps) {
   const [formData, setFormData] = useState<CreateItemFormData>({
-    title: "",
-    description: "",
+    title: initialValues?.name ?? "",
+    description: initialValues?.description ?? "",
     url: "",
   });
   const [errors, setErrors] = useState<CreateItemFormErrors>({});

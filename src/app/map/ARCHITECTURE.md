@@ -27,6 +27,23 @@ The application provides two distinct experiences:
 
 **Parallel Development**: Both routes can evolve independently based on their constraints - static route prioritizes SSR and accessibility, dynamic route prioritizes interactivity and real-time features.
 
+### 3. Event-Driven Communication
+
+**Event Bus Pattern**: The map uses a shared event bus for cross-system communication, enabling loose coupling between components like MapCache and ChatCache.
+
+```typescript
+interface EventBusService {
+  emit(event: AppEvent): void;
+  on(eventType: string, listener: (event: AppEvent) => void): () => void;
+}
+
+// Event namespaces
+// map.*   - Map operations (tile CRUD, navigation)
+// chat.*  - Chat operations (messages, widgets)
+// auth.*  - Authentication events
+// sync.*  - Synchronization events
+```
+
 ## State Management Strategy
 
 ### URL-First State Management
@@ -145,6 +162,44 @@ The application prioritizes URL parameters for shareable and bookmarkable state:
 - Uses Next.js router for navigation
 - Loading states during transitions
 
+### 6. Communication Layer (Event Bus)
+
+#### Event Bus Service
+
+**Type**: Shared Infrastructure
+
+The event bus enables communication between independent systems (MapCache, ChatCache, future services) without creating direct dependencies:
+
+```typescript
+// Event bus is provided at the app level
+const eventBus = new EventBus();
+
+// Systems receive it via props/context
+<MapCacheProvider eventBus={eventBus}>
+  <ChatCacheProvider eventBus={eventBus}>
+```
+
+**Key Benefits**:
+- **Loose Coupling**: Systems don't know about each other
+- **Extensibility**: Easy to add new listeners (analytics, undo/redo)
+- **Testability**: Event bus can be mocked/spied in tests
+- **Debuggability**: All cross-system communication flows through one place
+
+**Example Flow - Tile Swap**:
+```typescript
+// MapCache emits when tiles are swapped
+eventBus.emit({
+  type: 'map.tiles_swapped',
+  source: 'map_cache',
+  payload: { tile1Id, tile2Id, tile1Name, tile2Name }
+});
+
+// ChatCache listens and creates appropriate UI
+eventBus.on('map.tiles_swapped', (event) => {
+  // Show system message about the swap
+});
+```
+
 ## Data Flow Architecture
 
 ### Region-Based Caching Strategy
@@ -190,6 +245,39 @@ interface RegionMetadata {
   loadedAt: timestamp; // When this region was loaded
   itemCoordIds: string[]; // Which items were loaded
 }
+```
+
+#### Important: Understanding dbId vs coordId
+
+The system uses two distinct identifier types that serve different purposes:
+
+**dbId (Database ID)**:
+- Type: `number`
+- Purpose: Uniquely identifies a mapItem (tile) in the database
+- Persistence: Stays constant even when a tile is moved to a different position
+- Usage: CRUD operations, references in the database
+
+**coordId (Coordinate ID)**:
+- Type: `string`
+- Format: `"{userId},{groupId}:{path}"`
+- Purpose: Uniquely identifies a position in the hexagonal map hierarchy
+- Persistence: Changes when an item moves - the coordId will then identify whatever item is at that position
+- Usage: Cache keys, navigation, position-based operations
+
+**Example**:
+```typescript
+// A tile with dbId=123 at position "1,2:A1B2"
+const tile = {
+  metadata: {
+    dbId: 123,        // Permanent identifier for this tile
+    coordId: "1,2:A1B2"  // Current position identifier
+  }
+};
+
+// If this tile moves to position "1,2:C3D4":
+// - dbId remains 123
+// - coordId becomes "1,2:C3D4"
+// - The old coordId "1,2:A1B2" now refers to whatever tile occupies that position
 ```
 
 **Benefits**:

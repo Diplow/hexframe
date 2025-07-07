@@ -13,7 +13,7 @@ The issue management system follows a structured three-phase workflow. All comma
    - `/security_plan #<issue>` - Deep security analysis (optional)
    - `/ux_design_plan #<issue>` - Detailed UX/UI specifications (optional)
    - `/tests_plan #<issue>` - Comprehensive test strategy (optional)
-4. `/archi #<issue>` - Document architecture decisions and patterns (required)
+4. `/architecture #<issue>` - Document technical architecture and mental models (optional but recommended)
 
 ### Phase 2: Implementation 🛠️
 5. `/tests_impl #<issue>` - Implement tests first for TDD (optional but recommended)
@@ -62,14 +62,15 @@ Documents the proposed solution approach.
 /solution #<issue-number>
 ```
 
-#### 4. /archi
-Documents architecture decisions and design patterns.
+#### 4. /architecture
+Documents technical architecture and mental models for the solution.
 - Appends "## Architecture" section to the document
 - Posts the architecture section as a GitHub comment
+- Optional but recommended follow-up to `/solution`
 
 **Usage:**
 ```
-/archi #<issue-number>
+/architecture #<issue-number>
 ```
 
 #### 5. /issue_impl

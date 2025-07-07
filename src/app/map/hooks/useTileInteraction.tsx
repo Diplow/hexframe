@@ -14,122 +14,123 @@ interface TileInteractionProps {
   onEdit?: () => void;
   onDelete?: () => void;
   onCreate?: () => void;
+  canEdit?: boolean; // Whether user owns/can edit this tile
 }
 
 export function useTileInteraction({
   tileData,
-  coordId: _coordId,
+  coordId,
   type,
-  onNavigate,
-  onExpand,
-  onEdit,
-  onDelete,
+  onNavigate: _onNavigate,
+  onExpand: _onExpand,
+  onEdit: _onEdit,
+  onDelete: _onDelete,
   onCreate,
+  canEdit = false,
 }: TileInteractionProps) {
-  const { activeTool, onTileClick } = useTileActions();
+  const { onTileClick, onTileDoubleClick, onTileRightClick } = useTileActions();
 
   const handleClick = useCallback((e: React.MouseEvent) => {
     // Prevent default behavior
     e.preventDefault();
     e.stopPropagation();
 
-    // Only notify context if we have tile data
+    // For empty tiles, trigger create action
+    if (type === 'empty' && canEdit && onCreate) {
+      onCreate();
+      return;
+    }
+
+    // Let context handle all other click logic
     if (tileData) {
-      onTileClick(tileData);
+      onTileClick(tileData, e);
     }
+  }, [canEdit, onCreate, onTileClick, tileData, type]);
 
-    // Then handle tool-specific behavior
-    switch (activeTool) {
-      case 'navigate':
-        if (type === 'item' && onNavigate) {
-          onNavigate();
-        }
-        break;
-      case 'expand':
-        if (type === 'item' && onExpand) {
-          // Check if tile can be expanded
-          if (tileData && 'state' in tileData && tileData.state.canExpand !== false) {
-            onExpand();
-          }
-        }
-        break;
-      case 'create':
-        if (type === 'empty' && onCreate) {
-          onCreate();
-        }
-        break;
-      case 'edit':
-        if (type === 'item' && onEdit) {
-          onEdit();
-        }
-        break;
-      case 'delete':
-        if (type === 'item' && onDelete) {
-          onDelete();
-        }
-        break;
-      case 'select':
-        // Select tool doesn't have a default action
-        break;
-      case 'drag':
-        // Drag tool is handled by drag events, not click
-        break;
+  const handleDoubleClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Let context handle double-click logic
+    if (tileData) {
+      onTileDoubleClick(tileData);
     }
-  }, [activeTool, onCreate, onDelete, onEdit, onExpand, onNavigate, onTileClick, tileData, type]);
+  }, [onTileDoubleClick, tileData]);
 
-  // Get cursor based on tool and tile type
+  const handleRightClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Right-click for context menu
+    if (tileData) {
+      onTileRightClick(tileData, e);
+    } else if (type === 'empty' && canEdit) {
+      // Create minimal tile data for empty tiles
+      const emptyTileData: TileData = {
+        metadata: {
+          coordId,
+          dbId: "0",
+          parentId: undefined,
+          coordinates: { path: [], userId: 0, groupId: 0 },
+          ownerId: '',
+          depth: 0,
+        },
+        data: {
+          name: '',
+          description: '',
+          url: '',
+          color: 'gray-500',
+        },
+        state: {
+          canEdit,
+          isDragged: false,
+          isHovered: false,
+          isSelected: false,
+          isExpanded: false,
+          canExpand: false,
+          isDragOver: false,
+          isHovering: false,
+        },
+      };
+      onTileRightClick(emptyTileData, e);
+    }
+  }, [canEdit, coordId, onTileRightClick, tileData, type]);
+
+  // Get cursor based on interaction type
   const getCursor = useCallback((): TileCursor => {
-    if (activeTool === 'navigate' && type === 'item') {
-      return 'cursor-pointer';
-    }
-    if (activeTool === 'expand' && type === 'item') {
-      // Check if tile can be expanded
-      if (tileData && 'state' in tileData && tileData.state.canExpand === false) {
-        return 'cursor-not-allowed';
-      }
-      // Check if tile is already expanded
-      if (tileData && 'state' in tileData && tileData.state.isExpanded) {
-        return 'cursor-zoom-out';
-      }
-      return 'cursor-zoom-in';
-    }
-    if (activeTool === 'create' && type === 'empty') {
+    // For empty tiles in owned domains, show create cursor on hover
+    if (type === 'empty' && canEdit) {
       return 'cursor-cell';
     }
-    if (activeTool === 'edit' && type === 'item') {
-      return 'cursor-text';
-    }
-    if (activeTool === 'delete' && type === 'item') {
-      return 'cursor-crosshair';
-    }
-    if (activeTool === 'select') {
+
+    // For items, show appropriate cursor
+    if (type === 'item') {
+      // If user can edit, show move cursor for drag
+      if (canEdit) {
+        return 'cursor-move';
+      }
+      // Otherwise, pointer for interaction
       return 'cursor-pointer';
     }
-    if (activeTool === 'drag' && type === 'item') {
-      // Check if user can edit (owns) the tile
-      if (tileData && 'state' in tileData && tileData.state.canEdit === false) {
-        return 'cursor-not-allowed';
-      }
-      return 'cursor-move';
-    }
+
     return 'cursor-pointer';
-  }, [activeTool, type, tileData]);
+  }, [type, canEdit]);
 
   // Determine if tile should show hover effects
   const shouldShowHoverEffects = useCallback(() => {
-    if (activeTool === 'navigate' && type === 'item') return true;
-    if (activeTool === 'expand' && type === 'item') return true;
-    if (activeTool === 'create' && type === 'empty') return true;
-    if (activeTool === 'edit' && type === 'item') return true;
-    if (activeTool === 'delete' && type === 'item') return true;
-    if (activeTool === 'drag' && type === 'item') return true;
+    // Always show hover for items
+    if (type === 'item') return true;
+    // Show hover for empty tiles in owned domains
+    if (type === 'empty' && canEdit) return true;
     return false;
-  }, [activeTool, type]);
+  }, [type, canEdit]);
 
   return {
     handleClick,
+    handleDoubleClick,
+    handleRightClick,
     cursor: getCursor(),
     shouldShowHoverEffects: shouldShowHoverEffects(),
-    activeTool,
+    canEdit,
   };
 }

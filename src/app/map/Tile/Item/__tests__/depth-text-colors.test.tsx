@@ -1,3 +1,4 @@
+import '~/test/setup'; // Import test setup FIRST
 /**
  * @vitest-environment jsdom
  */

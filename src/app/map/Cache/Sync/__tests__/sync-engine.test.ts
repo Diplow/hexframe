@@ -40,6 +40,18 @@ describe("Sync Engine", () => {
   const mockDocument = {
     addEventListener: vi.fn(),
     visibilityState: "visible",
+    createElement: vi.fn(() => ({
+      appendChild: vi.fn(),
+      setAttribute: vi.fn(),
+      id: '',
+    })),
+    getElementById: vi.fn(() => null),
+    documentElement: {
+      appendChild: vi.fn(),
+    },
+    body: {
+      appendChild: vi.fn(),
+    },
   };
   Object.defineProperty(global, "window", {
     value: mockWindow,

@@ -92,6 +92,7 @@ export interface MutationOperations {
   createItem: (coordId: string, data: Record<string, unknown>) => Promise<MutationResult>;
   updateItem: (coordId: string, data: Record<string, unknown>) => Promise<MutationResult>;
   deleteItem: (coordId: string) => Promise<MutationResult>;
+  moveItem: (sourceCoordId: string, targetCoordId: string) => Promise<MutationResult & { isSwap?: boolean }>;
   rollbackOptimisticChange: (changeId: string) => void;
   rollbackAllOptimistic: () => void;
   getPendingOptimisticChanges: () => Array<{

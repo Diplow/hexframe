@@ -17,6 +17,7 @@ export interface DynamicItemTileProps {
   urlInfo: URLInfo;
   interactive?: boolean;
   currentUserId?: number;
+  isSelected?: boolean;
 }
 
 export const DynamicItemTile = (props: DynamicItemTileProps) => {
@@ -60,6 +61,7 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
           canEdit={state.canEdit}
           onEditClick={state.dialogs.openUpdateDialog}
           onDeleteClick={state.dialogs.openDeleteDialog}
+          isSelected={props.isSelected}
         />
       </div>
       <ItemDialogs item={item} dialogState={state.dialogs} />
