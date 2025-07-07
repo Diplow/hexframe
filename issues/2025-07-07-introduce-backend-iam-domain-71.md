@@ -3,7 +3,7 @@
 **Date**: 2025-07-07
 **Status**: Open
 **Tags**: #enhancement #refactor #architecture #auth #api #medium
-**GitHub Issue**: #71
+**GitHub Issue**: [pending]
 **Branch**: issue-71-introduce-backend-iam-domain
 
 ## Problem Statement
