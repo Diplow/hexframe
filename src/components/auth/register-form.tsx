@@ -13,8 +13,9 @@ export function RegisterForm() {
 
   const trpcUtils = api.useUtils();
   const router = useRouter();
-  const createMapMutation =
-    api.map.createDefaultMapForCurrentUser.useMutation();
+  
+  // Use the new IAM domain registration
+  const registerMutation = api.user.register.useMutation();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -22,76 +23,29 @@ export function RegisterForm() {
     setIsLoading(true);
 
     try {
-      const signUpData: {
-        email: string;
-        password: string;
-        name: string;
-        callbackURL?: string;
-      } = {
+      // Use the new IAM domain registration endpoint
+      const result = await registerMutation.mutateAsync({
         email,
         password,
-        name: name || "",
-        // callbackURL: '/map',
-      };
-
-      await authClient.signUp.email(signUpData, {
-        onSuccess: async (_ctx) => {
-          try {
-            await trpcUtils.auth.getSession.invalidate();
-
-            const mapCreationResult = await createMapMutation.mutateAsync();
-
-            if (mapCreationResult.success && mapCreationResult.mapId) {
-              router.push(`/map?center=${mapCreationResult.mapId}`);
-            } else {
-              console.error(
-                "Map creation failed after signup:",
-                mapCreationResult.success === false
-                  ? mapCreationResult.error
-                  : "Unknown error",
-              );
-              setError(
-                (mapCreationResult.success === false
-                  ? mapCreationResult.error
-                  : null) ??
-                  "Signup successful, but failed to create your map. Please try logging in or contact support.",
-              );
-              setIsLoading(false);
-            }
-          } catch (mutationError) {
-            console.error(
-              "Error during createDefaultMapForCurrentUser mutation:",
-              mutationError,
-            );
-            setError(
-              mutationError instanceof Error ? mutationError.message : "An error occurred while setting up your map.",
-            );
-            setIsLoading(false);
-          }
-        },
-        onError: (ctx: unknown) => {
-          console.error("Sign up error:", ctx);
-          // Check different possible error structures
-          let errorMessage = "Failed to register. Please try again.";
-          
-          if (ctx && typeof ctx === 'object') {
-            if ('error' in ctx && ctx.error && typeof ctx.error === 'object' && 'message' in ctx.error) {
-              errorMessage = String(ctx.error.message);
-            } else if ('message' in ctx) {
-              errorMessage = String(ctx.message);
-            }
-          } else if (typeof ctx === 'string') {
-            errorMessage = ctx;
-          }
-          
-          setError(errorMessage);
-          setIsLoading(false);
-        },
+        name: name || email.split('@')[0],
+        createDefaultMap: true
       });
+      
+      // Invalidate session to trigger AuthContext update
+      await trpcUtils.auth.getSession.invalidate();
+      
+      // Navigate to the user's map if created
+      if (result.defaultMapId) {
+        router.push(`/map?center=${result.defaultMapId}`);
+      } else {
+        // If no map was created, just go to home
+        router.push('/map');
+      }
     } catch (err) {
-      console.error("handleSubmit error:", err);
+      console.error("Registration error:", err);
       const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred.";
       setError(errorMessage);
+    } finally {
       setIsLoading(false);
     }
   };
@@ -102,7 +56,7 @@ export function RegisterForm() {
       emailValue={email}
       passwordValue={password}
       error={error}
-      isLoading={isLoading}
+      isLoading={isLoading || registerMutation.isPending}
       onNameChange={(e) => setName(e.target.value)}
       onEmailChange={(e) => setEmail(e.target.value)}
       onPasswordChange={(e) => setPassword(e.target.value)}
