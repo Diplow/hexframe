@@ -4,6 +4,7 @@ import { render } from '@testing-library/react';
 import { ChatCacheProvider } from '../Cache/ChatCacheProvider';
 import { EventBus } from '../../Services/event-bus';
 import type { ChatEvent } from '../Cache/_events/event.types';
+import { AuthProvider } from '~/contexts/AuthContext';
 
 // Mock all the required dependencies for Chat components
 export function setupChatMocks() {
@@ -86,8 +87,10 @@ export function renderWithChatProvider(
 ) {
   const bus = eventBus ?? new EventBus();
   return render(
-    <ChatCacheProvider eventBus={bus} initialEvents={initialEvents ?? []}>
-      {ui}
-    </ChatCacheProvider>
+    <AuthProvider>
+      <ChatCacheProvider eventBus={bus} initialEvents={initialEvents ?? []}>
+        {ui}
+      </ChatCacheProvider>
+    </AuthProvider>
   );
 }

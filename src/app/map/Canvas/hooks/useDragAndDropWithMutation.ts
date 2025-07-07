@@ -15,35 +15,7 @@ export function useDragAndDropWithMutation(): Omit<UseDragAndDropReturn, 'dragSt
   const { dispatch: chatDispatch } = useChatCacheOperations();
   const { items, moveItemOptimistic } = useMapCache();
   
-  // Get helper function to calculate direction
-  const getDirection = (coordId: string) => {
-    const coords = CoordSystem.parseId(coordId);
-    const lastIndex = coords.path[coords.path.length - 1];
-    
-    if (lastIndex === undefined) return undefined;
-    
-    const directions: Record<number, string> = {
-      1: 'north west',
-      2: 'north east',
-      3: 'east',
-      4: 'south east',
-      5: 'south west',
-      6: 'west',
-    };
-    
-    return directions[lastIndex];
-  };
-  
-  // Get parent info from coordId
-  const getParentInfo = (coordId: string) => {
-    const coords = CoordSystem.parseId(coordId);
-    const parentCoords = CoordSystem.getParentCoord(coords);
-    if (!parentCoords) return undefined;
-    
-    const parentCoordId = CoordSystem.createId(parentCoords);
-    const parentItem = items[parentCoordId];
-    return parentItem ? { name: parentItem.data.name, coordId: parentCoordId } : undefined;
-  };
+  // Note: getDirection and getParentInfo helpers removed as they were unused
   
   // Create move handler that uses mapCache
   // Chat messages are handled by the mutation coordinator via event bus

@@ -1,3 +1,4 @@
+import '~/test/setup'; // Import test setup FIRST
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -5,8 +6,8 @@ import { ChatPanel } from '../ChatPanel';
 import { EventBus } from '../../Services/event-bus';
 
 // Mock the useChatCache hook for isolated testing
-vi.mock('../_cache/ChatCacheProvider', async () => {
-  const actual = await vi.importActual('../_cache/ChatCacheProvider');
+vi.mock('../Cache/ChatCacheProvider', async () => {
+  const actual = await vi.importActual('../Cache/ChatCacheProvider');
   return {
     ...actual,
     useChatCache: vi.fn(),

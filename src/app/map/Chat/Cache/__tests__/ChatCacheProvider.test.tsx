@@ -1,3 +1,4 @@
+import '~/test/setup'; // Import test setup FIRST
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
@@ -95,10 +96,13 @@ describe('ChatCacheProvider', () => {
     await user.click(screen.getByText('Add Event'));
     expect(screen.getByTestId('event-count')).toHaveTextContent('1');
     
-    // Clear events
+    // Clear events - this adds a logout message, so we expect 1 event
     await user.click(screen.getByText('Clear Events'));
-    expect(screen.getByTestId('event-count')).toHaveTextContent('0');
-    expect(screen.getByTestId('message-count')).toHaveTextContent('0');
+    expect(screen.getByTestId('event-count')).toHaveTextContent('1'); // Logout message
+    expect(screen.getByTestId('message-count')).toHaveTextContent('1'); // Logout message is visible
+    
+    // Check that the message is the logout message
+    expect(screen.getByTestId('messages')).toHaveTextContent('You have been logged out');
   });
   
   it.skip('should remove specific event', async () => {

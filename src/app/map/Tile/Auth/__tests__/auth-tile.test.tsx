@@ -1,3 +1,4 @@
+import '~/test/setup'; // Import test setup FIRST
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';

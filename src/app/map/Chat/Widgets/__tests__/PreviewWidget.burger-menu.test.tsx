@@ -1,3 +1,4 @@
+import '~/test/setup'; // Import test setup FIRST
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { PreviewWidget } from '../PreviewWidget';

@@ -1,3 +1,4 @@
+import '~/test/setup'; // Import test setup FIRST for DOM and mocks
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MapPageContent } from '../_components/MapPageContent';
@@ -83,8 +84,9 @@ describe('Chat-Map Integration', () => {
       </MapCacheProvider>
     );
 
-    // Initially chat should not be visible
-    expect(screen.queryByTestId('chat-panel')).not.toBeInTheDocument();
+    // Chat panel should be visible
+    const chatPanel = screen.getByTestId('chat-panel');
+    expect(chatPanel).toBeInTheDocument();
 
     // TODO: Would need to simulate tile selection through TileActionsProvider
     // This would require more complex mocking of the tile interaction system

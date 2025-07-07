@@ -1,4 +1,4 @@
-import { afterEach, beforeEach } from "vitest";
+import { afterEach, beforeEach, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import React from "react";
@@ -28,12 +28,17 @@ if (typeof document === 'undefined') {
 
 // Set up DOM environment for React testing
 // This ensures that document and window are properly available
-if (typeof window !== "undefined") {
+
+// Set up global DOM for all tests
+if (typeof document !== 'undefined') {
   // Ensure document.body exists
   if (!document.body) {
-    const body = document.createElement('body');
-    document.documentElement.appendChild(body);
+    document.body = document.createElement('body');
   }
+}
+
+
+if (typeof window !== "undefined") {
   // Add any missing DOM APIs that tests might need
   if (!window.matchMedia) {
     window.matchMedia = (query) => ({
@@ -121,7 +126,7 @@ if (typeof window !== "undefined") {
         writable: true,
         configurable: true,
       });
-    } catch (_error) {
+    } catch {
       // Ignore errors if clipboard is already defined
     }
   }
@@ -151,20 +156,10 @@ if (typeof window !== "undefined") {
 afterEach(() => {
   cleanup();
   
-  // More aggressive DOM cleanup for test isolation
+  // Clear DOM content but keep body intact
   if (typeof document !== 'undefined' && document.body) {
-    // Clear the entire body and start fresh
+    // Clear content but don't remove body
     document.body.innerHTML = '';
-    
-    // Re-create the essential containers
-    const root = document.createElement('div');
-    root.id = 'root';
-    document.body.appendChild(root);
-    
-    // Ensure test containers exist
-    const testContainer = document.createElement('div');
-    testContainer.id = 'test-container';
-    document.body.appendChild(testContainer);
   }
 });
 
@@ -193,3 +188,214 @@ beforeEach(() => {
     }
   }
 });
+
+// Mock providers for tests
+vi.mock('~/app/map/Cache/_hooks/use-map-cache', () => ({
+  useMapCache: vi.fn(() => ({
+    // State queries
+    items: {},
+    center: null,
+    expandedItems: [],
+    isLoading: false,
+    error: null,
+    lastUpdated: Date.now(),
+
+    // Query operations
+    getRegionItems: vi.fn(() => []),
+    hasItem: vi.fn(() => false),
+    isRegionLoaded: vi.fn(() => false),
+
+    // Data operations
+    loadRegion: vi.fn(async () => ({ success: true, itemCount: 0 })),
+    loadItemChildren: vi.fn(async () => ({ success: true, itemCount: 0 })),
+    prefetchRegion: vi.fn(async () => ({ success: true, itemCount: 0 })),
+    invalidateRegion: vi.fn(),
+    invalidateAll: vi.fn(),
+
+    // Navigation operations
+    navigateToItem: vi.fn(async () => {
+      return undefined;
+    }),
+    updateCenter: vi.fn(),
+    prefetchForNavigation: vi.fn(async () => {
+      return undefined;
+    }),
+    toggleItemExpansionWithURL: vi.fn(),
+
+    // Mutation operations
+    createItemOptimistic: vi.fn(async () => {
+      return undefined;
+    }),
+    updateItemOptimistic: vi.fn(async () => {
+      return undefined;
+    }),
+    deleteItemOptimistic: vi.fn(async () => {
+      return undefined;
+    }),
+    moveItemOptimistic: vi.fn(async () => ({ success: true })),
+    rollbackOptimisticChange: vi.fn(),
+    rollbackAllOptimistic: vi.fn(),
+    getPendingOptimisticChanges: vi.fn(() => []),
+
+    // Sync operations
+    sync: {
+      isOnline: true,
+      lastSyncTime: null,
+      performSync: vi.fn(async () => ({ success: true, syncedItems: 0, errors: [] })),
+      forceSync: vi.fn(async () => ({ success: true, syncedItems: 0, errors: [] })),
+      pauseSync: vi.fn(),
+      resumeSync: vi.fn(),
+      getSyncStatus: vi.fn(() => ({ isPending: false, lastSync: null, error: null })),
+    },
+
+    // Configuration
+    config: {
+      maxDepth: 2,
+      maxRadius: 2,
+      cacheDuration: 300000,
+      enableOffline: true,
+    },
+    updateConfig: vi.fn(),
+  })),
+}));
+
+vi.mock('~/contexts/ThemeContext', () => ({
+  useTheme: vi.fn(() => ({
+    theme: 'light',
+    toggleTheme: vi.fn(),
+    setTheme: vi.fn(),
+  })),
+  ThemeProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+vi.mock('~/contexts/AuthContext', async () => {
+  const React = await import('react');
+  const AuthContext = React.createContext({
+    user: null,
+    mappingUserId: undefined,
+    isLoading: false,
+    setMappingUserId: vi.fn(),
+  });
+  
+  return {
+    AuthContext,
+    useAuth: vi.fn(() => ({
+      user: null,
+      mappingUserId: undefined,
+      isLoading: false,
+      setMappingUserId: vi.fn(),
+    })),
+    AuthProvider: ({ children }: { children: React.ReactNode }) => children,
+  };
+});
+
+// Mock Next.js navigation
+vi.mock('next/navigation', () => ({
+  useRouter: vi.fn(() => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    refresh: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    prefetch: vi.fn(),
+  })),
+  usePathname: vi.fn(() => '/'),
+  useSearchParams: vi.fn(() => new URLSearchParams()),
+}));
+
+// Mock tRPC
+vi.mock('~/commons/trpc/react', () => ({
+  api: {
+    useUtils: vi.fn(() => ({
+      map: {
+        user: {
+          getUserMap: {
+            invalidate: vi.fn(),
+          },
+        },
+        items: {
+          invalidate: vi.fn(),
+        },
+      },
+    })),
+    map: {
+      user: {
+        createDefaultMapForCurrentUser: {
+          useMutation: vi.fn(() => ({
+            mutate: vi.fn(),
+            mutateAsync: vi.fn(),
+            isLoading: false,
+            isSuccess: false,
+            isError: false,
+          })),
+        },
+        getUserMap: {
+          useQuery: vi.fn(() => ({
+            data: null,
+            isLoading: false,
+            error: null,
+          })),
+        },
+      },
+      // Add the mutations at the correct path
+      addItem: {
+        useMutation: vi.fn(() => ({
+          mutateAsync: vi.fn(() => Promise.resolve({ id: 1, coordId: 'test' })),
+          mutate: vi.fn(),
+          isLoading: false,
+        })),
+      },
+      updateItem: {
+        useMutation: vi.fn(() => ({
+          mutateAsync: vi.fn(() => Promise.resolve({ id: 1 })),
+          mutate: vi.fn(),
+          isLoading: false,
+        })),
+      },
+      removeItem: {
+        useMutation: vi.fn(() => ({
+          mutateAsync: vi.fn(() => Promise.resolve()),
+          mutate: vi.fn(),
+          isLoading: false,
+        })),
+      },
+      items: {
+        create: {
+          useMutation: () => ({
+            mutateAsync: vi.fn(() => Promise.resolve({ id: 1, coordId: 'test' })),
+            mutate: vi.fn(),
+            isLoading: false,
+          }),
+        },
+        update: {
+          useMutation: () => ({
+            mutateAsync: vi.fn(() => Promise.resolve({ id: 1 })),
+            mutate: vi.fn(),
+            isLoading: false,
+          }),
+        },
+        delete: {
+          useMutation: () => ({
+            mutateAsync: vi.fn(() => Promise.resolve()),
+            mutate: vi.fn(),
+            isLoading: false,
+          }),
+        },
+        move: {
+          useMutation: () => ({
+            mutateAsync: vi.fn(() => Promise.resolve({ success: true })),
+            mutate: vi.fn(),
+            isLoading: false,
+          }),
+        },
+        moveMapItem: {
+          useMutation: vi.fn(() => ({
+            mutateAsync: vi.fn(() => Promise.resolve({ success: true })),
+            mutate: vi.fn(),
+            isLoading: false,
+          })),
+        },
+      },
+    },
+  },
+}));

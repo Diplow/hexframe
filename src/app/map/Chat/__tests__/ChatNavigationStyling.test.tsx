@@ -1,3 +1,4 @@
+import '~/test/setup'; // Import test setup FIRST
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Messages } from '../Messages';
@@ -74,11 +75,51 @@ vi.mock('../_settings/useChatSettings', () => ({
   useChatSettings: () => ({}),
 }));
 
-const mockNavigateToItem = vi.fn();
-const mockUseMapCache = vi.fn();
-
+// Mock the map cache hook
 vi.mock('../../Cache/_hooks/use-map-cache', () => ({
-  useMapCache: mockUseMapCache,
+  useMapCache: vi.fn(() => ({
+    center: null,
+    expandedItems: [],
+    isLoading: false,
+    error: null,
+    lastUpdated: Date.now(),
+    getRegionItems: vi.fn(),
+    hasItem: vi.fn(),
+    isRegionLoaded: vi.fn(),
+    loadRegion: vi.fn(),
+    loadItemChildren: vi.fn(),
+    prefetchRegion: vi.fn(),
+    invalidateRegion: vi.fn(),
+    invalidateAll: vi.fn(),
+    navigateToItem: vi.fn(),
+    updateCenter: vi.fn(),
+    prefetchForNavigation: vi.fn(),
+    toggleItemExpansionWithURL: vi.fn(),
+    createItemOptimistic: vi.fn(),
+    updateItemOptimistic: vi.fn(),
+    deleteItemOptimistic: vi.fn(),
+    moveItemOptimistic: vi.fn(),
+    rollbackOptimisticChange: vi.fn(),
+    rollbackAllOptimistic: vi.fn(),
+    getPendingOptimisticChanges: vi.fn().mockReturnValue([]),
+    sync: {
+      isOnline: true,
+      lastSyncTime: null,
+      performSync: vi.fn(),
+      forceSync: vi.fn(),
+      pauseSync: vi.fn(),
+      resumeSync: vi.fn(),
+      getSyncStatus: vi.fn().mockReturnValue({ status: 'idle', lastError: null }),
+    },
+    config: {
+      maxAge: 300000,
+      backgroundRefreshInterval: 30000,
+      enableOptimisticUpdates: true,
+      maxDepth: 3,
+    },
+    updateConfig: vi.fn(),
+    items: {},
+  })),
 }));
 
 function TestWrapper({ children }: { children: ReactNode }) {
@@ -92,48 +133,6 @@ function TestWrapper({ children }: { children: ReactNode }) {
 
 describe('Chat Navigation Message Styling', () => {
   beforeEach(() => {
-    mockUseMapCache.mockReturnValue({
-      center: null,
-      expandedItems: [],
-      isLoading: false,
-      error: null,
-      lastUpdated: Date.now(),
-      getRegionItems: vi.fn(),
-      hasItem: vi.fn(),
-      isRegionLoaded: vi.fn(),
-      loadRegion: vi.fn(),
-      loadItemChildren: vi.fn(),
-      prefetchRegion: vi.fn(),
-      invalidateRegion: vi.fn(),
-      invalidateAll: vi.fn(),
-      navigateToItem: mockNavigateToItem,
-      updateCenter: vi.fn(),
-      prefetchForNavigation: vi.fn(),
-      toggleItemExpansionWithURL: vi.fn(),
-      createItemOptimistic: vi.fn(),
-      updateItemOptimistic: vi.fn(),
-      deleteItemOptimistic: vi.fn(),
-      moveItemOptimistic: vi.fn(),
-      rollbackOptimisticChange: vi.fn(),
-      rollbackAllOptimistic: vi.fn(),
-      getPendingOptimisticChanges: vi.fn().mockReturnValue([]),
-      sync: {
-        isOnline: true,
-        lastSyncTime: null,
-        performSync: vi.fn(),
-        forceSync: vi.fn(),
-        pauseSync: vi.fn(),
-        resumeSync: vi.fn(),
-        getSyncStatus: vi.fn().mockReturnValue({ status: 'idle', lastError: null }),
-      },
-      config: {
-        maxAge: 300000,
-        backgroundRefreshInterval: 30000,
-        enableOptimisticUpdates: true,
-        maxDepth: 3,
-      },
-      updateConfig: vi.fn(),
-    });
     vi.clearAllMocks();
   });
 

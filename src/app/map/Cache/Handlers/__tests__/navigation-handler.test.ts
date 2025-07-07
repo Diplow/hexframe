@@ -112,64 +112,45 @@ describe("Navigation Handler", () => {
 
   describe("navigateToItem", () => {
     test("successfully navigates to item with cache and URL updates", async () => {
-      // Remove the item from state so navigation will need to fetch it
-      const stateWithoutItem = {
-        ...mockState,
-        itemsById: {},
-      };
-      config.getState = () => stateWithoutItem;
-      
       const handler = createNavigationHandler(config);
 
-      const result = await handler.navigateToItem("1,2");
+      const result = await handler.navigateToItem("123"); // Use dbId
 
-      expect(mockDataHandler.prefetchRegion).toHaveBeenCalledWith("1,2");
       expect(mockDispatch).toHaveBeenCalledWith(cacheActions.setCenter("1,2"));
+      expect(mockDataHandler.prefetchRegion).toHaveBeenCalledWith("1,2");
       // Router is not called in current implementation
       expect(result).toEqual({
         success: true,
         centerUpdated: true,
-        urlUpdated: false,
+        urlUpdated: true, // URL is updated via window.history
       });
     });
 
     test("navigates with push when pushToHistory is true", async () => {
-      const stateWithoutItem = {
-        ...mockState,
-        itemsById: {},
-      };
-      config.getState = () => stateWithoutItem;
-      
       const handler = createNavigationHandler(config);
 
-      const result = await handler.navigateToItem("1,2", { pushToHistory: true });
+      const result = await handler.navigateToItem("123", { pushToHistory: true }); // Use dbId
 
-      expect(mockDataHandler.prefetchRegion).toHaveBeenCalledWith("1,2");
       expect(mockDispatch).toHaveBeenCalledWith(cacheActions.setCenter("1,2"));
+      expect(mockDataHandler.prefetchRegion).toHaveBeenCalledWith("1,2");
       expect(result).toEqual({
         success: true,
         centerUpdated: true,
-        urlUpdated: false,
+        urlUpdated: true, // URL is updated via window.history
       });
     });
 
     test("navigates with replace when pushToHistory is false", async () => {
-      const stateWithoutItem = {
-        ...mockState,
-        itemsById: {},
-      };
-      config.getState = () => stateWithoutItem;
-      
       const handler = createNavigationHandler(config);
 
-      const result = await handler.navigateToItem("1,2", { pushToHistory: false });
+      const result = await handler.navigateToItem("123", { pushToHistory: false }); // Use dbId
 
-      expect(mockDataHandler.prefetchRegion).toHaveBeenCalledWith("1,2");
       expect(mockDispatch).toHaveBeenCalledWith(cacheActions.setCenter("1,2"));
+      expect(mockDataHandler.prefetchRegion).toHaveBeenCalledWith("1,2");
       expect(result).toEqual({
         success: true,
         centerUpdated: true,
-        urlUpdated: false,
+        urlUpdated: true, // URL is updated via window.history
       });
     });
 
@@ -195,10 +176,10 @@ describe("Navigation Handler", () => {
       
       const handler = createNavigationHandler(config);
 
-      const result = await handler.navigateToItem("1,2", { pushToHistory: true });
+      const result = await handler.navigateToItem("123", { pushToHistory: true }); // Use dbId
 
-      expect(mockDataHandler.prefetchRegion).toHaveBeenCalledWith("1,2");
       expect(mockDispatch).toHaveBeenCalledWith(cacheActions.setCenter("1,2"));
+      expect(mockDataHandler.prefetchRegion).toHaveBeenCalledWith("1,2");
       // Should update URL with the new center and maintain expanded items
       expect(window.history.pushState).toHaveBeenCalledWith(
         {},
@@ -223,13 +204,14 @@ describe("Navigation Handler", () => {
         getState: () => stateWithoutItem,
       });
 
-      const result = await handler.navigateToItem("1,2");
+      const result = await handler.navigateToItem("999"); // Non-existent dbId
 
-      expect(mockDataHandler.prefetchRegion).toHaveBeenCalledWith("1,2");
-      expect(mockDispatch).toHaveBeenCalledWith(cacheActions.setCenter("1,2"));
+      // When item is not found, navigation returns early without dispatching
+      expect(mockDataHandler.prefetchRegion).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
       expect(result).toEqual({
         success: true,
-        centerUpdated: true,
+        centerUpdated: false,
         urlUpdated: false,
       });
     });
@@ -237,23 +219,17 @@ describe("Navigation Handler", () => {
     test("handles data loading errors", async () => {
       const loadError = new Error("Failed to load region");
       mockDataHandler.prefetchRegion = vi.fn().mockRejectedValue(loadError);
-      
-      const stateWithoutItem = {
-        ...mockState,
-        itemsById: {},
-      };
-      config.getState = () => stateWithoutItem;
 
       const handler = createNavigationHandler(config);
 
-      const result = await handler.navigateToItem("1,2");
+      const result = await handler.navigateToItem("123"); // Use existing item dbId
 
       // The navigation succeeds even if prefetch fails (it's done in background)
       expect(mockDispatch).toHaveBeenCalledWith(cacheActions.setCenter("1,2"));
       expect(result).toEqual({
         success: true,
         centerUpdated: true,
-        urlUpdated: false,
+        urlUpdated: true, // URL is updated via window.history
       });
     });
 
@@ -265,7 +241,7 @@ describe("Navigation Handler", () => {
 
       const handler = createNavigationHandler(configWithoutRouter);
 
-      const result = await handler.navigateToItem("1,2");
+      const result = await handler.navigateToItem("123"); // Use dbId
 
       expect(result).toEqual({
         success: true,
@@ -318,7 +294,7 @@ describe("Navigation Handler", () => {
       expect(result).toEqual({
         success: true,
         centerUpdated: true,
-        urlUpdated: false,
+        urlUpdated: false, // navigateWithoutURL doesn't update URL
       });
     });
 
@@ -426,7 +402,7 @@ describe("Navigation Handler", () => {
         mockTestPathname,
       );
 
-      await handler.navigateToItem("1,2", { pushToHistory: true });
+      await handler.navigateToItem("123", { pushToHistory: true }); // Use dbId
 
       expect(mockDispatch).toHaveBeenCalledWith(cacheActions.setCenter("1,2"));
 

@@ -1,10 +1,12 @@
+import '~/test/setup'; // Import test setup FIRST
+import { vi } from 'vitest';
 import { render } from '@testing-library/react';
 import { UnifiedTimeline } from '../UnifiedTimeline';
 import type { Message, Widget } from '../../Cache/_events/event.types';
 
 // Mock the WidgetManager since it has complex dependencies
-jest.mock('../WidgetManager', () => ({
-  WidgetManager: ({ widgets }: { widgets: any[] }) => (
+vi.mock('../WidgetManager', () => ({
+  WidgetManager: ({ widgets }: { widgets: Widget[] }) => (
     <div data-testid="widget-manager">{widgets.length} widgets</div>
   ),
 }));

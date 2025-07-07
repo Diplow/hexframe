@@ -1,3 +1,4 @@
+import '~/test/setup' // Import test setup FIRST
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act, render } from '@testing-library/react'
 import { TileActionsProvider, useTileActions } from './TileActionsContext'

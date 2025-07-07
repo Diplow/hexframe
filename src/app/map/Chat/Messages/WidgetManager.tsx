@@ -177,7 +177,15 @@ export function WidgetManager({ widgets }: WidgetManagerProps) {
   );
 }
 
-function renderWidget(widget: Widget, createWidgetHandlers: (widget: Widget) => any, items: Record<string, TileData>) {
+interface WidgetHandlers {
+  handleEdit?: () => void;
+  handleDelete?: () => void;
+  handlePreviewSave?: (title: string, content: string) => void;
+  handleSave?: (name: string, description: string) => void;
+  handleCancel?: () => void;
+}
+
+function renderWidget(widget: Widget, createWidgetHandlers: (widget: Widget) => WidgetHandlers, items: Record<string, TileData>) {
   switch (widget.type) {
     case 'preview':
       return _renderPreviewWidget(widget, createWidgetHandlers, items);
@@ -202,9 +210,9 @@ function renderWidget(widget: Widget, createWidgetHandlers: (widget: Widget) => 
   }
 }
 
-function _renderPreviewWidget(widget: Widget, createWidgetHandlers: (widget: Widget) => any, items: Record<string, TileData>) {
+function _renderPreviewWidget(widget: Widget, createWidgetHandlers: (widget: Widget) => WidgetHandlers, items: Record<string, TileData>) {
   const previewData = widget.data as TileSelectedPayload;
-  const { handleEdit, handleDelete, handlePreviewSave } = createWidgetHandlers(widget);
+  const { handleEdit = () => { /* noop */ }, handleDelete = () => { /* noop */ }, handlePreviewSave = () => { /* noop */ } } = createWidgetHandlers(widget);
 
   console.log('[PreviewWidget] 📋 Rendering with data:', {
     tileId: previewData.tileId,
@@ -267,9 +275,9 @@ function _renderErrorWidget(widget: Widget) {
   );
 }
 
-function _renderCreationWidget(widget: Widget, createWidgetHandlers: (widget: Widget) => any) {
+function _renderCreationWidget(widget: Widget, createWidgetHandlers: (widget: Widget) => WidgetHandlers) {
   const creationData = widget.data as { coordId?: string; parentName?: string; parentCoordId?: string; parentId?: string };
-  const { handleSave, handleCancel } = createWidgetHandlers(widget);
+  const { handleSave = () => { /* noop */ }, handleCancel = () => { /* noop */ } } = createWidgetHandlers(widget);
 
   return (
     <CreationWidget

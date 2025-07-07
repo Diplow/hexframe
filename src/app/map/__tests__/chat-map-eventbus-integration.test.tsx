@@ -1,7 +1,8 @@
+import '~/test/setup'; // Import test setup FIRST
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { EventBus } from '../Services/event-bus';
 import type { AppEvent } from '../types/events';
 
@@ -34,6 +35,11 @@ describe('Chat-Map Integration via EventBus', () => {
       // Call the real implementation
       return EventBus.prototype.emit.call(eventBus, event);
     });
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
   });
 
   describe('EventBus wiring', () => {
@@ -242,6 +248,8 @@ describe('Chat-Map Integration via EventBus', () => {
 
   describe('Widget → Map operations', () => {
     it('should trigger map operations from chat widgets', async () => {
+      const user = userEvent.setup();
+      
       const TestChatDisplay = () => {
         const { messages, widgets } = useChatCacheOperations();
         
@@ -288,7 +296,7 @@ describe('Chat-Map Integration via EventBus', () => {
       // Click delete button in widget (use getAllByRole since there might be multiple)
       const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
       if (deleteButtons[0]) {
-        await userEvent.click(deleteButtons[0]);
+        await user.click(deleteButtons[0]);
       }
 
       // Should emit delete button click event
@@ -299,7 +307,7 @@ describe('Chat-Map Integration via EventBus', () => {
 
       // Confirm deletion
       const confirmButton = screen.getByRole('button', { name: /confirm.*delete/i });
-      await userEvent.click(confirmButton);
+      await user.click(confirmButton);
 
       // In a real implementation, the widget would emit the delete event
       // For now, we simulate what would happen
@@ -322,6 +330,8 @@ describe('Chat-Map Integration via EventBus', () => {
     });
 
     it('should handle widget edit operations', async () => {
+      const user = userEvent.setup();
+      
       const TestChatDisplay = () => {
         const { messages, widgets } = useChatCacheOperations();
         
@@ -367,16 +377,16 @@ describe('Chat-Map Integration via EventBus', () => {
 
       // Enter edit mode
       const editButton = screen.getByRole('button', { name: /edit/i });
-      await userEvent.click(editButton);
+      await user.click(editButton);
 
       // Modify content
       const textarea = screen.getByRole('textbox');
-      await userEvent.clear(textarea);
-      await userEvent.type(textarea, 'Updated content');
+      await user.clear(textarea);
+      await user.type(textarea, 'Updated content');
 
       // Save changes
       const saveButton = screen.getByRole('button', { name: /save/i });
-      await userEvent.click(saveButton);
+      await user.click(saveButton);
 
       // Should emit save button click event (actual widget would emit update event)
       await waitFor(() => {
@@ -388,6 +398,8 @@ describe('Chat-Map Integration via EventBus', () => {
 
   describe('Event lifecycle scenarios', () => {
     it('should handle authentication flow events', async () => {
+      const user = userEvent.setup();
+      
       const TestChatDisplay = () => {
         const { messages, widgets } = useChatCacheOperations();
         
@@ -436,7 +448,7 @@ describe('Chat-Map Integration via EventBus', () => {
 
       // Click login button
       const loginButton = screen.getByRole('button', { name: /log in/i });
-      await userEvent.click(loginButton);
+      await user.click(loginButton);
 
       // In a real implementation, clicking login would start auth
       // For now, we just simulate the auth completion

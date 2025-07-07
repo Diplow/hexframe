@@ -88,7 +88,7 @@ export function useCacheLifecycle(config: LifecycleHookConfig): void {
     } finally {
       loadingCentersRef.current.delete(centerCoordId);
     }
-  }, [config.serverService, config.dispatch]);
+  }, [config]);
 
   // Handle center changes and trigger region loads
   useEffect(() => {
@@ -110,6 +110,10 @@ export function useCacheLifecycle(config: LifecycleHookConfig): void {
   }, [
     config.state.currentCenter,
     config.state.cacheConfig.maxDepth,
+    config.state.regionMetadata,
+    config.state.itemsById,
+    config.state.isLoading,
+    config.state,
     prefetchRegion,
   ]);
 }

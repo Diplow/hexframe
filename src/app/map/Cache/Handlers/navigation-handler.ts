@@ -99,7 +99,7 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
       const newCenterDepth = CoordSystem.getDepthFromId(resolvedCoordId!);
       
       // Get the dbId of the new center if it exists
-      const newCenterItem = existingItem || currentState.itemsById[resolvedCoordId];
+      const newCenterItem = existingItem || (resolvedCoordId ? currentState.itemsById[resolvedCoordId] : undefined);
       const newCenterDbId = newCenterItem?.metadata.dbId;
       
       // Build a map of dbId -> coordId for all items
@@ -146,13 +146,16 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
       });
       
       // Update expanded items if there are changes
-      if (filteredExpandedDbIds.length !== currentState.expandedItemIds.length) {
+      if (filteredExpandedDbIds.length !== currentState.expandedItemIds.length || 
+          filteredExpandedDbIds.some((id, idx) => id !== currentState.expandedItemIds[idx])) {
         dispatch(cacheActions.setExpandedItems(filteredExpandedDbIds));
       }
       
       // 4. Update the cache center first (this changes the view immediately)
       const previousCenter = currentState.currentCenter;
-      dispatch(cacheActions.setCenter(resolvedCoordId));
+      if (resolvedCoordId) {
+        dispatch(cacheActions.setCenter(resolvedCoordId));
+      }
       
       // Note: Navigation event will be emitted after we ensure item data is loaded
       
@@ -178,13 +181,20 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
         }
         
         // Emit navigation event now that we have the item data
-        emitNavigationEvent(previousCenter, resolvedCoordId);
+        if (resolvedCoordId) {
+          emitNavigationEvent(previousCenter, resolvedCoordId);
+        }
       } else if (!existingItem) {
         // We don't have the item, try to load it for URL update
         try {
           // Load the item data in the background
-          await dataHandler.loadRegion(resolvedCoordId, 0); // Load just the center item
-          itemToNavigate = getState().itemsById[resolvedCoordId];
+          if (resolvedCoordId) {
+            await dataHandler.loadRegion(resolvedCoordId, 0); // Load just the center item
+            const loadedItem = getState().itemsById[resolvedCoordId];
+            if (loadedItem) {
+              itemToNavigate = loadedItem;
+            }
+          }
           
           if (itemToNavigate && typeof window !== 'undefined') {
             const newUrl = buildMapUrl(
@@ -205,7 +215,9 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
         }
         
         // Emit navigation event after attempting to load item data
-        emitNavigationEvent(previousCenter, resolvedCoordId!);
+        if (resolvedCoordId) {
+          emitNavigationEvent(previousCenter, resolvedCoordId);
+        }
       }
       
       // 5. Load additional region data if needed (in background)

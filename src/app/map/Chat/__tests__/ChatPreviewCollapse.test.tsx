@@ -1,3 +1,4 @@
+import '~/test/setup'; // Import test setup FIRST
 import { describe, it, expect } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import { ChatProvider } from '../ChatProvider';

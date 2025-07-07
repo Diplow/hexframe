@@ -153,8 +153,9 @@ export function loadPreFetchedData(): PreFetchedMapData | null {
     }
 
     // Remove timestamp before returning
-    const { timestamp: _timestamp, ...data } = parsedData;
+    const { timestamp, ...data } = parsedData;
     const typedData = data as unknown as PreFetchedMapData;
+    void timestamp; // Mark as intentionally unused
     console.log('[PreFetch] ✅ Loaded pre-fetched data from sessionStorage:', {
       itemCount: Object.keys(typedData.initialItems || {}).length,
       centerCoordinate: typedData.centerCoordinate,
