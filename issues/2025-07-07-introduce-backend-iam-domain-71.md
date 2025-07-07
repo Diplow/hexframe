@@ -162,3 +162,266 @@ Should follow domain pattern:
 3. **Missing Authorization**: No roles, permissions, or access control beyond ownership
 4. **Inconsistent Service Pattern**: Auth not exposed as a service like mapping domain
 5. **Limited Extensibility**: Hard to add IAM features without clear domain boundaries
+
+## Solution
+
+*I am an AI assistant acting on behalf of @Diplow*
+
+### Solution 1: Minimal IAM Domain Wrapper
+
+Create a lightweight IAM domain that wraps existing better-auth functionality while consolidating user operations.
+
+**Implementation Path**:
+1. Create `/src/lib/domains/iam/` structure with minimal entities
+2. Build IAMService that wraps better-auth and UserMappingService
+3. Consolidate user operations from scattered routers into IAM domain
+4. Create IAM tRPC router following existing patterns
+5. Migrate existing routers to use IAMService
+
+**Components Affected**:
+- `/src/server/api/routers/auth.ts` - Migrate to use IAMService
+- `/src/server/api/routers/map-user.ts` - Extract user operations to IAM
+- `/src/server/api/services/user-mapping.service.ts` - Move into IAM domain
+- `/src/server/api/trpc.ts` - Add IAM service middleware
+
+**New Components**:
+```
+/src/lib/domains/iam/
+├── _objects/
+│   └── user.ts              # User entity wrapping better-auth user
+├── _actions/
+│   └── user.actions.ts      # User operations (get, update profile)
+├── _repositories/
+│   └── user.repository.ts   # Interface for user data access
+├── services/
+│   └── iam.service.ts       # Orchestrates auth + user operations
+├── infrastructure/
+│   └── user/
+│       └── better-auth-adapter.ts  # Adapts better-auth to repository
+└── types/
+    ├── contracts.ts         # API contracts for users
+    └── errors.ts            # IAM-specific errors
+```
+
+**Pros**:
+- Minimal disruption to existing code
+- Quick to implement (1-2 days)
+- Maintains better-auth as-is
+- Easy rollback if issues
+
+**Cons**:
+- Limited domain modeling
+- No authorization features
+- Still dependent on better-auth structure
+- Wrapper pattern may feel redundant
+
+### Solution 2: Full IAM Domain with Progressive Migration
+
+Build a complete IAM domain following DDD patterns, with phased migration from current implementation.
+
+**Implementation Path**:
+1. **Phase 1**: Create full domain structure with User aggregate
+2. **Phase 2**: Build authorization entities (Role, Permission)
+3. **Phase 3**: Implement IAMService with authentication + authorization
+4. **Phase 4**: Create migration adapters for smooth transition
+5. **Phase 5**: Gradually migrate features behind feature flags
+
+**Components Affected**:
+- All current auth-related files (gradual migration)
+- Database schema additions for roles/permissions
+- tRPC context enhancement for authorization
+
+**New Components**:
+```
+/src/lib/domains/iam/
+├── _objects/
+│   ├── user.ts              # User aggregate with auth info
+│   ├── role.ts              # Role entity
+│   ├── permission.ts        # Permission value object
+│   └── access-control.ts    # Access control policies
+├── _actions/
+│   ├── authentication.actions.ts  # Login, logout, register
+│   ├── user.actions.ts           # User management
+│   ├── role.actions.ts           # Role assignment
+│   └── authorization.actions.ts   # Permission checks
+├── _repositories/
+│   ├── user.repository.ts
+│   ├── role.repository.ts
+│   └── permission.repository.ts
+├── services/
+│   ├── iam.service.ts            # Main service
+│   ├── authentication.service.ts # Auth sub-service
+│   └── authorization.service.ts  # Authz sub-service
+├── infrastructure/
+│   ├── user/
+│   │   ├── db.ts                # Drizzle implementation
+│   │   └── better-auth-bridge.ts # Bridge to better-auth
+│   ├── role/
+│   │   └── db.ts
+│   └── transaction-manager.ts
+└── types/
+    ├── constants.ts         # Permissions, default roles
+    ├── contracts.ts         # API contracts
+    └── errors.ts            # Domain errors
+```
+
+**Database Changes**:
+```sql
+-- New tables
+CREATE TABLE roles (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(50) UNIQUE NOT NULL,
+  permissions JSONB NOT NULL
+);
+
+CREATE TABLE user_roles (
+  user_id TEXT REFERENCES users(id),
+  role_id INTEGER REFERENCES roles(id),
+  PRIMARY KEY (user_id, role_id)
+);
+```
+
+**Pros**:
+- Complete domain modeling
+- Future-proof with authorization
+- Follows all DDD patterns
+- Enables complex IAM features
+- Testable and maintainable
+
+**Cons**:
+- Significant effort (1-2 weeks)
+- Complex migration strategy needed
+- Risk of breaking changes
+- May be overengineered for current needs
+
+### Solution 3: Hybrid Approach with Extensible Foundation
+
+Create a well-structured IAM domain that starts simple but is designed for extension.
+
+**Implementation Path**:
+1. Build core IAM domain structure following DDD
+2. Create User entity that wraps better-auth data
+3. Implement IAMService with current features + extension points
+4. Add repository pattern with better-auth adapter
+5. Prepare infrastructure for future authorization
+
+**Components Affected**:
+- Consolidate all user operations into IAM domain
+- Enhance tRPC with IAM service middleware
+- Refactor auth routers to use IAM service
+
+**New Components**:
+```
+/src/lib/domains/iam/
+├── README.md                # Domain documentation
+├── _objects/
+│   ├── user.ts             # User entity with extension points
+│   └── user-profile.ts     # Value object for profile data
+├── _actions/
+│   ├── authentication.actions.ts  # Current auth operations
+│   └── user.actions.ts           # User management
+├── _repositories/
+│   └── user.repository.ts  # Extensible repository interface
+├── services/
+│   ├── iam.service.ts      # Main service with plugin architecture
+│   └── __tests__/          # Comprehensive tests
+├── infrastructure/
+│   ├── user/
+│   │   ├── better-auth-repository.ts  # Current implementation
+│   │   └── db-repository.ts          # Future direct DB access
+│   └── transaction-manager.ts
+├── types/
+│   ├── contracts.ts        # User contracts
+│   ├── errors.ts           # IAM errors
+│   └── plugins.ts          # Extension interfaces
+└── utils/
+    └── user-id-converter.ts # Handle dual ID system
+```
+
+**Key Design Decisions**:
+- Repository interface supports future authorization queries
+- Service designed with plugin/extension points
+- User entity can be extended with roles/permissions
+- Infrastructure ready for additional repositories
+
+**Integration Approach**:
+```typescript
+// IAM Service Middleware
+export const iamServiceMiddleware = t.middleware(async ({ ctx, next }) => {
+  const repositories = {
+    user: new BetterAuthUserRepository(auth, db),
+  };
+  const iamService = new IAMService(repositories);
+  
+  return next({
+    ctx: {
+      ...ctx,
+      iamService,
+      // Keep mappingService for compatibility
+    },
+  });
+});
+
+// Enhanced protected procedure
+export const iamProtectedProcedure = publicProcedure
+  .use(iamServiceMiddleware)
+  .use(async ({ ctx, next }) => {
+    const user = await ctx.iamService.getCurrentUser();
+    if (!user) throw new TRPCError({ code: "UNAUTHORIZED" });
+    
+    return next({
+      ctx: {
+        ...ctx,
+        user, // Domain user entity
+      },
+    });
+  });
+```
+
+**Pros**:
+- Balanced complexity (3-4 days)
+- Follows domain patterns
+- Easy to extend later
+- Maintains compatibility
+- Clear migration path
+
+**Cons**:
+- Some upfront design work
+- Not all features immediately available
+- Still requires careful migration
+
+### Recommended Approach: Solution 3 (Hybrid)
+
+**Rationale**:
+1. **Pragmatic**: Balances immediate needs with future extensibility
+2. **Low Risk**: Can be implemented without breaking existing code
+3. **Follows Patterns**: Maintains consistency with mapping domain
+4. **Extensible**: Foundation ready for roles/permissions when needed
+5. **Testable**: Clear boundaries enable comprehensive testing
+
+**Implementation Phases**:
+
+**Phase 1 - Foundation (2 days)**:
+- Create domain structure
+- Build User entity and repository interface
+- Implement BetterAuthUserRepository adapter
+- Create basic IAMService
+
+**Phase 2 - Migration (1 day)**:
+- Add IAM service middleware
+- Migrate auth router to use IAMService
+- Consolidate user operations from map-user router
+- Update tests
+
+**Phase 3 - Enhancement (1 day)**:
+- Add comprehensive error handling
+- Implement user profile management
+- Create domain events for extensibility
+- Document the new domain
+
+**Success Metrics**:
+- All auth operations go through IAM domain
+- Consistent API surface via tRPC
+- No breaking changes to existing code
+- Foundation ready for authorization features
+- Improved testability and maintainability
