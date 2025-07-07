@@ -15,6 +15,8 @@ import { db } from "../db";
 import { MappingService } from "~/lib/domains/mapping/services/mapping.service";
 import { DbMapItemRepository } from "~/lib/domains/mapping/infrastructure/map-item/db";
 import { DbBaseItemRepository } from "~/lib/domains/mapping/infrastructure/base-item/db";
+import { IAMService } from "~/lib/domains/iam/services/iam.service";
+import { BetterAuthUserRepository } from "~/lib/domains/iam/infrastructure/user/better-auth-repository";
 import type { IncomingHttpHeaders } from "http";
 
 /**
@@ -201,6 +203,19 @@ export const mappingServiceMiddleware = t.middleware(async ({ ctx, next }) => {
     ctx: {
       ...ctx,
       mappingService,
+    },
+  });
+});
+
+export const iamServiceMiddleware = t.middleware(async ({ ctx, next }) => {
+  const repositories = {
+    user: new BetterAuthUserRepository(auth, db),
+  };
+  const iamService = new IAMService(repositories);
+  return next({
+    ctx: {
+      ...ctx,
+      iamService,
     },
   });
 });
