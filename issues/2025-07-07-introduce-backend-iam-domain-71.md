@@ -425,3 +425,191 @@ export const iamProtectedProcedure = publicProcedure
 - No breaking changes to existing code
 - Foundation ready for authorization features
 - Improved testability and maintainability
+
+### Deep Dive: Registration Flow Comparison
+
+To illustrate the hybrid approach, here's how the user registration flow would change:
+
+#### Current Registration Flow
+
+```typescript
+// 1. Frontend submits to better-auth directly
+await authClient.signUp.email({ email, password, name })
+
+// 2. Better-auth creates user
+// - Creates entry in 'users' table
+// - Creates account entry with hashed password
+// - Generates session
+
+// 3. Post-registration in tRPC
+await trpc.map.createDefaultMapForCurrentUser.mutate()
+// - Calls UserMappingService.getOrCreateMappingUserId()
+// - Creates mapping: auth.id (string) → mapping.userId (integer)
+// - Creates default map
+
+// 4. Redirect to map
+router.push(`/map?center=${mapId}`)
+```
+
+**Issues**:
+- Registration split between auth client and tRPC
+- User creation and mapping ID creation are separate operations
+- No transaction boundary between user and map creation
+- Mapping user creation happens lazily on first map operation
+
+#### New Registration Flow with IAM Domain
+
+```typescript
+// 1. Frontend calls IAM domain via tRPC
+const result = await trpc.iam.register.mutate({
+  email,
+  password,
+  name,
+  createDefaultMap: true // Optional flag
+})
+
+// 2. IAM Service orchestrates the complete flow
+class IAMService {
+  async register(input: RegisterInput): Promise<RegisterResult> {
+    // Still uses better-auth under the hood
+    const authUser = await this.repositories.user.create({
+      email: input.email,
+      password: input.password,
+      name: input.name
+    })
+    
+    // Domain User entity created immediately
+    const user = User.create({
+      id: authUser.id,
+      email: authUser.email,
+      name: authUser.name,
+      mappingId: await this.generateMappingId(), // Created atomically
+      createdAt: new Date()
+    })
+    
+    // Save complete user with mapping ID
+    await this.repositories.user.save(user)
+    
+    // Optional: Create default map in same transaction
+    if (input.createDefaultMap) {
+      const map = await this.createDefaultMapForUser(user)
+      return { user: user.toContract(), defaultMapId: map.id }
+    }
+    
+    return { user: user.toContract() }
+  }
+}
+
+// 3. Single response contains everything needed
+// { user: { id, email, name, mappingId }, defaultMapId }
+
+// 4. Redirect using domain response
+router.push(`/map?center=${result.defaultMapId}`)
+```
+
+#### Key Differences
+
+**1. API Surface**:
+- **Current**: Mixed between better-auth client API and tRPC
+- **New**: Unified through tRPC `iam.*` namespace
+
+**2. User Creation**:
+- **Current**: Auth user and mapping user created separately
+- **New**: Domain User entity includes both IDs from creation
+
+**3. Transaction Boundaries**:
+- **Current**: No transaction between user and map creation
+- **New**: Can wrap entire flow in transaction if needed
+
+**4. Error Handling**:
+- **Current**: Partial state possible (user without mapping ID)
+- **New**: Atomic operation - either all succeeds or all fails
+
+**5. Testing**:
+- **Current**: Hard to test - requires mocking better-auth client
+- **New**: Easy to test with repository mocks
+
+#### Implementation Details
+
+**User Entity** (`/src/lib/domains/iam/_objects/user.ts`):
+```typescript
+export class User {
+  private constructor(
+    private readonly props: {
+      id: string;        // Better-auth ID
+      email: string;
+      name?: string;
+      mappingId: number; // Created immediately, not lazily
+      createdAt: Date;
+      updatedAt: Date;
+    }
+  ) {}
+  
+  static create(props: CreateUserProps): User {
+    // Domain validation
+    if (!isValidEmail(props.email)) {
+      throw new InvalidEmailError(props.email);
+    }
+    return new User(props);
+  }
+  
+  // Convert to API contract
+  toContract(): UserContract {
+    return {
+      id: this.props.id,
+      email: this.props.email,
+      name: this.props.name,
+      mappingId: this.props.mappingId,
+    };
+  }
+}
+```
+
+**Repository Adapter** (`/src/lib/domains/iam/infrastructure/user/better-auth-repository.ts`):
+```typescript
+export class BetterAuthUserRepository implements UserRepository {
+  constructor(
+    private auth: BetterAuth,
+    private db: Database,
+    private userMappingService: UserMappingService
+  ) {}
+  
+  async create(input: CreateUserInput): Promise<User> {
+    // 1. Create auth user via better-auth
+    const authUser = await this.auth.api.signUpEmail({
+      body: {
+        email: input.email,
+        password: input.password,
+        name: input.name,
+      }
+    });
+    
+    // 2. Create mapping ID in same operation
+    const mappingId = await this.userMappingService
+      .getOrCreateMappingUserId(authUser.user.id);
+    
+    // 3. Return domain User with both IDs
+    return User.create({
+      id: authUser.user.id,
+      email: authUser.user.email,
+      name: authUser.user.name,
+      mappingId,
+      createdAt: new Date(),
+    });
+  }
+}
+```
+
+**Migration Strategy**:
+1. **Phase 1**: Keep existing registration working
+2. **Phase 2**: Add new IAM registration endpoint
+3. **Phase 3**: Update frontend to use new endpoint
+4. **Phase 4**: Deprecate direct better-auth usage
+
+**Benefits of New Approach**:
+- Single source of truth for user operations
+- Consistent error handling and validation
+- Atomic user creation with all required data
+- Easier to add features (e.g., welcome email, default settings)
+- Better testability with clear boundaries
+- Ready for future enhancements (roles on registration, org invites)
