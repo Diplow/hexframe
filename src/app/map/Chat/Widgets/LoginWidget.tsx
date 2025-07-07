@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { api } from '~/commons/trpc/react';
+import { authClient } from '~/lib/auth/auth-client';
 import { useChatCacheOperations } from '../Cache/hooks/useChatCacheOperations';
 import { LogIn, Mail, Key, AlertCircle, UserPlus, Loader2, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -20,60 +21,6 @@ export function LoginWidget({ message }: LoginWidgetProps) {
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
-  // Use the new IAM domain login
-  const loginMutation = api.user.login.useMutation({
-    onSuccess: async (data) => {
-      console.log('[LOGIN WIDGET] Login success callback:', {
-        hasUser: !!data?.user,
-        userId: data?.user?.id,
-        userEmail: data?.user?.email,
-        displayName: data?.user?.displayName,
-      });
-      
-      // Give the session cookie time to be set
-      setTimeout(async () => {
-        console.log('[LOGIN WIDGET] Invalidating session cache...');
-        // Invalidate session to trigger AuthContext update
-        await trpcUtils.auth.getSession.invalidate();
-        console.log('[LOGIN WIDGET] Session cache invalidated');
-      }, 100);
-      
-      // Dispatch success event
-      dispatch({
-        type: 'widget_resolved',
-        payload: {
-          widgetId: 'login-widget',
-          action: 'success'
-        },
-        id: `widget-resolved-${Date.now()}`,
-        timestamp: new Date(),
-        actor: 'system',
-      });
-      
-      // Add success message
-      dispatch({
-        type: 'message',
-        payload: {
-          content: `✅ Successfully logged in as **${data.user.displayName}**`,
-          actor: 'system',
-        },
-        id: `login-success-${Date.now()}`,
-        timestamp: new Date(),
-        actor: 'system',
-      });
-      
-      // Navigate to user's map if they have one
-      const userMapResult = await trpcUtils.map.user.getUserMap.fetch();
-      if (userMapResult?.success && userMapResult.map?.id) {
-        router.push(`/map?center=${userMapResult.map.id}`);
-      }
-    },
-    onError: (error) => {
-      console.error('Login error:', error);
-      setError(error.message || "Failed to login.");
-    }
-  });
   
   // Use the new IAM domain registration
   const registerMutation = api.user.register.useMutation({
@@ -128,17 +75,67 @@ export function LoginWidget({ message }: LoginWidgetProps) {
 
     try {
       if (mode === 'login') {
-        // Login mode - use the new IAM domain endpoint
-        console.log('[LOGIN WIDGET] Calling login mutation...');
-        const result = await loginMutation.mutateAsync({
+        // Login mode - use better-auth client directly for proper cookie handling
+        console.log('[LOGIN WIDGET] Calling better-auth signIn...');
+        
+        const result = await authClient.signIn.email({
           email,
           password,
         });
-        console.log('[LOGIN WIDGET] Login mutation completed:', {
-          hasUser: !!result?.user,
-          userId: result?.user?.id,
-          userEmail: result?.user?.email,
+        
+        console.log('[LOGIN WIDGET] Better-auth signIn completed:', {
+          hasUser: !!result?.data?.user,
+          userId: result?.data?.user?.id,
+          userEmail: result?.data?.user?.email,
+          hasError: !!result?.error,
+          error: result?.error,
         });
+        
+        if (result?.error) {
+          throw new Error(result.error.message || 'Login failed');
+        }
+        
+        // Trigger the success flow manually since we're not using the mutation
+        if (result?.data?.user) {
+          // Give the session cookie time to be set
+          setTimeout(async () => {
+            console.log('[LOGIN WIDGET] Invalidating session cache...');
+            await trpcUtils.auth.getSession.invalidate();
+            console.log('[LOGIN WIDGET] Session cache invalidated');
+          }, 100);
+          
+          // Dispatch success event
+          dispatch({
+            type: 'widget_resolved',
+            payload: {
+              widgetId: 'login-widget',
+              action: 'success'
+            },
+            id: `widget-resolved-${Date.now()}`,
+            timestamp: new Date(),
+            actor: 'system',
+          });
+          
+          // Add success message
+          dispatch({
+            type: 'message',
+            payload: {
+              content: `✅ Successfully logged in as **${result.data.user.name || result.data.user.email}**`,
+              actor: 'system',
+            },
+            id: `login-success-${Date.now()}`,
+            timestamp: new Date(),
+            actor: 'system',
+          });
+          
+          // Navigate to user's map if they have one
+          setTimeout(async () => {
+            const userMapResult = await trpcUtils.map.user.getUserMap.fetch();
+            if (userMapResult?.success && userMapResult.map?.id) {
+              router.push(`/map?center=${userMapResult.map.id}`);
+            }
+          }, 200);
+        }
       } else {
         // Register mode - use the new IAM domain endpoint
         await registerMutation.mutateAsync({
@@ -178,7 +175,7 @@ export function LoginWidget({ message }: LoginWidgetProps) {
         <button
           onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
           className="absolute top-4 right-4 text-sm text-secondary underline hover:text-secondary/80 transition-colors focus:outline-none rounded"
-          disabled={isLoading || registerMutation.isPending || loginMutation.isPending}
+          disabled={isLoading || registerMutation.isPending}
           type="button"
         >
           {mode === 'login' ? 'Register' : 'Log in'}
@@ -223,7 +220,7 @@ export function LoginWidget({ message }: LoginWidgetProps) {
                            bg-white dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   placeholder="johndoe"
                   required
-                  disabled={isLoading || registerMutation.isPending || loginMutation.isPending}
+                  disabled={isLoading || registerMutation.isPending}
                 />
               </div>
             </div>
@@ -243,7 +240,7 @@ export function LoginWidget({ message }: LoginWidgetProps) {
                          bg-white dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-secondary-500"
                 placeholder="you@example.com"
                 required
-                disabled={isLoading || registerMutation.isPending || loginMutation.isPending}
+                disabled={isLoading || registerMutation.isPending}
               />
             </div>
           </div>
@@ -262,7 +259,7 @@ export function LoginWidget({ message }: LoginWidgetProps) {
                          bg-white dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-secondary-500"
                 placeholder="••••••••"
                 required
-                disabled={isLoading || registerMutation.isPending || loginMutation.isPending}
+                disabled={isLoading || registerMutation.isPending}
               />
             </div>
           </div>
@@ -277,14 +274,14 @@ export function LoginWidget({ message }: LoginWidgetProps) {
           <div className="flex gap-2 pt-2">
             <button
               type="submit"
-              disabled={isLoading || registerMutation.isPending || loginMutation.isPending}
+              disabled={isLoading || registerMutation.isPending}
               className="flex-1 py-2 px-4 text-sm font-medium text-white bg-primary rounded-md 
                        hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary 
                        disabled:opacity-50 disabled:cursor-not-allowed transition-colors
                        flex items-center justify-center gap-2"
             >
-              {(isLoading || registerMutation.isPending || loginMutation.isPending) && <Loader2 className="h-4 w-4 animate-spin" />}
-              {(isLoading || registerMutation.isPending || loginMutation.isPending)
+              {(isLoading || registerMutation.isPending) && <Loader2 className="h-4 w-4 animate-spin" />}
+              {(isLoading || registerMutation.isPending)
                 ? (mode === 'login' ? 'Logging in...' : 'Creating account...') 
                 : (mode === 'login' ? 'Log in' : 'Register')
               }
@@ -292,7 +289,7 @@ export function LoginWidget({ message }: LoginWidgetProps) {
             <button
               type="button"
               onClick={handleCancel}
-              disabled={isLoading || registerMutation.isPending || loginMutation.isPending}
+              disabled={isLoading || registerMutation.isPending}
               className="flex-1 py-2 px-4 text-sm font-medium text-secondary-700 dark:text-secondary-300 
                        bg-white dark:bg-neutral-800 border border-secondary-300 dark:border-secondary-700 
                        rounded-md hover:bg-secondary-50 dark:hover:bg-neutral-700 
