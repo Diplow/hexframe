@@ -1,5 +1,23 @@
 import { createAuthClient } from "better-auth/client";
 
+// Add logging to better understand auth state
+const originalGet = (client: any) => {
+  const get = client.useSession.get.bind(client.useSession);
+  return () => {
+    const result = get();
+    console.log("[AUTH CLIENT] useSession.get() called:", {
+      hasData: !!result.data,
+      hasUser: !!result.data?.user,
+      isPending: result.isPending,
+      hasError: !!result.error,
+      error: result.error,
+      userId: result.data?.user?.id,
+      userEmail: result.data?.user?.email,
+    });
+    return result;
+  };
+};
+
 export const authClient = createAuthClient({
   /**
    * The base URL of the auth server.
@@ -16,6 +34,9 @@ export const authClient = createAuthClient({
   // For example, if your backend is hosted on a different URL:
   // serverUrl: process.env.NEXT_PUBLIC_AUTH_SERVER_URL,
 });
+
+// Add logging wrapper after client creation
+(authClient as any).useSession.get = originalGet(authClient);
 
 // Note: We use `process.env.NEXT_PUBLIC_BETTER_AUTH_URL` for the client-side baseURL.
 // You'll need to ensure this environment variable is available to the client

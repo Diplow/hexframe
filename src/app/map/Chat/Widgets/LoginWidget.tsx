@@ -24,10 +24,19 @@ export function LoginWidget({ message }: LoginWidgetProps) {
   // Use the new IAM domain login
   const loginMutation = api.user.login.useMutation({
     onSuccess: async (data) => {
+      console.log('[LOGIN WIDGET] Login success callback:', {
+        hasUser: !!data?.user,
+        userId: data?.user?.id,
+        userEmail: data?.user?.email,
+        displayName: data?.user?.displayName,
+      });
+      
       // Give the session cookie time to be set
       setTimeout(async () => {
+        console.log('[LOGIN WIDGET] Invalidating session cache...');
         // Invalidate session to trigger AuthContext update
         await trpcUtils.auth.getSession.invalidate();
+        console.log('[LOGIN WIDGET] Session cache invalidated');
       }, 100);
       
       // Dispatch success event
@@ -114,13 +123,21 @@ export function LoginWidget({ message }: LoginWidgetProps) {
     e.preventDefault();
     setError('');
     setIsLoading(true);
+    
+    console.log(`[LOGIN WIDGET] Starting ${mode}:`, { email });
 
     try {
       if (mode === 'login') {
         // Login mode - use the new IAM domain endpoint
-        await loginMutation.mutateAsync({
+        console.log('[LOGIN WIDGET] Calling login mutation...');
+        const result = await loginMutation.mutateAsync({
           email,
           password,
+        });
+        console.log('[LOGIN WIDGET] Login mutation completed:', {
+          hasUser: !!result?.user,
+          userId: result?.user?.id,
+          userEmail: result?.user?.email,
         });
       } else {
         // Register mode - use the new IAM domain endpoint

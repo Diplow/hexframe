@@ -140,13 +140,28 @@ export const userRouter = createTRPCRouter({
         if (response instanceof Response) {
           // Handle the response and forward cookies
           const setCookieHeaders = response.headers.getSetCookie();
+          console.log("[LOGIN] Response headers:", {
+            setCookieHeaders,
+            setCookieCount: setCookieHeaders?.length,
+            hasCtxRes: !!ctx.res,
+          });
           if (setCookieHeaders && setCookieHeaders.length > 0 && ctx.res) {
             ctx.res.setHeader('Set-Cookie', setCookieHeaders);
+            console.log("[LOGIN] Set-Cookie headers forwarded successfully");
           }
           data = await response.json();
         } else {
           data = response;
+          console.log("[LOGIN] Response is not a Response object:", typeof response);
         }
+
+        console.log("[LOGIN] Response data:", {
+          hasUser: !!data.user,
+          userId: data.user?.id,
+          userEmail: data.user?.email,
+          hasSession: !!data.session,
+          sessionId: data.session?.id,
+        });
 
         if (!data.user) {
           throw new TRPCError({

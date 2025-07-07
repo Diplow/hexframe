@@ -48,8 +48,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Define the callback to update React state when the Atom changes
     const handleAuthChange = (newState: SessionState) => {
+      console.log("Auth state change detected:", {
+        hasData: !!newState.data,
+        hasUser: !!newState.data?.user,
+        isPending: newState.isPending,
+        hasError: !!newState.error,
+        error: newState.error,
+        userId: newState.data?.user?.id,
+        userEmail: newState.data?.user?.email,
+      });
       setAuthState(newState);
-      // console.log("Auth state updated via subscribe:", newState);
     };
 
     // Subscribe to the Atom
@@ -68,7 +76,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Log errors if any during session fetching
   if (authState.error) {
-    console.error("Error fetching session for AuthProvider:", authState.error);
+    console.error("Error fetching session for AuthProvider:", {
+      error: authState.error,
+      errorMessage: authState.error?.message,
+      errorString: String(authState.error),
+      fullAuthState: authState,
+    });
   }
 
   // The user object is typically at authState.data.user

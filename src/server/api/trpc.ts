@@ -70,6 +70,16 @@ export const createContext = async (opts: CreateNextContextOptions) => {
     headers: sessionAPIAcceptableHeaders,
     // `request` property removed as it's not accepted by getSession according to linter
   });
+  
+  console.log("[TRPC CONTEXT] Session data from better-auth:", {
+    hasSessionData: !!sessionData,
+    hasSession: !!sessionData?.session,
+    hasUser: !!sessionData?.user,
+    userId: sessionData?.user?.id,
+    userEmail: sessionData?.user?.email,
+    sessionId: sessionData?.session?.id,
+    cookieHeader: sessionAPIAcceptableHeaders.get('cookie'),
+  });
 
   return {
     req,
