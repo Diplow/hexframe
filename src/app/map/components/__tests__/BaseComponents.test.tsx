@@ -11,6 +11,7 @@ describe("Base Components", () => {
         metadata: {
           dbId: "test-id",
           coordId: "0:0:0",
+          parentId: undefined,
           coordinates: { userId: 0, groupId: 0, path: [] },
           depth: 0,
           ownerId: "user1",
@@ -44,6 +45,7 @@ describe("Base Components", () => {
         metadata: {
           dbId: "test-id",
           coordId: "0:0:0",
+          parentId: undefined,
           coordinates: { userId: 0, groupId: 0, path: [] },
           depth: 0,
           ownerId: "user1",
@@ -105,6 +107,7 @@ describe("Base Components", () => {
           metadata: {
             dbId: "center-id",
             coordId: "0:0:0",
+            parentId: undefined,
             coordinates: { userId: 0, groupId: 0, path: [] },
             depth: 0,
             ownerId: "user1",

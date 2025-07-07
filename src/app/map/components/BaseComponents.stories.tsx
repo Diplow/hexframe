@@ -3,11 +3,13 @@ import { BaseItemTile } from './BaseItemTile';
 import { BaseEmptyTile } from './BaseEmptyTile';
 import { BaseFrame } from './BaseFrame';
 import type { TileData } from '~/app/map/types/tile-data';
+import { Direction } from '~/lib/domains/mapping/utils/hex-coordinates';
 
 const mockItem: TileData = {
   metadata: {
     dbId: "story-item-1",
     coordId: "0:0:0",
+    parentId: undefined,
     coordinates: { userId: 0, groupId: 0, path: [] },
     depth: 0,
     ownerId: "user1",
@@ -39,7 +41,8 @@ const mockMapItems: Record<string, TileData> = {
       ...mockItem.metadata,
       dbId: "nw-tile",
       coordId: "0:0:0:NW",
-      coordinates: { userId: 0, groupId: 0, path: ["NW"] },
+      parentId: "story-item-1",
+      coordinates: { userId: 0, groupId: 0, path: [Direction.NorthWest] },
       depth: 1,
     },
     data: { ...mockItem.data, name: "Northwest", color: "amber-400" }
@@ -50,7 +53,8 @@ const mockMapItems: Record<string, TileData> = {
       ...mockItem.metadata,
       dbId: "ne-tile",
       coordId: "0:0:0:NE",
-      coordinates: { userId: 0, groupId: 0, path: ["NE"] },
+      parentId: "story-item-1",
+      coordinates: { userId: 0, groupId: 0, path: [Direction.NorthEast] },
       depth: 1,
     },
     data: { ...mockItem.data, name: "Northeast", color: "green-400" }
@@ -107,9 +111,10 @@ export const FrameNonInteractive: StoryObj<typeof BaseFrame> = {
         expandedItemIds={["story-item-1"]}
         scale={3}
         urlInfo={{
+          pathname: "/map",
+          searchParamsString: "",
           rootItemId: "story-item-1",
-          rootCoordId: "0:0:0",
-          expandedItems: ["story-item-1"],
+          expandedItems: "story-item-1",
         }}
         interactive={false}
       />
@@ -126,9 +131,10 @@ export const FrameCollapsed: StoryObj<typeof BaseFrame> = {
         expandedItemIds={[]}
         scale={3}
         urlInfo={{
+          pathname: "/map",
+          searchParamsString: "",
           rootItemId: "story-item-1",
-          rootCoordId: "0:0:0",
-          expandedItems: [],
+          expandedItems: "",
         }}
         interactive={false}
       />
