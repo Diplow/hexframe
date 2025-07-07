@@ -4,7 +4,7 @@ import { users } from "~/server/db/schema";
 import type * as schema from "~/server/db/schema";
 import { UserMappingService } from "~/server/api/services/user-mapping.service";
 import { User } from "../../_objects/user";
-import type { Auth } from "better-auth";
+import type { auth as authInstance } from "~/server/auth";
 import type {
   UserRepository,
   CreateUserInput,
@@ -20,7 +20,7 @@ import type {
  */
 export class BetterAuthUserRepository implements UserRepository {
   constructor(
-    private readonly auth: Auth,
+    private readonly auth: typeof authInstance,
     private readonly db: PostgresJsDatabase<typeof schema>
   ) {}
 
@@ -31,7 +31,7 @@ export class BetterAuthUserRepository implements UserRepository {
         body: {
           email: input.email,
           password: input.password,
-          name: input.name || "",
+          name: input.name ?? "",
         },
       });
 
@@ -48,9 +48,9 @@ export class BetterAuthUserRepository implements UserRepository {
       return User.create({
         id: response.user.id,
         email: response.user.email,
-        name: response.user.name || undefined,
+        name: response.user.name ?? undefined,
         emailVerified: response.user.emailVerified ?? false,
-        image: response.user.image || undefined,
+        image: response.user.image ?? undefined,
         mappingId,
         createdAt: new Date(response.user.createdAt),
         updatedAt: new Date(response.user.updatedAt),
@@ -141,9 +141,9 @@ export class BetterAuthUserRepository implements UserRepository {
       const user = User.create({
         id: response.user.id,
         email: response.user.email,
-        name: response.user.name || undefined,
+        name: response.user.name ?? undefined,
         emailVerified: response.user.emailVerified ?? false,
-        image: response.user.image || undefined,
+        image: response.user.image ?? undefined,
         mappingId,
         createdAt: new Date(response.user.createdAt),
         updatedAt: new Date(response.user.updatedAt),
@@ -220,9 +220,9 @@ export class BetterAuthUserRepository implements UserRepository {
     return User.create({
       id: dbUser.id,
       email: dbUser.email,
-      name: dbUser.name || undefined,
+      name: dbUser.name ?? undefined,
       emailVerified: dbUser.emailVerified ?? false,
-      image: dbUser.image || undefined,
+      image: dbUser.image ?? undefined,
       mappingId,
       createdAt: dbUser.createdAt,
       updatedAt: dbUser.updatedAt,

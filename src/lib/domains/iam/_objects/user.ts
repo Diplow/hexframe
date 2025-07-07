@@ -71,7 +71,7 @@ export class User {
   }
 
   get displayName(): string {
-    return this.props.name || this.props.email.split("@")[0] || this.props.email;
+    return this.props.name ?? this.props.email.split("@")[0] ?? this.props.email;
   }
 
   get emailVerified(): boolean {
@@ -98,8 +98,8 @@ export class User {
   updateProfile(updates: { name?: string; image?: string }): User {
     const updatedProps = {
       ...this.props,
-      name: updates.name?.trim() || this.props.name,
-      image: updates.image || this.props.image,
+      name: updates.name?.trim() ?? this.props.name,
+      image: updates.image ?? this.props.image,
       updatedAt: new Date(),
     };
 
