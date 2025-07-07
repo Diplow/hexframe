@@ -11,6 +11,8 @@ import {
   HIERARCHY_TILE_SCALE,
 } from "../../constants";
 import { getTextColorForDepth } from "~/app/map/types/theme-colors";
+import { useAuth } from "~/contexts/AuthContext";
+import { api } from "~/commons/trpc/react";
 import { Logo } from "~/components/ui/logo";
 
 interface ParentHierarchyProps {
@@ -28,9 +30,6 @@ interface DynamicHierarchyTileProps {
 
 const DynamicHierarchyTile = ({
   item,
-  _hierarchy,
-  _itemIndex,
-  _urlInfo,
 }: DynamicHierarchyTileProps) => {
   const { navigateToItem } = useMapCache();
 
@@ -81,6 +80,63 @@ const HierarchyTileContent = ({ item }: { item: TileData }) => {
   );
 };
 
+const UserProfileTile = () => {
+  const { user } = useAuth();
+  const { navigateToItem } = useMapCache();
+  const trpcUtils = api.useUtils();
+  
+  const handleUserMapNavigation = async () => {
+    // Only navigate if user is logged in
+    if (!user) return;
+    
+    try {
+      // Fetch user map data when clicking on the profile tile
+      console.log('[UserProfileTile] Fetching user map data...');
+      const userMapData = await trpcUtils.map.user.getUserMap.fetch();
+      
+      if (userMapData?.success && userMapData.map?.id) {
+        console.log('[UserProfileTile] Navigating to user map:', userMapData.map.id);
+        // Navigate using the database ID
+        await navigateToItem(String(userMapData.map.id));
+      } else {
+        console.error('[UserProfileTile] No user map found');
+      }
+    } catch (error) {
+      console.error('[UserProfileTile] Failed to fetch/navigate to user map:', error);
+    }
+  };
+  
+  // Determine display name
+  const displayName = user ? (user.name ?? user.email.split('@')[0]) : 'Guest';
+  
+  return (
+    <button
+      onClick={handleUserMapNavigation}
+      disabled={!user}
+      aria-label={user ? `Navigate to ${displayName}'s map` : 'Guest user'}
+      className={`group relative flex-shrink-0 rounded-lg border-none bg-transparent transition-transform duration-200 ${
+        user ? 'cursor-pointer hover:scale-105 focus:scale-105' : 'cursor-default'
+      }`}
+    >
+      <div className="relative flex items-center justify-center">
+        <Logo className="w-[97px] h-[112px] flex-shrink-0 scale-110" />
+        <span
+          className="absolute text-center text-xs font-semibold text-white"
+          style={{
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+          }}
+          title={displayName}
+        >
+          {displayName}
+        </span>
+      </div>
+    </button>
+  );
+};
+
 export const ParentHierarchy = ({
   centerCoordId,
   items,
@@ -97,10 +153,8 @@ export const ParentHierarchy = ({
   const hierarchy = _getParentHierarchy(effectiveCenter, effectiveItems);
 
   return (
-    <div className="h-full flex-shrink-0 flex flex-col items-center gap-2 bg-center-depth-0 px-3 py-4 border-l border-[color:var(--stroke-color-950)] overflow-y-auto">
-        <div className="transition-transform duration-200 hover:scale-105 focus:scale-105">
-          <Logo className="w-[104px] h-[120px] flex-shrink-0" />
-        </div>
+    <div className="h-full flex-shrink-0 flex flex-col items-center gap-2 bg-transparent p-4 overflow-y-auto">
+        <UserProfileTile />
         {hierarchy.length > 0 && (
           <ChevronDown size={16} className="flex-shrink-0 text-neutral-400" />
         )}

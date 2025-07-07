@@ -1,52 +1,57 @@
+import '~/test/setup'; // Import test setup FIRST
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ChatPanel } from '../ChatPanel';
+import { EventBus } from '../../Services/event-bus';
 
-// Mock the useChat hook for isolated testing
-vi.mock('../ChatProvider', async () => {
-  const actual = await vi.importActual('../ChatProvider');
+// Mock the useChatCache hook for isolated testing
+vi.mock('../Cache/ChatCacheProvider', async () => {
+  const actual = await vi.importActual('../Cache/ChatCacheProvider');
   return {
     ...actual,
-    useChat: vi.fn(),
+    useChatCache: vi.fn(),
   };
 });
 
-import { useChat } from '../ChatProvider';
+import { useChatCache } from '../Cache/ChatCacheProvider';
 
-const mockUseChat = vi.mocked(useChat);
+const mockUseChatCache = vi.mocked(useChatCache);
 
 
 describe('ChatPanel', () => {
   const mockDispatch = vi.fn();
+  const mockEventBus = new EventBus();
 
   beforeEach(() => {
     mockDispatch.mockClear();
   });
 
-  it('should render chat header with close button', () => {
-    mockUseChat.mockReturnValue({
+  it('should render chat header', () => {
+    mockUseChatCache.mockReturnValue({
       state: {
-        messages: [],
-        selectedTileId: null,
-        isPanelOpen: true,
+        events: [],
+        visibleMessages: [],
+        activeWidgets: [],
       },
       dispatch: mockDispatch,
+      eventBus: mockEventBus,
     });
 
     render(<ChatPanel />);
 
-    expect(screen.getByRole('button', { name: /close/i })).toBeInTheDocument();
+    expect(screen.getByText('Chat')).toBeInTheDocument();
   });
 
   it('should display welcome message when no messages', () => {
-    mockUseChat.mockReturnValue({
+    mockUseChatCache.mockReturnValue({
       state: {
-        messages: [],
-        selectedTileId: null,
-        isPanelOpen: true,
+        events: [],
+        visibleMessages: [],
+        activeWidgets: [],
       },
       dispatch: mockDispatch,
+      eventBus: mockEventBus,
     });
 
     render(<ChatPanel />);
@@ -58,25 +63,26 @@ describe('ChatPanel', () => {
     const messages = [
       {
         id: '1',
-        type: 'system' as const,
         content: 'First message',
-        metadata: { timestamp: new Date() },
+        actor: 'system' as const,
+        timestamp: new Date(),
       },
       {
         id: '2',
-        type: 'system' as const,
         content: 'Second message',
-        metadata: { timestamp: new Date() },
+        actor: 'system' as const,
+        timestamp: new Date(),
       },
     ];
 
-    mockUseChat.mockReturnValue({
+    mockUseChatCache.mockReturnValue({
       state: {
-        messages,
-        selectedTileId: null,
-        isPanelOpen: true,
+        events: [],
+        visibleMessages: messages,
+        activeWidgets: [],
       },
       dispatch: mockDispatch,
+      eventBus: mockEventBus,
     });
 
     render(<ChatPanel />);
@@ -88,13 +94,14 @@ describe('ChatPanel', () => {
   });
 
   it('should apply correct layout classes for desktop', () => {
-    mockUseChat.mockReturnValue({
+    mockUseChatCache.mockReturnValue({
       state: {
-        messages: [],
-        selectedTileId: null,
-        isPanelOpen: true,
+        events: [],
+        visibleMessages: [],
+        activeWidgets: [],
       },
       dispatch: mockDispatch,
+      eventBus: mockEventBus,
     });
 
     render(<ChatPanel className="test-class" />);
@@ -105,13 +112,14 @@ describe('ChatPanel', () => {
   });
 
   it('should handle overflow with scrollable message area', () => {
-    mockUseChat.mockReturnValue({
+    mockUseChatCache.mockReturnValue({
       state: {
-        messages: [],
-        selectedTileId: null,
-        isPanelOpen: true,
+        events: [],
+        visibleMessages: [],
+        activeWidgets: [],
       },
       dispatch: mockDispatch,
+      eventBus: mockEventBus,
     });
 
     render(<ChatPanel />);
@@ -120,14 +128,15 @@ describe('ChatPanel', () => {
     expect(messagesArea).toHaveClass('flex-1', 'overflow-y-auto');
   });
 
-  it('should pass close action to header', async () => {
-    mockUseChat.mockReturnValue({
+  it.skip('should pass close action to header (chat is always open)', async () => {
+    mockUseChatCache.mockReturnValue({
       state: {
-        messages: [],
-        selectedTileId: null,
-        isPanelOpen: true,
+        events: [],
+        visibleMessages: [],
+        activeWidgets: [],
       },
       dispatch: mockDispatch,
+      eventBus: mockEventBus,
     });
 
     render(<ChatPanel />);

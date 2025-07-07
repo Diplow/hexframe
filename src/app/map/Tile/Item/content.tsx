@@ -22,23 +22,21 @@ const getTextClasses = (depth = 0) => `break-words ${getTextColorForDepth(depth)
 export const DynamicTileContent = ({ 
   data, 
   scale, 
-  tileId, 
-  isHovered = false, 
+  tileId: _tileId, 
+  isHovered: _isHovered = false, 
   depth = 0,
   isSelected = false 
 }: DynamicTileContentProps) => {
   if (!data) return null;
   
   const textClasses = getTextClasses(depth);
-  const title = data.title || 'Untitled';
+  const title = data.title ?? 'Untitled';
   
   // Scale-based styling
   const baseFontSize = scale === 1 ? "text-xs" : scale === 2 ? "text-md" : "text-lg";
   const fontWeight = scale === 1 ? "font-medium" : scale === 2 ? "font-medium" : "font-semibold";
   
-  // Truncate title based on scale
-  const maxLength = scale === 1 ? 25 : scale === 2 ? 60 : 100;
-  const truncatedTitle = title.length > maxLength ? `${title.substring(0, maxLength)}...` : title;
+  // Remove truncation logic as we now support multi-line titles
   
   const testId = "tile-content";
   
@@ -51,12 +49,12 @@ export const DynamicTileContent = ({
       )}
     >
       <h3 className={cn(
-        "text-center truncate",
+        "text-center break-words",
         baseFontSize,
         fontWeight,
         textClasses
       )}>
-        {truncatedTitle}
+        {title}
       </h3>
     </div>
   );

@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import '~/test/setup' // Import test setup FIRST
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act, render } from '@testing-library/react'
 import { TileActionsProvider, useTileActions } from './TileActionsContext'
 import type { ReactNode } from 'react'
@@ -9,50 +10,43 @@ describe('TileActionsContext', () => {
   beforeEach(() => {
     // Clear localStorage before each test
     window.localStorage.clear()
+    // Setup fake timers for tests that need them
+    vi.useFakeTimers()
   })
-  describe('Tool State Management', () => {
-    it('provides tool state with default value', () => {
+
+  afterEach(() => {
+    // Restore real timers
+    vi.useRealTimers()
+  })
+
+  describe('Context Provider', () => {
+    it('provides context with required handlers', () => {
       const wrapper = ({ children }: { children: ReactNode }) => (
         <TileActionsProvider>{children}</TileActionsProvider>
       )
 
       const { result } = renderHook(() => useTileActions(), { wrapper })
 
-      expect(result.current.activeTool).toBe('expand')
-      expect(typeof result.current.setActiveTool).toBe('function')
+      expect(typeof result.current.onTileClick).toBe('function')
+      expect(typeof result.current.onTileDoubleClick).toBe('function')
+      expect(typeof result.current.onTileRightClick).toBe('function')
+      expect(typeof result.current.onTileHover).toBe('function')
+      expect(typeof result.current.onTileDragStart).toBe('function')
+      expect(typeof result.current.onTileDrop).toBe('function')
+      expect(result.current.isDragging).toBe(false)
     })
 
-    it('updates tool state when setActiveTool is called', () => {
-      const wrapper = ({ children }: { children: ReactNode }) => (
-        <TileActionsProvider>{children}</TileActionsProvider>
-      )
-
-      const { result } = renderHook(() => useTileActions(), { wrapper })
-
-      act(() => {
-        result.current.setActiveTool('create')
-      })
-
-      expect(result.current.activeTool).toBe('create')
-
-      act(() => {
-        result.current.setActiveTool('edit')
-      })
-
-      expect(result.current.activeTool).toBe('edit')
-    })
-
-    it('propagates tool state updates to multiple consumers', () => {
+    it('propagates context updates to multiple consumers', () => {
       const results: ReturnType<typeof useTileActions>[] = []
 
       const Consumer1 = () => {
         results[0] = useTileActions()
-        return <div>Consumer1: {results[0]?.activeTool}</div>
+        return <div>Consumer1: {results[0]?.isDragging ? 'dragging' : 'not dragging'}</div>
       }
 
       const Consumer2 = () => {
         results[1] = useTileActions()
-        return <div>Consumer2: {results[1]?.activeTool}</div>
+        return <div>Consumer2: {results[1]?.isDragging ? 'dragging' : 'not dragging'}</div>
       }
 
       const TestComponent = () => (
@@ -65,25 +59,27 @@ describe('TileActionsContext', () => {
       render(<TestComponent />)
 
       // Both should have same initial state
-      expect(results[0]?.activeTool).toBe('expand')
-      expect(results[1]?.activeTool).toBe('expand')
+      expect(results[0]?.isDragging).toBe(false)
+      expect(results[1]?.isDragging).toBe(false)
 
-      // Update from consumer1
+      // Start dragging
+      const tileData = createMockTileData()
       act(() => {
-        results[0]?.setActiveTool('delete')
+        results[0]?.onTileDragStart(tileData)
       })
 
       // Both should reflect the update
-      expect(results[0]?.activeTool).toBe('delete')
-      expect(results[1]?.activeTool).toBe('delete')
+      expect(results[0]?.isDragging).toBe(true)
+      expect(results[1]?.isDragging).toBe(true)
     })
   })
 
-  describe('Tool-specific Click Handlers', () => {
-    it('calls appropriate handler based on active tool', () => {
+  describe('Click Handlers', () => {
+    it('calls appropriate handler based on click type', () => {
       const mockHandlers = {
         onSelectClick: vi.fn(),
         onNavigateClick: vi.fn(),
+        onExpandClick: vi.fn(),
         onCreateClick: vi.fn(),
         onEditClick: vi.fn(),
         onDeleteClick: vi.fn(),
@@ -96,51 +92,50 @@ describe('TileActionsContext', () => {
       const { result } = renderHook(() => useTileActions(), { wrapper })
 
       const tileData = createMockTileData()
+      const preventDefault = vi.fn()
+      const mockEvent = { 
+        clientX: 100, 
+        clientY: 200,
+        ctrlKey: false,
+        metaKey: false,
+        preventDefault
+      } as unknown as React.MouseEvent
 
-      // Test select tool
+      // Test regular click for select (after timeout)
       act(() => {
-        result.current.setActiveTool('select')
+        result.current.onTileClick(tileData, mockEvent)
       })
+      
+      // Wait for timeout
       act(() => {
-        result.current.onTileClick(tileData)
+        vi.runAllTimers()
       })
+      
       expect(mockHandlers.onSelectClick).toHaveBeenCalledWith(tileData)
 
-      // Test navigate tool
+      // Test Ctrl+click for navigate
+      const ctrlClickEvent = { ...mockEvent, ctrlKey: true }
       act(() => {
-        result.current.setActiveTool('navigate')
+        result.current.onTileClick(tileData, ctrlClickEvent)
       })
+      
       act(() => {
-        result.current.onTileClick(tileData)
+        vi.runAllTimers()
       })
+      
       expect(mockHandlers.onNavigateClick).toHaveBeenCalledWith(tileData)
 
-      // Test create tool
+      // Test double-click for expand
       act(() => {
-        result.current.setActiveTool('create')
+        result.current.onTileDoubleClick(tileData)
       })
-      act(() => {
-        result.current.onTileClick(tileData)
-      })
-      expect(mockHandlers.onCreateClick).toHaveBeenCalledWith(tileData)
+      expect(mockHandlers.onExpandClick).toHaveBeenCalledWith(tileData)
 
-      // Test edit tool
+      // Test right-click opens context menu
       act(() => {
-        result.current.setActiveTool('edit')
+        result.current.onTileRightClick(tileData, mockEvent)
       })
-      act(() => {
-        result.current.onTileClick(tileData)
-      })
-      expect(mockHandlers.onEditClick).toHaveBeenCalledWith(tileData)
-
-      // Test delete tool
-      act(() => {
-        result.current.setActiveTool('delete')
-      })
-      act(() => {
-        result.current.onTileClick(tileData)
-      })
-      expect(mockHandlers.onDeleteClick).toHaveBeenCalledWith(tileData)
+      expect(preventDefault).toHaveBeenCalled()
     })
   })
 
@@ -153,9 +148,9 @@ describe('TileActionsContext', () => {
       const { result } = renderHook(() => useTileActions(), { wrapper })
 
       // Verify all properties are included in context value
-      expect(result.current).toHaveProperty('activeTool')
-      expect(result.current).toHaveProperty('setActiveTool')
       expect(result.current).toHaveProperty('onTileClick')
+      expect(result.current).toHaveProperty('onTileDoubleClick')
+      expect(result.current).toHaveProperty('onTileRightClick')
       expect(result.current).toHaveProperty('onTileHover')
       expect(result.current).toHaveProperty('onTileDragStart')
       expect(result.current).toHaveProperty('onTileDrop')

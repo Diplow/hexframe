@@ -48,6 +48,7 @@ export function MapCacheProvider({
   storageConfig = {},
   offlineMode = false,
   testingOverrides = {},
+  eventBus,
 }: MapCacheProviderProps) {
   const isOffline = offlineMode || (typeof window !== "undefined" && !navigator.onLine);
   
@@ -139,6 +140,7 @@ export function MapCacheProvider({
     dataOperations,
     storageService,
     mapContext,
+    eventBus,
   });
 
   // Create getState function for handlers
@@ -151,6 +153,7 @@ export function MapCacheProvider({
     getState,
     dataOperations,
     wrappedServerService,
+    eventBus,
   );
 
   const syncOperations = useSyncEngine(dispatch, state, dataOperations, {
@@ -194,7 +197,7 @@ export function MapCacheProvider({
 
   return (
     <MapCacheContext.Provider value={contextValue}>
-      <div data-map-cache-provider="true">
+      <div data-map-cache-provider="true" className="w-full h-full">
         {children}
       </div>
     </MapCacheContext.Provider>

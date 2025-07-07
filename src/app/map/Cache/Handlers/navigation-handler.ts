@@ -5,12 +5,14 @@ import type { DataOperations, NavigationOperations } from "./types";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import type { ServerService } from "../Services/types";
 import { checkAncestors, loadAncestorsForItem } from "./ancestor-loader";
+import type { EventBusService } from "~/app/map/types/events";
 
 export interface NavigationHandlerConfig {
   dispatch: React.Dispatch<CacheAction>;
   getState: () => CacheState;
   dataHandler: DataOperations;
   serverService?: ServerService;
+  eventBus?: EventBusService;
   // For testing, we can inject these dependencies
   router?: {
     push: (url: string) => void;
@@ -32,24 +34,72 @@ export interface NavigationOptions {
 }
 
 export function createNavigationHandler(config: NavigationHandlerConfig) {
-  const { dispatch, getState, dataHandler } = config;
+  const { dispatch, getState, dataHandler, eventBus } = config;
 
   const navigateToItem = async (
-    itemCoordId: string,
+    itemDbId: string,
     options: NavigationOptions = {},
   ): Promise<NavigationResult> => {
     const { } = options; // Options reserved for future use
     
     try {
-      // 1. Check if we already have the item
-      const existingItem = getState().itemsById[itemCoordId];
+      console.log('[Navigation] 🎯 Starting navigation to database ID:', itemDbId);
       
-      // 2. Collapse tiles that are more than 1 generation away from the new center
+      // 1. Find item by database ID only
+      const allItems = Object.values(getState().itemsById);
+      const existingItem = allItems.find(item => item.metadata.dbId.toString() === itemDbId);
+      
+      if (!existingItem) {
+        console.log('[Navigation] ❌ No item found with database ID:', itemDbId);
+        console.log('[Navigation] 📊 Available items in cache:');
+        allItems.forEach((item, index) => {
+          console.log(`  ${index + 1}. dbId: "${item.metadata.dbId}" (type: ${typeof item.metadata.dbId}), coordId: "${item.metadata.coordId}", name: "${item.data.name}"`);
+        });
+        console.log('[Navigation] 🔍 Looking for dbId:', itemDbId, '(type:', typeof itemDbId, ')');
+      } else {
+        console.log('[Navigation] ✅ Found item by database ID:', {
+          dbId: existingItem.metadata.dbId,
+          coordId: existingItem.metadata.coordId,
+          name: existingItem.data.name
+        });
+      }
+      
+      const resolvedCoordId = existingItem?.metadata.coordId;
+      
+      // 2. If item not found in cache, try to load it
+      if (!existingItem) {
+        console.log('[Navigation] 🔄 Item not in cache, will load data...');
+        
+        // For now, continue with the navigation and let the cache load the data
+        // The item will be loaded by the cache lifecycle when the center changes
+        console.log('[Navigation] ⚠️ Item not in cache, proceeding with navigation anyway');
+        
+        // We'll emit a navigation event with basic info for now
+        if (eventBus) {
+          eventBus.emit({
+            type: 'map.navigation', 
+            source: 'map_cache',
+            payload: {
+              fromCenterId: getState().currentCenter ?? '',
+              toCenterId: itemDbId,
+              toCenterName: 'Loading...'
+            }
+          });
+        }
+        
+        return {
+          success: true,
+          centerUpdated: false,
+          urlUpdated: false,
+        };
+      }
+      
+      // 3. Collapse tiles that are more than 1 generation away from the new center
       const currentState = getState();
-      const newCenterDepth = CoordSystem.getDepthFromId(itemCoordId);
+      const newCenterDepth = CoordSystem.getDepthFromId(resolvedCoordId!);
       
       // Get the dbId of the new center if it exists
-      const newCenterItem = currentState.itemsById[itemCoordId];
+      const newCenterItem = existingItem || (resolvedCoordId ? currentState.itemsById[resolvedCoordId] : undefined);
       const newCenterDbId = newCenterItem?.metadata.dbId;
       
       // Build a map of dbId -> coordId for all items
@@ -73,7 +123,7 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
         }
         
         // Check if the expanded item is a descendant of the new center
-        const isDescendant = CoordSystem.isDescendant(expandedCoordId, itemCoordId);
+        const isDescendant = CoordSystem.isDescendant(expandedCoordId, resolvedCoordId!);
           
         if (isDescendant) {
           // It's a descendant - check generation distance
@@ -84,7 +134,7 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
         }
         
         // Check if the new center is a descendant of the expanded item
-        const isAncestor = CoordSystem.isAncestor(expandedCoordId, itemCoordId);
+        const isAncestor = CoordSystem.isAncestor(expandedCoordId, resolvedCoordId!);
           
         if (isAncestor) {
           // The expanded item is an ancestor of the new center - keep ALL ancestors expanded
@@ -96,12 +146,18 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
       });
       
       // Update expanded items if there are changes
-      if (filteredExpandedDbIds.length !== currentState.expandedItemIds.length) {
+      if (filteredExpandedDbIds.length !== currentState.expandedItemIds.length || 
+          filteredExpandedDbIds.some((id, idx) => id !== currentState.expandedItemIds[idx])) {
         dispatch(cacheActions.setExpandedItems(filteredExpandedDbIds));
       }
       
-      // 3. Update the cache center first (this changes the view immediately)
-      dispatch(cacheActions.setCenter(itemCoordId));
+      // 4. Update the cache center first (this changes the view immediately)
+      const previousCenter = currentState.currentCenter;
+      if (resolvedCoordId) {
+        dispatch(cacheActions.setCenter(resolvedCoordId));
+      }
+      
+      // Note: Navigation event will be emitted after we ensure item data is loaded
       
       // 4. Handle URL update
       let itemToNavigate = existingItem;
@@ -123,12 +179,22 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
           }
           urlUpdated = true;
         }
+        
+        // Emit navigation event now that we have the item data
+        if (resolvedCoordId) {
+          emitNavigationEvent(previousCenter, resolvedCoordId);
+        }
       } else if (!existingItem) {
         // We don't have the item, try to load it for URL update
         try {
           // Load the item data in the background
-          await dataHandler.loadRegion(itemCoordId, 0); // Load just the center item
-          itemToNavigate = getState().itemsById[itemCoordId];
+          if (resolvedCoordId) {
+            await dataHandler.loadRegion(resolvedCoordId, 0); // Load just the center item
+            const loadedItem = getState().itemsById[resolvedCoordId];
+            if (loadedItem) {
+              itemToNavigate = loadedItem;
+            }
+          }
           
           if (itemToNavigate && typeof window !== 'undefined') {
             const newUrl = buildMapUrl(
@@ -147,19 +213,24 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
           console.error('[NAV] Failed to load item for URL update:', error);
           // Navigation succeeds but URL won't be updated
         }
+        
+        // Emit navigation event after attempting to load item data
+        if (resolvedCoordId) {
+          emitNavigationEvent(previousCenter, resolvedCoordId);
+        }
       }
       
       // 5. Load additional region data if needed (in background)
-      if (!getState().regionMetadata[itemCoordId]) {
-        dataHandler.prefetchRegion(itemCoordId).catch(error => {
+      if (!getState().regionMetadata[resolvedCoordId!]) {
+        dataHandler.prefetchRegion(resolvedCoordId!).catch(error => {
           console.error('[NAV] Background region load failed:', error);
         });
       }
       
       // 6. Check if ancestors need to be loaded
-      const centerItem = getState().itemsById[itemCoordId];
+      const centerItem = getState().itemsById[resolvedCoordId!];
       if (centerItem && centerItem.metadata.coordinates.path.length > 0) {
-        const { hasAllAncestors } = checkAncestors(itemCoordId, getState().itemsById);
+        const { hasAllAncestors } = checkAncestors(resolvedCoordId!, getState().itemsById);
         
         // Load ancestors if missing
         if (!hasAllAncestors && centerItem.metadata.dbId && config.serverService) {
@@ -187,6 +258,32 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
         urlUpdated: false,
       };
     }
+  };
+
+  const emitNavigationEvent = (fromCenter: string | null, toCoordId: string): void => {
+    if (!eventBus || fromCenter === toCoordId) return;
+    
+    const targetItem = getState().itemsById[toCoordId];
+    const tileName = targetItem?.data.name ?? 'Untitled';
+    
+    console.log('[Navigation] 📡 Emitting navigation event:', {
+      fromCenter,
+      toCoordId,
+      targetItemExists: !!targetItem,
+      tileName,
+      tileDbId: targetItem?.metadata.dbId,
+      allItemKeys: Object.keys(getState().itemsById),
+    });
+    
+    eventBus.emit({
+      type: 'map.navigation',
+      source: 'map_cache',
+      payload: {
+        fromCenterId: fromCenter ?? '',
+        toCenterId: targetItem?.metadata.dbId ?? '',
+        toCenterName: tileName
+      }
+    });
   };
 
   const updateCenter = (centerCoordId: string): void => {
@@ -340,6 +437,7 @@ export function useNavigationHandler(
   getState: () => CacheState,
   dataHandler: DataOperations,
   serverService?: ServerService,
+  eventBus?: EventBusService,
 ) {
   // Always call hooks unconditionally
   const router = useRouter();
@@ -354,6 +452,7 @@ export function useNavigationHandler(
     router,
     searchParams,
     pathname,
+    eventBus,
   });
 }
 

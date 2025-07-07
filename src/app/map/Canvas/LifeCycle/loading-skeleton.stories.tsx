@@ -70,7 +70,7 @@ export const InContainer: Story = {
   },
   decorators: [
     (Story) => (
-      <div className="h-96 w-96 border-2 border-dashed border-gray-300">
+      <div className="h-96 w-96 border-2 border-dashed border-neutral-300">
         <Story />
       </div>
     ),
@@ -89,7 +89,7 @@ export const InContainer: Story = {
 // Loading skeleton with dark background
 export const DarkBackground: Story = {
   args: {
-    className: "bg-zinc-700",
+    className: "bg-neutral-700",
     message: "Loading on dark background...",
     blinkingFrequency: DEFAULT_BLINKING_FREQUENCY,
   },

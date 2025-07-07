@@ -19,6 +19,7 @@ The cache system is organized into four main layers:
 - Orchestrates between state and services
 - Mutation handler integrates tRPC mutations with cache operations
 - Coordinates optimistic updates, server calls, URL updates, and storage
+- Emits events via event bus for cross-system communication
 - Isolates mutation state to prevent unnecessary re-renders
 - Fully tested with unit tests
 
@@ -34,6 +35,44 @@ The cache system is organized into four main layers:
 - Will manage online/offline state
 - Will coordinate with mutations during offline/online transitions
 - Currently contains placeholder code with tests
+
+### 5. Event Bus Integration
+The MapCache integrates with a shared event bus to notify other systems about map operations:
+
+```typescript
+interface MapCacheContext {
+  // ... existing properties
+  eventBus: EventBusService;
+}
+
+// Example: Notify when tiles are swapped
+function swapTiles(tile1Id: string, tile2Id: string) {
+  // Perform swap operation...
+  
+  // Emit event for other systems
+  context.eventBus.emit({
+    type: 'map.tiles_swapped',
+    source: 'map_cache',
+    payload: { tile1Id, tile2Id, tile1Name, tile2Name }
+  });
+}
+```
+
+This enables:
+- Chat system to show operation feedback
+- Future analytics tracking
+- Undo/redo functionality
+- Any other system that needs to react to map changes
+
+**Events Emitted by MapCache**:
+- `map.tile_created` - When a new tile is created
+- `map.tile_updated` - When a tile is edited
+- `map.tile_deleted` - When a tile is deleted
+- `map.tiles_swapped` - When two tiles exchange positions
+- `map.tile_moved` - When a tile is moved to a new location
+- `map.navigation` - When the center tile changes
+- `map.expansion_changed` - When tiles are expanded/collapsed
+- `map.import_completed` - When tiles are imported from another user
 
 ## Design Decisions
 
@@ -91,9 +130,12 @@ The React component tests fail because the vitest workspace configuration runs t
 
 To integrate the Cache system into your application:
 
-1. **Import the provider**:
+1. **Import the provider and create event bus**:
    ```tsx
    import { MapCacheProvider } from './Cache/map-cache';
+   import { EventBus } from './Services/event-bus';
+   
+   const eventBus = new EventBus();
    ```
 
 2. **Wrap your map components**:
@@ -113,6 +155,7 @@ To integrate the Cache system into your application:
        enableOptimisticUpdates: true,
        maxDepth: 3,
      }}
+     eventBus={eventBus}
    >
      {children}
    </MapCacheProvider>

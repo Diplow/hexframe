@@ -39,11 +39,11 @@ export function ItemTileContent({
   tileColor,
   testId,
   interactive,
-  isBeingDragged,
-  urlInfo,
+  isBeingDragged: _isBeingDragged,
+  urlInfo: _urlInfo,
   allExpandedItemIds,
   hasChildren,
-  isCenter,
+  isCenter: _isCenter,
   canEdit,
   onEditClick,
   onDeleteClick,
@@ -69,11 +69,12 @@ export function ItemTileContent({
     }
   };
   
-  // Use tile interaction hook for tool-based behavior
-  const { handleClick, cursor } = useTileInteraction({
+  // Use tile interaction hook for contextual behavior
+  const { handleClick, handleDoubleClick, handleRightClick, cursor } = useTileInteraction({
     coordId: item.metadata.coordId,
     type: 'item',
     tileData: tileDataWithExpanded,
+    canEdit,
     onNavigate: () => {
       void navigateToItem(item.metadata.coordId, { pushToHistory: true }).catch((error) => {
         console.warn("Navigation failed, falling back to page navigation", error);
@@ -91,6 +92,8 @@ export function ItemTileContent({
     <>
       <div
         onClick={interactive ? (e) => void handleClick(e) : undefined}
+        onDoubleClick={interactive ? (e) => void handleDoubleClick(e) : undefined}
+        onContextMenu={interactive ? (e) => void handleRightClick(e) : undefined}
       >
         <DynamicBaseTileLayout
           coordId={item.metadata.coordId}

@@ -22,15 +22,23 @@ Document the testing strategy and specific test cases for an issue implementatio
 - Identify key components and behaviors to test
 - Consider edge cases and error scenarios
 
-### 2. Test Categories
+### 2. Test-Driven Development (TDD) Approach
+When using the `/tests` command, follow TDD principles:
+1. **Write tests FIRST** - All tests should fail initially
+2. **Create shells** - Interfaces, types, and empty implementations
+3. **Make tests pass** - Implement functionality one test at a time
+4. **Refactor** - Clean up code while keeping tests green
+
+### 3. Test Categories
 For each issue, plan tests across these categories:
 - **Unit Tests**: Individual component/function behavior
 - **Integration Tests**: Component interactions
-- **E2E Tests**: User workflows and scenarios
 - **Visual/Snapshot Tests**: UI consistency (when applicable)
 - **Performance Tests**: Response times, render performance (when needed)
 
-### 3. Test Coverage Strategy
+Note: E2E tests are currently not supported in the testing environment.
+
+### 4. Test Coverage Strategy
 - **Happy Path**: Primary use cases work correctly
 - **Edge Cases**: Boundary conditions and limits
 - **Error Handling**: Graceful failure scenarios
@@ -48,13 +56,15 @@ Update the issue file (`/issues/YYYY-MM-DD-<slug>-<issue-number>.md`) by adding 
 
 ## Best Practices
 
-1. **Test First**: Plan tests before implementation when possible
-2. **Behavior Focus**: Test user-visible behavior, not implementation
-3. **Descriptive Names**: Test names should explain what and why
-4. **Isolated Tests**: Each test should be independent
-5. **Fast Feedback**: Prioritize fast-running tests
-6. **Maintainable**: Avoid brittle selectors and timing issues
-7. **Coverage Goals**: Aim for high coverage of critical paths
+1. **Test First**: Always write tests before implementation when using `/tests` command
+2. **Red-Green-Refactor**: Follow TDD cycle - failing test → passing test → clean code
+3. **One Test at a Time**: Implement just enough code to make each test pass
+4. **Behavior Focus**: Test user-visible behavior, not implementation
+5. **Descriptive Names**: Test names should explain what and why
+6. **Isolated Tests**: Each test should be independent
+7. **Fast Feedback**: Prioritize fast-running tests
+8. **Maintainable**: Avoid brittle selectors and timing issues
+9. **Coverage Goals**: Aim for high coverage of critical paths
 
 ## Test Patterns
 
@@ -80,14 +90,41 @@ describe('Feature Integration', () => {
 });
 ```
 
-### E2E Test Patterns
+### TDD Example Pattern
 ```typescript
-test('user workflow', async ({ page }) => {
-  // Navigate to feature
-  // Perform user actions
-  // Assert on final state
-  // Check for accessibility
+// Step 1: Write failing test
+describe('EventBus', () => {
+  it('should emit events to registered listeners', () => {
+    const eventBus = new EventBus(); // Will fail - EventBus not implemented
+    const listener = vi.fn();
+    
+    eventBus.on('test.event', listener);
+    eventBus.emit({ type: 'test.event', payload: { data: 'test' } });
+    
+    expect(listener).toHaveBeenCalledWith({ type: 'test.event', payload: { data: 'test' } });
+  });
 });
+
+// Step 2: Create minimal implementation to make test pass
+class EventBus {
+  private listeners = new Map<string, Set<Function>>();
+  
+  on(eventType: string, listener: Function) {
+    if (!this.listeners.has(eventType)) {
+      this.listeners.set(eventType, new Set());
+    }
+    this.listeners.get(eventType)!.add(listener);
+  }
+  
+  emit(event: { type: string; [key: string]: any }) {
+    const listeners = this.listeners.get(event.type);
+    if (listeners) {
+      listeners.forEach(listener => listener(event));
+    }
+  }
+}
+
+// Step 3: Refactor while keeping tests green
 ```
 
 ## Testing Tools Reference
@@ -98,18 +135,19 @@ test('user workflow', async ({ page }) => {
 - **MSW**: API mocking
 - **@testing-library/user-event**: User interactions
 
-### E2E Testing
-- **Playwright**: E2E test framework
-- **Offline mode**: Tests run without server dependencies
-- **localStorage**: State persistence in tests
+### Testing Tools
+- **Vitest**: Test runner with vi.fn() for mocks
+- **React Testing Library**: Component testing
+- **MSW**: API mocking for integration tests
+- **@testing-library/user-event**: User interaction simulation
 
 ### Commands
 ```bash
 pnpm test:unit          # Run unit tests
 pnpm test:integration   # Run integration tests
-pnpm test:e2e          # Run E2E tests (requires dev server)
-pnpm test:e2e:ui       # E2E tests with UI
 ./scripts/run-tests.sh  # Run all tests
+./scripts/run-tests.sh -w # Watch mode for TDD
+./scripts/run-tests.sh --ui # UI mode for debugging
 ```
 
 ## GitHub Synchronization

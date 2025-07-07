@@ -37,15 +37,11 @@ const TitleSection = (title: string, scale: TileScale, tileId?: string) => {
   const fontWeight =
     scale === 1 ? "font-[8px]" : scale === 2 ? "font-medium" : "font-semibold";
 
-  const maxLength = scale === 1 ? 25 : scale === 2 ? 90 : 300;
-  const truncatedTitle =
-    title.length > maxLength ? `${title.substring(0, maxLength)}...` : title;
-
   const testId = tileId ? `tile-title-${tileId}` : "tile-title";
   
   return (
     <div className={`${baseFontSize} ${fontWeight} ${TEXT_CLASSES} mx-[15%]`} data-testid={testId}>
-      {truncatedTitle}
+      {title}
     </div>
   );
 };
