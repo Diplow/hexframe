@@ -460,50 +460,74 @@ router.push(`/map?center=${mapId}`)
 #### New Registration Flow with IAM Domain
 
 ```typescript
-// 1. Frontend calls IAM domain via tRPC
-const result = await trpc.iam.register.mutate({
+// 1. Frontend calls a tRPC procedure that orchestrates domains
+const result = await trpc.user.register.mutate({
   email,
   password,
   name,
-  createDefaultMap: true // Optional flag
+  createDefaultMap: true
 })
 
-// 2. IAM Service orchestrates the complete flow
+// 2. tRPC Router orchestrates across domains
+// In /src/server/api/routers/user.ts
+export const userRouter = createTRPCRouter({
+  register: publicProcedure
+    .use(iamServiceMiddleware)
+    .use(mappingServiceMiddleware)
+    .input(registerSchema)
+    .mutation(async ({ ctx, input }) => {
+      // Step 1: IAM domain handles user creation
+      const user = await ctx.iamService.register({
+        email: input.email,
+        password: input.password,
+        name: input.name
+      });
+      
+      // Step 2: Create default map if requested (orchestration)
+      let defaultMapId: string | undefined;
+      if (input.createDefaultMap) {
+        const map = await ctx.mappingService.maps.createMap({
+          userId: user.mappingId,
+          title: `${user.name || user.email}'s Space`,
+          descr: "Your personal hexframe workspace"
+        });
+        defaultMapId = map.id;
+      }
+      
+      // Step 3: Return combined result
+      return {
+        user: user.toContract(),
+        defaultMapId
+      };
+    })
+});
+
+// 3. IAM Service stays focused on its domain
 class IAMService {
-  async register(input: RegisterInput): Promise<RegisterResult> {
-    // Still uses better-auth under the hood
-    const authUser = await this.repositories.user.create({
+  async register(input: RegisterInput): Promise<User> {
+    // Uses better-auth under the hood
+    const authResult = await this.repositories.user.create({
       email: input.email,
       password: input.password,
       name: input.name
-    })
+    });
     
-    // Domain User entity created immediately
+    // Domain User entity with mapping ID
     const user = User.create({
-      id: authUser.id,
-      email: authUser.email,
-      name: authUser.name,
-      mappingId: await this.generateMappingId(), // Created atomically
+      id: authResult.id,
+      email: authResult.email,
+      name: authResult.name,
+      mappingId: authResult.mappingId,
       createdAt: new Date()
-    })
+    });
     
-    // Save complete user with mapping ID
-    await this.repositories.user.save(user)
-    
-    // Optional: Create default map in same transaction
-    if (input.createDefaultMap) {
-      const map = await this.createDefaultMapForUser(user)
-      return { user: user.toContract(), defaultMapId: map.id }
-    }
-    
-    return { user: user.toContract() }
+    return user;
   }
+  
+  // No knowledge of maps or other domains!
 }
 
-// 3. Single response contains everything needed
-// { user: { id, email, name, mappingId }, defaultMapId }
-
-// 4. Redirect using domain response
+// 4. Clean separation of concerns
 router.push(`/map?center=${result.defaultMapId}`)
 ```
 
@@ -613,3 +637,78 @@ export class BetterAuthUserRepository implements UserRepository {
 - Easier to add features (e.g., welcome email, default settings)
 - Better testability with clear boundaries
 - Ready for future enhancements (roles on registration, org invites)
+
+#### Domain Independence Benefits
+
+By keeping domains independent and handling orchestration at the tRPC layer:
+
+**1. True Domain Isolation**:
+- IAM domain knows nothing about maps
+- Mapping domain knows nothing about authentication internals
+- Each domain can evolve independently
+
+**2. Flexible Orchestration**:
+```typescript
+// Different registration flows become trivial
+export const userRouter = createTRPCRouter({
+  // Basic registration
+  register: // ... as shown above
+  
+  // Organization invite flow
+  registerWithInvite: publicProcedure
+    .use(iamServiceMiddleware)
+    .use(mappingServiceMiddleware)
+    .use(orgServiceMiddleware) // Future domain
+    .mutation(async ({ ctx, input }) => {
+      const user = await ctx.iamService.register(input);
+      await ctx.orgService.acceptInvite(user.id, input.inviteToken);
+      const map = await ctx.mappingService.maps.getOrgDefaultMap(orgId);
+      return { user, mapId: map.id };
+    }),
+    
+  // Admin creating user
+  adminCreateUser: protectedProcedure
+    .use(iamServiceMiddleware)
+    .mutation(async ({ ctx, input }) => {
+      await ctx.iamService.checkPermission(ctx.user, 'users:create');
+      const newUser = await ctx.iamService.createUser(input);
+      // No map creation - admin flow doesn't need it
+      return { user: newUser };
+    })
+});
+```
+
+**3. Testing Advantages**:
+```typescript
+// Test IAM domain in complete isolation
+describe('IAMService', () => {
+  it('registers user', async () => {
+    const service = new IAMService({ user: mockUserRepo });
+    const user = await service.register({ email, password });
+    expect(user.email).toBe(email);
+    // No need to mock mapping service!
+  });
+});
+
+// Test orchestration separately
+describe('User Registration Flow', () => {
+  it('creates user and map', async () => {
+    const { trpc } = createTestContext({
+      iamService: mockIAMService,
+      mappingService: mockMappingService
+    });
+    
+    const result = await trpc.user.register.mutate(input);
+    expect(mockIAMService.register).toHaveBeenCalled();
+    expect(mockMappingService.maps.createMap).toHaveBeenCalled();
+  });
+});
+```
+
+**4. Clear Architectural Boundaries**:
+- **Domains**: Pure business logic, no cross-domain dependencies
+- **tRPC Routers**: Application workflows and orchestration
+- **Services**: Domain operations exposed to routers
+- **Infrastructure**: Technical implementations
+
+This approach gives you maximum flexibility while maintaining clean architecture!
