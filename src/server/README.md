@@ -28,4 +28,62 @@ This subdirectory is responsible for all database-related concerns, primarily us
 
 ## Overall Architecture:
 
-The server is built following a typical Next.js backend structure, enhanced with tRPC for robust API development and Drizzle for modern database management. The API layer often serves as a Backend-for-Frontend (BFF), directly providing data in the shape needed by the frontend components. Services (like `MapService` injected via middleware) encapsulate business logic, interacting with repositories that abstract database operations.
+The server is built following a typical Next.js backend structure, enhanced with tRPC for robust API development and Drizzle for modern database management. The API layer serves as a Backend-for-Frontend (BFF), directly providing data in the shape needed by the frontend components.
+
+### API Layer Responsibilities
+
+The tRPC API layer has a critical architectural responsibility: **orchestrating operations across multiple domains**. This is a fundamental principle of our architecture:
+
+#### Domain Orchestration
+
+**The API layer is the ONLY place where multiple domains can be coordinated.** Domains themselves must remain completely independent of each other.
+
+```typescript
+// Example: User registration flow orchestrating IAM and Mapping domains
+export const userRouter = createTRPCRouter({
+  register: publicProcedure
+    .use(iamServiceMiddleware)      // Inject IAM domain service
+    .use(mappingServiceMiddleware)   // Inject Mapping domain service
+    .input(registerSchema)
+    .mutation(async ({ ctx, input }) => {
+      // Step 1: Create user via IAM domain
+      const user = await ctx.iamService.register({
+        email: input.email,
+        password: input.password,
+        name: input.name
+      });
+      
+      // Step 2: Create default map via Mapping domain
+      const map = await ctx.mappingService.maps.createMap({
+        userId: user.mappingId,
+        title: `${user.name}'s Space`,
+        descr: "Personal workspace"
+      });
+      
+      // Step 3: Return combined result
+      return {
+        user: user.toContract(),
+        defaultMapId: map.id
+      };
+    })
+});
+```
+
+#### Key Principles:
+
+1. **Domain Independence**: Domains never call each other directly
+2. **API Orchestration**: tRPC routers coordinate multi-domain workflows
+3. **Service Injection**: Use middleware to inject domain services into context
+4. **Contract Transformation**: Convert domain objects to API contracts
+5. **Transaction Boundaries**: API layer manages cross-domain transactions when needed
+
+#### Benefits:
+
+- **Flexibility**: Easy to create different workflows for different use cases
+- **Testability**: Test domain logic and orchestration logic separately
+- **Maintainability**: Changes to workflows don't affect domain logic
+- **Scalability**: Domains can be split into separate services if needed
+
+### Service Architecture
+
+Services (like `MappingService` injected via middleware) encapsulate business logic within their domain, interacting with repositories that abstract database operations. The services expose domain operations to the API layer but never interact with other domain services directly.
