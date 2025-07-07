@@ -12,7 +12,7 @@ import {
   validateCreateItemInput,
   type CreateItemFormData,
   type CreateItemFormErrors,
-} from "~/app/static/map/create/validation.utils";
+} from "~/lib/domains/mapping/utils/validation";
 import type { URLInfo } from "../types/url-info";
 
 interface CreateItemModalProps {

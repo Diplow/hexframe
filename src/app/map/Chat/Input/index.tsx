@@ -65,7 +65,7 @@ export function Input() {
       
       const payload = latestEvent.payload as { command: string };
       lastProcessedCommandRef.current = latestEvent.timestamp.toISOString();
-      executeCommandFromPayload(payload);
+      void executeCommandFromPayload(payload);
     }
   }, [events, executeCommandFromPayload]);
   

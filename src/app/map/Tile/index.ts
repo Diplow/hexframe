@@ -1,27 +1,27 @@
 // Base components
-export { StaticBaseTileLayout } from "~/app/static/map/Tile/Base/base";
+export { BaseTileLayout } from "~/app/map/components/BaseTileLayout";
+export { BaseTileLayout as StaticBaseTileLayout } from "~/app/map/components/BaseTileLayout"; // Alias for backward compatibility
 export type {
-  StaticBaseTileLayoutProps,
+  BaseTileLayoutProps,
+  BaseTileLayoutProps as StaticBaseTileLayoutProps, // Alias for backward compatibility
   TileScale,
   TileColor,
   TileStroke,
   TileCursor,
-} from "~/app/static/map/Tile/Base/base";
-export { StaticTileContent } from "~/app/static/map/Tile/Item/content";
-export type { StaticTileContentProps } from "~/app/static/map/Tile/Item/content";
+} from "~/app/map/components/BaseTileLayout";
 
 // Item components
-export { StaticItemTile } from "~/app/static/map/Tile/Item/item";
-export type { StaticItemTileProps } from "~/app/static/map/Tile/Item/item";
 export { DynamicItemTile } from "./Item/item";
 export type { DynamicItemTileProps } from "./Item/item";
+
+// Empty tile components
+export { DynamicEmptyTile } from "./Empty/empty";
+export type { DynamicEmptyTileProps } from "./Empty/empty";
+
+// Button components
 export { DynamicTileButtons as TileButtons } from "./Item/item.buttons";
-export type { TileButtonsProps } from "~/app/static/map/Tile/Item/item.buttons";
-export { HierarchyTile } from "~/app/static/map/Tile/Hierarchy/hierarchy-tile";
-export type { HierarchyTileProps } from "~/app/static/map/Tile/Hierarchy/hierarchy-tile";
+export type { TileButtonsProps } from "./Item/item.buttons";
 
 // Auth components
-export { AuthTile } from "~/app/static/map/Tile/Auth/auth";
-export type { AuthTileProps } from "~/app/static/map/Tile/Auth/auth";
 export { default as DynamicAuthTile } from "./Auth/auth";
 export type { AuthTileProps as DynamicAuthTileProps } from "./Auth/auth";

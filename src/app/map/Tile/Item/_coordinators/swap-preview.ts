@@ -1,5 +1,5 @@
 import type { TileData } from "~/app/map/types/tile-data";
-import type { TileColor } from "~/app/static/map/Tile/Base/base";
+import type { TileColor } from "~/app/map/components/BaseTileLayout";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import { getColor as calculateColor } from "~/app/map/types/tile-data";
 

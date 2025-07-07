@@ -5,7 +5,7 @@ import type { TileData } from "../../types/tile-data";
 import { useMapCache } from "../../Cache/map-cache";
 import { _getParentHierarchy } from "./hierarchy.utils";
 import type { URLInfo } from "../../types/url-info";
-import { StaticBaseTileLayout } from "~/app/static/map/Tile/Base/base";
+import { BaseTileLayout } from "~/app/map/components/BaseTileLayout";
 import {
   HIERARCHY_TILE_BASE_SIZE,
   HIERARCHY_TILE_SCALE,
@@ -45,7 +45,7 @@ const DynamicHierarchyTile = ({
       className="group relative flex-shrink-0 cursor-pointer rounded-lg border-none bg-transparent transition-transform duration-200 hover:scale-105 focus:scale-105"
     >
       <div className="pointer-events-none">
-        <StaticBaseTileLayout
+        <BaseTileLayout
           coordId={item.metadata.coordId}
           scale={HIERARCHY_TILE_SCALE}
           color={item.data.color}
@@ -53,7 +53,7 @@ const DynamicHierarchyTile = ({
           isFocusable={false}
         >
           <HierarchyTileContent item={item} />
-        </StaticBaseTileLayout>
+        </BaseTileLayout>
       </div>
     </button>
   );

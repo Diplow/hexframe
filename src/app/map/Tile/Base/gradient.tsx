@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Direction } from "~/lib/domains/mapping/utils/hex-coordinates";
-import type { TileScale } from "~/app/static/map/Tile/Base/base";
+import type { TileScale } from "~/app/map/components/BaseTileLayout";
 
 // Get gradient opacity multiplier based on scale
 // Scale 3 = 1.0 (full strength), Scale 2 = 0.6, Scale 1 = 0.3
