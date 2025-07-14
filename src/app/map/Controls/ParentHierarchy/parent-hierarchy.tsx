@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
+import { useEffect, useRef } from "react";
 import type { TileData } from "../../types/tile-data";
 import { useMapCache } from "../../Cache/map-cache";
 import { _getParentHierarchy } from "./hierarchy.utils";
@@ -14,6 +15,7 @@ import { getTextColorForDepth } from "~/app/map/types/theme-colors";
 import { useAuth } from "~/contexts/AuthContext";
 import { api } from "~/commons/trpc/react";
 import { Logo } from "~/components/ui/logo";
+import { loggers } from "~/lib/debug/debug-logger";
 
 interface ParentHierarchyProps {
   centerCoordId: string;
@@ -32,9 +34,25 @@ const DynamicHierarchyTile = ({
   item,
 }: DynamicHierarchyTileProps) => {
   const { navigateToItem } = useMapCache();
+  const renderCountRef = useRef(0);
+
+  useEffect(() => {
+    renderCountRef.current += 1;
+    loggers.render.hierarchy('DynamicHierarchyTile render', {
+      renderCount: renderCountRef.current,
+      coordId: item.metadata.coordId,
+      name: item.data.name,
+      depth: item.metadata.depth,
+      color: item.data.color,
+    });
+  });
 
   const handleNavigation = async (e: React.MouseEvent) => {
     e.preventDefault();
+    loggers.render.hierarchy('DynamicHierarchyTile navigation clicked', {
+      coordId: item.metadata.coordId,
+      name: item.data.name,
+    });
     await navigateToItem(item.metadata.coordId);
   };
 
@@ -84,10 +102,26 @@ const UserProfileTile = () => {
   const { user } = useAuth();
   const { navigateToItem } = useMapCache();
   const trpcUtils = api.useUtils();
+  const renderCountRef = useRef(0);
+  
+  useEffect(() => {
+    renderCountRef.current += 1;
+    loggers.render.hierarchy('UserProfileTile render', {
+      renderCount: renderCountRef.current,
+      hasUser: !!user,
+      userName: user?.name,
+      userEmail: user?.email,
+    });
+  });
   
   const handleUserMapNavigation = async () => {
     // Only navigate if user is logged in
     if (!user) return;
+    
+    loggers.render.hierarchy('UserProfileTile navigation clicked', {
+      userName: user.name,
+      userEmail: user.email,
+    });
     
     try {
       // Fetch user map data when clicking on the profile tile
@@ -95,8 +129,13 @@ const UserProfileTile = () => {
       const userMapData = await trpcUtils.map.user.getUserMap.fetch();
       
       if (userMapData?.success && userMapData.map?.id) {
-        console.log('[UserProfileTile] Navigating to user map:', userMapData.map.id);
+        console.log('[UserProfileTile] Navigating to user map:', {
+          mapId: userMapData.map.id,
+          name: userMapData.map.name
+        });
+        
         // Navigate using the database ID
+        // The navigation handler will load the map if it's not in cache
         await navigateToItem(String(userMapData.map.id));
       } else {
         console.error('[UserProfileTile] No user map found');
@@ -143,6 +182,13 @@ export const ParentHierarchy = ({
   urlInfo,
 }: ParentHierarchyProps) => {
   const { center, items: cacheItems } = useMapCache();
+  const renderCountRef = useRef(0);
+  const previousPropsRef = useRef({
+    centerCoordId,
+    itemsCount: Object.keys(items).length,
+    center,
+    cacheItemsCount: Object.keys(cacheItems).length,
+  });
 
   // Use currentCenter from cache state if available, otherwise fall back to prop
   const effectiveCenter = center ?? centerCoordId;
@@ -151,6 +197,44 @@ export const ParentHierarchy = ({
   const effectiveItems = Object.keys(items).length > 0 ? items : cacheItems;
 
   const hierarchy = _getParentHierarchy(effectiveCenter, effectiveItems);
+
+  // Track renders and what changed
+  useEffect(() => {
+    renderCountRef.current += 1;
+    const currentProps = {
+      centerCoordId,
+      itemsCount: Object.keys(items).length,
+      center,
+      cacheItemsCount: Object.keys(cacheItems).length,
+    };
+
+    const changes: Record<string, { from: unknown; to: unknown }> = {};
+    
+    Object.keys(currentProps).forEach((key) => {
+      const typedKey = key as keyof typeof currentProps;
+      if (previousPropsRef.current[typedKey] !== currentProps[typedKey]) {
+        changes[key] = {
+          from: previousPropsRef.current[typedKey],
+          to: currentProps[typedKey],
+        };
+      }
+    });
+
+    loggers.render.hierarchy('ParentHierarchy render', {
+      renderCount: renderCountRef.current,
+      effectiveCenter,
+      hierarchyLength: hierarchy.length,
+      hierarchyItems: hierarchy.map(item => ({
+        coordId: item.metadata.coordId,
+        name: item.data.name,
+        depth: item.metadata.depth,
+      })),
+      propsChanged: Object.keys(changes).length > 0,
+      changes: Object.keys(changes).length > 0 ? changes : undefined,
+    });
+
+    previousPropsRef.current = currentProps;
+  });
 
   return (
     <div className="h-full flex-shrink-0 flex flex-col items-center gap-2 bg-transparent p-4 overflow-y-auto">

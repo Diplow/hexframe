@@ -6,6 +6,8 @@ import type { URLInfo } from "../../types/url-info";
 import { useItemState } from "./_hooks";
 import { ItemDialogs } from "./_components/item-dialogs";
 import { ItemTileContent } from "./_components/item-tile-content";
+import { useEffect } from "react";
+import { loggers } from "~/lib/debug/debug-logger";
 
 export interface DynamicItemTileProps {
   item: TileData;
@@ -40,6 +42,23 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
     hasChildren,
     isCenter,
     scale
+  });
+  
+  // Log tile render
+  useEffect(() => {
+    loggers.render.canvas('DynamicItemTile render', {
+      coordId: item.metadata.coordId,
+      dbId: item.metadata.dbId,
+      name: item.data.name,
+      scale,
+      isCenter,
+      hasChildren,
+      isExpanded: allExpandedItemIds.includes(item.metadata.dbId),
+      isSelected: props.isSelected,
+      interactive,
+      canEdit: state.canEdit,
+      isBeingDragged: state.interaction.isBeingDragged,
+    });
   });
 
   return (

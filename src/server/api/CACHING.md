@@ -11,7 +11,7 @@ Implement caching logic directly in tRPC middleware for type-safe, procedure-spe
 ```typescript
 // lib/trpc/middleware/caching.ts
 import { middleware } from "@trpc/server";
-import { cache } from "@/lib/cache";
+import { cache } from "~/lib/cache";
 
 export const cacheMiddleware = middleware(
   async ({ path, type, next, rawInput }) => {
@@ -63,8 +63,8 @@ Create dedicated API routes that handle caching before calling tRPC.
 ```typescript
 // app/api/hexmap/[regionId]/route.ts
 import { NextResponse } from "next/server";
-import { serverTrpc } from "@/trpc/server";
-import { cache } from "@/lib/cache";
+import { serverTrpc } from "~/trpc/server";
+import { cache } from "~/lib/cache";
 
 export async function GET(
   request: Request,

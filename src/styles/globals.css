@@ -20,14 +20,14 @@
      ================================ */
   
   /* Primary - Violet (emerges from indigo/purple) */
-  --color-primary-light: theme(colors.violet.400);
-  --color-primary: theme(colors.violet.600);
-  --color-primary-dark: theme(colors.violet.800);
+  --color-primary-light: theme(colors.violet.200);
+  --color-primary: theme(colors.violet.400);
+  --color-primary-dark: theme(colors.violet.600);
   
   /* Primary RGB format for opacity support */
-  --color-primary-rgb: 124 58 237; /* violet-600 */
-  --color-primary-light-rgb: 167 139 250; /* violet-400 */
-  --color-primary-dark-rgb: 91 33 182; /* violet-800 */
+  --color-primary-rgb: 167 139 250; /* violet-400 */
+  --color-primary-light-rgb: 221 214 254; /* violet-200 */
+  --color-primary-dark-rgb: 124 58 237; /* violet-600 */
   
   /* Neutral - Custom light palette */
   --color-neutral-50: #ffffff;
@@ -307,6 +307,16 @@
   --color-neutral-900: #0d1117;
   --color-neutral-950: #010409;
 
+  /* Restore original dark mode primary colors (the ones that worked great) */
+  --color-primary-light: theme(colors.violet.400);
+  --color-primary: theme(colors.violet.600);
+  --color-primary-dark: theme(colors.violet.800);
+  
+  /* Restore original dark mode primary RGB values */
+  --color-primary-rgb: 124 58 237; /* violet-600 */
+  --color-primary-light-rgb: 167 139 250; /* violet-400 */
+  --color-primary-dark-rgb: 91 33 182; /* violet-800 */
+
   /* UI Theme Variables - Dark */
   --background: var(--color-neutral-900);
   --foreground: var(--color-neutral-50);
@@ -437,6 +447,50 @@
 /* ================================
    Component Styles
    ================================ */
+
+/* Scrollbar Styles */
+/* Light mode scrollbar (default) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-neutral-100);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-300);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral-400);
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-track {
+  background: var(--color-neutral-800);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-600);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral-500);
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-neutral-300) var(--color-neutral-100);
+}
+
+.dark * {
+  scrollbar-color: var(--color-neutral-600) var(--color-neutral-800);
+}
 
 /* Make shadcn/ui Drawer (vaul) overlay transparent */
 [vaul-overlay] {

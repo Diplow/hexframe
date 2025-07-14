@@ -1,10 +1,9 @@
-import { User } from "../_objects/user";
+import type { User } from "../_objects/user";
 import type { UserRepository } from "../_repositories/user.repository";
 import type {
   UserContract,
   RegisterInput,
   LoginInput,
-  LoginResult,
   UpdateProfileInput,
 } from "../types/contracts";
 import {
@@ -55,20 +54,14 @@ export class IAMService {
   /**
    * Authenticate a user with email and password
    */
-  async login(input: LoginInput): Promise<LoginResult> {
+  async login(input: LoginInput): Promise<User> {
     try {
       const result = await this.repositories.user.authenticate({
         email: input.email,
         password: input.password,
       });
 
-      return {
-        user: this.userToContract(result.user),
-        session: {
-          id: result.session.id,
-          expiresAt: result.session.expiresAt.toISOString(),
-        },
-      };
+      return result.user;
     } catch {
       throw new InvalidCredentialsError();
     }

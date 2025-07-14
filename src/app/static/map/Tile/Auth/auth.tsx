@@ -1,19 +1,12 @@
 import React from "react";
 import { StaticBaseTileLayout } from "~/app/static/map/Tile/Base/base";
-import { Button } from "~/components/ui/button"; // Assuming you have a Button component
 
 export interface StaticAuthTileProps {
-  showLogin: boolean;
-  onToggleView: () => void;
-  loginFormComponent: React.ReactNode;
-  registerFormComponent: React.ReactNode;
+  initialView?: "login" | "register";
 }
 
 export const StaticAuthTile = ({
-  showLogin,
-  onToggleView,
-  loginFormComponent,
-  registerFormComponent,
+  initialView = "login",
 }: StaticAuthTileProps) => {
   return (
     <StaticBaseTileLayout coordId="auth-static" scale={3}>
@@ -21,27 +14,20 @@ export const StaticAuthTile = ({
         <div className="mx-auto w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
           <div className="mb-6">
             <h2 className="text-center text-2xl font-bold text-neutral-800">
-              {showLogin ? "Welcome Back" : "Create Account"}
+              Authentication
             </h2>
             <p className="mt-2 text-center text-neutral-600">
-              {showLogin
-                ? "Please login to continue."
-                : "Sign up to get started."}
+              Please use the chat interface to log in or sign up.
             </p>
           </div>
 
-          {showLogin ? loginFormComponent : registerFormComponent}
-
-          <div className="mt-6 text-center">
-            <Button
-              variant="link"
-              onClick={onToggleView}
-              className="text-sm text-se-600 hover:text-se-500 focus:outline-none"
-            >
-              {showLogin
-                ? "Need an account? Register"
-                : "Already have an account? Login"}
-            </Button>
+          <div className="text-center p-8">
+            <p className="text-neutral-500 mb-4">
+              The chat assistant will help you authenticate.
+            </p>
+            <p className="text-sm text-neutral-400">
+              Open the chat panel and follow the prompts to {initialView === "login" ? "log in" : "create an account"}.
+            </p>
           </div>
         </div>
       </div>

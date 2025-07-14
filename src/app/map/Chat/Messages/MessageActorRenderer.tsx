@@ -1,11 +1,13 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import remarkBreaks from 'remark-breaks';
 import { useAuth } from '~/contexts/AuthContext';
 import { api } from '~/commons/trpc/react';
 import type { Message } from '../Cache/_events/event.types';
 import { useChatEventDispatcher } from './_hooks/useChatEventDispatcher';
 import { useMapCache } from '../../Cache/_hooks/use-map-cache';
+import { useEffect, useState } from 'react';
+import { loggers } from '~/lib/debug/debug-logger';
+import { Copy, Check } from 'lucide-react';
 
 interface MessageActorRendererProps {
   message: Message;
@@ -17,6 +19,16 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
   const { dispatchMessage, dispatchAuthRequired, dispatchCommandExecution } = useChatEventDispatcher();
   
   const trpcUtils = api.useUtils();
+  
+  // Debug logging for MessageActorRenderer renders
+  useEffect(() => {
+    loggers.render.chat('MessageActorRenderer rendered', {
+      messageId: message.id,
+      actor: message.actor,
+      contentLength: message.content.length,
+      hasUser: !!user
+    });
+  });
   
   // Don't automatically fetch user map data - only fetch when needed for navigation
 
@@ -59,10 +71,11 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
 
   const _navigateToUserMap = async (map: { id: number; name?: string }) => {
     const mapName = map.name ?? user?.name ?? 'Your Map';
-    console.log('[UserNav] 🗺️ Navigating to user map:', { mapId: map.id, userName: user?.name, userId: user?.id });
+    console.log('[UserNav] 🗺️ Navigating to user map:', { mapId: map.id, mapName, userName: user?.name });
     
     try {
-      // navigateToItem accepts both database IDs and coordinate IDs - we're using database ID
+      // Navigate using the database ID
+      // The navigation handler will load the map if it's not in cache
       console.log('[UserNav] 🎯 Calling navigateToItem with database ID:', String(map.id));
       await navigateToItem(String(map.id));
     } catch (error) {
@@ -94,7 +107,9 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
     return null;
   };
 
-  const createMarkdownComponents = () => ({
+  const createMarkdownComponents = () => {
+    console.log('[DEBUG] Creating markdown components for message:', message.id);
+    return {
     p: ({ children, ..._props }: { children?: React.ReactNode } & React.HTMLAttributes<HTMLElement>) => <>{children}</>,
     br: () => <br />,
     ul: ({ children, ..._props }: { children?: React.ReactNode } & React.HTMLAttributes<HTMLElement>) => <ul className="list-disc list-inside mb-1">{children}</ul>,
@@ -106,9 +121,19 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
       </strong>
     ),
     a: ({ href, children, ..._props }: { href?: string; children?: React.ReactNode } & React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
-      if (href?.startsWith('command:')) {
-        return _renderCommandLink(href, children);
+      console.log('[DEBUG] ReactMarkdown anchor component called:', { 
+        href, 
+        children, 
+        hasCommand: href?.startsWith('command:'),
+        allProps: _props,
+        hrefType: typeof href,
+        hrefLength: href?.length 
+      });
+      if (href?.startsWith('#hexframe-command:')) {
+        console.log('[DEBUG] Detected command link, rendering command button');
+        return _renderCommandButton(href, children);
       }
+      console.log('[DEBUG] Regular link, rendering normal anchor');
       return (
         <a href={href} target="_blank" rel="noopener noreferrer">
           {children}
@@ -133,10 +158,12 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
         </pre>
       );
     },
-  });
+  };
+  };
 
-  const _renderCommandLink = (href: string, children: React.ReactNode) => {
-    const command = href.slice(8); // Remove 'command:' prefix
+  const _renderCommandButton = (href: string, children: React.ReactNode) => {
+    const command = href.slice(18); // Remove '#hexframe-command:' prefix
+    console.log('[DEBUG] Rendering command button:', { href, command, children });
     
     // Extract tooltip for navigation commands
     let tooltip = '';
@@ -148,29 +175,25 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
     }
     
     return (
-      <span
-        role="button"
-        tabIndex={0}
+      <button
+        type="button"
         title={tooltip || undefined}
-        onClick={() => {
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('[DEBUG] Command button clicked:', { command, href });
           // Only dispatch the command execution event
           // The Input component will handle both showing the command and executing it
           dispatchCommandExecution(command);
         }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            e.currentTarget.click();
-          }
-        }}
-        className={`underline transition-colors cursor-pointer ${
+        className={`underline transition-colors cursor-pointer bg-transparent border-none p-0 font-inherit ${
           message.actor === 'system' 
             ? 'text-muted-foreground hover:text-foreground' 
             : 'text-primary hover:text-primary/80'
         }`}
       >
         {children}
-      </span>
+      </button>
     );
   };
 
@@ -184,14 +207,106 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
         </span>
         {renderActorLabel()}
         <span className={message.actor === 'system' ? 'text-muted-foreground' : ''}>
-          <ReactMarkdown 
-            remarkPlugins={[remarkGfm, remarkBreaks]}
-            components={createMarkdownComponents()}
-          >
-            {message.content}
-          </ReactMarkdown>
+          {(() => {
+            const cleanedContent = message.content.replace(/\{\{COPY_BUTTON:[^}]+\}\}/g, '');
+            console.log('[DEBUG] MessageActorRenderer ReactMarkdown content:', {
+              messageId: message.id,
+              actor: message.actor,
+              originalContent: message.content,
+              cleanedContent: cleanedContent,
+              hasCommandLinks: cleanedContent.includes('](command:'),
+              hasMarkdownLinks: cleanedContent.includes('](')
+            });
+            return (
+              <ReactMarkdown 
+                remarkPlugins={[remarkGfm]}
+                components={createMarkdownComponents()}
+              >
+                {cleanedContent}
+              </ReactMarkdown>
+            );
+          })()}
         </span>
+        {/* Render copy buttons after markdown content */}
+        {(() => {
+          console.log('[DEBUG] MessageActorRenderer checking for copy buttons:', {
+            messageId: message.id,
+            actor: message.actor,
+            hasButtonSyntax: message.content.includes('{{COPY_BUTTON:'),
+            contentLength: message.content.length,
+            contentPreview: message.content.slice(0, 100) + (message.content.length > 100 ? '...' : '')
+          });
+          
+          if (message.content.includes('{{COPY_BUTTON:')) {
+            const regex = /\{\{COPY_BUTTON:([^}]+)\}\}/g;
+            const matches = message.content.match(regex);
+            console.log('[DEBUG] MessageActorRenderer found copy button matches:', matches);
+            
+            return (
+              <div className="mt-2">
+                {matches?.map((match, index) => {
+                  console.log('[DEBUG] MessageActorRenderer processing match:', { index, match });
+                  const base64Match = regex.exec(match);
+                  if (base64Match?.[1]) {
+                    console.log('[DEBUG] MessageActorRenderer creating CopyButton with base64:', base64Match[1].slice(0, 20) + '...');
+                    return <CopyButton key={index} base64Content={base64Match[1]} />;
+                  }
+                  console.log('[DEBUG] MessageActorRenderer no base64 match found for:', match);
+                  return null;
+                })}
+              </div>
+            );
+          }
+          return null;
+        })()}
       </div>
     </div>
+  );
+}
+
+function CopyButton({ base64Content }: { base64Content: string }) {
+  const [copied, setCopied] = useState(false);
+  
+  console.log('[DEBUG] CopyButton rendered with base64 length:', base64Content.length);
+  
+  const handleCopy = async () => {
+    console.log('[DEBUG] CopyButton clicked, attempting to copy');
+    
+    try {
+      // Decode the base64 content
+      const logContent = atob(base64Content);
+      
+      // Copy to clipboard
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(logContent);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000); // Reset after 2 seconds
+      } else {
+        // Fallback: show content in a prompt (not ideal but works)
+        prompt('Copy the content below:', logContent);
+      }
+    } catch (error) {
+      console.error('Failed to copy to clipboard:', error);
+    }
+  };
+  
+  return (
+    <button
+      onClick={handleCopy}
+      className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600 rounded transition-colors"
+      title={copied ? 'Copied!' : 'Copy to clipboard'}
+    >
+      {copied ? (
+        <>
+          <Check className="w-3 h-3" />
+          Copied!
+        </>
+      ) : (
+        <>
+          <Copy className="w-3 h-3" />
+          Copy to clipboard
+        </>
+      )}
+    </button>
   );
 }

@@ -31,6 +31,17 @@ const updateProfileSchema = z.object({
  * 
  * Orchestrates user operations across IAM and Mapping domains.
  * This is where cross-domain workflows are implemented.
+ * 
+ * Architecture Pattern:
+ * - IAM Domain: Handles user data, credential validation, profiles
+ * - Better-Auth: Handles session creation, cookies, JWT tokens
+ * - API Layer (this router): Orchestrates between domains
+ * 
+ * Example flow:
+ * 1. User provides credentials
+ * 2. IAM domain validates credentials and returns user entity
+ * 3. Better-auth creates session and sets cookies
+ * 4. API returns user data (session is in cookies)
  */
 export const userRouter = createTRPCRouter({
   /**
@@ -112,74 +123,54 @@ export const userRouter = createTRPCRouter({
 
   /**
    * Login a user
+   * Orchestrates: IAM domain (credential validation) + better-auth (session creation)
    */
   login: publicProcedure
     .use(iamServiceMiddleware)
     .input(loginSchema)
     .mutation(async ({ ctx, input }) => {
       try {
-        // Use better-auth API directly
+        // Step 1: Validate credentials via IAM domain
+        const user = await ctx.iamService.login({
+          email: input.email,
+          password: input.password,
+        });
+
+        // Step 2: Create session via better-auth
         const { auth } = await import("~/server/auth");
         const { convertToHeaders } = await import("~/server/api/trpc");
         
-        // Convert headers for better-auth
         const fetchHeaders = convertToHeaders(ctx.req.headers);
-        
-        // Use the same approach as the auth router
         const response = await auth.api.signInEmail({
           body: {
             email: input.email,
             password: input.password,
           },
           headers: fetchHeaders,
-          asResponse: true, // Get full response to handle cookies
+          asResponse: true,
         });
 
-        // Check if response is a Response object
-        let data: any;
+        // Step 3: Forward session cookies
         if (response instanceof Response) {
-          // Handle the response and forward cookies
           const setCookieHeaders = response.headers.getSetCookie();
-          console.log("[LOGIN] Response headers:", {
-            setCookieHeaders,
-            setCookieCount: setCookieHeaders?.length,
-            hasCtxRes: !!ctx.res,
-          });
           if (setCookieHeaders && setCookieHeaders.length > 0 && ctx.res) {
             ctx.res.setHeader('Set-Cookie', setCookieHeaders);
-            console.log("[LOGIN] Set-Cookie headers forwarded successfully");
           }
-          data = await response.json();
-        } else {
-          data = response;
-          console.log("[LOGIN] Response is not a Response object:", typeof response);
         }
 
-        console.log("[LOGIN] Response data:", {
-          hasUser: !!data.user,
-          userId: data.user?.id,
-          userEmail: data.user?.email,
-          hasSession: !!data.session,
-          sessionId: data.session?.id,
-        });
-
-        if (!data.user) {
-          throw new TRPCError({
-            code: "UNAUTHORIZED", 
-            message: "Invalid email or password",
-          });
-        }
-
-        // Get the user with mapping ID
-        const user = await ctx.iamService.getUserByEmail(input.email);
-
+        // Step 4: Return user data (session handled via cookies)
         return {
           user: ctx.iamService.userToContract(user),
-          session: data.session,
         };
       } catch (error) {
         if (error instanceof TRPCError) {
           throw error;
+        }
+        if (error instanceof Error && error.message.includes("Invalid")) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Invalid email or password",
+          });
         }
         throw new TRPCError({
           code: "UNAUTHORIZED",

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { api } from '~/commons/trpc/react';
+import { registerAction } from '~/lib/domains/iam/actions';
 import { authClient } from '~/lib/auth/auth-client';
 import { useChatCacheOperations } from '../Cache/hooks/useChatCacheOperations';
 import { LogIn, Mail, Key, AlertCircle, UserPlus, Loader2, User } from 'lucide-react';
@@ -13,7 +13,6 @@ interface LoginWidgetProps {
 
 export function LoginWidget({ message }: LoginWidgetProps) {
   const { dispatch } = useChatCacheOperations();
-  const trpcUtils = api.useUtils();
   const router = useRouter();
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
@@ -22,49 +21,6 @@ export function LoginWidget({ message }: LoginWidgetProps) {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  // Use the new IAM domain registration
-  const registerMutation = api.user.register.useMutation({
-    onSuccess: async (data) => {
-      // Give the session cookie time to be set
-      setTimeout(async () => {
-        // Invalidate session to trigger AuthContext update
-        await trpcUtils.auth.getSession.invalidate();
-      }, 100);
-      
-      // Dispatch success event
-      dispatch({
-        type: 'widget_resolved',
-        payload: {
-          widgetId: 'login-widget',
-          action: 'success'
-        },
-        id: `widget-resolved-${Date.now()}`,
-        timestamp: new Date(),
-        actor: 'system',
-      });
-      
-      // Add success message
-      dispatch({
-        type: 'message',
-        payload: {
-          content: `✅ Account created successfully! Welcome to **HexFrame**.`,
-          actor: 'system',
-        },
-        id: `register-success-${Date.now()}`,
-        timestamp: new Date(),
-        actor: 'system',
-      });
-      
-      // Navigate to the user's map if created
-      if (data.defaultMapId) {
-        router.push(`/map?center=${data.defaultMapId}`);
-      }
-    },
-    onError: (error) => {
-      console.error('Registration error:', error);
-      setError(error.message || "Failed to create account.");
-    }
-  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,34 +31,40 @@ export function LoginWidget({ message }: LoginWidgetProps) {
 
     try {
       if (mode === 'login') {
-        // Login mode - use better-auth client directly for proper cookie handling
-        console.log('[LOGIN WIDGET] Calling better-auth signIn...');
+        // Login mode - use better-auth client for proper session establishment
+        console.log('[LOGIN WIDGET] Logging in via better-auth client...');
         
-        const result = await authClient.signIn.email({
-          email,
-          password,
-        });
-        
-        console.log('[LOGIN WIDGET] Better-auth signIn completed:', {
-          hasUser: !!result?.data?.user,
-          userId: result?.data?.user?.id,
-          userEmail: result?.data?.user?.email,
-          hasError: !!result?.error,
-          error: result?.error,
-        });
-        
-        if (result?.error) {
-          throw new Error(result.error.message || 'Login failed');
-        }
-        
-        // Trigger the success flow manually since we're not using the mutation
-        if (result?.data?.user) {
-          // Give the session cookie time to be set
-          setTimeout(async () => {
-            console.log('[LOGIN WIDGET] Invalidating session cache...');
-            await trpcUtils.auth.getSession.invalidate();
-            console.log('[LOGIN WIDGET] Session cache invalidated');
-          }, 100);
+        try {
+          // Use better-auth client to login - this properly establishes the session
+          const loginResponse = await authClient.signIn.email({
+            email,
+            password,
+          });
+          
+          console.log('[LOGIN WIDGET] Login response:', loginResponse);
+          
+          // Wait for the session to be established
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Verify session is established
+          const session = await authClient.getSession();
+          console.log('[LOGIN WIDGET] Session after login:', {
+            hasData: !!session?.data,
+            hasUser: !!session?.data?.user,
+            userId: session?.data?.user?.id,
+          });
+          
+          if (!session?.data?.user) {
+            console.error('[LOGIN WIDGET] Session not established after login');
+            throw new Error('Failed to establish session. Please try again.');
+          }
+          
+          // Give auth context time to update
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Refresh router to update server components
+          console.log('[LOGIN WIDGET] Refreshing router...');
+          router.refresh();
           
           // Dispatch success event
           dispatch({
@@ -120,7 +82,7 @@ export function LoginWidget({ message }: LoginWidgetProps) {
           dispatch({
             type: 'message',
             payload: {
-              content: `✅ Successfully logged in as **${result.data.user.name || result.data.user.email}**`,
+              content: `✅ Successfully logged in`,
               actor: 'system',
             },
             id: `login-success-${Date.now()}`,
@@ -129,21 +91,118 @@ export function LoginWidget({ message }: LoginWidgetProps) {
           });
           
           // Navigate to user's map if they have one
-          setTimeout(async () => {
-            const userMapResult = await trpcUtils.map.user.getUserMap.fetch();
-            if (userMapResult?.success && userMapResult.map?.id) {
-              router.push(`/map?center=${userMapResult.map.id}`);
-            }
-          }, 200);
+          setTimeout(() => {
+            console.log('[LOGIN WIDGET] Navigating to /map after successful login');
+            router.push('/map');
+          }, 1000); // Give more time for auth to propagate
+        } catch (loginError: unknown) {
+          console.error('[LOGIN WIDGET] Login failed:', loginError);
+          const errorMessage = loginError instanceof Error ? loginError.message : 'Invalid email or password';
+          throw new Error(errorMessage);
         }
       } else {
-        // Register mode - use the new IAM domain endpoint
-        await registerMutation.mutateAsync({
+        // Register mode - use Server Action
+        console.log('[LOGIN WIDGET] Calling register action...');
+        
+        const result = await registerAction({
           email,
           password,
-          name: username || email.split('@')[0],
-          createDefaultMap: true
+          name: username.trim() || (email.split('@')[0] ?? 'User'),
         });
+        
+        console.log('[LOGIN WIDGET] Register action completed:', {
+          success: result.success,
+          userId: result.success ? result.userId : undefined,
+          defaultMapId: result.success && 'defaultMapId' in result ? result.defaultMapId : undefined,
+          error: !result.success ? result.error : undefined,
+        });
+        
+        if (!result.success) {
+          throw new Error(result.error || 'Registration failed');
+        }
+        
+        // Trigger the success flow
+        if (result.userId && 'defaultMapId' in result) {
+          // Since we don't auto-login in the server action anymore,
+          // we need to log the user in from the client
+          console.log('[LOGIN WIDGET] Registration successful, now logging in...');
+          
+          // Perform login with the same credentials
+          try {
+            const loginResponse = await authClient.signIn.email({
+              email,
+              password,
+            });
+            
+            console.log('[LOGIN WIDGET] Login response after registration:', loginResponse);
+            
+            // Wait for the session to be established
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Verify session is established
+            const session = await authClient.getSession();
+            console.log('[LOGIN WIDGET] Session after login:', {
+              hasData: !!session?.data,
+              hasUser: !!session?.data?.user,
+              userId: session?.data?.user?.id,
+            });
+            
+            if (!session?.data?.user) {
+              console.error('[LOGIN WIDGET] Session not established after login');
+              throw new Error('Failed to establish session. Please try logging in manually.');
+            }
+            
+            // Give auth context time to update
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Refresh router to update server components
+            console.log('[LOGIN WIDGET] Refreshing router...');
+            router.refresh();
+          } catch (loginError) {
+            console.error('[LOGIN WIDGET] Failed to login after registration:', loginError);
+            throw new Error('Registration successful but login failed. Please try logging in manually.');
+          }
+          
+          // Dispatch success event
+          dispatch({
+            type: 'widget_resolved',
+            payload: {
+              widgetId: 'login-widget',
+              action: 'success'
+            },
+            id: `widget-resolved-${Date.now()}`,
+            timestamp: new Date(),
+            actor: 'system',
+          });
+          
+          // Add success message
+          dispatch({
+            type: 'message',
+            payload: {
+              content: `✅ Account created successfully! Welcome to **HexFrame**.`,
+              actor: 'system',
+            },
+            id: `register-success-${Date.now()}`,
+            timestamp: new Date(),
+            actor: 'system',
+          });
+          
+          // Navigate to user's map if they have one
+          // This ensures the session is fully propagated and prevents race conditions
+          if ('defaultMapId' in result && result.defaultMapId) {
+            console.log('[LOGIN WIDGET] Scheduling navigation to default map:', result.defaultMapId);
+            setTimeout(() => {
+              console.log('[LOGIN WIDGET] Navigating to default map now:', result.defaultMapId);
+              router.push(`/map?center=${result.defaultMapId}`);
+            }, 1000); // Give time for session to propagate and map to be created
+          } else {
+            // If no default map ID, just navigate to /map which will resolve to user's map
+            setTimeout(() => {
+              console.log('[LOGIN WIDGET] Navigating to /map after successful registration');
+              router.push('/map');
+            }, 1000);
+          }
+        }
       }
     } catch (err) {
       console.error('Submit error:', err);
@@ -175,7 +234,7 @@ export function LoginWidget({ message }: LoginWidgetProps) {
         <button
           onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
           className="absolute top-4 right-4 text-sm text-secondary underline hover:text-secondary/80 transition-colors focus:outline-none rounded"
-          disabled={isLoading || registerMutation.isPending}
+          disabled={isLoading}
           type="button"
         >
           {mode === 'login' ? 'Register' : 'Log in'}
@@ -220,7 +279,7 @@ export function LoginWidget({ message }: LoginWidgetProps) {
                            bg-white dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-secondary-500"
                   placeholder="johndoe"
                   required
-                  disabled={isLoading || registerMutation.isPending}
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -240,7 +299,7 @@ export function LoginWidget({ message }: LoginWidgetProps) {
                          bg-white dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-secondary-500"
                 placeholder="you@example.com"
                 required
-                disabled={isLoading || registerMutation.isPending}
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -259,7 +318,7 @@ export function LoginWidget({ message }: LoginWidgetProps) {
                          bg-white dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-secondary-500"
                 placeholder="••••••••"
                 required
-                disabled={isLoading || registerMutation.isPending}
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -274,14 +333,14 @@ export function LoginWidget({ message }: LoginWidgetProps) {
           <div className="flex gap-2 pt-2">
             <button
               type="submit"
-              disabled={isLoading || registerMutation.isPending}
+              disabled={isLoading}
               className="flex-1 py-2 px-4 text-sm font-medium text-white bg-primary rounded-md 
                        hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary 
                        disabled:opacity-50 disabled:cursor-not-allowed transition-colors
                        flex items-center justify-center gap-2"
             >
-              {(isLoading || registerMutation.isPending) && <Loader2 className="h-4 w-4 animate-spin" />}
-              {(isLoading || registerMutation.isPending)
+              {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+              {isLoading
                 ? (mode === 'login' ? 'Logging in...' : 'Creating account...') 
                 : (mode === 'login' ? 'Log in' : 'Register')
               }
@@ -289,7 +348,7 @@ export function LoginWidget({ message }: LoginWidgetProps) {
             <button
               type="button"
               onClick={handleCancel}
-              disabled={isLoading || registerMutation.isPending}
+              disabled={isLoading}
               className="flex-1 py-2 px-4 text-sm font-medium text-secondary-700 dark:text-secondary-300 
                        bg-white dark:bg-neutral-800 border border-secondary-300 dark:border-secondary-700 
                        rounded-md hover:bg-secondary-50 dark:hover:bg-neutral-700 

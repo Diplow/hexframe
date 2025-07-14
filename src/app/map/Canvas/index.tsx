@@ -19,6 +19,7 @@ import { MapErrorBoundary } from "./LifeCycle/error-boundary";
 import { useDragAndDropWithMutation } from "./hooks/useDragAndDropWithMutation";
 import type { DragEvent } from "react";
 import { useChatCacheOperations } from "../Chat/Cache/hooks/useChatCacheOperations";
+import { loggers } from "~/lib/debug/debug-logger";
 
 // Theme Context for tiles
 export interface ThemeContextValue {
@@ -116,6 +117,19 @@ export function DynamicMapCanvas({
   const { mappingUserId } = useAuth();
   const { widgets } = useChatCacheOperations();
   
+  // Log component mount/unmount
+  useEffect(() => {
+    loggers.render.canvas('DynamicMapCanvas mounted', {
+      centerInfo,
+      expandedItemIds: expandedItemIds.length,
+      urlInfo,
+    });
+    
+    return () => {
+      loggers.render.canvas('DynamicMapCanvas unmounted');
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- Only log mount/unmount
+  
   // Initialize drag and drop functionality
   const {
     dragHandlers,
@@ -152,7 +166,9 @@ export function DynamicMapCanvas({
   useEffect(() => {
     // Initialize cache state with props if not already set
     if (!center && centerInfo.center) {
-      // Initializing center
+      loggers.render.canvas('DynamicMapCanvas initializing center', {
+        newCenter: centerInfo.center,
+      });
       updateCenter(centerInfo.center);
     }
   }, [center, centerInfo.center, updateCenter]); // Include dependencies
@@ -183,6 +199,24 @@ export function DynamicMapCanvas({
     }),
     [dragHandlers, canDragTile, isDraggingTile, isDropTarget, isValidDropTarget, isDragging, getDropOperation],
   );
+
+  // Use dynamic center and expanded items from cache state
+  const currentCenter = center ?? centerInfo.center;
+  const currentExpandedItems =
+    expandedItems.length > 0 ? expandedItems : expandedItemIds;
+
+  // Log render - now completely isolated and won't cause re-renders
+  useEffect(() => {
+    loggers.render.canvas('DynamicMapCanvas render', {
+      center: currentCenter,
+      expandedItems: currentExpandedItems.length,
+      itemCount: Object.keys(items).length,
+      isLoading,
+      hasError: !!error,
+      isDarkMode,
+      isHydrated,
+    });
+  });
 
   // Canvas should just display, not manage loading
   // All loading is handled by MapCache internally when center changes
@@ -215,11 +249,6 @@ export function DynamicMapCanvas({
       )
     );
   }
-
-  // Use dynamic center and expanded items from cache state
-  const currentCenter = center ?? centerInfo.center;
-  const currentExpandedItems =
-    expandedItems.length > 0 ? expandedItems : expandedItemIds;
 
   // Create dynamic center info
   const dynamicCenterInfo = {

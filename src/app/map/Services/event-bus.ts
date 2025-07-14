@@ -1,4 +1,5 @@
 import type { AppEvent, EventListener, EventBusService } from '../types/events';
+import { loggers } from '~/lib/debug/debug-logger';
 
 /**
  * EventBus implementation for cross-system communication
@@ -13,6 +14,11 @@ export class EventBus implements EventBusService {
   private listeners = new Map<string, Set<EventListener>>();
 
   emit(event: AppEvent): void {
+    // Debug logging is now handled by the logger itself based on its settings
+    loggers.eventBus(`Emitting event: **${event.type}**`, {
+      source: event.source,
+      payload: event.payload
+    });
     // Emit to specific event type listeners
     const specificListeners = this.listeners.get(event.type);
     if (specificListeners) {
@@ -83,3 +89,4 @@ export class EventBus implements EventBusService {
     return eventListeners ? eventListeners.size : 0;
   }
 }
+export const eventBus = new EventBus();

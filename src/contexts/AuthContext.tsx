@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Define the callback to update React state when the Atom changes
     const handleAuthChange = (newState: SessionState) => {
-      console.log("Auth state change detected:", {
+      console.log("[AuthContext] Auth state change detected:", {
         hasData: !!newState.data,
         hasUser: !!newState.data?.user,
         isPending: newState.isPending,
@@ -66,7 +66,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // It's good practice to re-fetch/re-set the state immediately after subscribing
     // in case the Atom updated between the initial .get() and the .subscribe() call.
     // This ensures the component has the latest state.
-    setAuthState(authClient.useSession.get());
+    const initialState = authClient.useSession.get();
+    console.log("[AuthContext] Initial auth state on mount:", {
+      hasData: !!initialState.data,
+      hasUser: !!initialState.data?.user,
+      isPending: initialState.isPending,
+      userId: initialState.data?.user?.id,
+      userEmail: initialState.data?.user?.email,
+    });
+    setAuthState(initialState);
 
     // Return the unsubscribe function to be called on component unmount
     return () => {
@@ -74,13 +82,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []); // Empty dependency array ensures this effect runs only once on mount and unmount
 
-  // Log errors if any during session fetching
-  if (authState.error) {
+  // Log errors if any during session fetching (but ignore empty error objects)
+  if (authState.error?.message) {
     console.error("Error fetching session for AuthProvider:", {
       error: authState.error,
-      errorMessage: authState.error?.message,
-      errorString: String(authState.error),
-      fullAuthState: authState,
+      errorMessage: authState.error.message,
     });
   }
 

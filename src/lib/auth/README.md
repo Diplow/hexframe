@@ -62,17 +62,18 @@ The authentication system is built around `better-auth` and integrates with the 
 
 ### 5. UI Components
 
-- **Login & Registration Forms (`src/components/auth/LoginForm.tsx`, `src/components/auth/RegisterForm.tsx`):**
+- **Login Widget (`src/app/map/Chat/Widgets/LoginWidget.tsx`):**
 
-  - These React components provide the user interface for signing in and signing up.
-  - They use methods from the `authClient` (`authClient.signIn.email` and `authClient.signUp.email`) to interact with the `better-auth` backend.
-  - After successful operations, they typically invalidate the `auth.getSession` tRPC query to refresh the `AuthContext`.
+  - A chat widget that provides both login and registration functionality.
+  - Uses server actions (`loginAction` and `registerAction`) for authentication.
+  - Integrates with the chat interface for a conversational authentication experience.
+  - After successful operations, it triggers session updates and navigation.
 
 - **Auth Tile (`src/app/map/Tile/Auth/auth.tsx`):**
 
-  - A dynamically imported component that hosts the `LoginForm` and `RegisterForm`.
-  - It allows users to switch between login and registration views.
-  - This tile is likely intended to be displayed prominently when a user is not authenticated.
+  - A tile component that directs users to use the chat interface for authentication.
+  - No longer contains forms directly - instead guides users to the chat widget.
+  - Displays helpful messages based on whether the user wants to login or register.
 
 - **User Navigation (`src/components/layout/UserNav.tsx` - as per plan):**
   - This component would display user information and a logout button.
@@ -90,19 +91,20 @@ The authentication system is built around `better-auth` and integrates with the 
 
 1.  **Registration:**
 
-    - The user fills out the `RegisterForm`.
-    - `authClient.signUp.email` is called on the client-side.
-    - `better-auth` handles user creation, password hashing, and potentially sends a verification email (depending on configuration).
-    - The client's session is updated.
+    - The user interacts with the `LoginWidget` in the chat interface.
+    - `registerAction` server action is called, which uses the IAM domain service.
+    - The IAM service validates credentials and creates the user via `better-auth`.
+    - `better-auth` handles user creation, password hashing, and session creation.
+    - The client's session is updated automatically via cookies.
     - After registration, the user's map is also created and the user is redirected to their map.
 
 2.  **Login:**
 
-    - The user fills out the `LoginForm`.
-    - `authClient.signIn.email` is called on the client-side, which makes a request to the `/api/auth/signin/email` endpoint handled by `better-auth`.
-    - Alternatively, the `authRouter.login` tRPC procedure can be used, which internally calls `auth.api.signInEmail`.
-    - `better-auth` verifies credentials and creates a session, typically setting HTTP-only cookies.
-    - The client's session is updated.
+    - The user interacts with the `LoginWidget` in the chat interface.
+    - `loginAction` server action is called, which uses the IAM domain service.
+    - The IAM service validates credentials via `better-auth`.
+    - `better-auth` verifies credentials and creates a session, setting HTTP-only cookies.
+    - The client's session is updated automatically.
     - After login, the user is redirected to their map.
 
 3.  **Session Management:**
@@ -162,7 +164,8 @@ This ensures a smooth onboarding experience where new users automatically get a 
 - **tRPC Auth Router:** `src/server/api/routers/auth.ts`
 - **tRPC Context Enhancer:** `src/server/api/trpc.ts` (specifically `createContext`)
 - **Frontend Auth Provider:** `src/contexts/AuthContext.tsx`
-- **UI Forms:** `src/components/auth/LoginForm.tsx`, `src/components/auth/RegisterForm.tsx`
+- **UI Widget:** `src/app/map/Chat/Widgets/LoginWidget.tsx`
+- **IAM Domain:** `src/lib/domains/iam/` (services, actions, repositories)
 - **Auth UI Tile:** `src/app/map/Tile/Auth/auth.tsx`
 - **Database Schema:** `src/server/db/schema/users.ts`, `accounts.ts`, etc.
 - **User Map Flow:** `src/app/_hooks/use-user-map-flow.ts`, `src/app/page.tsx`

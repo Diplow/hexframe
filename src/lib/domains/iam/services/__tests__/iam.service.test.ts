@@ -46,14 +46,14 @@ describe("IAMService", () => {
         mappingId: 1,
       });
 
-      vi.mocked(mockUserRepo.emailExists).mockResolvedValue(false);
-      vi.mocked(mockUserRepo.create).mockResolvedValue(mockUser);
+      (mockUserRepo.emailExists as ReturnType<typeof vi.fn>).mockResolvedValue(false);
+      (mockUserRepo.create as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser);
 
       const result = await service.register(validInput);
 
       expect(result).toBe(mockUser);
-      expect(vi.mocked(mockUserRepo.emailExists)).toHaveBeenCalledWith(validInput.email);
-      expect(vi.mocked(mockUserRepo.create)).toHaveBeenCalledWith({
+      expect((mockUserRepo.emailExists as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith(validInput.email);
+      expect((mockUserRepo.create as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith({
         email: validInput.email,
         password: validInput.password,
         name: validInput.name,
@@ -66,16 +66,16 @@ describe("IAMService", () => {
       await expect(service.register(input)).rejects.toThrow(
         WeakPasswordError
       );
-      expect(vi.mocked(mockUserRepo.create)).not.toHaveBeenCalled();
+      expect((mockUserRepo.create as ReturnType<typeof vi.fn>)).not.toHaveBeenCalled();
     });
 
     it("should throw EmailAlreadyExistsError for duplicate emails", async () => {
-      vi.mocked(mockUserRepo.emailExists).mockResolvedValue(true);
+      (mockUserRepo.emailExists as ReturnType<typeof vi.fn>).mockResolvedValue(true);
 
       await expect(service.register(validInput)).rejects.toThrow(
         EmailAlreadyExistsError
       );
-      expect(vi.mocked(mockUserRepo.create)).not.toHaveBeenCalled();
+      expect((mockUserRepo.create as ReturnType<typeof vi.fn>)).not.toHaveBeenCalled();
     });
   });
 
@@ -94,27 +94,22 @@ describe("IAMService", () => {
 
       const mockAuthResult = {
         user: mockUser,
-        session: {
-          id: "session-123",
-          token: "token-123",
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        },
       };
 
-      vi.mocked(mockUserRepo.authenticate).mockResolvedValue(mockAuthResult);
+      (mockUserRepo.authenticate as ReturnType<typeof vi.fn>).mockResolvedValue(mockAuthResult);
 
       const result = await service.login(loginInput);
 
-      expect(result.user.email).toBe(loginInput.email);
-      expect(result.session.id).toBe("session-123");
-      expect(vi.mocked(mockUserRepo.authenticate)).toHaveBeenCalledWith({
+      expect(result.email).toBe(loginInput.email);
+      expect(result.id).toBe(mockUser.id);
+      expect((mockUserRepo.authenticate as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith({
         email: loginInput.email,
         password: loginInput.password,
       });
     });
 
     it("should throw InvalidCredentialsError on failed authentication", async () => {
-      vi.mocked(mockUserRepo.authenticate).mockRejectedValue(
+      (mockUserRepo.authenticate as ReturnType<typeof vi.fn>).mockRejectedValue(
         new Error("Invalid credentials")
       );
 
@@ -132,16 +127,16 @@ describe("IAMService", () => {
         mappingId: 1,
       });
 
-      vi.mocked(mockUserRepo.findById).mockResolvedValue(mockUser);
+      (mockUserRepo.findById as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser);
 
       const result = await service.getUserById("user-123");
 
       expect(result).toBe(mockUser);
-      expect(vi.mocked(mockUserRepo.findById)).toHaveBeenCalledWith("user-123");
+      expect((mockUserRepo.findById as ReturnType<typeof vi.fn>)).toHaveBeenCalledWith("user-123");
     });
 
     it("should throw UserNotFoundError when user not found", async () => {
-      vi.mocked(mockUserRepo.findById).mockResolvedValue(null);
+      (mockUserRepo.findById as ReturnType<typeof vi.fn>).mockResolvedValue(null);
 
       await expect(service.getUserById("user-123")).rejects.toThrow(
         UserNotFoundError
@@ -160,15 +155,15 @@ describe("IAMService", () => {
 
       const updatedUser = mockUser.updateProfile({ name: "New Name" });
 
-      vi.mocked(mockUserRepo.findById).mockResolvedValue(mockUser);
-      vi.mocked(mockUserRepo.update).mockResolvedValue(updatedUser);
+      (mockUserRepo.findById as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser);
+      (mockUserRepo.update as ReturnType<typeof vi.fn>).mockResolvedValue(updatedUser);
 
       const result = await service.updateProfile("user-123", {
         name: "New Name",
       });
 
       expect(result.name).toBe("New Name");
-      expect(vi.mocked(mockUserRepo.update)).toHaveBeenCalled();
+      expect((mockUserRepo.update as ReturnType<typeof vi.fn>)).toHaveBeenCalled();
     });
   });
 

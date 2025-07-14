@@ -13,11 +13,6 @@ export interface AuthenticateUserInput {
 
 export interface AuthenticationResult {
   user: User;
-  session: {
-    id: string;
-    token: string;
-    expiresAt: Date;
-  };
 }
 
 /**
@@ -49,6 +44,7 @@ export interface UserRepository {
 
   /**
    * Authenticate a user with email and password
+   * Note: This validates credentials but does not create a session
    */
   authenticate(input: AuthenticateUserInput): Promise<AuthenticationResult>;
 

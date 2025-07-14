@@ -219,7 +219,7 @@ interface DragState {
 ### Basic Usage
 
 ```tsx
-import { DynamicMapCanvas } from '@/app/map/Canvas';
+import { DynamicMapCanvas } from '~/app/map/Canvas';
 
 function MapPage() {
   return (

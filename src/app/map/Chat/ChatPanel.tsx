@@ -11,6 +11,8 @@ import { Button } from '~/components/ui/button';
 import { LogOut, LogIn } from 'lucide-react';
 import { useAuth } from '~/contexts/AuthContext';
 import { authClient } from '~/lib/auth/auth-client';
+import { useEffect } from 'react';
+import { loggers } from '~/lib/debug/debug-logger';
 
 interface ChatPanelProps {
   className?: string;
@@ -19,6 +21,21 @@ interface ChatPanelProps {
 export function ChatPanel({ className }: ChatPanelProps) {
   const { state } = useChatCache();
   const { visibleMessages, activeWidgets } = state;
+  
+  // Debug logging for ChatPanel renders
+  useEffect(() => {
+    loggers.render.chat('ChatPanel mounted');
+    return () => {
+      loggers.render.chat('ChatPanel unmounted');
+    };
+  }, []);
+  
+  useEffect(() => {
+    loggers.render.chat('ChatPanel updated', {
+      visibleMessageCount: visibleMessages.length,
+      activeWidgetCount: activeWidgets.length
+    });
+  }, [visibleMessages, activeWidgets]);
 
   return (
     <div data-testid="chat-panel" className={cn('flex flex-col h-full bg-center-depth-0', className)}>
@@ -32,6 +49,14 @@ export function ChatPanel({ className }: ChatPanelProps) {
 function ChatHeader() {
   const { user } = useAuth();
   const { dispatch, eventBus } = useChatCacheOperations();
+  
+  // Debug logging for ChatHeader renders
+  useEffect(() => {
+    loggers.render.chat('ChatHeader rendered', {
+      hasUser: !!user,
+      userName: user?.name
+    });
+  });
   
   const handleAuthClick = async () => {
     if (user) {

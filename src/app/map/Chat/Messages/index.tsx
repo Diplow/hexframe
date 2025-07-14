@@ -5,6 +5,8 @@ import type { Message } from '../Cache/_events/event.types';
 import { useChatSettings } from '../_settings/useChatSettings';
 import { useAuthStateCoordinator } from './_hooks/useAuthStateCoordinator';
 import { UnifiedTimeline } from './UnifiedTimeline';
+import { useEffect } from 'react';
+import { loggers } from '~/lib/debug/debug-logger';
 
 interface MessagesProps {
   messages: Message[];
@@ -14,6 +16,22 @@ interface MessagesProps {
 export function Messages({ messages, widgets }: MessagesProps) {
   useChatSettings(); // Trigger re-render when settings change
   useAuthStateCoordinator(widgets);
+  
+  // Debug logging for Messages component renders
+  useEffect(() => {
+    loggers.render.chat('Messages component mounted');
+    return () => {
+      loggers.render.chat('Messages component unmounted');
+    };
+  }, []);
+  
+  useEffect(() => {
+    loggers.render.chat('Messages component updated', {
+      messageCount: messages.length,
+      widgetCount: widgets.length,
+      totalTimelineItems: messages.length + widgets.length
+    });
+  }, [messages, widgets]);
 
   // Combine messages and widgets into a unified timeline sorted by timestamp
   const timelineItems = [

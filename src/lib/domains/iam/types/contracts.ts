@@ -25,10 +25,6 @@ export interface RegisterInput {
 
 export interface RegisterResult {
   user: UserContract;
-  session?: {
-    id: string;
-    expiresAt: string;
-  };
 }
 
 export interface LoginInput {
@@ -38,10 +34,6 @@ export interface LoginInput {
 
 export interface LoginResult {
   user: UserContract;
-  session: {
-    id: string;
-    expiresAt: string;
-  };
 }
 
 export interface UpdateProfileInput {

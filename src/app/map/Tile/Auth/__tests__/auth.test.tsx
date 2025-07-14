@@ -1,17 +1,10 @@
 import '~/test/setup'; // Import test setup FIRST
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import AuthTile from "../auth";
 
-// Mock the form components
-vi.mock("~/components/auth/login-form", () => ({
-  LoginForm: () => <div>Login Form</div>,
-}));
-
-vi.mock("~/components/auth/register-form", () => ({
-  RegisterForm: () => <div>Register Form</div>,
-}));
+// No need to mock forms anymore as they're not used
 
 // Mock the Canvas theme hook
 vi.mock("~/app/map/Canvas", () => ({
@@ -48,20 +41,13 @@ describe("AuthTile", () => {
     expect(path?.getAttribute("d")).toBe("M50 0 L100 28.87 L100 86.6 L50 115.47 L0 86.6 L0 28.87Z");
   });
 
-  it("toggle button is clickable", () => {
+  it("shows authentication instructions", () => {
     render(<AuthTile />);
     
-    // Initially shows login form
-    expect(screen.getByText("Welcome Back")).toBeInTheDocument();
-    expect(screen.getByText("Login Form")).toBeInTheDocument();
-    
-    // Click toggle button
-    const toggleButton = screen.getByRole("button", { name: /Need an account\? Register/i });
-    fireEvent.click(toggleButton);
-    
-    // Should now show register form
-    expect(screen.getByText("Create Account")).toBeInTheDocument();
-    expect(screen.getByText("Register Form")).toBeInTheDocument();
+    // Should show authentication instructions
+    expect(screen.getByText("Authentication")).toBeInTheDocument();
+    expect(screen.getByText("Please use the chat interface to log in or sign up.")).toBeInTheDocument();
+    expect(screen.getByText("The chat assistant will help you authenticate.")).toBeInTheDocument();
   });
 
   it("content has proper pointer events", () => {

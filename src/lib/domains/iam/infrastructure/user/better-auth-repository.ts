@@ -12,6 +12,22 @@ import type {
   AuthenticationResult,
 } from "../../_repositories/user.repository";
 
+// Type for better-auth API responses
+interface BetterAuthUser {
+  id: string;
+  email: string;
+  name?: string | null;
+  emailVerified?: boolean;
+  image?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface BetterAuthResponse {
+  user?: BetterAuthUser;
+  error?: string;
+}
+
 /**
  * BetterAuthUserRepository
  * 
@@ -41,11 +57,11 @@ export class BetterAuthUserRepository implements UserRepository {
 
       // Use better-auth's handler to process the signup
       const response = await this.auth.handler(request);
-      const data = await response.json() as { user?: any; error?: string };
+      const data = await response.json() as BetterAuthResponse;
 
       if (!response.ok || !data.user) {
         console.error("Better-auth signup failed:", data);
-        throw new Error(data.error || "Failed to create user");
+        throw new Error(data.error ?? "Failed to create user");
       }
 
       // Create mapping ID immediately
@@ -144,11 +160,11 @@ export class BetterAuthUserRepository implements UserRepository {
         }),
       });
 
-      // Use better-auth's handler to process the signin
+      // Use better-auth's handler to validate credentials
       const response = await this.auth.handler(request);
-      const data = await response.json() as { user?: any; session?: any; error?: string };
+      const data = await response.json() as BetterAuthResponse;
 
-      if (!response.ok || !data.user || !data.session) {
+      if (!data.user) {
         console.error("Better-auth signin failed:", data);
         throw new Error("Invalid credentials");
       }
@@ -168,14 +184,7 @@ export class BetterAuthUserRepository implements UserRepository {
         updatedAt: new Date(data.user.updatedAt),
       });
 
-      return {
-        user,
-        session: {
-          id: data.session.id,
-          token: data.session.id, // Use session ID as token
-          expiresAt: new Date(data.session.expiresAt),
-        },
-      };
+      return { user };
     } catch (error) {
       if (error instanceof Error && error.message.includes("Invalid")) {
         throw new Error("Invalid email or password");

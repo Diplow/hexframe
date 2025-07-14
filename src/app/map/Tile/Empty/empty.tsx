@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { DynamicBaseTileLayout } from "../Base";
 import type { TileScale, TileColor } from "~/app/static/map/Tile/Base/base";
 import { LegacyTileActionsContext, useCanvasTheme } from "../../Canvas";
@@ -10,6 +10,7 @@ import { getColor } from "../../types/tile-data";
 import { getDefaultStroke } from "../utils/stroke";
 import { useTileInteraction } from "../../hooks/useTileInteraction";
 import { useChatCacheOperations } from "../../Chat/Cache/hooks/useChatCacheOperations";
+import { loggers } from "~/lib/debug/debug-logger";
 
 interface DynamicEmptyTileProps {
   coordId: string;
@@ -45,6 +46,20 @@ export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
   const [isHovered, setIsHovered] = useState(false);
   const { dispatch } = useChatCacheOperations();
   const { isDarkMode } = useCanvasTheme();
+  
+  // Log empty tile render
+  useEffect(() => {
+    loggers.render.canvas('DynamicEmptyTile render', {
+      coordId: props.coordId,
+      scale: props.scale ?? 1,
+      hasParent: !!props.parentItem,
+      parentId: props.parentItem?.id,
+      interactive: props.interactive ?? true,
+      canEdit: props.parentItem?.ownerId && props.currentUserId 
+        ? props.currentUserId.toString() === props.parentItem.ownerId.toString() 
+        : false,
+    });
+  });
   
   // Calculate default stroke for this scale
   const defaultStroke = getDefaultStroke(props.scale ?? 1, false);
