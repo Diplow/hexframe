@@ -28,8 +28,6 @@ const commands: Record<string, Command> = {
       const result = `**Debug Logs (Full Mode - ${logs.length} messages):**\n\n\`\`\`\n${logContent}\n\`\`\`\n\n{{COPY_BUTTON:${btoa(logContent)}}}`;
       
       // Generated debug command result
-        resultPreview: result.slice(0, 200) + '...'
-      });
       
       return result;
     }

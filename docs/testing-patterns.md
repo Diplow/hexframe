@@ -40,10 +40,10 @@ const { result } = renderHook(() => useYourHook(), { wrapper });
 expectEvent('map.navigation', { tileId: 'abc' });
 ```
 
-### 3. Event Bus Context (`/src/app/map/Context/event-bus-context.tsx`)
+### 3. Event Bus Context (`/src/app/map/Services/EventBus/event-bus-context.tsx`)
 
 ```typescript
-import { useEventBus } from '~/app/map/Context/event-bus-context';
+import { useEventBus } from '~/app/map/Services/EventBus/event-bus-context';
 
 function YourComponent() {
   const eventBus = useEventBus();

@@ -20,7 +20,7 @@ vi.mock("~/app/map/Cache/map-cache", () => ({
 
 // Mock the useTileInteraction hook to check the tileData passed to it
 let capturedTileData: TileData | null = null;
-vi.mock("~/app/map/hooks/useTileInteraction", () => ({
+vi.mock("~/app/map/Canvas/hooks/shared/useTileInteraction", () => ({
   useTileInteraction: (props: { tileData: TileData }) => {
     capturedTileData = props.tileData;
     return {
@@ -88,8 +88,6 @@ describe("ItemTileContent - Scale 1 Expansion", () => {
           hasChildren={true} // Even with children, scale 1 shouldn't be expandable
           isCenter={false}
           canEdit={true} // Even if user can edit, scale 1 shouldn't be expandable
-          onEditClick={vi.fn()}
-          onDeleteClick={vi.fn()}
         />
       </TileActionsProvider>
     );
@@ -121,8 +119,6 @@ describe("ItemTileContent - Scale 1 Expansion", () => {
           hasChildren={true}
           isCenter={false}
           canEdit={false}
-          onEditClick={vi.fn()}
-          onDeleteClick={vi.fn()}
         />
       </TileActionsProvider>
     );
@@ -155,8 +151,6 @@ describe("ItemTileContent - Scale 1 Expansion", () => {
           hasChildren={true}
           isCenter={false}
           canEdit={false} // Even if user can't edit, should be expandable with children
-          onEditClick={vi.fn()}
-          onDeleteClick={vi.fn()}
         />
       </TileActionsProvider>
     );
@@ -188,8 +182,6 @@ describe("ItemTileContent - Scale 1 Expansion", () => {
           hasChildren={false}
           isCenter={false}
           canEdit={false}
-          onEditClick={vi.fn()}
-          onDeleteClick={vi.fn()}
         />
       </TileActionsProvider>
     );
@@ -221,8 +213,6 @@ describe("ItemTileContent - Scale 1 Expansion", () => {
           hasChildren={false}
           isCenter={true}
           canEdit={true}
-          onEditClick={vi.fn()}
-          onDeleteClick={vi.fn()}
         />
       </TileActionsProvider>
     );

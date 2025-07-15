@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useReducer, useMemo, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import type { EventBus } from '../../Services/event-bus';
+import type { EventBus } from '../../Services/EventBus/event-bus';
 import type { ChatEvent, ChatUIState } from './_events/event.types';
 import type { AppEvent } from '../../types/events';
 import { eventsReducer } from './_reducers/events.reducer';

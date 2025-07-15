@@ -1,0 +1,234 @@
+# Chat Component Testing
+
+## Overview
+
+This document details the testing approach for the Chat component. The testing strategy follows the map-wide patterns documented in [`src/app/map/TESTING.md`](../TESTING.md).
+
+## Test Structure
+
+```
+Chat/
+├── __tests__/
+│   ├── ChatPanel.test.tsx
+│   ├── ChatMessages.test.tsx
+│   └── ChatProvider.test.tsx
+├── Cache/__tests__/
+│   ├── ChatCacheProvider.test.tsx
+│   ├── reducers.test.ts
+│   └── selectors.test.ts
+├── Input/__tests__/
+│   ├── Input.test.tsx
+│   ├── useCommandHandling.test.ts
+│   └── chatInputService.test.ts
+├── Messages/__tests__/
+│   ├── UnifiedTimeline.test.tsx
+│   ├── WidgetManager.test.tsx
+│   └── useAuthStateCoordinator.test.ts
+└── Widgets/__tests__/
+    ├── PreviewWidget.test.tsx
+    ├── CreationWidget.test.tsx
+    ├── LoginWidget.test.tsx
+    └── WidgetContainer.test.tsx
+```
+
+## Key Testing Areas
+
+### 1. Event-to-UI Translation
+
+The Chat component's primary responsibility is translating map events into chat messages and widgets:
+
+```typescript
+// Test that map navigation events create appropriate chat messages
+it('should display navigation message when map.navigation event occurs', async () => {
+  const { eventBus } = createTestEventBus();
+  render(<ChatPanel />, { wrapper: MapTestProviders });
+  
+  eventBus.emit({
+    type: 'map.navigation',
+    payload: { toCenterName: 'Project Hub' },
+    source: 'map_cache'
+  });
+  
+  await waitFor(() => {
+    expect(screen.getByText('Navigated to Project Hub')).toBeInTheDocument();
+  });
+});
+```
+
+### 2. Widget Lifecycle
+
+Widgets are created from events and interact with the Canvas through callbacks:
+
+```typescript
+// Test widget creation from tile selection
+it('should create preview widget on tile_selected event', async () => {
+  const { eventBus } = createTestEventBus();
+  render(<WidgetManager />, { wrapper: MapTestProviders });
+  
+  eventBus.emit({
+    type: 'map.tile_selected',
+    payload: { tileId: '123', tileData: { name: 'Test Tile' } },
+    source: 'canvas'
+  });
+  
+  await waitFor(() => {
+    expect(screen.getByTestId('preview-widget')).toBeInTheDocument();
+  });
+});
+```
+
+### 3. Command Processing
+
+The Input component processes user commands and emits appropriate events:
+
+```typescript
+// Test slash command execution
+it('should emit command event when slash command entered', async () => {
+  const { eventBus, expectEvent } = createTestEventBus();
+  render(<Input />, { wrapper: MapTestProviders });
+  
+  await userEvent.type(screen.getByRole('textbox'), '/create New Tile{Enter}');
+  
+  expectEvent('chat.command_executed', {
+    command: 'create',
+    args: ['New', 'Tile']
+  });
+});
+```
+
+### 4. State Management
+
+ChatCacheProvider manages the event log and derives UI state:
+
+```typescript
+// Test state derivation from events
+describe('ChatCacheProvider', () => {
+  it('should maintain event order and derive messages', () => {
+    const events = [
+      createChatEvent({ type: 'user_message', payload: { content: 'Hello' } }),
+      createChatEvent({ type: 'system_message', payload: { content: 'Hi there' } })
+    ];
+    
+    const { result } = renderHook(
+      () => useChatCache(),
+      { wrapper: props => <ChatCacheProvider {...props} initialEvents={events} /> }
+    );
+    
+    expect(result.current.state.visibleMessages).toHaveLength(2);
+    expect(result.current.state.visibleMessages[0].content).toBe('Hello');
+  });
+});
+```
+
+## Chat-Specific Test Utilities
+
+### Event Factories
+
+```typescript
+export const createChatEvent = (overrides?: Partial<ChatEvent>): ChatEvent => ({
+  id: `event-${Date.now()}`,
+  type: 'user_message',
+  payload: { content: 'Test message' },
+  timestamp: new Date(),
+  actor: 'user',
+  ...overrides
+});
+
+export const createWidget = (overrides?: Partial<Widget>): Widget => ({
+  id: `widget-${Date.now()}`,
+  type: 'preview',
+  props: {},
+  timestamp: new Date(),
+  ...overrides
+});
+```
+
+### Mock Helpers
+
+```typescript
+// Mock for testing widget-canvas interactions
+export const createMockCanvasCallbacks = () => ({
+  onTileCreate: vi.fn().mockResolvedValue({ id: 'new-tile' }),
+  onTileUpdate: vi.fn().mockResolvedValue(true),
+  onTileDelete: vi.fn().mockResolvedValue(true),
+  onNavigate: vi.fn()
+});
+```
+
+## Common Test Patterns
+
+### Testing Event Chains
+
+```typescript
+it('should complete tile creation flow', async () => {
+  const { eventBus, expectEvent, clearEvents } = createTestEventBus();
+  const canvasCallbacks = createMockCanvasCallbacks();
+  
+  render(
+    <ChatPanel canvasCallbacks={canvasCallbacks} />,
+    { wrapper: MapTestProviders }
+  );
+  
+  // User types create command
+  await userEvent.type(screen.getByRole('textbox'), '/create Test Tile{Enter}');
+  
+  // Verify command event
+  expectEvent('chat.command_executed', { command: 'create' });
+  
+  // Verify creation widget appears
+  await waitFor(() => {
+    expect(screen.getByTestId('creation-widget')).toBeInTheDocument();
+  });
+  
+  // Complete creation
+  await userEvent.click(screen.getByText('Create'));
+  
+  // Verify canvas callback invoked
+  expect(canvasCallbacks.onTileCreate).toHaveBeenCalled();
+  
+  // Verify completion event
+  expectEvent('chat.operation_completed', {
+    operation: 'tile_creation'
+  });
+});
+```
+
+### Testing Error Scenarios
+
+```typescript
+it('should show error widget when operation fails', async () => {
+  const { eventBus } = createTestEventBus();
+  render(<ChatPanel />, { wrapper: MapTestProviders });
+  
+  eventBus.emit({
+    type: 'chat.error_occurred',
+    payload: {
+      error: { message: 'Failed to create tile: Name already exists' },
+      context: 'tile_creation'
+    },
+    source: 'map_cache'
+  });
+  
+  await waitFor(() => {
+    const errorWidget = screen.getByTestId('error-widget');
+    expect(errorWidget).toHaveTextContent('Failed to create tile: Name already exists');
+  });
+});
+```
+
+## Running Chat Tests
+
+```bash
+# Run all Chat tests
+pnpm test src/app/map/Chat
+
+# Run specific test suites
+pnpm test src/app/map/Chat/Cache
+pnpm test src/app/map/Chat/Widgets
+
+# Watch mode for TDD
+pnpm test:watch src/app/map/Chat
+
+# Debug a specific test
+pnpm test:debug src/app/map/Chat/__tests__/ChatPanel.test.tsx
+```

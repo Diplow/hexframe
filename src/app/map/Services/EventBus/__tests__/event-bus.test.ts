@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { EventBus } from '../event-bus';
-import type { AppEvent } from '../../types/events';
+import type { AppEvent } from '../../../types/events';
 
 describe('EventBus', () => {
   let eventBus: EventBus;

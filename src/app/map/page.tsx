@@ -5,7 +5,8 @@ import { MapCacheProvider } from "./Cache/map-cache";
 import { useMapIdResolution } from "./_hooks/use-map-id-resolution";
 import { ChatCacheProvider } from "./Chat/Cache/ChatCacheProvider";
 import { MapPageContent } from "./_components/MapPageContent";
-import { eventBus } from "./Services/event-bus";
+import { eventBus } from "./Services/EventBus/event-bus";
+import { EventBusProvider } from "./Services/EventBus/event-bus-context";
 import { loadPreFetchedData, clearPreFetchedData } from "./Cache/Services/pre-fetch-service";
 import { api } from "~/commons/trpc/react";
 import { useRouter } from "next/navigation";
@@ -112,35 +113,37 @@ export default function MapPage({ searchParams }: MapPageProps) {
     // Showing loading state
     return (
       <div className="relative flex h-full w-full">
-        <MapCacheProvider
-          initialItems={{}}
-          initialCenter={null}
-          initialExpandedItems={[]}
-          cacheConfig={CACHE_CONFIG}
-          offlineMode={isOffline}
-          eventBus={eventBus}
-          mapContext={{
-            rootItemId: 0,
-            userId: 0,
-            groupId: 0,
-          }}
-          testingOverrides={{
-            disableSync: true,
-          }}
-        >
-          <ChatCacheProvider eventBus={eventBus}>
-            <MapPageContent
-                centerCoordinate={"0,0"}
-                params={params}
-                rootItemId={0}
-                userId={0}
-                groupId={0}
-                isOffline={isOffline}
-                isLoading={true}
-                loadingError={null}
-            />
-          </ChatCacheProvider>
-        </MapCacheProvider>
+        <EventBusProvider eventBus={eventBus}>
+          <MapCacheProvider
+            initialItems={{}}
+            initialCenter={null}
+            initialExpandedItems={[]}
+            cacheConfig={CACHE_CONFIG}
+            offlineMode={isOffline}
+            eventBus={eventBus}
+            mapContext={{
+              rootItemId: 0,
+              userId: 0,
+              groupId: 0,
+            }}
+            testingOverrides={{
+              disableSync: true,
+            }}
+          >
+            <ChatCacheProvider eventBus={eventBus}>
+              <MapPageContent
+                  centerCoordinate={"0,0"}
+                  params={params}
+                  rootItemId={0}
+                  userId={0}
+                  groupId={0}
+                  isOffline={isOffline}
+                  isLoading={true}
+                  loadingError={null}
+              />
+            </ChatCacheProvider>
+          </MapCacheProvider>
+        </EventBusProvider>
       </div>
     );
   }
@@ -150,35 +153,37 @@ export default function MapPage({ searchParams }: MapPageProps) {
     // Show the layout structure with loading skeleton in canvas area
     return (
       <div className="relative flex h-full w-full">
-        <MapCacheProvider
-          initialItems={{}}
-          initialCenter={null} // Don't set a center during loading to prevent fetch attempts
-          initialExpandedItems={[]}
-          cacheConfig={CACHE_CONFIG}
-          offlineMode={isOffline}
-          eventBus={eventBus}
-          mapContext={{
-            rootItemId: 0,
-            userId: 0,
-            groupId: 0,
-          }}
-          testingOverrides={{
-            disableSync: true,
-          }}
-        >
-          <ChatCacheProvider eventBus={eventBus}>
-            <MapPageContent
-                centerCoordinate={"0,0"}
-                params={params}
-                rootItemId={0}
-                userId={0}
-                groupId={0}
-                isOffline={isOffline}
-                isLoading={true}
-                loadingError={null}
-            />
-          </ChatCacheProvider>
-        </MapCacheProvider>
+        <EventBusProvider eventBus={eventBus}>
+          <MapCacheProvider
+            initialItems={{}}
+            initialCenter={null} // Don't set a center during loading to prevent fetch attempts
+            initialExpandedItems={[]}
+            cacheConfig={CACHE_CONFIG}
+            offlineMode={isOffline}
+            eventBus={eventBus}
+            mapContext={{
+              rootItemId: 0,
+              userId: 0,
+              groupId: 0,
+            }}
+            testingOverrides={{
+              disableSync: true,
+            }}
+          >
+            <ChatCacheProvider eventBus={eventBus}>
+              <MapPageContent
+                  centerCoordinate={"0,0"}
+                  params={params}
+                  rootItemId={0}
+                  userId={0}
+                  groupId={0}
+                  isOffline={isOffline}
+                  isLoading={true}
+                  loadingError={null}
+              />
+            </ChatCacheProvider>
+          </MapCacheProvider>
+        </EventBusProvider>
       </div>
     );
   }
@@ -187,35 +192,37 @@ export default function MapPage({ searchParams }: MapPageProps) {
   if (resolutionError) {
     return (
       <div className="relative flex h-full w-full">
-        <MapCacheProvider
-          initialItems={{}}
-          initialCenter={null} // Don't set a center during error state to prevent fetch attempts
-          initialExpandedItems={[]}
-          cacheConfig={CACHE_CONFIG}
-          offlineMode={isOffline}
-          eventBus={eventBus}
-          mapContext={{
-            rootItemId: 0,
-            userId: 0,
-            groupId: 0,
-          }}
-          testingOverrides={{
-            disableSync: true,
-          }}
-        >
-          <ChatCacheProvider eventBus={eventBus}>
-            <MapPageContent
-                centerCoordinate={"0,0"}
-                params={params}
-                rootItemId={0}
-                userId={0}
-                groupId={0}
-                isOffline={isOffline}
-                isLoading={false}
-                loadingError={resolutionError || new Error("Unable to load the requested map")}
-            />
-          </ChatCacheProvider>
-        </MapCacheProvider>
+        <EventBusProvider eventBus={eventBus}>
+          <MapCacheProvider
+            initialItems={{}}
+            initialCenter={null} // Don't set a center during error state to prevent fetch attempts
+            initialExpandedItems={[]}
+            cacheConfig={CACHE_CONFIG}
+            offlineMode={isOffline}
+            eventBus={eventBus}
+            mapContext={{
+              rootItemId: 0,
+              userId: 0,
+              groupId: 0,
+            }}
+            testingOverrides={{
+              disableSync: true,
+            }}
+          >
+            <ChatCacheProvider eventBus={eventBus}>
+              <MapPageContent
+                  centerCoordinate={"0,0"}
+                  params={params}
+                  rootItemId={0}
+                  userId={0}
+                  groupId={0}
+                  isOffline={isOffline}
+                  isLoading={false}
+                  loadingError={resolutionError || new Error("Unable to load the requested map")}
+              />
+            </ChatCacheProvider>
+          </MapCacheProvider>
+        </EventBusProvider>
       </div>
     );
   }
@@ -224,35 +231,37 @@ export default function MapPage({ searchParams }: MapPageProps) {
   if (!centerCoordinate) {
     return (
       <div className="relative flex h-full w-full">
-        <MapCacheProvider
-          initialItems={{}}
-          initialCenter={null}
-          initialExpandedItems={[]}
-          cacheConfig={CACHE_CONFIG}
-          offlineMode={isOffline}
-          eventBus={eventBus}
-          mapContext={{
-            rootItemId: 0,
-            userId: 0,
-            groupId: 0,
-          }}
-          testingOverrides={{
-            disableSync: true,
-          }}
-        >
-          <ChatCacheProvider eventBus={eventBus}>
-            <MapPageContent
-                centerCoordinate={"0,0"}
-                params={params}
-                rootItemId={0}
-                userId={0}
-                groupId={0}
-                isOffline={isOffline}
-                isLoading={false}
-                loadingError={new Error("Unable to resolve map coordinates")}
-            />
-          </ChatCacheProvider>
-        </MapCacheProvider>
+        <EventBusProvider eventBus={eventBus}>
+          <MapCacheProvider
+            initialItems={{}}
+            initialCenter={null}
+            initialExpandedItems={[]}
+            cacheConfig={CACHE_CONFIG}
+            offlineMode={isOffline}
+            eventBus={eventBus}
+            mapContext={{
+              rootItemId: 0,
+              userId: 0,
+              groupId: 0,
+            }}
+            testingOverrides={{
+              disableSync: true,
+            }}
+          >
+            <ChatCacheProvider eventBus={eventBus}>
+              <MapPageContent
+                  centerCoordinate={"0,0"}
+                  params={params}
+                  rootItemId={0}
+                  userId={0}
+                  groupId={0}
+                  isOffline={isOffline}
+                  isLoading={false}
+                  loadingError={new Error("Unable to resolve map coordinates")}
+              />
+            </ChatCacheProvider>
+          </MapCacheProvider>
+        </EventBusProvider>
       </div>
     );
   }
@@ -266,47 +275,49 @@ export default function MapPage({ searchParams }: MapPageProps) {
   
   return (
     <div className="relative flex h-full w-full">
-      <MapCacheProvider
-        initialItems={initialItems} // Use pre-fetched data or empty cache
-        initialCenter={effectiveCenter} // Use pre-fetched center or resolved coordinate
-        initialExpandedItems={params.expandedItems?.split(",") ?? []}
-        cacheConfig={CACHE_CONFIG}
-        offlineMode={isOffline}
-        eventBus={eventBus}
-        mapContext={{
-          rootItemId,
-          userId,
-          groupId,
-        }}
-        testingOverrides={{
-          disableSync: true, // Disable sync until basic cache is working
-        }}
-      >
-        <ChatCacheProvider 
+      <EventBusProvider eventBus={eventBus}>
+        <MapCacheProvider
+          initialItems={initialItems} // Use pre-fetched data or empty cache
+          initialCenter={effectiveCenter} // Use pre-fetched center or resolved coordinate
+          initialExpandedItems={params.expandedItems?.split(",") ?? []}
+          cacheConfig={CACHE_CONFIG}
+          offlineMode={isOffline}
           eventBus={eventBus}
-          initialEvents={[
-            {
-              type: 'system_message',
-              payload: {
-                message: 'Welcome to **HexFrame**! Navigate the map by clicking on tiles, or use the chat to ask questions.',
-                level: 'info',
-              },
-              id: 'welcome-message',
-              timestamp: new Date(),
-              actor: 'system',
-            }
-          ]}
+          mapContext={{
+            rootItemId,
+            userId,
+            groupId,
+          }}
+          testingOverrides={{
+            disableSync: true, // Disable sync until basic cache is working
+          }}
         >
-          <MapPageContent
-            centerCoordinate={centerCoordinate}
-            params={params}
-            rootItemId={rootItemId}
-            userId={userId}
-            groupId={groupId}
-            isOffline={isOffline}
-          />
-        </ChatCacheProvider>
-      </MapCacheProvider>
+          <ChatCacheProvider 
+            eventBus={eventBus}
+            initialEvents={[
+              {
+                type: 'system_message',
+                payload: {
+                  message: 'Welcome to **HexFrame**! Navigate the map by clicking on tiles, or use the chat to ask questions.',
+                  level: 'info',
+                },
+                id: 'welcome-message',
+                timestamp: new Date(),
+                actor: 'system',
+              }
+            ]}
+          >
+            <MapPageContent
+              centerCoordinate={centerCoordinate}
+              params={params}
+              rootItemId={rootItemId}
+              userId={userId}
+              groupId={groupId}
+              isOffline={isOffline}
+            />
+          </ChatCacheProvider>
+        </MapCacheProvider>
+      </EventBusProvider>
     </div>
   );
 }

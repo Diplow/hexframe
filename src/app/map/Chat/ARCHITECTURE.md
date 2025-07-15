@@ -251,6 +251,10 @@ Canvas widgets should clearly indicate they modify the map:
 - Consistent visual language
 - Accessibility considerations (not just color)
 
+## Testing Strategy
+
+The Chat component testing approach is documented in [TESTING.md](./TESTING.md).
+
 ## Future Integration Points
 
 1. **Backend Chat Domain** - Events can be persisted/streamed

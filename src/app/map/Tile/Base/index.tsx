@@ -6,7 +6,7 @@ import type {
   TileColor, 
   TileStroke, 
   TileCursor 
-} from "~/app/map/components/BaseTileLayout";
+} from "~/app/map/Canvas/base/BaseTileLayout";
 import { getDefaultStroke, getStrokeHexColor } from "../utils/stroke";
 import { CoordSystem, type Direction } from "~/lib/domains/mapping/utils/hex-coordinates";
 import { renderTileGradient } from "./gradient";

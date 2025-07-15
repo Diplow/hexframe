@@ -2,10 +2,10 @@
 
 import type { TileData } from "~/app/map/types/tile-data";
 import { DynamicBaseTileLayout } from "~/app/map/Tile/Base";
-import type { TileScale, TileColor } from "~/app/map/components/BaseTileLayout";
+import type { TileScale, TileColor } from "~/app/map/Canvas/base/BaseTileLayout";
 import { DynamicTileContent } from "../content";
 import type { URLInfo } from "~/app/map/types/url-info";
-import { useTileInteraction } from "~/app/map/hooks/useTileInteraction";
+import { useTileInteraction } from "~/app/map/Canvas/hooks/shared/useTileInteraction";
 import { useRouter } from "next/navigation";
 import { useMapCache } from "~/app/map/Cache/map-cache";
 import { useCanvasTheme } from "~/app/map/Canvas";

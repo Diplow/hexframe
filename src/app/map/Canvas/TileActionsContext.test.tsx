@@ -4,7 +4,7 @@ import { renderHook, act, render } from '@testing-library/react'
 import { TileActionsProvider, useTileActions } from './TileActionsContext'
 import type { ReactNode } from 'react'
 import React from 'react'
-import { createMockTileData } from '../test-utils/mockTileData'
+import { createMockTileData } from '../__tests__/utils/mockTileData'
 
 describe('TileActionsContext', () => {
   beforeEach(() => {

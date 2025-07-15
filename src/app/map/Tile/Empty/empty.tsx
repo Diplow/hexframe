@@ -2,13 +2,13 @@
 
 import { useState, useContext, useEffect } from "react";
 import { DynamicBaseTileLayout } from "../Base";
-import type { TileScale, TileColor } from "~/app/map/components/BaseTileLayout";
+import type { TileScale, TileColor } from "~/app/map/Canvas/base/BaseTileLayout";
 import { LegacyTileActionsContext, useCanvasTheme } from "../../Canvas";
 import type { URLInfo } from "../../types/url-info";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import { getColor } from "../../types/tile-data";
 import { getDefaultStroke } from "../utils/stroke";
-import { useTileInteraction } from "../../hooks/useTileInteraction";
+import { useTileInteraction } from "~/app/map/Canvas/hooks/shared/useTileInteraction";
 import { useChatCacheOperations } from "../../Chat/Cache/hooks/useChatCacheOperations";
 import { loggers } from "~/lib/debug/debug-logger";
 

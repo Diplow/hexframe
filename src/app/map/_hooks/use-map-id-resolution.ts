@@ -107,7 +107,7 @@ export function useMapIdResolution(centerParam: string): ResolvedMapInfo {
         error: new Error(error.message || "Failed to resolve map ID"),
       }));
     }
-  }, [centerParam, isCoordinate, hasValidParam, rootItem, error, isLoading]);
+  }, [centerParam, isCoordinate, hasValidParam, rootItem, error]);
 
   const result = {
     ...resolvedInfo,

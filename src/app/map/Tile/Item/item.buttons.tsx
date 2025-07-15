@@ -10,7 +10,7 @@ import {
   getButtonsSizing,
 } from "./_utils/button-utils";
 import type { TileData } from "../../types/tile-data";
-import type { TileScale } from "~/app/map/components/BaseTileLayout";
+import type { TileScale } from "~/app/map/Canvas/base/BaseTileLayout";
 import type { URLInfo } from "../../types/url-info";
 
 export interface TileButtonsProps {

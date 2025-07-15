@@ -1,4 +1,4 @@
-import type { TileData } from "../types/tile-data";
+import type { TileData } from "../../types/tile-data";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 
 export function createMockTileData(overrides?: Partial<TileData>): TileData {

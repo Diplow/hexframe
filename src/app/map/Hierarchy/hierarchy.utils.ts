@@ -1,5 +1,5 @@
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
-import type { TileData } from "../../types/tile-data";
+import type { TileData } from "../types/tile-data";
 
 /**
  * Builds the parent hierarchy chain from root to direct parent (excluding current center)

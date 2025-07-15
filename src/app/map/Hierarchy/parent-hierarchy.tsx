@@ -2,15 +2,15 @@
 
 import { ChevronDown } from "lucide-react";
 import { useEffect, useRef } from "react";
-import type { TileData } from "../../types/tile-data";
-import { useMapCache } from "../../Cache/map-cache";
+import type { TileData } from "../types/tile-data";
+import { useMapCache } from "../Cache/map-cache";
 import { _getParentHierarchy } from "./hierarchy.utils";
-import type { URLInfo } from "../../types/url-info";
-import { BaseTileLayout } from "~/app/map/components/BaseTileLayout";
+import type { URLInfo } from "../types/url-info";
+import { BaseTileLayout } from "~/app/map/Canvas/base/BaseTileLayout";
 import {
   HIERARCHY_TILE_BASE_SIZE,
   HIERARCHY_TILE_SCALE,
-} from "../../constants";
+} from "../constants";
 import { getTextColorForDepth } from "~/app/map/types/theme-colors";
 import { useAuth } from "~/contexts/AuthContext";
 import { api } from "~/commons/trpc/react";

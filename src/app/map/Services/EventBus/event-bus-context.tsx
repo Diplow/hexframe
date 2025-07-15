@@ -1,8 +1,8 @@
 'use client';
 
 import React, { createContext, useContext } from 'react';
-import type { EventBusService } from '../types/events';
-import { eventBus as defaultEventBus } from '../Services/event-bus';
+import type { EventBusService } from '../../types/events';
+import { eventBus as defaultEventBus } from './event-bus';
 
 /**
  * Context for the EventBus service

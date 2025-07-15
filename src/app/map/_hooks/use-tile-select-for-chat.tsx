@@ -1,19 +1,20 @@
 import { useCallback } from 'react';
-import { useChatCacheOperations } from '../Chat/Cache/hooks/useChatCacheOperations';
+import { useEventBus } from '../Services/EventBus/event-bus-context';
 import { useMapCache } from '../Cache/_hooks/use-map-cache';
 import type { TileData } from '../types/tile-data';
 
 export function useTileSelectForChat() {
-  const { dispatch } = useChatCacheOperations();
+  const eventBus = useEventBus();
   const { items } = useMapCache();
   
   const handleTileSelect = useCallback((tileData: TileData, options?: { openInEditMode?: boolean }) => {
     // Get the full tile data from cache
     const fullTileData = items[tileData.metadata.coordId] ?? tileData;
     
-    // Dispatch tile selected event
-    dispatch({
-      type: 'tile_selected',
+    // Emit tile selected event via event bus
+    eventBus.emit({
+      type: 'map.tile_selected',
+      source: 'map_cache',
       payload: {
         tileId: fullTileData.metadata.coordId,
         tileData: {
@@ -24,11 +25,9 @@ export function useTileSelectForChat() {
         },
         openInEditMode: options?.openInEditMode,
       },
-      id: `select-${Date.now()}`,
       timestamp: new Date(),
-      actor: 'user',
     });
-  }, [dispatch, items]);
+  }, [eventBus, items]);
   
   return { handleTileSelect };
 }

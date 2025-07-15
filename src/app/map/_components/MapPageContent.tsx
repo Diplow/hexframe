@@ -3,13 +3,12 @@
 import { useCallback } from "react";
 import { DynamicMapCanvas } from "../Canvas";
 import type { TileData } from "../types/tile-data";
-import { ParentHierarchy } from "../Controls/ParentHierarchy/parent-hierarchy";
-import { MapControls } from "../Controls";
+import { ParentHierarchy } from "../Hierarchy";
 import { TileActionsProvider } from "../Canvas/TileActionsContext";
 import { MapContent } from "./MapContent";
 import { ChatPanel } from "../Chat/ChatPanel";
 import { OfflineIndicator } from "./offline-indicator";
-import { useTileSelectForChat } from "../hooks/useTileSelectForChat";
+import { useTileSelectForChat } from "../_hooks/use-tile-select-for-chat";
 import { useChatCacheOperations } from "../Chat/Cache/hooks/useChatCacheOperations";
 import { useMapCache } from "../Cache/map-cache";
 import { useRouter } from "next/navigation";
@@ -137,25 +136,6 @@ export function MapPageContent({
                       enableBackgroundSync={true}
                       syncInterval={30000}
                       cacheConfig={CACHE_CONFIG}
-                    />
-                    <MapControls
-                      urlInfo={{
-                        pathname: `/map`,
-                        searchParamsString: new URLSearchParams(params as Record<string, string>).toString(),
-                        rootItemId: params.center!,
-                        scale: params.scale,
-                        expandedItems: params.expandedItems,
-                        focus: params.focus,
-                      }}
-                      expandedItemIds={params.expandedItems?.split(",") ?? []}
-                      minimapItemsData={{}} // Will get items from cache context
-                      currentMapCenterCoordId={centerCoordinate}
-                      cacheStatus={{
-                        isLoading: false, // Cache will manage its own loading state
-                        lastUpdated: Date.now(),
-                        error: null,
-                        itemCount: 0,
-                      }}
                     />
                   </>
                 )}

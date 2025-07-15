@@ -2,7 +2,7 @@ import { vi } from 'vitest';
 import React from 'react';
 import { render } from '@testing-library/react';
 import { ChatCacheProvider } from '../Cache/ChatCacheProvider';
-import { EventBus } from '../../Services/event-bus';
+import { EventBus } from '../../Services/EventBus/event-bus';
 import type { ChatEvent } from '../Cache/_events/event.types';
 import { AuthProvider } from '~/contexts/AuthContext';
 

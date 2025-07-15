@@ -1,4 +1,4 @@
-import type { TileScale } from "~/app/map/components/BaseTileLayout";
+import type { TileScale } from "~/app/map/Canvas/base/BaseTileLayout";
 
 export type StrokeConfig = {
   color: "zinc-950" | "zinc-900" | "zinc-800" | "zinc-50" | "transparent";
