@@ -132,11 +132,7 @@ export function createServerService(
       centerCoordId: string;
       maxDepth: number;
     }) => {
-      console.log('[ServerService.fetchItemsForCoordinate] Called with:', {
-        params,
-        timestamp: new Date().toISOString(),
-        stackTrace: new Error().stack
-      });
+      // fetchItemsForCoordinate called
       const operation = async () => {
         // Parse the coordinate to get user and group information
         // Now we only receive proper coordinates, never mapItemIds
@@ -144,13 +140,13 @@ export function createServerService(
         try {
           coords = CoordSystem.parseId(params.centerCoordId);
         } catch (error) {
-          console.warn('[ServerService] Invalid coordinate ID:', params.centerCoordId, error);
+          // Invalid coordinate ID
           return [];
         }
         
         // Don't make API calls with invalid userId/groupId values
         if (coords.userId === 0 || isNaN(coords.userId)) {
-          console.warn('[ServerService] Skipping API call with invalid userId:', coords.userId);
+          // Skipping API call with invalid userId
           return [];
         }
         
@@ -197,11 +193,7 @@ export function createServerService(
 
     // Additional helper methods using the available tRPC APIs (queries only)
     getItemByCoordinate: async (coordId: string) => {
-      console.log('[ServerService.getItemByCoordinate] Called with:', {
-        coordId,
-        timestamp: new Date().toISOString(),
-        stackTrace: new Error().stack
-      });
+      // getItemByCoordinate called
       const operation = async () => {
         const coords = CoordSystem.parseId(coordId);
         const item = await utils.map.getItemByCoords.fetch({
@@ -216,11 +208,7 @@ export function createServerService(
     },
 
     getRootItemById: async (mapItemId: number) => {
-      console.log('[ServerService.getRootItemById] Called with:', {
-        mapItemId,
-        timestamp: new Date().toISOString(),
-        stackTrace: new Error().stack
-      });
+      // getRootItemById called
       const operation = async () => {
         const item = await utils.map.getRootItemById.fetch({ mapItemId });
         return item;
@@ -232,11 +220,7 @@ export function createServerService(
     },
 
     getDescendants: async (itemId: number) => {
-      console.log('[ServerService.getDescendants] Called with:', {
-        itemId,
-        timestamp: new Date().toISOString(),
-        stackTrace: new Error().stack
-      });
+      // getDescendants called
       const operation = async () => {
         const descendants = await utils.map.getDescendants.fetch({ itemId });
         return descendants;
@@ -248,11 +232,7 @@ export function createServerService(
     },
 
     getAncestors: async (itemId: number) => {
-      console.log('[ServerService.getAncestors] Called with:', {
-        itemId,
-        timestamp: new Date().toISOString(),
-        stackTrace: new Error().stack
-      });
+      // getAncestors called
       const operation = async () => {
         const ancestors = await utils.map.getAncestors.fetch({ itemId });
         return ancestors;

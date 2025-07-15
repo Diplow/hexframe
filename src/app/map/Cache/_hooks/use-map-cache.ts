@@ -77,9 +77,9 @@ export function useMapCache(): MapCacheHook {
 
   const deleteItemOptimistic = useCallback(
     async (coordId: string) => {
-      console.log('[MapCache] 🗑️ deleteItemOptimistic called with coordId:', coordId);
+      // deleteItemOptimistic called
       await mutationOperations.deleteItem(coordId);
-      console.log('[MapCache] ✅ deleteItemOptimistic completed');
+      // deleteItemOptimistic completed
     },
     [mutationOperations],
   );
@@ -112,7 +112,7 @@ export function useMapCache(): MapCacheHook {
   // Navigation operations - now converts coordinate IDs to database IDs
   const navigateToItem = useCallback(
     async (itemIdentifier: string, options?: { pushToHistory?: boolean }) => {
-      console.log('[MapCache] 🧭 Navigate request for identifier:', itemIdentifier);
+      // Navigate request for identifier
       
       let dbId: string;
       
@@ -120,16 +120,16 @@ export function useMapCache(): MapCacheHook {
       if (/^\d+$/.test(itemIdentifier)) {
         // It's already a database ID
         dbId = itemIdentifier;
-        console.log('[MapCache] ✅ Using provided database ID:', dbId);
+        // Using provided database ID
       } else {
         // It's a coordinate ID, convert to database ID
         const resolvedDbId = getDbIdFromCoordId(itemIdentifier);
         if (!resolvedDbId) {
-          console.error('[MapCache] ❌ Cannot find database ID for coordinate:', itemIdentifier);
+          // Cannot find database ID for coordinate
           throw new Error(`No item found with coordinate ID: ${itemIdentifier}`);
         }
         dbId = resolvedDbId;
-        console.log('[MapCache] 🔄 Converted coordinate ID to database ID:', itemIdentifier, '→', dbId);
+        // Converted coordinate ID to database ID
       }
       
       await navigationOperations.navigateToItem(dbId, options);

@@ -70,7 +70,7 @@ export function useChatCacheOperations() {
     closeWidget: (widgetId: string) => {
       // In a real implementation, we might emit a widget_closed event
       // For now, widgets close themselves based on operation completion
-      console.log('Widget close requested:', widgetId);
+      // Widget close requested
     },
 
     // Direct access to event bus for advanced use cases

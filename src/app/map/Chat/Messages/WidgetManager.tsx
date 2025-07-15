@@ -91,20 +91,16 @@ export function WidgetManager({ widgets }: WidgetManagerProps) {
     const handleEdit = () => {
       // Open edit mode directly in the preview widget
       const previewData = widget.data as TileSelectedPayload;
-      console.log('Edit tile:', previewData.tileId);
+      // Edit tile
     };
     
     const handleDelete = () => {
       // Dispatch delete confirmation widget
       const previewData = widget.data as TileSelectedPayload;
-      console.log('[WidgetManager] 🔥 handleDelete called for:', {
-        tileId: previewData.tileId,
-        tileName: previewData.tileData.title,
-        coordId: previewData.tileData.coordId
-      });
+      // handleDelete called
       
       const deleteEventId = `delete-${Date.now()}`;
-      console.log('[WidgetManager] 📤 Dispatching operation_started event:', deleteEventId);
+      // Dispatching operation_started event
       
       dispatch({
         type: 'operation_started',
@@ -214,32 +210,19 @@ function _renderPreviewWidget(widget: Widget, createWidgetHandlers: (widget: Wid
   const previewData = widget.data as TileSelectedPayload;
   const { handleEdit = () => { /* noop */ }, handleDelete = () => { /* noop */ }, handlePreviewSave = () => { /* noop */ } } = createWidgetHandlers(widget);
 
-  console.log('[PreviewWidget] 📋 Rendering with data:', {
-    tileId: previewData.tileId,
-    widgetDataTitle: previewData.tileData.title,
-    totalItemsInCache: Object.keys(items).length,
-  });
+  // PreviewWidget rendering with data
 
   // Get real-time data from the map cache
   // The tileId is actually a coordinate ID, so we can look it up directly
   const tileItem = items[previewData.tileId];
   
-  console.log('[PreviewWidget] 🔍 Found in cache:', {
-    found: !!tileItem,
-    cacheTitle: tileItem?.data.name,
-    cacheContent: tileItem?.data.description,
-    dbId: tileItem?.metadata.dbId,
-    coordId: tileItem?.metadata.coordId,
-  });
+  // PreviewWidget found in cache
   
   // Use real-time data if available, otherwise fall back to widget data
   const currentTitle = tileItem?.data.name ?? previewData.tileData.title;
   const currentContent = tileItem?.data.description ?? previewData.tileData.content ?? '';
 
-  console.log('[PreviewWidget] 📝 Using values:', {
-    currentTitle,
-    currentContent,
-  });
+  // PreviewWidget using values
 
   return (
     <PreviewWidget
@@ -269,7 +252,7 @@ function _renderErrorWidget(widget: Widget) {
       message={errorData.error}
       error={errorData.context ? JSON.stringify(errorData.context) : undefined}
       retry={errorData.retryable ? () => {
-        console.log('Retry requested');
+        // Retry requested
       } : undefined}
     />
   );
@@ -307,13 +290,7 @@ function _renderDeleteWidget(widget: Widget) {
   const tileCoordId = deleteData.tile?.coordId ?? deleteData.tileId ?? '';
   const tileName = deleteData.tileName ?? deleteData.tile?.title ?? 'item';
   
-  console.log('[WidgetManager] 🗑️ Rendering delete widget:', { 
-    widgetId: widget.id,
-    tileCoordId, 
-    tileName, 
-    rawData: deleteData,
-    timestamp: new Date().toISOString()
-  });
+  // Rendering delete widget
   
   return (
     <ConfirmDeleteWidget

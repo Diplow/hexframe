@@ -58,18 +58,18 @@ export default function MapPage({ searchParams }: MapPageProps) {
   );
   
   useEffect(() => {
-    console.log('[MapPage] 🏗️ Map page mounting...');
+    // Map page mounting...
     setMounted(true);
     
     // Check for pre-fetched map data
     const preFetched = loadPreFetchedData();
     if (preFetched) {
-      console.log('[MapPage] ✅ Found pre-fetched data, using for initial cache');
+      // Found pre-fetched data, using for initial cache
       setPreFetchedData(preFetched);
       // Clear pre-fetched data after using it to avoid stale data issues
       clearPreFetchedData();
     } else {
-      console.log('[MapPage] ❌ No pre-fetched data found, will use empty cache');
+      // No pre-fetched data found, will use empty cache
     }
   }, []);
   
@@ -77,11 +77,11 @@ export default function MapPage({ searchParams }: MapPageProps) {
   useEffect(() => {
     if (!params.center && userMapData) {
       if (userMapData.success && userMapData.map?.id) {
-        console.log('[MapPage] Redirecting to user map:', userMapData.map.id);
+        // Redirecting to user map: userMapData.map.id
         router.replace(`/map?center=${userMapData.map.id}`);
       } else {
         // User doesn't have a map yet, redirect to a default
-        console.log('[MapPage] User has no map, redirecting to default');
+        // User has no map, redirecting to default
         // For now, redirect to the public Hexframe map (ID 1)
         router.replace(`/map?center=1`);
       }
@@ -109,11 +109,7 @@ export default function MapPage({ searchParams }: MapPageProps) {
   // Always show loading state during SSR and initial mount to prevent flashes
   // Also show loading when we're fetching the user's map for redirect
   if (!mounted || (!params.center && isLoadingUserMap)) {
-    console.log('[MapPage] Showing loading state:', { 
-      mounted, 
-      hasCenter: !!params.center, 
-      isLoadingUserMap 
-    });
+    // Showing loading state
     return (
       <div className="relative flex h-full w-full">
         <MapCacheProvider
@@ -266,14 +262,7 @@ export default function MapPage({ searchParams }: MapPageProps) {
   const initialItems = preFetchedData?.initialItems ?? {};
   const effectiveCenter = preFetchedData?.centerCoordinate ?? centerCoordinate;
   
-  console.log('[MapPage] 🎯 Initializing cache with:', {
-    hasPreFetchedData: !!preFetchedData,
-    itemCount: Object.keys(initialItems).length,
-    center: effectiveCenter,
-    urlCenter: centerCoordinate,
-    preFetchedCenter: preFetchedData?.centerCoordinate,
-    sampleTileNames: Object.values(initialItems).slice(0, 3).map(tile => tile.data?.name),
-  });
+  // Initializing cache with pre-fetched data or empty cache
   
   return (
     <div className="relative flex h-full w-full">

@@ -7,7 +7,6 @@ import { EventBusProvider, EventBusContext } from '~/app/map/Context/event-bus-c
 import { EventBus } from '~/app/map/Services/event-bus';
 import { createMockEventBus, type MockEventBus } from './event-bus';
 import { debugLogger } from '~/lib/debug/debug-logger';
-import './types'; // Import type declarations
 
 interface TestProvidersProps {
   children: React.ReactNode;

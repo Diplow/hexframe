@@ -17,26 +17,21 @@ export function ConfirmDeleteWidget({ tileId, tileName, widgetId }: ConfirmDelet
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState('');
 
-  console.log('[DeleteWidget] 🗑️ Rendered with:', { 
-    tileId, 
-    tileName, 
-    widgetId,
-    timestamp: new Date().toISOString()
-  });
+  // DeleteWidget rendered
 
   const handleDelete = async () => {
-    console.log('[DeleteWidget] 🔴 Delete button clicked');
+    // Delete button clicked
     setIsDeleting(true);
     setError('');
 
     try {
-      console.log('[DeleteWidget] 🔥 Calling deleteItemOptimistic with coordId:', tileId);
+      // Calling deleteItemOptimistic
       await deleteItemOptimistic(tileId);
-      console.log('[DeleteWidget] ✅ deleteItemOptimistic completed successfully');
+      // deleteItemOptimistic completed successfully
       
       // Remove the confirmation widget and notify about deletion
       const resolveEventId = `widget-resolved-${Date.now()}`;
-      console.log('[DeleteWidget] 📤 Dispatching widget_resolved event:', resolveEventId);
+      // Dispatching widget_resolved event
       dispatch({
         type: 'widget_resolved',
         payload: {
@@ -50,7 +45,7 @@ export function ConfirmDeleteWidget({ tileId, tileName, widgetId }: ConfirmDelet
       
       // Send operation completed event
       const completedEventId = `tile-deleted-${Date.now()}`;
-      console.log('[DeleteWidget] 📤 Dispatching operation_completed event:', completedEventId);
+      // Dispatching operation_completed event
       dispatch({
         type: 'operation_completed',
         payload: {
@@ -64,16 +59,16 @@ export function ConfirmDeleteWidget({ tileId, tileName, widgetId }: ConfirmDelet
         actor: 'user',
       });
     } catch (err) {
-      console.error('[DeleteWidget] ❌ Delete failed:', err);
+      // Delete failed
       setError(err instanceof Error ? err.message : 'Failed to delete tile');
       setIsDeleting(false);
     }
   };
 
   const handleCancel = () => {
-    console.log('[DeleteWidget] 🔙 Cancel button clicked');
+    // Cancel button clicked
     const cancelEventId = `widget-resolved-${Date.now()}`;
-    console.log('[DeleteWidget] 📤 Dispatching widget_resolved (cancelled) event:', cancelEventId);
+    // Dispatching widget_resolved (cancelled) event
     dispatch({
       type: 'widget_resolved',
       payload: {

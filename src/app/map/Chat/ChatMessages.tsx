@@ -186,7 +186,7 @@ function renderWidget(
           error={errorData.context ? JSON.stringify(errorData.context) : undefined}
           retry={errorData.retryable ? () => {
             // Retry logic could be implemented here
-            console.log('Retry requested');
+            // Retry requested
           } : undefined}
         />
       );
@@ -315,7 +315,7 @@ function MessageItem({ message }: { message: Message }) {
     if (user && userMapData?.success && userMapData.map?.id) {
       // Navigate to user's own map using the router
       const mapUrl = `/map?center=${userMapData.map.id}`;
-      console.log('Navigating to user map:', { mapId: userMapData.map.id, mapUrl, userName: user.name });
+      // Navigating to user map
       router.push(mapUrl);
       
       // Also dispatch the navigation event for chat history

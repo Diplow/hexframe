@@ -125,23 +125,20 @@ const UserProfileTile = () => {
     
     try {
       // Fetch user map data when clicking on the profile tile
-      console.log('[UserProfileTile] Fetching user map data...');
+      // Fetching user map data...
       const userMapData = await trpcUtils.map.user.getUserMap.fetch();
       
       if (userMapData?.success && userMapData.map?.id) {
-        console.log('[UserProfileTile] Navigating to user map:', {
-          mapId: userMapData.map.id,
-          name: userMapData.map.name
-        });
+        // Navigating to user map
         
         // Navigate using the database ID
         // The navigation handler will load the map if it's not in cache
         await navigateToItem(String(userMapData.map.id));
       } else {
-        console.error('[UserProfileTile] No user map found');
+        // No user map found
       }
     } catch (error) {
-      console.error('[UserProfileTile] Failed to fetch/navigate to user map:', error);
+      // Failed to fetch/navigate to user map
     }
   };
   

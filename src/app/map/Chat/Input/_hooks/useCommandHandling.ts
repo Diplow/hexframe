@@ -27,11 +27,7 @@ const commands: Record<string, Command> = {
       const logContent = logs.join('\n');
       const result = `**Debug Logs (Full Mode - ${logs.length} messages):**\n\n\`\`\`\n${logContent}\n\`\`\`\n\n{{COPY_BUTTON:${btoa(logContent)}}}`;
       
-      console.log('[DEBUG] Generated debug command result:', {
-        logsCount: logs.length,
-        contentLength: logContent.length,
-        resultLength: result.length,
-        hasButtonSyntax: result.includes('{{COPY_BUTTON:'),
+      // Generated debug command result
         resultPreview: result.slice(0, 200) + '...'
       });
       
@@ -529,16 +525,12 @@ export function useCommandHandling() {
         const tileId = parts[1];
         const tileName = decodeURIComponent(parts[2]);
         
-        console.log('[CommandHandling] 🦭 Navigation command received:', {
-          tileId,
-          tileName,
-          fullCommand: payload.command
-        });
+        // Navigation command received
         
         try {
-          console.log('[CommandHandling] 🎯 Calling navigateToItem with:', tileId);
+          // Calling navigateToItem
           await navigateToItem(tileId);
-          console.log('[CommandHandling] ✅ Navigation successful');
+          // Navigation successful
           
           dispatch({
             type: 'message',

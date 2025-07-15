@@ -29,34 +29,19 @@ pnpm vitest run --config vitest.config.ts \
   --exclude "**/ToolStateManager.test.tsx" \
   --exclude "**/Toolbox.test.tsx" \
   --exclude "**/item-tile-content.test.tsx" \
-  --exclude "**/ChatMessages.test.tsx" \
-  --exclude "**/ChatMessages.burger-menu.test.tsx" \
-  --exclude "**/ChatMessagesFormatting.test.tsx" \
-  --exclude "**/ChatMessagesMarkdown.test.tsx" \
-  --exclude "**/ChatInput.test.tsx" \
-  --exclude "**/ChatIntegration.test.tsx" \
-  --exclude "**/ChatMarkdownIntegration.test.tsx" \
-  --exclude "**/ChatCodeStyling.test.tsx" \
-  --exclude "**/ChatNavigationStyling.test.tsx" \
-  --exclude "**/ChatDaySeparator.test.tsx" \
-  --exclude "**/ChatCenterTracking.test.tsx" \
-  --exclude "**/ChatCenterTracking.integration.test.tsx" \
-  --exclude "**/ChatWithCenterTracking.unit.test.tsx" \
-  --exclude "**/widget-composition.test.tsx" \
-  --exclude "**/PreviewWidget.test.tsx" \
-  --exclude "**/chat-integration.test.tsx" \
-  --exclude "**/chat-date-tooltip.test.tsx" \
-  --exclude "**/chat-logout-clear.test.tsx" \
-  --exclude "**/chat-map-eventbus-integration.test.tsx" \
-  --exclude "**/chat-navigation-integration.test.tsx" \
-  --exclude "**/chat-welcome-message.test.tsx" \
+  --exclude "**/BaseComponents.test.tsx" \
+  --exclude "**/content.test.tsx" \
+  --exclude "**/multi-line-title.test.tsx" \
+  --exclude "**/use-item-state.test.tsx" \
   $STORYBOOK_EXCLUDE
 
 MAIN_EXIT_CODE=$?
 
 # Then run the React component tests in isolation with single thread
 echo "⚛️ Running React component tests in isolation (single thread)..."
-pnpm vitest run --config vitest.config.ts --pool=forks --poolOptions.forks.singleThread \
+# First check which files actually exist
+REACT_TEST_FILES=""
+for file in \
   src/app/static/map/Tile/Base/base.test.tsx \
   src/app/map/Tile/Auth/__tests__/auth-tile.test.tsx \
   src/app/map/Tile/Auth/__tests__/auth.test.tsx \
@@ -67,27 +52,22 @@ pnpm vitest run --config vitest.config.ts --pool=forks --poolOptions.forks.singl
   src/app/map/Controls/Toolbox/ToolStateManager.test.tsx \
   src/app/map/Controls/Toolbox/Toolbox.test.tsx \
   src/app/map/Tile/Item/_components/__tests__/item-tile-content.test.tsx \
-  src/app/map/Chat/__tests__/ChatMessages.test.tsx \
-  src/app/map/Chat/__tests__/ChatMessages.burger-menu.test.tsx \
-  src/app/map/Chat/__tests__/ChatMessagesFormatting.test.tsx \
-  src/app/map/Chat/__tests__/ChatMessagesMarkdown.test.tsx \
-  src/app/map/Chat/__tests__/ChatInput.test.tsx \
-  src/app/map/Chat/__tests__/ChatIntegration.test.tsx \
-  src/app/map/Chat/__tests__/ChatMarkdownIntegration.test.tsx \
-  src/app/map/Chat/__tests__/ChatCodeStyling.test.tsx \
-  src/app/map/Chat/__tests__/ChatNavigationStyling.test.tsx \
-  src/app/map/Chat/__tests__/ChatDaySeparator.test.tsx \
-  src/app/map/Chat/__tests__/ChatCenterTracking.test.tsx \
-  src/app/map/Chat/__tests__/ChatCenterTracking.integration.test.tsx \
-  src/app/map/Chat/__tests__/ChatWithCenterTracking.unit.test.tsx \
-  src/app/map/Chat/Widgets/__tests__/widget-composition.test.tsx \
-  src/app/map/Chat/Widgets/__tests__/PreviewWidget.test.tsx \
-  src/app/map/__tests__/chat-integration.test.tsx \
-  src/app/map/__tests__/chat-date-tooltip.test.tsx \
-  src/app/map/__tests__/chat-logout-clear.test.tsx \
-  src/app/map/__tests__/chat-map-eventbus-integration.test.tsx \
-  src/app/map/__tests__/chat-navigation-integration.test.tsx \
-  src/app/map/__tests__/chat-welcome-message.test.tsx
+  src/app/map/components/__tests__/BaseComponents.test.tsx \
+  src/app/map/Tile/Item/__tests__/content.test.tsx \
+  src/app/map/Tile/Item/__tests__/multi-line-title.test.tsx \
+  src/app/map/Tile/Item/_hooks/__tests__/use-item-state.test.tsx
+do
+  if [ -f "$file" ]; then
+    REACT_TEST_FILES="$REACT_TEST_FILES $file"
+  fi
+done
+
+if [ -n "$REACT_TEST_FILES" ]; then
+  pnpm vitest run --config vitest.config.ts --pool=forks --poolOptions.forks.singleThread $REACT_TEST_FILES
+else
+  echo "No React test files found to run"
+  REACT_EXIT_CODE=0
+fi
 
 REACT_EXIT_CODE=$?
 

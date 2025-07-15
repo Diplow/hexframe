@@ -142,36 +142,32 @@ export class MutationCoordinator {
   }
 
   async deleteItem(coordId: string): Promise<MutationResult> {
-    console.log('[MutationCoordinator] 🗑️ deleteItem called with coordId:', coordId);
+    // deleteItem called with coordId
     const changeId = this.tracker.generateChangeId();
-    console.log('[MutationCoordinator] 🆔 Generated change ID:', changeId);
+    // Generated change ID
     
     const existingItem = this._getExistingItem(coordId);
-    console.log('[MutationCoordinator] 📦 Found existing item:', {
-      dbId: existingItem.metadata.dbId,
-      name: existingItem.data.name,
-      coordId: existingItem.metadata.coordId
-    });
+    // Found existing item
     
     try {
       // Apply optimistic removal
       const previousData = this._reconstructApiData(existingItem);
-      console.log('[MutationCoordinator] 🔄 Applying optimistic delete');
+      // Applying optimistic delete
       this._applyOptimisticDelete(coordId, previousData, changeId);
       
       // Make server call
       const coords = CoordSystem.parseId(coordId);
-      console.log('[MutationCoordinator] 🌐 Making server delete call with coords:', coords);
+      // Making server delete call
       await this.config.deleteItemMutation.mutateAsync({ coords });
-      console.log('[MutationCoordinator] ✅ Server delete successful');
+      // Server delete successful
       
       // Finalize deletion
       await this._finalizeDelete(existingItem.metadata.dbId, changeId);
-      console.log('[MutationCoordinator] 🏁 Delete finalized');
+      // Delete finalized
       
       return { success: true };
     } catch (error) {
-      console.error('[MutationCoordinator] ❌ Delete failed:', error);
+      // Delete failed
       this._rollbackToPreviousData(changeId);
       throw error;
     }
@@ -486,20 +482,20 @@ export class MutationCoordinator {
     previousData: MapItemAPIContract,
     changeId: string
   ): void {
-    console.log('[MutationCoordinator] 📤 Tracking delete change:', changeId);
+    // Tracking delete change
     this.tracker.trackChange(changeId, { 
       type: 'delete', 
       coordId,
       previousData
     });
-    console.log('[MutationCoordinator] 📤 Dispatching removeItem action for coordId:', coordId);
+    // Dispatching removeItem action
     this.config.dispatch(cacheActions.removeItem(coordId));
   }
 
   private async _finalizeDelete(itemId: string, changeId: string): Promise<void> {
-    console.log('[MutationCoordinator] 🗑️ Removing from storage:', `item:${itemId}`);
+    // Removing from storage
     await this.config.storageService.remove(`item:${itemId}`);
-    console.log('[MutationCoordinator] 🧹 Removing change tracker:', changeId);
+    // Removing change tracker
     this.tracker.removeChange(changeId);
   }
 

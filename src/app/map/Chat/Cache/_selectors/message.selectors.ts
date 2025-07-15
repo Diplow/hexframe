@@ -195,18 +195,14 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
         // Add creation widget for create operations
         if (payload.operation === 'create') {
           const widgetId = `creation-${event.id}`;
-          console.log('[Selectors] 🆕 Setting creation widget active:', widgetId);
+          // Setting creation widget active
           widgetStates.set(widgetId, 'active');
         }
         
         // Add delete widget for delete operations
         if (payload.operation === 'delete') {
           const widgetId = `delete-${event.id}`;
-          console.log('[Selectors] 🗑️ Setting delete widget active:', widgetId, {
-            eventId: event.id,
-            tileId: payload.tileId,
-            data: payload.data
-          });
+          // Setting delete widget active
           widgetStates.set(widgetId, 'active');
         }
         break;
@@ -260,11 +256,7 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
       case 'widget_resolved': {
         const payload = event.payload as { widgetId: string; action: string };
         // Mark widget as completed
-        console.log('[Selectors] ✅ Widget resolved:', {
-          widgetId: payload.widgetId,
-          action: payload.action,
-          previousState: widgetStates.get(payload.widgetId)
-        });
+        // Widget resolved
         widgetStates.set(payload.widgetId, 'completed');
         break;
       }
@@ -336,11 +328,7 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
         if (payload.operation === 'delete') {
           const widgetId = `delete-${event.id}`;
           if (widgetStates.get(widgetId) === 'active') {
-            console.log('[Selectors] 📦 Adding delete widget to render:', {
-              widgetId,
-              eventId: event.id,
-              data: payload.data
-            });
+            // Adding delete widget to render
             widgets.push({
               id: widgetId,
               type: 'delete',
@@ -349,7 +337,7 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
               timestamp: event.timestamp,
             });
           } else {
-            console.log('[Selectors] ⚠️ Delete widget not active:', widgetId, widgetStates.get(widgetId));
+            // Delete widget not active
           }
         }
         break;
@@ -359,7 +347,7 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
 
   // Return only the most recent widget of each type
   const latestWidgets = new Map<string, Widget>();
-  console.log('[Selectors] 📦 Total widgets before filtering:', widgets.length);
+  // Total widgets before filtering
   
   for (const widget of widgets) {
     const key = widget.type === 'preview' ? `${widget.type}-${(widget.data as TileSelectedPayload).tileId}` : widget.type;
@@ -373,11 +361,7 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
     b.timestamp.getTime() - a.timestamp.getTime()
   );
   
-  console.log('[Selectors] 🎯 Final active widgets:', result.map(w => ({
-    id: w.id,
-    type: w.type,
-    timestamp: w.timestamp.toISOString()
-  })));
+  // Final active widgets
   
   return result;
 }

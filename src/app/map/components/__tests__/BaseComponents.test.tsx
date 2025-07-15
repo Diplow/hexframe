@@ -1,10 +1,14 @@
+import '~/test/setup'; // Import test setup FIRST for DOM
 import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
 import { BaseItemTile } from "../BaseItemTile";
 import { BaseEmptyTile } from "../BaseEmptyTile";
 import type { TileData } from "~/app/map/types/tile-data";
+import { createTestSetup } from '~/test-utils/providers';
 
 describe("Base Components", () => {
+  const { wrapper } = createTestSetup();
+  
   describe("BaseItemTile", () => {
     it("renders without hooks or state", () => {
       const mockItem: TileData = {
@@ -33,7 +37,8 @@ describe("Base Components", () => {
       };
 
       const { getByTestId, getByText } = render(
-        <BaseItemTile item={mockItem} scale={2} baseHexSize={50} />
+        <BaseItemTile item={mockItem} scale={2} baseHexSize={50} />,
+        { wrapper }
       );
 
       expect(getByTestId("tile-test-id")).toBeInTheDocument();
@@ -67,7 +72,8 @@ describe("Base Components", () => {
       };
 
       const { container } = render(
-        <BaseItemTile item={mockItem} isSelected={true} />
+        <BaseItemTile item={mockItem} isSelected={true} />,
+        { wrapper }
       );
 
       const contentDiv = container.querySelector('[data-testid="tile-content"]');
@@ -78,7 +84,8 @@ describe("Base Components", () => {
   describe("BaseEmptyTile", () => {
     it("renders without hooks or state", () => {
       const { getByTestId } = render(
-        <BaseEmptyTile coordId="0:0:1" scale={2} baseHexSize={50} />
+        <BaseEmptyTile coordId="0:0:1" scale={2} baseHexSize={50} />,
+        { wrapper }
       );
 
       expect(getByTestId("empty-tile-0:0:1")).toBeInTheDocument();
@@ -91,7 +98,8 @@ describe("Base Components", () => {
           scale={2} 
           baseHexSize={50} 
           showPreviewColor={true} 
-        />
+        />,
+        { wrapper }
       );
 
       // The SVG path should have a fill class when preview color is shown

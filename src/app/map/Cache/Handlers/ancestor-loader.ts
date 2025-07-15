@@ -18,12 +18,7 @@ export function checkAncestors(
   coordId: string,
   existingItems: Record<string, TileData | undefined> | Array<{ coordinates: string }>
 ): AncestorCheckResult {
-  console.log('[AncestorLoader.checkAncestors] Called with:', {
-    coordId,
-    existingItemsCount: Array.isArray(existingItems) ? existingItems.length : Object.keys(existingItems).length,
-    timestamp: new Date().toISOString(),
-    stackTrace: new Error().stack
-  });
+  // checkAncestors called
   const missingLevels: string[] = [];
   let currentCoordId = coordId;
   let hasAllAncestors = true;
@@ -62,12 +57,7 @@ export async function loadAncestorsForItem(
   dispatch: Dispatch<CacheAction>,
   source = "unknown"
 ): Promise<void> {
-  console.log('[AncestorLoader.loadAncestorsForItem] Called with:', {
-    itemDbId,
-    source,
-    timestamp: new Date().toISOString(),
-    stackTrace: new Error().stack
-  });
+  // loadAncestorsForItem called
   try {
     const ancestors = await serverService.getAncestors(itemDbId);
     
@@ -107,9 +97,9 @@ export async function loadAncestorsForItem(
       
       // Dispatch ancestors to cache
       dispatch(cacheActions.updateItems(ancestorItems));
-      console.log(`[${source}] Loaded ${ancestors.length} ancestors`);
+      // Loaded ancestors
     }
   } catch (error) {
-    console.error(`[${source}] Failed to load ancestors:`, error);
+    // Failed to load ancestors
   }
 }
