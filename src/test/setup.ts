@@ -1,7 +1,8 @@
-import { afterEach, beforeEach, vi } from "vitest";
+import { afterEach, beforeEach, vi, expect } from "vitest";
 import { cleanup } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import React from "react";
+import { eventBusMatchers } from "~/test-utils/event-bus";
 
 // Make React globally available for tests
 if (typeof global !== 'undefined') {
@@ -399,3 +400,6 @@ vi.mock('~/commons/trpc/react', () => ({
     },
   },
 }));
+
+// Extend Vitest matchers with custom event bus matchers
+expect.extend(eventBusMatchers);

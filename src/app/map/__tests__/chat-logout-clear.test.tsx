@@ -38,14 +38,12 @@ vi.mock('~/commons/trpc/react', () => ({
 }));
 
 describe('Chat Logout Clear', () => {
-  let eventBus: EventBus;
-  
   beforeEach(() => {
-    eventBus = new EventBus();
     vi.clearAllMocks();
   });
 
   it('should clear chat messages when user logs out', async () => {
+    const eventBus = new EventBus();
     // Start with some chat events
     const initialEvents: ChatEvent[] = [
       {

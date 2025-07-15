@@ -102,36 +102,9 @@ describe("Base Components", () => {
 
   describe("BaseFrame integration", () => {
     it("uses base components when interactive is false", () => {
-      const mockItems: Record<string, TileData> = {
-        "0:0:0": {
-          metadata: {
-            dbId: "center-id",
-            coordId: "0:0:0",
-            parentId: undefined,
-            coordinates: { userId: 0, groupId: 0, path: [] },
-            depth: 0,
-            ownerId: "user1",
-          },
-          data: {
-            name: "Center Tile",
-            description: "",
-            url: "",
-            color: "zinc-500",
-          },
-          state: {
-            isDragged: false,
-            isHovered: false,
-            isSelected: false,
-            isExpanded: false,
-            isDragOver: false,
-            isHovering: false,
-          },
-        },
-      };
-
-      // Import BaseFrame for testing
       // This test verifies that BaseFrame uses the base components
       // when interactive=false
+      // The mockItems would be used once BaseFrame is imported and tested
       expect(true).toBe(true); // Placeholder for now
     });
   });
