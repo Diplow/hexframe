@@ -2,7 +2,7 @@
 
 import { useState, useContext, useEffect } from "react";
 import { DynamicBaseTileLayout } from "../Base";
-import type { TileScale, TileColor } from "~/app/static/map/Tile/Base/base";
+import type { TileScale, TileColor } from "~/app/map/components/BaseTileLayout";
 import { LegacyTileActionsContext, useCanvasTheme } from "../../Canvas";
 import type { URLInfo } from "../../types/url-info";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
@@ -12,7 +12,7 @@ import { useTileInteraction } from "../../hooks/useTileInteraction";
 import { useChatCacheOperations } from "../../Chat/Cache/hooks/useChatCacheOperations";
 import { loggers } from "~/lib/debug/debug-logger";
 
-interface DynamicEmptyTileProps {
+export interface DynamicEmptyTileProps {
   coordId: string;
   scale?: TileScale;
   baseHexSize?: number;

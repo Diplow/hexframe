@@ -9,9 +9,15 @@ import {
   type ReactNode,
 } from "react";
 import { useAuth } from "~/contexts/AuthContext";
-import type { CenterInfo } from "~/app/static/map/Canvas/index";
+// CenterInfo type definition moved locally
+export interface CenterInfo {
+  center: string;
+  rootItemId: number;
+  userId: number;
+  groupId: number;
+}
 import { DynamicFrame } from "./frame";
-import type { TileScale } from "~/app/static/map/Tile/Base/base";
+import type { TileScale } from "~/app/map/components/BaseTileLayout";
 import { useMapCache } from "../Cache/map-cache";
 import type { URLInfo } from "../types/url-info";
 import { MapLoadingSkeleton } from "./LifeCycle/loading-skeleton";

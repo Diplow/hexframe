@@ -1,6 +1,6 @@
 "use client";
 
-import type { TileScale } from "~/app/static/map/Tile/Base/base";
+import type { TileScale } from "~/app/map/components/BaseTileLayout";
 import { getTextColorForDepth } from "~/app/map/types/theme-colors";
 import { cn } from "~/lib/utils";
 

@@ -38,7 +38,7 @@ export type TileColor = {
     | "950";
 };
 
-export interface StaticBaseTileLayoutProps {
+export interface BaseTileLayoutProps {
   coordId: string;
   scale: TileScale;
   color?: TileColor | string; // Allow both old format and new semantic format
@@ -49,9 +49,10 @@ export interface StaticBaseTileLayoutProps {
   baseHexSize?: number;
   _shallow?: boolean;
   isExpanded?: boolean;
+  isDarkMode?: boolean;
 }
 
-export const StaticBaseTileLayout = ({
+export const BaseTileLayout = ({
   coordId = "0,0",
   scale = 1,
   color,
@@ -62,7 +63,7 @@ export const StaticBaseTileLayout = ({
   baseHexSize = 50,
   _shallow = false,
   isExpanded = false,
-}: StaticBaseTileLayoutProps) => {
+}: BaseTileLayoutProps) => {
   // Calculate default stroke based on scale, expansion, and shallow state
   const defaultStroke = getDefaultStroke(scale, isExpanded, _shallow);
   
