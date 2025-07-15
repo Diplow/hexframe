@@ -4,7 +4,6 @@ import type { TileData } from "../../types/tile-data";
 import type { TileScale } from "~/app/map/components/BaseTileLayout";
 import type { URLInfo } from "../../types/url-info";
 import { useItemState } from "./_hooks";
-import { ItemDialogs } from "./_components/item-dialogs";
 import { ItemTileContent } from "./_components/item-tile-content";
 import { useEffect } from "react";
 import { loggers } from "~/lib/debug/debug-logger";
@@ -78,12 +77,9 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
           testId={state.testId}
           isBeingDragged={state.interaction.isBeingDragged}
           canEdit={state.canEdit}
-          onEditClick={state.dialogs.openUpdateDialog}
-          onDeleteClick={state.dialogs.openDeleteDialog}
           isSelected={props.isSelected}
         />
       </div>
-      <ItemDialogs item={item} dialogState={state.dialogs} />
     </>
   );
 };

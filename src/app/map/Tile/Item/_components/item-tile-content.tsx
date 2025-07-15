@@ -23,8 +23,6 @@ interface ItemTileContentProps {
   hasChildren: boolean;
   isCenter: boolean;
   canEdit: boolean;
-  onEditClick: () => void;
-  onDeleteClick: () => void;
   isSelected?: boolean;
 }
 
@@ -45,8 +43,6 @@ export function ItemTileContent({
   hasChildren,
   isCenter: _isCenter,
   canEdit,
-  onEditClick,
-  onDeleteClick,
   isSelected,
 }: ItemTileContentProps) {
   const router = useRouter();
@@ -84,8 +80,6 @@ export function ItemTileContent({
     onExpand: () => {
       toggleItemExpansionWithURL(item.metadata.dbId);
     },
-    onEdit: onEditClick,
-    onDelete: onDeleteClick,
   });
   
   return (
