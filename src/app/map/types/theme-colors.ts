@@ -31,9 +31,9 @@ export function getTextColorForDepth(depth: number): string {
   // For deeper tiles (depth 5+), we need light text on dark backgrounds
   // In dark mode, this inverts: dark text on light backgrounds
   if (depth >= 5) {
-    return 'text-white dark:text-gray-900';
+    return 'text-white dark:text-neutral-900';
   }
   // For shallower tiles, use dark text on light backgrounds
   // In dark mode: light text on dark backgrounds
-  return 'text-gray-900 dark:text-gray-100';
+  return 'text-neutral-900 dark:text-neutral-100';
 }

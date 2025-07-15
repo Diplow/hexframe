@@ -1,6 +1,5 @@
 import '~/test/setup'; // Import test setup FIRST
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { EventBus } from '../Services/event-bus';
 import type { ChatEvent } from '../Chat/Cache/_events/event.types';
 
 // Mock authClient
@@ -43,7 +42,6 @@ describe('Chat Logout Clear', () => {
   });
 
   it('should clear chat messages when user logs out', async () => {
-    const eventBus = new EventBus();
     // Start with some chat events
     const initialEvents: ChatEvent[] = [
       {

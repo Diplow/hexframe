@@ -11,9 +11,9 @@ import { DynamicTileContent } from "../content";
 vi.mock("~/app/map/types/theme-colors", () => ({
   getTextColorForDepth: vi.fn((depth: number) => {
     if (depth >= 5) {
-      return "text-white dark:text-gray-900";
+      return "text-white dark:text-neutral-900";
     }
-    return "text-gray-900 dark:text-gray-100";
+    return "text-neutral-900 dark:text-neutral-100";
   }),
 }));
 
@@ -32,8 +32,8 @@ describe.skip("DynamicTileContent - Depth-based Text Colors", () => {
 
     // Check that title has the correct text color class
     const titleElement = container.querySelector('[data-testid*="tile-title"]');
-    expect(titleElement?.className).toContain("text-gray-900");
-    expect(titleElement?.className).toContain("dark:text-gray-100");
+    expect(titleElement?.className).toContain("text-neutral-900");
+    expect(titleElement?.className).toContain("dark:text-neutral-100");
   });
 
   it("should apply inverted text color for deep tiles (depth >= 5)", () => {
@@ -51,7 +51,7 @@ describe.skip("DynamicTileContent - Depth-based Text Colors", () => {
     // Check that title has inverted text color class for deep tiles
     const titleElement = container.querySelector('[data-testid*="tile-title"]');
     expect(titleElement?.className).toContain("text-white");
-    expect(titleElement?.className).toContain("dark:text-gray-900");
+    expect(titleElement?.className).toContain("dark:text-neutral-900");
   });
 
   it("should apply text color to description section", () => {
@@ -68,8 +68,8 @@ describe.skip("DynamicTileContent - Depth-based Text Colors", () => {
 
     // Find the description section by its prose classes
     const descriptionSection = container.querySelector('.prose');
-    expect(descriptionSection?.className).toContain("text-gray-900");
-    expect(descriptionSection?.className).toContain("dark:text-gray-100");
+    expect(descriptionSection?.className).toContain("text-neutral-900");
+    expect(descriptionSection?.className).toContain("dark:text-neutral-100");
   });
 
   it("should apply text color to URL section", () => {
@@ -88,7 +88,7 @@ describe.skip("DynamicTileContent - Depth-based Text Colors", () => {
     const urlSection = container.querySelector('div.text-white');
     expect(urlSection).toBeTruthy();
     expect(urlSection?.className).toContain("text-white");
-    expect(urlSection?.className).toContain("dark:text-gray-900");
+    expect(urlSection?.className).toContain("dark:text-neutral-900");
   });
 
   it("should default to depth 0 when depth prop is not provided", () => {
@@ -103,7 +103,7 @@ describe.skip("DynamicTileContent - Depth-based Text Colors", () => {
 
     // Should use default shallow depth text colors
     const titleElement = container.querySelector('[data-testid*="tile-title"]');
-    expect(titleElement?.className).toContain("text-gray-900");
-    expect(titleElement?.className).toContain("dark:text-gray-100");
+    expect(titleElement?.className).toContain("text-neutral-900");
+    expect(titleElement?.className).toContain("dark:text-neutral-100");
   });
 });

@@ -34,9 +34,9 @@ export function ThemeToggleButton({
       aria-pressed={isDark}
     >
       {isDark ? (
-        <Moon className={cn(sizes.icon, 'text-violet-600 dark:text-violet-400')} />
+        <Moon className={cn(sizes.icon, 'text-primary dark:text-primary')} />
       ) : (
-        <Sun className={cn(sizes.icon, 'text-amber-600')} />
+        <Sun className={cn(sizes.icon, 'text-secondary')} />
       )}
     </button>
   );

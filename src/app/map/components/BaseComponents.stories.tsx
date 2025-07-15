@@ -67,7 +67,7 @@ export default {
 
 export const ItemTile: StoryObj<typeof BaseItemTile> = {
   render: () => (
-    <div className="flex gap-4 p-8 bg-gray-100 dark:bg-gray-900">
+    <div className="flex gap-4 p-8 bg-neutral-100 dark:bg-neutral-900">
       <BaseItemTile item={mockItem} scale={1} />
       <BaseItemTile item={mockItem} scale={2} />
       <BaseItemTile item={mockItem} scale={3} />
@@ -77,7 +77,7 @@ export const ItemTile: StoryObj<typeof BaseItemTile> = {
 
 export const ItemTileSelected: StoryObj<typeof BaseItemTile> = {
   render: () => (
-    <div className="flex gap-4 p-8 bg-gray-100 dark:bg-gray-900">
+    <div className="flex gap-4 p-8 bg-neutral-100 dark:bg-neutral-900">
       <BaseItemTile item={mockItem} scale={2} isSelected={true} />
     </div>
   ),
@@ -85,7 +85,7 @@ export const ItemTileSelected: StoryObj<typeof BaseItemTile> = {
 
 export const EmptyTile: StoryObj<typeof BaseEmptyTile> = {
   render: () => (
-    <div className="flex gap-4 p-8 bg-gray-100 dark:bg-gray-900">
+    <div className="flex gap-4 p-8 bg-neutral-100 dark:bg-neutral-900">
       <BaseEmptyTile coordId="0:0:1" scale={1} />
       <BaseEmptyTile coordId="0:0:2" scale={2} />
       <BaseEmptyTile coordId="0:0:3" scale={3} />
@@ -95,7 +95,7 @@ export const EmptyTile: StoryObj<typeof BaseEmptyTile> = {
 
 export const EmptyTileWithPreview: StoryObj<typeof BaseEmptyTile> = {
   render: () => (
-    <div className="flex gap-4 p-8 bg-gray-100 dark:bg-gray-900">
+    <div className="flex gap-4 p-8 bg-neutral-100 dark:bg-neutral-900">
       <BaseEmptyTile coordId="0:0:0:NW" scale={2} showPreviewColor={true} />
       <BaseEmptyTile coordId="0:0:0:E" scale={2} showPreviewColor={true} />
     </div>
@@ -104,7 +104,7 @@ export const EmptyTileWithPreview: StoryObj<typeof BaseEmptyTile> = {
 
 export const FrameNonInteractive: StoryObj<typeof BaseFrame> = {
   render: () => (
-    <div className="p-8 bg-gray-100 dark:bg-gray-900">
+    <div className="p-8 bg-neutral-100 dark:bg-neutral-900">
       <BaseFrame
         center="0:0:0"
         mapItems={mockMapItems}
@@ -124,7 +124,7 @@ export const FrameNonInteractive: StoryObj<typeof BaseFrame> = {
 
 export const FrameCollapsed: StoryObj<typeof BaseFrame> = {
   render: () => (
-    <div className="p-8 bg-gray-100 dark:bg-gray-900">
+    <div className="p-8 bg-neutral-100 dark:bg-neutral-900">
       <BaseFrame
         center="0:0:0"
         mapItems={mockMapItems}

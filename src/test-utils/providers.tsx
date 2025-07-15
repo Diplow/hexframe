@@ -1,4 +1,5 @@
 import React from 'react';
+import { expect } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '~/contexts/AuthContext';
 import { ThemeProvider } from '~/contexts/ThemeContext';
@@ -6,16 +7,13 @@ import { EventBusProvider, EventBusContext } from '~/app/map/Context/event-bus-c
 import { EventBus } from '~/app/map/Services/event-bus';
 import { createMockEventBus, type MockEventBus } from './event-bus';
 import { debugLogger } from '~/lib/debug/debug-logger';
+import './types'; // Import type declarations
 
 interface TestProvidersProps {
   children: React.ReactNode;
   mockEventBus?: MockEventBus;
   useRealEventBus?: boolean;
   queryClient?: QueryClient;
-  initialAuth?: {
-    user?: null | { id: string; name?: string };
-    mappingUserId?: string;
-  };
 }
 
 /**
@@ -24,14 +22,12 @@ interface TestProvidersProps {
  * @param mockEventBus - Optional mock event bus (defaults to creating a new one)
  * @param useRealEventBus - If true, uses real EventBus instead of mock
  * @param queryClient - Optional query client (defaults to creating a new one)
- * @param initialAuth - Initial auth state
  */
 export function TestProviders({
   children,
   mockEventBus,
   useRealEventBus = false,
   queryClient,
-  initialAuth = {},
 }: TestProvidersProps) {
   // Set up debug logger for tests
   React.useEffect(() => {
@@ -54,7 +50,7 @@ export function TestProviders({
     defaultOptions: {
       queries: {
         retry: false,
-        cacheTime: 0,
+        gcTime: 0, // Replaced cacheTime with gcTime in React Query v5
       },
       mutations: {
         retry: false,
@@ -102,7 +98,6 @@ export function createTestSetup(options: Omit<TestProvidersProps, 'children'> = 
     wrapper,
     eventBus: mockEventBus,
     expectEvent: (eventType: string, payload?: unknown) => {
-      // @ts-expect-error - toHaveEmittedEvent is added by custom matchers
       expect(mockEventBus).toHaveEmittedEvent(eventType, payload);
     },
     clearEvents: () => {

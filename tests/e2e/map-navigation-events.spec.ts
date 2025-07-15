@@ -137,7 +137,9 @@ test.describe('Map Navigation Events', () => {
     if (navEvent && cacheEvents.length > 0) {
       // Parse timestamps
       const navTime = new Date(navEvent.timestamp).getTime();
-      const cacheTime = new Date(cacheEvents[0].timestamp).getTime();
+      const firstCacheEvent = cacheEvents[0];
+      if (!firstCacheEvent) return;
+      const cacheTime = new Date(firstCacheEvent.timestamp).getTime();
       
       // Cache update should happen within 1 second of navigation
       const timeDiff = cacheTime - navTime;

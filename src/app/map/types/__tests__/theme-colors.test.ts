@@ -25,19 +25,19 @@ describe("theme-colors", () => {
 
   describe("getTextColorForDepth", () => {
     it("should return dark text colors for shallow depths (0-4)", () => {
-      expect(getTextColorForDepth(0)).toBe("text-gray-900 dark:text-gray-100");
-      expect(getTextColorForDepth(1)).toBe("text-gray-900 dark:text-gray-100");
-      expect(getTextColorForDepth(2)).toBe("text-gray-900 dark:text-gray-100");
-      expect(getTextColorForDepth(3)).toBe("text-gray-900 dark:text-gray-100");
-      expect(getTextColorForDepth(4)).toBe("text-gray-900 dark:text-gray-100");
+      expect(getTextColorForDepth(0)).toBe("text-neutral-900 dark:text-neutral-100");
+      expect(getTextColorForDepth(1)).toBe("text-neutral-900 dark:text-neutral-100");
+      expect(getTextColorForDepth(2)).toBe("text-neutral-900 dark:text-neutral-100");
+      expect(getTextColorForDepth(3)).toBe("text-neutral-900 dark:text-neutral-100");
+      expect(getTextColorForDepth(4)).toBe("text-neutral-900 dark:text-neutral-100");
     });
 
     it("should return light text colors for deep depths (5+)", () => {
-      expect(getTextColorForDepth(5)).toBe("text-white dark:text-gray-900");
-      expect(getTextColorForDepth(6)).toBe("text-white dark:text-gray-900");
-      expect(getTextColorForDepth(7)).toBe("text-white dark:text-gray-900");
-      expect(getTextColorForDepth(8)).toBe("text-white dark:text-gray-900");
-      expect(getTextColorForDepth(10)).toBe("text-white dark:text-gray-900");
+      expect(getTextColorForDepth(5)).toBe("text-white dark:text-neutral-900");
+      expect(getTextColorForDepth(6)).toBe("text-white dark:text-neutral-900");
+      expect(getTextColorForDepth(7)).toBe("text-white dark:text-neutral-900");
+      expect(getTextColorForDepth(8)).toBe("text-white dark:text-neutral-900");
+      expect(getTextColorForDepth(10)).toBe("text-white dark:text-neutral-900");
     });
   });
 });

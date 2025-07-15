@@ -10,17 +10,17 @@ export function getIconClasses(isDark: boolean, variant: 'sun' | 'moon') {
   if (variant === 'sun') {
     return cn(
       'transition-all duration-200 relative z-10',
-      isDark ? 'text-amber-600 dark:text-amber-400' : 'text-amber-600 drop-shadow-[0_0_8px_rgba(251,191,36,1)]',
-      isDark && 'dark:group-hover:text-amber-400 dark:group-hover:drop-shadow-[0_0_8px_rgba(251,191,36,1)]',
-      isDark && 'dark:group-focus-visible:text-amber-400 dark:group-focus-visible:drop-shadow-[0_0_8px_rgba(251,191,36,1)]'
+      isDark ? 'text-secondary dark:text-secondary' : 'text-secondary drop-shadow-[0_0_8px_rgba(251,191,36,1)]',
+      isDark && 'dark:group-hover:text-secondary dark:group-hover:drop-shadow-[0_0_8px_rgba(251,191,36,1)]',
+      isDark && 'dark:group-focus-visible:text-secondary dark:group-focus-visible:drop-shadow-[0_0_8px_rgba(251,191,36,1)]'
     );
   }
   
   return cn(
     'transition-all duration-200 relative z-10',
-    !isDark ? 'text-violet-500' : 'text-violet-400 drop-shadow-[0_0_8px_rgba(139,92,246,1)]',
-    !isDark && 'group-hover:text-violet-500 group-hover:drop-shadow-[0_0_8px_rgba(139,92,246,1)]',
-    !isDark && 'group-focus-visible:text-violet-500 group-focus-visible:drop-shadow-[0_0_8px_rgba(139,92,246,1)]'
+    !isDark ? 'text-primary' : 'text-primary drop-shadow-[0_0_8px_rgba(139,92,246,1)]',
+    !isDark && 'group-hover:text-primary group-hover:drop-shadow-[0_0_8px_rgba(139,92,246,1)]',
+    !isDark && 'group-focus-visible:text-primary group-focus-visible:drop-shadow-[0_0_8px_rgba(139,92,246,1)]'
   );
 }
 
