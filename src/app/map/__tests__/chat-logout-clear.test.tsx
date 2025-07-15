@@ -1,9 +1,5 @@
 import '~/test/setup'; // Import test setup FIRST
-import { render } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ChatPanel } from '../Chat/ChatPanel';
-import { ChatCacheProvider } from '../Chat/Cache/ChatCacheProvider';
-import { AuthContext } from '~/contexts/AuthContext';
 import { EventBus } from '../Services/event-bus';
 import type { ChatEvent } from '../Chat/Cache/_events/event.types';
 

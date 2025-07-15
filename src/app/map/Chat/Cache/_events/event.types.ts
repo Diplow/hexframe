@@ -14,6 +14,7 @@ export type ChatEventType =
   | 'clear_chat'
   | 'message'
   | 'widget_resolved'
+  | 'widget_created'
   | 'execute_command';
 
 export type ChatEventActor = 'user' | 'system' | 'assistant';
@@ -96,4 +97,8 @@ export interface ErrorOccurredPayload {
   error: string;
   context?: unknown;
   retryable?: boolean;
+}
+
+export interface ExecuteCommandPayload {
+  command: string;
 }

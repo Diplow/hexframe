@@ -54,6 +54,12 @@ export function createMutationHandler(
     coordId: string,
     data: Record<string, unknown>,
   ): Promise<MutationResult> => {
+    console.log('[MutationHandler.createItem] Called with:', {
+      coordId,
+      data,
+      timestamp: new Date().toISOString(),
+      stackTrace: new Error().stack
+    });
     try {
       // Apply optimistic update if enabled
       if (getState().cacheConfig.enableOptimisticUpdates) {
@@ -114,6 +120,12 @@ export function createMutationHandler(
     coordId: string,
     data: Record<string, unknown>,
   ): Promise<MutationResult> => {
+    console.log('[MutationHandler.updateItem] Called with:', {
+      coordId,
+      data,
+      timestamp: new Date().toISOString(),
+      stackTrace: new Error().stack
+    });
     try {
       const existingItem = getState().itemsById[coordId];
 
@@ -181,6 +193,11 @@ export function createMutationHandler(
   };
 
   const deleteItem = async (coordId: string): Promise<MutationResult> => {
+    console.log('[MutationHandler.deleteItem] Called with:', {
+      coordId,
+      timestamp: new Date().toISOString(),
+      stackTrace: new Error().stack
+    });
     try {
       const existingItem = getState().itemsById[coordId];
 
@@ -241,6 +258,11 @@ export function createMutationHandler(
   };
 
   const rollbackOptimisticChange = (changeId: string): void => {
+    console.log('[MutationHandler.rollbackOptimisticChange] Called with:', {
+      changeId,
+      timestamp: new Date().toISOString(),
+      stackTrace: new Error().stack
+    });
     const change = pendingChanges.get(changeId);
     if (!change) return;
 
@@ -284,11 +306,19 @@ export function createMutationHandler(
   };
 
   const rollbackAllOptimistic = (): void => {
+    console.log('[MutationHandler.rollbackAllOptimistic] Called:', {
+      timestamp: new Date().toISOString(),
+      stackTrace: new Error().stack
+    });
     const changeIds = Array.from(pendingChanges.keys());
     changeIds.forEach(rollbackOptimisticChange);
   };
 
   const getPendingOptimisticChanges = (): OptimisticChange[] => {
+    console.log('[MutationHandler.getPendingOptimisticChanges] Called:', {
+      timestamp: new Date().toISOString(),
+      stackTrace: new Error().stack
+    });
     return Array.from(pendingChanges.values()).sort(
       (a, b) => a.timestamp - b.timestamp,
     );

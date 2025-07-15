@@ -12,9 +12,12 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 import { auth } from "~/server/auth";
 import { db } from "../db";
+import { loggers } from "~/lib/debug/debug-logger";
 import { MappingService } from "~/lib/domains/mapping/services/mapping.service";
 import { DbMapItemRepository } from "~/lib/domains/mapping/infrastructure/map-item/db";
 import { DbBaseItemRepository } from "~/lib/domains/mapping/infrastructure/base-item/db";
+import { IAMService } from "~/lib/domains/iam/services/iam.service";
+import { BetterAuthUserRepository } from "~/lib/domains/iam/infrastructure/user/better-auth-repository";
 import type { IncomingHttpHeaders } from "http";
 
 /**
@@ -67,6 +70,16 @@ export const createContext = async (opts: CreateNextContextOptions) => {
   const sessionData = await auth.api.getSession({
     headers: sessionAPIAcceptableHeaders,
     // `request` property removed as it's not accepted by getSession according to linter
+  });
+  
+  loggers.api(`TRPC CONTEXT: Session data from better-auth`, {
+    hasSessionData: !!sessionData,
+    hasSession: !!sessionData?.session,
+    hasUser: !!sessionData?.user,
+    userId: sessionData?.user?.id,
+    userEmail: sessionData?.user?.email,
+    sessionId: sessionData?.session?.id,
+    cookieHeader: sessionAPIAcceptableHeaders.get('cookie'),
   });
 
   return {
@@ -141,8 +154,19 @@ export const createTRPCRouter = t.router;
  * You can remove this if you don't like it, but it can help catch unwanted waterfalls by simulating
  * network latency that would occur in production but not in local development.
  */
-const timingMiddleware = t.middleware(async ({ next, path }) => {
+const timingMiddleware = t.middleware(async ({ next, path, ctx, input, type }) => {
   const start = Date.now();
+  const requestId = `${type}-${path}-${Math.random().toString(36).substring(7)}`;
+
+  loggers.api(`TRPC SERVER ${type.toUpperCase()}: ${path}`, {
+    requestId,
+    type,
+    path,
+    input: input,
+    userId: ctx.user?.id,
+    userEmail: ctx.user?.email,
+    hasSession: !!ctx.session
+  });
 
   if (t._config.isDev) {
     // artificial delay in dev
@@ -150,12 +174,36 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
     await new Promise((resolve) => setTimeout(resolve, waitMs));
   }
 
-  const result = await next();
+  try {
+    const result = await next();
+    const end = Date.now();
+    
+    loggers.api(`TRPC SERVER RESPONSE: ${path} (${end - start}ms)`, {
+      requestId,
+      type,
+      path,
+      userId: ctx.user?.id
+    });
 
-  const end = Date.now();
-  console.log(`[TRPC] ${path} took ${end - start}ms to execute`);
-
-  return result;
+    return result;
+  } catch (error) {
+    const end = Date.now();
+    
+    loggers.api(`TRPC SERVER ERROR: ${path} (${end - start}ms)`, {
+      requestId,
+      type,
+      path,
+      error: error instanceof Error ? {
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+      } : error,
+      input: input,
+      userId: ctx.user?.id
+    });
+    
+    throw error;
+  }
 });
 
 /**
@@ -201,6 +249,19 @@ export const mappingServiceMiddleware = t.middleware(async ({ ctx, next }) => {
     ctx: {
       ...ctx,
       mappingService,
+    },
+  });
+});
+
+export const iamServiceMiddleware = t.middleware(async ({ ctx, next }) => {
+  const repositories = {
+    user: new BetterAuthUserRepository(auth, db),
+  };
+  const iamService = new IAMService(repositories);
+  return next({
+    ctx: {
+      ...ctx,
+      iamService,
     },
   });
 });

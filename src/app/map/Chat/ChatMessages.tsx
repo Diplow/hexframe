@@ -35,6 +35,11 @@ export function ChatMessages({ messages, widgets }: ChatMessagesProps) {
   const createMapMutation = api.map.user.createDefaultMapForCurrentUser.useMutation();
   useChatSettings(); // This will trigger re-render when settings change
   
+  // Debug logging for renders
+  // Chat components should not log their own renders to prevent circular dependencies
+  
+  // Render logging removed
+  
   // Monitor auth state and handle login widget removal
   useEffect(() => {
     if (user) {
@@ -222,6 +227,7 @@ function renderWidget(
   }
 }
 
+
 function DaySeparator({ date }: { date: Date }) {
   const formatDate = () => {
     const today = new Date();
@@ -266,9 +272,26 @@ function MessageItem({ message }: { message: Message }) {
   const { dispatch } = useChatCacheOperations();
   const router = useRouter();
   
+  // MessageItem render logging removed to prevent circular dependencies
+  
+  // Add delay to prevent race condition during registration
+  const [canQueryUserMap, setCanQueryUserMap] = React.useState(false);
+  
+  React.useEffect(() => {
+    if (!!user) {
+      // Delay to ensure map is created during registration flow
+      const timer = setTimeout(() => {
+        setCanQueryUserMap(true);
+      }, 1500);
+      return () => clearTimeout(timer);
+    } else {
+      setCanQueryUserMap(false);
+    }
+  }, [user]);
+  
   // Get the user's actual map ID
   const { data: userMapData } = api.map.user.getUserMap.useQuery(undefined, {
-    enabled: !!user,
+    enabled: canQueryUserMap,
   });
   
   const getTimestamp = () => {
@@ -344,6 +367,7 @@ function MessageItem({ message }: { message: Message }) {
     }
   };
   
+  
   return (
     <div className="w-full">
       <div className="text-sm whitespace-pre-wrap">
@@ -377,52 +401,6 @@ function MessageItem({ message }: { message: Message }) {
               <strong className={`font-semibold ${message.actor === 'system' ? 'text-muted-foreground' : 'text-foreground'}`}>{children}</strong>
             ),
             a: ({ href, children }) => {
-              // Check if this is a command link
-              if (href?.startsWith('command:')) {
-                const command = href.slice(8); // Remove 'command:' prefix
-                return (
-                  <span
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => {
-                      // Show the command being executed
-                      dispatch({
-                        type: 'user_message',
-                        payload: {
-                          text: command,
-                        },
-                        id: `cmd-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
-                        timestamp: new Date(),
-                        actor: 'user',
-                      });
-                      
-                      // Dispatch command execution event
-                      dispatch({
-                        type: 'execute_command',
-                        payload: {
-                          command: command,
-                        },
-                        id: `cmd-exec-${Date.now()}`,
-                        timestamp: new Date(),
-                        actor: 'user',
-                      });
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        e.currentTarget.click();
-                      }
-                    }}
-                    className={`underline transition-colors cursor-pointer ${
-                      message.actor === 'system' 
-                        ? 'text-muted-foreground hover:text-foreground' 
-                        : 'text-primary hover:text-primary/80'
-                    }`}
-                  >
-                    {children}
-                  </span>
-                );
-              }
               // Regular link
               return (
                 <a href={href} target="_blank" rel="noopener noreferrer">

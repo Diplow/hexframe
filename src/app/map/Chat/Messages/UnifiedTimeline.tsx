@@ -3,6 +3,7 @@ import type { Message, Widget } from '../Cache/_events/event.types';
 import { DaySeparator } from './DaySeparator';
 import { MessageActorRenderer } from './MessageActorRenderer';
 import { WidgetManager } from './WidgetManager';
+import { loggers } from '~/lib/debug/debug-logger';
 
 interface TimelineItem {
   type: 'message' | 'widget';
@@ -16,6 +17,24 @@ interface UnifiedTimelineProps {
 
 export function UnifiedTimeline({ items }: UnifiedTimelineProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  
+  // Debug logging for UnifiedTimeline renders
+  useEffect(() => {
+    loggers.render.chat('UnifiedTimeline mounted', {
+      itemCount: items.length
+    });
+    return () => {
+      loggers.render.chat('UnifiedTimeline unmounted');
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- Only log mount/unmount
+  
+  useEffect(() => {
+    loggers.render.chat('UnifiedTimeline updated', {
+      itemCount: items.length,
+      messageCount: items.filter(item => item.type === 'message').length,
+      widgetCount: items.filter(item => item.type === 'widget').length
+    });
+  }, [items]);
 
   useEffect(() => {
     _scrollToBottom();

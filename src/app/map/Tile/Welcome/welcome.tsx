@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { DynamicBaseTileLayout } from "~/app/map/Tile/Base";
 import { useCanvasTheme } from "~/app/map/Canvas";
@@ -26,23 +25,17 @@ export default function WelcomeTile() {
           <p className="mb-8 text-neutral-600">
             Join our community for deliberate people. Create and explore maps.
           </p>
-          <div className="flex items-center justify-center space-x-4">
-            <Link href="/auth/login">
-              <Button 
-                size="lg" 
-                className="bg-se text-white hover:bg-se-dark focus:ring-se"
-              >
-                Login
-              </Button>
-            </Link>
-            <Link href="/auth/signup">
-              <Button 
-                size="lg" 
-                className="bg-se/80 text-white hover:bg-se focus:ring-se-light"
-              >
-                Sign Up
-              </Button>
-            </Link>
+          <div className="flex flex-col items-center space-y-4">
+            <p className="text-sm text-neutral-500">
+              Use the chat interface to log in or sign up
+            </p>
+            <Button 
+              size="lg" 
+              className="bg-se/50 text-white cursor-not-allowed"
+              disabled
+            >
+              Open Chat to Get Started
+            </Button>
           </div>
         </div>
       </div>

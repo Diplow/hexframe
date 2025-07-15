@@ -47,6 +47,8 @@ export function ChatCacheProvider({
     dispatchEvent(fullEvent);
   }, []);
 
+  // Chat components should not log their own renders to prevent circular dependencies
+  
   // Subscribe to map events
   useEffect(() => {
     const unsubscribes: Array<() => void> = [];
@@ -78,9 +80,12 @@ export function ChatCacheProvider({
     });
     unsubscribes.push(unsubscribeError);
     
-    // Listen to ALL events for debug mode
+    // Debug logging is now handled by the debug logger itself, not through events
+    // This prevents circular dependencies and re-render loops
+    
+    // Listen to ALL events for debug mode (excluding debug.log to avoid duplication)
     const unsubscribeAll = eventBus.on('*', (event: AppEvent) => {
-      if (chatSettings.getSettings().messages.debug) {
+      if (chatSettings.getSettings().messages.debug && event.type !== 'debug.log') {
         // Create a debug message for all bus events
         dispatch({
           type: 'message',

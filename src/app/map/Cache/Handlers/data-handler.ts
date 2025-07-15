@@ -8,6 +8,7 @@ import {
   type useServerService,
 } from "../Services/server-service";
 import type { LoadResult } from "./types";
+import { loggers } from "~/lib/debug/debug-logger";
 
 export interface DataHandlerServices {
   server: {
@@ -41,6 +42,10 @@ export function createDataHandler(config: DataHandlerConfig) {
     centerCoordId: string,
     maxDepth = getState().cacheConfig.maxDepth,
   ): Promise<LoadResult> => {
+    loggers.mapCache.handlers(`DataHandler.loadRegion called`, {
+      centerCoordId,
+      maxDepth
+    });
     const regionKey = centerCoordId;
 
     // Check if we need to load
@@ -78,6 +83,10 @@ export function createDataHandler(config: DataHandlerConfig) {
     parentCoordId: string,
     maxDepth = 2,
   ): Promise<LoadResult> => {
+    loggers.mapCache.handlers(`DataHandler.loadItemChildren called`, {
+      parentCoordId,
+      maxDepth
+    });
     dispatch(cacheActions.setLoading(true));
 
     try {
@@ -99,6 +108,9 @@ export function createDataHandler(config: DataHandlerConfig) {
   };
 
   const prefetchRegion = async (centerCoordId: string): Promise<LoadResult> => {
+    loggers.mapCache.handlers(`DataHandler.prefetchRegion called`, {
+      centerCoordId
+    });
     // Prefetch without showing loading state
     try {
       const items = await services.server.fetchItemsForCoordinate({
@@ -123,10 +135,14 @@ export function createDataHandler(config: DataHandlerConfig) {
   };
 
   const invalidateRegion = (regionKey: string) => {
+    loggers.mapCache.handlers(`DataHandler.invalidateRegion called`, {
+      regionKey
+    });
     dispatch(cacheActions.invalidateRegion(regionKey));
   };
 
   const invalidateAll = () => {
+    loggers.mapCache.handlers(`DataHandler.invalidateAll called`);
     dispatch(cacheActions.invalidateAll());
   };
 
@@ -184,8 +200,8 @@ export function createDataHandlerWithTRPC(
   utils: ReturnType<typeof api.useUtils>,
   getState: () => CacheState,
 ) {
-  console.warn(
-    "createDataHandlerWithTRPC is deprecated. Use createDataHandlerWithServerService instead.",
+  loggers.mapCache.handlers(
+    "createDataHandlerWithTRPC is deprecated. Use createDataHandlerWithServerService instead."
   );
 
   const services: DataHandlerServices = {
@@ -193,7 +209,21 @@ export function createDataHandlerWithTRPC(
       fetchItemsForCoordinate: async (params) => {
         // For now, we'll adapt the current API to work with coordinates
         // In the future, this should be a proper API that supports loading from any coordinate
-        const coords = CoordSystem.parseId(params.centerCoordId);
+        let coords;
+        try {
+          coords = CoordSystem.parseId(params.centerCoordId);
+        } catch (error) {
+          console.warn('[DataHandler] Invalid coordinate ID:', params.centerCoordId, error);
+          // Return empty array for invalid coordinates
+          return [];
+        }
+        
+        // Don't make API calls with invalid userId/groupId values
+        if (coords.userId === 0 || isNaN(coords.userId)) {
+          console.warn('[DataHandler] Skipping API call with invalid userId:', coords.userId);
+          return [];
+        }
+        
         return utils.map.getItemsForRootItem.fetch({
           userId: coords.userId,
           groupId: coords.groupId,

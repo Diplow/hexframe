@@ -5,6 +5,8 @@ import type { ChatEvent, TileSelectedPayload, OperationCompletedPayload, Navigat
  * Create a chat event from a map event
  */
 export function createChatEventFromMapEvent(mapEvent: AppEvent): ChatEvent | null {
+  // Event creation logging removed to prevent circular dependencies
+
   const baseEvent = {
     id: `chat-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
     timestamp: mapEvent.timestamp ?? new Date(),

@@ -1,12 +1,14 @@
 "use client";
 
-import { use, useEffect, useState, useMemo } from "react";
+import { use, useEffect, useState } from "react";
 import { MapCacheProvider } from "./Cache/map-cache";
 import { useMapIdResolution } from "./_hooks/use-map-id-resolution";
 import { ChatCacheProvider } from "./Chat/Cache/ChatCacheProvider";
 import { MapPageContent } from "./_components/MapPageContent";
-import { EventBus } from "./Services/event-bus";
+import { eventBus } from "./Services/event-bus";
 import { loadPreFetchedData, clearPreFetchedData } from "./Cache/Services/pre-fetch-service";
+import { api } from "~/commons/trpc/react";
+import { useRouter } from "next/navigation";
 
 interface MapPageProps {
   searchParams: Promise<{
@@ -36,13 +38,24 @@ export default function MapPage({ searchParams }: MapPageProps) {
   const params = use(searchParams);
   
   // Create a single EventBus instance for the entire map page
-  const eventBus = useMemo(() => new EventBus(), []);
+  // Use the singleton eventBus instance to ensure debug logs work
   
   // Prevent SSR/hydration issues
   const [mounted, setMounted] = useState(false);
   
   // Check for pre-fetched data
   const [preFetchedData, setPreFetchedData] = useState<ReturnType<typeof loadPreFetchedData>>(null);
+  
+  const router = useRouter();
+  
+  // Handle missing center parameter by fetching user's map
+  const { data: userMapData, isLoading: isLoadingUserMap } = api.map.user.getUserMap.useQuery(
+    undefined,
+    { 
+      enabled: mounted && !params.center,
+      staleTime: 60000, // Cache for 1 minute
+    }
+  );
   
   useEffect(() => {
     console.log('[MapPage] 🏗️ Map page mounting...');
@@ -60,8 +73,27 @@ export default function MapPage({ searchParams }: MapPageProps) {
     }
   }, []);
   
+  // Handle redirect when user map is loaded
+  useEffect(() => {
+    if (!params.center && userMapData) {
+      if (userMapData.success && userMapData.map?.id) {
+        console.log('[MapPage] Redirecting to user map:', userMapData.map.id);
+        router.replace(`/map?center=${userMapData.map.id}`);
+      } else {
+        // User doesn't have a map yet, redirect to a default
+        console.log('[MapPage] User has no map, redirecting to default');
+        // For now, redirect to the public Hexframe map (ID 1)
+        router.replace(`/map?center=1`);
+      }
+    }
+  }, [params.center, userMapData, router]);
+  
   // Handle missing center
   const isOffline = params.offline === 'true';
+  
+  // Only resolve map ID if we have a center parameter
+  // If no center, we'll wait for the user map redirect
+  const shouldResolve = !!params.center && mounted;
   
   // Resolve mapItemId to coordinates BEFORE passing to cache
   // This ensures the cache only ever sees proper coordinates
@@ -72,10 +104,16 @@ export default function MapPage({ searchParams }: MapPageProps) {
     rootItemId, 
     isLoading: isResolving, 
     error: resolutionError 
-  } = useMapIdResolution(params.center ?? '');
+  } = useMapIdResolution(shouldResolve ? params.center! : '');
 
   // Always show loading state during SSR and initial mount to prevent flashes
-  if (!mounted || !params.center) {
+  // Also show loading when we're fetching the user's map for redirect
+  if (!mounted || (!params.center && isLoadingUserMap)) {
+    console.log('[MapPage] Showing loading state:', { 
+      mounted, 
+      hasCenter: !!params.center, 
+      isLoadingUserMap 
+    });
     return (
       <div className="relative flex h-full w-full">
         <MapCacheProvider
@@ -111,8 +149,8 @@ export default function MapPage({ searchParams }: MapPageProps) {
     );
   }
   
-  // Show loading while resolving mapItemId
-  if (isResolving) {
+  // Show loading while resolving mapItemId (only if we should resolve)
+  if (shouldResolve && isResolving) {
     // Show the layout structure with loading skeleton in canvas area
     return (
       <div className="relative flex h-full w-full">

@@ -1,8 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
-import { LoginForm } from "~/components/auth/login-form";
-import { RegisterForm } from "~/components/auth/register-form";
+import React from "react";
 import { DynamicBaseTileLayout } from "~/app/map/Tile/Base";
 import { useCanvasTheme } from "~/app/map/Canvas";
 import styles from "./auth.module.css";
@@ -13,7 +11,6 @@ export interface AuthTileProps {
 
 // This component will be dynamically imported
 export default function AuthTile({ initialView = "login" }: AuthTileProps) {
-  const [showLogin, setShowLogin] = useState(initialView === "login");
   const { isDarkMode } = useCanvasTheme();
 
   return (
@@ -27,27 +24,20 @@ export default function AuthTile({ initialView = "login" }: AuthTileProps) {
         <div className={`${styles.authCard} mx-auto p-4`}>
           <div className="mb-6">
             <h2 className="text-center text-2xl font-bold text-neutral-800">
-              {showLogin ? "Welcome Back" : "Create Account"}
+              Authentication
             </h2>
             <p className="mt-2 text-center text-neutral-600">
-              {showLogin
-                ? "Please login to continue."
-                : "Sign up to get started."}
+              Please use the chat interface to log in or sign up.
             </p>
           </div>
 
-          {showLogin ? <LoginForm /> : <RegisterForm />}
-
-          <div className="mt-6 text-center">
-            <button
-              onClick={() => setShowLogin(!showLogin)}
-              className="text-sm text-se-600 hover:text-se-500 font-medium focus:outline-none"
-              type="button"
-            >
-              {showLogin
-                ? "Need an account? Register"
-                : "Already have an account? Login"}
-            </button>
+          <div className="text-center p-8">
+            <p className="text-neutral-500 mb-4">
+              The chat assistant will help you authenticate.
+            </p>
+            <p className="text-sm text-neutral-400">
+              Open the chat panel and follow the prompts to {initialView === "login" ? "log in" : "create an account"}.
+            </p>
           </div>
         </div>
       </div>

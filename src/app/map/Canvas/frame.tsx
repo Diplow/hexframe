@@ -21,6 +21,8 @@ import type { TileData } from "../types/tile-data";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import type { URLInfo } from "../types/url-info";
 import { useCanvasTheme } from ".";
+import { useEffect } from "react";
+import { loggers } from "~/lib/debug/debug-logger";
 
 const CHILD_INDICES = [1, 2, 3, 4, 5, 6] as const;
 
@@ -46,6 +48,17 @@ export const DynamicFrame = (props: DynamicFrameProps) => {
   const { center, mapItems, scale = 3 } = props;
   const centerItem = mapItems[center];
   const { isDarkMode } = useCanvasTheme();
+  
+  // Log frame render
+  useEffect(() => {
+    loggers.render.canvas('DynamicFrame render', {
+      center,
+      scale,
+      hasItem: !!centerItem,
+      isExpanded: centerItem ? props.expandedItemIds?.includes(centerItem.metadata.dbId) ?? false : false,
+      childCount: centerItem ? getChildCoordIds(centerItem).filter(id => mapItems[id]).length : 0,
+    });
+  }); // No deps - logs every render
 
   if (!centerItem) return null;
 
@@ -115,6 +128,24 @@ const FrameInterior = (props: {
   selectedTileId?: string | null;
 }) => {
   const { centerItem, baseHexSize = 50, childScale } = props;
+  
+  // Log frame interior render
+  useEffect(() => {
+    const childCoordIds = getChildCoordIds(centerItem);
+    const childStats = childCoordIds.map(id => ({
+      exists: !!props.mapItems[id],
+      isExpanded: props.mapItems[id] ? props.expandedItemIds?.includes(props.mapItems[id].metadata.dbId) ?? false : false,
+    }));
+    
+    loggers.render.canvas('FrameInterior render', {
+      centerCoordId: centerItem.metadata.coordId,
+      centerDbId: centerItem.metadata.dbId,
+      childScale,
+      totalChildren: childCoordIds.length,
+      existingChildren: childStats.filter(s => s.exists).length,
+      expandedChildren: childStats.filter(s => s.exists && s.isExpanded).length,
+    });
+  });
   
   // Calculate margin for hexagon rows
   // Note: We need to use the PARENT's scale (childScale + 1) for proper edge sharing
@@ -202,6 +233,18 @@ const FrameSlot = (props: {
 }) => {
   const { coordId, mapItems, slotScale, isCenter } = props;
   const item = mapItems[coordId];
+  
+  // Log frame slot render
+  useEffect(() => {
+    loggers.render.canvas('FrameSlot render', {
+      coordId,
+      slotScale,
+      isCenter,
+      hasItem: !!item,
+      isExpanded: item ? props.expandedItemIds?.includes(item.metadata.dbId) ?? false : false,
+      isSelected: props.selectedTileId === coordId,
+    });
+  });
 
   // Empty slot
   if (!item && !isCenter) {
