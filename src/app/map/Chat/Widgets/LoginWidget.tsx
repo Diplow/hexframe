@@ -36,7 +36,7 @@ export function LoginWidget({ message }: LoginWidgetProps) {
         
         try {
           // Use better-auth client to login - this properly establishes the session
-          const loginResponse = await authClient.signIn.email({
+          await authClient.signIn.email({
             email,
             password,
           });
@@ -120,7 +120,7 @@ export function LoginWidget({ message }: LoginWidgetProps) {
           
           // Perform login with the same credentials
           try {
-            const loginResponse = await authClient.signIn.email({
+            await authClient.signIn.email({
               email,
               password,
             });
@@ -145,8 +145,8 @@ export function LoginWidget({ message }: LoginWidgetProps) {
             // Refresh router to update server components
             // Refreshing router
             router.refresh();
-          } catch (loginError) {
-            // Failed to login after registration
+          } catch (_loginError) {
+            console.warn('Failed to login after registration:', _loginError);
             throw new Error('Registration successful but login failed. Please try logging in manually.');
           }
           

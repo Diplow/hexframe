@@ -66,6 +66,7 @@ export interface TileSelectedPayload {
     content?: string;
     coordId: string;
   };
+  openInEditMode?: boolean;
 }
 
 export interface NavigationPayload {

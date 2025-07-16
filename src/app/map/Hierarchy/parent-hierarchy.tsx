@@ -137,8 +137,8 @@ const UserProfileTile = () => {
       } else {
         // No user map found
       }
-    } catch (error) {
-      // Failed to fetch/navigate to user map
+    } catch (_error) {
+      console.warn('Failed to fetch/navigate to user map:', _error);
     }
   };
   
@@ -221,7 +221,7 @@ export const ParentHierarchy = ({
       renderCount: renderCountRef.current,
       effectiveCenter,
       hierarchyLength: hierarchy.length,
-      hierarchyItems: hierarchy.map(item => ({
+      hierarchyItems: hierarchy.map((item: TileData) => ({
         coordId: item.metadata.coordId,
         name: item.data.name,
         depth: item.metadata.depth,

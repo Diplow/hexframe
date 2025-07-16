@@ -63,8 +63,8 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
       } else {
         dispatchMessage('Creating your map...');
       }
-    } catch (error) {
-      // Failed to fetch user map
+    } catch (_error) {
+      console.warn('Failed to fetch user map:', _error);
       dispatchMessage('Failed to load your map');
     }
   };
@@ -78,8 +78,8 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
       // The navigation handler will load the map if it's not in cache
       // Calling navigateToItem with database ID
       await navigateToItem(String(map.id));
-    } catch (error) {
-      // Failed to navigate to user map
+    } catch (_error) {
+      console.warn('Failed to navigate to user map:', _error);
       dispatchMessage(`Failed to navigate to ${mapName} map`);
     }
   };
@@ -110,17 +110,17 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
   const createMarkdownComponents = () => {
     // Creating markdown components for message
     return {
-    p: ({ children, ..._props }: { children?: React.ReactNode } & React.HTMLAttributes<HTMLElement>) => <>{children}</>,
+    p: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
     br: () => <br />,
-    ul: ({ children, ..._props }: { children?: React.ReactNode } & React.HTMLAttributes<HTMLElement>) => <ul className="list-disc list-inside mb-1">{children}</ul>,
-    ol: ({ children, ..._props }: { children?: React.ReactNode } & React.HTMLAttributes<HTMLElement>) => <ol className="list-decimal list-inside mb-1">{children}</ol>,
+    ul: ({ children }: { children?: React.ReactNode }) => <ul className="list-disc list-inside mb-1">{children}</ul>,
+    ol: ({ children }: { children?: React.ReactNode }) => <ol className="list-decimal list-inside mb-1">{children}</ol>,
     li: ({ children, ..._props }: { children?: React.ReactNode } & React.LiHTMLAttributes<HTMLLIElement>) => <li className="ml-2" {..._props}>{children}</li>,
-    strong: ({ children, ..._props }: { children?: React.ReactNode } & React.HTMLAttributes<HTMLElement>) => (
+    strong: ({ children }: { children?: React.ReactNode }) => (
       <strong className={`font-semibold ${message.actor === 'system' ? 'text-muted-foreground' : 'text-foreground'}`}>
         {children}
       </strong>
     ),
-    a: ({ href, children, ..._props }: { href?: string; children?: React.ReactNode } & React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
+    a: ({ href, children }: { href?: string; children?: React.ReactNode }) => {
       // ReactMarkdown anchor component called
       if (href?.startsWith('#hexframe-command:')) {
         // Detected command link, rendering command button
@@ -265,8 +265,8 @@ function CopyButton({ base64Content }: { base64Content: string }) {
         // Fallback: show content in a prompt (not ideal but works)
         prompt('Copy the content below:', logContent);
       }
-    } catch (error) {
-      // Failed to copy to clipboard
+    } catch (_error) {
+      console.warn('Failed to copy to clipboard:', _error);
     }
   };
   

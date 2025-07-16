@@ -78,7 +78,7 @@ export function useTestEventBus(): MockEventBus {
   if (!contextValue || !('emittedEvents' in contextValue)) {
     throw new Error('useTestEventBus must be used within TestProviders with a mock event bus');
   }
-  return contextValue as MockEventBus;
+  return contextValue as unknown as MockEventBus;
 }
 
 /**

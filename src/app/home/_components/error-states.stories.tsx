@@ -30,7 +30,9 @@ export const WithRetry: Story = {
   args: {
     title: "Connection Error",
     message: "Unable to connect to the server",
-    onRetry: () => {},
+    onRetry: () => {
+      console.log('Retry button clicked');
+    },
   },
 };
 
@@ -59,12 +61,16 @@ export const MapFetchFailed: Story = {
   args: {
     title: "Map Access Error",
     message: "Network error accessing your map data",
-    onRetry: () => {},
+    onRetry: () => {
+      console.log('Retry button clicked');
+    },
   },
   render: () => (
     <MapFetchError 
       message="Network error accessing your map data"
-      onRetry={() => {}}
+      onRetry={() => {
+        console.log('Retry button clicked');
+      }}
     />
   ),
 };
@@ -73,12 +79,16 @@ export const GenericMapError: Story = {
   args: {
     title: "Map Error",
     message: "Failed to retrieve your map details",
-    onRetry: () => {},
+    onRetry: () => {
+      console.log('Retry button clicked');
+    },
   },
   render: () => (
     <MapFetchError 
       message="Failed to retrieve your map details"
-      onRetry={() => {}}
+      onRetry={() => {
+        console.log('Retry button clicked');
+      }}
     />
   ),
 };

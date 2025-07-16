@@ -63,8 +63,8 @@ export function useAuthStateCoordinator(widgets: Widget[]) {
         // No user map found, creating new map
         await _createUserMap();
       }
-    } catch (error) {
-      // Failed to handle user map navigation
+    } catch (_error) {
+      console.warn('Failed to handle user map navigation:', _error);
       // Fallback to basic navigation
       try {
         // Attempting fallback navigation
@@ -73,8 +73,8 @@ export function useAuthStateCoordinator(widgets: Widget[]) {
           // Fallback found map, navigating
           _handleExistingMap(result.map);
         }
-      } catch (fallbackError) {
-        // Fallback navigation also failed
+      } catch (_fallbackError) {
+        console.warn('Fallback navigation also failed:', _fallbackError);
       }
     }
   };
@@ -113,8 +113,8 @@ export function useAuthStateCoordinator(widgets: Widget[]) {
         router.replace(`/map?center=${createResult.mapId}`);
         dispatchMessage('Welcome! Your personal map has been created.');
       }
-    } catch (error) {
-      // Failed to create user map
+    } catch (_error) {
+      console.warn('Failed to create user map:', _error);
       dispatchError('Failed to create your map. Please try refreshing the page.', true);
     }
   };

@@ -67,8 +67,8 @@ export async function preloadUserMapData(
     // Successfully preloaded map data
 
     return result;
-  } catch (error) {
-    // Failed to preload user map data
+  } catch (_error) {
+    console.warn('Failed to preload user map data:', _error);
     return null;
   }
 }
@@ -88,8 +88,8 @@ export function transformApiItemsToTileData(
       
       // Store by coordinate ID for map cache
       tileDataRecord[tileData.metadata.coordId] = tileData;
-    } catch (error) {
-      // Failed to transform item
+    } catch (_error) {
+      console.warn('Failed to transform item:', _error);
       // Continue with other items
     }
   }
@@ -108,8 +108,8 @@ export function savePreFetchedData(data: PreFetchedMapData): void {
     };
     sessionStorage.setItem('hexframe:prefetched-map-data', JSON.stringify(dataToSave));
     // Saved data to sessionStorage
-  } catch (error) {
-    // Failed to save to sessionStorage
+  } catch (_error) {
+    console.warn('Failed to save to sessionStorage:', _error);
   }
 }
 
@@ -149,8 +149,8 @@ export function loadPreFetchedData(): PreFetchedMapData | null {
     void timestamp; // Mark as intentionally unused
     // Loaded pre-fetched data from sessionStorage
     return typedData;
-  } catch (error) {
-    // Failed to load from sessionStorage
+  } catch (_error) {
+    console.warn('Failed to load from sessionStorage:', _error);
     return null;
   }
 }
@@ -162,7 +162,7 @@ export function clearPreFetchedData(): void {
   try {
     sessionStorage.removeItem('hexframe:prefetched-map-data');
     // Cleared pre-fetched data from sessionStorage
-  } catch (error) {
-    // Failed to clear sessionStorage
+  } catch (_error) {
+    console.warn('Failed to clear sessionStorage:', _error);
   }
 }

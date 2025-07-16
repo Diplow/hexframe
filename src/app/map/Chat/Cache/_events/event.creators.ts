@@ -15,13 +15,14 @@ export function createChatEventFromMapEvent(mapEvent: AppEvent): ChatEvent | nul
 
   switch (mapEvent.type) {
     case 'map.tile_selected': {
-      const payload = mapEvent.payload as { tileId: string; tileData: { title: string; description?: string; content?: string; coordId: string } };
+      const payload = mapEvent.payload as { tileId: string; tileData: { title: string; description?: string; content?: string; coordId: string }; openInEditMode?: boolean };
       return {
         ...baseEvent,
         type: 'tile_selected',
         payload: {
           tileId: payload.tileId,
           tileData: payload.tileData,
+          openInEditMode: payload.openInEditMode,
         } as TileSelectedPayload,
       };
     }

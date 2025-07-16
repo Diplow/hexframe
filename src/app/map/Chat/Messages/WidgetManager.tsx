@@ -89,9 +89,9 @@ export function WidgetManager({ widgets }: WidgetManagerProps) {
 
     // Preview widget handlers
     const handleEdit = () => {
-      // Open edit mode directly in the preview widget
-      const previewData = widget.data as TileSelectedPayload;
-      // Edit tile
+      // The PreviewWidget component will handle the edit mode internally
+      // This handler is called from the preview widget's menu
+      // The widget already has editing capability built-in
     };
     
     const handleDelete = () => {
@@ -229,6 +229,7 @@ function _renderPreviewWidget(widget: Widget, createWidgetHandlers: (widget: Wid
       tileId={previewData.tileId}
       title={currentTitle}
       content={currentContent}
+      openInEditMode={previewData.openInEditMode}
       onEdit={handleEdit}
       onDelete={handleDelete}
       onSave={handlePreviewSave}

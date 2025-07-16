@@ -55,7 +55,7 @@ export async function loadAncestorsForItem(
   itemDbId: number,
   serverService: ServerService,
   dispatch: Dispatch<CacheAction>,
-  source = "unknown"
+  _source = "unknown"
 ): Promise<void> {
   // loadAncestorsForItem called
   try {
@@ -99,7 +99,7 @@ export async function loadAncestorsForItem(
       dispatch(cacheActions.updateItems(ancestorItems));
       // Loaded ancestors
     }
-  } catch (error) {
-    // Failed to load ancestors
+  } catch (_error) {
+    console.warn('Failed to load ancestors:', _error);
   }
 }

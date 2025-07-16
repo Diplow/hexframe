@@ -139,8 +139,8 @@ export function createServerService(
         let coords;
         try {
           coords = CoordSystem.parseId(params.centerCoordId);
-        } catch (error) {
-          // Invalid coordinate ID
+        } catch (_error) {
+          console.warn('Invalid coordinate ID:', _error);
           return [];
         }
         
