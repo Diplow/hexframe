@@ -6,6 +6,25 @@ import { ChatTestProviders, simulateMapEvent } from './ChatTestProvider';
 import { createMockEventBus } from '~/test-utils/event-bus';
 import { createUserMessageEvent } from '../Cache/_events/event.creators';
 
+// Mock useChatState
+const mockChatState = {
+  messages: [],
+  widgets: [],
+  events: [],
+  sendMessage: vi.fn(),
+  showSystemMessage: vi.fn(),
+  showEditWidget: vi.fn(),
+  showPreviewWidget: vi.fn(),
+  closeWidget: vi.fn(),
+  startOperation: vi.fn(),
+  clearChat: vi.fn(),
+};
+
+vi.mock('../_state/useChatState', () => ({
+  default: vi.fn(() => mockChatState),
+  useChatState: vi.fn(() => mockChatState),
+}));
+
 // Mock dependencies
 vi.mock('~/lib/auth/auth-client', () => ({
   authClient: {
@@ -69,6 +88,11 @@ describe('ChatPanel', () => {
   beforeEach(() => {
     mockEventBus = createMockEventBus();
     vi.clearAllMocks();
+    
+    // Reset mock chat state
+    mockChatState.messages = [];
+    mockChatState.widgets = [];
+    mockChatState.events = [];
   });
 
   it('should render chat components', () => {
@@ -104,13 +128,18 @@ describe('ChatPanel', () => {
   });
 
   it('should handle user messages', async () => {
+    // Set up initial message in mock state
+    const userMessage = createUserMessageEvent('Hello world');
+    mockChatState.messages = [{
+      id: userMessage.id,
+      content: 'Hello world',
+      actor: 'user',
+      timestamp: userMessage.timestamp,
+    }];
+    mockChatState.events = [userMessage];
+    
     render(
-      <ChatTestProviders 
-        eventBus={mockEventBus}
-        initialChatEvents={[
-          createUserMessageEvent('Hello world'),
-        ]}
-      >
+      <ChatTestProviders eventBus={mockEventBus}>
         <ChatPanel />
       </ChatTestProviders>
     );

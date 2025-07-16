@@ -1,7 +1,5 @@
 import React from 'react';
 import { TestProviders } from '~/test-utils/providers';
-import { ChatCacheProvider } from '../Cache/ChatCacheProvider';
-import { EventBusContext } from '~/app/map/Services/EventBus/event-bus-context';
 import { debugLogger } from '~/lib/debug/debug-logger';
 import type { MockEventBus } from '~/test-utils/event-bus';
 import type { ChatEvent } from '../Cache/_events/event.types';
@@ -18,7 +16,6 @@ interface ChatTestProvidersProps {
  * 
  * Dependencies included:
  * - EventBus (mock or real)
- * - ChatCacheProvider 
  * - AuthProvider
  * - QueryClientProvider
  * - ThemeProvider
@@ -50,28 +47,9 @@ export function ChatTestProviders({
     };
   }, [enableDebugLogger]);
 
-  // Get the event bus from the context
-  const EventBusConsumer = ({ children: childrenProp }: { children: React.ReactNode }) => {
-    const context = React.useContext(EventBusContext);
-    if (!context) {
-      throw new Error('EventBusContext not found');
-    }
-    
-    return (
-      <ChatCacheProvider 
-        eventBus={context}
-        initialEvents={initialChatEvents}
-      >
-        {childrenProp}
-      </ChatCacheProvider>
-    );
-  };
-
   return (
     <TestProviders mockEventBus={eventBus}>
-      <EventBusConsumer>
-        {children}
-      </EventBusConsumer>
+      {children}
     </TestProviders>
   );
 }
