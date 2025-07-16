@@ -15,6 +15,7 @@ export type ChatEventType =
   | 'message'
   | 'widget_resolved'
   | 'widget_created'
+  | 'widget_closed'
   | 'execute_command';
 
 export type ChatEventActor = 'user' | 'system' | 'assistant';

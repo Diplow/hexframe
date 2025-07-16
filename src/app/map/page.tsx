@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from "react";
 import { MapCacheProvider } from "./Cache/map-cache";
 import { useMapIdResolution } from "./_hooks/use-map-id-resolution";
-import { ChatCacheProvider } from "./Chat/Cache/ChatCacheProvider";
+// ChatCacheProvider is no longer needed - Chat state is managed internally
 import { MapPageContent } from "./_components/MapPageContent";
 import { eventBus } from "./Services/EventBus/event-bus";
 import { EventBusProvider } from "./Services/EventBus/event-bus-context";
@@ -130,8 +130,7 @@ export default function MapPage({ searchParams }: MapPageProps) {
               disableSync: true,
             }}
           >
-            <ChatCacheProvider eventBus={eventBus}>
-              <MapPageContent
+            <MapPageContent
                   centerCoordinate={"0,0"}
                   params={params}
                   rootItemId={0}
@@ -141,7 +140,6 @@ export default function MapPage({ searchParams }: MapPageProps) {
                   isLoading={true}
                   loadingError={null}
               />
-            </ChatCacheProvider>
           </MapCacheProvider>
         </EventBusProvider>
       </div>
@@ -170,8 +168,7 @@ export default function MapPage({ searchParams }: MapPageProps) {
               disableSync: true,
             }}
           >
-            <ChatCacheProvider eventBus={eventBus}>
-              <MapPageContent
+            <MapPageContent
                   centerCoordinate={"0,0"}
                   params={params}
                   rootItemId={0}
@@ -181,7 +178,6 @@ export default function MapPage({ searchParams }: MapPageProps) {
                   isLoading={true}
                   loadingError={null}
               />
-            </ChatCacheProvider>
           </MapCacheProvider>
         </EventBusProvider>
       </div>
@@ -209,8 +205,7 @@ export default function MapPage({ searchParams }: MapPageProps) {
               disableSync: true,
             }}
           >
-            <ChatCacheProvider eventBus={eventBus}>
-              <MapPageContent
+            <MapPageContent
                   centerCoordinate={"0,0"}
                   params={params}
                   rootItemId={0}
@@ -220,7 +215,6 @@ export default function MapPage({ searchParams }: MapPageProps) {
                   isLoading={false}
                   loadingError={resolutionError || new Error("Unable to load the requested map")}
               />
-            </ChatCacheProvider>
           </MapCacheProvider>
         </EventBusProvider>
       </div>
@@ -248,8 +242,7 @@ export default function MapPage({ searchParams }: MapPageProps) {
               disableSync: true,
             }}
           >
-            <ChatCacheProvider eventBus={eventBus}>
-              <MapPageContent
+            <MapPageContent
                   centerCoordinate={"0,0"}
                   params={params}
                   rootItemId={0}
@@ -259,7 +252,6 @@ export default function MapPage({ searchParams }: MapPageProps) {
                   isLoading={false}
                   loadingError={new Error("Unable to resolve map coordinates")}
               />
-            </ChatCacheProvider>
           </MapCacheProvider>
         </EventBusProvider>
       </div>
@@ -292,30 +284,14 @@ export default function MapPage({ searchParams }: MapPageProps) {
             disableSync: true, // Disable sync until basic cache is working
           }}
         >
-          <ChatCacheProvider 
-            eventBus={eventBus}
-            initialEvents={[
-              {
-                type: 'system_message',
-                payload: {
-                  message: 'Welcome to **HexFrame**! Navigate the map by clicking on tiles, or use the chat to ask questions.',
-                  level: 'info',
-                },
-                id: 'welcome-message',
-                timestamp: new Date(),
-                actor: 'system',
-              }
-            ]}
-          >
-            <MapPageContent
-              centerCoordinate={centerCoordinate}
-              params={params}
-              rootItemId={rootItemId}
-              userId={userId}
-              groupId={groupId}
-              isOffline={isOffline}
-            />
-          </ChatCacheProvider>
+          <MapPageContent
+            centerCoordinate={centerCoordinate}
+            params={params}
+            rootItemId={rootItemId}
+            userId={userId}
+            groupId={groupId}
+            isOffline={isOffline}
+          />
         </MapCacheProvider>
       </EventBusProvider>
     </div>
