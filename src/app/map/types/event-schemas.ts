@@ -120,6 +120,13 @@ const mapDeleteRequestedPayloadSchema = z.object({
   tileName: z.string(),
 });
 
+const mapCreateRequestedPayloadSchema = z.object({
+  coordId: z.string(),
+  parentName: z.string().optional(),
+  parentId: z.string().optional(),
+  parentCoordId: z.string().optional(),
+});
+
 // Specific event schemas
 export const mapTileSelectedEventSchema = baseEventSchema.extend({
   type: z.literal('map.tile_selected'),
@@ -236,6 +243,12 @@ export const mapDeleteRequestedEventSchema = baseEventSchema.extend({
   payload: mapDeleteRequestedPayloadSchema,
 });
 
+export const mapCreateRequestedEventSchema = baseEventSchema.extend({
+  type: z.literal('map.create_requested'),
+  source: z.literal('canvas'),
+  payload: mapCreateRequestedPayloadSchema,
+});
+
 // Union of all event schemas for validation
 export const appEventSchema = z.discriminatedUnion('type', [
   // Notification events
@@ -259,6 +272,7 @@ export const appEventSchema = z.discriminatedUnion('type', [
   // Request events
   mapEditRequestedEventSchema,
   mapDeleteRequestedEventSchema,
+  mapCreateRequestedEventSchema,
 ]);
 
 // Helper function to validate events

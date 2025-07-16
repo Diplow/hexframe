@@ -3,19 +3,15 @@ import { useAuth } from '~/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { api } from '~/commons/trpc/react';
 import type { Widget } from '../../Cache/types';
-import { useChatEventDispatcher } from './useChatEventDispatcher';
 import { preloadUserMapData, savePreFetchedData } from '../../../Cache/Services/pre-fetch-service';
+import { useEventBus } from '../../../Services/EventBus/event-bus-context';
 
 export function useAuthStateCoordinator(widgets: Widget[]) {
   const { user } = useAuth();
   const router = useRouter();
   const trpcUtils = api.useUtils();
   const createMapMutation = api.map.user.createDefaultMapForCurrentUser.useMutation();
-  const { 
-    dispatchWidgetResolved, 
-    dispatchMessage, 
-    dispatchError 
-  } = useChatEventDispatcher();
+  const eventBus = useEventBus();
 
   useEffect(() => {
     if (!user) return;
@@ -23,13 +19,12 @@ export function useAuthStateCoordinator(widgets: Widget[]) {
     const loginWidget = widgets.find(w => w.type === 'login');
     if (!loginWidget) return;
 
-    // Handle user authentication
-    dispatchWidgetResolved(loginWidget.id, 'authenticated');
+    // Handle user authentication - widget resolution handled by chat state
     
     // Pre-fetch user map data and navigate
     void _handleUserMapNavigation();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, widgets, dispatchWidgetResolved]);
+  }, [user, widgets]);
 
 
   const _handleUserMapNavigation = async () => {
@@ -111,11 +106,27 @@ export function useAuthStateCoordinator(widgets: Widget[]) {
         
         // Use router.replace instead of router.push to avoid adding to history
         router.replace(`/map?center=${createResult.mapId}`);
-        dispatchMessage('Welcome! Your personal map has been created.');
+        eventBus.emit({
+          type: 'chat.message_received',
+          payload: {
+            message: 'Welcome! Your personal map has been created.',
+            actor: 'system'
+          },
+          source: 'chat_cache',
+          timestamp: new Date(),
+        });
       }
     } catch (_error) {
       console.warn('Failed to create user map:', _error);
-      dispatchError('Failed to create your map. Please try refreshing the page.', true);
+      eventBus.emit({
+        type: 'error.operation',
+        payload: {
+          error: 'Failed to create your map. Please try refreshing the page.',
+          retryable: true
+        },
+        source: 'chat_cache',
+        timestamp: new Date(),
+      });
     }
   };
 

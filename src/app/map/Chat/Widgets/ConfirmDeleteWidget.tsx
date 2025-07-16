@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useMapCache } from '../../Cache/_hooks/use-map-cache';
-import { useChatCacheOperations } from '../Cache/hooks/useChatCacheOperations';
 import { Trash2, AlertTriangle } from 'lucide-react';
+import { useEventBus } from '../../Services/EventBus/event-bus-context';
 
 interface ConfirmDeleteWidgetProps {
   tileId: string;
@@ -13,7 +13,7 @@ interface ConfirmDeleteWidgetProps {
 
 export function ConfirmDeleteWidget({ tileId, tileName, widgetId }: ConfirmDeleteWidgetProps) {
   const { deleteItemOptimistic } = useMapCache();
-  const { dispatch } = useChatCacheOperations();
+  const eventBus = useEventBus();
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState('');
 
@@ -29,34 +29,17 @@ export function ConfirmDeleteWidget({ tileId, tileName, widgetId }: ConfirmDelet
       await deleteItemOptimistic(tileId);
       // deleteItemOptimistic completed successfully
       
-      // Remove the confirmation widget and notify about deletion
-      const resolveEventId = `widget-resolved-${Date.now()}`;
-      // Dispatching widget_resolved event
-      dispatch({
-        type: 'widget_resolved',
-        payload: {
-          widgetId: widgetId ?? `confirm-delete-${tileId}`,
-          action: 'confirmed'
-        },
-        id: resolveEventId,
-        timestamp: new Date(),
-        actor: 'user',
-      });
-      
       // Send operation completed event
-      const completedEventId = `tile-deleted-${Date.now()}`;
-      // Dispatching operation_completed event
-      dispatch({
-        type: 'operation_completed',
+      eventBus.emit({
+        type: 'map.operation.completed',
         payload: {
           operation: 'delete',
           tileId,
           result: 'success',
           message: `Deleted tile "${tileName}"`
         },
-        id: completedEventId,
+        source: 'chat_cache',
         timestamp: new Date(),
-        actor: 'user',
       });
     } catch (err) {
       // Delete failed
@@ -66,19 +49,7 @@ export function ConfirmDeleteWidget({ tileId, tileName, widgetId }: ConfirmDelet
   };
 
   const handleCancel = () => {
-    // Cancel button clicked
-    const cancelEventId = `widget-resolved-${Date.now()}`;
-    // Dispatching widget_resolved (cancelled) event
-    dispatch({
-      type: 'widget_resolved',
-      payload: {
-        widgetId: widgetId ?? `confirm-delete-${tileId}`,
-        action: 'cancelled'
-      },
-      id: cancelEventId,
-      timestamp: new Date(),
-      actor: 'user',
-    });
+    // Cancel button clicked - widget resolution handled by chat state
   };
 
   return (

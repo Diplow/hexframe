@@ -1,14 +1,30 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import { ChatPanel } from '../ChatPanel';
-import { ChatTestProviders, simulateMapEvent } from './ChatTestProvider';
+import { TestProviders } from '~/test-utils/providers';
 import { createMockEventBus } from '~/test-utils/event-bus';
-import { createUserMessageEvent } from '../Cache/_events/event.creators';
+import { chatSettings } from '../_settings/chat-settings';
 
 // We'll use the real useChatState hook instead of mocking it
 // This avoids potential issues with React rendering
 
 // Mock dependencies
+vi.mock('../_settings/chat-settings', () => ({
+  chatSettings: {
+    getSettings: vi.fn(() => ({
+      messages: { 
+        debug: false,
+        tile: {
+          edit: true,
+          create: true,
+          delete: true,
+          move: true,
+          swap: true,
+        }
+      },
+    })),
+  },
+}));
 vi.mock('~/lib/auth/auth-client', () => ({
   authClient: {
     signOut: vi.fn(),
@@ -65,15 +81,77 @@ vi.mock('~/commons/trpc/react', () => ({
   },
 }));
 
+// Helper functions to simulate map events
+const simulateMapEvent = {
+  tileSelected: (eventBus: ReturnType<typeof createMockEventBus>, tileData: {
+    id: string;
+    title: string;
+    description?: string;
+    content?: string;
+    coordId: string;
+  }, openInEditMode?: boolean) => {
+    eventBus.emit({
+      type: 'map.tile_selected',
+      source: 'map_cache',
+      payload: {
+        tileId: tileData.coordId,
+        tileData,
+        openInEditMode,
+      },
+      timestamp: new Date(),
+    });
+  },
+
+  navigation: (eventBus: ReturnType<typeof createMockEventBus>, fromId: string | undefined, toId: string, toName: string) => {
+    eventBus.emit({
+      type: 'map.navigation',
+      source: 'map_cache',
+      payload: {
+        fromCenterId: fromId,
+        toCenterId: toId,
+        toCenterName: toName,
+      },
+      timestamp: new Date(),
+    });
+  },
+
+  authRequired: (eventBus: ReturnType<typeof createMockEventBus>, reason: string) => {
+    eventBus.emit({
+      type: 'auth.required',
+      source: 'map_cache',
+      payload: { reason },
+      timestamp: new Date(),
+    });
+  },
+  
+  authLogout: (eventBus: ReturnType<typeof createMockEventBus>) => {
+    eventBus.emit({
+      type: 'auth.logout',
+      source: 'auth',
+      payload: {},
+      timestamp: new Date(),
+    });
+  },
+
+  error: (eventBus: ReturnType<typeof createMockEventBus>, error: string, context?: unknown) => {
+    eventBus.emit({
+      type: 'error.occurred',
+      source: 'map_cache',
+      payload: { error, context },
+      timestamp: new Date(),
+    });
+  },
+};
+
 describe('ChatPanel', () => {
   let mockEventBus: ReturnType<typeof createMockEventBus>;
 
   // Custom render function
   function renderWithProviders(ui: React.ReactElement) {
     return render(
-      <ChatTestProviders eventBus={mockEventBus}>
+      <TestProviders mockEventBus={mockEventBus}>
         {ui}
-      </ChatTestProviders>
+      </TestProviders>
     );
   }
 
@@ -118,6 +196,7 @@ describe('ChatPanel', () => {
       id: 'tile-123',
       title: 'Test Tile',
       description: 'A test tile',
+      content: 'A test tile', // content can be the same as description
       coordId: 'coord-123',
     });
 
@@ -208,14 +287,20 @@ describe('ChatPanel', () => {
 
   it('should handle debug logger state', async () => {
     // Test with debug logger enabled
-    render(
-      <ChatTestProviders 
-        eventBus={mockEventBus}
-        enableDebugLogger={true}
-      >
-        <ChatPanel />
-      </ChatTestProviders>
-    );
+    vi.mocked(chatSettings).getSettings.mockReturnValue({
+      messages: { 
+        debug: true,
+        tile: {
+          edit: true,
+          create: true,
+          delete: true,
+          move: true,
+          swap: true,
+        }
+      },
+    });
+    
+    renderWithProviders(<ChatPanel />);
 
     // Debug logger should be configured but not affect the UI in tests
     expect(screen.getByTestId('chat-messages')).toBeInTheDocument();

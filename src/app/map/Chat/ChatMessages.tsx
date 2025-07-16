@@ -13,7 +13,6 @@ import { ConfirmDeleteWidget } from './Widgets/ConfirmDeleteWidget';
 import { LoadingWidget } from './Widgets/LoadingWidget';
 import { ErrorWidget } from './Widgets/ErrorWidget';
 import { useMapCache } from '../Cache/_hooks/use-map-cache';
-import { useChatCacheOperations } from './Cache/hooks/useChatCacheOperations';
 import { useAuth } from '~/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useChatSettings } from './_settings/useChatSettings';
@@ -27,7 +26,6 @@ interface ChatMessagesProps {
 
 export function ChatMessages({ messages, widgets }: ChatMessagesProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { dispatch, eventBus } = useChatCacheOperations();
   const { updateItemOptimistic } = useMapCache();
   const { user } = useAuth();
   const router = useRouter();
@@ -46,17 +44,7 @@ export function ChatMessages({ messages, widgets }: ChatMessagesProps) {
       // User is now logged in, check if there's a login widget active
       const loginWidget = widgets.find(w => w.type === 'login');
       if (loginWidget) {
-        // Dispatch event to remove the login widget
-        dispatch({
-          type: 'widget_resolved',
-          payload: {
-            widgetId: loginWidget.id,
-            action: 'authenticated',
-          },
-          id: `auth-success-${Date.now()}`,
-          timestamp: new Date(),
-          actor: 'system',
-        });
+        // Login widget removal handled by auth system events
         
         // Get user's map and navigate
         trpcUtils.map.user.getUserMap.fetch().then(async (result) => {
@@ -78,35 +66,17 @@ export function ChatMessages({ messages, widgets }: ChatMessagesProps) {
               const createResult = await createMapMutation.mutateAsync();
               if (createResult?.success && createResult.mapId) {
                 router.push(`/map?center=${createResult.mapId}`);
-                dispatch({
-                  type: 'message',
-                  payload: {
-                    content: 'Welcome! Your personal map has been created.',
-                    actor: 'system',
-                  },
-                  id: `map-created-${Date.now()}`,
-                  timestamp: new Date(),
-                  actor: 'system',
-                });
+                // Welcome message will be shown via system events
               }
             } catch (error) {
               console.error('Failed to create user map:', error);
-              dispatch({
-                type: 'error_occurred',
-                payload: {
-                  error: 'Failed to create your map. Please try refreshing the page.',
-                  retryable: true,
-                },
-                id: `map-error-${Date.now()}`,
-                timestamp: new Date(),
-                actor: 'system',
-              });
+              console.error('Failed to create user map:', error);
             }
           }
         }).catch(console.error);
       }
     }
-  }, [user, widgets, dispatch, router, trpcUtils, createMapMutation]);
+  }, [user, widgets, router, trpcUtils, createMapMutation]);
   
   // Auto-scroll to bottom when new messages or widgets are added
   useEffect(() => {
@@ -144,7 +114,7 @@ export function ChatMessages({ messages, widgets }: ChatMessagesProps) {
       {/* Render active widgets */}
       {widgets.map((widget) => (
         <div key={widget.id} className="w-full">
-          {renderWidget(widget, { dispatch, eventBus, updateItemOptimistic })}
+          {renderWidget(widget, { updateItemOptimistic })}
         </div>
       ))}
     </div>
@@ -154,8 +124,6 @@ export function ChatMessages({ messages, widgets }: ChatMessagesProps) {
 function renderWidget(
   widget: Widget,
   _deps: {
-    dispatch: ReturnType<typeof useChatCacheOperations>['dispatch'];
-    eventBus: ReturnType<typeof useChatCacheOperations>['eventBus'];
     updateItemOptimistic: ReturnType<typeof useMapCache>['updateItemOptimistic'];
   }
 ) {
@@ -269,7 +237,6 @@ function DaySeparator({ date }: { date: Date }) {
 
 function MessageItem({ message }: { message: Message }) {
   const { user } = useAuth();
-  const { dispatch } = useChatCacheOperations();
   const router = useRouter();
   
   // MessageItem render logging removed to prevent circular dependencies
@@ -317,53 +284,12 @@ function MessageItem({ message }: { message: Message }) {
       const mapUrl = `/map?center=${userMapData.map.id}`;
       // Navigating to user map
       router.push(mapUrl);
-      
-      // Also dispatch the navigation event for chat history
-      dispatch({
-        type: 'navigation',
-        payload: {
-          toTileId: userMapData.map.id,
-          toTileName: userMapData.map.name ?? user.name ?? 'Your Map',
-        },
-        id: `nav-user-${Date.now()}`,
-        timestamp: new Date(),
-        actor: 'user',
-      });
-      
-      // Add a message to confirm navigation
-      dispatch({
-        type: 'message',
-        payload: {
-          content: `Navigating to ${userMapData.map.name ?? user.name ?? 'your'} map...`,
-          actor: 'system',
-        },
-        id: `nav-confirm-${Date.now()}`,
-        timestamp: new Date(),
-        actor: 'system',
-      });
+      // Navigation events will be handled by the map system
     } else if (user && (!userMapData || !userMapData.success)) {
       // User exists but doesn't have a map yet
-      dispatch({
-        type: 'message',
-        payload: {
-          content: 'Creating your map...',
-          actor: 'system',
-        },
-        id: `map-creating-${Date.now()}`,
-        timestamp: new Date(),
-        actor: 'system',
-      });
+      // Map creation message will be shown via system events
     } else {
-      // Show register widget for guests
-      dispatch({
-        type: 'auth_required',
-        payload: {
-          reason: 'Create an account to have your own map',
-        },
-        id: `auth-register-${Date.now()}`,
-        timestamp: new Date(),
-        actor: 'system',
-      });
+      // Auth required events are handled by the auth system
     }
   };
   

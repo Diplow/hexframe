@@ -3,16 +3,16 @@
 import { useState } from 'react';
 import { registerAction } from '~/lib/domains/iam/actions';
 import { authClient } from '~/lib/auth/auth-client';
-import { useChatCacheOperations } from '../Cache/hooks/useChatCacheOperations';
 import { LogIn, Mail, Key, AlertCircle, UserPlus, Loader2, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useEventBus } from '../../Services/EventBus/event-bus-context';
 
 interface LoginWidgetProps {
   message?: string;
 }
 
 export function LoginWidget({ message }: LoginWidgetProps) {
-  const { dispatch } = useChatCacheOperations();
+  const eventBus = useEventBus();
   const router = useRouter();
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
@@ -62,28 +62,15 @@ export function LoginWidget({ message }: LoginWidgetProps) {
           // Refreshing router
           router.refresh();
           
-          // Dispatch success event
-          dispatch({
-            type: 'widget_resolved',
+          // Emit login success event
+          eventBus.emit({
+            type: 'auth.login',
             payload: {
-              widgetId: 'login-widget',
-              action: 'success'
+              userId: session.data.user.id,
+              userName: session.data.user.name || session.data.user.email
             },
-            id: `widget-resolved-${Date.now()}`,
+            source: 'auth',
             timestamp: new Date(),
-            actor: 'system',
-          });
-          
-          // Add success message
-          dispatch({
-            type: 'message',
-            payload: {
-              content: `✅ Successfully logged in`,
-              actor: 'system',
-            },
-            id: `login-success-${Date.now()}`,
-            timestamp: new Date(),
-            actor: 'system',
           });
           
           // Navigate to user's map if they have one
@@ -150,28 +137,15 @@ export function LoginWidget({ message }: LoginWidgetProps) {
             throw new Error('Registration successful but login failed. Please try logging in manually.');
           }
           
-          // Dispatch success event
-          dispatch({
-            type: 'widget_resolved',
+          // Emit login success event (registration followed by login)
+          eventBus.emit({
+            type: 'auth.login',
             payload: {
-              widgetId: 'login-widget',
-              action: 'success'
+              userId: result.userId,
+              userName: username.trim() || (email.split('@')[0] ?? 'User')
             },
-            id: `widget-resolved-${Date.now()}`,
+            source: 'auth',
             timestamp: new Date(),
-            actor: 'system',
-          });
-          
-          // Add success message
-          dispatch({
-            type: 'message',
-            payload: {
-              content: `✅ Account created successfully! Welcome to **HexFrame**.`,
-              actor: 'system',
-            },
-            id: `register-success-${Date.now()}`,
-            timestamp: new Date(),
-            actor: 'system',
           });
           
           // Navigate to user's map if they have one
@@ -200,18 +174,7 @@ export function LoginWidget({ message }: LoginWidgetProps) {
   };
 
   const handleCancel = () => {
-    // Widget removal happens automatically when operation is cancelled
-    dispatch({
-      type: 'operation_completed',
-      payload: {
-        operation: 'login',
-        result: 'failure',
-        message: 'Login cancelled',
-      },
-      id: `login-cancel-${Date.now()}`,
-      timestamp: new Date(),
-      actor: 'user',
-    });
+    // Widget cancellation handled by chat state
   };
 
   return (

@@ -1,18 +1,10 @@
-import { useChatCacheOperations } from '../../Cache/hooks/useChatCacheOperations';
+import useChatState from '../../_state/useChatState';
 
 export function useChatInputService() {
-  const { dispatch } = useChatCacheOperations();
+  const chatState = useChatState();
 
   const sendMessage = (message: string) => {
-    dispatch({
-      type: 'user_message',
-      payload: {
-        text: message,
-      },
-      id: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
-      timestamp: new Date(),
-      actor: 'user',
-    });
+    chatState.sendMessage(message);
   };
 
   const isCommand = (message: string): boolean => {

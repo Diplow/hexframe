@@ -23,11 +23,8 @@ This means tests should:
 ```
 Chat/
 ├── __tests__/
-│   ├── ChatPanel.test.tsx
-│   ├── ChatMessages.test.tsx
-│   └── ChatProvider.test.tsx
+│   └── ChatPanel.test.tsx
 ├── Cache/__tests__/
-│   ├── ChatCacheProvider.test.tsx
 │   ├── reducers.test.ts
 │   └── selectors.test.ts
 ├── Input/__tests__/
@@ -119,24 +116,25 @@ it('should process command and call MapCache directly', async () => {
 
 ### 4. State Management
 
-ChatCacheProvider manages the event log and derives UI state:
+The useChatState hook manages the event log and derives UI state internally:
 
 ```typescript
 // Test state derivation from events
-describe('ChatCacheProvider', () => {
-  it('should maintain event order and derive messages', () => {
-    const events = [
-      createChatEvent({ type: 'user_message', payload: { content: 'Hello' } }),
-      createChatEvent({ type: 'system_message', payload: { content: 'Hi there' } })
-    ];
+describe('useChatState', () => {
+  it('should process events and expose messages through domain operations', () => {
+    const { eventBus } = createTestEventBus();
     
-    const { result } = renderHook(
-      () => useChatCache(),
-      { wrapper: props => <ChatCacheProvider {...props} initialEvents={events} /> }
-    );
+    render(<ChatPanel />, { wrapper: TestProviders, mockEventBus: eventBus });
     
-    expect(result.current.state.visibleMessages).toHaveLength(2);
-    expect(result.current.state.visibleMessages[0].content).toBe('Hello');
+    // Emit an event
+    eventBus.emit({
+      type: 'map.tile_created',
+      source: 'map_cache',
+      payload: { tileName: 'New Tile' }
+    });
+    
+    // Verify the message appears
+    expect(screen.getByText('Created "New Tile"')).toBeInTheDocument();
   });
 });
 ```

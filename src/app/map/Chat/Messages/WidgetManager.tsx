@@ -8,7 +8,7 @@ import { ConfirmDeleteWidget } from '../Widgets/ConfirmDeleteWidget';
 import { LoadingWidget } from '../Widgets/LoadingWidget';
 import { ErrorWidget } from '../Widgets/ErrorWidget';
 import { useMapCache } from '../../Cache/_hooks/use-map-cache';
-import { useChatCacheOperations } from '../Cache/hooks/useChatCacheOperations';
+import { useEventBus } from '../../Services/EventBus/event-bus-context';
 
 interface WidgetManagerProps {
   widgets: Widget[];
@@ -16,7 +16,7 @@ interface WidgetManagerProps {
 
 export function WidgetManager({ widgets }: WidgetManagerProps) {
   const { createItemOptimistic, updateItemOptimistic, items } = useMapCache();
-  const { dispatch } = useChatCacheOperations();
+  const eventBus = useEventBus();
 
   const createWidgetHandlers = (widget: Widget) => {
     // Creation widget handlers
@@ -31,60 +31,36 @@ export function WidgetManager({ widgets }: WidgetManagerProps) {
           parentId: creationData.parentId ? parseInt(creationData.parentId, 10) : undefined
         });
         
-        // Notify chat cache that widget is resolved
-        dispatch({
-          type: 'widget_resolved',
-          payload: {
-            widgetId: widget.id,
-            action: 'created',
-            result: { name, description }
-          },
-          id: `widget-resolved-${Date.now()}`,
-          timestamp: new Date(),
-          actor: 'user',
-        });
-        
-        // Send operation completed event
-        dispatch({
-          type: 'operation_completed',
+        // Emit operation completed event
+        eventBus.emit({
+          type: 'map.operation.completed',
           payload: {
             operation: 'create',
             tileId: creationData.coordId!,
             result: 'success',
             message: `Created tile "${name}"`
           },
-          id: `tile-created-${Date.now()}`,
+          source: 'chat_cache',
           timestamp: new Date(),
-          actor: 'user',
         });
       } catch (error) {
         // Handle error
-        dispatch({
-          type: 'operation_completed',
+        eventBus.emit({
+          type: 'error.operation',
           payload: {
             operation: 'create',
             tileId: creationData.coordId!,
-            result: 'failure',
+            error: error instanceof Error ? error.message : 'Unknown error',
             message: `Failed to create tile: ${error instanceof Error ? error.message : 'Unknown error'}`
           },
-          id: `tile-create-error-${Date.now()}`,
+          source: 'chat_cache',
           timestamp: new Date(),
-          actor: 'system',
         });
       }
     };
 
     const handleCancel = () => {
-      dispatch({
-        type: 'widget_resolved',
-        payload: {
-          widgetId: widget.id,
-          action: 'cancelled'
-        },
-        id: `widget-resolved-${Date.now()}`,
-        timestamp: new Date(),
-        actor: 'user',
-      });
+      // Widget cancellation handled internally by chat state
     };
 
     // Preview widget handlers
@@ -99,11 +75,10 @@ export function WidgetManager({ widgets }: WidgetManagerProps) {
       const previewData = widget.data as TileSelectedPayload;
       // handleDelete called
       
-      const deleteEventId = `delete-${Date.now()}`;
       // Dispatching operation_started event
       
-      dispatch({
-        type: 'operation_started',
+      eventBus.emit({
+        type: 'map.operation.started',
         payload: {
           operation: 'delete',
           tileId: previewData.tileId,
@@ -117,9 +92,8 @@ export function WidgetManager({ widgets }: WidgetManagerProps) {
             }
           }
         },
-        id: deleteEventId,
+        source: 'chat_cache',
         timestamp: new Date(),
-        actor: 'user',
       });
     };
     
@@ -131,30 +105,28 @@ export function WidgetManager({ widgets }: WidgetManagerProps) {
           description: content,
         });
         
-        dispatch({
-          type: 'operation_completed',
+        eventBus.emit({
+          type: 'map.operation.completed',
           payload: {
             operation: 'update',
             tileId: previewData.tileId,
             result: 'success',
             message: `Updated tile "${title}"`
           },
-          id: `tile-updated-${Date.now()}`,
+          source: 'chat_cache',
           timestamp: new Date(),
-          actor: 'user',
         });
       } catch (error) {
-        dispatch({
-          type: 'operation_completed',
+        eventBus.emit({
+          type: 'error.operation',
           payload: {
             operation: 'update',
             tileId: previewData.tileId,
-            result: 'failure',
+            error: error instanceof Error ? error.message : 'Unknown error',
             message: `Failed to update tile: ${error instanceof Error ? error.message : 'Unknown error'}`
           },
-          id: `tile-update-error-${Date.now()}`,
+          source: 'chat_cache',
           timestamp: new Date(),
-          actor: 'system',
         });
       }
     };

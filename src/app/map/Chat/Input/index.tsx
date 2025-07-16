@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send } from 'lucide-react';
 import { Button } from '~/components/ui/button';
-import { useChatCacheOperations } from '../Cache/hooks/useChatCacheOperations';
+import useChatState from '../_state/useChatState';
 import { useCommandHandling } from './_hooks/useCommandHandling';
 import { useInputHistory } from './_hooks/useInputHistory';
 import { useTextareaController } from './_hooks/useTextareaController';
@@ -16,7 +16,7 @@ export function Input() {
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
   const lastProcessedCommandRef = useRef<string | null>(null);
-  const { events } = useChatCacheOperations();
+  const { events } = useChatState();
   
   // Debug logging for Input component renders
   useEffect(() => {

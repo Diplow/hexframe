@@ -3,8 +3,8 @@ import remarkGfm from 'remark-gfm';
 import { useAuth } from '~/contexts/AuthContext';
 import { api } from '~/commons/trpc/react';
 import type { Message } from '../Cache/_events/event.types';
-import { useChatEventDispatcher } from './_hooks/useChatEventDispatcher';
 import { useMapCache } from '../../Cache/_hooks/use-map-cache';
+import { useEventBus } from '../../Services/EventBus/event-bus-context';
 import { useEffect, useState } from 'react';
 import { loggers } from '~/lib/debug/debug-logger';
 import { Copy, Check } from 'lucide-react';
@@ -16,7 +16,7 @@ interface MessageActorRendererProps {
 export function MessageActorRenderer({ message }: MessageActorRendererProps) {
   const { user } = useAuth();
   const { navigateToItem } = useMapCache();
-  const { dispatchMessage, dispatchAuthRequired, dispatchCommandExecution } = useChatEventDispatcher();
+  const eventBus = useEventBus();
   
   const trpcUtils = api.useUtils();
   
@@ -49,7 +49,14 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
 
   const handleUserClick = async () => {
     if (!user) {
-      dispatchAuthRequired('Create an account to have your own map');
+      eventBus.emit({
+        type: 'auth.required',
+        payload: {
+          reason: 'Create an account to have your own map'
+        },
+        source: 'chat_cache',
+        timestamp: new Date(),
+      });
       return;
     }
 
@@ -61,11 +68,27 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
       if (userMapData?.success && userMapData.map?.id) {
         await _navigateToUserMap(userMapData.map);
       } else {
-        dispatchMessage('Creating your map...');
+        eventBus.emit({
+          type: 'chat.message_received',
+          payload: {
+            message: 'Creating your map...',
+            actor: 'system'
+          },
+          source: 'chat_cache',
+          timestamp: new Date(),
+        });
       }
     } catch (_error) {
       console.warn('Failed to fetch user map:', _error);
-      dispatchMessage('Failed to load your map');
+      eventBus.emit({
+        type: 'chat.message_received',
+        payload: {
+          message: 'Failed to load your map',
+          actor: 'system'
+        },
+        source: 'chat_cache',
+        timestamp: new Date(),
+      });
     }
   };
 
@@ -80,7 +103,15 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
       await navigateToItem(String(map.id));
     } catch (_error) {
       console.warn('Failed to navigate to user map:', _error);
-      dispatchMessage(`Failed to navigate to ${mapName} map`);
+      eventBus.emit({
+        type: 'chat.message_received',
+        payload: {
+          message: `Failed to navigate to ${mapName} map`,
+          actor: 'system'
+        },
+        source: 'chat_cache',
+        timestamp: new Date(),
+      });
     }
   };
 
@@ -177,7 +208,14 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
           // Command button clicked
           // Only dispatch the command execution event
           // The Input component will handle both showing the command and executing it
-          dispatchCommandExecution(command);
+          eventBus.emit({
+            type: 'chat.command',
+            payload: {
+              command
+            },
+            source: 'chat_cache',
+            timestamp: new Date(),
+          });
         }}
         className={`underline transition-colors cursor-pointer bg-transparent border-none p-0 font-inherit ${
           message.actor === 'system' 

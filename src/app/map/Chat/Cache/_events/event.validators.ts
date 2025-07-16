@@ -12,6 +12,7 @@ import {
   errorOccurredEventSchema,
   mapEditRequestedEventSchema,
   mapDeleteRequestedEventSchema,
+  mapCreateRequestedEventSchema,
   safeValidateEvent,
 } from '../../../types/event-schemas';
 
@@ -200,6 +201,25 @@ export function validateAndTransformMapEvent(mapEvent: AppEvent): ChatEvent | nu
           tileId: payload.tileId,
           data: {
             tileName: payload.tileName,
+          },
+        },
+      };
+    }
+
+    case 'map.create_requested': {
+      const payload = mapCreateRequestedEventSchema.parse(validEvent).payload;
+      return {
+        ...baseEvent,
+        type: 'operation_started',
+        actor: 'user' as const, // User initiated from Canvas
+        payload: {
+          operation: 'create',
+          tileId: payload.parentCoordId,
+          data: {
+            coordId: payload.coordId,
+            parentName: payload.parentName,
+            parentId: payload.parentId,
+            parentCoordId: payload.parentCoordId,
           },
         },
       };
