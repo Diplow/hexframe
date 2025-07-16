@@ -150,6 +150,56 @@ eventBus.on('map.tiles_swapped', (event) => {
 });
 ```
 
+## Event Validation with Zod
+
+To ensure type safety and prevent runtime errors from malformed events, the system uses Zod schemas for event validation. This provides:
+
+**Benefits**:
+- **Runtime Type Safety**: Events are validated before processing
+- **Clear Contracts**: Event schemas serve as documentation
+- **Error Prevention**: Invalid events are caught early
+- **Better Developer Experience**: TypeScript types derived from schemas
+
+**Implementation**:
+```typescript
+// Event schemas in /map/types/event-schemas.ts
+export const mapTileSelectedEventSchema = baseEventSchema.extend({
+  type: z.literal('map.tile_selected'),
+  source: z.literal('map_cache'),
+  payload: z.object({
+    tileId: z.string(),
+    tileData: z.object({
+      title: z.string(),
+      description: z.string().optional(),
+      content: z.string().optional(),
+      coordId: z.string(),
+    }),
+    openInEditMode: z.boolean().optional(),
+  }),
+});
+
+// Validation in event processors
+export function validateAndTransformMapEvent(mapEvent: AppEvent): ChatEvent | null {
+  const validationResult = safeValidateEvent(mapEvent);
+  
+  if (!validationResult.success) {
+    console.warn('Invalid event received:', validationResult.error);
+    return null;
+  }
+  
+  // Process validated event with full type safety
+  const validEvent = validationResult.data;
+  // ...
+}
+```
+
+**Event Validation Pattern**:
+1. Define Zod schemas for all event types
+2. Use discriminated unions for type-safe event handling
+3. Validate events at system boundaries (when receiving from event bus)
+4. Log validation errors for debugging
+5. Gracefully handle invalid events without crashing
+
 ## Key Features
 
 ### Core Dynamic Features

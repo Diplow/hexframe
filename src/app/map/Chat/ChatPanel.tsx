@@ -62,10 +62,11 @@ function ChatHeader() {
     if (user) {
       await authClient.signOut();
       // Emit logout event to clear the chat
+      // Note: This should probably be emitted by the auth system, not chat
       eventBus.emit({
         type: 'auth.logout',
         payload: {},
-        source: 'chat_cache' as const,
+        source: 'auth' as const, // Changed to match schema expectations
         timestamp: new Date(),
       });
     } else {
