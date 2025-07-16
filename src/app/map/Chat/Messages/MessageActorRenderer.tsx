@@ -2,7 +2,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAuth } from '~/contexts/AuthContext';
 import { api } from '~/commons/trpc/react';
-import type { Message } from '../Cache/_events/event.types';
+import type { Message } from '../_state/_events/event.types';
 import { useMapCache } from '../../Cache/_hooks/use-map-cache';
 import { useEventBus } from '../../Services/EventBus/event-bus-context';
 import { useEffect, useState } from 'react';

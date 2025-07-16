@@ -1,7 +1,7 @@
 'use client';
 
-import type { Widget } from '../Cache/types';
-import type { Message } from '../Cache/_events/event.types';
+import type { Widget } from '../_state/types';
+import type { Message } from '../_state/_events/event.types';
 import { useChatSettings } from '../_settings/useChatSettings';
 import { useAuthStateCoordinator } from './_hooks/useAuthStateCoordinator';
 import { UnifiedTimeline } from './UnifiedTimeline';

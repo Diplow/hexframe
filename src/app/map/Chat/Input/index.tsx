@@ -16,7 +16,8 @@ export function Input() {
   const [showAutocomplete, setShowAutocomplete] = useState(false);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
   const lastProcessedCommandRef = useRef<string | null>(null);
-  const { events } = useChatState();
+  const chatState = useChatState();
+  const { events } = chatState;
   
   // Debug logging for Input component renders
   useEffect(() => {
@@ -158,13 +159,13 @@ export function Input() {
     const unprocessedEvents = events.filter(e => 
       e.type === 'execute_command' && 
       e.timestamp.getTime() > (lastProcessedCommandRef.current ? new Date(lastProcessedCommandRef.current).getTime() : 0)
-    );
+    ) as Array<{ type: 'execute_command'; payload: { command: string }; timestamp: Date }>;
     
     if (unprocessedEvents.length > 0) {
       const latestEvent = unprocessedEvents[unprocessedEvents.length - 1];
       if (!latestEvent) return;
       
-      const payload = latestEvent.payload as { command: string };
+      const payload = latestEvent.payload;
       lastProcessedCommandRef.current = latestEvent.timestamp.toISOString();
       void executeCommandFromPayload(payload);
     }

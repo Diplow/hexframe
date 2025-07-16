@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useAuth } from '~/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { api } from '~/commons/trpc/react';
-import type { Widget } from '../../Cache/types';
+import type { Widget } from '../../_state/types';
 import { preloadUserMapData, savePreFetchedData } from '../../../Cache/Services/pre-fetch-service';
 import { useEventBus } from '../../../Services/EventBus/event-bus-context';
 

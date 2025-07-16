@@ -1,16 +1,16 @@
 import { useEffect, useReducer, useMemo, useCallback } from 'react';
 import { useEventBus } from '../../Services/EventBus/event-bus-context';
-import type { ChatEvent, ChatUIState } from '../Cache/_events/event.types';
+import type { ChatEvent, ChatUIState } from './_events/event.types';
 import type { AppEvent } from '../../types/events';
 import type { TileData } from '../../types/tile-data';
-import { eventsReducer } from '../Cache/_reducers/events.reducer';
-import { deriveVisibleMessages, deriveActiveWidgets } from '../Cache/_selectors/message.selectors';
-import { validateAndTransformMapEvent } from '../Cache/_events/event.validators';
+import { eventsReducer } from './_reducers/events.reducer';
+import { deriveVisibleMessages, deriveActiveWidgets } from './_selectors/message.selectors';
+import { validateAndTransformMapEvent } from './_events/event.validators';
 import { 
   createUserMessageEvent, 
   createSystemMessageEvent,
   createOperationStartedEvent 
-} from '../Cache/_events/event.creators';
+} from './_events/event.creators';
 import { chatSettings } from '../_settings/chat-settings';
 
 /**

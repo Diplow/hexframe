@@ -11,7 +11,7 @@ interface ConfirmDeleteWidgetProps {
   widgetId?: string; // Add widget ID to ensure proper resolution
 }
 
-export function ConfirmDeleteWidget({ tileId, tileName, widgetId }: ConfirmDeleteWidgetProps) {
+export function ConfirmDeleteWidget({ tileId, tileName, widgetId: _widgetId }: ConfirmDeleteWidgetProps) {
   const { deleteItemOptimistic } = useMapCache();
   const eventBus = useEventBus();
   const [isDeleting, setIsDeleting] = useState(false);

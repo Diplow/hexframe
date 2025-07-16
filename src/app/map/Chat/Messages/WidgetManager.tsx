@@ -1,5 +1,5 @@
-import type { Widget } from '../Cache/types';
-import type { TileSelectedPayload, AuthRequiredPayload, ErrorOccurredPayload } from '../Cache/_events/event.types';
+import type { Widget } from '../_state/types';
+import type { TileSelectedPayload, AuthRequiredPayload, ErrorOccurredPayload } from '../_state/_events/event.types';
 import type { TileData } from '../../types/tile-data';
 import { PreviewWidget } from '../Widgets/PreviewWidget';
 import { CreationWidget } from '../Widgets/CreationWidget';
