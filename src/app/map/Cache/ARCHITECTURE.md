@@ -111,9 +111,9 @@ The DynamicMapCanvas acts as a **centralized action coordinator**:
 - **Flexibility**: Easy to add new interaction modes
 - **Memory Efficiency**: Reduced memory footprint for large maps
 
-## Event Bus Integration
+## Event Bus Integration - Notification Pattern
 
-The MapCache integrates with a shared event bus to notify other systems about map operations:
+MapCache emits **notification events** about completed operations. These are NOT commands or requests - they describe what already happened:
 
 ```typescript
 interface MapCacheContext {
@@ -121,28 +121,45 @@ interface MapCacheContext {
   eventBus: EventBusService;
 }
 
-// Example: Notify when tiles are swapped
+// CORRECT: Perform action, then notify
 function swapTiles(tile1Id: string, tile2Id: string) {
-  // Perform swap operation...
+  // 1. Perform the actual swap operation
+  const result = performSwapOperation(tile1Id, tile2Id);
   
-  // Emit event for other systems
+  // 2. Update cache state
+  updateCacheWithSwapResult(result);
+  
+  // 3. Notify about what happened (past tense!)
   context.eventBus.emit({
-    type: 'map.tiles_swapped',
+    type: 'map.tiles_swapped',  // NOT 'map.swap_tiles'
     source: 'map_cache',
-    payload: { tile1Id, tile2Id, tile1Name, tile2Name }
+    payload: { 
+      tile1Id, 
+      tile2Id, 
+      tile1Name: result.tile1Name, 
+      tile2Name: result.tile2Name 
+    }
   });
 }
 ```
 
-**Events Emitted by MapCache**:
-- `map.tile_created` - When a new tile is created
-- `map.tile_updated` - When a tile is edited
-- `map.tile_deleted` - When a tile is deleted
-- `map.tiles_swapped` - When two tiles exchange positions
-- `map.tile_moved` - When a tile is moved to a new location
-- `map.navigation` - When the center tile changes
-- `map.expansion_changed` - When tiles are expanded/collapsed
-- `map.import_completed` - When tiles are imported from another user
+### Key Principles
+
+1. **Events are Past Tense**: `tile_created`, not `create_tile`
+2. **Events are Notifications**: They inform, not instruct
+3. **No Event Chains**: Events don't trigger other operations
+4. **Single Responsibility**: MapCache handles state, events handle communication
+
+### Events Emitted by MapCache (All Past Tense)
+
+- `map.tile_created` - A new tile was created
+- `map.tile_updated` - A tile was edited
+- `map.tile_deleted` - A tile was deleted
+- `map.tiles_swapped` - Two tiles exchanged positions
+- `map.tile_moved` - A tile was moved to a new location
+- `map.navigation` - The center tile changed
+- `map.expansion_changed` - Tiles were expanded/collapsed
+- `map.import_completed` - Tiles were imported from another user
 
 ## Implementation Examples
 

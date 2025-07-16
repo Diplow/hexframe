@@ -40,14 +40,16 @@ The main component that renders the hierarchical navigation.
 
 The Hierarchy component integrates with:
 
-### MapCache
+### MapCache (Direct Integration)
 - Uses `navigateToItem` for tile navigation
 - Accesses `center` and `items` from cache state
 - Falls back to props when cache is initializing
+- All state changes go through MapCache
 
-### Event Bus
-- Navigation events are emitted through MapCache
-- Other components react to navigation changes
+### Event Bus (Indirect via MapCache)
+- Hierarchy doesn't know about EventBus
+- When navigation happens, MapCache emits the notification
+- Hierarchy simply calls MapCache methods and re-renders based on state
 
 ### Authentication
 - Shows user profile when authenticated

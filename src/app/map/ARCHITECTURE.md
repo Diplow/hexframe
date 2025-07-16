@@ -118,37 +118,107 @@ The application prioritizes URL parameters for shareable and bookmarkable state:
 
 ## Communication Layer (Event Bus)
 
-The event bus enables communication between independent systems without creating direct dependencies:
+The event bus serves a **dual purpose** in the application:
+1. **Notification Events**: Broadcast what has happened (most common)
+2. **Request Events**: Ask another component to perform an action (UI coordination)
+
+### Event Types and Usage
+
+#### 1. Notification Events (90% of events)
+
+**Events describe the past**:
+- ✅ `map.tile_created` - "A tile was created"
+- ✅ `auth.logged_in` - "User logged in"
+- ✅ `map.tiles_swapped` - "Tiles were swapped"
+
+**Flow**: Component → Service → State Change → Notification Event
 
 ```typescript
-// Event bus is provided at the app level
-const eventBus = new EventBus();
-
-// Systems receive it via props/context
-<MapCacheProvider eventBus={eventBus}>
-  <ChatCacheProvider eventBus={eventBus}>
-```
-
-**Key Benefits**:
-- **Loose Coupling**: Systems don't know about each other
-- **Extensibility**: Easy to add new listeners (analytics, undo/redo)
-- **Testability**: Event bus can be mocked/spied in tests
-- **Debuggability**: All cross-system communication flows through one place
-
-**Example Flow - Tile Swap**:
-```typescript
-// MapCache emits when tiles are swapped
+// Direct action, then notification
+const tile = await mapCache.createTile(data);
 eventBus.emit({
-  type: 'map.tiles_swapped',
+  type: 'map.tile_created',  // Past tense!
   source: 'map_cache',
-  payload: { tile1Id, tile2Id, tile1Name, tile2Name }
-});
-
-// ChatCache listens and creates appropriate UI
-eventBus.on('map.tiles_swapped', (event) => {
-  // Show system message about the swap
+  payload: { tileId: tile.id, tileName: tile.name }
 });
 ```
+
+#### 2. Request Events (10% of events)
+
+**Events request UI coordination**:
+- ✅ `map.edit_requested` - "Canvas asks Chat to show edit widget"
+- ✅ `map.delete_requested` - "Canvas asks Chat to show delete confirmation"
+
+**Flow**: Component A → Request Event → Component B → UI Action
+
+```typescript
+// Canvas requests Chat to handle user input
+eventBus.emit({
+  type: 'map.edit_requested',  // Request form
+  source: 'canvas',
+  payload: { tileId, tileData }
+});
+```
+
+### Why Request Events?
+
+Request events are justified when:
+- One component has capabilities another lacks (Chat handles text input better than Canvas)
+- Direct coupling would violate component boundaries
+- UI coordination requires cross-component interaction
+- The alternative would be awkward shared state or direct dependencies
+
+### How Components Interact
+
+```
+Canvas ──────→ MapCache ──────→ EventBus
+    │             ↑                 ↑
+    │             │                 │
+    └─(requests)─→└──── Chat ───────┘
+```
+
+**Component Knowledge**:
+- **Canvas**: Knows MapCache (for data) and can emit request events
+- **Chat**: Knows MapCache (for mutations) AND EventBus (for all events)
+- **MapCache**: Only knows EventBus (to notify about changes)
+- **EventBus**: Knows nothing (pure message broker)
+
+### Implementation Patterns
+
+```typescript
+// Notification Event (after action completes)
+function swapTiles(tile1Id: string, tile2Id: string) {
+  const result = performSwapOperation(tile1Id, tile2Id);
+  updateCacheState(result);
+  
+  eventBus.emit({
+    type: 'map.tiles_swapped',  // Past tense - notification
+    source: 'map_cache',
+    payload: { tile1Id, tile2Id }
+  });
+}
+
+// Request Event (asking for UI action)
+function handleEditClick(tileData: TileData) {
+  eventBus.emit({
+    type: 'map.edit_requested',  // Request form
+    source: 'canvas',
+    payload: { 
+      tileId: tileData.id,
+      tileData,
+      openInEditMode: true 
+    }
+  });
+}
+```
+
+### Benefits of This Dual Approach
+
+1. **Flexibility**: Supports both data flow and UI coordination
+2. **Clear Intent**: Event names clearly indicate notifications vs requests
+3. **Component Isolation**: Canvas and Chat remain decoupled
+4. **Single Communication Channel**: All cross-component communication goes through event bus
+5. **Testability**: Both patterns are easy to test and mock
 
 ## Event Validation with Zod
 

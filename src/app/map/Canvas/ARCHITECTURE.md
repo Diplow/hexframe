@@ -4,6 +4,12 @@
 
 The Canvas layer is responsible for rendering the hexagonal map interface and managing tile interactions. It follows a hierarchical component structure from Canvas → Frame → Tile, with each layer having specific responsibilities.
 
+## Key Architectural Principles
+
+1. **Canvas primarily interacts with MapCache**: For all data operations and state changes
+2. **Canvas can emit request events**: For UI coordination with Chat when it needs text input capabilities
+3. **Canvas doesn't listen to EventBus**: It only renders MapCache state and emits requests when needed
+
 ## Component Architecture Layers
 
 ### 1. Canvas Layer
@@ -121,12 +127,14 @@ The Canvas implements a sophisticated drag-and-drop system for tile manipulation
 ```typescript
 // Drag operation flow
 1. User starts dragging tile A
-2. System calculates valid drop targets
+2. Canvas calculates valid drop targets
 3. User hovers over tile B
-4. System shows swap preview
-5. User drops → Optimistic swap
-6. Server sync in background
-7. Rollback on error (rare)
+4. Canvas shows swap preview
+5. User drops → Canvas calls mapCache.swapTiles()
+6. MapCache updates state and emits notification
+7. Server sync in background
+8. Canvas re-renders with new state
+// Note: For data operations, Canvas uses MapCache, not EventBus
 ```
 
 ## Context Menu System
@@ -146,6 +154,50 @@ interface TileContextMenuProps {
 // - Tile state
 // - Current interaction mode
 ```
+
+## UI Coordination via Request Events
+
+When Canvas needs capabilities that Chat provides (like text input), it emits request events:
+
+### Request Event Examples
+
+```typescript
+// Edit action - Canvas requests Chat to show edit widget
+function handleEditClick(tileData: TileData) {
+  eventBus.emit({
+    type: 'map.edit_requested',
+    source: 'canvas',
+    payload: {
+      tileId: tileData.metadata.coordId,
+      tileData: {
+        title: tileData.data.name,
+        content: tileData.data.description,
+        coordId: tileData.metadata.coordId,
+      },
+      openInEditMode: true
+    }
+  });
+}
+
+// Delete action - Canvas requests Chat to show confirmation
+function handleDeleteClick(tileData: TileData) {
+  eventBus.emit({
+    type: 'map.delete_requested',
+    source: 'canvas',
+    payload: {
+      tileId: tileData.metadata.coordId,
+      tileName: tileData.data.name
+    }
+  });
+}
+```
+
+### Why Request Events?
+
+- **Text Input**: Chat is better equipped to handle text input than Canvas
+- **User Confirmation**: Chat can show confirmation dialogs naturally
+- **Complex Interactions**: Chat's widget system handles multi-step operations
+- **Maintains Separation**: Canvas and Chat remain loosely coupled
 
 ## Performance Optimizations
 

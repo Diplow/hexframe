@@ -12,7 +12,9 @@ vi.mock('~/lib/auth/auth-client', () => ({
     signOut: vi.fn(),
     useSession: {
       get: vi.fn(() => ({ user: null })),
-      subscribe: vi.fn(() => () => {}),
+      subscribe: vi.fn(() => () => {
+        // Unsubscribe function
+      }),
     },
   },
 }));
@@ -36,7 +38,7 @@ vi.mock('../Input', () => ({
 }));
 
 vi.mock('../Messages', () => ({
-  Messages: ({ messages, widgets }: { messages: any[]; widgets: any[] }) => (
+  Messages: ({ messages, widgets }: { messages: unknown[]; widgets: unknown[] }) => (
     <div data-testid="chat-messages">
       <div>Messages: {messages.length}</div>
       <div>Widgets: {widgets.length}</div>
@@ -182,8 +184,11 @@ describe('ChatPanel', () => {
     
     // Mock authenticated user
     vi.mocked(useAuth).mockReturnValue({
-      user: { id: 'user-123', name: 'Test User' },
-    } as any);
+      user: { id: 'user-123', name: 'Test User', email: 'test@example.com' },
+      mappingUserId: 123,
+      isLoading: false,
+      setMappingUserId: vi.fn(),
+    });
 
     render(
       <ChatTestProviders eventBus={mockEventBus}>

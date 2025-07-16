@@ -1,24 +1,23 @@
 import { createContext, useContext, useEffect, useReducer, useMemo, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import type { EventBus } from '../../Services/EventBus/event-bus';
 import type { ChatEvent, ChatUIState } from './_events/event.types';
-import type { AppEvent } from '../../types/events';
+import type { AppEvent, EventBusService } from '../../types/events';
 import { eventsReducer } from './_reducers/events.reducer';
 import { deriveVisibleMessages, deriveActiveWidgets } from './_selectors/message.selectors';
-import { createChatEventFromMapEvent } from './_events/event.creators';
+import { validateAndTransformMapEvent } from './_events/event.validators';
 import { chatSettings } from '../_settings/chat-settings';
 
 interface ChatCacheContextValue {
   state: ChatUIState;
   dispatch: (event: ChatEvent) => void;
-  eventBus: EventBus;
+  eventBus: EventBusService;
 }
 
 const ChatCacheContext = createContext<ChatCacheContextValue | null>(null);
 
 interface ChatCacheProviderProps {
   children: ReactNode;
-  eventBus: EventBus;
+  eventBus: EventBusService;
   initialEvents?: ChatEvent[];
 }
 
@@ -55,7 +54,7 @@ export function ChatCacheProvider({
 
     // Listen to all map events
     const unsubscribeMap = eventBus.on('map.*', (event: AppEvent) => {
-      const chatEvent = createChatEventFromMapEvent(event);
+      const chatEvent = validateAndTransformMapEvent(event);
       if (chatEvent) {
         dispatch(chatEvent);
       }
@@ -64,7 +63,7 @@ export function ChatCacheProvider({
 
     // Listen to auth events
     const unsubscribeAuth = eventBus.on('auth.*', (event: AppEvent) => {
-      const chatEvent = createChatEventFromMapEvent(event);
+      const chatEvent = validateAndTransformMapEvent(event);
       if (chatEvent) {
         dispatch(chatEvent);
       }
@@ -73,7 +72,7 @@ export function ChatCacheProvider({
 
     // Listen to error events
     const unsubscribeError = eventBus.on('error.*', (event: AppEvent) => {
-      const chatEvent = createChatEventFromMapEvent(event);
+      const chatEvent = validateAndTransformMapEvent(event);
       if (chatEvent) {
         dispatch(chatEvent);
       }

@@ -10,6 +10,8 @@ import {
   mapNavigationEventSchema,
   authRequiredEventSchema,
   errorOccurredEventSchema,
+  mapEditRequestedEventSchema,
+  mapDeleteRequestedEventSchema,
   safeValidateEvent,
 } from '../../../types/event-schemas';
 
@@ -163,6 +165,42 @@ export function validateAndTransformMapEvent(mapEvent: AppEvent): ChatEvent | nu
           error: payload.error,
           context: payload.context,
           retryable: payload.retryable,
+        },
+      };
+    }
+
+    // Request events from Canvas
+    case 'map.edit_requested': {
+      const payload = mapEditRequestedEventSchema.parse(validEvent).payload;
+      return {
+        ...baseEvent,
+        type: 'tile_selected',
+        actor: 'user' as const, // User initiated from Canvas
+        payload: {
+          tileId: payload.tileId,
+          tileData: {
+            title: payload.tileData.title,
+            description: payload.tileData.content,
+            content: payload.tileData.content,
+            coordId: payload.tileData.coordId,
+          },
+          openInEditMode: true, // Always open in edit mode for edit requests
+        },
+      };
+    }
+
+    case 'map.delete_requested': {
+      const payload = mapDeleteRequestedEventSchema.parse(validEvent).payload;
+      return {
+        ...baseEvent,
+        type: 'operation_started',
+        actor: 'user' as const, // User initiated from Canvas
+        payload: {
+          operation: 'delete',
+          tileId: payload.tileId,
+          data: {
+            tileName: payload.tileName,
+          },
         },
       };
     }

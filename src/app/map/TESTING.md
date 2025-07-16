@@ -2,29 +2,30 @@
 
 ## Overview
 
-The map page testing strategy is built around the event-driven architecture where all components communicate exclusively through the event bus. This design eliminates the need for traditional integration tests since components have no direct dependencies on each other.
+The map page testing strategy leverages the notification-only event bus pattern. Events are used to monitor what happens in the system, making them perfect for test assertions.
 
 ## Core Testing Principles
 
-### 1. Event Bus as the Integration Point
+### 1. Event Bus for Monitoring, Not Action
 
-All components interact through a shared event bus, which means:
-- **No integration tests needed**: Components are already decoupled
-- **Event flow is the contract**: Tests verify events are emitted and handled correctly
-- **Isolation is natural**: Each component can be tested independently
+The event bus broadcasts notifications about completed actions:
+- **Events as Test Assertions**: Verify that expected notifications were emitted
+- **Past Tense Events**: `tile_created`, not `create_tile`
+- **No Action Triggering**: Tests call services directly, then verify events
 
-### 2. Component Independence
+### 2. Component Interactions
 
-The four main components operate independently:
-- **Cache**: Central data management and synchronization
-- **Canvas**: Spatial UI and tile manipulation
-- **Chat**: Conversational interface layer
-- **Hierarchy**: Tree navigation and structure visualization
+```
+Canvas ──────→ MapCache ──────→ EventBus
+                  ↑                 ↑
+                  │                 │
+                  └──── Chat ───────┘
+```
 
-Each component:
-- Subscribes to relevant events from the event bus
-- Emits events for other components to consume
-- Maintains its own internal state derived from events
+- **Canvas**: Only knows MapCache (no EventBus)
+- **Chat**: Knows MapCache (for actions) and EventBus (for monitoring)
+- **MapCache**: Performs actions, then emits notifications
+- **Tests**: Call services directly, verify notifications were sent
 
 ## Test Organization
 
@@ -112,9 +113,10 @@ See: `src/app/map/Cache/README.md` (Testing section)
 
 Focus areas:
 - Tile rendering and spatial positioning
-- Drag and drop operations emit correct events
-- Navigation events update view correctly
+- Drag and drop operations call MapCache correctly
+- View updates when MapCache state changes
 - Coordinate system calculations
+- Canvas does NOT interact with EventBus directly
 
 See: `src/app/map/Canvas/__tests__/README.md`
 

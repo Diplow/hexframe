@@ -59,7 +59,7 @@ export function ChatTestProviders({
     
     return (
       <ChatCacheProvider 
-        eventBus={context as any} // EventBusService interface is compatible with EventBus
+        eventBus={context}
         initialEvents={initialChatEvents}
       >
         {childrenProp}

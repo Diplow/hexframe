@@ -2,7 +2,7 @@
  * Event-driven architecture types for cross-system communication
  */
 
-export type EventSource = 'map_cache' | 'chat_cache' | 'auth' | 'sync' | 'test' | 'debug-logger';
+export type EventSource = 'map_cache' | 'chat_cache' | 'auth' | 'sync' | 'test' | 'debug-logger' | 'canvas';
 
 export interface AppEvent {
   type: string;

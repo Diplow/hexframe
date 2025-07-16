@@ -3,7 +3,7 @@ import { z } from 'zod';
 // Base event schema
 const baseEventSchema = z.object({
   type: z.string(),
-  source: z.enum(['map_cache', 'chat_cache', 'auth', 'sync', 'test', 'debug-logger']),
+  source: z.enum(['map_cache', 'chat_cache', 'auth', 'sync', 'test', 'debug-logger', 'canvas']),
   timestamp: z.date().optional(),
 });
 
@@ -102,6 +102,22 @@ const errorOccurredPayloadSchema = z.object({
   error: z.string(),
   context: z.unknown().optional(),
   retryable: z.boolean().optional(),
+});
+
+// Request event payloads (Canvas -> Chat)
+const mapEditRequestedPayloadSchema = z.object({
+  tileId: z.string(),
+  tileData: z.object({
+    title: z.string(),
+    content: z.string().optional(),
+    coordId: z.string(),
+  }),
+  openInEditMode: z.literal(true),
+});
+
+const mapDeleteRequestedPayloadSchema = z.object({
+  tileId: z.string(),
+  tileName: z.string(),
 });
 
 // Specific event schemas
@@ -207,8 +223,22 @@ export const errorOccurredEventSchema = baseEventSchema.extend({
   payload: errorOccurredPayloadSchema,
 });
 
+// Request event schemas (Canvas -> Chat UI coordination)
+export const mapEditRequestedEventSchema = baseEventSchema.extend({
+  type: z.literal('map.edit_requested'),
+  source: z.literal('canvas'),
+  payload: mapEditRequestedPayloadSchema,
+});
+
+export const mapDeleteRequestedEventSchema = baseEventSchema.extend({
+  type: z.literal('map.delete_requested'),
+  source: z.literal('canvas'),
+  payload: mapDeleteRequestedPayloadSchema,
+});
+
 // Union of all event schemas for validation
 export const appEventSchema = z.discriminatedUnion('type', [
+  // Notification events
   mapTileSelectedEventSchema,
   mapTileCreatedEventSchema,
   mapTileUpdatedEventSchema,
@@ -226,6 +256,9 @@ export const appEventSchema = z.discriminatedUnion('type', [
   authLogoutEventSchema,
   authRequiredEventSchema,
   errorOccurredEventSchema,
+  // Request events
+  mapEditRequestedEventSchema,
+  mapDeleteRequestedEventSchema,
 ]);
 
 // Helper function to validate events

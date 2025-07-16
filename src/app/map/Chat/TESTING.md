@@ -4,6 +4,20 @@
 
 This document details the testing approach for the Chat component. The testing strategy follows the map-wide patterns documented in [`src/app/map/TESTING.md`](../TESTING.md).
 
+## Core Testing Principle: Notification-Only Events
+
+The Chat component follows the notification-only event pattern:
+
+1. **Events are Past Tense**: `tile_created`, not `create_tile`
+2. **Events are Notifications**: They describe what happened, not what should happen
+3. **Actions Use MapCache**: Chat triggers actions by calling MapCache directly
+4. **Chat Listens to ALL Events**: Including notifications from its own actions
+
+This means tests should:
+- Call MapCache methods directly to trigger actions
+- Verify notification events are emitted after actions complete
+- Check that Chat updates its UI based on received notifications
+
 ## Test Structure
 
 ```
@@ -35,7 +49,7 @@ Chat/
 
 ### 1. Event-to-UI Translation
 
-The Chat component's primary responsibility is translating map events into chat messages and widgets:
+The Chat component's primary responsibility is translating map events (notifications about completed actions) into chat messages and widgets:
 
 ```typescript
 // Test that map navigation events create appropriate chat messages
@@ -43,8 +57,9 @@ it('should display navigation message when map.navigation event occurs', async (
   const { eventBus } = createTestEventBus();
   render(<ChatPanel />, { wrapper: MapTestProviders });
   
+  // Emit notification about completed navigation (past tense!)
   eventBus.emit({
-    type: 'map.navigation',
+    type: 'map.navigation',  // NOT 'map.navigate' - this is a notification
     payload: { toCenterName: 'Project Hub' },
     source: 'map_cache'
   });
@@ -79,19 +94,25 @@ it('should create preview widget on tile_selected event', async () => {
 
 ### 3. Command Processing
 
-The Input component processes user commands and emits appropriate events:
+The Input component processes user commands and triggers actions through MapCache, NOT through events:
 
 ```typescript
 // Test slash command execution
-it('should emit command event when slash command entered', async () => {
+it('should process command and call MapCache directly', async () => {
   const { eventBus, expectEvent } = createTestEventBus();
-  render(<Input />, { wrapper: MapTestProviders });
+  const mapCache = createMockMapCache();
+  render(<Input />, { wrapper: MapTestProviders, mapCache });
   
   await userEvent.type(screen.getByRole('textbox'), '/create New Tile{Enter}');
   
-  expectEvent('chat.command_executed', {
-    command: 'create',
-    args: ['New', 'Tile']
+  // Command calls MapCache directly, not via events
+  expect(mapCache.createTile).toHaveBeenCalledWith({
+    name: 'New Tile'
+  });
+  
+  // Later, we verify the notification event was received
+  expectEvent('map.tile_created', {
+    tileName: 'New Tile'
   });
 });
 ```
@@ -162,18 +183,15 @@ export const createMockCanvasCallbacks = () => ({
 ```typescript
 it('should complete tile creation flow', async () => {
   const { eventBus, expectEvent, clearEvents } = createTestEventBus();
-  const canvasCallbacks = createMockCanvasCallbacks();
+  const mapCache = createMockMapCache();
   
   render(
-    <ChatPanel canvasCallbacks={canvasCallbacks} />,
-    { wrapper: MapTestProviders }
+    <ChatPanel />,
+    { wrapper: MapTestProviders, mapCache }
   );
   
   // User types create command
   await userEvent.type(screen.getByRole('textbox'), '/create Test Tile{Enter}');
-  
-  // Verify command event
-  expectEvent('chat.command_executed', { command: 'create' });
   
   // Verify creation widget appears
   await waitFor(() => {
@@ -183,12 +201,19 @@ it('should complete tile creation flow', async () => {
   // Complete creation
   await userEvent.click(screen.getByText('Create'));
   
-  // Verify canvas callback invoked
-  expect(canvasCallbacks.onTileCreate).toHaveBeenCalled();
+  // Verify MapCache was called directly (NOT via events)
+  expect(mapCache.createTile).toHaveBeenCalledWith({
+    name: 'Test Tile'
+  });
   
-  // Verify completion event
-  expectEvent('chat.operation_completed', {
-    operation: 'tile_creation'
+  // Verify notification event about completed creation
+  expectEvent('map.tile_created', {
+    tileName: 'Test Tile'
+  });
+  
+  // Chat shows completion message after receiving the notification
+  await waitFor(() => {
+    expect(screen.getByText('Created "Test Tile"')).toBeInTheDocument();
   });
 });
 ```

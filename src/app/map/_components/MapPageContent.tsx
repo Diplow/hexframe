@@ -9,10 +9,10 @@ import { MapContent } from "./MapContent";
 import { ChatPanel } from "../Chat/ChatPanel";
 import { OfflineIndicator } from "./offline-indicator";
 import { useTileSelectForChat } from "../_hooks/use-tile-select-for-chat";
-import { useChatCacheOperations } from "../Chat/Cache/hooks/useChatCacheOperations";
 import { useMapCache } from "../Cache/map-cache";
 import { useRouter } from "next/navigation";
 import { MapLoadingSkeleton } from "../Canvas/LifeCycle/loading-skeleton";
+import { useEventBus } from "../Services/EventBus/event-bus-context";
 
 interface MapPageContentProps {
   centerCoordinate: string;
@@ -51,7 +51,7 @@ export function MapPageContent({
   const { handleTileSelect } = useTileSelectForChat();
   const { navigateToItem, toggleItemExpansionWithURL } = useMapCache();
   const router = useRouter();
-  const { dispatch: chatDispatch } = useChatCacheOperations();
+  const eventBus = useEventBus();
   
   const handleNavigate = useCallback((tileData: TileData) => {
     void navigateToItem(tileData.metadata.coordId, { pushToHistory: true }).catch((error) => {
@@ -70,21 +70,17 @@ export function MapPageContent({
   }, [handleTileSelect]);
   
   const handleDeleteClick = useCallback((tileData: TileData) => {
-    // Show delete confirmation widget in chat
-    chatDispatch({
-      type: 'operation_started',
+    // Request Chat to show delete confirmation widget via event bus
+    eventBus.emit({
+      type: 'map.delete_requested',
+      source: 'canvas',
       payload: {
-        operation: 'delete',
         tileId: tileData.metadata.coordId,
-        data: {
-          tileName: tileData.data.name,
-        },
+        tileName: tileData.data.name,
       },
-      id: `delete-${Date.now()}`,
       timestamp: new Date(),
-      actor: 'user',
     });
-  }, [chatDispatch]);
+  }, [eventBus]);
   
   return (
     <TileActionsProvider 
