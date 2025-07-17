@@ -3,7 +3,7 @@
 **Date**: 2025-07-17
 **Status**: Open
 **Tags**: #bug #navigation #theme #chat #tiles #ui #high
-**GitHub Issue**: #14
+**GitHub Issue**: #83
 **Branch**: issue-14-multiple-ui-ux-bugs
 
 ## Problem Statement
@@ -89,3 +89,119 @@ The current version has multiple UI/UX issues affecting core functionality:
 - Previous chat functionality issues
 - UI/UX improvements
 - Theme system updates
+
+## Context
+
+*I am an AI assistant acting on behalf of @Diplow*
+
+### Existing Documentation
+- **Architecture Docs**: `/src/app/map/ARCHITECTURE.md` - Comprehensive frontend architecture ✅
+- **Server README**: `/src/server/README.md` - Backend architecture and API layer ✅
+- **Domain README**: `/src/lib/domains/README.md` - Domain-driven design principles ✅
+- **Documentation vs Reality**: Architecture documentation is accurate and up-to-date ✅
+
+### Domain Overview
+Hexframe uses a three-layer architecture:
+1. **Frontend**: Next.js 15 App Router with hexagonal map interface
+2. **Backend**: tRPC API for type-safe communication and domain orchestration
+3. **Domain Layer**: DDD with strict domain independence
+
+Key components involved in these bugs:
+- **MapCache**: Central data management with event bus integration
+- **Canvas**: Visual rendering layer for tiles
+- **Chat**: Event-driven conversational interface
+- **Theme System**: Client-side React context for theme management
+
+### Key Components
+
+#### 1. Home Page Redirect (Bug #1)
+- **Current Flow**: `/` → `/home` → (auth check) → `/map?center={id}`
+- **Root Page**: `/src/app/page.tsx` - Currently redirects to `/home`
+- **Home Page**: `/src/app/home/page.tsx` - Shows welcome screen or redirects
+- **Map Page**: `/src/app/map/page.tsx` - Handles missing center param
+
+#### 2. Theme System (Bug #2)
+- **ThemeContext**: `/src/contexts/ThemeContext.tsx` - Client-side only
+- **Root Cause**: Theme loads from localStorage in useEffect after first render
+- **Missing**: No inline script to prevent flash of unstyled content (FOUC)
+
+#### 3. Chat System (Bugs #3, #4, #10)
+- **Critical Issue**: Multiple components call `useChatState()` creating separate state instances
+- **Affected Components**:
+  - `ChatContent` (displays messages) - own state instance
+  - `Input` (sends messages) - own state instance
+  - `ChatHeader`, `useChatInputService`, `useCommandHandling` - more instances
+- **Result**: Messages sent in Input's state don't appear in ChatContent's state
+- **Test Coverage**: Tests mock child components, missing integration testing
+
+#### 4. Tile Interactions (Bugs #5, #6, #7)
+- **Scale 1 Expansion**: 
+  - `item-tile-content.tsx:63` - Correctly sets `canExpand: false` for scale 1
+  - `TileActionsContext.tsx:105` - Double-click handler ignores `canExpand` state
+- **Text Overflow**: 
+  - `content.tsx:39` - Removed truncation for multi-line support
+  - Scale 1 tiles need truncation but don't have it
+- **Text Selection**:
+  - Missing `select-none` CSS class on tile text
+  - Double-click naturally selects text across multiple elements
+
+#### 5. UI Polish (Bugs #8, #9)
+- **Widget Spacing**: 
+  - `UnifiedTimeline.tsx:77` - Uses `my-0.5` (2px) instead of proper spacing
+  - Messages have `space-y-3` (12px) creating inconsistency
+- **Loading States**:
+  - `parent-hierarchy.tsx:101-174` - UserProfileTile has no loading indicator
+  - `LoadingWidget.tsx` exists but isn't used for mapCache operations
+  - Navigation handler doesn't emit loading events
+
+### Implementation Details
+
+#### Chat State Management Pattern
+```typescript
+// Current problematic pattern - each component gets its own state
+function ChatContent() {
+  const chatState = useChatState(); // Instance 1
+}
+
+function Input() {
+  const chatState = useChatState(); // Instance 2 - different from Instance 1!
+}
+```
+
+#### Theme Loading Issue
+```typescript
+// Current implementation - causes flicker
+useEffect(() => {
+  const savedTheme = localStorage.getItem('theme') as Theme | null;
+  if (savedTheme && themes.includes(savedTheme)) {
+    setTheme(savedTheme); // This happens after first render
+  }
+}, []);
+```
+
+#### Tile Double-Click Handler
+```typescript
+// TileActionsContext.tsx - doesn't check canExpand
+handleDoubleClick: useCallback(() => {
+  onExpandClick(); // Always expands, ignoring tile's canExpand state
+}, [onExpandClick]);
+```
+
+### Dependencies and Integration
+
+#### Event Bus Pattern
+- **Notification Events**: Canvas → MapCache → EventBus → Chat
+- **Request Events**: Canvas → EventBus → Chat (for UI coordination)
+- Chat listens to ALL events but state isolation prevents proper updates
+
+#### Critical Dependencies
+- Theme system depends on client-side React hooks
+- Chat components depend on shared state (but don't share it)
+- Tile interactions depend on scale calculations and canExpand state
+- UserProfileTile depends on tRPC API calls without loading feedback
+
+### Test Coverage Gaps
+- Chat tests use mocked components, missing integration testing
+- No tests for theme flicker prevention
+- Missing tests for scale 1 expansion blocking
+- No tests for loading state user feedback
