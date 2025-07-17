@@ -1,10 +1,9 @@
 import { useAuth } from "~/contexts/AuthContext";
 import { useMapCache } from "../../Cache/_hooks/use-map-cache";
 import { useDragAndDrop } from "./useDragAndDrop";
-import { useChatCacheOperations } from "../../Chat/Cache/hooks/useChatCacheOperations";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import type { UseDragAndDropReturn } from "./types";
-import type { ChatEvent } from "../../Chat/Cache/types";
+import { useEventBus } from "../../Services/EventBus/event-bus-context";
 
 /**
  * Hook that combines drag and drop functionality with tRPC mutation
@@ -12,7 +11,7 @@ import type { ChatEvent } from "../../Chat/Cache/types";
  */
 export function useDragAndDropWithMutation(): Omit<UseDragAndDropReturn, 'dragState'> {
   const { mappingUserId } = useAuth();
-  const { dispatch: chatDispatch } = useChatCacheOperations();
+  const eventBus = useEventBus();
   const { items, moveItemOptimistic } = useMapCache();
   
   // Note: getDirection and getParentInfo helpers removed as they were unused
@@ -32,9 +31,10 @@ export function useDragAndDropWithMutation(): Omit<UseDragAndDropReturn, 'dragSt
     } catch (error) {
       console.error('Failed to move/swap tiles:', error);
       
-      // Show error widget
-      const errorEvent: ChatEvent = {
-        type: 'error_occurred',
+      // Emit error event for Chat to display
+      eventBus.emit({
+        type: 'error.occurred',
+        source: 'map_cache',
         payload: {
           error: error instanceof Error ? error.message : 'Failed to complete operation',
           context: {
@@ -44,11 +44,8 @@ export function useDragAndDropWithMutation(): Omit<UseDragAndDropReturn, 'dragSt
           },
           retryable: true
         },
-        id: `error-${Date.now()}`,
         timestamp: new Date(),
-        actor: 'system'
-      };
-      chatDispatch(errorEvent);
+      });
     }
   };
   

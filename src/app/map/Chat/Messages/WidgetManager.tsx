@@ -1,5 +1,5 @@
-import type { Widget } from '../Cache/types';
-import type { TileSelectedPayload, AuthRequiredPayload, ErrorOccurredPayload } from '../Cache/_events/event.types';
+import type { Widget } from '../_state/types';
+import type { TileSelectedPayload, AuthRequiredPayload, ErrorOccurredPayload } from '../_state/_events/event.types';
 import type { TileData } from '../../types/tile-data';
 import { PreviewWidget } from '../Widgets/PreviewWidget';
 import { CreationWidget } from '../Widgets/CreationWidget';
@@ -8,7 +8,7 @@ import { ConfirmDeleteWidget } from '../Widgets/ConfirmDeleteWidget';
 import { LoadingWidget } from '../Widgets/LoadingWidget';
 import { ErrorWidget } from '../Widgets/ErrorWidget';
 import { useMapCache } from '../../Cache/_hooks/use-map-cache';
-import { useChatCacheOperations } from '../Cache/hooks/useChatCacheOperations';
+import { useEventBus } from '../../Services/EventBus/event-bus-context';
 
 interface WidgetManagerProps {
   widgets: Widget[];
@@ -16,7 +16,7 @@ interface WidgetManagerProps {
 
 export function WidgetManager({ widgets }: WidgetManagerProps) {
   const { createItemOptimistic, updateItemOptimistic, items } = useMapCache();
-  const { dispatch } = useChatCacheOperations();
+  const eventBus = useEventBus();
 
   const createWidgetHandlers = (widget: Widget) => {
     // Creation widget handlers
@@ -31,83 +31,54 @@ export function WidgetManager({ widgets }: WidgetManagerProps) {
           parentId: creationData.parentId ? parseInt(creationData.parentId, 10) : undefined
         });
         
-        // Notify chat cache that widget is resolved
-        dispatch({
-          type: 'widget_resolved',
-          payload: {
-            widgetId: widget.id,
-            action: 'created',
-            result: { name, description }
-          },
-          id: `widget-resolved-${Date.now()}`,
-          timestamp: new Date(),
-          actor: 'user',
-        });
-        
-        // Send operation completed event
-        dispatch({
-          type: 'operation_completed',
+        // Emit operation completed event
+        eventBus.emit({
+          type: 'map.operation.completed',
           payload: {
             operation: 'create',
             tileId: creationData.coordId!,
             result: 'success',
             message: `Created tile "${name}"`
           },
-          id: `tile-created-${Date.now()}`,
+          source: 'chat_cache',
           timestamp: new Date(),
-          actor: 'user',
         });
       } catch (error) {
         // Handle error
-        dispatch({
-          type: 'operation_completed',
+        eventBus.emit({
+          type: 'error.operation',
           payload: {
             operation: 'create',
             tileId: creationData.coordId!,
-            result: 'failure',
+            error: error instanceof Error ? error.message : 'Unknown error',
             message: `Failed to create tile: ${error instanceof Error ? error.message : 'Unknown error'}`
           },
-          id: `tile-create-error-${Date.now()}`,
+          source: 'chat_cache',
           timestamp: new Date(),
-          actor: 'system',
         });
       }
     };
 
     const handleCancel = () => {
-      dispatch({
-        type: 'widget_resolved',
-        payload: {
-          widgetId: widget.id,
-          action: 'cancelled'
-        },
-        id: `widget-resolved-${Date.now()}`,
-        timestamp: new Date(),
-        actor: 'user',
-      });
+      // Widget cancellation handled internally by chat state
     };
 
     // Preview widget handlers
     const handleEdit = () => {
-      // Open edit mode directly in the preview widget
-      const previewData = widget.data as TileSelectedPayload;
-      console.log('Edit tile:', previewData.tileId);
+      // The PreviewWidget component will handle the edit mode internally
+      // This handler is called from the preview widget's menu
+      // The widget already has editing capability built-in
     };
     
     const handleDelete = () => {
       // Dispatch delete confirmation widget
       const previewData = widget.data as TileSelectedPayload;
-      console.log('[WidgetManager] 🔥 handleDelete called for:', {
-        tileId: previewData.tileId,
-        tileName: previewData.tileData.title,
-        coordId: previewData.tileData.coordId
-      });
+      // handleDelete called
       
-      const deleteEventId = `delete-${Date.now()}`;
-      console.log('[WidgetManager] 📤 Dispatching operation_started event:', deleteEventId);
+      // Dispatching operation_started event
       
-      dispatch({
-        type: 'operation_started',
+      eventBus.emit({
+        type: 'map.operation.started',
         payload: {
           operation: 'delete',
           tileId: previewData.tileId,
@@ -121,9 +92,8 @@ export function WidgetManager({ widgets }: WidgetManagerProps) {
             }
           }
         },
-        id: deleteEventId,
+        source: 'chat_cache',
         timestamp: new Date(),
-        actor: 'user',
       });
     };
     
@@ -135,30 +105,28 @@ export function WidgetManager({ widgets }: WidgetManagerProps) {
           description: content,
         });
         
-        dispatch({
-          type: 'operation_completed',
+        eventBus.emit({
+          type: 'map.operation.completed',
           payload: {
             operation: 'update',
             tileId: previewData.tileId,
             result: 'success',
             message: `Updated tile "${title}"`
           },
-          id: `tile-updated-${Date.now()}`,
+          source: 'chat_cache',
           timestamp: new Date(),
-          actor: 'user',
         });
       } catch (error) {
-        dispatch({
-          type: 'operation_completed',
+        eventBus.emit({
+          type: 'error.operation',
           payload: {
             operation: 'update',
             tileId: previewData.tileId,
-            result: 'failure',
+            error: error instanceof Error ? error.message : 'Unknown error',
             message: `Failed to update tile: ${error instanceof Error ? error.message : 'Unknown error'}`
           },
-          id: `tile-update-error-${Date.now()}`,
+          source: 'chat_cache',
           timestamp: new Date(),
-          actor: 'system',
         });
       }
     };
@@ -214,38 +182,26 @@ function _renderPreviewWidget(widget: Widget, createWidgetHandlers: (widget: Wid
   const previewData = widget.data as TileSelectedPayload;
   const { handleEdit = () => { /* noop */ }, handleDelete = () => { /* noop */ }, handlePreviewSave = () => { /* noop */ } } = createWidgetHandlers(widget);
 
-  console.log('[PreviewWidget] 📋 Rendering with data:', {
-    tileId: previewData.tileId,
-    widgetDataTitle: previewData.tileData.title,
-    totalItemsInCache: Object.keys(items).length,
-  });
+  // PreviewWidget rendering with data
 
   // Get real-time data from the map cache
   // The tileId is actually a coordinate ID, so we can look it up directly
   const tileItem = items[previewData.tileId];
   
-  console.log('[PreviewWidget] 🔍 Found in cache:', {
-    found: !!tileItem,
-    cacheTitle: tileItem?.data.name,
-    cacheContent: tileItem?.data.description,
-    dbId: tileItem?.metadata.dbId,
-    coordId: tileItem?.metadata.coordId,
-  });
+  // PreviewWidget found in cache
   
   // Use real-time data if available, otherwise fall back to widget data
   const currentTitle = tileItem?.data.name ?? previewData.tileData.title;
   const currentContent = tileItem?.data.description ?? previewData.tileData.content ?? '';
 
-  console.log('[PreviewWidget] 📝 Using values:', {
-    currentTitle,
-    currentContent,
-  });
+  // PreviewWidget using values
 
   return (
     <PreviewWidget
       tileId={previewData.tileId}
       title={currentTitle}
       content={currentContent}
+      openInEditMode={previewData.openInEditMode}
       onEdit={handleEdit}
       onDelete={handleDelete}
       onSave={handlePreviewSave}
@@ -269,7 +225,7 @@ function _renderErrorWidget(widget: Widget) {
       message={errorData.error}
       error={errorData.context ? JSON.stringify(errorData.context) : undefined}
       retry={errorData.retryable ? () => {
-        console.log('Retry requested');
+        // Retry requested
       } : undefined}
     />
   );
@@ -307,13 +263,7 @@ function _renderDeleteWidget(widget: Widget) {
   const tileCoordId = deleteData.tile?.coordId ?? deleteData.tileId ?? '';
   const tileName = deleteData.tileName ?? deleteData.tile?.title ?? 'item';
   
-  console.log('[WidgetManager] 🗑️ Rendering delete widget:', { 
-    widgetId: widget.id,
-    tileCoordId, 
-    tileName, 
-    rawData: deleteData,
-    timestamp: new Date().toISOString()
-  });
+  // Rendering delete widget
   
   return (
     <ConfirmDeleteWidget

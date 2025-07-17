@@ -2,15 +2,15 @@
 
 import { useState, useContext, useEffect } from "react";
 import { DynamicBaseTileLayout } from "../Base";
-import type { TileScale, TileColor } from "~/app/map/components/BaseTileLayout";
+import type { TileScale, TileColor } from "~/app/map/Canvas/base/BaseTileLayout";
 import { LegacyTileActionsContext, useCanvasTheme } from "../../Canvas";
 import type { URLInfo } from "../../types/url-info";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import { getColor } from "../../types/tile-data";
 import { getDefaultStroke } from "../utils/stroke";
-import { useTileInteraction } from "../../hooks/useTileInteraction";
-import { useChatCacheOperations } from "../../Chat/Cache/hooks/useChatCacheOperations";
+import { useTileInteraction } from "~/app/map/Canvas/hooks/shared/useTileInteraction";
 import { loggers } from "~/lib/debug/debug-logger";
+import { useEventBus } from "../../Services/EventBus/event-bus-context";
 
 export interface DynamicEmptyTileProps {
   coordId: string;
@@ -44,7 +44,7 @@ function getDropHandlers(
 
 export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
   const [isHovered, setIsHovered] = useState(false);
-  const { dispatch } = useChatCacheOperations();
+  const eventBus = useEventBus();
   const { isDarkMode } = useCanvasTheme();
   
   // Log empty tile render
@@ -81,22 +81,17 @@ export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
       const parentCoords = CoordSystem.getParentCoord(childCoords);
       const parentCoordId = parentCoords ? CoordSystem.createId(parentCoords) : undefined;
       
-      // Dispatch operation started event to show creation widget
-      dispatch({
-        type: 'operation_started',
+      // Emit request event to show creation widget in Chat
+      eventBus.emit({
+        type: 'map.create_requested',
+        source: 'canvas',
         payload: {
-          operation: 'create',
-          tileId: parentCoordId,
-          data: {
-            coordId: props.coordId,
-            parentName: props.parentItem?.name,
-            parentId: props.parentItem?.id,
-            parentCoordId,
-          },
+          coordId: props.coordId,
+          parentName: props.parentItem?.name,
+          parentId: props.parentItem?.id,
+          parentCoordId,
         },
-        id: `create-${Date.now()}`,
         timestamp: new Date(),
-        actor: 'user',
       });
     },
   });

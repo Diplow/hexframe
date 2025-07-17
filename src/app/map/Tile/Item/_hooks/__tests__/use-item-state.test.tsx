@@ -6,25 +6,16 @@ import { useItemState } from "../use-item-state";
 import type { TileData } from "~/app/map/types/tile-data";
 import { LegacyTileActionsContext } from "~/app/map/Canvas";
 
-// Mock the dependencies
+// Mock the dependencies - start with a variable we can control
+let mockIsDraggable = true;
+
 vi.mock("../use-item-interaction", () => ({
   useItemInteraction: () => ({
-    isDraggable: true,
+    isDraggable: mockIsDraggable,
     isBeingDragged: false,
     isValidDropTarget: false,
     isDropTargetActive: false,
     dropOperation: null,
-  }),
-}));
-
-vi.mock("../use-item-dialogs", () => ({
-  useItemDialogs: () => ({
-    isUpdateDialogOpen: false,
-    isDeleteDialogOpen: false,
-    openUpdateDialog: vi.fn(),
-    closeUpdateDialog: vi.fn(),
-    openDeleteDialog: vi.fn(),
-    closeDeleteDialog: vi.fn(),
   }),
 }));
 
@@ -39,12 +30,12 @@ vi.mock("../../_validators", () => ({
 }));
 
 vi.mock("../../_coordinators", () => ({
-  createDragProps: (_coordId: string, _actions: unknown, isDraggable: boolean) => ({
+  createDragProps: (_coordId: string, _actions: unknown, isDraggable: boolean, _isBeingDragged: boolean) => ({
     draggable: isDraggable,
     onDragStart: vi.fn(),
     onDragEnd: vi.fn(),
   }),
-  createDropProps: () => ({}),
+  createDropProps: (_coordId: string, _actions: unknown, _isValidDropTarget: boolean) => ({}),
   getSwapPreviewColor: () => "transparent",
 }));
 
@@ -105,6 +96,8 @@ describe("useItemState - Drag Functionality", () => {
   );
 
   it("should make owned tiles draggable regardless of active tool", () => {
+    // Reset the mock to ensure draggable is true
+    mockIsDraggable = true;
     const currentUserId = 123;
     const tile = createMockTile("123"); // Owned by current user
 
@@ -128,6 +121,8 @@ describe("useItemState - Drag Functionality", () => {
   });
 
   it("should not make tiles draggable when user does not own them", () => {
+    // Reset the mock to ensure draggable is true
+    mockIsDraggable = true;
     const currentUserId = 123;
     const tile = createMockTile("456"); // Owned by different user
 

@@ -7,7 +7,7 @@ import type { AppEvent, EventListener, EventBusService } from '~/app/map/types/e
  * The mock tracks all emitted events and registered listeners,
  * making it easy to assert on event interactions in tests.
  */
-interface MockEventBus extends EventBusService {
+export interface MockEventBus extends EventBusService {
   emit: ReturnType<typeof vi.fn>;
   on: ReturnType<typeof vi.fn>;
   getListenerCount: ReturnType<typeof vi.fn>;

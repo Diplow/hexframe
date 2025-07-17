@@ -17,15 +17,15 @@ export interface CenterInfo {
   groupId: number;
 }
 import { DynamicFrame } from "./frame";
-import type { TileScale } from "~/app/map/components/BaseTileLayout";
+import type { TileScale } from "~/app/map/Canvas/base/BaseTileLayout";
 import { useMapCache } from "../Cache/map-cache";
 import type { URLInfo } from "../types/url-info";
 import { MapLoadingSkeleton } from "./LifeCycle/loading-skeleton";
 import { MapErrorBoundary } from "./LifeCycle/error-boundary";
 import { useDragAndDropWithMutation } from "./hooks/useDragAndDropWithMutation";
 import type { DragEvent } from "react";
-import { useChatCacheOperations } from "../Chat/Cache/hooks/useChatCacheOperations";
 import { loggers } from "~/lib/debug/debug-logger";
+import { useEventBus } from "../Services/EventBus/event-bus-context";
 
 // Theme Context for tiles
 export interface ThemeContextValue {
@@ -120,8 +120,9 @@ export function DynamicMapCanvas({
   } = useMapCache();
   const [isHydrated, setIsHydrated] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [selectedTileId, setSelectedTileId] = useState<string | null>(null);
   const { mappingUserId } = useAuth();
-  const { widgets } = useChatCacheOperations();
+  const eventBus = useEventBus();
   
   // Log component mount/unmount
   useEffect(() => {
@@ -135,6 +136,19 @@ export function DynamicMapCanvas({
       loggers.render.canvas('DynamicMapCanvas unmounted');
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps -- Only log mount/unmount
+  
+  // Listen for tile selection events
+  useEffect(() => {
+    const unsubscribe = eventBus.on('map.tile_selected', (event) => {
+      // Update selected tile when a tile is selected
+      if ('payload' in event && event.payload && typeof event.payload === 'object' && 'tileId' in event.payload) {
+        const tileId = (event.payload as { tileId: string }).tileId;
+        setSelectedTileId(tileId);
+      }
+    });
+    
+    return unsubscribe;
+  }, [eventBus]);
   
   // Initialize drag and drop functionality
   const {
@@ -281,7 +295,7 @@ export function DynamicMapCanvas({
               urlInfo={urlInfo}
               interactive={true}
               currentUserId={mappingUserId}
-              selectedTileId={(widgets.find(w => w.type === 'preview')?.data as {tileId?: string})?.tileId ?? null}
+              selectedTileId={selectedTileId}
             />
           </div>
         </div>

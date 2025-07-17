@@ -133,7 +133,7 @@ To integrate the Cache system into your application:
 1. **Import the provider and create event bus**:
    ```tsx
    import { MapCacheProvider } from './Cache/map-cache';
-   import { EventBus } from './Services/event-bus';
+   import { EventBus } from './Services/EventBus/event-bus';
    
    const eventBus = new EventBus();
    ```

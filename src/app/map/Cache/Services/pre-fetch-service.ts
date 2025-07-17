@@ -26,17 +26,17 @@ export async function preloadUserMapData(
   utils: ReturnType<typeof api.useUtils>
 ): Promise<PreFetchedMapData | null> {
   try {
-    console.log('[PreFetch] Starting user map data preload for user:', userId);
+    // Starting user map data preload
     
     // Get user's map info
     const userMapResult = await utils.map.user.getUserMap.fetch();
     if (!userMapResult?.success || !userMapResult.map) {
-      console.warn('[PreFetch] No user map found');
+      // No user map found
       return null;
     }
 
     const mapInfo = userMapResult.map;
-    console.log('[PreFetch] Found user map:', mapInfo);
+    // Found user map
 
     // Get all items for the user's map
     const itemsResult = await utils.map.getItemsForRootItem.fetch({
@@ -45,11 +45,11 @@ export async function preloadUserMapData(
     });
 
     if (!itemsResult || itemsResult.length === 0) {
-      console.warn('[PreFetch] No map items found');
+      // No map items found
       return null;
     }
 
-    console.log('[PreFetch] Fetched', itemsResult.length, 'map items');
+    // Fetched map items
 
     // Transform API items to TileData format
     const initialItems = transformApiItemsToTileData(itemsResult);
@@ -64,15 +64,11 @@ export async function preloadUserMapData(
       mapInfo,
     };
 
-    console.log('[PreFetch] Successfully preloaded map data:', {
-      itemCount: Object.keys(initialItems).length,
-      centerCoordinate,
-      mapName: mapInfo.name,
-    });
+    // Successfully preloaded map data
 
     return result;
-  } catch (error) {
-    console.error('[PreFetch] Failed to preload user map data:', error);
+  } catch (_error) {
+    console.warn('Failed to preload user map data:', _error);
     return null;
   }
 }
@@ -92,8 +88,8 @@ export function transformApiItemsToTileData(
       
       // Store by coordinate ID for map cache
       tileDataRecord[tileData.metadata.coordId] = tileData;
-    } catch (error) {
-      console.warn('[PreFetch] Failed to transform item:', apiItem.id, error);
+    } catch (_error) {
+      console.warn('Failed to transform item:', _error);
       // Continue with other items
     }
   }
@@ -111,14 +107,9 @@ export function savePreFetchedData(data: PreFetchedMapData): void {
       timestamp: Date.now(),
     };
     sessionStorage.setItem('hexframe:prefetched-map-data', JSON.stringify(dataToSave));
-    console.log('[PreFetch] ✅ Saved data to sessionStorage:', {
-      itemCount: Object.keys(data.initialItems).length,
-      centerCoordinate: data.centerCoordinate,
-      mapName: data.mapInfo.name,
-      sampleTileNames: Object.values(data.initialItems).slice(0, 3).map(tile => tile.data.name),
-    });
-  } catch (error) {
-    console.error('[PreFetch] ❌ Failed to save to sessionStorage:', error);
+    // Saved data to sessionStorage
+  } catch (_error) {
+    console.warn('Failed to save to sessionStorage:', _error);
   }
 }
 
@@ -127,10 +118,10 @@ export function savePreFetchedData(data: PreFetchedMapData): void {
  */
 export function loadPreFetchedData(): PreFetchedMapData | null {
   try {
-    console.log('[PreFetch] 🔍 Checking sessionStorage for pre-fetched data...');
+    // Checking sessionStorage for pre-fetched data
     const stored = sessionStorage.getItem('hexframe:prefetched-map-data');
     if (!stored) {
-      console.log('[PreFetch] ❌ No pre-fetched data found in sessionStorage');
+      // No pre-fetched data found in sessionStorage
       return null;
     }
 
@@ -138,7 +129,7 @@ export function loadPreFetchedData(): PreFetchedMapData | null {
     
     // Type guard to ensure parsed is the expected structure
     if (typeof parsed !== 'object' || parsed === null) {
-      console.log('[PreFetch] ❌ Invalid data structure in sessionStorage');
+      // Invalid data structure in sessionStorage
       return null;
     }
     
@@ -148,7 +139,7 @@ export function loadPreFetchedData(): PreFetchedMapData | null {
     const age = Date.now() - (parsedData.timestamp ?? 0);
     if (age > 5 * 60 * 1000) {
       sessionStorage.removeItem('hexframe:prefetched-map-data');
-      console.log('[PreFetch] ⏰ Cleared stale data from sessionStorage (age:', age, 'ms)');
+      // Cleared stale data from sessionStorage
       return null;
     }
 
@@ -156,16 +147,10 @@ export function loadPreFetchedData(): PreFetchedMapData | null {
     const { timestamp, ...data } = parsedData;
     const typedData = data as unknown as PreFetchedMapData;
     void timestamp; // Mark as intentionally unused
-    console.log('[PreFetch] ✅ Loaded pre-fetched data from sessionStorage:', {
-      itemCount: Object.keys(typedData.initialItems || {}).length,
-      centerCoordinate: typedData.centerCoordinate,
-      mapName: typedData.mapInfo?.name,
-      age: age + 'ms',
-      sampleTileNames: Object.values(typedData.initialItems || {}).slice(0, 3).map(tile => tile.data?.name),
-    });
+    // Loaded pre-fetched data from sessionStorage
     return typedData;
-  } catch (error) {
-    console.error('[PreFetch] ❌ Failed to load from sessionStorage:', error);
+  } catch (_error) {
+    console.warn('Failed to load from sessionStorage:', _error);
     return null;
   }
 }
@@ -176,8 +161,8 @@ export function loadPreFetchedData(): PreFetchedMapData | null {
 export function clearPreFetchedData(): void {
   try {
     sessionStorage.removeItem('hexframe:prefetched-map-data');
-    console.log('[PreFetch] 🗑️ Cleared pre-fetched data from sessionStorage');
-  } catch (error) {
-    console.error('[PreFetch] ❌ Failed to clear sessionStorage:', error);
+    // Cleared pre-fetched data from sessionStorage
+  } catch (_error) {
+    console.warn('Failed to clear sessionStorage:', _error);
   }
 }

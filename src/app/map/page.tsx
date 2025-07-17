@@ -3,9 +3,10 @@
 import { use, useEffect, useState } from "react";
 import { MapCacheProvider } from "./Cache/map-cache";
 import { useMapIdResolution } from "./_hooks/use-map-id-resolution";
-import { ChatCacheProvider } from "./Chat/Cache/ChatCacheProvider";
+// ChatCacheProvider is no longer needed - Chat state is managed internally
 import { MapPageContent } from "./_components/MapPageContent";
-import { eventBus } from "./Services/event-bus";
+import { eventBus } from "./Services/EventBus/event-bus";
+import { EventBusProvider } from "./Services/EventBus/event-bus-context";
 import { loadPreFetchedData, clearPreFetchedData } from "./Cache/Services/pre-fetch-service";
 import { api } from "~/commons/trpc/react";
 import { useRouter } from "next/navigation";
@@ -58,18 +59,18 @@ export default function MapPage({ searchParams }: MapPageProps) {
   );
   
   useEffect(() => {
-    console.log('[MapPage] 🏗️ Map page mounting...');
+    // Map page mounting...
     setMounted(true);
     
     // Check for pre-fetched map data
     const preFetched = loadPreFetchedData();
     if (preFetched) {
-      console.log('[MapPage] ✅ Found pre-fetched data, using for initial cache');
+      // Found pre-fetched data, using for initial cache
       setPreFetchedData(preFetched);
       // Clear pre-fetched data after using it to avoid stale data issues
       clearPreFetchedData();
     } else {
-      console.log('[MapPage] ❌ No pre-fetched data found, will use empty cache');
+      // No pre-fetched data found, will use empty cache
     }
   }, []);
   
@@ -77,11 +78,11 @@ export default function MapPage({ searchParams }: MapPageProps) {
   useEffect(() => {
     if (!params.center && userMapData) {
       if (userMapData.success && userMapData.map?.id) {
-        console.log('[MapPage] Redirecting to user map:', userMapData.map.id);
+        // Redirecting to user map: userMapData.map.id
         router.replace(`/map?center=${userMapData.map.id}`);
       } else {
         // User doesn't have a map yet, redirect to a default
-        console.log('[MapPage] User has no map, redirecting to default');
+        // User has no map, redirecting to default
         // For now, redirect to the public Hexframe map (ID 1)
         router.replace(`/map?center=1`);
       }
@@ -109,42 +110,38 @@ export default function MapPage({ searchParams }: MapPageProps) {
   // Always show loading state during SSR and initial mount to prevent flashes
   // Also show loading when we're fetching the user's map for redirect
   if (!mounted || (!params.center && isLoadingUserMap)) {
-    console.log('[MapPage] Showing loading state:', { 
-      mounted, 
-      hasCenter: !!params.center, 
-      isLoadingUserMap 
-    });
+    // Showing loading state
     return (
       <div className="relative flex h-full w-full">
-        <MapCacheProvider
-          initialItems={{}}
-          initialCenter={null}
-          initialExpandedItems={[]}
-          cacheConfig={CACHE_CONFIG}
-          offlineMode={isOffline}
-          eventBus={eventBus}
-          mapContext={{
-            rootItemId: 0,
-            userId: 0,
-            groupId: 0,
-          }}
-          testingOverrides={{
-            disableSync: true,
-          }}
-        >
-          <ChatCacheProvider eventBus={eventBus}>
+        <EventBusProvider eventBus={eventBus}>
+          <MapCacheProvider
+            initialItems={{}}
+            initialCenter={null}
+            initialExpandedItems={[]}
+            cacheConfig={CACHE_CONFIG}
+            offlineMode={isOffline}
+            eventBus={eventBus}
+            mapContext={{
+              rootItemId: 0,
+              userId: 0,
+              groupId: 0,
+            }}
+            testingOverrides={{
+              disableSync: true,
+            }}
+          >
             <MapPageContent
-                centerCoordinate={"0,0"}
-                params={params}
-                rootItemId={0}
-                userId={0}
-                groupId={0}
-                isOffline={isOffline}
-                isLoading={true}
-                loadingError={null}
-            />
-          </ChatCacheProvider>
-        </MapCacheProvider>
+                  centerCoordinate={"0,0"}
+                  params={params}
+                  rootItemId={0}
+                  userId={0}
+                  groupId={0}
+                  isOffline={isOffline}
+                  isLoading={true}
+                  loadingError={null}
+              />
+          </MapCacheProvider>
+        </EventBusProvider>
       </div>
     );
   }
@@ -154,35 +151,35 @@ export default function MapPage({ searchParams }: MapPageProps) {
     // Show the layout structure with loading skeleton in canvas area
     return (
       <div className="relative flex h-full w-full">
-        <MapCacheProvider
-          initialItems={{}}
-          initialCenter={null} // Don't set a center during loading to prevent fetch attempts
-          initialExpandedItems={[]}
-          cacheConfig={CACHE_CONFIG}
-          offlineMode={isOffline}
-          eventBus={eventBus}
-          mapContext={{
-            rootItemId: 0,
-            userId: 0,
-            groupId: 0,
-          }}
-          testingOverrides={{
-            disableSync: true,
-          }}
-        >
-          <ChatCacheProvider eventBus={eventBus}>
+        <EventBusProvider eventBus={eventBus}>
+          <MapCacheProvider
+            initialItems={{}}
+            initialCenter={null} // Don't set a center during loading to prevent fetch attempts
+            initialExpandedItems={[]}
+            cacheConfig={CACHE_CONFIG}
+            offlineMode={isOffline}
+            eventBus={eventBus}
+            mapContext={{
+              rootItemId: 0,
+              userId: 0,
+              groupId: 0,
+            }}
+            testingOverrides={{
+              disableSync: true,
+            }}
+          >
             <MapPageContent
-                centerCoordinate={"0,0"}
-                params={params}
-                rootItemId={0}
-                userId={0}
-                groupId={0}
-                isOffline={isOffline}
-                isLoading={true}
-                loadingError={null}
-            />
-          </ChatCacheProvider>
-        </MapCacheProvider>
+                  centerCoordinate={"0,0"}
+                  params={params}
+                  rootItemId={0}
+                  userId={0}
+                  groupId={0}
+                  isOffline={isOffline}
+                  isLoading={true}
+                  loadingError={null}
+              />
+          </MapCacheProvider>
+        </EventBusProvider>
       </div>
     );
   }
@@ -191,35 +188,35 @@ export default function MapPage({ searchParams }: MapPageProps) {
   if (resolutionError) {
     return (
       <div className="relative flex h-full w-full">
-        <MapCacheProvider
-          initialItems={{}}
-          initialCenter={null} // Don't set a center during error state to prevent fetch attempts
-          initialExpandedItems={[]}
-          cacheConfig={CACHE_CONFIG}
-          offlineMode={isOffline}
-          eventBus={eventBus}
-          mapContext={{
-            rootItemId: 0,
-            userId: 0,
-            groupId: 0,
-          }}
-          testingOverrides={{
-            disableSync: true,
-          }}
-        >
-          <ChatCacheProvider eventBus={eventBus}>
+        <EventBusProvider eventBus={eventBus}>
+          <MapCacheProvider
+            initialItems={{}}
+            initialCenter={null} // Don't set a center during error state to prevent fetch attempts
+            initialExpandedItems={[]}
+            cacheConfig={CACHE_CONFIG}
+            offlineMode={isOffline}
+            eventBus={eventBus}
+            mapContext={{
+              rootItemId: 0,
+              userId: 0,
+              groupId: 0,
+            }}
+            testingOverrides={{
+              disableSync: true,
+            }}
+          >
             <MapPageContent
-                centerCoordinate={"0,0"}
-                params={params}
-                rootItemId={0}
-                userId={0}
-                groupId={0}
-                isOffline={isOffline}
-                isLoading={false}
-                loadingError={resolutionError || new Error("Unable to load the requested map")}
-            />
-          </ChatCacheProvider>
-        </MapCacheProvider>
+                  centerCoordinate={"0,0"}
+                  params={params}
+                  rootItemId={0}
+                  userId={0}
+                  groupId={0}
+                  isOffline={isOffline}
+                  isLoading={false}
+                  loadingError={resolutionError || new Error("Unable to load the requested map")}
+              />
+          </MapCacheProvider>
+        </EventBusProvider>
       </div>
     );
   }
@@ -228,35 +225,35 @@ export default function MapPage({ searchParams }: MapPageProps) {
   if (!centerCoordinate) {
     return (
       <div className="relative flex h-full w-full">
-        <MapCacheProvider
-          initialItems={{}}
-          initialCenter={null}
-          initialExpandedItems={[]}
-          cacheConfig={CACHE_CONFIG}
-          offlineMode={isOffline}
-          eventBus={eventBus}
-          mapContext={{
-            rootItemId: 0,
-            userId: 0,
-            groupId: 0,
-          }}
-          testingOverrides={{
-            disableSync: true,
-          }}
-        >
-          <ChatCacheProvider eventBus={eventBus}>
+        <EventBusProvider eventBus={eventBus}>
+          <MapCacheProvider
+            initialItems={{}}
+            initialCenter={null}
+            initialExpandedItems={[]}
+            cacheConfig={CACHE_CONFIG}
+            offlineMode={isOffline}
+            eventBus={eventBus}
+            mapContext={{
+              rootItemId: 0,
+              userId: 0,
+              groupId: 0,
+            }}
+            testingOverrides={{
+              disableSync: true,
+            }}
+          >
             <MapPageContent
-                centerCoordinate={"0,0"}
-                params={params}
-                rootItemId={0}
-                userId={0}
-                groupId={0}
-                isOffline={isOffline}
-                isLoading={false}
-                loadingError={new Error("Unable to resolve map coordinates")}
-            />
-          </ChatCacheProvider>
-        </MapCacheProvider>
+                  centerCoordinate={"0,0"}
+                  params={params}
+                  rootItemId={0}
+                  userId={0}
+                  groupId={0}
+                  isOffline={isOffline}
+                  isLoading={false}
+                  loadingError={new Error("Unable to resolve map coordinates")}
+              />
+          </MapCacheProvider>
+        </EventBusProvider>
       </div>
     );
   }
@@ -266,47 +263,26 @@ export default function MapPage({ searchParams }: MapPageProps) {
   const initialItems = preFetchedData?.initialItems ?? {};
   const effectiveCenter = preFetchedData?.centerCoordinate ?? centerCoordinate;
   
-  console.log('[MapPage] 🎯 Initializing cache with:', {
-    hasPreFetchedData: !!preFetchedData,
-    itemCount: Object.keys(initialItems).length,
-    center: effectiveCenter,
-    urlCenter: centerCoordinate,
-    preFetchedCenter: preFetchedData?.centerCoordinate,
-    sampleTileNames: Object.values(initialItems).slice(0, 3).map(tile => tile.data?.name),
-  });
+  // Initializing cache with pre-fetched data or empty cache
   
   return (
     <div className="relative flex h-full w-full">
-      <MapCacheProvider
-        initialItems={initialItems} // Use pre-fetched data or empty cache
-        initialCenter={effectiveCenter} // Use pre-fetched center or resolved coordinate
-        initialExpandedItems={params.expandedItems?.split(",") ?? []}
-        cacheConfig={CACHE_CONFIG}
-        offlineMode={isOffline}
-        eventBus={eventBus}
-        mapContext={{
-          rootItemId,
-          userId,
-          groupId,
-        }}
-        testingOverrides={{
-          disableSync: true, // Disable sync until basic cache is working
-        }}
-      >
-        <ChatCacheProvider 
+      <EventBusProvider eventBus={eventBus}>
+        <MapCacheProvider
+          initialItems={initialItems} // Use pre-fetched data or empty cache
+          initialCenter={effectiveCenter} // Use pre-fetched center or resolved coordinate
+          initialExpandedItems={params.expandedItems?.split(",") ?? []}
+          cacheConfig={CACHE_CONFIG}
+          offlineMode={isOffline}
           eventBus={eventBus}
-          initialEvents={[
-            {
-              type: 'system_message',
-              payload: {
-                message: 'Welcome to **HexFrame**! Navigate the map by clicking on tiles, or use the chat to ask questions.',
-                level: 'info',
-              },
-              id: 'welcome-message',
-              timestamp: new Date(),
-              actor: 'system',
-            }
-          ]}
+          mapContext={{
+            rootItemId,
+            userId,
+            groupId,
+          }}
+          testingOverrides={{
+            disableSync: true, // Disable sync until basic cache is working
+          }}
         >
           <MapPageContent
             centerCoordinate={centerCoordinate}
@@ -316,8 +292,8 @@ export default function MapPage({ searchParams }: MapPageProps) {
             groupId={groupId}
             isOffline={isOffline}
           />
-        </ChatCacheProvider>
-      </MapCacheProvider>
+        </MapCacheProvider>
+      </EventBusProvider>
     </div>
   );
 }

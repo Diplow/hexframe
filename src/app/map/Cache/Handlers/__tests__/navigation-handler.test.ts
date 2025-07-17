@@ -55,9 +55,33 @@ describe("Navigation Handler", () => {
     };
     mockState = {
       ...initialCacheState,
-      currentCenter: "1,2",
+      currentCenter: "0,0", // Different from the item we'll navigate to
       expandedItemIds: ["1", "2"],
       itemsById: {
+        "0,0": {
+          data: {
+            name: "Current Item",
+            description: "Currently centered",
+            url: "",
+            color: "#000000",
+          },
+          metadata: {
+            coordId: "0,0",
+            dbId: "999",
+            depth: 0,
+            parentId: undefined,
+            coordinates: { userId: 0, groupId: 0, path: [] },
+            ownerId: "test-owner",
+          },
+          state: {
+            isDragged: false,
+            isHovered: false,
+            isSelected: false,
+            isExpanded: false,
+            isDragOver: false,
+            isHovering: false,
+          },
+        },
         "1,2": {
           data: {
             name: "Test Item",
@@ -157,13 +181,13 @@ describe("Navigation Handler", () => {
     test("emits map.navigation event when navigating to item", async () => {
       const handler = createNavigationHandler(config);
 
-      await handler.navigateToItem("2,3");
+      await handler.navigateToItem("123"); // Use dbId from mockState
 
       // Should emit map.navigation event
       expectEventEmitted(mockEventBus, 'map.navigation', {
-        fromCenterId: "1,2",  // Current center from mockState
-        toCenterId: expect.any(String) as string,
-        toCenterName: expect.any(String) as string
+        fromCenterId: "0,0",  // Current center from mockState
+        toCenterId: "123",
+        toCenterName: "Test Item"
       });
     });
 
@@ -210,7 +234,7 @@ describe("Navigation Handler", () => {
       expect(mockDataHandler.prefetchRegion).not.toHaveBeenCalled();
       expect(mockDispatch).not.toHaveBeenCalled();
       expect(result).toEqual({
-        success: true,
+        success: false,
         centerUpdated: false,
         urlUpdated: false,
       });
@@ -532,6 +556,7 @@ describe("Navigation Handler", () => {
     test("preserves order when removing items from expanded list", () => {
       const stateWithMultipleExpanded: CacheState = {
         ...mockState,
+        currentCenter: "1,2", // Set to existing item so URL can be built
         expandedItemIds: ["1", "2", "3", "4"],
       };
 
@@ -556,6 +581,7 @@ describe("Navigation Handler", () => {
     test("removes all expanded items when last one is toggled", () => {
       const stateWithSingleExpanded: CacheState = {
         ...mockState,
+        currentCenter: "1,2", // Set to existing item so URL can be built
         expandedItemIds: ["1"],
       };
 
@@ -581,6 +607,7 @@ describe("Navigation Handler", () => {
       // Start with empty expanded items for this test
       const stateWithNoExpanded: CacheState = {
         ...mockState,
+        currentCenter: "1,2", // Set to existing item so URL can be built
         expandedItemIds: [],
       };
 

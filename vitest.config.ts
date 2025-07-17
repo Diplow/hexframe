@@ -35,6 +35,8 @@ export default defineConfig({
         singleFork: true,
       },
     },
+    // Ensure proper test isolation
+    isolate: true,
   },
   resolve: {
     alias: {

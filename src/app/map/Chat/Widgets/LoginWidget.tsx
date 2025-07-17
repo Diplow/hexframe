@@ -3,16 +3,16 @@
 import { useState } from 'react';
 import { registerAction } from '~/lib/domains/iam/actions';
 import { authClient } from '~/lib/auth/auth-client';
-import { useChatCacheOperations } from '../Cache/hooks/useChatCacheOperations';
 import { LogIn, Mail, Key, AlertCircle, UserPlus, Loader2, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useEventBus } from '../../Services/EventBus/event-bus-context';
 
 interface LoginWidgetProps {
   message?: string;
 }
 
 export function LoginWidget({ message }: LoginWidgetProps) {
-  const { dispatch } = useChatCacheOperations();
+  const eventBus = useEventBus();
   const router = useRouter();
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
@@ -27,35 +27,31 @@ export function LoginWidget({ message }: LoginWidgetProps) {
     setError('');
     setIsLoading(true);
     
-    console.log(`[LOGIN WIDGET] Starting ${mode}:`, { email });
+    // Starting login/register
 
     try {
       if (mode === 'login') {
         // Login mode - use better-auth client for proper session establishment
-        console.log('[LOGIN WIDGET] Logging in via better-auth client...');
+        // Logging in via better-auth client
         
         try {
           // Use better-auth client to login - this properly establishes the session
-          const loginResponse = await authClient.signIn.email({
+          await authClient.signIn.email({
             email,
             password,
           });
           
-          console.log('[LOGIN WIDGET] Login response:', loginResponse);
+          // Login response received
           
           // Wait for the session to be established
           await new Promise(resolve => setTimeout(resolve, 500));
           
           // Verify session is established
           const session = await authClient.getSession();
-          console.log('[LOGIN WIDGET] Session after login:', {
-            hasData: !!session?.data,
-            hasUser: !!session?.data?.user,
-            userId: session?.data?.user?.id,
-          });
+          // Session after login
           
           if (!session?.data?.user) {
-            console.error('[LOGIN WIDGET] Session not established after login');
+            // Session not established after login
             throw new Error('Failed to establish session. Please try again.');
           }
           
@@ -63,46 +59,33 @@ export function LoginWidget({ message }: LoginWidgetProps) {
           await new Promise(resolve => setTimeout(resolve, 500));
           
           // Refresh router to update server components
-          console.log('[LOGIN WIDGET] Refreshing router...');
+          // Refreshing router
           router.refresh();
           
-          // Dispatch success event
-          dispatch({
-            type: 'widget_resolved',
+          // Emit login success event
+          eventBus.emit({
+            type: 'auth.login',
             payload: {
-              widgetId: 'login-widget',
-              action: 'success'
+              userId: session.data.user.id,
+              userName: session.data.user.name || session.data.user.email
             },
-            id: `widget-resolved-${Date.now()}`,
+            source: 'auth',
             timestamp: new Date(),
-            actor: 'system',
-          });
-          
-          // Add success message
-          dispatch({
-            type: 'message',
-            payload: {
-              content: `✅ Successfully logged in`,
-              actor: 'system',
-            },
-            id: `login-success-${Date.now()}`,
-            timestamp: new Date(),
-            actor: 'system',
           });
           
           // Navigate to user's map if they have one
           setTimeout(() => {
-            console.log('[LOGIN WIDGET] Navigating to /map after successful login');
+            // Navigating to /map after successful login
             router.push('/map');
           }, 1000); // Give more time for auth to propagate
         } catch (loginError: unknown) {
-          console.error('[LOGIN WIDGET] Login failed:', loginError);
+          // Login failed
           const errorMessage = loginError instanceof Error ? loginError.message : 'Invalid email or password';
           throw new Error(errorMessage);
         }
       } else {
         // Register mode - use Server Action
-        console.log('[LOGIN WIDGET] Calling register action...');
+        // Calling register action
         
         const result = await registerAction({
           email,
@@ -110,12 +93,7 @@ export function LoginWidget({ message }: LoginWidgetProps) {
           name: username.trim() || (email.split('@')[0] ?? 'User'),
         });
         
-        console.log('[LOGIN WIDGET] Register action completed:', {
-          success: result.success,
-          userId: result.success ? result.userId : undefined,
-          defaultMapId: result.success && 'defaultMapId' in result ? result.defaultMapId : undefined,
-          error: !result.success ? result.error : undefined,
-        });
+        // Register action completed
         
         if (!result.success) {
           throw new Error(result.error || 'Registration failed');
@@ -125,30 +103,26 @@ export function LoginWidget({ message }: LoginWidgetProps) {
         if (result.userId && 'defaultMapId' in result) {
           // Since we don't auto-login in the server action anymore,
           // we need to log the user in from the client
-          console.log('[LOGIN WIDGET] Registration successful, now logging in...');
+          // Registration successful, now logging in
           
           // Perform login with the same credentials
           try {
-            const loginResponse = await authClient.signIn.email({
+            await authClient.signIn.email({
               email,
               password,
             });
             
-            console.log('[LOGIN WIDGET] Login response after registration:', loginResponse);
+            // Login response after registration
             
             // Wait for the session to be established
             await new Promise(resolve => setTimeout(resolve, 500));
             
             // Verify session is established
             const session = await authClient.getSession();
-            console.log('[LOGIN WIDGET] Session after login:', {
-              hasData: !!session?.data,
-              hasUser: !!session?.data?.user,
-              userId: session?.data?.user?.id,
-            });
+            // Session after login
             
             if (!session?.data?.user) {
-              console.error('[LOGIN WIDGET] Session not established after login');
+              // Session not established after login
               throw new Error('Failed to establish session. Please try logging in manually.');
             }
             
@@ -156,56 +130,43 @@ export function LoginWidget({ message }: LoginWidgetProps) {
             await new Promise(resolve => setTimeout(resolve, 500));
             
             // Refresh router to update server components
-            console.log('[LOGIN WIDGET] Refreshing router...');
+            // Refreshing router
             router.refresh();
-          } catch (loginError) {
-            console.error('[LOGIN WIDGET] Failed to login after registration:', loginError);
+          } catch (_loginError) {
+            console.warn('Failed to login after registration:', _loginError);
             throw new Error('Registration successful but login failed. Please try logging in manually.');
           }
           
-          // Dispatch success event
-          dispatch({
-            type: 'widget_resolved',
+          // Emit login success event (registration followed by login)
+          eventBus.emit({
+            type: 'auth.login',
             payload: {
-              widgetId: 'login-widget',
-              action: 'success'
+              userId: result.userId,
+              userName: username.trim() || (email.split('@')[0] ?? 'User')
             },
-            id: `widget-resolved-${Date.now()}`,
+            source: 'auth',
             timestamp: new Date(),
-            actor: 'system',
-          });
-          
-          // Add success message
-          dispatch({
-            type: 'message',
-            payload: {
-              content: `✅ Account created successfully! Welcome to **HexFrame**.`,
-              actor: 'system',
-            },
-            id: `register-success-${Date.now()}`,
-            timestamp: new Date(),
-            actor: 'system',
           });
           
           // Navigate to user's map if they have one
           // This ensures the session is fully propagated and prevents race conditions
           if ('defaultMapId' in result && result.defaultMapId) {
-            console.log('[LOGIN WIDGET] Scheduling navigation to default map:', result.defaultMapId);
+            // Scheduling navigation to default map
             setTimeout(() => {
-              console.log('[LOGIN WIDGET] Navigating to default map now:', result.defaultMapId);
+              // Navigating to default map now
               router.push(`/map?center=${result.defaultMapId}`);
             }, 1000); // Give time for session to propagate and map to be created
           } else {
             // If no default map ID, just navigate to /map which will resolve to user's map
             setTimeout(() => {
-              console.log('[LOGIN WIDGET] Navigating to /map after successful registration');
+              // Navigating to /map after successful registration
               router.push('/map');
             }, 1000);
           }
         }
       }
     } catch (err) {
-      console.error('Submit error:', err);
+      // Submit error
       setError(err instanceof Error ? err.message : 'An unexpected server error occurred.');
     } finally {
       setIsLoading(false);
@@ -213,18 +174,7 @@ export function LoginWidget({ message }: LoginWidgetProps) {
   };
 
   const handleCancel = () => {
-    // Widget removal happens automatically when operation is cancelled
-    dispatch({
-      type: 'operation_completed',
-      payload: {
-        operation: 'login',
-        result: 'failure',
-        message: 'Login cancelled',
-      },
-      id: `login-cancel-${Date.now()}`,
-      timestamp: new Date(),
-      actor: 'user',
-    });
+    // Widget cancellation handled by chat state
   };
 
   return (

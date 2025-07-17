@@ -3,17 +3,16 @@
 import { useCallback } from "react";
 import { DynamicMapCanvas } from "../Canvas";
 import type { TileData } from "../types/tile-data";
-import { ParentHierarchy } from "../Controls/ParentHierarchy/parent-hierarchy";
-import { MapControls } from "../Controls";
+import { ParentHierarchy } from "../Hierarchy";
 import { TileActionsProvider } from "../Canvas/TileActionsContext";
 import { MapContent } from "./MapContent";
 import { ChatPanel } from "../Chat/ChatPanel";
 import { OfflineIndicator } from "./offline-indicator";
-import { useTileSelectForChat } from "../hooks/useTileSelectForChat";
-import { useChatCacheOperations } from "../Chat/Cache/hooks/useChatCacheOperations";
+import { useTileSelectForChat } from "../_hooks/use-tile-select-for-chat";
 import { useMapCache } from "../Cache/map-cache";
 import { useRouter } from "next/navigation";
 import { MapLoadingSkeleton } from "../Canvas/LifeCycle/loading-skeleton";
+import { useEventBus } from "../Services/EventBus/event-bus-context";
 
 interface MapPageContentProps {
   centerCoordinate: string;
@@ -52,7 +51,7 @@ export function MapPageContent({
   const { handleTileSelect } = useTileSelectForChat();
   const { navigateToItem, toggleItemExpansionWithURL } = useMapCache();
   const router = useRouter();
-  const { dispatch: chatDispatch } = useChatCacheOperations();
+  const eventBus = useEventBus();
   
   const handleNavigate = useCallback((tileData: TileData) => {
     void navigateToItem(tileData.metadata.coordId, { pushToHistory: true }).catch((error) => {
@@ -71,21 +70,17 @@ export function MapPageContent({
   }, [handleTileSelect]);
   
   const handleDeleteClick = useCallback((tileData: TileData) => {
-    // Show delete confirmation widget in chat
-    chatDispatch({
-      type: 'operation_started',
+    // Request Chat to show delete confirmation widget via event bus
+    eventBus.emit({
+      type: 'map.delete_requested',
+      source: 'canvas',
       payload: {
-        operation: 'delete',
         tileId: tileData.metadata.coordId,
-        data: {
-          tileName: tileData.data.name,
-        },
+        tileName: tileData.data.name,
       },
-      id: `delete-${Date.now()}`,
       timestamp: new Date(),
-      actor: 'user',
     });
-  }, [chatDispatch]);
+  }, [eventBus]);
   
   return (
     <TileActionsProvider 
@@ -137,25 +132,6 @@ export function MapPageContent({
                       enableBackgroundSync={true}
                       syncInterval={30000}
                       cacheConfig={CACHE_CONFIG}
-                    />
-                    <MapControls
-                      urlInfo={{
-                        pathname: `/map`,
-                        searchParamsString: new URLSearchParams(params as Record<string, string>).toString(),
-                        rootItemId: params.center!,
-                        scale: params.scale,
-                        expandedItems: params.expandedItems,
-                        focus: params.focus,
-                      }}
-                      expandedItemIds={params.expandedItems?.split(",") ?? []}
-                      minimapItemsData={{}} // Will get items from cache context
-                      currentMapCenterCoordId={centerCoordinate}
-                      cacheStatus={{
-                        isLoading: false, // Cache will manage its own loading state
-                        lastUpdated: Date.now(),
-                        error: null,
-                        itemCount: 0,
-                      }}
                     />
                   </>
                 )}

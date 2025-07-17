@@ -54,12 +54,7 @@ export function createMutationHandler(
     coordId: string,
     data: Record<string, unknown>,
   ): Promise<MutationResult> => {
-    console.log('[MutationHandler.createItem] Called with:', {
-      coordId,
-      data,
-      timestamp: new Date().toISOString(),
-      stackTrace: new Error().stack
-    });
+    // createItem called
     try {
       // Apply optimistic update if enabled
       if (getState().cacheConfig.enableOptimisticUpdates) {
@@ -120,12 +115,7 @@ export function createMutationHandler(
     coordId: string,
     data: Record<string, unknown>,
   ): Promise<MutationResult> => {
-    console.log('[MutationHandler.updateItem] Called with:', {
-      coordId,
-      data,
-      timestamp: new Date().toISOString(),
-      stackTrace: new Error().stack
-    });
+    // updateItem called
     try {
       const existingItem = getState().itemsById[coordId];
 
@@ -193,11 +183,7 @@ export function createMutationHandler(
   };
 
   const deleteItem = async (coordId: string): Promise<MutationResult> => {
-    console.log('[MutationHandler.deleteItem] Called with:', {
-      coordId,
-      timestamp: new Date().toISOString(),
-      stackTrace: new Error().stack
-    });
+    // deleteItem called
     try {
       const existingItem = getState().itemsById[coordId];
 
@@ -224,11 +210,7 @@ export function createMutationHandler(
 
         // Emit event for tile deletion
         if (eventBus) {
-          console.log('[MutationHandler] 📤 Emitting map.tile_deleted event:', {
-            tileId: existingItem.metadata.dbId,
-            tileName: existingItem.data.name,
-            coordId
-          });
+          // Emitting map.tile_deleted event
           eventBus.emit({
             type: 'map.tile_deleted',
             source: 'map_cache',
@@ -239,7 +221,7 @@ export function createMutationHandler(
             }
           });
         } else {
-          console.warn('[MutationHandler] ⚠️ No eventBus available to emit tile_deleted event');
+          // No eventBus available to emit tile_deleted event
         }
 
         return { success: true, optimisticApplied: true };
@@ -258,11 +240,7 @@ export function createMutationHandler(
   };
 
   const rollbackOptimisticChange = (changeId: string): void => {
-    console.log('[MutationHandler.rollbackOptimisticChange] Called with:', {
-      changeId,
-      timestamp: new Date().toISOString(),
-      stackTrace: new Error().stack
-    });
+    // rollbackOptimisticChange called
     const change = pendingChanges.get(changeId);
     if (!change) return;
 
@@ -300,25 +278,19 @@ export function createMutationHandler(
 
       pendingChanges.delete(changeId);
     } catch (error) {
-      console.error("Failed to rollback optimistic change:", error);
+      // Failed to rollback optimistic change
       dispatch(cacheActions.setError(error as Error));
     }
   };
 
   const rollbackAllOptimistic = (): void => {
-    console.log('[MutationHandler.rollbackAllOptimistic] Called:', {
-      timestamp: new Date().toISOString(),
-      stackTrace: new Error().stack
-    });
+    // rollbackAllOptimistic called
     const changeIds = Array.from(pendingChanges.keys());
     changeIds.forEach(rollbackOptimisticChange);
   };
 
   const getPendingOptimisticChanges = (): OptimisticChange[] => {
-    console.log('[MutationHandler.getPendingOptimisticChanges] Called:', {
-      timestamp: new Date().toISOString(),
-      stackTrace: new Error().stack
-    });
+    // getPendingOptimisticChanges called
     return Array.from(pendingChanges.values()).sort(
       (a, b) => a.timestamp - b.timestamp,
     );

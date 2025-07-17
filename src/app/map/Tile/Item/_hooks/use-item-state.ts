@@ -4,7 +4,6 @@ import { useContext, useEffect } from "react";
 import type { TileData } from "~/app/map/types/tile-data";
 import { LegacyTileActionsContext } from "~/app/map/Canvas";
 import { useItemInteraction } from "./use-item-interaction";
-import { useItemDialogs } from "./use-item-dialogs";
 import { generateTileTestId } from "../_utils";
 import { canEditTile } from "../_validators";
 import { createDragProps, createDropProps, getSwapPreviewColor } from "../_coordinators";
@@ -44,7 +43,6 @@ export function useItemState({
 }: ItemStateProps) {
   const tileActions = useContext(LegacyTileActionsContext);
   const interaction = useItemInteraction(item.metadata.coordId);
-  const dialogs = useItemDialogs();
   
   const canEdit = canEditTile(currentUserId, item.metadata.ownerId);
   const testId = generateTileTestId(item.metadata.coordinates);
@@ -78,7 +76,6 @@ export function useItemState({
   
   return {
     interaction,
-    dialogs,
     canEdit,
     testId,
     dragProps,

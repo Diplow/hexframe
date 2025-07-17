@@ -31,7 +31,7 @@ export function ErrorWidget({ message, error, operation, retry }: ErrorWidgetPro
   const handleDismiss = () => {
     // For now, we don't have a way to dismiss error widgets
     // They will be auto-dismissed when a new event occurs
-    console.log('Error widget dismissed');
+    // Error widget dismissed
   };
 
   return (

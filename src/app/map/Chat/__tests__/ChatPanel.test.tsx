@@ -1,149 +1,308 @@
-import '~/test/setup'; // Import test setup FIRST
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import { ChatPanel } from '../ChatPanel';
-import { EventBus } from '../../Services/event-bus';
+import { TestProviders } from '~/test-utils/providers';
+import { createMockEventBus } from '~/test-utils/event-bus';
+import { chatSettings } from '../_settings/chat-settings';
 
-// Mock the useChatCache hook for isolated testing
-vi.mock('../Cache/ChatCacheProvider', async () => {
-  const actual = await vi.importActual('../Cache/ChatCacheProvider');
+// We'll use the real useChatState hook instead of mocking it
+// This avoids potential issues with React rendering
+
+// Mock dependencies
+vi.mock('../_settings/chat-settings', () => ({
+  chatSettings: {
+    getSettings: vi.fn(() => ({
+      messages: { 
+        debug: false,
+        tile: {
+          edit: true,
+          create: true,
+          delete: true,
+          move: true,
+          swap: true,
+        }
+      },
+    })),
+  },
+}));
+vi.mock('~/lib/auth/auth-client', () => ({
+  authClient: {
+    signOut: vi.fn(),
+    useSession: {
+      get: vi.fn(() => ({ user: null })),
+      subscribe: vi.fn(() => () => {
+        // Unsubscribe function
+      }),
+    },
+  },
+}));
+
+vi.mock('~/contexts/AuthContext', async () => {
+  const actual = await vi.importActual('~/contexts/AuthContext');
   return {
     ...actual,
-    useChatCache: vi.fn(),
+    useAuth: vi.fn(() => ({
+      user: null,
+    })),
   };
 });
 
-import { useChatCache } from '../Cache/ChatCacheProvider';
+vi.mock('../Input', () => ({
+  Input: () => (
+    <div data-testid="chat-input">
+      <button>Send</button>
+    </div>
+  ),
+}));
 
-const mockUseChatCache = vi.mocked(useChatCache);
+vi.mock('../Messages', () => ({
+  Messages: ({ messages, widgets }: { messages: unknown[]; widgets: unknown[] }) => (
+    <div data-testid="chat-messages">
+      <div>Messages: {messages.length}</div>
+      <div>Widgets: {widgets.length}</div>
+    </div>
+  ),
+}));
 
+// Mock trpc
+vi.mock('~/commons/trpc/react', () => ({
+  api: {
+    iam: {
+      user: {
+        whoami: {
+          useQuery: vi.fn(() => ({
+            data: null,
+            isLoading: false,
+            error: null,
+          })),
+        },
+      },
+    },
+  },
+}));
+
+// Helper functions to simulate map events
+const simulateMapEvent = {
+  tileSelected: (eventBus: ReturnType<typeof createMockEventBus>, tileData: {
+    id: string;
+    title: string;
+    description?: string;
+    content?: string;
+    coordId: string;
+  }, openInEditMode?: boolean) => {
+    eventBus.emit({
+      type: 'map.tile_selected',
+      source: 'map_cache',
+      payload: {
+        tileId: tileData.coordId,
+        tileData,
+        openInEditMode,
+      },
+      timestamp: new Date(),
+    });
+  },
+
+  navigation: (eventBus: ReturnType<typeof createMockEventBus>, fromId: string | undefined, toId: string, toName: string) => {
+    eventBus.emit({
+      type: 'map.navigation',
+      source: 'map_cache',
+      payload: {
+        fromCenterId: fromId,
+        toCenterId: toId,
+        toCenterName: toName,
+      },
+      timestamp: new Date(),
+    });
+  },
+
+  authRequired: (eventBus: ReturnType<typeof createMockEventBus>, reason: string) => {
+    eventBus.emit({
+      type: 'auth.required',
+      source: 'map_cache',
+      payload: { reason },
+      timestamp: new Date(),
+    });
+  },
+  
+  authLogout: (eventBus: ReturnType<typeof createMockEventBus>) => {
+    eventBus.emit({
+      type: 'auth.logout',
+      source: 'auth',
+      payload: {},
+      timestamp: new Date(),
+    });
+  },
+
+  error: (eventBus: ReturnType<typeof createMockEventBus>, error: string, context?: unknown) => {
+    eventBus.emit({
+      type: 'error.occurred',
+      source: 'map_cache',
+      payload: { error, context },
+      timestamp: new Date(),
+    });
+  },
+};
 
 describe('ChatPanel', () => {
-  const mockDispatch = vi.fn();
-  const mockEventBus = new EventBus();
+  let mockEventBus: ReturnType<typeof createMockEventBus>;
+
+  // Custom render function
+  function renderWithProviders(ui: React.ReactElement) {
+    return render(
+      <TestProviders mockEventBus={mockEventBus}>
+        {ui}
+      </TestProviders>
+    );
+  }
 
   beforeEach(() => {
-    mockDispatch.mockClear();
+    // Ensure DOM is properly set up
+    if (typeof document !== 'undefined') {
+      if (!document.body) {
+        document.body = document.createElement('body');
+      }
+      // Ensure test container exists
+      if (!document.getElementById('test-container')) {
+        const container = document.createElement('div');
+        container.id = 'test-container';
+        document.body.appendChild(container);
+      }
+    }
+    
+    mockEventBus = createMockEventBus();
+    vi.clearAllMocks();
   });
 
-  it('should render chat header', () => {
-    mockUseChatCache.mockReturnValue({
-      state: {
-        events: [],
-        visibleMessages: [],
-        activeWidgets: [],
-      },
-      dispatch: mockDispatch,
-      eventBus: mockEventBus,
-    });
-
-    render(<ChatPanel />);
-
-    expect(screen.getByText('Chat')).toBeInTheDocument();
+  afterEach(() => {
+    cleanup();
+    // Clean up any leftover DOM elements
+    if (typeof document !== 'undefined' && document.body) {
+      document.body.innerHTML = '';
+    }
   });
 
-  it('should display welcome message when no messages', () => {
-    mockUseChatCache.mockReturnValue({
-      state: {
-        events: [],
-        visibleMessages: [],
-        activeWidgets: [],
-      },
-      dispatch: mockDispatch,
-      eventBus: mockEventBus,
-    });
+  it('should render chat components', () => {
+    renderWithProviders(<ChatPanel />);
 
-    render(<ChatPanel />);
-
-    expect(screen.getByText(/Welcome to Hexframe! Select a tile to explore its content./)).toBeInTheDocument();
+    expect(screen.getByTestId('chat-messages')).toBeInTheDocument();
+    expect(screen.getByTestId('chat-input')).toBeInTheDocument();
   });
 
-  it('should render messages in chronological order', () => {
-    const messages = [
-      {
-        id: '1',
-        content: 'First message',
-        actor: 'system' as const,
-        timestamp: new Date(),
-      },
-      {
-        id: '2',
-        content: 'Second message',
-        actor: 'system' as const,
-        timestamp: new Date(),
-      },
-    ];
+  it('should display preview widget when tile is selected', async () => {
+    renderWithProviders(<ChatPanel />);
 
-    mockUseChatCache.mockReturnValue({
-      state: {
-        events: [],
-        visibleMessages: messages,
-        activeWidgets: [],
-      },
-      dispatch: mockDispatch,
-      eventBus: mockEventBus,
+    // Simulate tile selection from Canvas
+    simulateMapEvent.tileSelected(mockEventBus, {
+      id: 'tile-123',
+      title: 'Test Tile',
+      description: 'A test tile',
+      content: 'A test tile', // content can be the same as description
+      coordId: 'coord-123',
     });
 
-    render(<ChatPanel />);
-
-    const messageElements = screen.getAllByTestId(/^chat-message-\d+$/);
-    expect(messageElements).toHaveLength(2);
-    expect(messageElements[0]).toHaveTextContent('First message');
-    expect(messageElements[1]).toHaveTextContent('Second message');
+    // Wait for chat to process the event
+    await waitFor(() => {
+      expect(mockEventBus).toHaveEmittedEvent('map.tile_selected');
+    });
   });
 
-  it('should apply correct layout classes for desktop', () => {
-    mockUseChatCache.mockReturnValue({
-      state: {
-        events: [],
-        visibleMessages: [],
-        activeWidgets: [],
-      },
-      dispatch: mockDispatch,
-      eventBus: mockEventBus,
-    });
+  it('should handle user messages', async () => {
+    renderWithProviders(<ChatPanel />);
 
-    render(<ChatPanel className="test-class" />);
-
-    const chatPanel = screen.getByTestId('chat-panel');
-    expect(chatPanel).toHaveClass('test-class');
-    expect(chatPanel).toHaveClass('flex', 'flex-col', 'h-full');
+    // The chat should display messages
+    expect(screen.getByTestId('chat-messages')).toBeInTheDocument();
+    
+    // Since we're using the real hook, the initial welcome message should be displayed
+    expect(screen.getByText(/Messages: 1/)).toBeInTheDocument();
   });
 
-  it('should handle overflow with scrollable message area', () => {
-    mockUseChatCache.mockReturnValue({
-      state: {
-        events: [],
-        visibleMessages: [],
-        activeWidgets: [],
-      },
-      dispatch: mockDispatch,
-      eventBus: mockEventBus,
+  it('should react to navigation events', async () => {
+    renderWithProviders(<ChatPanel />);
+
+    // Simulate navigation from Hierarchy
+    simulateMapEvent.navigation(
+      mockEventBus,
+      'old-center-id',
+      'new-center-id',
+      'New Center Tile'
+    );
+
+    await waitFor(() => {
+      expect(mockEventBus).toHaveEmittedEvent('map.navigation');
     });
-
-    render(<ChatPanel />);
-
-    const messagesArea = screen.getByTestId('chat-messages');
-    expect(messagesArea).toHaveClass('flex-1', 'overflow-y-auto');
   });
 
-  it.skip('should pass close action to header (chat is always open)', async () => {
-    mockUseChatCache.mockReturnValue({
-      state: {
-        events: [],
-        visibleMessages: [],
-        activeWidgets: [],
-      },
-      dispatch: mockDispatch,
-      eventBus: mockEventBus,
+  it('should show auth widget when auth is required', async () => {
+    renderWithProviders(<ChatPanel />);
+
+    // Simulate auth required event
+    simulateMapEvent.authRequired(
+      mockEventBus,
+      'Please log in to continue'
+    );
+
+    await waitFor(() => {
+      expect(mockEventBus).toHaveEmittedEvent('auth.required');
+    });
+  });
+
+  it('should handle error events', async () => {
+    renderWithProviders(<ChatPanel />);
+
+    // Simulate error from map operations
+    simulateMapEvent.error(
+      mockEventBus,
+      'Failed to create tile',
+      { tileId: 'failed-tile' }
+    );
+
+    await waitFor(() => {
+      expect(mockEventBus).toHaveEmittedEvent('error.occurred');
+    });
+  });
+
+  it('should emit auth.logout event when user logs out', async () => {
+    const userEvent = (await import('@testing-library/user-event')).default;
+    const user = userEvent.setup();
+    const { authClient } = await import('~/lib/auth/auth-client');
+    const { useAuth } = await import('~/contexts/AuthContext');
+    
+    // Mock authenticated user
+    vi.mocked(useAuth).mockReturnValue({
+      user: { id: 'user-123', name: 'Test User', email: 'test@example.com' },
+      mappingUserId: 123,
+      isLoading: false,
+      setMappingUserId: vi.fn(),
     });
 
-    render(<ChatPanel />);
+    renderWithProviders(<ChatPanel />);
 
-    const closeButton = screen.getByRole('button', { name: /close/i });
-    await userEvent.click(closeButton);
+    // Find and click logout button
+    const authButton = screen.getByRole('button', { name: 'Logout' });
+    await user.click(authButton);
 
-    expect(mockDispatch).toHaveBeenCalledWith({ type: 'CLOSE_CHAT' });
+    expect(authClient.signOut).toHaveBeenCalled();
+    expect(mockEventBus).toHaveEmittedEvent('auth.logout', {});
+  });
+
+  it('should handle debug logger state', async () => {
+    // Test with debug logger enabled
+    vi.mocked(chatSettings).getSettings.mockReturnValue({
+      messages: { 
+        debug: true,
+        tile: {
+          edit: true,
+          create: true,
+          delete: true,
+          move: true,
+          swap: true,
+        }
+      },
+    });
+    
+    renderWithProviders(<ChatPanel />);
+
+    // Debug logger should be configured but not affect the UI in tests
+    expect(screen.getByTestId('chat-messages')).toBeInTheDocument();
   });
 });

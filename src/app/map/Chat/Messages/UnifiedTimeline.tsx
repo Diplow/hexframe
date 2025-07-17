@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import type { Message, Widget } from '../Cache/_events/event.types';
+import type { Message, Widget } from '../_state/_events/event.types';
 import { DaySeparator } from './DaySeparator';
 import { MessageActorRenderer } from './MessageActorRenderer';
 import { WidgetManager } from './WidgetManager';

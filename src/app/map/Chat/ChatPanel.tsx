@@ -1,8 +1,7 @@
 'use client';
 
 import { cn } from '~/lib/utils';
-import { useChatCache } from './Cache/ChatCacheProvider';
-import { useChatCacheOperations } from './Cache/hooks/useChatCacheOperations';
+import useChatState from './_state/useChatState';
 import { Messages } from './Messages';
 import { Input } from './Input';
 import { ThemeToggle } from '~/components/ThemeToggle';
@@ -13,42 +12,53 @@ import { useAuth } from '~/contexts/AuthContext';
 import { authClient } from '~/lib/auth/auth-client';
 import { useEffect } from 'react';
 import { loggers } from '~/lib/debug/debug-logger';
+import { useEventBus } from '../Services/EventBus/event-bus-context';
 
 interface ChatPanelProps {
   className?: string;
 }
 
 export function ChatPanel({ className }: ChatPanelProps) {
-  const { state } = useChatCache();
-  const { visibleMessages, activeWidgets } = state;
+  return (
+    <div data-testid="chat-panel" className={cn('flex flex-col h-full bg-center-depth-0', className)}>
+      <ChatHeader />
+      <ChatContent />
+    </div>
+  );
+}
+
+// Separate component that uses the chat state
+function ChatContent() {
+  const chatState = useChatState();
+  const { messages, widgets } = chatState;
   
   // Debug logging for ChatPanel renders
   useEffect(() => {
-    loggers.render.chat('ChatPanel mounted');
+    loggers.render.chat('ChatContent mounted');
     return () => {
-      loggers.render.chat('ChatPanel unmounted');
+      loggers.render.chat('ChatContent unmounted');
     };
   }, []);
   
   useEffect(() => {
-    loggers.render.chat('ChatPanel updated', {
-      visibleMessageCount: visibleMessages.length,
-      activeWidgetCount: activeWidgets.length
+    loggers.render.chat('ChatContent updated', {
+      messageCount: messages.length,
+      widgetCount: widgets.length
     });
-  }, [visibleMessages, activeWidgets]);
+  }, [messages, widgets]);
 
   return (
-    <div data-testid="chat-panel" className={cn('flex flex-col h-full bg-center-depth-0', className)}>
-      <ChatHeader />
-      <Messages messages={visibleMessages} widgets={activeWidgets} />
+    <>
+      <Messages messages={messages} widgets={widgets} />
       <Input />
-    </div>
+    </>
   );
 }
 
 function ChatHeader() {
   const { user } = useAuth();
-  const { dispatch, eventBus } = useChatCacheOperations();
+  const chatState = useChatState();
+  const eventBus = useEventBus();
   
   // Debug logging for ChatHeader renders
   useEffect(() => {
@@ -62,23 +72,16 @@ function ChatHeader() {
     if (user) {
       await authClient.signOut();
       // Emit logout event to clear the chat
+      // Note: This should probably be emitted by the auth system, not chat
       eventBus.emit({
         type: 'auth.logout',
         payload: {},
-        source: 'chat_cache' as const,
+        source: 'auth' as const, // Changed to match schema expectations
         timestamp: new Date(),
       });
     } else {
       // Show login widget in chat instead of redirecting
-      dispatch({
-        type: 'auth_required',
-        payload: {
-          reason: 'Please log in to access this feature',
-        },
-        id: `auth-${Date.now()}`,
-        timestamp: new Date(),
-        actor: 'system',
-      });
+      chatState.showSystemMessage('Please log in to access this feature', 'info');
     }
   };
   

@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { chatSettings } from '../../_settings/chat-settings';
-import { useChatCacheOperations } from '../../Cache/hooks/useChatCacheOperations';
+import useChatState from '../../_state/useChatState';
 import { useMapCache } from '../../../Cache/_hooks/use-map-cache';
 import { debugLogger } from '~/lib/debug/debug-logger';
 import { authClient } from '~/lib/auth/auth-client';
@@ -27,13 +27,7 @@ const commands: Record<string, Command> = {
       const logContent = logs.join('\n');
       const result = `**Debug Logs (Full Mode - ${logs.length} messages):**\n\n\`\`\`\n${logContent}\n\`\`\`\n\n{{COPY_BUTTON:${btoa(logContent)}}}`;
       
-      console.log('[DEBUG] Generated debug command result:', {
-        logsCount: logs.length,
-        contentLength: logContent.length,
-        resultLength: result.length,
-        hasButtonSyntax: result.includes('{{COPY_BUTTON:'),
-        resultPreview: result.slice(0, 200) + '...'
-      });
+      // Generated debug command result
       
       return result;
     }
@@ -272,7 +266,7 @@ const commands: Record<string, Command> = {
 };
 
 export function useCommandHandling() {
-  const { dispatch } = useChatCacheOperations();
+  const chatState = useChatState();
   const { navigateToItem } = useMapCache();
 
   const findCommand = useCallback((path: string): Command | null => {
@@ -280,23 +274,6 @@ export function useCommandHandling() {
   }, []);
 
   const handleLogout = useCallback(async () => {
-    // Show loading widget
-    const loadingId = `logout-loading-${Date.now()}`;
-    dispatch({
-      type: 'widget_created',
-      payload: {
-        widgetType: 'loading',
-        data: {
-          message: 'Logging out...',
-          operation: 'logout'
-        },
-        widgetId: loadingId,
-      },
-      id: loadingId,
-      timestamp: new Date(),
-      actor: 'system',
-    });
-
     try {
       // Clear debug logs
       debugLogger.clearBuffer();
@@ -304,91 +281,38 @@ export function useCommandHandling() {
       // Sign out using auth client (will handle "not logged in" gracefully)
       await authClient.signOut();
       
-      // Dispatch clear chat event (logout clears chat, including the loading widget)
-      dispatch({
-        type: 'clear_chat',
-        payload: {},
-        id: `logout-${Date.now()}`,
-        timestamp: new Date(),
-        actor: 'system',
-      });
+      // Clear chat
+      chatState.clearChat();
       
       // No need for logout success message since chat is cleared
     } catch (error) {
       console.error('Logout failed:', error);
       
-      // Remove loading widget
-      dispatch({
-        type: 'widget_resolved',
-        payload: { widgetId: loadingId, action: 'error' },
-        id: `logout-widget-resolved-${Date.now()}`,
-        timestamp: new Date(),
-        actor: 'system',
-      });
-      
       // Show error message
-      dispatch({
-        type: 'message',
-        payload: {
-          content: 'Logout failed. Please try again.',
-          actor: 'system',
-        } as unknown,
-        id: `logout-error-${Date.now()}`,
-        timestamp: new Date(),
-        actor: 'system',
-      });
+      chatState.showSystemMessage('Logout failed. Please try again.', 'error');
     }
-  }, [dispatch]);
+  }, [chatState]);
 
   const handleLogin = useCallback(() => {
-    dispatch({
-      type: 'auth_required',
-      payload: {
-        reason: 'Please log in to access this feature',
-      },
-      id: `login-widget-${Date.now()}`,
-      timestamp: new Date(),
-      actor: 'system',
-    });
-  }, [dispatch]);
+    // Auth required events are handled by the auth system
+    chatState.showSystemMessage('Please log in to access this feature', 'info');
+  }, [chatState]);
 
   const handleRegister = useCallback(() => {
-    dispatch({
-      type: 'auth_required',
-      payload: {
-        reason: 'Create an account to get started',
-      },
-      id: `register-widget-${Date.now()}`,
-      timestamp: new Date(),
-      actor: 'system',
-    });
-  }, [dispatch]);
+    // Auth required events are handled by the auth system
+    chatState.showSystemMessage('Create an account to get started', 'info');
+  }, [chatState]);
 
   const handleClear = useCallback(() => {
     // Clear debug logs
     debugLogger.clearBuffer();
     
     // Clear chat timeline
-    dispatch({
-      type: 'clear_chat',
-      payload: {},
-      id: `clear-${Date.now()}`,
-      timestamp: new Date(),
-      actor: 'system',
-    });
+    chatState.clearChat();
     
     // Show confirmation message
-    dispatch({
-      type: 'message',
-      payload: {
-        content: 'Message timeline cleared.',
-        actor: 'system',
-      } as unknown,
-      id: `clear-msg-${Date.now()}`,
-      timestamp: new Date(),
-      actor: 'system',
-    });
-  }, [dispatch]);
+    chatState.showSystemMessage('Message timeline cleared.', 'info');
+  }, [chatState]);
 
   const getCommandSuggestions = useCallback((input: string) => {
     if (!input.startsWith('/')) {
@@ -474,16 +398,7 @@ export function useCommandHandling() {
     if (command.action) {
       const result = command.action();
       if (result) { // Only show message if there's content
-        dispatch({
-          type: 'message',
-          payload: {
-            content: result,
-            actor: 'system',
-          } as unknown,
-          id: `cmd-result-${Date.now()}`,
-          timestamp: new Date(),
-          actor: 'system',
-        });
+        chatState.showSystemMessage(result, 'info');
       }
       return true;
     }
@@ -505,21 +420,12 @@ export function useCommandHandling() {
         `[${command}](#hexframe-command:${command}) - ${description}`
       ).join('\n')}`;
       
-      dispatch({
-        type: 'message',
-        payload: {
-          content: helpText,
-          actor: 'system',
-        } as unknown,
-        id: `cmd-help-${Date.now()}`,
-        timestamp: new Date(),
-        actor: 'system',
-      });
+      chatState.showSystemMessage(helpText, 'info');
       return true;
     }
     
     return false;
-  }, [dispatch, findCommand, handleClear, handleLogin, handleLogout, handleRegister]);
+  }, [chatState, findCommand, handleClear, handleLogin, handleLogout, handleRegister]);
 
   const executeCommandFromPayload = useCallback(async (payload: { command: string }) => {
     // Handle special navigation commands
@@ -529,39 +435,17 @@ export function useCommandHandling() {
         const tileId = parts[1];
         const tileName = decodeURIComponent(parts[2]);
         
-        console.log('[CommandHandling] 🦭 Navigation command received:', {
-          tileId,
-          tileName,
-          fullCommand: payload.command
-        });
+        // Navigation command received
         
         try {
-          console.log('[CommandHandling] 🎯 Calling navigateToItem with:', tileId);
+          // Calling navigateToItem
           await navigateToItem(tileId);
-          console.log('[CommandHandling] ✅ Navigation successful');
+          // Navigation successful
           
-          dispatch({
-            type: 'message',
-            payload: {
-              content: `Navigated to "${tileName}"`,
-              actor: 'system',
-            } as unknown,
-            id: `nav-result-${Date.now()}`,
-            timestamp: new Date(),
-            actor: 'system',
-          });
+          chatState.showSystemMessage(`Navigated to "${tileName}"`, 'info');
         } catch (error) {
           console.error('[CommandHandling] ❌ Navigation failed:', error);
-          dispatch({
-            type: 'message',
-            payload: {
-              content: `Failed to navigate to "${tileName}": ${error instanceof Error ? error.message : 'Unknown error'}`,
-              actor: 'system',
-            } as unknown,
-            id: `nav-error-${Date.now()}`,
-            timestamp: new Date(),
-            actor: 'system',
-          });
+          chatState.showSystemMessage(`Failed to navigate to "${tileName}": ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
         }
         return;
       }
@@ -572,32 +456,14 @@ export function useCommandHandling() {
     if (command) {
       if (command.action) {
         const result = command.action();
-        dispatch({
-          type: 'message',
-          payload: {
-            content: result,
-            actor: 'system',
-          } as unknown,
-          id: `cmd-result-${Date.now()}`,
-          timestamp: new Date(),
-          actor: 'system',
-        });
+        chatState.showSystemMessage(result, 'info');
       } else {
         executeCommand(payload.command);
       }
     } else if (payload.command.startsWith('/')) {
-      dispatch({
-        type: 'message',
-        payload: {
-          content: `Command not found: ${payload.command}`,
-          actor: 'system',
-        } as unknown,
-        id: `cmd-error-${Date.now()}`,
-        timestamp: new Date(),
-        actor: 'system',
-      });
+      chatState.showSystemMessage(`Command not found: ${payload.command}`, 'error');
     }
-  }, [dispatch, executeCommand, navigateToItem]);
+  }, [chatState, executeCommand, navigateToItem]);
 
   return {
     executeCommand,

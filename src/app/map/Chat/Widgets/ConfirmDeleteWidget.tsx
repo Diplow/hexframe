@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useMapCache } from '../../Cache/_hooks/use-map-cache';
-import { useChatCacheOperations } from '../Cache/hooks/useChatCacheOperations';
 import { Trash2, AlertTriangle } from 'lucide-react';
+import { useEventBus } from '../../Services/EventBus/event-bus-context';
 
 interface ConfirmDeleteWidgetProps {
   tileId: string;
@@ -11,79 +11,45 @@ interface ConfirmDeleteWidgetProps {
   widgetId?: string; // Add widget ID to ensure proper resolution
 }
 
-export function ConfirmDeleteWidget({ tileId, tileName, widgetId }: ConfirmDeleteWidgetProps) {
+export function ConfirmDeleteWidget({ tileId, tileName, widgetId: _widgetId }: ConfirmDeleteWidgetProps) {
   const { deleteItemOptimistic } = useMapCache();
-  const { dispatch } = useChatCacheOperations();
+  const eventBus = useEventBus();
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState('');
 
-  console.log('[DeleteWidget] 🗑️ Rendered with:', { 
-    tileId, 
-    tileName, 
-    widgetId,
-    timestamp: new Date().toISOString()
-  });
+  // DeleteWidget rendered
 
   const handleDelete = async () => {
-    console.log('[DeleteWidget] 🔴 Delete button clicked');
+    // Delete button clicked
     setIsDeleting(true);
     setError('');
 
     try {
-      console.log('[DeleteWidget] 🔥 Calling deleteItemOptimistic with coordId:', tileId);
+      // Calling deleteItemOptimistic
       await deleteItemOptimistic(tileId);
-      console.log('[DeleteWidget] ✅ deleteItemOptimistic completed successfully');
-      
-      // Remove the confirmation widget and notify about deletion
-      const resolveEventId = `widget-resolved-${Date.now()}`;
-      console.log('[DeleteWidget] 📤 Dispatching widget_resolved event:', resolveEventId);
-      dispatch({
-        type: 'widget_resolved',
-        payload: {
-          widgetId: widgetId ?? `confirm-delete-${tileId}`,
-          action: 'confirmed'
-        },
-        id: resolveEventId,
-        timestamp: new Date(),
-        actor: 'user',
-      });
+      // deleteItemOptimistic completed successfully
       
       // Send operation completed event
-      const completedEventId = `tile-deleted-${Date.now()}`;
-      console.log('[DeleteWidget] 📤 Dispatching operation_completed event:', completedEventId);
-      dispatch({
-        type: 'operation_completed',
+      eventBus.emit({
+        type: 'map.operation.completed',
         payload: {
           operation: 'delete',
           tileId,
           result: 'success',
           message: `Deleted tile "${tileName}"`
         },
-        id: completedEventId,
+        source: 'chat_cache',
         timestamp: new Date(),
-        actor: 'user',
       });
     } catch (err) {
-      console.error('[DeleteWidget] ❌ Delete failed:', err);
+      // Delete failed
       setError(err instanceof Error ? err.message : 'Failed to delete tile');
       setIsDeleting(false);
     }
   };
 
   const handleCancel = () => {
-    console.log('[DeleteWidget] 🔙 Cancel button clicked');
-    const cancelEventId = `widget-resolved-${Date.now()}`;
-    console.log('[DeleteWidget] 📤 Dispatching widget_resolved (cancelled) event:', cancelEventId);
-    dispatch({
-      type: 'widget_resolved',
-      payload: {
-        widgetId: widgetId ?? `confirm-delete-${tileId}`,
-        action: 'cancelled'
-      },
-      id: cancelEventId,
-      timestamp: new Date(),
-      actor: 'user',
-    });
+    // Cancel button clicked - widget resolution handled by chat state
   };
 
   return (

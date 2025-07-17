@@ -4,8 +4,14 @@ import { render, screen } from '@testing-library/react';
 import { DynamicTileContent } from '../content';
 
 describe('DynamicTileContent - Simplified', () => {
+  const defaultData = {
+    title: '',
+    description: '',
+    url: ''
+  };
   it('should only display title regardless of scale', () => {
     const data = {
+      ...defaultData,
       title: 'Test Title',
       description: 'Test Description',
       url: 'https://example.com',
@@ -30,25 +36,25 @@ describe('DynamicTileContent - Simplified', () => {
     expect(screen.queryByText('https://example.com')).not.toBeInTheDocument();
   });
 
-  it('should truncate long titles appropriately', () => {
+  it('should display long titles without truncation', () => {
     const data = {
-      title: 'This is a very long title that should be truncated to fit within the tile boundaries',
+      title: 'This is a very long title that should be displayed in full within the tile boundaries',
     };
 
     render(<DynamicTileContent data={data} scale={1} />);
-    const titleElement = screen.getByText(/This is a very long title/);
-    expect(titleElement.textContent).toMatch(/\.\.\.$/);
+    const titleElement = screen.getByText('This is a very long title that should be displayed in full within the tile boundaries');
+    expect(titleElement).toBeInTheDocument();
   });
 
   it('should show "Untitled" for tiles without title', () => {
-    const data = {};
+    const data = { ...defaultData, title: undefined };
 
     render(<DynamicTileContent data={data} scale={2} />);
     expect(screen.getByText('Untitled')).toBeInTheDocument();
   });
 
   it('should apply selected state ring when selected', () => {
-    const data = { title: 'Test' };
+    const data = { ...defaultData, title: 'Test' };
 
     render(<DynamicTileContent data={data} scale={2} isSelected={true} />);
     const container = screen.getByTestId('tile-content');
@@ -56,7 +62,7 @@ describe('DynamicTileContent - Simplified', () => {
   });
 
   it('should center title text in tile', () => {
-    const data = { title: 'Centered Title' };
+    const data = { ...defaultData, title: 'Centered Title' };
 
     render(<DynamicTileContent data={data} scale={2} />);
     const container = screen.getByTestId('tile-content');
@@ -65,6 +71,7 @@ describe('DynamicTileContent - Simplified', () => {
 
   it('should not show description or URL at any scale', () => {
     const data = {
+      ...defaultData,
       title: 'Title Only',
       description: 'This should not be shown',
       url: 'https://should-not-be-shown.com',

@@ -6,35 +6,37 @@ The Chat component serves as a conversational interface layer to the Canvas syst
 
 ## Core Mental Model
 
-**Canvas as Core System, Chat as Interface Layer**
+**Components interact through MapCache and EventBus**
 
 ```
-MapCache (tile data source)
-    ↓
-Canvas (spatial UI, coordinate system, core operations)
-    ↓ (exposes operations via callbacks)
-Chat (conversational interface layer)
-    ↓ (renders operations as widgets)
-Widgets (UI adapters for canvas operations)
+Canvas ──────→ MapCache ──────→ EventBus
+                  ↑                 ↑
+                  │                 │
+                  └──── Chat ───────┘
 ```
+
+### Key Architectural Principles
+
+1. **No Direct Component Communication**: Canvas and Chat don't know about each other
+2. **MapCache is Shared Infrastructure**: Both Canvas and Chat use MapCache for state
+3. **EventBus is Notification-Only**: Events describe what happened, not what should happen
+4. **Chat Treats Own Actions Equally**: Chat listens to ALL events, including those from its own actions
 
 ### Information Flow Patterns
 
-The architecture follows strict unidirectional flow patterns to prevent mutation chains:
+#### Pattern 1: Chat Mutates via MapCache
+```
+Chat Widget → MapCache.createTile() → State Change → Event Notification
+```
+*Example: User clicks "Create Tile" widget → mapCache.createTile() → "tile_created" event*
 
-#### Pattern 1: Chat Controls Canvas
+#### Pattern 2: Chat Reacts to ALL Events
 ```
-Chat Widget → MapCache Operation → Canvas Update
+Any Component → MapCache → Event Bus → Chat Display Update
 ```
-*Example: User clicks "Create Tile" widget → mapCache.createTile() → Canvas renders new tile*
+*Example: Canvas drag → MapCache.moveTile() → "tile_moved" event → Chat shows message*
 
-#### Pattern 2: Canvas Events to Chat (Display Only)
-```
-Canvas Operation → MapCache Event → Event Bus → ChatCache → Chat Message
-```
-*Example: User drags tile → navigation handler emits event → chat shows "Navigated to X"*
-
-**Key Principle**: Canvas events only trigger chat *display* updates, never chat operations that would mutate the canvas again.
+**Critical Insight**: Chat should NOT anticipate its own actions. It waits for the event notification like any other listener.
 
 ## Architecture Components
 
@@ -98,16 +100,19 @@ type PreviewWidgetProps = BaseWidgetProps & CanvasOperationProps & {
 
 ### 3. Event Bus Integration
 
-MapCache and ChatCache communicate through a shared event bus. ChatCache subscribes to all map events and translates them into chat events for display:
+The Chat listens to the event bus for two types of events:
+1. **Notification events** - Past-tense notifications about what happened
+2. **Request events** - UI coordination requests from Canvas
 
 ```typescript
-// MapCache emits events (example: navigation)
+// MapCache performs action, then notifies
 function navigateToCenter(center: string) {
-  // Update cache state...
+  // 1. Update state (the actual action)
+  updateCacheState(center);
   
-  // Emit domain event
+  // 2. Notify about what happened (past tense)
   context.eventBus.emit({
-    type: 'map.navigation',
+    type: 'map.navigation',  // NOT 'map.navigate'
     source: 'map_cache',
     payload: { 
       fromCenterId: previousCenter,
@@ -117,22 +122,23 @@ function navigateToCenter(center: string) {
   });
 }
 
-// ChatCacheProvider listens to ALL map events and translates them
+// Chat listens to notifications and updates display
 useEffect(() => {
   const unsubscribe = eventBus.on('map.*', (event) => {
-    const chatEvent = createChatEventFromMapEvent(event);
+    // Validate and transform the notification
+    const chatEvent = validateAndTransformMapEvent(event);
     if (chatEvent) {
-      dispatch(chatEvent);
+      dispatch(chatEvent);  // Update chat display
     }
   });
   
   return unsubscribe;
 }, [eventBus]);
 
-// Example translation function
-function createChatEventFromMapEvent(mapEvent: AppEvent): ChatEvent | null {
+// Events are notifications about completed actions
+function validateAndTransformMapEvent(mapEvent: AppEvent): ChatEvent | null {
   switch (mapEvent.type) {
-    case 'map.navigation':
+    case 'map.navigation':  // Something WAS navigated
       return {
         type: 'navigation',
         actor: 'system',
@@ -141,7 +147,7 @@ function createChatEventFromMapEvent(mapEvent: AppEvent): ChatEvent | null {
           toTileName: mapEvent.payload.toCenterName
         }
       };
-    case 'map.tiles_swapped':
+    case 'map.tiles_swapped':  // Tiles WERE swapped
       return {
         type: 'operation_completed',
         actor: 'system',
@@ -150,72 +156,112 @@ function createChatEventFromMapEvent(mapEvent: AppEvent): ChatEvent | null {
           message: `Swapped "${mapEvent.payload.tile1Name}" with "${mapEvent.payload.tile2Name}"`
         }
       };
-    default:
-      return null;
+    // All events describe what already happened
+  }
+}
+
+// Chat also handles request events from Canvas
+function handleRequestEvents(event: AppEvent): void {
+  switch (event.type) {
+    case 'map.edit_requested':  // Canvas requests edit widget
+      dispatch({
+        type: 'tile_selected',
+        actor: 'system',
+        payload: {
+          tileId: event.payload.tileId,
+          tileData: event.payload.tileData,
+          openInEditMode: true  // Automatically open in edit mode
+        }
+      });
+      break;
+      
+    case 'map.delete_requested':  // Canvas requests delete confirmation
+      dispatch({
+        type: 'operation_started',
+        actor: 'user',
+        payload: {
+          operation: 'delete',
+          tileId: event.payload.tileId,
+          data: {
+            tileName: event.payload.tileName
+          }
+        }
+      });
+      break;
   }
 }
 ```
 
-## Complex Flow Example: Cross-User Tile Import
+### Request Event Handling
 
-This example demonstrates how the architecture handles complex multi-step operations:
+When Canvas needs text input or user confirmation, it sends request events:
+
+- **Edit Request**: Canvas context menu → `map.edit_requested` → Chat shows edit widget
+- **Delete Request**: Canvas context menu → `map.delete_requested` → Chat shows confirmation
+
+This pattern allows Canvas to leverage Chat's superior text handling capabilities while maintaining loose coupling.
+
+## Complex Flow Example: Tile Creation via Chat
+
+This example demonstrates the notification-only event pattern:
 
 ### Scenario
-User wants to import a tile (and its descendants) from another user's map to their own.
+User creates a new tile through the chat interface.
 
 ### Flow
 
-1. **User Opens Preview of External Tile**
+1. **User Types Command in Chat**
    ```typescript
-   EventBus.emit({
-     type: 'map.tile_selected',
-     payload: { tileId, tileData, userId: 'other-user' }
-   })
+   // User: "/create My New Tile"
    ```
-   → Chat shows PreviewWidget with import capability
 
-2. **User Navigates to Own Map (Preview Persists)**
+2. **Chat Processes Command and Calls MapCache**
    ```typescript
-   EventBus.emit({
-     type: 'map.navigation',
-     payload: { newCenter, userId: 'current-user' }
-   })
+   // Chat command handler
+   const result = await mapCache.createTile({
+     name: "My New Tile",
+     coordId: targetCoordId
+   });
    ```
-   → Import preview widget remains open
 
-3. **User Drags from Widget to Canvas**
-   - PreviewWidget provides drag source (tile icon)
-   - Canvas shows drop zones on empty tiles
-   - On drop, Canvas validates and initiates import
-
-4. **Import Operation Executes**
+3. **MapCache Creates Tile and Emits Notification**
    ```typescript
-   EventBus.emit({
-     type: 'map.import_requested',
+   // Inside MapCache
+   const tile = await database.createTile(data);
+   
+   // Notify about what happened (past tense!)
+   eventBus.emit({
+     type: 'map.tile_created',  // NOT 'map.create_tile'
+     source: 'map_cache',
      payload: { 
-       sourceTileId, 
-       sourceUserId, 
-       targetCoordId,
-       includeDescendants: true 
+       tileId: tile.id,
+       tileName: tile.name,
+       coordId: tile.coordId
      }
-   })
+   });
    ```
 
-5. **Completion**
+4. **Chat Receives Its Own Notification**
    ```typescript
-   EventBus.emit({
-     type: 'map.import_completed',
-     payload: { importedTiles: [...], rootCoordId }
-   })
+   // Chat listens to ALL events, including from its own actions
+   eventBus.on('map.tile_created', (event) => {
+     // Show success message
+     dispatch({
+       type: 'operation_completed',
+       payload: {
+         operation: 'create',
+         message: `Created "${event.payload.tileName}"`
+       }
+     });
+   });
    ```
-   → Chat shows success message and closes import widget
 
 ### Key Architectural Benefits Demonstrated
 
-1. **Event-driven coordination** - Complex flow handled through events
-2. **Widget persistence** - Import widget survives navigation
-3. **Loose coupling** - Systems coordinate without direct dependencies
-4. **Composable capabilities** - Import capability added to preview widget
+1. **No Special Cases**: Chat treats its own operations identically to others
+2. **Single Action Path**: Creation only happens through MapCache
+3. **Consistent Notifications**: All components learn about changes the same way
+4. **No Anticipation**: Chat doesn't assume success - it waits for confirmation
 
 ## Performance Considerations
 
@@ -250,6 +296,10 @@ Canvas widgets should clearly indicate they modify the map:
 - "Modifies Map" badge or icon
 - Consistent visual language
 - Accessibility considerations (not just color)
+
+## Testing Strategy
+
+The Chat component testing approach is documented in [TESTING.md](./TESTING.md).
 
 ## Future Integration Points
 

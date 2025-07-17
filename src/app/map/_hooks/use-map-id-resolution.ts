@@ -15,7 +15,7 @@ interface ResolvedMapInfo {
  * This ensures the cache only ever sees proper coordinates, not mapItemIds
  */
 export function useMapIdResolution(centerParam: string): ResolvedMapInfo {
-  console.log('[useMapIdResolution] Called with centerParam:', centerParam);
+  // useMapIdResolution called
   const [resolvedInfo, setResolvedInfo] = useState<ResolvedMapInfo>({
     centerCoordinate: "",
     userId: 0,
@@ -40,14 +40,7 @@ export function useMapIdResolution(centerParam: string): ResolvedMapInfo {
   );
 
   useEffect(() => {
-    console.log('[useMapIdResolution] Effect running:', {
-      centerParam,
-      isCoordinate,
-      hasValidParam,
-      hasRootItem: !!rootItem,
-      isLoading,
-      hasError: !!error,
-    });
+    // Effect running
     
     // Handle empty parameter case
     if (!hasValidParam) {
@@ -82,7 +75,7 @@ export function useMapIdResolution(centerParam: string): ResolvedMapInfo {
         isLoading: false,
         error: null,
       };
-      console.log('[useMapIdResolution] Resolved coordinate:', info);
+      // Resolved coordinate
       setResolvedInfo(info);
     } else if (rootItem) {
       // Resolved from mapItemId to actual item
@@ -104,23 +97,23 @@ export function useMapIdResolution(centerParam: string): ResolvedMapInfo {
         isLoading: false,
         error: null,
       };
-      console.log('[useMapIdResolution] Resolved from rootItem:', info);
+      // Resolved from rootItem
       setResolvedInfo(info);
     } else if (error) {
-      console.log('[useMapIdResolution] Error resolving:', error);
+      // Error resolving
       setResolvedInfo(prev => ({
         ...prev,
         isLoading: false,
         error: new Error(error.message || "Failed to resolve map ID"),
       }));
     }
-  }, [centerParam, isCoordinate, hasValidParam, rootItem, error, isLoading]);
+  }, [centerParam, isCoordinate, hasValidParam, rootItem, error]);
 
   const result = {
     ...resolvedInfo,
     isLoading: hasValidParam && !isCoordinate && isLoading,
   };
   
-  console.log('[useMapIdResolution] Returning:', result);
+  // Returning result
   return result;
 }

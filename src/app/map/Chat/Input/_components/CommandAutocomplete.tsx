@@ -45,6 +45,7 @@ export function CommandAutocomplete({
   return (
     <div
       ref={dropdownRef}
+      data-testid="command-autocomplete"
       className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg max-h-64 overflow-y-auto"
     >
       <div className="p-2">
@@ -55,6 +56,7 @@ export function CommandAutocomplete({
         {suggestions.map((suggestion, index) => (
           <button
             key={suggestion.command}
+            data-testid="command-suggestion"
             onClick={() => onSelect(suggestion.command)}
             className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${
               index === selectedIndex

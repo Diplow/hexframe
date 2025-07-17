@@ -34,7 +34,7 @@ export function DebugPanel() {
     return (
       <button
         onClick={() => setIsVisible(true)}
-        className="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded shadow-lg hover:bg-gray-700 z-50"
+        className="fixed bottom-4 right-4 bg-neutral-800 text-white px-4 py-2 rounded shadow-lg hover:bg-neutral-700 z-50"
       >
         Show Debug Panel ({logs.length})
       </button>
@@ -42,19 +42,19 @@ export function DebugPanel() {
   }
 
   return (
-    <div className="fixed bottom-0 right-0 w-96 h-96 bg-gray-900 text-gray-100 shadow-2xl rounded-tl-lg overflow-hidden flex flex-col z-50">
-      <div className="flex justify-between items-center p-2 bg-gray-800 border-b border-gray-700">
+    <div className="fixed bottom-0 right-0 w-96 h-96 bg-neutral-900 text-neutral-100 shadow-2xl rounded-tl-lg overflow-hidden flex flex-col z-50">
+      <div className="flex justify-between items-center p-2 bg-neutral-800 border-b border-neutral-700">
         <h3 className="font-semibold">Debug Logs</h3>
         <div className="flex gap-2">
           <button
             onClick={() => debugLogger.clearBuffer()}
-            className="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded"
+            className="text-xs px-2 py-1 bg-neutral-700 hover:bg-neutral-600 rounded"
           >
             Clear
           </button>
           <button
             onClick={() => setIsVisible(false)}
-            className="text-xs px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded"
+            className="text-xs px-2 py-1 bg-neutral-700 hover:bg-neutral-600 rounded"
           >
             Hide
           </button>
@@ -62,16 +62,16 @@ export function DebugPanel() {
       </div>
       <div className="flex-1 overflow-y-auto p-2 font-mono text-xs">
         {logs.map((log, index) => (
-          <div key={index} className="mb-2 border-b border-gray-800 pb-2">
+          <div key={index} className="mb-2 border-b border-neutral-800 pb-2">
             <div className="flex items-start gap-2">
-              <span className="text-gray-500">
+              <span className="text-neutral-500">
                 {new Date(log.timestamp).toLocaleTimeString()}
               </span>
-              <span className="text-blue-400">{log.prefix}</span>
+              <span className="text-primary">{log.prefix}</span>
             </div>
-            <div className="ml-16 text-gray-300">{log.message}</div>
+            <div className="ml-16 text-neutral-300">{log.message}</div>
             {log.data && (
-              <pre className="ml-16 text-gray-500 text-xs overflow-x-auto">
+              <pre className="ml-16 text-neutral-500 text-xs overflow-x-auto">
                 {JSON.stringify(log.data, null, 2)}
               </pre>
             )}

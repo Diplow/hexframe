@@ -4,7 +4,8 @@ import { renderHook, act, render } from '@testing-library/react'
 import { TileActionsProvider, useTileActions } from './TileActionsContext'
 import type { ReactNode } from 'react'
 import React from 'react'
-import { createMockTileData } from '../test-utils/mockTileData'
+import { createMockTileData } from '../__tests__/utils/mockTileData'
+import type { TileData } from '../types/tile-data'
 
 describe('TileActionsContext', () => {
   beforeEach(() => {
@@ -63,7 +64,7 @@ describe('TileActionsContext', () => {
       expect(results[1]?.isDragging).toBe(false)
 
       // Start dragging
-      const tileData = createMockTileData()
+      const tileData: TileData = createMockTileData()
       act(() => {
         results[0]?.onTileDragStart(tileData)
       })
@@ -91,7 +92,7 @@ describe('TileActionsContext', () => {
 
       const { result } = renderHook(() => useTileActions(), { wrapper })
 
-      const tileData = createMockTileData()
+      const tileData: TileData = createMockTileData()
       const preventDefault = vi.fn()
       const mockEvent = { 
         clientX: 100, 
