@@ -205,3 +205,259 @@ handleDoubleClick: useCallback(() => {
 - No tests for theme flicker prevention
 - Missing tests for scale 1 expansion blocking
 - No tests for loading state user feedback
+
+## Solution
+
+*I am an AI assistant acting on behalf of @Diplow*
+
+### Overview
+
+I've grouped the 10 bugs into 5 categories and designed multiple solutions for each. The bugs range from critical functionality issues (chat completely broken) to UI polish items.
+
+### 1. Navigation & Theme Issues (Bugs #1-2)
+
+#### Bug #1: Home Page Redirect
+
+**Solution A: Direct Redirect**
+- Modify `/src/app/page.tsx` to redirect directly to `/map?center=1`
+- Remove intermediate `/home` redirect
+- Simplest implementation: `redirect('/map?center=1')`
+- **Pros**: Simple, immediate fix, reduces redirects
+- **Cons**: Loses welcome screen for new users
+
+**Solution B: Smart Redirect**
+- Keep `/home` page but add logic to check if user has visited before
+- Use localStorage flag to skip welcome screen for returning users
+- **Pros**: Preserves onboarding experience
+- **Cons**: More complex, requires state management
+
+**Solution C: Map Page Enhancement**
+- Make `/map` the home page, integrate welcome content inline
+- Show onboarding overlay on first visit
+- **Pros**: No redirects, unified experience
+- **Cons**: Requires redesigning onboarding flow
+
+#### Bug #2: Theme Flicker
+
+**Solution A: Inline Script (Recommended)**
+```typescript
+// In app/layout.tsx before </head>
+<script dangerouslySetInnerHTML={{
+  __html: `
+    (function() {
+      const theme = localStorage.getItem('theme') || 'light';
+      document.documentElement.classList.add(theme);
+    })();
+  `
+}} />
+```
+- **Pros**: Prevents flicker completely, simple implementation
+- **Cons**: Uses dangerouslySetInnerHTML
+
+**Solution B: Cookies + Server Components**
+- Store theme preference in cookies
+- Read cookie in layout.tsx server component
+- Apply theme class server-side
+- **Pros**: No inline scripts, SSR-friendly
+- **Cons**: Requires cookie management, more complex
+
+**Solution C: CSS Custom Properties**
+- Use CSS variables for theming
+- Set initial values inline based on localStorage
+- **Pros**: Smooth transitions, flexible theming
+- **Cons**: Requires refactoring theme system
+
+### 2. Chat System Fix (Bugs #3, #4, #10)
+
+#### Critical Architecture Issue: State Isolation
+
+**Solution A: React Context Provider (Recommended)**
+```typescript
+// Create ChatProvider.tsx
+const ChatContext = createContext<ChatState | null>(null);
+
+export function ChatProvider({ children }) {
+  const chatState = useChatStateInternal(); // Single instance
+  return (
+    <ChatContext.Provider value={chatState}>
+      {children}
+    </ChatContext.Provider>
+  );
+}
+
+// Update useChatState hook
+export function useChatState() {
+  const context = useContext(ChatContext);
+  if (!context) throw new Error('Must use within ChatProvider');
+  return context;
+}
+```
+- **Implementation**: Wrap ChatPanel with ChatProvider
+- **Pros**: Minimal changes, preserves event-driven architecture
+- **Cons**: Requires updating all chat components
+
+**Solution B: Zustand State Store**
+- Replace custom reducer with Zustand store
+- Global state accessible from any component
+- **Pros**: Simpler state management, built-in devtools
+- **Cons**: New dependency, different mental model
+
+**Solution C: Event Bus Enhancement**
+- Keep separate states but sync via EventBus
+- Emit state changes as events
+- **Pros**: Maintains current architecture
+- **Cons**: Complex synchronization, potential race conditions
+
+### 3. Tile Interaction Fixes (Bugs #5-7)
+
+#### Bug #5: Scale 1 Expansion
+
+**Solution A: Honor canExpand State (Recommended)**
+```typescript
+// In TileActionsContext.tsx
+handleDoubleClick: useCallback(() => {
+  if (canExpand) {
+    onExpandClick();
+  }
+}, [canExpand, onExpandClick]);
+```
+- **Pros**: Simple fix, respects existing logic
+- **Cons**: None
+
+**Solution B: Scale Check in Handler**
+- Add scale check directly in expansion handler
+- **Pros**: Centralized logic
+- **Cons**: Duplicates existing canExpand logic
+
+#### Bug #6: Scale 1 Text Truncation
+
+**Solution A: Conditional Truncation (Recommended)**
+```typescript
+// In content.tsx
+const textClasses = cn(
+  'font-medium',
+  scale === 1 && 'truncate', // Add truncation for scale 1
+  scale === 2 && 'text-sm',
+  scale === 1 && 'text-xs'
+);
+```
+- **Pros**: Simple, preserves multi-line for larger scales
+- **Cons**: Single-line limitation for scale 1
+
+**Solution B: Dynamic Line Clamping**
+- Use CSS line-clamp based on scale
+- **Pros**: Allows partial multi-line
+- **Cons**: Browser support considerations
+
+#### Bug #7: Text Selection
+
+**Solution A: Disable Selection (Recommended)**
+```typescript
+// In tile components
+className={cn(existingClasses, 'select-none')}
+```
+- **Pros**: Simple, prevents selection issues
+- **Cons**: Can't select tile text (minor UX tradeoff)
+
+**Solution B: Smart Selection**
+- Allow selection only within tile boundaries
+- Prevent selection on double-click
+- **Pros**: Preserves text selection ability
+- **Cons**: Complex implementation
+
+### 4. UI Polish (Bugs #8-9)
+
+#### Bug #8: Widget Spacing
+
+**Solution A: Consistent Spacing (Recommended)**
+```typescript
+// In UnifiedTimeline.tsx
+<div className="my-2"> {/* Changed from my-0.5 */}
+  <Widget />
+</div>
+```
+- **Pros**: Simple fix, consistent with message spacing
+- **Cons**: None
+
+**Solution B: Configurable Spacing**
+- Add spacing prop to widget wrapper
+- **Pros**: Flexible per-widget spacing
+- **Cons**: Over-engineering for simple issue
+
+#### Bug #9: Loading Indicator
+
+**Solution A: Loading State in UserProfileTile (Recommended)**
+```typescript
+const [isLoading, setIsLoading] = useState(false);
+
+const handleClick = async () => {
+  setIsLoading(true);
+  try {
+    const userMap = await trpcUtils.map.user.getUserMap.fetch();
+    // ... navigation logic
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+// In render
+{isLoading && <Loader2 className="animate-spin" />}
+```
+- **Pros**: Clear user feedback, uses existing LoadingWidget pattern
+- **Cons**: Local state management
+
+**Solution B: Event-Driven Loading**
+- Emit loading events from navigation handler
+- Listen in UserProfileTile
+- **Pros**: Consistent with architecture
+- **Cons**: More complex for simple loading state
+
+### 5. Implementation Strategy
+
+#### Phase 1: Critical Fixes (Immediate)
+1. **Chat System** - Implement ChatProvider (Solution A)
+2. **Theme Flicker** - Add inline script (Solution A)
+3. **Scale 1 Expansion** - Honor canExpand state (Solution A)
+
+#### Phase 2: Functionality (Day 1-2)
+4. **Home Redirect** - Direct redirect (Solution A)
+5. **Text Selection** - Add select-none class (Solution A)
+6. **Scale 1 Truncation** - Conditional truncation (Solution A)
+
+#### Phase 3: Polish (Day 2-3)
+7. **Widget Spacing** - Update to my-2 (Solution A)
+8. **Loading Indicator** - Add to UserProfileTile (Solution A)
+
+### 6. Testing Strategy
+
+1. **Integration Tests for Chat**
+   - Test actual message flow between components
+   - Verify command processing
+   - Test login flow
+
+2. **E2E Tests**
+   - Theme persistence across reloads
+   - Tile interaction behaviors
+   - Loading states
+
+3. **Visual Regression Tests**
+   - Widget spacing consistency
+   - Text truncation at different scales
+   - Theme switching without flicker
+
+### 7. Recommended Approach
+
+Based on the analysis, I recommend implementing the "Solution A" options for each bug:
+
+1. **Highest Priority**: Fix chat with ChatProvider - it's completely broken
+2. **Quick Wins**: Theme flicker, scale 1 expansion, text selection - simple fixes
+3. **Polish Items**: Spacing and loading indicators - improve UX
+
+This approach:
+- Minimizes architectural changes
+- Fixes critical issues first
+- Can be implemented incrementally
+- Maintains consistency with existing patterns
+- Provides immediate user value
+
+Total estimated effort: 2-3 days for all fixes with proper testing.
