@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { chatSettings } from '../../_settings/chat-settings';
-import useChatState from '../../_state/useChatState';
+import { useChatState } from '../../_state';
 import { useMapCache } from '../../../Cache/_hooks/use-map-cache';
 import { debugLogger } from '~/lib/debug/debug-logger';
 import { authClient } from '~/lib/auth/auth-client';
