@@ -15,6 +15,7 @@ interface ResolvedMapInfo {
  * This ensures the cache only ever sees proper coordinates, not mapItemIds
  */
 export function useMapIdResolution(centerParam: string): ResolvedMapInfo {
+  // useMapIdResolution called
   const [resolvedInfo, setResolvedInfo] = useState<ResolvedMapInfo>({
     centerCoordinate: "",
     userId: 0,
@@ -26,17 +27,34 @@ export function useMapIdResolution(centerParam: string): ResolvedMapInfo {
 
   // Check if this is already a coordinate format
   const isCoordinate = centerParam.includes(",");
+  const hasValidParam = !!centerParam;
   
   // Use tRPC to fetch root item if it's a mapItemId
+  // Note: hooks must always be called in the same order, so we can't return early
   const { data: rootItem, isLoading, error } = api.map.getRootItemById.useQuery(
-    { mapItemId: parseInt(centerParam) },
+    { mapItemId: parseInt(centerParam || "0") },
     { 
-      enabled: !isCoordinate && /^\d+$/.test(centerParam),
+      enabled: hasValidParam && !isCoordinate && /^\d+$/.test(centerParam),
       staleTime: Infinity, // Cache forever since root items don't change
     }
   );
 
   useEffect(() => {
+    // Effect running
+    
+    // Handle empty parameter case
+    if (!hasValidParam) {
+      setResolvedInfo({
+        centerCoordinate: "",
+        userId: 0,
+        groupId: 0,
+        rootItemId: 0,
+        isLoading: false,
+        error: null,
+      });
+      return;
+    }
+    
     if (isCoordinate) {
       // Already a coordinate, parse it
       const parts = centerParam.split(",");
@@ -44,14 +62,21 @@ export function useMapIdResolution(centerParam: string): ResolvedMapInfo {
       const rest = parts[1];
       const groupIdStr = rest ? rest.split(":")[0] : "0";
       
-      setResolvedInfo({
+      // Parse with validation to prevent NaN
+      const userId = parseInt(userIdStr ?? "0") || 0;
+      const groupId = parseInt(groupIdStr ?? "0") || 0;
+      const rootItemId = userId; // For coordinates, rootItemId is usually the userId
+      
+      const info = {
         centerCoordinate: centerParam,
-        userId: parseInt(userIdStr ?? "0"),
-        groupId: parseInt(groupIdStr ?? "0"),
-        rootItemId: parseInt(userIdStr ?? "0"), // For coordinates, rootItemId is usually the userId
+        userId,
+        groupId,
+        rootItemId,
         isLoading: false,
         error: null,
-      });
+      };
+      // Resolved coordinate
+      setResolvedInfo(info);
     } else if (rootItem) {
       // Resolved from mapItemId to actual item
       const coords = rootItem.coordinates.split(",");
@@ -59,25 +84,36 @@ export function useMapIdResolution(centerParam: string): ResolvedMapInfo {
       const rest = coords[1];
       const groupIdStr = rest ? rest.split(":")[0] : "0";
       
-      setResolvedInfo({
+      // Parse with validation to prevent NaN
+      const userId = parseInt(userIdStr ?? "0") || 0;
+      const groupId = parseInt(groupIdStr ?? "0") || 0;
+      const rootItemId = parseInt(centerParam) || 0;
+      
+      const info = {
         centerCoordinate: rootItem.coordinates,
-        userId: parseInt(userIdStr ?? "0"),
-        groupId: parseInt(groupIdStr ?? "0"),
-        rootItemId: parseInt(centerParam),
+        userId,
+        groupId,
+        rootItemId,
         isLoading: false,
         error: null,
-      });
+      };
+      // Resolved from rootItem
+      setResolvedInfo(info);
     } else if (error) {
+      // Error resolving
       setResolvedInfo(prev => ({
         ...prev,
         isLoading: false,
         error: new Error(error.message || "Failed to resolve map ID"),
       }));
     }
-  }, [centerParam, isCoordinate, rootItem, error]);
+  }, [centerParam, isCoordinate, hasValidParam, rootItem, error]);
 
-  return {
+  const result = {
     ...resolvedInfo,
-    isLoading: !isCoordinate && isLoading,
+    isLoading: hasValidParam && !isCoordinate && isLoading,
   };
+  
+  // Returning result
+  return result;
 }

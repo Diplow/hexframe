@@ -1,20 +1,26 @@
 import type { TileData } from "~/app/map/types/tile-data";
-import type { TileColor } from "~/app/static/map/Tile/Base/base";
+import type { TileColor } from "~/app/map/Canvas/base/BaseTileLayout";
 
 /**
  * Extracts color configuration from a tile's data
- * Parses the color string format "colorName-tint" into a TileColor object
+ * Handles both old format ("colorName-tint") and new semantic format ("direction-depth-n")
  * 
  * @param item - The tile data containing color information
- * @returns TileColor object with color and tint properties
+ * @returns TileColor object or semantic color string
  */
-export function getColorFromItem(item: TileData): TileColor {
+export function getColorFromItem(item: TileData): TileColor | string {
   // Validate color string format
   if (!item.data.color || typeof item.data.color !== 'string') {
     console.warn(`Invalid color data: expected string, got ${typeof item.data.color}`);
     return { color: "zinc", tint: "50" }; // Default fallback
   }
   
+  // Check if it's the new semantic format (e.g., "nw-depth-1", "center-depth-0")
+  if (item.data.color.includes('-depth-')) {
+    return item.data.color; // Return as-is for new format
+  }
+  
+  // Handle old format
   const parts = item.data.color.split("-");
   
   // Check if color string has correct format (colorName-tint)

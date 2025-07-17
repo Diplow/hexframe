@@ -183,6 +183,36 @@ git add .
 git commit -m "chore: prepare for production deployment"
 ```
 
+### Deployment Documentation
+Create a deployment record in `/deployments/YYYY-MM-DD-production.md`:
+```markdown
+# Production Deployment - YYYY-MM-DD
+
+**Version**: v1.2.3
+**Environment**: Production
+**Deployed By**: @username
+**Status**: Pending/Success/Rolled Back
+
+## Pre-Deployment Checklist
+- [ ] All tests pass
+- [ ] Security audit complete
+- [ ] Environment variables verified
+- [ ] Database migrations ready
+
+## Changes Deployed
+- Feature: Description
+- Fix: Description
+- Performance: Description
+
+## Verification Results
+- [ ] Smoke tests passed
+- [ ] Performance metrics acceptable
+- [ ] No errors in monitoring
+
+## Notes
+[Any special considerations or issues encountered]
+```
+
 ### 2. Environment Validation
 ```bash
 # Check all required env vars are documented

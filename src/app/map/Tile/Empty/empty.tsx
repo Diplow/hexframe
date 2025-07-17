@@ -1,22 +1,23 @@
 "use client";
 
-import { useState, useContext } from "react";
-import { StaticBaseTileLayout, type TileScale, type TileColor } from "~/app/static/map/Tile/Base/base";
-import { CreateItemModal } from "../../Dialogs/create-item.modal";
-import { DynamicCreateItemDialog } from "../../Dialogs/create-item";
-import { LegacyTileActionsContext } from "../../Canvas";
+import { useState, useContext, useEffect } from "react";
+import { DynamicBaseTileLayout } from "../Base";
+import type { TileScale, TileColor } from "~/app/map/Canvas/base/BaseTileLayout";
+import { LegacyTileActionsContext, useCanvasTheme } from "../../Canvas";
 import type { URLInfo } from "../../types/url-info";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import { getColor } from "../../types/tile-data";
 import { getDefaultStroke } from "../utils/stroke";
-import { useTileInteraction } from "../../hooks/useTileInteraction";
+import { useTileInteraction } from "~/app/map/Canvas/hooks/shared/useTileInteraction";
+import { loggers } from "~/lib/debug/debug-logger";
+import { useEventBus } from "../../Services/EventBus/event-bus-context";
 
-interface DynamicEmptyTileProps {
+export interface DynamicEmptyTileProps {
   coordId: string;
   scale?: TileScale;
   baseHexSize?: number;
   urlInfo: URLInfo;
-  parentItem?: { id: string; name: string };
+  parentItem?: { id: string; name: string; ownerId?: string };
   interactive?: boolean;
   currentUserId?: number;
 }
@@ -42,19 +43,56 @@ function getDropHandlers(
 }
 
 export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
-  const [showModal, setShowModal] = useState(false);
-  const [useDynamicDialog] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
+  const eventBus = useEventBus();
+  const { isDarkMode } = useCanvasTheme();
+  
+  // Log empty tile render
+  useEffect(() => {
+    loggers.render.canvas('DynamicEmptyTile render', {
+      coordId: props.coordId,
+      scale: props.scale ?? 1,
+      hasParent: !!props.parentItem,
+      parentId: props.parentItem?.id,
+      interactive: props.interactive ?? true,
+      canEdit: props.parentItem?.ownerId && props.currentUserId 
+        ? props.currentUserId.toString() === props.parentItem.ownerId.toString() 
+        : false,
+    });
+  });
   
   // Calculate default stroke for this scale
   const defaultStroke = getDefaultStroke(props.scale ?? 1, false);
   
-  // Use tile interaction hook for tool-based behavior
-  const { handleClick, cursor, shouldShowHoverEffects } = useTileInteraction({
+  // Check if user owns the parent tile (can create in this domain)
+  const canEdit = props.parentItem?.ownerId && props.currentUserId 
+    ? props.currentUserId.toString() === props.parentItem.ownerId.toString() 
+    : false;
+  
+  
+  // Use tile interaction hook for contextual behavior
+  const { handleClick, handleDoubleClick, handleRightClick, cursor, shouldShowHoverEffects } = useTileInteraction({
     coordId: props.coordId,
     type: 'empty',
+    canEdit,
     onCreate: () => {
-      setShowModal(true);
+      // Get parent coordId from child coordId
+      const childCoords = CoordSystem.parseId(props.coordId);
+      const parentCoords = CoordSystem.getParentCoord(childCoords);
+      const parentCoordId = parentCoords ? CoordSystem.createId(parentCoords) : undefined;
+      
+      // Emit request event to show creation widget in Chat
+      eventBus.emit({
+        type: 'map.create_requested',
+        source: 'canvas',
+        payload: {
+          coordId: props.coordId,
+          parentName: props.parentItem?.name,
+          parentId: props.parentItem?.id,
+          parentCoordId,
+        },
+        timestamp: new Date(),
+      });
     },
   });
 
@@ -74,29 +112,19 @@ export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
 
 
 
-  // Handle successful creation
-  const handleCreateSuccess = () => {
-    setShowModal(false);
-    // Don't invalidate the cache - the optimistic update handles everything
-  };
-
-  
   // Get drop handlers using helper function
   const dropProps = getDropHandlers(props.coordId, isValidDropTarget, tileActions);
 
   return (
-    <>
-      <div 
+    <div 
         className={`group relative hover:z-10`} 
         data-testid={`empty-tile-${props.coordId}`}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         {...dropProps}>
-        {/* Invisible hover area overlay to ensure full tile responds to hover */}
-        <div className="pointer-events-auto absolute inset-0 z-10" />
-
-        <div onClick={handleClick}>
-          <StaticBaseTileLayout
+        
+        <div>
+          <DynamicBaseTileLayout
             coordId={props.coordId}
             scale={props.scale ?? 1}
             cursor={cursor}
@@ -114,11 +142,23 @@ export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
           stroke={isHovered && shouldShowHoverEffects ? defaultStroke : { color: "transparent", width: 0 }}
           baseHexSize={props.baseHexSize}
           isFocusable={true}
+          isDarkMode={isDarkMode}
         >
           <div className="absolute inset-0">
+            {/* Clickable area with hexagon shape */}
+            <div 
+              className="pointer-events-auto absolute inset-0 z-10"
+              onClick={props.interactive ? (e) => void handleClick(e) : undefined}
+              onDoubleClick={props.interactive ? (e) => void handleDoubleClick(e) : undefined}
+              onContextMenu={props.interactive ? (e) => void handleRightClick(e) : undefined}
+              style={{
+                clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)"
+              }}
+            />
+            
             {/* Semi-transparent black overlay clipped to hexagon shape */}
             <div 
-              className={`absolute inset-0 transition-colors duration-200 ${
+              className={`absolute inset-0 transition-colors duration-200 pointer-events-none ${
                 isHovered && shouldShowHoverEffects ? 'bg-black/10' : ''
               }`}
               style={{
@@ -127,38 +167,12 @@ export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
             />
             
             {/* Content on top of the overlay */}
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               {/* Green + button removed - creation is now handled via the Create tool */}
             </div>
           </div>
-          </StaticBaseTileLayout>
+          </DynamicBaseTileLayout>
         </div>
       </div>
-
-      {/* Dynamic dialog with optimistic updates */}
-      {showModal && useDynamicDialog && (
-        <DynamicCreateItemDialog
-          isOpen={showModal}
-          onClose={() => setShowModal(false)}
-          coordId={props.coordId}
-          parentItem={props.parentItem}
-          urlInfo={props.urlInfo}
-          onSuccess={handleCreateSuccess}
-        />
-      )}
-
-      {/* Fallback modal if dynamic dialog is not available */}
-      {showModal && !useDynamicDialog && (
-        <CreateItemModal
-          isOpen={showModal}
-          onClose={() => setShowModal(false)}
-          coordId={props.coordId}
-          parentItem={props.parentItem}
-          urlInfo={props.urlInfo}
-          onSuccess={handleCreateSuccess}
-          preventRedirects={true}
-        />
-      )}
-    </>
   );
 }

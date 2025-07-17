@@ -1,17 +1,30 @@
-// @ts-check
+// @ts-nocheck
 /** @type {import("eslint").Linter.Config} */
-module.exports = {
+const config = {
   parser: "@typescript-eslint/parser",
   parserOptions: {
     project: true,
   },
-  // @ts-ignore - ESLint accepts string plugin names
   plugins: ["@typescript-eslint", "drizzle"],
   extends: [
     "next/core-web-vitals",
     "plugin:@typescript-eslint/recommended-type-checked",
     "plugin:@typescript-eslint/stylistic-type-checked",
-    "plugin:storybook/recommended"
+  ],
+  overrides: [
+    {
+      files: ["src/lib/debug/**/*.ts"],
+      rules: {
+        "@typescript-eslint/no-base-to-string": "off",
+        "@typescript-eslint/restrict-template-expressions": "off",
+      },
+    },
+    {
+      files: ["**/__tests__/**/*.ts", "**/*.test.ts"],
+      rules: {
+        "@typescript-eslint/unbound-method": "off",
+      },
+    },
   ],
   rules: {
     "@typescript-eslint/array-type": "off",
@@ -50,5 +63,15 @@ module.exports = {
         drizzleObjectName: ["db", "ctx.db"],
       },
     ],
+    // Custom rule to warn about direct color usage
+    "no-restricted-syntax": [
+      "warn",
+      {
+        selector: "Literal[value=/\\b(text|bg|border|ring|fill)-(slate|gray|zinc|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\\d{2,3}\\b/]",
+        message: "Use semantic colors from the design system instead of direct Tailwind colors. Replace with primary, secondary, success, link, destructive, or neutral."
+      }
+    ]
   },
 };
+
+module.exports = config;

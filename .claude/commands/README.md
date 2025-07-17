@@ -4,24 +4,22 @@ This directory contains custom commands for Claude Code to enhance development w
 
 ## Issue Management Workflow
 
-### Complete Workflow Overview
-
 The issue management system follows a structured three-phase workflow. All commands work with a single document file (`/issues/YYYY-MM-DD-<slug-title>-<issue-number>.md`) that gets progressively completed. Each time a section is added, it's also posted as a comment on the GitHub issue.
 
-#### Phase 1: Planning 📋
+### Phase 1: Planning 📋
 1. `/issue` - Document the problem from user perspective (required)
 2. `/context #<issue>` - Gather codebase context and READMEs (required)
 3. `/solution #<issue>` - Document solution approach and strategy (required)
    - `/security_plan #<issue>` - Deep security analysis (optional)
    - `/ux_design_plan #<issue>` - Detailed UX/UI specifications (optional)
    - `/tests_plan #<issue>` - Comprehensive test strategy (optional)
-4. `/archi #<issue>` - Document architecture decisions and patterns (required)
+4. `/architecture #<issue>` - Document technical architecture and mental models (optional but recommended)
 
-#### Phase 2: Implementation 🛠️
+### Phase 2: Implementation 🛠️
 5. `/tests_impl #<issue>` - Implement tests first for TDD (optional but recommended)
 6. `/issue_impl #<issue> [branch]` - Execute the implementation (required)
 
-#### Phase 3: Review 📝
+### Phase 3: Review 📝
 7. `/refactor <file_path>` - Refactor for clarity following Rule of 6 (optional)
 8. `/document <branch>` - Update all relevant documentation (required)
 9. `/retro #<issue>` - Capture learnings and insights (optional)
@@ -45,27 +43,13 @@ Creates an issue documenting WHAT is wrong from a user/product perspective.
 ```
 
 #### 2. /context
-Gathers and documents relevant codebase context without proposing solutions.
-- Analyzes architecture and current implementation
-- Maps dependencies and affected areas
+Adds technical and product context to the issue document.
 - Appends "## Context" section to the document
-- Posts the context analysis as a GitHub comment
-
-**What it does:**
-- Reads relevant README and architecture files
-- Investigates current code patterns and terminology
-- Identifies all affected components
-- Documents technical constraints and risks
-- Notes outdated or missing documentation
+- Posts the context section as a GitHub comment
 
 **Usage:**
 ```
 /context #<issue-number>
-```
-
-**Example:**
-```
-/context #49
 ```
 
 #### 3. /solution
@@ -78,14 +62,15 @@ Documents the proposed solution approach.
 /solution #<issue-number>
 ```
 
-#### 4. /archi
-Documents architecture decisions and design patterns.
+#### 4. /architecture
+Documents technical architecture and mental models for the solution.
 - Appends "## Architecture" section to the document
 - Posts the architecture section as a GitHub comment
+- Optional but recommended follow-up to `/solution`
 
 **Usage:**
 ```
-/archi #<issue-number>
+/architecture #<issue-number>
 ```
 
 #### 5. /issue_impl

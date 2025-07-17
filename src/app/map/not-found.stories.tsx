@@ -35,7 +35,7 @@ export const Default: Story = {
 export const InContainer: Story = {
   decorators: [
     (Story) => (
-      <div className="h-96 w-full border-2 border-dashed border-gray-300">
+      <div className="h-96 w-full border-2 border-dashed border-neutral-300">
         <Story />
       </div>
     ),
@@ -55,7 +55,7 @@ export const InContainer: Story = {
 export const Mobile: Story = {
   decorators: [
     (Story) => (
-      <div className="h-screen w-80 border-2 border-dashed border-gray-300">
+      <div className="h-screen w-80 border-2 border-dashed border-neutral-300">
         <Story />
       </div>
     ),
@@ -75,7 +75,7 @@ export const Mobile: Story = {
 export const Tablet: Story = {
   decorators: [
     (Story) => (
-      <div className="h-screen w-96 border-2 border-dashed border-gray-300 md:w-[768px]">
+      <div className="h-screen w-96 border-2 border-dashed border-neutral-300 md:w-[768px]">
         <Story />
       </div>
     ),
@@ -94,7 +94,7 @@ export const Tablet: Story = {
 export const DarkBackground: Story = {
   decorators: [
     (Story) => (
-      <div className="bg-gray-900">
+      <div className="bg-neutral-900">
         <Story />
       </div>
     ),
@@ -138,7 +138,7 @@ export const WithPattern: Story = {
 export const ShortContainer: Story = {
   decorators: [
     (Story) => (
-      <div className="h-32 w-full border-2 border-dashed border-rose-300">
+      <div className="h-32 w-full border-2 border-dashed border-destructive">
         <Story />
       </div>
     ),
@@ -158,7 +158,7 @@ export const ShortContainer: Story = {
 export const WideContainer: Story = {
   decorators: [
     (Story) => (
-      <div className="h-screen w-screen max-w-[1920px] border-2 border-dashed border-green-300">
+      <div className="h-screen w-screen max-w-[1920px] border-2 border-dashed border-success">
         <Story />
       </div>
     ),

@@ -96,6 +96,13 @@ export const authRouter = createTRPCRouter({
 
   getSession: publicProcedure.query(async ({ ctx }) => {
     // Session from tRPC context, populated by better-auth
+    console.log("[AUTH] getSession called:", {
+      hasSession: !!ctx.session,
+      hasUser: !!ctx.user,
+      userId: ctx.user?.id,
+      userEmail: ctx.user?.email,
+      sessionId: ctx.session?.id,
+    });
     return ctx.session;
   }),
 });

@@ -156,6 +156,10 @@ The project follows the "Rule of 6" - consistent with Hexframe's hexagonal struc
 5. **Maintain Abstraction Levels**: Keep consistent abstraction at each level
 6. **Use Existing Patterns**: Check similar code before implementing new patterns
 
+## Documentation Strategy
+
+- When writing documentation, try to not duplicate information and just reference existing document. For instance if an ARCHITECTURE.md file references a TESTING.md file to document how this architecture is tested, just use a heading "Testing Strategy" in the architecture file and reference the TESTING.md file but don't duplicate information already present in the TESTING.md file.
+
 ## Common Tasks
 
 ### Running the Development Environment

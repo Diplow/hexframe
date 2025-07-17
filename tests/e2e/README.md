@@ -1,54 +1,107 @@
-** WIP Implementation **
+# E2E Tests with Event Bus and Log Observation
 
-# E2E Tests (Offline UI Tests)
+## Overview
 
-This directory contains offline UI tests for Hexframe using Playwright. These tests verify UI behavior using localStorage-based caching without requiring a running server or database (beyond the Next.js dev server).
+These E2E tests use Playwright with custom utilities to observe and assert on event bus events and debug logs during test execution. This approach allows us to verify not just UI behavior, but also the internal event flow and system state.
 
-## Offline Mode Architecture
+## Key Features
 
-The tests run in offline mode which:
-- Uses localStorage as the data source instead of server APIs
-- Populates test data directly into browser storage
-- Verifies UI behavior and cache operations
-- Ensures the app works without network connectivity
+### Event Bus Observer
 
-## Running Tests
+The `EventBusObserver` class (`utils/event-bus-observer.ts`) provides:
 
-### Prerequisites
-```bash
-pnpm dev   # Start dev server on port 3000
-```
+- **Event Tracking**: Captures all events emitted through the event bus
+- **Log Monitoring**: Intercepts debug logger calls to track system behavior
+- **Assertions**: Custom assertions for events and logs
+- **Performance Tracking**: Analyze event timing and flow
 
-### Test Commands
-```bash
-pnpm test:e2e:ui      # Open Playwright UI for interactive debugging
-pnpm test:e2e         # Run all tests in terminal
-pnpm test:e2e:debug   # Debug mode with Playwright inspector
-pnpm test:e2e:headed  # Run with visible browser window
+### Usage Example
+
+```typescript
+import { test, expect } from './utils/event-bus-observer';
+
+test('should emit navigation events', async ({ page, eventBusObserver }) => {
+  // Start observing
+  await eventBusObserver.startObserving();
+  
+  // Perform actions
+  await page.click('[data-testid="hex-tile"]');
+  
+  // Stop and analyze
+  await eventBusObserver.stopObserving();
+  
+  // Assert on events
+  eventBusObserver.expectEvent('map.navigation', { tileId: '123' });
+  
+  // Assert on logs
+  eventBusObserver.expectLog('NAV', 'Navigating to item');
+});
 ```
 
 ## Test Structure
 
+### Setup
+1. Navigate to the page under test
+2. Start the event bus observer
+3. Perform test actions
+4. Stop observing and make assertions
+
+### Available Assertions
+
+- `expectEvent(type, payload?)` - Assert an event was emitted
+- `expectNoEvent(type)` - Assert an event was NOT emitted
+- `expectLog(prefix, pattern)` - Assert a log was recorded
+- `getEventsByType(type)` - Get all events of a specific type
+- `getLogsByPrefix(prefix)` - Get all logs with a prefix
+
+## Running Tests
+
+```bash
+# Run all E2E tests
+pnpm test:e2e
+
+# Run with UI mode for debugging
+pnpm test:e2e:ui
+
+# Run a specific test
+pnpm test:e2e map-navigation-events.spec.ts
 ```
-tests/e2e/
-├── fixtures/         # Test data and setup
-├── actions/          # Reusable test actions
-└── scenarios/        # Test scenarios
-```
 
-## Environment Variables
+## Benefits
 
-Tests use `.env.test` for configuration:
-- `USER_TEST_PORT=3001` - Port for interactive E2E testing
-- `CI_TEST_PORT=3002` - Port for CI/automated testing
-- `TEST_DATABASE_URL` - Test database connection
+1. **Complete Visibility**: See the full event flow during user interactions
+2. **Performance Insights**: Measure time between related events
+3. **Debug Information**: Access to debug logs helps understand failures
+4. **Integration Testing**: Verify components communicate correctly via events
+5. **No Mocking Required**: Tests run against the real application
 
-## Setup
+## Writing New Tests
 
-Before running tests:
-1. Install Playwright browsers: `pnpm test:e2e:install`
-2. Setup test database: `pnpm test:e2e:setup`
+When writing E2E tests that observe events:
 
-## Debugging
+1. Use the extended `test` from `utils/event-bus-observer`
+2. Start observing before actions that trigger events
+3. Stop observing before making assertions
+4. Use semantic event types and clear assertions
+5. Consider event timing for performance tests
 
-See [LOGGING.md](./LOGGING.md) for information about the E2E test logging system that helps debug test failures.
+## Common Event Patterns
+
+### Navigation
+- `map.navigation` - User navigates to a new tile
+- `map.cache_updated` - Cache updates after navigation
+
+### Tile Operations
+- `map.tile_created` - New tile created
+- `map.tile_updated` - Tile data modified
+- `map.tiles_swapped` - Tiles swapped via drag-and-drop
+- `map.tile_expanded` - Tile expanded to show children
+
+### Authentication
+- `auth.login` - User logs in
+- `auth.logout` - User logs out
+- `auth.session_expired` - Session expires
+
+### Chat
+- `chat.message_sent` - User sends a message
+- `chat.message_received` - Message received from server

@@ -43,11 +43,12 @@ For each solution:
 
 ## Documentation
 
-### Issue Abstract
-Update the issue file (`/issues/YYYY-MM-DD-<slug>-<issue-number>.md`) by adding or updating the `## Solution` section:
-
-### Issue Log
-Append to the log file (`/issues/YYYY-MM-DD-<slug>-<issue-number>.log.md`):
+### Issue File Update
+Update the issue file (`/issues/YYYY-MM-DD-<slug>-<issue-number>.md`) by adding or updating the `## Solution` section with a structured format that captures:
+- Multiple solution approaches
+- Technical analysis for each
+- Tradeoff evaluation
+- Recommended approach with rationale
 
 ## Best Practices
 
@@ -99,7 +100,7 @@ After completing solution design:
 
 2. **Commit and Push**:
    ```bash
-   git add issues/YYYY-MM-DD-*.md issues/YYYY-MM-DD-*.log.md
+   git add issues/YYYY-MM-DD-*.md
    git commit -m "feat: add solution design for issue #<number>"
    git push
    ```

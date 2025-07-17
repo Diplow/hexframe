@@ -8,6 +8,7 @@ import type { StorageService } from "../Services/types";
 import type { TileData } from "../../types/tile-data";
 import { cacheActions } from "../State/actions";
 import { OptimisticChangeTracker } from "./optimistic-tracker";
+import type { EventBusService } from "~/app/map/types/events";
 
 export interface MutationCoordinatorConfig {
   dispatch: Dispatch<CacheAction>;
@@ -42,6 +43,16 @@ export interface MutationCoordinatorConfig {
       coords: Coord;
     }) => Promise<{ success: true }>;
   };
+  moveItemMutation?: {
+    mutateAsync: (params: {
+      oldCoords: Coord;
+      newCoords: Coord;
+    }) => Promise<{
+      movedItemId: string;
+      modifiedItems: MapItemAPIContract[];
+    }>;
+  };
+  eventBus?: EventBusService;
 }
 
 export interface MutationResult {
@@ -131,26 +142,188 @@ export class MutationCoordinator {
   }
 
   async deleteItem(coordId: string): Promise<MutationResult> {
+    // deleteItem called with coordId
     const changeId = this.tracker.generateChangeId();
+    // Generated change ID
+    
     const existingItem = this._getExistingItem(coordId);
+    // Found existing item
     
     try {
       // Apply optimistic removal
       const previousData = this._reconstructApiData(existingItem);
+      // Applying optimistic delete
       this._applyOptimisticDelete(coordId, previousData, changeId);
       
       // Make server call
       const coords = CoordSystem.parseId(coordId);
+      // Making server delete call
       await this.config.deleteItemMutation.mutateAsync({ coords });
+      // Server delete successful
       
       // Finalize deletion
       await this._finalizeDelete(existingItem.metadata.dbId, changeId);
+      // Delete finalized
       
       return { success: true };
     } catch (error) {
+      // Delete failed
       this._rollbackToPreviousData(changeId);
       throw error;
     }
+  }
+
+  async moveItem(sourceCoordId: string, targetCoordId: string): Promise<MutationResult & { isSwap?: boolean }> {
+    if (!this.config.moveItemMutation) {
+      throw new Error("Move item mutation not configured");
+    }
+    
+    const changeId = this.tracker.generateChangeId();
+    const sourceItem = this._getExistingItem(sourceCoordId);
+    const targetItem = this.config.getState().itemsById[targetCoordId];
+    const isSwap = !!targetItem;
+    
+    // Store state for rollback (moved outside try block)
+    const previousState: Record<string, MapItemAPIContract | undefined> = {};
+    previousState[sourceCoordId] = this._reconstructApiData(sourceItem);
+    if (isSwap && targetItem) {
+      previousState[targetCoordId] = this._reconstructApiData(targetItem);
+    }
+    
+    try {
+      
+      // Apply optimistic move/swap
+      if (isSwap && targetItem) {
+        // Swap operation: exchange coordinates
+        this._applyOptimisticSwap(sourceItem, targetItem, sourceCoordId, targetCoordId, changeId);
+      } else {
+        // Move operation: move source to empty target
+        this._applyOptimisticMove(sourceItem, sourceCoordId, targetCoordId, changeId);
+      }
+      
+      // Make server call
+      const sourceCoords = CoordSystem.parseId(sourceCoordId);
+      const targetCoords = CoordSystem.parseId(targetCoordId);
+      
+      const result = await this.config.moveItemMutation.mutateAsync({
+        oldCoords: sourceCoords,
+        newCoords: targetCoords,
+      });
+      
+      // Apply server response
+      if (result.modifiedItems?.length > 0) {
+        this.config.dispatch(cacheActions.loadRegion(result.modifiedItems, targetCoordId, 1));
+      }
+      
+      // Clear tracking
+      this.tracker.removeChange(changeId);
+      
+      // Emit event based on operation type
+      if (this.config.eventBus) {
+        if (isSwap && targetItem) {
+          // Emit swap event
+          this.config.eventBus.emit({
+            type: 'map.tiles_swapped',
+            source: 'map_cache',
+            payload: {
+              tile1Id: sourceItem.metadata.dbId,
+              tile1Name: sourceItem.data.name,
+              tile2Id: targetItem.metadata.dbId,
+              tile2Name: targetItem.data.name
+            }
+          });
+        } else {
+          // Emit move event
+          this.config.eventBus.emit({
+            type: 'map.tile_moved',
+            source: 'map_cache',
+            payload: {
+              tileId: sourceItem.metadata.dbId,
+              tileName: sourceItem.data.name,
+              fromCoordId: sourceCoordId,
+              toCoordId: targetCoordId
+            }
+          });
+        }
+      }
+      
+      return { success: true, data: result.modifiedItems[0], isSwap };
+    } catch (error) {
+      // Rollback on error
+      this._rollbackMove(previousState, changeId);
+      throw error;
+    }
+  }
+
+  private _applyOptimisticSwap(
+    sourceItem: TileData,
+    targetItem: TileData,
+    sourceCoordId: string,
+    targetCoordId: string,
+    changeId: string
+  ): void {
+    // Create swapped items with exchanged coordinates
+    const swappedSource: MapItemAPIContract = {
+      ...this._reconstructApiData(sourceItem),
+      coordinates: targetCoordId,
+    };
+    
+    const swappedTarget: MapItemAPIContract = {
+      ...this._reconstructApiData(targetItem),
+      coordinates: sourceCoordId,
+    };
+    
+    // Apply both updates
+    this.config.dispatch(cacheActions.loadRegion([swappedSource, swappedTarget], sourceCoordId, 1));
+    
+    // Track for rollback
+    this.tracker.trackChange(changeId, { 
+      type: 'update' as const, 
+      coordId: sourceCoordId,
+      previousData: this._reconstructApiData(sourceItem),
+    });
+  }
+
+  private _applyOptimisticMove(
+    sourceItem: TileData,
+    sourceCoordId: string,
+    targetCoordId: string,
+    changeId: string
+  ): void {
+    // Create moved item with new coordinates
+    const movedItem: MapItemAPIContract = {
+      ...this._reconstructApiData(sourceItem),
+      coordinates: targetCoordId,
+    };
+    
+    // Remove from old position
+    this.config.dispatch(cacheActions.removeItem(sourceCoordId));
+    
+    // Add to new position
+    this.config.dispatch(cacheActions.loadRegion([movedItem], targetCoordId, 1));
+    
+    // Track for rollback
+    this.tracker.trackChange(changeId, { 
+      type: 'update' as const, 
+      coordId: sourceCoordId,
+      previousData: this._reconstructApiData(sourceItem),
+    });
+  }
+
+  private _rollbackMove(
+    previousState: Record<string, MapItemAPIContract | undefined>,
+    changeId: string
+  ): void {
+    // Restore previous state
+    const itemsToRestore = Object.values(previousState).filter((item): item is MapItemAPIContract => !!item);
+    if (itemsToRestore.length > 0) {
+      const firstItem = itemsToRestore[0];
+      if (firstItem) {
+        this.config.dispatch(cacheActions.loadRegion(itemsToRestore, firstItem.coordinates, 1));
+      }
+    }
+    
+    this.tracker.removeChange(changeId);
   }
 
   rollbackChange(changeId: string): void {
@@ -309,16 +482,20 @@ export class MutationCoordinator {
     previousData: MapItemAPIContract,
     changeId: string
   ): void {
+    // Tracking delete change
     this.tracker.trackChange(changeId, { 
       type: 'delete', 
       coordId,
       previousData
     });
+    // Dispatching removeItem action
     this.config.dispatch(cacheActions.removeItem(coordId));
   }
 
   private async _finalizeDelete(itemId: string, changeId: string): Promise<void> {
+    // Removing from storage
     await this.config.storageService.remove(`item:${itemId}`);
+    // Removing change tracker
     this.tracker.removeChange(changeId);
   }
 

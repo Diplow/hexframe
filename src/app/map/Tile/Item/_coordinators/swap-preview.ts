@@ -1,8 +1,7 @@
 import type { TileData } from "~/app/map/types/tile-data";
-import type { TileColor } from "~/app/static/map/Tile/Base/base";
+import type { TileColor } from "~/app/map/Canvas/base/BaseTileLayout";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import { getColor as calculateColor } from "~/app/map/types/tile-data";
-import { getColorFromItem } from "../_utils/color";
 
 /**
  * Calculates the preview color for a tile during a swap operation
@@ -17,10 +16,10 @@ export function getSwapPreviewColor(
   item: TileData,
   isDropTargetActive: boolean,
   dropOperation: 'move' | 'swap' | null
-): TileColor {
+): TileColor | string {
   // If not an active swap target, use normal color
   if (!isDropTargetActive || dropOperation !== 'swap') {
-    return getColorFromItem(item);
+    return item.data.color;
   }
 
   try {
@@ -29,34 +28,11 @@ export function getSwapPreviewColor(
     const targetCoords = CoordSystem.parseId(item.metadata.coordId);
     const previewColorString = calculateColor(targetCoords);
     
-    // Validate color string format
-    if (!previewColorString || typeof previewColorString !== 'string') {
-      console.warn(`Invalid preview color: expected string, got ${typeof previewColorString}`);
-      return getColorFromItem(item); // Fallback to current color
-    }
-    
-    const parts = previewColorString.split("-");
-    
-    // Check if color string has correct format (colorName-tint)
-    if (parts.length !== 2) {
-      console.warn(`Invalid preview color format: "${previewColorString}". Expected "color-tint" format.`);
-      return getColorFromItem(item); // Fallback to current color
-    }
-    
-    const [colorName, tint] = parts;
-    
-    // Validate parts exist
-    if (!colorName || !tint) {
-      console.warn(`Invalid preview color parts: colorName="${colorName}", tint="${tint}"`);
-      return getColorFromItem(item); // Fallback to current color
-    }
-    
-    return {
-      color: colorName as TileColor["color"],
-      tint: tint as TileColor["tint"]
-    };
+    // The new getColor returns semantic classes like "nw-depth-1"
+    // Just return it as-is since our tile components now handle both formats
+    return previewColorString;
   } catch (error) {
     console.error(`Error calculating swap preview color:`, error);
-    return getColorFromItem(item); // Fallback to current color on any error
+    return item.data.color; // Fallback to current color on any error
   }
 }

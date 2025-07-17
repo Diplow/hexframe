@@ -1,11 +1,12 @@
 "use client";
 
 import type { TileData } from "../../types/tile-data";
-import type { TileScale } from "~/app/static/map/Tile/Base/base";
+import type { TileScale } from "~/app/map/Canvas/base/BaseTileLayout";
 import type { URLInfo } from "../../types/url-info";
 import { useItemState } from "./_hooks";
-import { ItemDialogs } from "./_components/item-dialogs";
 import { ItemTileContent } from "./_components/item-tile-content";
+import { useEffect } from "react";
+import { loggers } from "~/lib/debug/debug-logger";
 
 export interface DynamicItemTileProps {
   item: TileData;
@@ -17,6 +18,7 @@ export interface DynamicItemTileProps {
   urlInfo: URLInfo;
   interactive?: boolean;
   currentUserId?: number;
+  isSelected?: boolean;
 }
 
 export const DynamicItemTile = (props: DynamicItemTileProps) => {
@@ -40,6 +42,23 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
     isCenter,
     scale
   });
+  
+  // Log tile render
+  useEffect(() => {
+    loggers.render.canvas('DynamicItemTile render', {
+      coordId: item.metadata.coordId,
+      dbId: item.metadata.dbId,
+      name: item.data.name,
+      scale,
+      isCenter,
+      hasChildren,
+      isExpanded: allExpandedItemIds.includes(item.metadata.dbId),
+      isSelected: props.isSelected,
+      interactive,
+      canEdit: state.canEdit,
+      isBeingDragged: state.interaction.isBeingDragged,
+    });
+  });
 
   return (
     <>
@@ -58,11 +77,9 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
           testId={state.testId}
           isBeingDragged={state.interaction.isBeingDragged}
           canEdit={state.canEdit}
-          onEditClick={state.dialogs.openUpdateDialog}
-          onDeleteClick={state.dialogs.openDeleteDialog}
+          isSelected={props.isSelected}
         />
       </div>
-      <ItemDialogs item={item} dialogState={state.dialogs} />
     </>
   );
 };

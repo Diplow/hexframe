@@ -2,6 +2,7 @@ import type { CacheAction, CacheState } from "../State/types";
 import { cacheActions } from "../State/actions";
 import type { DataOperations } from "./types";
 import { MapItemType } from "~/lib/domains/mapping/_objects/map-item";
+import type { EventBusService } from "~/app/map/types/events";
 
 // Note: Server mutations are NOT handled through the server service
 // They should use tRPC mutation hooks directly for proper client-side patterns
@@ -12,6 +13,7 @@ export interface MutationHandlerConfig {
   services: MutationHandlerServices;
   getState: () => CacheState;
   dataHandler: DataOperations;
+  eventBus?: EventBusService;
 }
 
 export interface MutationResult {
@@ -41,7 +43,7 @@ export interface MutationOperations {
 export function createMutationHandler(
   config: MutationHandlerConfig,
 ): MutationOperations {
-  const { dispatch, getState, dataHandler } = config;
+  const { dispatch, getState, dataHandler, eventBus } = config;
 
   // Track optimistic changes
   const pendingChanges = new Map<string, OptimisticChange>();
@@ -52,6 +54,7 @@ export function createMutationHandler(
     coordId: string,
     data: Record<string, unknown>,
   ): Promise<MutationResult> => {
+    // createItem called
     try {
       // Apply optimistic update if enabled
       if (getState().cacheConfig.enableOptimisticUpdates) {
@@ -79,6 +82,20 @@ export function createMutationHandler(
 
         dispatch(cacheActions.loadRegion([optimisticItem] as Parameters<typeof cacheActions.loadRegion>[0], coordId, 1));
 
+        // Emit event for tile creation
+        if (eventBus) {
+          eventBus.emit({
+            type: 'map.tile_created',
+            source: 'map_cache',
+            payload: {
+              tileId: optimisticItem.id,
+              tileName: optimisticItem.name,
+              coordId,
+              tileData: data
+            }
+          });
+        }
+
         return { success: true, optimisticApplied: true };
       }
 
@@ -98,6 +115,7 @@ export function createMutationHandler(
     coordId: string,
     data: Record<string, unknown>,
   ): Promise<MutationResult> => {
+    // updateItem called
     try {
       const existingItem = getState().itemsById[coordId];
 
@@ -135,6 +153,20 @@ export function createMutationHandler(
         
         dispatch(cacheActions.loadRegion([updatedItem], coordId, 1));
 
+        // Emit event for tile update
+        if (eventBus) {
+          eventBus.emit({
+            type: 'map.tile_updated',
+            source: 'map_cache',
+            payload: {
+              tileId: existingItem.metadata.dbId,
+              tileName: updatedItem.name,
+              coordId,
+              updates: data
+            }
+          });
+        }
+
         return { success: true, optimisticApplied: true };
       }
 
@@ -151,6 +183,7 @@ export function createMutationHandler(
   };
 
   const deleteItem = async (coordId: string): Promise<MutationResult> => {
+    // deleteItem called
     try {
       const existingItem = getState().itemsById[coordId];
 
@@ -175,6 +208,22 @@ export function createMutationHandler(
         // Optimistically remove by invalidating the region
         dataHandler.invalidateRegion(coordId);
 
+        // Emit event for tile deletion
+        if (eventBus) {
+          // Emitting map.tile_deleted event
+          eventBus.emit({
+            type: 'map.tile_deleted',
+            source: 'map_cache',
+            payload: {
+              tileId: existingItem.metadata.dbId,
+              tileName: existingItem.data.name,
+              coordId
+            }
+          });
+        } else {
+          // No eventBus available to emit tile_deleted event
+        }
+
         return { success: true, optimisticApplied: true };
       }
 
@@ -191,6 +240,7 @@ export function createMutationHandler(
   };
 
   const rollbackOptimisticChange = (changeId: string): void => {
+    // rollbackOptimisticChange called
     const change = pendingChanges.get(changeId);
     if (!change) return;
 
@@ -228,17 +278,19 @@ export function createMutationHandler(
 
       pendingChanges.delete(changeId);
     } catch (error) {
-      console.error("Failed to rollback optimistic change:", error);
+      // Failed to rollback optimistic change
       dispatch(cacheActions.setError(error as Error));
     }
   };
 
   const rollbackAllOptimistic = (): void => {
+    // rollbackAllOptimistic called
     const changeIds = Array.from(pendingChanges.keys());
     changeIds.forEach(rollbackOptimisticChange);
   };
 
   const getPendingOptimisticChanges = (): OptimisticChange[] => {
+    // getPendingOptimisticChanges called
     return Array.from(pendingChanges.values()).sort(
       (a, b) => a.timestamp - b.timestamp,
     );
@@ -262,12 +314,14 @@ export function createMutationHandlerForCache(
   dispatch: React.Dispatch<CacheAction>,
   getState: () => CacheState,
   dataHandler: DataOperations,
+  eventBus?: EventBusService,
 ): MutationOperations {
   return createMutationHandler({
     dispatch,
     services: {}, // No services needed for cache-only coordination
     getState,
     dataHandler,
+    eventBus,
   });
 }
 

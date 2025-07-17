@@ -77,7 +77,17 @@ export function useMapCache(): MapCacheHook {
 
   const deleteItemOptimistic = useCallback(
     async (coordId: string) => {
+      // deleteItemOptimistic called
       await mutationOperations.deleteItem(coordId);
+      // deleteItemOptimistic completed
+    },
+    [mutationOperations],
+  );
+
+  const moveItemOptimistic = useCallback(
+    async (sourceCoordId: string, targetCoordId: string) => {
+      const result = await mutationOperations.moveItem(sourceCoordId, targetCoordId);
+      return result;
     },
     [mutationOperations],
   );
@@ -93,12 +103,38 @@ export function useMapCache(): MapCacheHook {
     [dispatch],
   );
 
-  // Navigation operations
+  // Helper function to convert coordinate ID to database ID
+  const getDbIdFromCoordId = useCallback((coordId: string): string | null => {
+    const item = state.itemsById[coordId];
+    return item ? item.metadata.dbId.toString() : null;
+  }, [state.itemsById]);
+
+  // Navigation operations - now converts coordinate IDs to database IDs
   const navigateToItem = useCallback(
-    async (itemCoordId: string, options?: { pushToHistory?: boolean }) => {
-      await navigationOperations.navigateToItem(itemCoordId, options);
+    async (itemIdentifier: string, options?: { pushToHistory?: boolean }) => {
+      // Navigate request for identifier
+      
+      let dbId: string;
+      
+      // Check if it's already a database ID (pure number) or coordinate ID
+      if (/^\d+$/.test(itemIdentifier)) {
+        // It's already a database ID
+        dbId = itemIdentifier;
+        // Using provided database ID
+      } else {
+        // It's a coordinate ID, convert to database ID
+        const resolvedDbId = getDbIdFromCoordId(itemIdentifier);
+        if (!resolvedDbId) {
+          // Cannot find database ID for coordinate
+          throw new Error(`No item found with coordinate ID: ${itemIdentifier}`);
+        }
+        dbId = resolvedDbId;
+        // Converted coordinate ID to database ID
+      }
+      
+      await navigationOperations.navigateToItem(dbId, options);
     },
-    [navigationOperations],
+    [navigationOperations, getDbIdFromCoordId],
   );
 
   const updateCenter = useCallback(
@@ -156,6 +192,7 @@ export function useMapCache(): MapCacheHook {
     createItemOptimistic,
     updateItemOptimistic,
     deleteItemOptimistic,
+    moveItemOptimistic,
     rollbackOptimisticChange: mutationOperations.rollbackOptimisticChange,
     rollbackAllOptimistic: mutationOperations.rollbackAllOptimistic,
     getPendingOptimisticChanges: mutationOperations.getPendingOptimisticChanges,

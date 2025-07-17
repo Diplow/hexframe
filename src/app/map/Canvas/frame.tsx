@@ -14,14 +14,15 @@
  */
 
 import { DynamicItemTile, getColorFromItem } from "../Tile/Item";
-import {
-  StaticBaseTileLayout,
-  type TileScale,
-} from "~/app/static/map/Tile/Base/base";
+import { DynamicBaseTileLayout } from "../Tile/Base";
+import type { TileScale } from "~/app/map/Canvas/base/BaseTileLayout";
 import { DynamicEmptyTile } from "../Tile/Empty/empty";
 import type { TileData } from "../types/tile-data";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import type { URLInfo } from "../types/url-info";
+import { useCanvasTheme } from ".";
+import { useEffect } from "react";
+import { loggers } from "~/lib/debug/debug-logger";
 
 const CHILD_INDICES = [1, 2, 3, 4, 5, 6] as const;
 
@@ -34,6 +35,7 @@ export interface DynamicFrameProps {
   urlInfo: URLInfo;
   interactive?: boolean;
   currentUserId?: number;
+  selectedTileId?: string | null;
 }
 
 /**
@@ -45,6 +47,18 @@ export interface DynamicFrameProps {
 export const DynamicFrame = (props: DynamicFrameProps) => {
   const { center, mapItems, scale = 3 } = props;
   const centerItem = mapItems[center];
+  const { isDarkMode } = useCanvasTheme();
+  
+  // Log frame render
+  useEffect(() => {
+    loggers.render.canvas('DynamicFrame render', {
+      center,
+      scale,
+      hasItem: !!centerItem,
+      isExpanded: centerItem ? props.expandedItemIds?.includes(centerItem.metadata.dbId) ?? false : false,
+      childCount: centerItem ? getChildCoordIds(centerItem).filter(id => mapItems[id]).length : 0,
+    });
+  }); // No deps - logs every render
 
   if (!centerItem) return null;
 
@@ -62,6 +76,7 @@ export const DynamicFrame = (props: DynamicFrameProps) => {
         urlInfo={props.urlInfo}
         interactive={props.interactive}
         currentUserId={props.currentUserId}
+        isSelected={props.selectedTileId === centerItem.metadata.coordId}
       />
     );
   }
@@ -71,12 +86,14 @@ export const DynamicFrame = (props: DynamicFrameProps) => {
   const nextScale: TileScale = scale > 1 ? ((scale - 1) as TileScale) : 1;
 
   return (
-    <StaticBaseTileLayout
+    <DynamicBaseTileLayout
       baseHexSize={props.baseHexSize ?? 50}
       scale={scale}
       color={getColorFromItem(centerItem)}
       coordId={centerItem.metadata.coordId}
       _shallow={true}
+      isExpanded={true}
+      isDarkMode={isDarkMode}
     >
       <div className="scale-90 transform" style={{ position: "relative", zIndex: 5 }}>
         <FrameInterior
@@ -88,9 +105,10 @@ export const DynamicFrame = (props: DynamicFrameProps) => {
           urlInfo={props.urlInfo}
           interactive={props.interactive}
           currentUserId={props.currentUserId}
+          selectedTileId={props.selectedTileId}
         />
       </div>
-    </StaticBaseTileLayout>
+    </DynamicBaseTileLayout>
   );
 };
 
@@ -107,8 +125,27 @@ const FrameInterior = (props: {
   urlInfo: URLInfo;
   interactive?: boolean;
   currentUserId?: number;
+  selectedTileId?: string | null;
 }) => {
   const { centerItem, baseHexSize = 50, childScale } = props;
+  
+  // Log frame interior render
+  useEffect(() => {
+    const childCoordIds = getChildCoordIds(centerItem);
+    const childStats = childCoordIds.map(id => ({
+      exists: !!props.mapItems[id],
+      isExpanded: props.mapItems[id] ? props.expandedItemIds?.includes(props.mapItems[id].metadata.dbId) ?? false : false,
+    }));
+    
+    loggers.render.canvas('FrameInterior render', {
+      centerCoordId: centerItem.metadata.coordId,
+      centerDbId: centerItem.metadata.dbId,
+      childScale,
+      totalChildren: childCoordIds.length,
+      existingChildren: childStats.filter(s => s.exists).length,
+      expandedChildren: childStats.filter(s => s.exists && s.isExpanded).length,
+    });
+  });
   
   // Calculate margin for hexagon rows
   // Note: We need to use the PARENT's scale (childScale + 1) for proper edge sharing
@@ -162,6 +199,7 @@ const FrameInterior = (props: {
                 urlInfo={props.urlInfo}
                 interactive={props.interactive}
                 currentUserId={props.currentUserId}
+                selectedTileId={props.selectedTileId}
               />
             );
           })}
@@ -191,9 +229,22 @@ const FrameSlot = (props: {
   urlInfo: URLInfo;
   interactive?: boolean;
   currentUserId?: number;
+  selectedTileId?: string | null;
 }) => {
   const { coordId, mapItems, slotScale, isCenter } = props;
   const item = mapItems[coordId];
+  
+  // Log frame slot render
+  useEffect(() => {
+    loggers.render.canvas('FrameSlot render', {
+      coordId,
+      slotScale,
+      isCenter,
+      hasItem: !!item,
+      isExpanded: item ? props.expandedItemIds?.includes(item.metadata.dbId) ?? false : false,
+      isSelected: props.selectedTileId === coordId,
+    });
+  });
 
   // Empty slot
   if (!item && !isCenter) {
@@ -215,6 +266,7 @@ const FrameSlot = (props: {
         parentItem={parentItem ? {
           id: parentItem.metadata.dbId,
           name: parentItem.data.name,
+          ownerId: parentItem.metadata.ownerId,
         } : undefined}
         interactive={props.interactive}
         currentUserId={props.currentUserId}
@@ -239,6 +291,7 @@ const FrameSlot = (props: {
         urlInfo={props.urlInfo}
         interactive={props.interactive}
         currentUserId={props.currentUserId}
+        isSelected={props.selectedTileId === item.metadata.coordId}
       />
     );
   }
@@ -255,6 +308,7 @@ const FrameSlot = (props: {
         urlInfo={props.urlInfo}
         interactive={props.interactive}
         currentUserId={props.currentUserId}
+        selectedTileId={props.selectedTileId}
       />
     );
   }
@@ -270,6 +324,7 @@ const FrameSlot = (props: {
       urlInfo={props.urlInfo}
       interactive={props.interactive}
       currentUserId={props.currentUserId}
+      isSelected={props.selectedTileId === item.metadata.coordId}
     />
   );
 };

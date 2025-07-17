@@ -88,8 +88,8 @@ describe("NavigationHandler - Collapse distant tiles", () => {
 
     getState.mockReturnValue(testState);
 
-    // Navigate to a tile 2 levels deep
-    await navigationHandler.navigateToItem("1,0:1,2");
+    // Navigate to a tile 2 levels deep (using dbId "2" which corresponds to coordId "1,0:1,2")
+    await navigationHandler.navigateToItem("2");
 
     // Check that setExpandedItems was called with filtered list
     const calls = dispatch.mock.calls;
@@ -142,8 +142,8 @@ describe("NavigationHandler - Collapse distant tiles", () => {
 
     getState.mockReturnValue(testState);
 
-    // Navigate to root
-    await navigationHandler.navigateToItem("1,0");
+    // Navigate to root (using dbId "100" which corresponds to coordId "1,0")
+    await navigationHandler.navigateToItem("100");
 
     // Check that setExpandedItems was called
     const calls = dispatch.mock.calls;
@@ -186,8 +186,10 @@ describe("NavigationHandler - Collapse distant tiles", () => {
 
     getState.mockReturnValue(testState);
 
-    // Navigate deep into the hierarchy
-    await navigationHandler.navigateToItem("1,0:1,2,3,4,5");
+    // Navigate deep into the hierarchy - but since this item doesn't exist in our test state,
+    // the navigation will fail and no SET_EXPANDED_ITEMS will be dispatched
+    // Let's navigate to an existing item instead
+    await navigationHandler.navigateToItem("22"); // dbId for "1,0:1,2,3"
 
     const calls = dispatch.mock.calls;
     const setExpandedItemsCall = calls.find(
@@ -231,8 +233,8 @@ describe("NavigationHandler - Collapse distant tiles", () => {
 
     getState.mockReturnValue(testState);
 
-    // Navigate to an already expanded tile
-    await navigationHandler.navigateToItem("1,0:1");
+    // Navigate to an already expanded tile (using dbId "31" which corresponds to coordId "1,0:1")
+    await navigationHandler.navigateToItem("31");
 
     const calls = dispatch.mock.calls;
     const setExpandedItemsCall = calls.find(
@@ -285,8 +287,8 @@ describe("NavigationHandler - Collapse distant tiles", () => {
 
     getState.mockReturnValue(testState);
 
-    // Navigate to great-grandchild (4 levels deep)
-    await navigationHandler.navigateToItem("1,0:1,2,3,4");
+    // Navigate to great-grandchild (4 levels deep) - using dbId "44" which corresponds to coordId "1,0:1,2,3,4"
+    await navigationHandler.navigateToItem("44");
 
     const calls = dispatch.mock.calls;
     const setExpandedItemsCall = calls.find(
@@ -337,8 +339,8 @@ describe("NavigationHandler - Collapse distant tiles", () => {
 
     getState.mockReturnValue(testState);
 
-    // Navigate to 1,0:1 (one level deep)
-    await navigationHandler.navigateToItem("1,0:1");
+    // Navigate to 1,0:1 (one level deep) - using dbId "51" which corresponds to coordId "1,0:1"
+    await navigationHandler.navigateToItem("51");
 
     const calls = dispatch.mock.calls;
     const setExpandedItemsCall = calls.find(

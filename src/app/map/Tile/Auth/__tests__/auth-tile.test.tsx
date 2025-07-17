@@ -1,15 +1,14 @@
+import '~/test/setup'; // Import test setup FIRST
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import AuthTile from '../auth';
 
-// Mock the LoginForm and RegisterForm components
-vi.mock('~/components/auth/login-form', () => ({
-  LoginForm: () => <div data-testid="login-form">Login Form</div>
-}));
+// No need to mock forms anymore as they're not used
 
-vi.mock('~/components/auth/register-form', () => ({
-  RegisterForm: () => <div data-testid="register-form">Register Form</div>
+// Mock the Canvas theme hook
+vi.mock('~/app/map/Canvas', () => ({
+  useCanvasTheme: () => ({ isDarkMode: false })
 }));
 
 describe('AuthTile', () => {
@@ -29,22 +28,27 @@ describe('AuthTile', () => {
     expect(style.height).toBe('900px');
   });
   
-  it('renders login form by default', () => {
+  it('renders authentication message', () => {
     render(<AuthTile />);
     
-    // Check for login-specific content
-    expect(screen.getByText('Welcome Back')).toBeInTheDocument();
-    expect(screen.getByText('Please login to continue.')).toBeInTheDocument();
-    expect(screen.getByTestId('login-form')).toBeInTheDocument();
+    // Check for auth content
+    expect(screen.getByText('Authentication')).toBeInTheDocument();
+    expect(screen.getByText('Please use the chat interface to log in or sign up.')).toBeInTheDocument();
+    expect(screen.getByText('The chat assistant will help you authenticate.')).toBeInTheDocument();
   });
   
-  it('renders register form when initialView is register', () => {
+  it('shows login message when initialView is login', () => {
+    render(<AuthTile initialView="login" />);
+    
+    // Check for login-specific message
+    expect(screen.getByText(/Open the chat panel and follow the prompts to log in/)).toBeInTheDocument();
+  });
+  
+  it('shows register message when initialView is register', () => {
     render(<AuthTile initialView="register" />);
     
-    // Check for register-specific content
-    expect(screen.getByText('Create Account')).toBeInTheDocument();
-    expect(screen.getByText('Sign up to get started.')).toBeInTheDocument();
-    expect(screen.getByTestId('register-form')).toBeInTheDocument();
+    // Check for register-specific message
+    expect(screen.getByText(/Open the chat panel and follow the prompts to create an account/)).toBeInTheDocument();
   });
   
   it('has correct SVG structure for hexagon', () => {
@@ -55,7 +59,7 @@ describe('AuthTile', () => {
     expect(svg).toBeTruthy();
     
     // Check SVG has correct viewBox
-    expect(svg?.getAttribute('viewBox')).toBe('-2 -2 104 119.47'); // Padded for scale 3
+    expect(svg?.getAttribute('viewBox')).toBe('0 0 100 115.47');
     
     // Check path exists with correct d attribute
     const path = svg?.querySelector('path');

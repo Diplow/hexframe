@@ -238,7 +238,7 @@ async function main() {
     console.log("  • Recreate schema from current code");
     console.log("  • ALL DATA WILL BE LOST PERMANENTLY\n");
 
-    log.info(`Database: ${databaseUrl.replace(/\/\/.*@/, "//***:***@")}`); // Hide credentials
+    log.info(`Database: ${databaseUrl.replace(/\/\/.*~/, "//***:***@")}`); // Hide credentials
     log.info(`Table prefix: ${tablePrefix}\n`);
 
     // First confirmation

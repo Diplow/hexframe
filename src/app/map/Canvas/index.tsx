@@ -9,15 +9,36 @@ import {
   type ReactNode,
 } from "react";
 import { useAuth } from "~/contexts/AuthContext";
-import type { CenterInfo } from "~/app/static/map/Canvas/index";
+// CenterInfo type definition moved locally
+export interface CenterInfo {
+  center: string;
+  rootItemId: number;
+  userId: number;
+  groupId: number;
+}
 import { DynamicFrame } from "./frame";
-import type { TileScale } from "~/app/static/map/Tile/Base/base";
+import type { TileScale } from "~/app/map/Canvas/base/BaseTileLayout";
 import { useMapCache } from "../Cache/map-cache";
 import type { URLInfo } from "../types/url-info";
 import { MapLoadingSkeleton } from "./LifeCycle/loading-skeleton";
 import { MapErrorBoundary } from "./LifeCycle/error-boundary";
 import { useDragAndDropWithMutation } from "./hooks/useDragAndDropWithMutation";
 import type { DragEvent } from "react";
+import { loggers } from "~/lib/debug/debug-logger";
+import { useEventBus } from "../Services/EventBus/event-bus-context";
+
+// Theme Context for tiles
+export interface ThemeContextValue {
+  isDarkMode: boolean;
+}
+
+export const CanvasThemeContext = createContext<ThemeContextValue>({
+  isDarkMode: false,
+});
+
+export function useCanvasTheme() {
+  return useContext(CanvasThemeContext);
+}
 
 // Legacy Tile Actions Context for drag and drop
 export interface LegacyTileActionsContextValue {
@@ -98,7 +119,36 @@ export function DynamicMapCanvas({
     updateCenter,
   } = useMapCache();
   const [isHydrated, setIsHydrated] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [selectedTileId, setSelectedTileId] = useState<string | null>(null);
   const { mappingUserId } = useAuth();
+  const eventBus = useEventBus();
+  
+  // Log component mount/unmount
+  useEffect(() => {
+    loggers.render.canvas('DynamicMapCanvas mounted', {
+      centerInfo,
+      expandedItemIds: expandedItemIds.length,
+      urlInfo,
+    });
+    
+    return () => {
+      loggers.render.canvas('DynamicMapCanvas unmounted');
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- Only log mount/unmount
+  
+  // Listen for tile selection events
+  useEffect(() => {
+    const unsubscribe = eventBus.on('map.tile_selected', (event) => {
+      // Update selected tile when a tile is selected
+      if ('payload' in event && event.payload && typeof event.payload === 'object' && 'tileId' in event.payload) {
+        const tileId = (event.payload as { tileId: string }).tileId;
+        setSelectedTileId(tileId);
+      }
+    });
+    
+    return unsubscribe;
+  }, [eventBus]);
   
   // Initialize drag and drop functionality
   const {
@@ -114,13 +164,31 @@ export function DynamicMapCanvas({
   useEffect(() => {
     // Initialize hydration
     setIsHydrated(true);
+    
+    // Check initial dark mode state
+    const checkDarkMode = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'));
+    };
+    
+    checkDarkMode();
+    
+    // Listen for theme changes
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+    
+    return () => observer.disconnect();
   }, []); // Run only once on mount
 
   // Separate effect for center initialization - only on first mount
   useEffect(() => {
     // Initialize cache state with props if not already set
     if (!center && centerInfo.center) {
-      // Initializing center
+      loggers.render.canvas('DynamicMapCanvas initializing center', {
+        newCenter: centerInfo.center,
+      });
       updateCenter(centerInfo.center);
     }
   }, [center, centerInfo.center, updateCenter]); // Include dependencies
@@ -151,6 +219,24 @@ export function DynamicMapCanvas({
     }),
     [dragHandlers, canDragTile, isDraggingTile, isDropTarget, isValidDropTarget, isDragging, getDropOperation],
   );
+
+  // Use dynamic center and expanded items from cache state
+  const currentCenter = center ?? centerInfo.center;
+  const currentExpandedItems =
+    expandedItems.length > 0 ? expandedItems : expandedItemIds;
+
+  // Log render - now completely isolated and won't cause re-renders
+  useEffect(() => {
+    loggers.render.canvas('DynamicMapCanvas render', {
+      center: currentCenter,
+      expandedItems: currentExpandedItems.length,
+      itemCount: Object.keys(items).length,
+      isLoading,
+      hasError: !!error,
+      isDarkMode,
+      isHydrated,
+    });
+  });
 
   // Canvas should just display, not manage loading
   // All loading is handled by MapCache internally when center changes
@@ -184,11 +270,6 @@ export function DynamicMapCanvas({
     );
   }
 
-  // Use dynamic center and expanded items from cache state
-  const currentCenter = center ?? centerInfo.center;
-  const currentExpandedItems =
-    expandedItems.length > 0 ? expandedItems : expandedItemIds;
-
   // Create dynamic center info
   const dynamicCenterInfo = {
     ...centerInfo,
@@ -198,23 +279,27 @@ export function DynamicMapCanvas({
   // Rendering canvas with current state
 
   return (
-    <LegacyTileActionsContext.Provider value={tileActions}>
-      <div className="relative flex h-full w-full flex-col">
-        <div
-          data-canvas-id={dynamicCenterInfo.center}
-          className="pointer-events-auto grid flex-grow place-items-center overflow-auto p-4"
-        >
-          <DynamicFrame
-            center={dynamicCenterInfo.center}
-            mapItems={items}
-            baseHexSize={50}
-            expandedItemIds={currentExpandedItems}
-            scale={3 as TileScale}
-            urlInfo={urlInfo}
-            currentUserId={mappingUserId}
-          />
+    <CanvasThemeContext.Provider value={{ isDarkMode }}>
+      <LegacyTileActionsContext.Provider value={tileActions}>
+        <div className="relative flex h-full w-full flex-col">
+          <div
+            data-canvas-id={dynamicCenterInfo.center}
+            className="pointer-events-auto grid flex-grow place-items-center overflow-auto py-4"
+          >
+            <DynamicFrame
+              center={dynamicCenterInfo.center}
+              mapItems={items}
+              baseHexSize={50}
+              expandedItemIds={currentExpandedItems}
+              scale={3 as TileScale}
+              urlInfo={urlInfo}
+              interactive={true}
+              currentUserId={mappingUserId}
+              selectedTileId={selectedTileId}
+            />
+          </div>
         </div>
-      </div>
-    </LegacyTileActionsContext.Provider>
+      </LegacyTileActionsContext.Provider>
+    </CanvasThemeContext.Provider>
   );
 }

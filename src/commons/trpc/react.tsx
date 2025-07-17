@@ -1,14 +1,65 @@
 "use client";
 
 import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
-import { loggerLink, unstable_httpBatchStreamLink } from "@trpc/client";
+import { loggerLink, unstable_httpBatchStreamLink, type TRPCLink } from "@trpc/client";
 import { createTRPCReact } from "@trpc/react-query";
 import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
+import { observable } from "@trpc/server/observable";
 import { useState } from "react";
 import SuperJSON from "superjson";
 
 import { type AppRouter } from "~/server/api/root";
 import { createQueryClient } from "./query-client";
+import { loggers } from "~/lib/debug/debug-logger";
+
+// Custom debug logging link for comprehensive API call tracking
+const debugLoggerLink: TRPCLink<AppRouter> = () => {
+  return ({ next, op }) => {
+    const startTime = Date.now();
+    const requestId = `${op.type}-${op.path}-${Math.random().toString(36).substring(7)}`;
+    
+    // Log the request
+    loggers.api(`tRPC ${op.type.toUpperCase()}: ${op.path}`, {
+      requestId,
+      type: op.type,
+      path: op.path,
+      input: op.input,
+      context: op.context
+    });
+
+    return observable((observer) => {
+      const unsubscribe = next(op).subscribe({
+        next(value) {
+          const duration = Date.now() - startTime;
+          loggers.api(`tRPC RESPONSE: ${op.path} (${duration}ms)`, {
+            requestId,
+            type: op.type,
+            path: op.path,
+            result: value
+          });
+          observer.next(value);
+        },
+        error(err) {
+          const duration = Date.now() - startTime;
+          loggers.api(`tRPC ERROR: ${op.path} (${duration}ms)`, {
+            requestId,
+            type: op.type,
+            path: op.path,
+            error: err,
+            input: op.input,
+            timestamp: new Date().toISOString(),
+            stackTrace: err instanceof Error ? err.stack : undefined,
+          });
+          observer.error(err);
+        },
+        complete() {
+          observer.complete();
+        },
+      });
+      return unsubscribe;
+    });
+  };
+};
 
 let clientQueryClientSingleton: QueryClient | undefined = undefined;
 const getQueryClient = () => {
@@ -42,10 +93,12 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
   const [trpcClient] = useState(() =>
     api.createClient({
       links: [
+        debugLoggerLink,
         loggerLink({
-          enabled: (op) =>
-            process.env.NODE_ENV === "development" ||
-            (op.direction === "down" && op.result instanceof Error),
+          enabled: (op) => {
+            if (process.env.NODE_ENV === "development") return true;
+            return op.direction === "down" && op.result instanceof Error;
+          },
         }),
         unstable_httpBatchStreamLink({
           transformer: SuperJSON,

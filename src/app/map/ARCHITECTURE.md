@@ -2,30 +2,90 @@
 
 ## Overview
 
-The map application provides two separate routes:
-- `/map` - Dynamic, JavaScript-required version with full interactivity
-- `/static/map` - Static, server-rendered version that works without JavaScript
-
-This separation allows users to choose the appropriate version based on their needs and capabilities.
-
-**Important Note**: The architecture has evolved from the original progressive enhancement approach (where static components were enhanced) to a **dual-route architecture** where static and dynamic versions maintain separate component hierarchies. This provides clearer separation of concerns and simpler implementation.
+The map application provides a single dynamic route (`/map`) with full JavaScript interactivity, client-side caching, and real-time features. The architecture has been simplified from the previous dual-route approach to focus on delivering the best interactive experience.
 
 ## Core Architectural Principles
 
-### 1. Dual-Route Architecture
+### 1. Single-Route Dynamic Architecture
 
-The application provides two distinct experiences:
+The application provides a unified dynamic experience:
 
-- **Static Route (`/static/map`)**: Pure server-side rendering with URL-based state management
 - **Dynamic Route (`/map`)**: Full client-side interactivity with caching and real-time features
+- **Base Components**: Reusable components (`BaseFrame`, `BaseTileLayout`) for rendering without interactivity when needed
 
-### 2. Component Separation Strategy
+### 2. Component Organization Strategy
 
-**Route-Based Separation**: Static and dynamic components live in separate route hierarchies (`/static/map` vs `/map`), avoiding complexity of progressive enhancement while maintaining clear boundaries.
+**Unified Component Library**: All components live within the `/map` route hierarchy, with base components extracted for reusability in non-interactive contexts (e.g., loading states).
 
-**Shared Business Logic**: While UI components are separate, core business logic (domains, utilities) is shared between routes to maintain consistency.
+**Shared Business Logic**: Core business logic (domains, utilities) is centralized and shared across all components to maintain consistency.
 
-**Parallel Development**: Both routes can evolve independently based on their constraints - static route prioritizes SSR and accessibility, dynamic route prioritizes interactivity and real-time features.
+**Focused Development**: Single architecture allows focused development on interactive features while maintaining clean component boundaries.
+
+### 3. Event-Driven Communication
+
+**Event Bus Pattern**: The map uses a shared event bus for cross-system communication, enabling loose coupling between components like MapCache and ChatCache.
+
+```typescript
+interface EventBusService {
+  emit(event: AppEvent): void;
+  on(eventType: string, listener: (event: AppEvent) => void): () => void;
+}
+
+// Event namespaces
+// map.*   - Map operations (tile CRUD, navigation, selection)
+// chat.*  - Chat operations (messages, widgets)
+// auth.*  - Authentication events
+// sync.*  - Synchronization events
+```
+
+The Event Bus implementation is located in `/map/Services/EventBus/`.
+
+## Major Components
+
+### 1. MapCache (`/map/Cache`)
+
+The central data management system that handles all map data operations, caching, and synchronization. It serves both the Canvas and Chat components.
+
+**Key Features**:
+- Region-based hierarchical loading
+- Optimistic updates with rollback
+- Event bus integration for cross-component communication
+- URL synchronization for shareable views
+
+See [Cache/ARCHITECTURE.md](./Cache/ARCHITECTURE.md) for detailed architecture.
+
+### 2. Canvas (`/map/Canvas`)
+
+The visual rendering layer responsible for the hexagonal map interface and tile interactions.
+
+**Key Features**:
+- Hierarchical component structure (Canvas → Frame → Tile)
+- Centralized action management for performance
+- Drag-and-drop system with optimistic updates
+- Context menu system
+
+See [Canvas/ARCHITECTURE.md](./Canvas/ARCHITECTURE.md) for detailed architecture.
+
+### 3. Chat (`/map/Chat`)
+
+The conversational interface layer that provides an alternative way to interact with the map through commands and messages.
+
+**Key Features**:
+- Event-driven state management
+- Widget system for complex interactions
+- Command processing
+- Real-time event translation
+
+See [Chat/ARCHITECTURE.md](./Chat/ARCHITECTURE.md) for detailed architecture.
+
+### 4. Hierarchy (`/map/Hierarchy`)
+
+The navigation control that shows the hierarchical path from the root to the current tile.
+
+**Key Features**:
+- Breadcrumb-style navigation
+- Quick access to parent tiles
+- Visual hierarchy representation
 
 ## State Management Strategy
 
@@ -45,9 +105,9 @@ The application prioritizes URL parameters for shareable and bookmarkable state:
 3. **Component State**: Temporary UI state (drag operations, dialogs, loading states)
 4. **Cache State**: Server data with background synchronization
 
-## Component Architecture Layers
+## Page Layer Architecture
 
-### 1. Page Layer (`page.tsx`)
+### Page Layer (`page.tsx`)
 
 **Responsibility**: Server-side data fetching, URL parameter parsing, initial data formatting
 
@@ -56,487 +116,204 @@ The application prioritizes URL parameters for shareable and bookmarkable state:
 - Renders appropriate canvas component based on requirements
 - Handles initial focus and redirection logic
 
-### 2. Canvas Layer
+## Communication Layer (Event Bus)
 
-#### Dynamic Route Canvas (`/map/Canvas/index.tsx`)
+The event bus serves a **dual purpose** in the application:
+1. **Notification Events**: Broadcast what has happened (most common)
+2. **Request Events**: Ask another component to perform an action (UI coordination)
 
-**Type**: Dynamic (Client-Side)
+### Event Types and Usage
 
-- Manages cache synchronization and background updates
-- Provides centralized tile action management
-- Handles client-side state and interactions
-- Integrates with MapCache for data management
+#### 1. Notification Events (90% of events)
 
-#### Static Route Canvas (`/static/map/Canvas/index.tsx`)
+**Events describe the past**:
+- ✅ `map.tile_created` - "A tile was created"
+- ✅ `auth.logged_in` - "User logged in"
+- ✅ `map.tiles_swapped` - "Tiles were swapped"
 
-**Type**: Static (Pure Rendering)
-
-- Orchestrates layout of hex frames, controls, and overlays
-- Works with server-provided data only
-- No client-side state management or side effects
-- Pure SSR with URL-based interactions
-
-### 3. Frame Layer
-
-#### Dynamic Route Frame (`/map/Canvas/frame.tsx`)
-
-**Type**: Dynamic (Client-Side)
-
-- Recursive hexagonal layout rendering with client-side features
-- Handles expansion with smooth transitions
-- Manages drag-and-drop zones
-- Integrates with centralized action management
-
-#### Static Route Frame (`/static/map/Canvas/frame.tsx`)
-
-**Type**: Static (Pure Rendering)
-
-- Recursive hexagonal layout rendering
-- Handles expansion logic based on URL parameters
-- No client-side state or interactions
-- Renders tile components in hexagonal patterns
-
-### 4. Tile Layer
-
-#### Dynamic Route Tiles
-
-**ItemTile** (`/map/Tile/Item/item.tsx`)
-- Full client-side interactivity
-- Optimistic updates for edits
-- Integrated with MapCache
-- Real-time synchronization
-
-**ItemButtons** (`/map/Tile/Item/item.buttons.tsx`)
-- Dynamic button states based on permissions
-- Client-side action handlers
-- Loading states during mutations
-- Context-aware visibility
-
-#### Static Route Tiles
-
-**ItemTile** (`/static/map/Tile/Item/item.tsx`)
-- Server-rendered content
-- URL-based expand/collapse
-- Form-based interactions (edit/delete)
-- No JavaScript dependencies
-
-**ItemButtons** (`/static/map/Tile/Item/item.buttons.tsx`)
-- Static links to edit/delete pages
-- Visibility based on server-side permissions
-- Progressive enhancement ready
-- Fallback patterns for mutations
-
-### 5. Controls Layer
-
-#### ActionPanel (`Controls/ActionPanel.tsx`)
-
-**Type**: Pseudo-Static (localStorage + URL)
-
-- Manages interaction modes (select, edit, delete, etc.)
-- Persists state to localStorage
-- Updates document cursor based on mode
-- No server-side state dependencies
-
-#### ScaleController (`Controls/scale.controller.tsx`)
-
-**Type**: Pseudo-Static (URL State)
-
-- Manages zoom level through URL parameters
-- Uses Next.js router for navigation
-- Loading states during transitions
-
-## Data Flow Architecture
-
-### Region-Based Caching Strategy
-
-#### Region Concept
-
-A **region** represents a complete map dataset identified by `userId-groupId` pairs.
-
-**Design Rationale**:
-
-- **Data Locality**: Items within the same user-group context are frequently accessed together
-- **Permission Boundaries**: User-group combinations align with data access permissions
-- **Cache Efficiency**: Bulk loading reduces API calls and improves performance
-- **Predictable Invalidation**: Changes can be efficiently invalidated at the region level
-
-#### Hierarchical Loading Strategy
-
-**Problem**: Large maps with thousands of items don't scale with region-based loading.
-
-**Solution**: Depth-based incremental loading with practical limits.
-
-**Core Principle**: Load items progressively based on their depth in the hierarchy:
-
-- **Initial Load**: Center + immediate children + grandchildren (max ~43 items)
-- **On-Demand Expansion**: Load additional depth levels when navigating/expanding
-- **Background Prefetching**: Intelligently prefetch likely-to-be-accessed items
-
-#### Item-Based Cache Key Structure
-
-Cache individual items by their coordinates rather than by regions to avoid duplication and enable efficient updates:
+**Flow**: Component → Service → State Change → Notification Event
 
 ```typescript
-// Cache individual items by coordinates
-interface ItemCacheKey {
-  coordId: string; // "userId,groupId:path" - unique coordinate
-  loadedAt: timestamp; // For cache invalidation
+// Direct action, then notification
+const tile = await mapCache.createTile(data);
+eventBus.emit({
+  type: 'map.tile_created',  // Past tense!
+  source: 'map_cache',
+  payload: { tileId: tile.id, tileName: tile.name }
+});
+```
+
+#### 2. Request Events (10% of events)
+
+**Events request UI coordination**:
+- ✅ `map.edit_requested` - "Canvas asks Chat to show edit widget"
+- ✅ `map.delete_requested` - "Canvas asks Chat to show delete confirmation"
+
+**Flow**: Component A → Request Event → Component B → UI Action
+
+```typescript
+// Canvas requests Chat to handle user input
+eventBus.emit({
+  type: 'map.edit_requested',  // Request form
+  source: 'canvas',
+  payload: { tileId, tileData }
+});
+```
+
+### Why Request Events?
+
+Request events are justified when:
+- One component has capabilities another lacks (Chat handles text input better than Canvas)
+- Direct coupling would violate component boundaries
+- UI coordination requires cross-component interaction
+- The alternative would be awkward shared state or direct dependencies
+
+### How Components Interact
+
+```
+Canvas ──────→ MapCache ──────→ EventBus
+    │             ↑                 ↑
+    │             │                 │
+    └─(requests)─→└──── Chat ───────┘
+```
+
+**Component Knowledge**:
+- **Canvas**: Knows MapCache (for data) and can emit request events
+- **Chat**: Knows MapCache (for mutations) AND EventBus (for all events)
+- **MapCache**: Only knows EventBus (to notify about changes)
+- **EventBus**: Knows nothing (pure message broker)
+
+### Implementation Patterns
+
+```typescript
+// Notification Event (after action completes)
+function swapTiles(tile1Id: string, tile2Id: string) {
+  const result = performSwapOperation(tile1Id, tile2Id);
+  updateCacheState(result);
+  
+  eventBus.emit({
+    type: 'map.tiles_swapped',  // Past tense - notification
+    source: 'map_cache',
+    payload: { tile1Id, tile2Id }
+  });
 }
 
-// Track which regions have been loaded
-interface RegionMetadata {
-  centerCoordId: string; // Focal point that was loaded
-  maxDepth: number; // Maximum depth loaded from this center
-  loadedAt: timestamp; // When this region was loaded
-  itemCoordIds: string[]; // Which items were loaded
+// Request Event (asking for UI action)
+function handleEditClick(tileData: TileData) {
+  eventBus.emit({
+    type: 'map.edit_requested',  // Request form
+    source: 'canvas',
+    payload: { 
+      tileId: tileData.id,
+      tileData,
+      openInEditMode: true 
+    }
+  });
 }
 ```
 
-**Benefits**:
+### Benefits of This Dual Approach
 
-- **No Duplication**: Each item exists once in cache
-- **Efficient Updates**: Updating an item updates it everywhere
-- **Simple Invalidation**: Invalidate by coordId affects all regions
-- **Memory Efficient**: No redundant storage
-- **Consistent State**: Single source of truth per item
+1. **Flexibility**: Supports both data flow and UI coordination
+2. **Clear Intent**: Event names clearly indicate notifications vs requests
+3. **Component Isolation**: Canvas and Chat remain decoupled
+4. **Single Communication Channel**: All cross-component communication goes through event bus
+5. **Testability**: Both patterns are easy to test and mock
 
-## Centralized Tile Action Management
+## Event Validation with Zod
 
-### Problem: Hook Proliferation
-
-With hundreds of tiles rendered simultaneously, individual hooks in each tile would create performance issues and memory overhead.
-
-### Solution: Centralized Action Coordination
-
-The DynamicMapCanvas acts as a **centralized action coordinator**:
-
-1. **Provides Context**: Uses React Context to provide action handlers to all descendant tiles
-2. **Coordinates by Coordinates**: Tiles identify themselves by coordinate ID for action routing
-3. **Manages Interaction State**: Centralizes interaction mode logic (select, edit, delete, etc.)
-4. **Optimizes Performance**: Single set of handlers shared across all tiles
+To ensure type safety and prevent runtime errors from malformed events, the system uses Zod schemas for event validation. This provides:
 
 **Benefits**:
+- **Runtime Type Safety**: Events are validated before processing
+- **Clear Contracts**: Event schemas serve as documentation
+- **Error Prevention**: Invalid events are caught early
+- **Better Developer Experience**: TypeScript types derived from schemas
 
-- **Performance**: Single set of handlers instead of N×handlers for N tiles
-- **Consistency**: All tiles use the same interaction logic
-- **Maintainability**: Action logic centralized in one place
-- **Flexibility**: Easy to add new interaction modes
-- **Memory Efficiency**: Reduced memory footprint for large maps
+**Implementation**:
+```typescript
+// Event schemas in /map/types/event-schemas.ts
+export const mapTileSelectedEventSchema = baseEventSchema.extend({
+  type: z.literal('map.tile_selected'),
+  source: z.literal('map_cache'),
+  payload: z.object({
+    tileId: z.string(),
+    tileData: z.object({
+      title: z.string(),
+      description: z.string().optional(),
+      content: z.string().optional(),
+      coordId: z.string(),
+    }),
+    openInEditMode: z.boolean().optional(),
+  }),
+});
 
-## Dynamic Requirements Analysis
+// Validation in event processors
+export function validateAndTransformMapEvent(mapEvent: AppEvent): ChatEvent | null {
+  const validationResult = safeValidateEvent(mapEvent);
+  
+  if (!validationResult.success) {
+    console.warn('Invalid event received:', validationResult.error);
+    return null;
+  }
+  
+  // Process validated event with full type safety
+  const validEvent = validationResult.data;
+  // ...
+}
+```
 
-### Confirmed Dynamic Requirements
+**Event Validation Pattern**:
+1. Define Zod schemas for all event types
+2. Use discriminated unions for type-safe event handling
+3. Validate events at system boundaries (when receiving from event bus)
+4. Log validation errors for debugging
+5. Gracefully handle invalid events without crashing
+
+## Key Features
+
+### Core Dynamic Features
 
 **1. Map Edition (CRUD + Move Operations)**
-
-- **Why Dynamic**: Immediate feedback, optimistic updates, complex state management
-- **Implementation**: Dynamic mutations with cache updates
+- Immediate feedback with optimistic updates
+- Complex state management with MapCache
+- Real-time synchronization
 
 **2. Authentication State Management**
+- Session changes and permission updates
+- Real-time auth status
+- Auth context with dynamic components
 
-- **Why Dynamic**: Session changes, permission updates, real-time auth status
-- **Implementation**: Auth context with dynamic components
-
-### Features That Work Well Pseudo-Static
-
-**3. Tile Navigation**
-
-- **Current Approach**: URL-based navigation (instant, SEO-friendly, shareable)
-- **Recommendation**: Keep pseudo-static - URL navigation is more robust
+**3. URL-Based Navigation**
+- Shareable state via URL parameters
+- Instant navigation with client-side routing
+- SEO-friendly implementation
 
 **4. Tile Expansion/Collapse**
-
-- **Current Approach**: URL expandedItems parameter
-- **Why Superior**: Shareable state, SEO benefits, simple implementation
+- URL expandedItems parameter for shareable state
+- Smooth transitions with client-side animations
+- Maintains state across page refreshes
 
 **5. Scale Changes**
+- URL parameter with smooth zoom transitions
+- Client-side rendering optimizations
+- Consistent state management
 
-- **Current Approach**: URL parameter with page re-render
-- **Recommendation**: Keep pseudo-static - scale changes are infrequent
+## Performance Optimizations
 
-### Decision Framework
-
-**Make Dynamic If**:
-
-- Requires immediate user feedback
-- Involves complex state management
-- Benefits from optimistic updates
-- Needs real-time data synchronization
-
-**Keep Pseudo-Static If**:
-
-- State should be shareable via URL
-- Feature is used infrequently
-- SEO/accessibility is important
-- Implementation complexity is high relative to benefit
-
-## Dynamic-to-Static Fallback Strategy
-
-### Selective Fallback Implementation
-
-**Tier 1: Core Features - Full Fallback**
-
-- Essential features that MUST work without JS
-- Examples: View map, navigate tiles, expand tiles, basic auth
-
-**Tier 2: Enhanced Features - Graceful Degradation**
-
-- Features that enhance UX but aren't critical
-- Examples: Create/edit tiles (fallback to dedicated pages), delete tiles (fallback to confirmation pages)
-
-**Tier 3: Dynamic-Only Features - Clear Limitations**
-
-- Features that only work with JS, but clearly communicate this
-- Examples: Drag-and-drop, real-time sync, optimistic updates
-
-## Performance Implications
-
-### Current Benefits
-
-- **Instant Initial Loads**: Full SSR with no hydration delay
-- **SEO Optimized**: All content available to crawlers
-- **Shareable URLs**: All state encoded in URL
-- **No JavaScript Required**: Basic functionality works without JS
-
-### Dynamic Enhancements
-
-- **Smooth Interactions**: Client-side state updates
+### Client-Side Performance
+- **Smooth Interactions**: Instant client-side state updates
 - **Background Sync**: Fresh data without page reloads
 - **Optimistic Updates**: Immediate feedback for user actions
 - **Intelligent Caching**: Reduced server load and faster navigation
+- **Centralized Actions**: Single set of handlers for hundreds of tiles
 
-## Development Guidelines
+### Server-Side Benefits
+- **Initial SSR**: Fast first contentful paint
+- **Shareable URLs**: All state encoded in URL
+- **SEO Optimized**: Server-rendered content for crawlers
+- **Progressive Loading**: Hierarchical data loading strategy
 
-### When to Use Static Components
+## Testing Strategy
 
-- Pure rendering logic
-- Server-side rendering requirements
-- Shareable/bookmarkable state
-- SEO-critical content
-
-### When to Use Dynamic Components
-
-- Real-time interactions
-- Optimistic updates
-- Complex state management
-- Background data synchronization
-
-### Component Naming Convention
-
-- `Static*`: Pure rendering components
-- `Dynamic*`: Client-side enhanced components
-- `*Controller`: Pseudo-static components with URL/localStorage state
-- `use*Manager`: Hooks for complex state management
-
-## Migration Strategy
-
-### Phase 1: Foundation (Current)
-
-- ✅ Static components with URL state
-- ✅ Pseudo-static interactions via navigation
-- ✅ Server-side rendering and data fetching
-
-### Phase 2: Cache System
-
-- 🔄 MapCacheProvider and useMapCache hook
-- 🔄 DynamicMapCanvas as bridge component
-- 🔄 Background synchronization
-
-### Phase 3-6: Feature Enhancement
-
-- 📋 Create/Update/Delete flows with dynamic dialogs
-- 📋 Drag-and-drop with DraggableItemTile
-- 📋 Real-time collaboration features
-- 📋 Advanced caching strategies
-
----
-
-## Implementation Examples
-
-### Route-Based Component Separation
-
-**Pattern 1: Separate Implementations**
-
-```typescript
-// Dynamic route component (/map/Tile/Item/item.tsx)
-export function ItemTile({ item, urlInfo }) {
-  const { updateItem } = useMutations();
-  const [isEditing, setIsEditing] = useState(false);
-
-  return (
-    <div className="hex-tile">
-      <ItemContent item={item} />
-      <ItemButtons 
-        onEdit={() => setIsEditing(true)}
-        onDelete={() => handleDelete(item.id)}
-      />
-      {isEditing && <EditDialog onSubmit={updateItem} />}
-    </div>
-  );
-}
-
-// Static route component (/static/map/Tile/Item/item.tsx)
-export function ItemTile({ item, urlInfo }) {
-  return (
-    <div className="hex-tile">
-      <ItemContent item={item} />
-      <ItemButtons 
-        editHref={`/map/edit/${item.id}`}
-        deleteHref={`/map/delete/${item.id}`}
-      />
-    </div>
-  );
-}
-```
-
-**Pattern 2: Route-Specific Data Sources**
-
-```typescript
-// Dynamic route - uses client-side cache (/map/Canvas/index.tsx)
-export function MapCanvas({ centerInfo }) {
-  const { state } = useMapCache();
-  const { mutations } = useMutations();
-  
-  return (
-    <Canvas 
-      items={state.itemsById} 
-      centerInfo={centerInfo}
-      onTileAction={mutations.handleAction}
-    />
-  );
-}
-
-// Static route - uses server data (/static/map/Canvas/index.tsx)  
-export function MapCanvas({ items, centerInfo }) {
-  return (
-    <Canvas 
-      items={items} 
-      centerInfo={centerInfo}
-      // Actions handled via URL navigation
-    />
-  );
-}
-```
-
-**Pattern 3: Route-Based Selection**
-
-```typescript
-// Dynamic route (/map/page.tsx)
-export default async function MapPage({ searchParams }) {
-  const { center } = await searchParams;
-  return <DynamicMapPage params={{ id: center }} searchParams={searchParams} />;
-}
-
-// Static route (/static/map/page.tsx)
-export default async function StaticMapPage({ searchParams }) {
-  const data = await fetchData();
-  return <StaticMapCanvas items={data} />;
-}
-```
-
-### Centralized Tile Actions
-
-```typescript
-// Centralized tile actions hook
-function useTileActions() {
-  const { interactionMode } = useInteractionMode();
-  const { mutations } = useMutations();
-
-  const handleTileClick = useCallback((coordId: string, event: MouseEvent) => {
-    switch (interactionMode) {
-      case 'edit':
-        mutations.setTileToMutate(coordId);
-        break;
-      case 'delete':
-        // Show confirmation dialog
-        break;
-      case 'expand':
-        // Handle expansion logic
-        break;
-    }
-  }, [interactionMode, mutations]);
-
-  return { handleTileClick, handleTileDrag, handleTileHover };
-}
-
-// Dynamic route tiles consume actions via context
-function ItemTile({ item }) {
-  const { onTileClick } = useTileActionsContext();
-  const [isHovered, setIsHovered] = useState(false);
-
-  return (
-    <div 
-      onClick={(e) => onTileClick(item.metadata.coordId, e)}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className={`hex-tile ${isHovered ? 'hovered' : ''}`}
-    >
-      <ItemContent item={item} />
-      <ItemButtons item={item} />
-    </div>
-  );
-}
-```
-
-### Hierarchical Loading Implementation
-
-```typescript
-interface HierarchicalMapCache {
-  // Cache structure: items by coordId + region metadata
-  itemsById: Record<string, HexTileData>; // Key: "userId,groupId:path"
-  regionMetadata: Record<string, RegionMetadata>; // Key: "userId,groupId:centerPath"
-
-  // Initial load for a map center
-  loadMapRegion(
-    centerCoordId: string, // "userId,groupId:path"
-    maxDepth: number = 3,
-  ): Promise<MapItem[]>;
-
-  // Expansion load for a specific item
-  loadItemChildren(
-    itemCoordId: string, // "userId,groupId:path"
-    maxDepth: number = 2,
-  ): Promise<MapItem[]>;
-
-  // Check if we have sufficient data for rendering
-  hasRequiredDepth(centerCoordId: string, requiredDepth: number): boolean;
-
-  // Check if a specific item is cached
-  hasItem(coordId: string): boolean;
-
-  // Get items for a specific region (from cache)
-  getRegionItems(centerCoordId: string, maxDepth: number): HexTileData[];
-}
-```
-
-### Feature Detection Pattern
-
-```typescript
-function useFeatureDetection() {
-  const [capabilities, setCapabilities] = useState({
-    hasJS: false,
-    hasLocalStorage: false,
-    hasWebSockets: false,
-  });
-
-  useEffect(() => {
-    setCapabilities({
-      hasJS: true,
-      hasLocalStorage: typeof localStorage !== "undefined",
-      hasWebSockets: typeof WebSocket !== "undefined",
-    });
-  }, []);
-
-  return capabilities;
-}
-
-function AdaptiveFeature({ children, fallback, requiresJS = true }) {
-  const { hasJS } = useFeatureDetection();
-
-  if (requiresJS && !hasJS) {
-    return fallback;
-  }
-
-  return children;
-}
-```
+The map application follows an event-driven testing approach that leverages the event bus architecture. See [TESTING.md](./TESTING.md) for comprehensive testing guidelines.

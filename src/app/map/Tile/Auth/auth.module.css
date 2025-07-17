@@ -1,42 +1,20 @@
 .authTileContent {
-  /* Ensure content is properly sized within the hexagon */
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Adjusted padding to better fit hexagon shape */
   padding: 1rem;
-  
-  /* Ensure pointer events work */
   pointer-events: auto;
 }
 
 .authCard {
-  /* Ensure the card is interactive */
   pointer-events: auto;
   position: relative;
   z-index: 20;
-  
-  /* Size to fit within hexagon - considering the hexagon's aspect ratio */
-  max-width: min(350px, 70%);
-  width: 100%;
-  
-  /* Ensure the card content is visible within the hexagon bounds */
+  max-width: 350px;
+  width: 70%;
   max-height: 80%;
   overflow-y: auto;
-  
-  /* Transparent background, no border, no shadow */
   background-color: transparent;
 }
-
-/* Ensure all interactive elements are clickable */
-.authCard input,
-.authCard button,
-.authCard a {
-  pointer-events: auto !important;
-  position: relative;
-  z-index: 21;
-}
-
-/* Remove dark theme overrides since we're using a light background */

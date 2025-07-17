@@ -3,9 +3,7 @@
 import { useContext, useEffect } from "react";
 import type { TileData } from "~/app/map/types/tile-data";
 import { LegacyTileActionsContext } from "~/app/map/Canvas";
-import { useTileActions } from "~/app/map/Canvas/TileActionsContext";
 import { useItemInteraction } from "./use-item-interaction";
-import { useItemDialogs } from "./use-item-dialogs";
 import { generateTileTestId } from "../_utils";
 import { canEditTile } from "../_validators";
 import { createDragProps, createDropProps, getSwapPreviewColor } from "../_coordinators";
@@ -44,15 +42,13 @@ export function useItemState({
   scale
 }: ItemStateProps) {
   const tileActions = useContext(LegacyTileActionsContext);
-  const { activeTool } = useTileActions();
   const interaction = useItemInteraction(item.metadata.coordId);
-  const dialogs = useItemDialogs();
   
   const canEdit = canEditTile(currentUserId, item.metadata.ownerId);
   const testId = generateTileTestId(item.metadata.coordinates);
   
-  // Only allow dragging when the drag tool is active AND user can edit the tile
-  const isDraggableWithTool = interaction.isDraggable && activeTool === 'drag' && canEdit;
+  // Allow dragging when user can edit the tile (owns it)
+  const isDraggableWithTool = interaction.isDraggable && canEdit;
   
   const dragProps = interactive 
     ? createDragProps(item.metadata.coordId, tileActions, isDraggableWithTool, interaction.isBeingDragged)
@@ -80,7 +76,6 @@ export function useItemState({
   
   return {
     interaction,
-    dialogs,
     canEdit,
     testId,
     dragProps,

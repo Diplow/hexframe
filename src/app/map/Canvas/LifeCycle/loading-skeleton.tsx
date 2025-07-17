@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { cn } from "~/lib/utils";
-import { StaticFrame } from "~/app/static/map/Canvas/frame";
+import { BaseFrame } from "~/app/map/Canvas/base/BaseFrame";
 import type { TileData } from "../../types/tile-data";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import type { URLInfo } from "../../types/url-info";
@@ -15,11 +15,12 @@ interface MapLoadingSkeletonProps {
 }
 
 export const DEFAULT_BLINKING_FREQUENCY = 400;
+
 // Create mock items for the loading skeleton
 const createMockItem = (
   coordId: string,
   name: string,
-  color: "zinc-100" | "zinc-200" | "zinc-300",
+  color: string,
   depth = 0,
   parentId?: string,
 ): TileData => ({
@@ -81,7 +82,7 @@ export function MapLoadingSkeleton({
   }, [effectiveFrequency]);
 
   // Create mock items with alternating colors based on pattern
-  const getChildColor = (index: number): "zinc-200" | "zinc-300" => {
+  const getChildColor = (index: number): string => {
     const isEven = index % 2 === 0;
     if (colorPattern) {
       return isEven ? "zinc-200" : "zinc-300";
@@ -91,7 +92,7 @@ export function MapLoadingSkeleton({
   };
 
   const mockMapItems: Record<string, TileData> = {
-    [centerCoord]: createMockItem(centerCoord, message, "zinc-100", 0),
+    [centerCoord]: createMockItem(centerCoord, message, "zinc-500", 0),
     ...childCoords.reduce(
       (acc, coordId, index) => {
         acc[coordId] = createMockItem(
@@ -112,7 +113,7 @@ export function MapLoadingSkeleton({
       <div className="grid flex-grow place-items-center overflow-auto p-4">
         {/* Accessible loading indicator */}
         <div className="relative" role="status" aria-label={message}>
-          <StaticFrame
+          <BaseFrame
             center={centerCoord}
             mapItems={mockMapItems}
             baseHexSize={50}

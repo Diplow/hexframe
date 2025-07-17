@@ -29,13 +29,20 @@ pnpm vitest run --config vitest.config.ts \
   --exclude "**/ToolStateManager.test.tsx" \
   --exclude "**/Toolbox.test.tsx" \
   --exclude "**/item-tile-content.test.tsx" \
+  --exclude "**/BaseComponents.test.tsx" \
+  --exclude "**/content.test.tsx" \
+  --exclude "**/multi-line-title.test.tsx" \
+  --exclude "**/use-item-state.test.tsx" \
+  --exclude "**/ChatPanel.test.tsx" \
   $STORYBOOK_EXCLUDE
 
 MAIN_EXIT_CODE=$?
 
 # Then run the React component tests in isolation with single thread
 echo "⚛️ Running React component tests in isolation (single thread)..."
-pnpm vitest run --config vitest.config.ts --pool=forks --poolOptions.forks.singleThread \
+# First check which files actually exist
+REACT_TEST_FILES=""
+for file in \
   src/app/static/map/Tile/Base/base.test.tsx \
   src/app/map/Tile/Auth/__tests__/auth-tile.test.tsx \
   src/app/map/Tile/Auth/__tests__/auth.test.tsx \
@@ -45,7 +52,24 @@ pnpm vitest run --config vitest.config.ts --pool=forks --poolOptions.forks.singl
   src/app/map/hooks/useKeyboardShortcuts.test.tsx \
   src/app/map/Controls/Toolbox/ToolStateManager.test.tsx \
   src/app/map/Controls/Toolbox/Toolbox.test.tsx \
-  src/app/map/Tile/Item/_components/__tests__/item-tile-content.test.tsx
+  src/app/map/Tile/Item/_components/__tests__/item-tile-content.test.tsx \
+  src/app/map/components/__tests__/BaseComponents.test.tsx \
+  src/app/map/Tile/Item/__tests__/content.test.tsx \
+  src/app/map/Tile/Item/__tests__/multi-line-title.test.tsx \
+  src/app/map/Tile/Item/_hooks/__tests__/use-item-state.test.tsx \
+  src/app/map/Chat/__tests__/ChatPanel.test.tsx
+do
+  if [ -f "$file" ]; then
+    REACT_TEST_FILES="$REACT_TEST_FILES $file"
+  fi
+done
+
+if [ -n "$REACT_TEST_FILES" ]; then
+  pnpm vitest run --config vitest.config.ts --pool=forks --poolOptions.forks.singleThread $REACT_TEST_FILES
+else
+  echo "No React test files found to run"
+  REACT_EXIT_CODE=0
+fi
 
 REACT_EXIT_CODE=$?
 

@@ -65,6 +65,11 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: true
 
+      - name: Run color validation
+        run: pnpm lint:colors
+        env:
+          SKIP_ENV_VALIDATION: true
+
       - name: Run type checking
         run: pnpm typecheck
         env:

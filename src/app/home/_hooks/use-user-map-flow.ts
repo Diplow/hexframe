@@ -34,9 +34,24 @@ export function useUserMapFlow({ user, isAuthLoading }: UseUserMapFlowOptions): 
   const [state, setState] = useState<MapFlowState>("loading");
   const [error, setError] = useState<FlowError | null>(null);
 
-  // Query for user's map - only enabled when authenticated
+  // Add a delay to prevent race conditions during registration
+  const [canQueryMap, setCanQueryMap] = useState(false);
+  
+  useEffect(() => {
+    if (!!user && !isAuthLoading) {
+      // Small delay to ensure session and map creation are complete
+      const timer = setTimeout(() => {
+        setCanQueryMap(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else {
+      setCanQueryMap(false);
+    }
+  }, [user, isAuthLoading]);
+
+  // Query for user's map - only enabled when authenticated and after delay
   const getUserMapQuery = api.map.user.getUserMap.useQuery(undefined, {
-    enabled: !!user && !isAuthLoading,
+    enabled: canQueryMap,
     retry: false,
   });
 

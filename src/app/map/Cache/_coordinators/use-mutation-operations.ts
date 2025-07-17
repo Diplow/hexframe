@@ -7,12 +7,14 @@ import type { DataOperations } from "../Handlers/types";
 import type { StorageService } from "../Services/types";
 import { MutationCoordinator } from "./mutation-coordinator";
 import type { Coord } from "~/lib/domains/mapping/utils/hex-coordinates";
+import type { EventBusService } from "~/app/map/types/events";
 
 interface MutationOperationsConfig {
   dispatch: Dispatch<CacheAction>;
   state: CacheState;
   dataOperations: DataOperations;
   storageService: StorageService;
+  eventBus?: EventBusService;
   mapContext?: {
     userId: number;
     groupId: number;
@@ -28,6 +30,7 @@ export function useMutationOperations(config: MutationOperationsConfig): Mutatio
   const addItemMutation = api.map.addItem.useMutation();
   const updateItemMutation = api.map.updateItem.useMutation();
   const deleteItemMutation = api.map.removeItem.useMutation();
+  const moveItemMutation = api.map.items.moveMapItem.useMutation();
   
   // Use ref to provide current state to coordinator
   const stateRef = useRef(config.state);
@@ -67,6 +70,12 @@ export function useMutationOperations(config: MutationOperationsConfig): Mutatio
     },
   }), [deleteItemMutation]);
 
+  const wrappedMoveItemMutation = useMemo(() => ({
+    mutateAsync: async (params: { oldCoords: Coord; newCoords: Coord }) => {
+      return moveItemMutation.mutateAsync(params);
+    },
+  }), [moveItemMutation]);
+
   // Create coordinator instance
   const coordinator = useMemo(() => {
     return new MutationCoordinator({
@@ -75,9 +84,11 @@ export function useMutationOperations(config: MutationOperationsConfig): Mutatio
       dataOperations: config.dataOperations,
       storageService: config.storageService,
       mapContext: config.mapContext,
+      eventBus: config.eventBus,
       addItemMutation: wrappedAddItemMutation,
       updateItemMutation: wrappedUpdateItemMutation,
       deleteItemMutation: wrappedDeleteItemMutation,
+      moveItemMutation: wrappedMoveItemMutation,
     });
   }, [
     config.dispatch,
@@ -85,9 +96,11 @@ export function useMutationOperations(config: MutationOperationsConfig): Mutatio
     config.dataOperations,
     config.storageService,
     config.mapContext,
+    config.eventBus,
     wrappedAddItemMutation,
     wrappedUpdateItemMutation,
     wrappedDeleteItemMutation,
+    wrappedMoveItemMutation,
   ]);
   
   // Return operations interface
@@ -95,6 +108,7 @@ export function useMutationOperations(config: MutationOperationsConfig): Mutatio
     createItem: coordinator.createItem.bind(coordinator),
     updateItem: coordinator.updateItem.bind(coordinator),
     deleteItem: coordinator.deleteItem.bind(coordinator),
+    moveItem: coordinator.moveItem.bind(coordinator),
     rollbackOptimisticChange: coordinator.rollbackChange.bind(coordinator),
     rollbackAllOptimistic: coordinator.rollbackAll.bind(coordinator),
     getPendingOptimisticChanges: coordinator.getPendingChanges.bind(coordinator),
