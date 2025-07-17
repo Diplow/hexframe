@@ -49,7 +49,7 @@ export const DynamicTileContent = ({
       )}
     >
       <h3 className={cn(
-        "text-center break-words",
+        "text-center break-words select-none",
         baseFontSize,
         fontWeight,
         textClasses
