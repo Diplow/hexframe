@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send } from 'lucide-react';
 import { Button } from '~/components/ui/button';
-import useChatState from '../_state/useChatState';
+import { useChatState } from '../_state';
 import { useCommandHandling } from './_hooks/useCommandHandling';
 import { useInputHistory } from './_hooks/useInputHistory';
 import { useTextareaController } from './_hooks/useTextareaController';

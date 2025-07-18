@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
 
 /**
- * Root page that redirects to the home page
- * This maintains a clean URL structure while organizing code
+ * Root page that redirects to the map with default center
+ * Users can start exploring immediately without extra navigation
  */
 export default function RootPage() {
-  redirect("/home");
+  redirect("/map?center=1");
 }

@@ -30,6 +30,16 @@ export default function RootLayout({
             }}
           />
         )}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                const theme = localStorage.getItem('theme') || 'light';
+                document.documentElement.classList.add(theme);
+              })();
+            `,
+          }}
+        />
       </head>
       <body className="min-h-screen bg-gradient-to-br from-background via-background to-muted font-sans antialiased">
         <Analytics/>

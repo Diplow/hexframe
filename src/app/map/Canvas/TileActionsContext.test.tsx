@@ -92,7 +92,17 @@ describe('TileActionsContext', () => {
 
       const { result } = renderHook(() => useTileActions(), { wrapper })
 
-      const tileData: TileData = createMockTileData()
+      const tileData: TileData = createMockTileData({
+        state: {
+          isDragged: false,
+          isHovered: false,
+          isSelected: false,
+          isExpanded: false,
+          isDragOver: false,
+          isHovering: false,
+          canExpand: true, // Add canExpand state for the test
+        }
+      })
       const preventDefault = vi.fn()
       const mockEvent = { 
         clientX: 100, 

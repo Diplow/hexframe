@@ -101,8 +101,10 @@ export function TileActionsProvider({
       clickTimeoutRef.current = null;
     }
     
-    // Double-click to expand
-    onExpandClick?.(tileData);
+    // Double-click to expand - only if tile can expand
+    if (tileData.state?.canExpand) {
+      onExpandClick?.(tileData);
+    }
   }, [onExpandClick]);
 
   const onTileRightClick = useCallback((tileData: TileData, event: React.MouseEvent) => {

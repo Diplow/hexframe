@@ -1,4 +1,4 @@
-import useChatState from '../../_state/useChatState';
+import { useChatState } from '../../_state';
 
 export function useChatInputService() {
   const chatState = useChatState();

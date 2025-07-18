@@ -17,7 +17,7 @@ import { chatSettings } from '../_settings/chat-settings';
  * Chat state hook - provides domain operations for chat functionality
  * This is internal to the Chat module and should not be used outside
  */
-export function useChatState(initialEvents: ChatEvent[] = []) {
+export function useChatStateInternal(initialEvents: ChatEvent[] = []) {
   const eventBus = useEventBus();
   
   // Add welcome message if no initial events provided
@@ -202,5 +202,5 @@ export function useChatState(initialEvents: ChatEvent[] = []) {
   };
 }
 
-// This hook is internal to Chat module - enforce by convention
-export default useChatState;
+// This file now only exports the internal implementation
+// The public useChatState hook is exported from ChatProvider.tsx

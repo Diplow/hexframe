@@ -17,7 +17,7 @@ export interface DynamicTileContentProps {
   isSelected?: boolean; // Add isSelected prop for chat selection state
 }
 
-const getTextClasses = (depth = 0) => `break-words ${getTextColorForDepth(depth)}`;
+const getTextClasses = (depth = 0) => getTextColorForDepth(depth);
 
 export const DynamicTileContent = ({ 
   data, 
@@ -36,8 +36,6 @@ export const DynamicTileContent = ({
   const baseFontSize = scale === 1 ? "text-xs" : scale === 2 ? "text-md" : "text-lg";
   const fontWeight = scale === 1 ? "font-medium" : scale === 2 ? "font-medium" : "font-semibold";
   
-  // Remove truncation logic as we now support multi-line titles
-  
   const testId = "tile-content";
   
   return (
@@ -49,7 +47,8 @@ export const DynamicTileContent = ({
       )}
     >
       <h3 className={cn(
-        "text-center break-words",
+        "text-center select-none",
+        scale === 1 ? "truncate" : "break-words",
         baseFontSize,
         fontWeight,
         textClasses

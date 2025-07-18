@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '~/lib/utils';
-import useChatState from './_state/useChatState';
+import { useChatState, ChatProvider } from './_state';
 import { Messages } from './Messages';
 import { Input } from './Input';
 import { ThemeToggle } from '~/components/ThemeToggle';
@@ -20,10 +20,12 @@ interface ChatPanelProps {
 
 export function ChatPanel({ className }: ChatPanelProps) {
   return (
-    <div data-testid="chat-panel" className={cn('flex flex-col h-full bg-center-depth-0', className)}>
-      <ChatHeader />
-      <ChatContent />
-    </div>
+    <ChatProvider>
+      <div data-testid="chat-panel" className={cn('flex flex-col h-full bg-center-depth-0', className)}>
+        <ChatHeader />
+        <ChatContent />
+      </div>
+    </ChatProvider>
   );
 }
 
