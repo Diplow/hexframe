@@ -17,7 +17,7 @@ export interface DynamicTileContentProps {
   isSelected?: boolean; // Add isSelected prop for chat selection state
 }
 
-const getTextClasses = (depth = 0) => `break-words ${getTextColorForDepth(depth)}`;
+const getTextClasses = (depth = 0) => getTextColorForDepth(depth);
 
 export const DynamicTileContent = ({ 
   data, 
