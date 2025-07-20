@@ -14,7 +14,7 @@ export function MappingUserProvider({ children }: { children: React.ReactNode })
   
   useEffect(() => {
     if (mappingData?.mappingUserId !== undefined) {
-      setMappingUserId(mappingData.mappingUserId as number);
+      setMappingUserId(mappingData.mappingUserId);
     } else if (!user) {
       setMappingUserId(undefined);
     }

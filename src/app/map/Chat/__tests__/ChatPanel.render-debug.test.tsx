@@ -106,7 +106,7 @@ vi.mock('../Messages/index.tsx', () => ({
         {messages.map((msg: unknown, idx) => {
           const message = msg as { id?: string; actor?: string; content?: string };
           return (
-            <div key={message.id || idx} data-testid={`message-${idx}`}>
+            <div key={message.id ?? idx} data-testid={`message-${idx}`}>
               {message.actor}: {message.content}
             </div>
           );
