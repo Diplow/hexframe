@@ -12,7 +12,7 @@ import {
   HIERARCHY_TILE_SCALE,
 } from "../constants";
 import { getTextColorForDepth } from "~/app/map/types/theme-colors";
-import { useAuth } from "~/contexts/AuthContext";
+import { useUnifiedAuth } from "~/contexts/UnifiedAuthContext";
 import { api } from "~/commons/trpc/react";
 import { Logo } from "~/components/ui/logo";
 import { loggers } from "~/lib/debug/debug-logger";
@@ -99,7 +99,7 @@ const HierarchyTileContent = ({ item }: { item: TileData }) => {
 };
 
 const UserProfileTile = () => {
-  const { user } = useAuth();
+  const { user } = useUnifiedAuth();
   const { navigateToItem } = useMapCache();
   const trpcUtils = api.useUtils();
   const renderCountRef = useRef(0);

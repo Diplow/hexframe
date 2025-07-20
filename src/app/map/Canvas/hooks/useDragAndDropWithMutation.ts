@@ -1,4 +1,4 @@
-import { useAuth } from "~/contexts/AuthContext";
+import { useUnifiedAuth } from "~/contexts/UnifiedAuthContext";
 import { useMapCache } from "../../Cache/_hooks/use-map-cache";
 import { useDragAndDrop } from "./useDragAndDrop";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
@@ -10,7 +10,7 @@ import { useEventBus } from "../../Services/EventBus/event-bus-context";
  * This wraps the useDragAndDrop hook and provides the mutation integration
  */
 export function useDragAndDropWithMutation(): Omit<UseDragAndDropReturn, 'dragState'> {
-  const { mappingUserId } = useAuth();
+  const { mappingUserId } = useUnifiedAuth();
   const eventBus = useEventBus();
   const { items, moveItemOptimistic } = useMapCache();
   

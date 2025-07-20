@@ -17,7 +17,7 @@ export function Input() {
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
   const lastProcessedCommandRef = useRef<string | null>(null);
   const chatState = useChatState();
-  const { events } = chatState;
+  const events = chatState.events;
   
   // Debug logging for Input component renders
   useEffect(() => {
@@ -156,6 +156,8 @@ export function Input() {
   }
   
   useEffect(() => {
+    if (!events || !Array.isArray(events)) return;
+    
     const unprocessedEvents = events.filter(e => 
       e.type === 'execute_command' && 
       e.timestamp.getTime() > (lastProcessedCommandRef.current ? new Date(lastProcessedCommandRef.current).getTime() : 0)

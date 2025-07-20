@@ -31,14 +31,14 @@ export function WidgetManager({ widgets }: WidgetManagerProps) {
           parentId: creationData.parentId ? parseInt(creationData.parentId, 10) : undefined
         });
         
-        // Emit operation completed event
+        // Emit tile created event
         eventBus.emit({
-          type: 'map.operation.completed',
+          type: 'map.tile_created',
           payload: {
-            operation: 'create',
             tileId: creationData.coordId!,
-            result: 'success',
-            message: `Created tile "${name}"`
+            parentId: creationData.parentId || null,
+            title: name,
+            content: description
           },
           source: 'chat_cache',
           timestamp: new Date(),
@@ -46,7 +46,7 @@ export function WidgetManager({ widgets }: WidgetManagerProps) {
       } catch (error) {
         // Handle error
         eventBus.emit({
-          type: 'error.operation',
+          type: 'error.occurred',
           payload: {
             operation: 'create',
             tileId: creationData.coordId!,
@@ -73,24 +73,12 @@ export function WidgetManager({ widgets }: WidgetManagerProps) {
     const handleDelete = () => {
       // Dispatch delete confirmation widget
       const previewData = widget.data as TileSelectedPayload;
-      // handleDelete called
-      
-      // Dispatching operation_started event
       
       eventBus.emit({
-        type: 'map.operation.started',
+        type: 'map.delete_requested',
         payload: {
-          operation: 'delete',
-          tileId: previewData.tileId,
-          data: {
-            tileId: previewData.tileId,
-            tileName: previewData.tileData.title,
-            tile: {
-              id: previewData.tileId,
-              title: previewData.tileData.title,
-              coordId: previewData.tileData.coordId,
-            }
-          }
+          tileId: previewData.tileData.coordId, // Use coordId for deletion
+          tileName: previewData.tileData.title
         },
         source: 'chat_cache',
         timestamp: new Date(),
@@ -106,19 +94,18 @@ export function WidgetManager({ widgets }: WidgetManagerProps) {
         });
         
         eventBus.emit({
-          type: 'map.operation.completed',
+          type: 'map.tile_updated',
           payload: {
-            operation: 'update',
             tileId: previewData.tileId,
-            result: 'success',
-            message: `Updated tile "${title}"`
+            title: title,
+            content: content
           },
           source: 'chat_cache',
           timestamp: new Date(),
         });
       } catch (error) {
         eventBus.emit({
-          type: 'error.operation',
+          type: 'error.occurred',
           payload: {
             operation: 'update',
             tileId: previewData.tileId,
@@ -182,19 +169,13 @@ function _renderPreviewWidget(widget: Widget, createWidgetHandlers: (widget: Wid
   const previewData = widget.data as TileSelectedPayload;
   const { handleEdit = () => { /* noop */ }, handleDelete = () => { /* noop */ }, handlePreviewSave = () => { /* noop */ } } = createWidgetHandlers(widget);
 
-  // PreviewWidget rendering with data
-
   // Get real-time data from the map cache
   // The tileId is actually a coordinate ID, so we can look it up directly
   const tileItem = items[previewData.tileId];
   
-  // PreviewWidget found in cache
-  
   // Use real-time data if available, otherwise fall back to widget data
   const currentTitle = tileItem?.data.name ?? previewData.tileData.title;
   const currentContent = tileItem?.data.description ?? previewData.tileData.content ?? '';
-
-  // PreviewWidget using values
 
   return (
     <PreviewWidget
@@ -225,7 +206,7 @@ function _renderErrorWidget(widget: Widget) {
       message={errorData.error}
       error={errorData.context ? JSON.stringify(errorData.context) : undefined}
       retry={errorData.retryable ? () => {
-        // Retry requested
+        // Handle retry
       } : undefined}
     />
   );
@@ -262,8 +243,6 @@ function _renderDeleteWidget(widget: Widget) {
   // Use coordinate ID for deletion (deleteItemOptimistic expects coordinate ID)
   const tileCoordId = deleteData.tile?.coordId ?? deleteData.tileId ?? '';
   const tileName = deleteData.tileName ?? deleteData.tile?.title ?? 'item';
-  
-  // Rendering delete widget
   
   return (
     <ConfirmDeleteWidget

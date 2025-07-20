@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { ChatPanel } from '../ChatPanel';
 import { TestProviders } from '~/test-utils/providers';
 import { createMockEventBus } from '~/test-utils/event-bus';
+import type { ChatSettings } from '../_settings/chat-settings';
 
 // Minimal mocks just for testing
 vi.mock('../_settings/chat-settings', () => ({
@@ -20,7 +21,7 @@ vi.mock('../_settings/chat-settings', () => ({
         }
       },
     })),
-    subscribe: vi.fn((callback) => {
+    subscribe: vi.fn((callback: (settings: ChatSettings) => void) => {
       callback({
         messages: { 
           debug: true,
@@ -33,7 +34,9 @@ vi.mock('../_settings/chat-settings', () => ({
           }
         },
       });
-      return () => {};
+      return () => {
+        // Cleanup function
+      };
     }),
   },
 }));
@@ -43,7 +46,9 @@ vi.mock('~/lib/auth/auth-client', () => ({
     signOut: vi.fn(),
     useSession: {
       get: vi.fn(() => ({ user: null })),
-      subscribe: vi.fn(() => () => {}),
+      subscribe: vi.fn(() => () => {
+        // Cleanup function
+      }),
     },
   },
 }));
@@ -174,7 +179,7 @@ describe('ChatPanel - Debug Message Flow', () => {
     const allTextContent = messagesContainer.querySelectorAll('span, div');
     console.log('All text elements:', allTextContent.length);
     allTextContent.forEach((el, i) => {
-      if (el.textContent && el.textContent.trim()) {
+      if (el.textContent?.trim()) {
         console.log(`Text ${i}:`, el.textContent.trim());
       }
     });

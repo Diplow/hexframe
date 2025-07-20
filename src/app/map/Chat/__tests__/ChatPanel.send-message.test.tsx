@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { ChatPanel } from '../ChatPanel';
 import { TestProviders } from '~/test-utils/providers';
 import { createMockEventBus } from '~/test-utils/event-bus';
+import type { ChatSettings } from '../_settings/chat-settings';
 
 // Use real implementations to test actual functionality
 vi.mock('../_settings/chat-settings', () => ({
@@ -20,7 +21,7 @@ vi.mock('../_settings/chat-settings', () => ({
         }
       },
     })),
-    subscribe: vi.fn((callback) => {
+    subscribe: vi.fn((callback: (settings: ChatSettings) => void) => {
       // Call callback immediately with current settings
       callback({
         messages: { 
@@ -35,7 +36,9 @@ vi.mock('../_settings/chat-settings', () => ({
         },
       });
       // Return unsubscribe function
-      return () => {};
+      return () => {
+        // Cleanup function
+      };
     }),
   },
 }));
@@ -45,7 +48,9 @@ vi.mock('~/lib/auth/auth-client', () => ({
     signOut: vi.fn(),
     useSession: {
       get: vi.fn(() => ({ user: null })),
-      subscribe: vi.fn(() => () => {}),
+      subscribe: vi.fn(() => () => {
+        // Cleanup function
+      }),
     },
   },
 }));

@@ -1,6 +1,6 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { useAuth } from '~/contexts/AuthContext';
+import { useUnifiedAuth } from '~/contexts/UnifiedAuthContext';
 import { api } from '~/commons/trpc/react';
 import type { Message } from '../_state/_events/event.types';
 import { useMapCache } from '../../Cache/_hooks/use-map-cache';
@@ -14,7 +14,7 @@ interface MessageActorRendererProps {
 }
 
 export function MessageActorRenderer({ message }: MessageActorRendererProps) {
-  const { user } = useAuth();
+  const { user } = useUnifiedAuth();
   const { navigateToItem } = useMapCache();
   const eventBus = useEventBus();
   

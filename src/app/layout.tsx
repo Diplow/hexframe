@@ -3,7 +3,7 @@ import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 
 import { TRPCReactProvider } from "~/commons/trpc/react";
-import { AuthProvider } from "~/contexts/AuthContext";
+import { UnifiedAuthProvider } from "~/contexts/UnifiedAuthContext";
 import { MappingUserProvider } from "~/contexts/MappingUserProvider";
 import { ThemeProvider } from "~/contexts/ThemeContext";
 import { Analytics } from "@vercel/analytics/next"
@@ -44,13 +44,13 @@ export default function RootLayout({
       <body className="min-h-screen bg-gradient-to-br from-background via-background to-muted font-sans antialiased">
         <Analytics/>
         <ThemeProvider>
-          <AuthProvider>
+          <UnifiedAuthProvider>
             <TRPCReactProvider>
               <MappingUserProvider>
                 {children}
               </MappingUserProvider>
             </TRPCReactProvider>
-          </AuthProvider>
+          </UnifiedAuthProvider>
         </ThemeProvider>
       </body>
     </html>

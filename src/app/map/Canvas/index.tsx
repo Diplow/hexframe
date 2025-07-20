@@ -8,7 +8,7 @@ import {
   useContext,
   type ReactNode,
 } from "react";
-import { useAuth } from "~/contexts/AuthContext";
+import { useUnifiedAuth } from "~/contexts/UnifiedAuthContext";
 // CenterInfo type definition moved locally
 export interface CenterInfo {
   center: string;
@@ -121,7 +121,7 @@ export function DynamicMapCanvas({
   const [isHydrated, setIsHydrated] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [selectedTileId, setSelectedTileId] = useState<string | null>(null);
-  const { mappingUserId } = useAuth();
+  const { mappingUserId } = useUnifiedAuth();
   const eventBus = useEventBus();
   
   // Log component mount/unmount

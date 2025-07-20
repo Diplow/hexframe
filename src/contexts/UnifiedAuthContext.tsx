@@ -27,9 +27,24 @@ export function UnifiedAuthProvider({ children }: { children: ReactNode }) {
  */
 export function useUnifiedAuth() {
   const isOffline = shouldUseOfflineAuth();
-  const offlineAuth = useOfflineAuth();
-  const onlineAuth = useAuth();
   
-  // Return the appropriate auth based on offline status
-  return isOffline ? offlineAuth : onlineAuth;
+  if (isOffline) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const offlineAuth = useOfflineAuth();
+    // Transform offline auth to match online auth interface
+    return {
+      user: offlineAuth.user ? {
+        id: offlineAuth.user.id,
+        email: offlineAuth.user.email,
+        name: offlineAuth.user.name,
+        image: null
+      } : null,
+      mappingUserId: offlineAuth.mappingUserId,
+      isLoading: offlineAuth.isLoading,
+      setMappingUserId: offlineAuth.setMappingUserId
+    };
+  } else {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    return useAuth();
+  }
 }
