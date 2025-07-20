@@ -99,11 +99,11 @@ const HierarchyTileContent = ({ item }: { item: TileData }) => {
 };
 
 const UserProfileTile = () => {
-  const { user } = useUnifiedAuth();
+  const { user, isLoading: isAuthLoading } = useUnifiedAuth();
   const { navigateToItem } = useMapCache();
   const trpcUtils = api.useUtils();
   const renderCountRef = useRef(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
   
   useEffect(() => {
     renderCountRef.current += 1;
@@ -124,7 +124,7 @@ const UserProfileTile = () => {
       userEmail: user.email,
     });
     
-    setIsLoading(true);
+    setIsNavigating(true);
     
     try {
       // Fetch user map data when clicking on the profile tile
@@ -143,29 +143,32 @@ const UserProfileTile = () => {
     } catch (_error) {
       console.warn('Failed to fetch/navigate to user map:', _error);
     } finally {
-      setIsLoading(false);
+      setIsNavigating(false);
     }
   };
   
   // Determine display name
   const displayName = user ? (user.name ?? user.email.split('@')[0]) : 'Guest';
   
+  // Show loading state during auth loading or navigation
+  const showLoading = isAuthLoading || isNavigating;
+  
   return (
     <button
       onClick={handleUserMapNavigation}
-      disabled={!user}
-      aria-label={user ? `Navigate to ${displayName}'s map` : 'Guest user'}
+      disabled={!user || isAuthLoading}
+      aria-label={isAuthLoading ? 'Loading user profile' : (user ? `Navigate to ${displayName}'s map` : 'Guest user')}
       className={`group relative flex-shrink-0 rounded-lg border-none bg-transparent transition-transform duration-200 ${
         user ? 'cursor-pointer hover:scale-105 focus:scale-105' : 'cursor-default'
       }`}
     >
       <div className="relative flex items-center justify-center">
         <Logo className="w-[97px] h-[112px] flex-shrink-0 scale-110" />
-        {isLoading ? (
+        {showLoading ? (
           <Loader2 className="absolute h-5 w-5 animate-spin text-white" />
-        ) : (
+        ) : isAuthLoading ? null : (
           <span
-            className="absolute text-center text-xs font-semibold text-white"
+            className="absolute text-center text-xs font-semibold text-white select-none"
             style={{
               display: "-webkit-box",
               WebkitLineClamp: 2,
