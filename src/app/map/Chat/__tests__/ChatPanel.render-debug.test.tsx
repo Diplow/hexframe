@@ -103,11 +103,14 @@ vi.mock('../Messages/index.tsx', () => ({
       <div data-testid="chat-messages">
         <div data-testid="message-count">Messages: {messages.length}</div>
         <div data-testid="widget-count">Widgets: {widgets.length}</div>
-        {messages.map((msg: any, idx) => (
-          <div key={msg.id || idx} data-testid={`message-${idx}`}>
-            {msg.actor}: {msg.content}
-          </div>
-        ))}
+        {messages.map((msg: unknown, idx) => {
+          const message = msg as { id?: string; actor?: string; content?: string };
+          return (
+            <div key={message.id || idx} data-testid={`message-${idx}`}>
+              {message.actor}: {message.content}
+            </div>
+          );
+        })}
       </div>
     );
   },

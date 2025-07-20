@@ -37,16 +37,25 @@ describe('useChatState', () => {
     vi.clearAllMocks();
   });
 
-  it('should have welcome message by default', () => {
+  it('should have welcome message by default', async () => {
     const { result } = renderHook(() => useChatState(), { wrapper });
     
-    expect(result.current.messages).toHaveLength(1);
+    // Wait for the welcome message to be added in useEffect
+    await vi.waitFor(() => {
+      expect(result.current.messages).toHaveLength(1);
+    });
+    
     expect(result.current.messages[0]?.content).toContain('Welcome to');
     expect(result.current.messages[0]?.actor).toBe('system');
   });
 
-  it('should add user messages when sendMessage is called', () => {
+  it('should add user messages when sendMessage is called', async () => {
     const { result } = renderHook(() => useChatState(), { wrapper });
+    
+    // Wait for the welcome message first
+    await vi.waitFor(() => {
+      expect(result.current.messages).toHaveLength(1);
+    });
     
     act(() => {
       result.current.sendMessage('Hello world');
@@ -58,8 +67,13 @@ describe('useChatState', () => {
     expect(result.current.messages[1]?.actor).toBe('user');
   });
 
-  it('should add multiple messages in order', () => {
+  it('should add multiple messages in order', async () => {
     const { result } = renderHook(() => useChatState(), { wrapper });
+    
+    // Wait for the welcome message first
+    await vi.waitFor(() => {
+      expect(result.current.messages).toHaveLength(1);
+    });
     
     act(() => {
       result.current.sendMessage('First message');
@@ -73,8 +87,13 @@ describe('useChatState', () => {
     expect(result.current.messages[3]?.content).toBe('Third message');
   });
 
-  it('should add system messages', () => {
+  it('should add system messages', async () => {
     const { result } = renderHook(() => useChatState(), { wrapper });
+    
+    // Wait for the welcome message first
+    await vi.waitFor(() => {
+      expect(result.current.messages).toHaveLength(1);
+    });
     
     act(() => {
       result.current.showSystemMessage('System notification', 'info');
@@ -85,8 +104,13 @@ describe('useChatState', () => {
     expect(result.current.messages[1]?.actor).toBe('system');
   });
 
-  it('should clear chat properly', () => {
+  it('should clear chat properly', async () => {
     const { result } = renderHook(() => useChatState(), { wrapper });
+    
+    // Wait for the welcome message first
+    await vi.waitFor(() => {
+      expect(result.current.messages).toHaveLength(1);
+    });
     
     act(() => {
       result.current.sendMessage('Test message');
@@ -105,8 +129,13 @@ describe('useChatState', () => {
     expect(result.current.messages[1]?.content).toBe('You have been logged out');
   });
 
-  it('should track events properly', () => {
+  it('should track events properly', async () => {
     const { result } = renderHook(() => useChatState(), { wrapper });
+    
+    // Wait for the welcome message first
+    await vi.waitFor(() => {
+      expect(result.current.messages).toHaveLength(1);
+    });
     
     const initialEventCount = result.current.events.length;
     

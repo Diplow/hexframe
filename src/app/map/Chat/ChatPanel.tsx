@@ -60,7 +60,6 @@ function ChatContent() {
 
 function ChatHeader() {
   const { user } = useUnifiedAuth();
-  const chatState = useChatState();
   const eventBus = useEventBus();
   
   // Debug logging for ChatHeader renders

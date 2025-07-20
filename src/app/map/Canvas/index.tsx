@@ -294,7 +294,7 @@ export function DynamicMapCanvas({
               scale={3 as TileScale}
               urlInfo={urlInfo}
               interactive={true}
-              currentUserId={mappingUserId}
+              currentUserId={mappingUserId ?? undefined}
               selectedTileId={selectedTileId}
             />
           </div>

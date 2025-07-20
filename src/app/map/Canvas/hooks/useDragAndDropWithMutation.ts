@@ -74,7 +74,7 @@ export function useDragAndDropWithMutation(): Omit<UseDragAndDropReturn, 'dragSt
         maxDepth: 3
       }
     },
-    currentUserId: mappingUserId ?? null,
+    currentUserId: mappingUserId ?? null as number | null,
     moveMapItemMutation: {
       mutateAsync: async ({ oldCoords, newCoords }) => {
         const sourceCoordId = CoordSystem.createId(oldCoords);

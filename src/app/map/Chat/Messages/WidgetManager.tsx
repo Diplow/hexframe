@@ -36,7 +36,7 @@ export function WidgetManager({ widgets }: WidgetManagerProps) {
           type: 'map.tile_created',
           payload: {
             tileId: creationData.coordId!,
-            parentId: creationData.parentId || null,
+            parentId: creationData.parentId ?? null,
             title: name,
             content: description
           },
