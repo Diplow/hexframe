@@ -2,10 +2,10 @@
 
 import { useEffect } from "react";
 import { api } from "~/commons/trpc/react";
-import { useAuth } from "./AuthContext";
+import { useUnifiedAuth } from "./UnifiedAuthContext";
 
 export function MappingUserProvider({ children }: { children: React.ReactNode }) {
-  const { user, setMappingUserId, isLoading: isAuthLoading } = useAuth();
+  const { user, setMappingUserId, isLoading: isAuthLoading } = useUnifiedAuth();
   
   // Fetch the mapping user ID when we have an auth user
   const { data: mappingData } = api.map.user.getCurrentUserMappingId.useQuery(undefined, {

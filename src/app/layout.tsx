@@ -3,7 +3,7 @@ import { GeistSans } from "geist/font/sans";
 import { type Metadata } from "next";
 
 import { TRPCReactProvider } from "~/commons/trpc/react";
-import { AuthProvider } from "~/contexts/AuthContext";
+import { UnifiedAuthProvider } from "~/contexts/UnifiedAuthContext";
 import { MappingUserProvider } from "~/contexts/MappingUserProvider";
 import { ThemeProvider } from "~/contexts/ThemeContext";
 import { Analytics } from "@vercel/analytics/next"
@@ -20,7 +20,7 @@ export default function RootLayout({
   const isE2ETest = process.env.E2E_TEST === 'true';
   
   return (
-    <html lang="en" className={`${GeistSans.variable}`}>
+    <html lang="en" className={`${GeistSans.variable}`} suppressHydrationWarning>
       <head>
         <meta name="view-transition" content="same-origin" />
         {isE2ETest && (
@@ -30,17 +30,27 @@ export default function RootLayout({
             }}
           />
         )}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                const theme = localStorage.getItem('theme-preference') || 'light';
+                document.documentElement.classList.add(theme);
+              })();
+            `,
+          }}
+        />
       </head>
       <body className="min-h-screen bg-gradient-to-br from-background via-background to-muted font-sans antialiased">
         <Analytics/>
         <ThemeProvider>
-          <AuthProvider>
+          <UnifiedAuthProvider>
             <TRPCReactProvider>
               <MappingUserProvider>
                 {children}
               </MappingUserProvider>
             </TRPCReactProvider>
-          </AuthProvider>
+          </UnifiedAuthProvider>
         </ThemeProvider>
       </body>
     </html>

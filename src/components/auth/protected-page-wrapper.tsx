@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useAuth } from "~/contexts/AuthContext";
+import { useUnifiedAuth } from "~/contexts/UnifiedAuthContext";
 import { useRouter } from "next/navigation"; // For client-side redirection
 
 interface ProtectedPageWrapperProps {
@@ -14,7 +14,7 @@ export function ProtectedPageWrapper({
   // Redirect to /map (or a generic auth page that handles login/register form display)
   // if trying to access a protected route unauthenticated.
   // The target for unauth users is the AuthTile on the map page if no user is logged in.
-  const { user, isLoading } = useAuth();
+  const { user, isLoading } = useUnifiedAuth();
   const router = useRouter();
 
   useEffect(() => {

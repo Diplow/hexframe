@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useAuth } from '~/contexts/AuthContext';
+import { useUnifiedAuth } from '~/contexts/UnifiedAuthContext';
 import { useRouter } from 'next/navigation';
 import { api } from '~/commons/trpc/react';
 import type { Widget } from '../../_state/types';
@@ -7,7 +7,7 @@ import { preloadUserMapData, savePreFetchedData } from '../../../Cache/Services/
 import { useEventBus } from '../../../Services/EventBus/event-bus-context';
 
 export function useAuthStateCoordinator(widgets: Widget[]) {
-  const { user } = useAuth();
+  const { user } = useUnifiedAuth();
   const router = useRouter();
   const trpcUtils = api.useUtils();
   const createMapMutation = api.map.user.createDefaultMapForCurrentUser.useMutation();
@@ -119,7 +119,7 @@ export function useAuthStateCoordinator(widgets: Widget[]) {
     } catch (_error) {
       console.warn('Failed to create user map:', _error);
       eventBus.emit({
-        type: 'error.operation',
+        type: 'error.occurred',
         payload: {
           error: 'Failed to create your map. Please try refreshing the page.',
           retryable: true

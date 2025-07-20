@@ -255,7 +255,9 @@ export function PreviewWidget({ tileId, title, content, forceExpanded, openInEdi
                           onClick={(e) => {
                             e.stopPropagation();
                             setShowMenu(false);
-                            onDelete();
+                            if (onDelete) {
+                              onDelete();
+                            }
                           }}
                         >
                           <Trash2 className="h-3 w-3" />

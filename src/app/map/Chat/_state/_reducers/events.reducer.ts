@@ -5,8 +5,6 @@ import type { ChatEvent } from '../_events/event.types';
  * This is the source of truth for all chat state
  */
 export function eventsReducer(events: ChatEvent[], newEvent: ChatEvent): ChatEvent[] {
-  // Event processing logging removed to prevent circular dependencies
-
   // Handle special events
   if (newEvent.type === 'clear_chat') {
     // Clear all events except the welcome message, then add logout message

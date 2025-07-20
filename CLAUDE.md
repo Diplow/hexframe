@@ -155,6 +155,7 @@ The project follows the "Rule of 6" - consistent with Hexframe's hexagonal struc
 4. **Document Intent**: Use clear naming that reveals purpose
 5. **Maintain Abstraction Levels**: Keep consistent abstraction at each level
 6. **Use Existing Patterns**: Check similar code before implementing new patterns
+7. **Verify Fixes**: After making a fix to address linter, typechecker or tests errors, always verify that it is fixed and don't assume it is
 
 ## Documentation Strategy
 

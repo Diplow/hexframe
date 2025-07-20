@@ -1,7 +1,7 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { ChevronDown, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import type { TileData } from "../types/tile-data";
 import { useMapCache } from "../Cache/map-cache";
 import { _getParentHierarchy } from "./hierarchy.utils";
@@ -12,7 +12,7 @@ import {
   HIERARCHY_TILE_SCALE,
 } from "../constants";
 import { getTextColorForDepth } from "~/app/map/types/theme-colors";
-import { useAuth } from "~/contexts/AuthContext";
+import { useUnifiedAuth } from "~/contexts/UnifiedAuthContext";
 import { api } from "~/commons/trpc/react";
 import { Logo } from "~/components/ui/logo";
 import { loggers } from "~/lib/debug/debug-logger";
@@ -99,10 +99,11 @@ const HierarchyTileContent = ({ item }: { item: TileData }) => {
 };
 
 const UserProfileTile = () => {
-  const { user } = useAuth();
+  const { user, isLoading: isAuthLoading } = useUnifiedAuth();
   const { navigateToItem } = useMapCache();
   const trpcUtils = api.useUtils();
   const renderCountRef = useRef(0);
+  const [isNavigating, setIsNavigating] = useState(false);
   
   useEffect(() => {
     renderCountRef.current += 1;
@@ -123,6 +124,8 @@ const UserProfileTile = () => {
       userEmail: user.email,
     });
     
+    setIsNavigating(true);
+    
     try {
       // Fetch user map data when clicking on the profile tile
       // Fetching user map data...
@@ -139,35 +142,44 @@ const UserProfileTile = () => {
       }
     } catch (_error) {
       console.warn('Failed to fetch/navigate to user map:', _error);
+    } finally {
+      setIsNavigating(false);
     }
   };
   
   // Determine display name
   const displayName = user ? (user.name ?? user.email.split('@')[0]) : 'Guest';
   
+  // Show loading state during auth loading or navigation
+  const showLoading = isAuthLoading || isNavigating;
+  
   return (
     <button
       onClick={handleUserMapNavigation}
-      disabled={!user}
-      aria-label={user ? `Navigate to ${displayName}'s map` : 'Guest user'}
+      disabled={!user || isAuthLoading}
+      aria-label={isAuthLoading ? 'Loading user profile' : (user ? `Navigate to ${displayName}'s map` : 'Guest user')}
       className={`group relative flex-shrink-0 rounded-lg border-none bg-transparent transition-transform duration-200 ${
         user ? 'cursor-pointer hover:scale-105 focus:scale-105' : 'cursor-default'
       }`}
     >
       <div className="relative flex items-center justify-center">
         <Logo className="w-[97px] h-[112px] flex-shrink-0 scale-110" />
-        <span
-          className="absolute text-center text-xs font-semibold text-white"
-          style={{
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-          }}
-          title={displayName}
-        >
-          {displayName}
-        </span>
+        {showLoading ? (
+          <Loader2 className="absolute h-5 w-5 animate-spin text-white" />
+        ) : isAuthLoading ? null : (
+          <span
+            className="absolute text-center text-xs font-semibold text-white select-none"
+            style={{
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+            }}
+            title={displayName}
+          >
+            {displayName}
+          </span>
+        )}
       </div>
     </button>
   );

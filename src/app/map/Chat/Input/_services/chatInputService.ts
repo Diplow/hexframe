@@ -1,10 +1,12 @@
-import useChatState from '../../_state/useChatState';
+import { useChatState } from '../../_state';
 
 export function useChatInputService() {
   const chatState = useChatState();
 
   const sendMessage = (message: string) => {
-    chatState.sendMessage(message);
+    if (chatState && 'sendMessage' in chatState) {
+      chatState.sendMessage(message);
+    }
   };
 
   const isCommand = (message: string): boolean => {

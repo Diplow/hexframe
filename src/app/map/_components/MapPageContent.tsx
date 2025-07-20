@@ -137,9 +137,9 @@ export function MapPageContent({
                 )}
               </div>
               
-              {!isLoading && !loadingError && (
-                <div className="absolute right-0 top-0 bottom-0">
-                  <ParentHierarchy
+              {/* Always render ParentHierarchy to show UserProfileTile */}
+              <div className="absolute right-0 top-0 bottom-0">
+                <ParentHierarchy
                     centerCoordId={centerCoordinate}
                     items={{}} // Will get items from cache context
                     urlInfo={{
@@ -151,8 +151,7 @@ export function MapPageContent({
                       focus: params.focus,
                     }}
                   />
-                </div>
-              )}
+              </div>
             </div>
             
           </div>

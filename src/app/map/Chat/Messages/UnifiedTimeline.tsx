@@ -74,7 +74,7 @@ export function UnifiedTimeline({ items }: UnifiedTimelineProps) {
               {item.type === 'message' ? (
                 <MessageActorRenderer message={item.data as Message} />
               ) : (
-                <div className="my-0.5">
+                <div className="my-2">
                   <WidgetManager widgets={[item.data as Widget]} />
                 </div>
               )}
