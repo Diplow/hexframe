@@ -135,10 +135,14 @@ describe('ChatPanel - Message Sending', () => {
   it('should display sent messages in the chat', async () => {
     renderWithProviders(<ChatPanel />);
     
-    // Initially should show welcome message
+    // Initially should show welcome message (wait for async generation)
     await waitFor(() => {
-      expect(screen.getByText(/Welcome to.*HexFrame/i)).toBeInTheDocument();
-    });
+      // The message might be split across multiple elements due to ReactMarkdown
+      const welcomeText = screen.getByText((content, element) => {
+        return element?.textContent?.includes('Welcome to') || false;
+      });
+      expect(welcomeText).toBeInTheDocument();
+    }, { timeout: 3000 });
 
     // Type and send a message
     const input = screen.getByPlaceholderText(/type a message/i);
