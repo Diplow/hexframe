@@ -34,6 +34,10 @@ pnpm vitest run --config vitest.config.ts \
   --exclude "**/multi-line-title.test.tsx" \
   --exclude "**/use-item-state.test.tsx" \
   --exclude "**/ChatPanel.test.tsx" \
+  --exclude "**/ChatPanel.send-message.test.tsx" \
+  --exclude "**/ChatPanel.debug-message.test.tsx" \
+  --exclude "**/ChatPanel.render-debug.test.tsx" \
+  --exclude "**/useChatState.test.tsx" \
   $STORYBOOK_EXCLUDE
 
 MAIN_EXIT_CODE=$?
@@ -57,7 +61,11 @@ for file in \
   src/app/map/Tile/Item/__tests__/content.test.tsx \
   src/app/map/Tile/Item/__tests__/multi-line-title.test.tsx \
   src/app/map/Tile/Item/_hooks/__tests__/use-item-state.test.tsx \
-  src/app/map/Chat/__tests__/ChatPanel.test.tsx
+  src/app/map/Chat/__tests__/ChatPanel.test.tsx \
+  src/app/map/Chat/__tests__/ChatPanel.send-message.test.tsx \
+  src/app/map/Chat/__tests__/ChatPanel.debug-message.test.tsx \
+  src/app/map/Chat/__tests__/ChatPanel.render-debug.test.tsx \
+  src/app/map/Chat/__tests__/useChatState.test.tsx
 do
   if [ -f "$file" ]; then
     REACT_TEST_FILES="$REACT_TEST_FILES $file"
