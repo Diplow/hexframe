@@ -16,6 +16,8 @@ interface OfflineAuthContextType {
   user: OfflineUser | null;
   session: OfflineSession | null;
   isLoading: boolean;
+  mappingUserId: number | undefined;
+  setMappingUserId: (id: number | undefined) => void;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -31,6 +33,7 @@ export function OfflineAuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<OfflineUser | null>(null);
   const [session, setSession] = useState<OfflineSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [mappingUserId, setMappingUserId] = useState<number | undefined>(undefined);
 
   // Load auth data from localStorage on mount
   useEffect(() => {
@@ -135,7 +138,7 @@ export function OfflineAuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <OfflineAuthContext.Provider value={{ user, session, isLoading, signIn, signUp, signOut }}>
+    <OfflineAuthContext.Provider value={{ user, session, isLoading, mappingUserId, setMappingUserId, signIn, signUp, signOut }}>
       {children}
     </OfflineAuthContext.Provider>
   );

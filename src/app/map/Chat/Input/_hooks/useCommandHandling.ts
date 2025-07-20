@@ -1,9 +1,10 @@
 import { useCallback } from 'react';
 import { chatSettings } from '../../_settings/chat-settings';
-import useChatState from '../../_state/useChatState';
+import { useChatState } from '../../_state';
 import { useMapCache } from '../../../Cache/_hooks/use-map-cache';
 import { debugLogger } from '~/lib/debug/debug-logger';
 import { authClient } from '~/lib/auth/auth-client';
+import { useEventBus } from '../../../Services/EventBus/event-bus-context';
 
 interface Command {
   description: string;
@@ -268,6 +269,7 @@ const commands: Record<string, Command> = {
 export function useCommandHandling() {
   const chatState = useChatState();
   const { navigateToItem } = useMapCache();
+  const eventBus = useEventBus();
 
   const findCommand = useCallback((path: string): Command | null => {
     return commands[path] ?? null;
@@ -282,26 +284,44 @@ export function useCommandHandling() {
       await authClient.signOut();
       
       // Clear chat
-      chatState.clearChat();
+      if (chatState && 'clearChat' in chatState) {
+        chatState.clearChat();
+      }
       
       // No need for logout success message since chat is cleared
     } catch (error) {
       console.error('Logout failed:', error);
       
       // Show error message
-      chatState.showSystemMessage('Logout failed. Please try again.', 'error');
+      if (chatState && 'showSystemMessage' in chatState) {
+        chatState.showSystemMessage('Logout failed. Please try again.', 'error');
+      }
     }
   }, [chatState]);
 
   const handleLogin = useCallback(() => {
-    // Auth required events are handled by the auth system
-    chatState.showSystemMessage('Please log in to access this feature', 'info');
-  }, [chatState]);
+    // Emit auth.required event to show login widget
+    eventBus.emit({
+      type: 'auth.required' as const,
+      payload: {
+        reason: 'Please log in to access this feature'
+      },
+      source: 'map_cache' as const,
+      timestamp: new Date()
+    });
+  }, [eventBus]);
 
   const handleRegister = useCallback(() => {
-    // Auth required events are handled by the auth system
-    chatState.showSystemMessage('Create an account to get started', 'info');
-  }, [chatState]);
+    // Emit auth.required event to show registration widget
+    eventBus.emit({
+      type: 'auth.required' as const,
+      payload: {
+        reason: 'Create an account to get started'
+      },
+      source: 'map_cache' as const,
+      timestamp: new Date()
+    });
+  }, [eventBus]);
 
   const handleClear = useCallback(() => {
     // Clear debug logs
@@ -398,7 +418,9 @@ export function useCommandHandling() {
     if (command.action) {
       const result = command.action();
       if (result) { // Only show message if there's content
-        chatState.showSystemMessage(result, 'info');
+        if (chatState && 'showSystemMessage' in chatState) {
+          chatState.showSystemMessage(result, 'info');
+        }
       }
       return true;
     }
@@ -420,7 +442,9 @@ export function useCommandHandling() {
         `[${command}](#hexframe-command:${command}) - ${description}`
       ).join('\n')}`;
       
-      chatState.showSystemMessage(helpText, 'info');
+      if (chatState && 'showSystemMessage' in chatState) {
+        chatState.showSystemMessage(helpText, 'info');
+      }
       return true;
     }
     
@@ -442,10 +466,14 @@ export function useCommandHandling() {
           await navigateToItem(tileId);
           // Navigation successful
           
-          chatState.showSystemMessage(`Navigated to "${tileName}"`, 'info');
+          if (chatState && 'showSystemMessage' in chatState) {
+            chatState.showSystemMessage(`Navigated to "${tileName}"`, 'info');
+          }
         } catch (error) {
           console.error('[CommandHandling] ❌ Navigation failed:', error);
-          chatState.showSystemMessage(`Failed to navigate to "${tileName}": ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+          if (chatState && 'showSystemMessage' in chatState) {
+            chatState.showSystemMessage(`Failed to navigate to "${tileName}": ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+          }
         }
         return;
       }
@@ -456,12 +484,16 @@ export function useCommandHandling() {
     if (command) {
       if (command.action) {
         const result = command.action();
-        chatState.showSystemMessage(result, 'info');
+        if (chatState && 'showSystemMessage' in chatState) {
+          chatState.showSystemMessage(result, 'info');
+        }
       } else {
         executeCommand(payload.command);
       }
     } else if (payload.command.startsWith('/')) {
-      chatState.showSystemMessage(`Command not found: ${payload.command}`, 'error');
+      if (chatState && 'showSystemMessage' in chatState) {
+        chatState.showSystemMessage(`Command not found: ${payload.command}`, 'error');
+      }
     }
   }, [chatState, executeCommand, navigateToItem]);
 

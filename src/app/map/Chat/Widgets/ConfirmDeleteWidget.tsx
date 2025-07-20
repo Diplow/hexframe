@@ -17,39 +17,43 @@ export function ConfirmDeleteWidget({ tileId, tileName, widgetId: _widgetId }: C
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState('');
 
-  // DeleteWidget rendered
-
   const handleDelete = async () => {
-    // Delete button clicked
     setIsDeleting(true);
     setError('');
 
     try {
-      // Calling deleteItemOptimistic
       await deleteItemOptimistic(tileId);
-      // deleteItemOptimistic completed successfully
       
-      // Send operation completed event
+      // Send tile deleted event
       eventBus.emit({
-        type: 'map.operation.completed',
+        type: 'map.tile_deleted',
         payload: {
-          operation: 'delete',
-          tileId,
-          result: 'success',
-          message: `Deleted tile "${tileName}"`
+          tileId: tileId,
+          tileName: tileName,
+          coordId: tileId // tileId is actually the coordId in this context
         },
-        source: 'chat_cache',
+        source: 'map_cache', // Must be map_cache for this event type
         timestamp: new Date(),
       });
     } catch (err) {
-      // Delete failed
       setError(err instanceof Error ? err.message : 'Failed to delete tile');
       setIsDeleting(false);
     }
   };
 
   const handleCancel = () => {
-    // Cancel button clicked - widget resolution handled by chat state
+    // Emit a fake tile_deleted event to trigger operation_completed
+    // This will close the delete widget
+    eventBus.emit({
+      type: 'map.tile_deleted',
+      payload: {
+        tileId: tileId,
+        tileName: '(cancelled)',
+        coordId: tileId // tileId is actually the coordId in this context
+      },
+      source: 'map_cache', // Must be map_cache for this event type
+      timestamp: new Date(),
+    });
   };
 
   return (

@@ -48,15 +48,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Define the callback to update React state when the Atom changes
     const handleAuthChange = (newState: SessionState) => {
-      console.log("[AuthContext] Auth state change detected:", {
-        hasData: !!newState.data,
-        hasUser: !!newState.data?.user,
-        isPending: newState.isPending,
-        hasError: !!newState.error,
-        error: newState.error,
-        userId: newState.data?.user?.id,
-        userEmail: newState.data?.user?.email,
-      });
       setAuthState(newState);
     };
 
@@ -67,13 +58,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // in case the Atom updated between the initial .get() and the .subscribe() call.
     // This ensures the component has the latest state.
     const initialState = authClient.useSession.get();
-    console.log("[AuthContext] Initial auth state on mount:", {
-      hasData: !!initialState.data,
-      hasUser: !!initialState.data?.user,
-      isPending: initialState.isPending,
-      userId: initialState.data?.user?.id,
-      userEmail: initialState.data?.user?.email,
-    });
     setAuthState(initialState);
 
     // Return the unsubscribe function to be called on component unmount

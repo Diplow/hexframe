@@ -24,7 +24,6 @@ export function validateAndTransformMapEvent(mapEvent: AppEvent): ChatEvent | nu
   const validationResult = safeValidateEvent(mapEvent);
   
   if (!validationResult.success) {
-    console.warn('Invalid event received:', validationResult.error);
     return null;
   }
 
@@ -141,7 +140,7 @@ export function validateAndTransformMapEvent(mapEvent: AppEvent): ChatEvent | nu
       const payload = authRequiredEventSchema.parse(validEvent).payload;
       return {
         ...baseEvent,
-        type: 'auth_required',
+        type: 'auth_required' as const,
         payload: {
           reason: payload.reason,
           requiredFor: payload.requiredFor,
@@ -194,12 +193,13 @@ export function validateAndTransformMapEvent(mapEvent: AppEvent): ChatEvent | nu
       const payload = mapDeleteRequestedEventSchema.parse(validEvent).payload;
       return {
         ...baseEvent,
-        type: 'operation_started',
-        actor: 'user' as const, // User initiated from Canvas
+        type: 'operation_started' as const,
+        actor: 'user' as const, // User initiated from Canvas or Chat
         payload: {
-          operation: 'delete',
+          operation: 'delete' as const,
           tileId: payload.tileId,
           data: {
+            tileId: payload.tileId, // Also include tileId in data
             tileName: payload.tileName,
           },
         },

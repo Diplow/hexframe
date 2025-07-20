@@ -1,14 +1,14 @@
 'use client';
 
 import { cn } from '~/lib/utils';
-import useChatState from './_state/useChatState';
+import { useChatState, ChatProvider } from './_state';
 import { Messages } from './Messages';
 import { Input } from './Input';
 import { ThemeToggle } from '~/components/ThemeToggle';
 import { Logo } from '~/components/ui/logo';
 import { Button } from '~/components/ui/button';
 import { LogOut, LogIn } from 'lucide-react';
-import { useAuth } from '~/contexts/AuthContext';
+import { useUnifiedAuth } from '~/contexts/UnifiedAuthContext';
 import { authClient } from '~/lib/auth/auth-client';
 import { useEffect } from 'react';
 import { loggers } from '~/lib/debug/debug-logger';
@@ -20,17 +20,20 @@ interface ChatPanelProps {
 
 export function ChatPanel({ className }: ChatPanelProps) {
   return (
-    <div data-testid="chat-panel" className={cn('flex flex-col h-full bg-center-depth-0', className)}>
-      <ChatHeader />
-      <ChatContent />
-    </div>
+    <ChatProvider>
+      <div data-testid="chat-panel" className={cn('flex flex-col h-full bg-center-depth-0', className)}>
+        <ChatHeader />
+        <ChatContent />
+      </div>
+    </ChatProvider>
   );
 }
 
 // Separate component that uses the chat state
 function ChatContent() {
   const chatState = useChatState();
-  const { messages, widgets } = chatState;
+  const messages = chatState.messages;
+  const widgets = chatState.widgets;
   
   // Debug logging for ChatPanel renders
   useEffect(() => {
@@ -56,8 +59,7 @@ function ChatContent() {
 }
 
 function ChatHeader() {
-  const { user } = useAuth();
-  const chatState = useChatState();
+  const { user } = useUnifiedAuth();
   const eventBus = useEventBus();
   
   // Debug logging for ChatHeader renders
@@ -80,8 +82,15 @@ function ChatHeader() {
         timestamp: new Date(),
       });
     } else {
-      // Show login widget in chat instead of redirecting
-      chatState.showSystemMessage('Please log in to access this feature', 'info');
+      // Emit auth.required event to show login widget
+      eventBus.emit({
+        type: 'auth.required' as const,
+        payload: {
+          reason: 'Please log in to access this feature'
+        },
+        source: 'map_cache' as const,
+        timestamp: new Date()
+      });
     }
   };
   

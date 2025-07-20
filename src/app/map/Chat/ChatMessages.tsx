@@ -13,7 +13,7 @@ import { ConfirmDeleteWidget } from './Widgets/ConfirmDeleteWidget';
 import { LoadingWidget } from './Widgets/LoadingWidget';
 import { ErrorWidget } from './Widgets/ErrorWidget';
 import { useMapCache } from '../Cache/_hooks/use-map-cache';
-import { useAuth } from '~/contexts/AuthContext';
+import { useUnifiedAuth } from '~/contexts/UnifiedAuthContext';
 import { useRouter } from 'next/navigation';
 import { useChatSettings } from './_settings/useChatSettings';
 import { Calendar } from 'lucide-react';
@@ -27,7 +27,7 @@ interface ChatMessagesProps {
 export function ChatMessages({ messages, widgets }: ChatMessagesProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { updateItemOptimistic } = useMapCache();
-  const { user } = useAuth();
+  const { user } = useUnifiedAuth();
   const router = useRouter();
   const trpcUtils = api.useUtils();
   const createMapMutation = api.map.user.createDefaultMapForCurrentUser.useMutation();
@@ -236,7 +236,7 @@ function DaySeparator({ date }: { date: Date }) {
 }
 
 function MessageItem({ message }: { message: Message }) {
-  const { user } = useAuth();
+  const { user } = useUnifiedAuth();
   const router = useRouter();
   
   // MessageItem render logging removed to prevent circular dependencies

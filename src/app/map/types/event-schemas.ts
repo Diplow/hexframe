@@ -239,7 +239,7 @@ export const mapEditRequestedEventSchema = baseEventSchema.extend({
 
 export const mapDeleteRequestedEventSchema = baseEventSchema.extend({
   type: z.literal('map.delete_requested'),
-  source: z.literal('canvas'),
+  source: z.enum(['canvas', 'chat_cache']), // Allow both canvas and chat_cache
   payload: mapDeleteRequestedPayloadSchema,
 });
 

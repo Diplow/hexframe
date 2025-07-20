@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useAuth } from "~/contexts/AuthContext";
+import { useUnifiedAuth } from "~/contexts/UnifiedAuthContext";
 import { useUserMapFlow } from "./_hooks/use-user-map-flow";
 import {
   LoadingState,
@@ -17,7 +17,7 @@ import { WelcomeScreen } from "./_components/welcome-screen";
  * Delegates all business logic to useUserMapFlow hook
  */
 export default function HomePage() {
-  const { user, isLoading: isAuthLoading } = useAuth();
+  const { user, isLoading: isAuthLoading } = useUnifiedAuth();
   const { state, error, retry } = useUserMapFlow({ user, isAuthLoading });
 
   // Render appropriate UI based on current state

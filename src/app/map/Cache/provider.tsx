@@ -169,7 +169,8 @@ export function MapCacheProvider({
     storageService,
     syncEnabled: true, // Always sync to localStorage for seamless offline transition
     onInitialLoad: (_data) => {
-      // Loaded data from localStorage
+      // Loaded data from localStorage - clear loading state
+      dispatch({ type: 'SET_LOADING', payload: false });
     },
   });
 

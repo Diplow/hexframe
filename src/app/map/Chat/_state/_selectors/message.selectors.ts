@@ -195,14 +195,12 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
         // Add creation widget for create operations
         if (payload.operation === 'create') {
           const widgetId = `creation-${event.id}`;
-          // Setting creation widget active
           widgetStates.set(widgetId, 'active');
         }
         
         // Add delete widget for delete operations
         if (payload.operation === 'delete') {
           const widgetId = `delete-${event.id}`;
-          // Setting delete widget active
           widgetStates.set(widgetId, 'active');
         }
         break;
@@ -211,6 +209,7 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
       case 'operation_completed': {
         // Remove any active operation widgets for this tile
         const payload = event.payload as OperationCompletedPayload;
+        
         if (payload.tileId) {
           // Close preview widget for this tile if operation was delete
           if (payload.operation === 'delete') {
@@ -218,7 +217,19 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
             widgetStates.set(previewId, 'completed');
           }
         }
-        // Mark operation as completed and close associated widgets
+        
+        // For delete operations, we need to find and close ALL delete widgets
+        // since we can't reliably match by tileId in the operation ID
+        if (payload.operation === 'delete') {
+          // Find all delete widgets and mark them as completed
+          for (const [widgetId, state] of widgetStates) {
+            if (widgetId.startsWith('delete-') && state === 'active') {
+              widgetStates.set(widgetId, 'completed');
+            }
+          }
+        }
+        
+        // Original logic for other operations
         for (const opId of activeOperations) {
           if (opId.includes(payload.tileId ?? '')) {
             activeOperations.delete(opId);
@@ -227,13 +238,6 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
               const eventId = opId.replace('op-', '');
               const creationWidgetId = `creation-${eventId}`;
               widgetStates.set(creationWidgetId, 'completed');
-            }
-            
-            // Close delete widgets for delete operations
-            if (payload.operation === 'delete') {
-              const eventId = opId.replace('op-', '');
-              const deleteWidgetId = `delete-${eventId}`;
-              widgetStates.set(deleteWidgetId, 'completed');
             }
           }
         }
@@ -256,7 +260,6 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
       case 'widget_resolved': {
         const payload = event.payload as { widgetId: string; action: string };
         // Mark widget as completed
-        // Widget resolved
         widgetStates.set(payload.widgetId, 'completed');
         break;
       }
@@ -286,9 +289,9 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
           const payload = event.payload as AuthRequiredPayload;
           widgets.push({
             id: 'login-widget',
-            type: 'login',
+            type: 'login' as const,
             data: payload,
-            priority: 'critical',
+            priority: 'critical' as const,
             timestamp: event.timestamp,
           });
         }
@@ -328,7 +331,6 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
         if (payload.operation === 'delete') {
           const widgetId = `delete-${event.id}`;
           if (widgetStates.get(widgetId) === 'active') {
-            // Adding delete widget to render
             widgets.push({
               id: widgetId,
               type: 'delete',
@@ -336,8 +338,6 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
               priority: 'action',
               timestamp: event.timestamp,
             });
-          } else {
-            // Delete widget not active
           }
         }
         break;
@@ -347,7 +347,6 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
 
   // Return only the most recent widget of each type
   const latestWidgets = new Map<string, Widget>();
-  // Total widgets before filtering
   
   for (const widget of widgets) {
     const key = widget.type === 'preview' ? `${widget.type}-${(widget.data as TileSelectedPayload).tileId}` : widget.type;
@@ -360,8 +359,6 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
   const result = Array.from(latestWidgets.values()).sort((a, b) => 
     b.timestamp.getTime() - a.timestamp.getTime()
   );
-  
-  // Final active widgets
   
   return result;
 }
