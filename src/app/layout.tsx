@@ -20,7 +20,7 @@ export default function RootLayout({
   const isE2ETest = process.env.E2E_TEST === 'true';
   
   return (
-    <html lang="en" className={`${GeistSans.variable}`}>
+    <html lang="en" className={`${GeistSans.variable}`} suppressHydrationWarning>
       <head>
         <meta name="view-transition" content="same-origin" />
         {isE2ETest && (
@@ -34,7 +34,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
-                const theme = localStorage.getItem('theme') || 'light';
+                const theme = localStorage.getItem('theme-preference') || 'light';
                 document.documentElement.classList.add(theme);
               })();
             `,

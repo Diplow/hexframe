@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useMemo, useCallback } from 'react';
+import { useEffect, useReducer, useMemo, useCallback, useRef } from 'react';
 import { useEventBus } from '../../Services/EventBus/event-bus-context';
 import type { ChatEvent, ChatUIState } from './_events/event.types';
 import type { AppEvent } from '../../types/events';
@@ -19,18 +19,10 @@ import { chatSettings } from '../_settings/chat-settings';
  */
 export function useChatStateInternal(initialEvents: ChatEvent[] = []) {
   const eventBus = useEventBus();
+  const hasAddedWelcomeMessage = useRef(false);
   
-  // Add welcome message if no initial events provided
-  const defaultEvents = initialEvents.length > 0 ? initialEvents : [{
-    type: 'system_message' as const,
-    payload: {
-      message: 'Welcome to **HexFrame**! Navigate the map by clicking on tiles, or use the chat to ask questions.',
-      level: 'info' as const,
-    },
-    id: 'welcome-message',
-    timestamp: new Date(),
-    actor: 'system' as const,
-  }];
+  // Start with provided events or empty array (welcome message added after mount)
+  const defaultEvents = initialEvents;
   
   // Use reducer to manage event log
   const [events, dispatchEvent] = useReducer(eventsReducer, defaultEvents);
@@ -51,6 +43,23 @@ export function useChatStateInternal(initialEvents: ChatEvent[] = []) {
     };
     dispatchEvent(fullEvent);
   }, []);
+
+  // Add welcome message after mount (client-side only to avoid hydration mismatch)
+  useEffect(() => {
+    if (!hasAddedWelcomeMessage.current && initialEvents.length === 0) {
+      hasAddedWelcomeMessage.current = true;
+      dispatch({
+        type: 'system_message',
+        payload: {
+          message: 'Welcome to **HexFrame**! Navigate the map by clicking on tiles, or use the chat to ask questions.',
+          level: 'info' as const,
+        },
+        id: 'welcome-message',
+        timestamp: new Date(),
+        actor: 'system' as const,
+      });
+    }
+  }, [dispatch, initialEvents.length]); // Run once on mount
 
   // Subscribe to events
   useEffect(() => {

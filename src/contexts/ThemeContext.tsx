@@ -37,11 +37,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (!mounted) return;
     
     const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
+    // Remove both theme classes first
+    root.classList.remove('light', 'dark');
+    // Add the current theme
+    root.classList.add(theme);
   }, [theme, mounted]);
 
   // Save to localStorage when theme changes
