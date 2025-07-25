@@ -142,3 +142,245 @@ After investigating Claude Code SDK, we've decided to use **OpenRouter** for LLM
 - Map items stored with hierarchical relationships
 - No chat history persistence currently
 - No LLM context storage
+
+## Solution
+
+*I am an AI assistant acting on behalf of @Diplow*
+
+### Solution 1: Minimal Integration (Quick Start)
+
+**Overview**: Direct OpenRouter integration in Chat component with minimal new infrastructure.
+
+**Implementation Path**:
+1. Add OpenRouter API client to Chat component
+2. Create new "AI Assistant" widget type
+3. Add LLM message handler in chat state
+4. Context builder utility for tile hierarchy
+
+**Components Affected**:
+- `/src/app/map/Chat/types.ts` - Add AI widget type
+- `/src/app/map/Chat/_state/ChatProvider.tsx` - Add LLM handler
+- `/src/app/map/Chat/Widgets/AIAssistantWidget.tsx` - New widget
+- `/src/app/map/Chat/_utils/context-builder.ts` - New utility
+
+**Technical Details**:
+```typescript
+// New AI widget type
+interface AIAssistantWidgetData {
+  model: string;
+  systemPrompt?: string;
+  temperature?: number;
+}
+
+// Context builder
+function buildLLMContext(state: CacheState, center: string) {
+  const tiles = selectRegionItems({ state, centerCoordId: center, maxDepth: 2 });
+  return formatTilesForLLM(tiles);
+}
+```
+
+**Pros**:
+- ✅ Quick implementation (2-3 days)
+- ✅ Minimal changes to existing code
+- ✅ Easy to test and iterate
+
+**Cons**:
+- ❌ Violates domain separation principles
+- ❌ No backend persistence
+- ❌ Limited extensibility
+- ❌ API keys in frontend (security risk)
+
+### Solution 2: Event-Driven Domain Integration (Architecturally Sound)
+
+**Overview**: Full "agentic" domain implementation following DDD principles with event-driven integration.
+
+**Implementation Path**:
+1. Create new "agentic" domain structure
+2. Implement OpenRouter repository
+3. Create agentic service with context management
+4. Add tRPC router for API orchestration
+5. Integrate with Chat via EventBus
+
+**New Domain Structure**:
+```
+/src/lib/domains/agentic/
+├── README.md
+├── _objects/
+│   ├── conversation.ts      # Conversation entity
+│   ├── llm-message.ts       # LLM message value object
+│   └── context-snapshot.ts  # Tile context snapshot
+├── _actions/
+│   ├── generate-response.ts # LLM response generation
+│   ├── manage-context.ts    # Context building/optimization
+│   └── select-model.ts      # Model selection logic
+├── _repositories/
+│   └── llm.repository.ts    # LLM provider interface
+├── services/
+│   └── agentic.service.ts   # Main service facade
+├── infrastructure/
+│   └── openrouter/
+│       └── client.ts        # OpenRouter implementation
+└── types/
+    ├── contracts.ts         # API contracts
+    └── errors.ts            # Domain errors
+```
+
+**Components Affected**:
+- New domain: `/src/lib/domains/agentic/`
+- `/src/server/api/routers/agentic.ts` - New tRPC router
+- `/src/app/map/Chat/_state/_events/event.types.ts` - New event types
+- `/src/app/map/Chat/Widgets/AIAssistantWidget.tsx` - New widget
+
+**Integration Flow**:
+```typescript
+// tRPC router orchestration
+export const agenticRouter = createTRPCRouter({
+  generateResponse: protectedProcedure
+    .use(agenticServiceMiddleware)
+    .use(mappingServiceMiddleware)
+    .input(generateResponseSchema)
+    .mutation(async ({ ctx, input }) => {
+      // Get tile context from mapping service
+      const context = await ctx.mappingService.getTileHierarchy(
+        input.centerCoordId, 
+        { maxDepth: 2 }
+      );
+      
+      // Generate LLM response
+      const response = await ctx.agenticService.generateResponse({
+        messages: input.messages,
+        tileContext: context,
+        model: input.model
+      });
+      
+      // Emit event for Chat
+      ctx.eventBus.emit({
+        type: 'agentic.response_generated',
+        payload: { response }
+      });
+      
+      return response;
+    })
+});
+```
+
+**Event Integration**:
+```typescript
+// New events
+type AgenticEvents = 
+  | { type: 'agentic.response_requested'; payload: { messages, model } }
+  | { type: 'agentic.response_generated'; payload: { response } }
+  | { type: 'agentic.context_updated'; payload: { tileContext } }
+```
+
+**Pros**:
+- ✅ Follows established architecture patterns
+- ✅ Backend API key management (secure)
+- ✅ Extensible for future AI features
+- ✅ Proper separation of concerns
+- ✅ Testable at each layer
+
+**Cons**:
+- ❌ More complex implementation (1-2 weeks)
+- ❌ Requires backend infrastructure
+- ❌ More moving parts
+
+### Solution 3: Progressive Enhancement (Recommended)
+
+**Overview**: Phased approach starting with frontend prototype, then migrating to proper domain architecture.
+
+**Phase 1 - Frontend Prototype (3 days)**:
+- Implement basic AI widget in Chat
+- Use environment variables for API keys
+- Context builder using MapCache selectors
+- Model selection dropdown
+
+**Phase 2 - Backend Migration (1 week)**:
+- Create agentic domain structure
+- Move OpenRouter calls to backend
+- Implement tRPC endpoints
+- Add proper error handling
+
+**Phase 3 - Advanced Features (1 week)**:
+- Conversation persistence
+- Token usage tracking
+- Model-specific optimizations
+- Streaming responses
+
+**Implementation Strategy**:
+
+**Phase 1 Components**:
+```typescript
+// Environment config
+interface AgenticConfig {
+  openRouterApiKey: string;
+  defaultModel: string;
+  maxTokens: number;
+}
+
+// AI Assistant Widget
+export function AIAssistantWidget({ onSendMessage }: Props) {
+  const { state } = useMapCache();
+  const [model, setModel] = useState('openai/gpt-3.5-turbo');
+  
+  const handleGenerate = async (prompt: string) => {
+    const context = buildTileContext(state);
+    const response = await callOpenRouter({ prompt, context, model });
+    onSendMessage(response);
+  };
+}
+```
+
+**Phase 2 Migration Path**:
+1. Keep frontend UI unchanged
+2. Replace direct API calls with tRPC mutations
+3. Move context building to service layer
+4. Add authentication checks
+
+**Phase 3 Enhancements**:
+- WebSocket for streaming
+- Redis for conversation cache
+- Prometheus metrics for usage
+
+**Pros**:
+- ✅ Quick initial value delivery
+- ✅ Validates UX before heavy investment
+- ✅ Smooth migration path
+- ✅ Each phase is independently valuable
+- ✅ Lower risk approach
+
+**Cons**:
+- ❌ Temporary technical debt in Phase 1
+- ❌ Requires refactoring between phases
+- ❌ Initial version has security limitations
+
+### Tradeoff Analysis
+
+| Aspect | Solution 1 | Solution 2 | Solution 3 |
+|--------|------------|------------|------------|
+| **Time to First Value** | 2-3 days | 1-2 weeks | 3 days |
+| **Security** | Poor | Excellent | Moderate→Excellent |
+| **Maintainability** | Poor | Excellent | Good→Excellent |
+| **Extensibility** | Limited | High | Progressive |
+| **Technical Debt** | High | Low | Temporary |
+| **Risk** | Low | Medium | Low |
+
+### Recommended Approach: Solution 3 (Progressive Enhancement)
+
+**Rationale**:
+1. **Fast Validation**: Users can test LLM integration within days
+2. **Risk Mitigation**: Each phase delivers value independently
+3. **Learning Opportunity**: Phase 1 insights inform Phase 2 design
+4. **Smooth Migration**: No breaking changes between phases
+5. **Budget Friendly**: Can pause after any phase
+
+**Success Criteria**:
+- Phase 1: Working LLM chat with tile context
+- Phase 2: Secure backend with proper architecture
+- Phase 3: Production-ready with advanced features
+
+**Next Steps**:
+1. Implement Phase 1 prototype
+2. Gather user feedback
+3. Design Phase 2 based on learnings
+4. Iterate and enhance
