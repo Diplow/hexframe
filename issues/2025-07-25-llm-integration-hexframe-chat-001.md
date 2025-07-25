@@ -718,3 +718,46 @@ interface TileContext {
 - Complete flow from Chat UI to LLM response
 - Model selection and context preview
 - Error handling and recovery
+
+## Design
+
+*I am an AI assistant acting on behalf of @Diplow*
+
+### Design Goals
+- **Invisible Intelligence**: Natural AI integration without disrupting chat flow
+- **Context-Aware**: Automatic tile hierarchy understanding
+- **Progressive Disclosure**: Start simple, add features over time
+- **Trust & Safety**: Clear AI indicators and security considerations
+
+### Visual Approach
+AI messages distinguished by:
+- 🤖 AI Assistant label
+- Subtle purple background tint (#F7F3FF)
+- Processing animation during generation
+- Clear error and limit states
+
+### Interaction Model
+1. User types naturally in existing chat input
+2. System automatically detects AI-appropriate queries
+3. Tile context (center + 2 generations) included automatically
+4. AI response appears as assistant message
+5. Seamless conversation flow maintained
+
+### Key Design Decisions
+
+**No Dedicated Widget (v1)**
+- Use existing chat input for simplicity
+- Reduces complexity and speeds implementation
+- Widget planned for v2 (model selection, settings)
+
+**Automatic Context**
+- Always include tile hierarchy without user action
+- Reduces friction, ensures relevant responses
+- Trade-off: slightly higher token usage
+
+**Subtle Differentiation**
+- Light purple tint for AI messages
+- Maintains visual cohesion
+- Clear but not distracting
+
+See [/src/app/map/Chat/DESIGN.md](/src/app/map/Chat/DESIGN.md) for detailed specifications.
