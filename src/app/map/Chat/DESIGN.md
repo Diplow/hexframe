@@ -44,9 +44,9 @@ AI Assistant Message:
 - **Context Indicator**: Small tile count badge showing context scope
 
 ### Color Usage (Following Design System)
-- AI Messages: `bg-purple-50 dark:bg-purple-950/20` (subtle purple from SW position)
+- AI Messages: Uses `--color-ai` CSS variables with opacity for subtle backgrounds
 - User Messages: `bg-slate-50 dark:bg-slate-900` (standard chat background)
-- Processing: `bg-gradient-to-r from-purple-50 via-violet-50 to-purple-50` animation
+- Processing: Gradient animation using AI color transitions
 - Error States: `bg-rose-50 dark:bg-rose-950/20` (using W position destructive color)
 
 ## Interaction Design
@@ -84,8 +84,8 @@ interface AIMessageProps {
 ```
 
 States:
-- **Generating**: `animate-pulse bg-gradient-to-r from-purple-50 via-violet-50 to-purple-50`
-- **Complete**: `bg-purple-50 dark:bg-purple-950/20`
+- **Generating**: Animated gradient using AI color RGB values with low opacity
+- **Complete**: Background using `rgb(var(--color-ai-rgb) / 0.1)` for subtle tint
 - **Error**: `bg-rose-50 dark:bg-rose-950/20` with retry button
 
 ### Chat Input Enhancement
@@ -167,28 +167,30 @@ States:
 **Trade-off**: Slightly higher token usage
 
 ### Subtle AI Differentiation
-**Choice**: Light purple tint using SW spatial color (creative insight)
+**Choice**: Use dedicated `--color-ai` CSS variables derived from SW spatial color
 **Rationale**: 
-- Purple represents creative/insightful thinking in our spatial system
-- Maintains chat cohesion while indicating AI source
-- Follows design system dual-purpose color philosophy
-**Alternative**: Considered violet (primary) but too prominent for messages
+- Purple (SW) represents creative/insightful thinking in our spatial system
+- Semantic AI color allows consistent theming across components
+- Maintains chat cohesion while clearly indicating AI source
+- Follows design system pattern of semantic color aliases
+**Alternative**: Considered direct purple classes but CSS variables provide better maintainability
 
 ## Implementation Notes
 
 ### Tailwind Implementation
 ```tsx
-// AI Message component classes
+// AI Message component classes using CSS variables
 const aiMessageClasses = {
-  base: 'bg-purple-50 dark:bg-purple-950/20 rounded-lg p-4',
-  generating: 'animate-pulse bg-gradient-to-r from-purple-50 via-violet-50 to-purple-50',
-  complete: 'bg-purple-50 dark:bg-purple-950/20',
+  base: 'rounded-lg p-4',
+  complete: 'bg-[rgb(var(--color-ai-rgb)/0.1)]',
+  generating: 'animate-pulse bg-gradient-to-r from-[rgb(var(--color-ai-light-rgb)/0.1)] via-[rgb(var(--color-primary-light-rgb)/0.1)] to-[rgb(var(--color-ai-light-rgb)/0.1)]',
   error: 'bg-rose-50 dark:bg-rose-950/20'
 };
 
 // Usage
 <div className={cn(
   aiMessageClasses.base,
+  status === 'complete' && aiMessageClasses.complete,
   status === 'generating' && aiMessageClasses.generating,
   status === 'error' && aiMessageClasses.error
 )}>

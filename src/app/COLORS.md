@@ -50,7 +50,7 @@ Each spatial color serves a functional role in the UI:
 | NE | Green | Growth/Positive | Success states |
 | E | Cyan | New horizons | Links, navigation |
 | SE | Indigo | Deep analysis | (Spatial only) |
-| SW | Purple | Creative insight | AI messages, creative thinking |
+| SW | Purple | Creative insight | AI/creative thinking |
 | W | Rose | Sunset/Ending | Destructive actions |
 
 ## Color Variants
@@ -85,6 +85,13 @@ The color system tells a story:
 --color-link: var(--color-e);           /* Cyan */
 --color-ai: var(--color-sw);            /* Purple */
 --color-destructive: var(--color-w);    /* Rose */
+```
+
+Additionally, AI colors have RGB variants for opacity support:
+```css
+--color-ai-rgb: 147 51 234;      /* purple-600 */
+--color-ai-light-rgb: 192 132 252; /* purple-400 */
+--color-ai-dark-rgb: 107 33 168;   /* purple-800 */
 ```
 
 This creates a memorable system: once users learn that "East is cyan for exploration," they intuitively understand that cyan links lead somewhere new.
