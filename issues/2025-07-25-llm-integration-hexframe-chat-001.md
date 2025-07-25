@@ -114,6 +114,15 @@ Current code structure and patterns:
 - No "agentic" domain for AI-related functionality
 - No mechanism to provide tile hierarchy as LLM context
 
+### Technical Decision: OpenRouter Integration
+
+After investigating Claude Code SDK, we've decided to use **OpenRouter** for LLM integration because:
+- Claude Code SDK requires Anthropic API key (tied to their pricing)
+- OpenRouter provides access to free models for development
+- Allows easy model selection and switching
+- Unified API for multiple LLM providers (Claude, GPT, Llama, etc.)
+- Better cost control and flexibility
+
 ### Dependencies and Integration
 
 **Internal Dependencies**:
