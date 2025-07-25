@@ -417,6 +417,14 @@ export function AIAssistantWidget({ onSendMessage }: Props) {
 **Key Patterns**:
 - Domain-Driven Design with complete isolation
 - Event-driven architecture with past-tense notifications
+
+### Context Computation Architecture
+
+For detailed context computation design, see [Context Architecture Documentation](./2025-07-25-llm-integration-hexframe-chat-001-context-architecture.md). Key highlights:
+- Isolated context builder service with pluggable strategies
+- Extensible from basic (center + 2 generations) to advanced (token-aware, multi-modal)
+- Built-in caching and optimization
+- Clear evolution path for future enhancements
 - Layered architecture: UI → API → Domain → Infrastructure
 - No direct domain-to-domain communication
 
