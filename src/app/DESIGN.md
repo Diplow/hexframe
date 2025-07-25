@@ -202,10 +202,7 @@ The primary (and currently only) interface:
 
 #### Canvas
 **The hexagonal playground**
-- Renders tiles at 3 scales
-- Handles spatial positioning
-- Color inheritance system
-- Smooth zoom transitions
+- See [Canvas DESIGN.md](/src/app/map/Canvas/DESIGN.md) for detailed specifications
 
 #### Hierarchy
 **Breadcrumb navigation**

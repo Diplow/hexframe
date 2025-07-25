@@ -14,15 +14,16 @@ The issue management system follows a structured three-phase workflow. All comma
    - `/ux_design_plan #<issue>` - Detailed UX/UI specifications (optional)
    - `/tests_plan #<issue>` - Comprehensive test strategy (optional)
 4. `/architecture #<issue>` - Document technical architecture and mental models (optional but recommended)
+5. `/design #<issue>` - Document UX/UI design principles and visual guidelines (optional but recommended for UI features)
 
 ### Phase 2: Implementation 🛠️
-5. `/tests_impl #<issue>` - Implement tests first for TDD (optional but recommended)
-6. `/issue_impl #<issue> [branch]` - Execute the implementation (required)
+6. `/tests_impl #<issue>` - Implement tests first for TDD (optional but recommended)
+7. `/issue_impl #<issue> [branch]` - Execute the implementation (required)
 
 ### Phase 3: Review 📝
-7. `/refactor <file_path>` - Refactor for clarity following Rule of 6 (optional)
-8. `/document <branch>` - Update all relevant documentation (required)
-9. `/retro #<issue>` - Capture learnings and insights (optional)
+8. `/refactor <file_path>` - Refactor for clarity following Rule of 6 (optional)
+9. `/document <branch>` - Update all relevant documentation (required)
+10. `/retro #<issue>` - Capture learnings and insights (optional)
 
 ### Workflow Commands
 
@@ -73,7 +74,19 @@ Documents technical architecture and mental models for the solution.
 /architecture #<issue-number>
 ```
 
-#### 5. /issue_impl
+#### 5. /design
+Documents UX/UI design principles, visual decisions, and interaction patterns.
+- Creates or updates DESIGN.md in the relevant feature folder
+- Appends "## Design" section to the issue document
+- Posts the design summary as a GitHub comment
+- Optional but recommended for user-facing features
+
+**Usage:**
+```
+/design #<issue-number>
+```
+
+#### 6. /issue_impl
 Executes the implementation based on all documented context.
 - Reads the complete document for context
 - Implements the solution
@@ -85,7 +98,7 @@ Executes the implementation based on all documented context.
 /issue_impl #<issue-number> [branch-name]
 ```
 
-#### 6. /document
+#### 7. /document
 Updates all relevant documentation after implementation.
 - Appends "## Documentation Updates" section
 - Posts documentation changes as a GitHub comment
@@ -103,7 +116,8 @@ Updates all relevant documentation after implementation.
 /context #124
 /solution #124
 /security_plan #124  # (optional if security concerns exist)
-/archi #124
+/architecture #124
+/design #124         # (optional for UI features)
 
 # Phase 2: Implementation 🛠️
 /tests_impl #124     # (optional for TDD)

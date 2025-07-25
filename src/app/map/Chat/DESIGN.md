@@ -43,11 +43,11 @@ AI Assistant Message:
 - **Processing**: Subtle animation while generating response
 - **Context Indicator**: Small tile count badge showing context scope
 
-### Color Palette
-- AI Messages: Subtle purple tint (#F7F3FF background)
-- User Messages: Standard chat background
-- Processing: Purple gradient animation
-- Error States: Soft red (#FFF3F3)
+### Color Usage (Following Design System)
+- AI Messages: `bg-purple-50 dark:bg-purple-950/20` (subtle purple from SW position)
+- User Messages: `bg-slate-50 dark:bg-slate-900` (standard chat background)
+- Processing: `bg-gradient-to-r from-purple-50 via-violet-50 to-purple-50` animation
+- Error States: `bg-rose-50 dark:bg-rose-950/20` (using W position destructive color)
 
 ## Interaction Design
 
@@ -84,9 +84,9 @@ interface AIMessageProps {
 ```
 
 States:
-- **Generating**: Animated gradient background, typing indicator
-- **Complete**: Static purple-tinted background
-- **Error**: Red-tinted background with retry button
+- **Generating**: `animate-pulse bg-gradient-to-r from-purple-50 via-violet-50 to-purple-50`
+- **Complete**: `bg-purple-50 dark:bg-purple-950/20`
+- **Error**: `bg-rose-50 dark:bg-rose-950/20` with retry button
 
 ### Chat Input Enhancement
 - No visual changes in v1
@@ -167,27 +167,33 @@ States:
 **Trade-off**: Slightly higher token usage
 
 ### Subtle AI Differentiation
-**Choice**: Light purple tint instead of bold colors
-**Rationale**: Maintains chat cohesion while indicating AI source
-**Alternative**: Considered border styles, chose background for accessibility
+**Choice**: Light purple tint using SW spatial color (creative insight)
+**Rationale**: 
+- Purple represents creative/insightful thinking in our spatial system
+- Maintains chat cohesion while indicating AI source
+- Follows design system dual-purpose color philosophy
+**Alternative**: Considered violet (primary) but too prominent for messages
 
 ## Implementation Notes
 
-### CSS Architecture
-```scss
-.ai-message {
-  background: var(--ai-message-bg, #F7F3FF);
-  
-  &.generating {
-    background: linear-gradient(
-      -45deg, 
-      #F7F3FF, 
-      #E7DFFF, 
-      #F7F3FF
-    );
-    animation: gradient-shift 2s ease infinite;
-  }
-}
+### Tailwind Implementation
+```tsx
+// AI Message component classes
+const aiMessageClasses = {
+  base: 'bg-purple-50 dark:bg-purple-950/20 rounded-lg p-4',
+  generating: 'animate-pulse bg-gradient-to-r from-purple-50 via-violet-50 to-purple-50',
+  complete: 'bg-purple-50 dark:bg-purple-950/20',
+  error: 'bg-rose-50 dark:bg-rose-950/20'
+};
+
+// Usage
+<div className={cn(
+  aiMessageClasses.base,
+  status === 'generating' && aiMessageClasses.generating,
+  status === 'error' && aiMessageClasses.error
+)}>
+  {/* Message content */}
+</div>
 ```
 
 ### Animation Performance
