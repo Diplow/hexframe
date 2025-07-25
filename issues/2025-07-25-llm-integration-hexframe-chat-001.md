@@ -365,22 +365,36 @@ export function AIAssistantWidget({ onSendMessage }: Props) {
 | **Technical Debt** | High | Low | Temporary |
 | **Risk** | Low | Medium | Low |
 
-### Recommended Approach: Solution 3 (Progressive Enhancement)
+### Selected Approach: Solution 2 (Event-Driven Domain Integration)
 
-**Rationale**:
-1. **Fast Validation**: Users can test LLM integration within days
-2. **Risk Mitigation**: Each phase delivers value independently
-3. **Learning Opportunity**: Phase 1 insights inform Phase 2 design
-4. **Smooth Migration**: No breaking changes between phases
-5. **Budget Friendly**: Can pause after any phase
+**Decision Date**: 2025-07-25
+**Decision Maker**: @Diplow
+
+**Rationale for Selection**:
+1. **Architectural Integrity**: Maintains consistency with existing DDD patterns
+2. **Security First**: Backend API key management from the start
+3. **Long-term Vision**: Sets foundation for future AI capabilities
+4. **Clean Separation**: Proper domain boundaries prevent technical debt
+5. **Testability**: Each layer can be tested independently
+
+**Implementation Plan**:
+1. Create agentic domain structure with entities, actions, and services
+2. Implement OpenRouter repository following existing patterns
+3. Build context management for tile hierarchy serialization
+4. Create tRPC router with proper middleware chain
+5. Integrate Chat component with new AI widget
+6. Add comprehensive tests at each layer
 
 **Success Criteria**:
-- Phase 1: Working LLM chat with tile context
-- Phase 2: Secure backend with proper architecture
-- Phase 3: Production-ready with advanced features
+- Agentic domain follows DDD principles
+- OpenRouter integration with configurable models
+- Tile context (center + 2 generations) properly serialized
+- Chat interface seamlessly integrates LLM responses
+- All layers have appropriate test coverage
 
 **Next Steps**:
-1. Implement Phase 1 prototype
-2. Gather user feedback
-3. Design Phase 2 based on learnings
-4. Iterate and enhance
+1. Create agentic domain skeleton
+2. Implement OpenRouter client
+3. Design context serialization format
+4. Build tRPC endpoints
+5. Create AI Assistant widget
