@@ -397,11 +397,13 @@ export function AIAssistantWidget({ onSendMessage }: Props) {
 2. Implement OpenRouter client
 3. Design context serialization format
 4. Build tRPC endpoints
-5. Create AI Assistant widget
+5. Integrate with existing chat input
 
 ## Architecture
 
 *I am an AI assistant acting on behalf of @Diplow*
+
+**Update**: Simplified approach for initial version - using existing chat input directly instead of creating a dedicated AI Assistant widget. The widget will be added in future iterations for model selection and token management.
 
 ### Current State
 
@@ -452,11 +454,9 @@ agentic/
 - Middleware for authentication and rate limiting
 - Event emission for Chat integration
 
-**3. AI Assistant Widget** (`/src/app/map/Chat/Widgets/AIAssistantWidget.tsx`)
-- Model selection dropdown
-- Context preview display
-- Response streaming UI
-- Token usage indicator
+**3. ~~AI Assistant Widget~~ (Future Enhancement)**
+- *Initial version will use existing chat input*
+- *Widget planned for future: model selection, token usage, etc.*
 
 ### Modified Components
 
@@ -469,21 +469,26 @@ agentic/
   | { type: 'llm_error_occurred'; payload: LLMErrorPayload }
   ```
 
-**2. Chat Types**
-- New widget type in `/src/app/map/Chat/types.ts`:
+**2. Chat Input Component**
+- Modified `/src/app/map/Chat/Input/index.tsx`:
   ```typescript
-  interface ChatWidget {
-    type: '...' | 'ai-assistant';
-    data: unknown;
-  }
+  // Direct integration with agentic API
+  const { mutate: generateLLMResponse } = api.agentic.generateResponse.useMutation({
+    onSuccess: (response) => {
+      // Response handled via EventBus
+    }
+  });
   
-  interface AIAssistantWidgetData {
-    conversationId?: string;
-    model: string;
-    systemPrompt?: string;
-    contextDepth: number;
-    temperature: number;
-  }
+  // User messages sent to LLM when appropriate
+  const handleSendMessage = (message: string) => {
+    // Existing chat logic...
+    // Add LLM call:
+    generateLLMResponse({ 
+      message, 
+      centerCoordId: currentCenter,
+      contextDepth: 2 
+    });
+  };
   ```
 
 **3. Event Bus Integration**
@@ -495,11 +500,9 @@ agentic/
 ```
 User Input in Chat
       ↓
-AI Assistant Widget
+Chat Input Component (existing)
       ↓
-Chat dispatches llm_response_requested event
-      ↓
-tRPC mutation: agentic.generateResponse
+Direct tRPC mutation: agentic.generateResponse
       ↓
 Agentic Service orchestrates:
 ├── Mapping Service: getTileHierarchy(center, depth=2)
@@ -510,7 +513,7 @@ Response flows back through tRPC
       ↓
 EventBus emits agentic.response_generated
       ↓
-Chat receives event and updates UI
+Chat receives event and displays as assistant message
       ↓
 AI response displayed to user
 ```
