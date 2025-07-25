@@ -398,3 +398,203 @@ export function AIAssistantWidget({ onSendMessage }: Props) {
 3. Design context serialization format
 4. Build tRPC endpoints
 5. Create AI Assistant widget
+
+## Architecture
+
+*I am an AI assistant acting on behalf of @Diplow*
+
+### Current State
+
+**Existing Components**:
+- **Chat System**: Event-driven UI layer with widget system for complex interactions
+- **MapCache**: Central data orchestrator providing tile hierarchy through selectors
+- **EventBus**: Cross-component communication channel for notifications and requests
+- **Domain Layer**: Isolated domains (IAM, Mapping) with strict boundaries
+- **tRPC Router**: API layer orchestrating cross-domain operations
+
+**Key Patterns**:
+- Domain-Driven Design with complete isolation
+- Event-driven architecture with past-tense notifications
+- Layered architecture: UI → API → Domain → Infrastructure
+- No direct domain-to-domain communication
+
+### New Components
+
+**1. Agentic Domain** (`/src/lib/domains/agentic/`)
+```
+agentic/
+├── _objects/
+│   ├── conversation.ts         # Entity: Conversation with messages
+│   ├── llm-message.ts          # Value Object: LLM message with metadata
+│   ├── context-snapshot.ts     # Value Object: Serialized tile hierarchy
+│   └── model-config.ts         # Value Object: Model configuration
+├── _actions/
+│   ├── generate-response.ts    # Generate LLM response with context
+│   ├── build-context.ts        # Build tile hierarchy context
+│   ├── select-model.ts         # Model selection logic
+│   └── optimize-tokens.ts      # Token usage optimization
+├── _repositories/
+│   └── llm.repository.ts       # Abstract interface for LLM providers
+├── services/
+│   └── agentic.service.ts      # Public API for domain operations
+├── infrastructure/
+│   └── openrouter/
+│       ├── client.ts           # OpenRouter API implementation
+│       └── mapper.ts           # Map domain objects to API format
+└── types/
+    ├── contracts.ts            # DTOs for API communication
+    ├── errors.ts               # Domain-specific errors
+    └── constants.ts            # Model names, limits, etc.
+```
+
+**2. Agentic Router** (`/src/server/api/routers/agentic.ts`)
+- tRPC router orchestrating agentic and mapping domains
+- Middleware for authentication and rate limiting
+- Event emission for Chat integration
+
+**3. AI Assistant Widget** (`/src/app/map/Chat/Widgets/AIAssistantWidget.tsx`)
+- Model selection dropdown
+- Context preview display
+- Response streaming UI
+- Token usage indicator
+
+### Modified Components
+
+**1. Chat Event System**
+- New event types in `/src/app/map/Chat/_state/_events/event.types.ts`:
+  ```typescript
+  | { type: 'llm_response_requested'; payload: LLMRequestPayload }
+  | { type: 'llm_response_received'; payload: LLMResponsePayload }
+  | { type: 'llm_stream_chunk'; payload: StreamChunkPayload }
+  | { type: 'llm_error_occurred'; payload: LLMErrorPayload }
+  ```
+
+**2. Chat Types**
+- New widget type in `/src/app/map/Chat/types.ts`:
+  ```typescript
+  interface ChatWidget {
+    type: '...' | 'ai-assistant';
+    data: unknown;
+  }
+  
+  interface AIAssistantWidgetData {
+    conversationId?: string;
+    model: string;
+    systemPrompt?: string;
+    contextDepth: number;
+    temperature: number;
+  }
+  ```
+
+**3. Event Bus Integration**
+- New event namespace `agentic.*` for LLM-related events
+- Events flow from tRPC router to Chat via EventBus
+
+### Data Flow
+
+```
+User Input in Chat
+      ↓
+AI Assistant Widget
+      ↓
+Chat dispatches llm_response_requested event
+      ↓
+tRPC mutation: agentic.generateResponse
+      ↓
+Agentic Service orchestrates:
+├── Mapping Service: getTileHierarchy(center, depth=2)
+├── Context Builder: serialize tiles to LLM format
+└── OpenRouter Client: send request with context
+      ↓
+Response flows back through tRPC
+      ↓
+EventBus emits agentic.response_generated
+      ↓
+Chat receives event and updates UI
+      ↓
+AI response displayed to user
+```
+
+### Mental Model
+
+**Think of the LLM integration as a "Smart Assistant" that:**
+1. **Sees the Map**: Has awareness of the current tile hierarchy (center + 2 generations)
+2. **Understands Context**: Receives structured tile data in a format optimized for LLMs
+3. **Respects Boundaries**: Lives in its own domain, communicates via events
+4. **Stays Secure**: API keys managed on backend, never exposed to frontend
+
+**Key Concepts**:
+- **Context Window**: The tile hierarchy snapshot sent to the LLM
+- **Model Abstraction**: Repository pattern allows swapping LLM providers
+- **Event Flow**: All LLM interactions are asynchronous and event-driven
+- **Token Economy**: Context builder optimizes what tiles to include
+
+### Key Patterns
+
+**1. Repository Pattern for LLM Providers**
+```typescript
+interface LLMRepository {
+  generateResponse(params: GenerateParams): Promise<LLMResponse>;
+  streamResponse(params: GenerateParams): AsyncGenerator<StreamChunk>;
+  getAvailableModels(): Promise<ModelInfo[]>;
+}
+```
+
+**2. Context Serialization Strategy**
+```typescript
+interface TileContext {
+  center: {
+    id: string;
+    name: string;
+    content: string;
+    metadata: Record<string, unknown>;
+  };
+  children: TileContext[];
+  depth: number;
+}
+```
+
+**3. Event-Driven Response Handling**
+- Request initiated by user action
+- Processing happens asynchronously
+- Response delivered via event
+- UI updates reactively
+
+**4. Error Boundary Pattern**
+- Domain errors (rate limit, token limit)
+- Infrastructure errors (network, API)
+- Graceful degradation in UI
+
+### Security Considerations
+
+**API Key Management**:
+- Stored in environment variables on backend
+- Never transmitted to frontend
+- Accessed only by infrastructure layer
+
+**Rate Limiting**:
+- User-level quotas in tRPC middleware
+- Model-specific limits enforced
+- Graceful handling of rate limit errors
+
+**Content Filtering**:
+- Sanitize tile content before sending
+- Validate LLM responses
+- Prevent prompt injection via context
+
+### Testing Strategy
+
+**Unit Tests**:
+- Domain objects and value objects
+- Actions with mocked repositories
+- Service layer with mocked dependencies
+
+**Integration Tests**:
+- tRPC router with real domain services
+- Event flow from request to response
+- Error scenarios and edge cases
+
+**E2E Tests**:
+- Complete flow from Chat UI to LLM response
+- Model selection and context preview
+- Error handling and recovery
