@@ -727,6 +727,298 @@ interface TileContext {
 - Model selection and context preview
 - Error handling and recovery
 
+## Tests
+
+*I am an AI assistant acting on behalf of @Diplow*
+
+### Test Strategy
+
+Following TDD principles, tests will be written before implementation to drive the design and ensure comprehensive coverage. The testing approach focuses on isolation and composability, matching our architecture.
+
+### Test Categories
+
+#### 1. Unit Tests - Context Builders
+
+**Canvas Context Builder Tests** (`/src/lib/domains/agentic/services/__tests__/canvas-context-builder.test.ts`):
+```typescript
+describe('CanvasContextBuilder', () => {
+  describe('StandardStrategy', () => {
+    it('should build context with center tile and 2 generations', async () => {
+      // Test that standard strategy returns center + children + grandchildren
+    });
+    
+    it('should filter empty tiles when includeEmptyTiles is false', async () => {
+      // Verify empty tiles are excluded from context
+    });
+    
+    it('should include position information for children', async () => {
+      // Ensure spatial positions (NW, NE, E, SE, SW, W) are preserved
+    });
+    
+    it('should handle missing tiles gracefully', async () => {
+      // Test behavior when some tiles don't exist
+    });
+  });
+  
+  describe('MinimalStrategy', () => {
+    it('should return only center tile', async () => {
+      // Verify minimal strategy returns just the center
+    });
+  });
+  
+  describe('ExtendedStrategy', () => {
+    it('should include 3 generations from center', async () => {
+      // Test extended depth context building
+    });
+  });
+});
+```
+
+**Chat Context Builder Tests** (`/src/lib/domains/agentic/services/__tests__/chat-context-builder.test.ts`):
+```typescript
+describe('ChatContextBuilder', () => {
+  describe('FullStrategy', () => {
+    it('should include all chat messages', async () => {
+      // Verify all messages are included
+    });
+    
+    it('should extract text from widget messages', async () => {
+      // Test widget content extraction
+    });
+    
+    it('should preserve message metadata', async () => {
+      // Ensure timestamps and tile references are preserved
+    });
+  });
+  
+  describe('RecentStrategy', () => {
+    it('should limit to N most recent messages', async () => {
+      // Test message limiting
+    });
+    
+    it('should maintain chronological order', async () => {
+      // Verify message ordering
+    });
+  });
+  
+  describe('RelevantStrategy', () => {
+    it('should filter messages by tile context', async () => {
+      // Test filtering based on tile IDs
+    });
+  });
+});
+```
+
+#### 2. Integration Tests - Context Composition
+
+**Context Composition Tests** (`/src/lib/domains/agentic/services/__tests__/context-composition.test.ts`):
+```typescript
+describe('ContextCompositionService', () => {
+  it('should compose canvas and chat contexts sequentially', async () => {
+    // Test basic composition of both context types
+  });
+  
+  it('should respect token allocation between contexts', async () => {
+    // Verify token limits are enforced (40% canvas, 60% chat)
+  });
+  
+  it('should handle single context type when other is disabled', async () => {
+    // Test with only canvas or only chat enabled
+  });
+  
+  it('should optimize context when exceeding token limits', async () => {
+    // Test token-aware truncation
+  });
+  
+  describe('Token Optimization', () => {
+    it('should prioritize recent chat messages when truncating', async () => {
+      // Verify older messages are removed first
+    });
+    
+    it('should preserve center tile even under extreme token pressure', async () => {
+      // Ensure critical context is never removed
+    });
+  });
+});
+```
+
+**Context Serialization Tests** (`/src/lib/domains/agentic/services/__tests__/context-serializer.test.ts`):
+```typescript
+describe('ContextSerializerService', () => {
+  describe('Structured Format', () => {
+    it('should serialize composed context with clear sections', async () => {
+      // Test markdown-style output
+    });
+    
+    it('should handle empty sections gracefully', async () => {
+      // Test with missing children or messages
+    });
+  });
+  
+  describe('XML Format', () => {
+    it('should produce valid XML for Claude models', async () => {
+      // Test XML structure and escaping
+    });
+    
+    it('should include all metadata in XML attributes', async () => {
+      // Verify position and count attributes
+    });
+  });
+  
+  describe('Minimal Format', () => {
+    it('should produce compact representation', async () => {
+      // Test space-efficient serialization
+    });
+  });
+});
+```
+
+#### 3. Service Integration Tests
+
+**LLM Integration Service Tests** (`/src/lib/domains/agentic/services/__tests__/llm-integration.test.ts`):
+```typescript
+describe('LLMIntegrationService', () => {
+  it('should build system prompt with composed context', async () => {
+    // Test full integration from raw data to LLM prompt
+  });
+  
+  it('should select serialization format based on model', async () => {
+    // Verify XML for Claude, structured for GPT
+  });
+  
+  it('should handle OpenRouter API response', async () => {
+    // Mock OpenRouter client and test response handling
+  });
+  
+  it('should respect model-specific token limits', async () => {
+    // Test different limits for GPT-3.5 vs Claude
+  });
+  
+  describe('Error Handling', () => {
+    it('should handle API rate limits gracefully', async () => {
+      // Test 429 response handling
+    });
+    
+    it('should handle network errors with retry', async () => {
+      // Test connection failure scenarios
+    });
+    
+    it('should handle invalid API key', async () => {
+      // Test authentication errors
+    });
+  });
+});
+```
+
+#### 4. tRPC Router Tests
+
+**Agentic Router Tests** (`/src/server/api/routers/__tests__/agentic.test.ts`):
+```typescript
+describe('agenticRouter', () => {
+  describe('generateResponse', () => {
+    it('should require authentication', async () => {
+      // Test protected procedure
+    });
+    
+    it('should validate input schema', async () => {
+      // Test zod validation
+    });
+    
+    it('should emit response event to EventBus', async () => {
+      // Verify event emission
+    });
+    
+    it('should handle missing center tile', async () => {
+      // Test error case
+    });
+  });
+});
+```
+
+#### 5. Chat Integration Tests
+
+**Chat-LLM Integration Tests** (`/src/app/map/Chat/__tests__/llm-integration.test.ts`):
+```typescript
+describe('Chat LLM Integration', () => {
+  it('should detect LLM-directed messages', async () => {
+    // Test message pattern detection
+  });
+  
+  it('should display AI responses with proper styling', async () => {
+    // Test AI message component rendering
+  });
+  
+  it('should show loading state during generation', async () => {
+    // Test loading UI
+  });
+  
+  it('should handle streaming responses', async () => {
+    // Test incremental updates (future)
+  });
+});
+```
+
+### Performance Tests
+
+```typescript
+describe('Context Performance', () => {
+  it('should build context within 100ms for typical hierarchy', async () => {
+    // Test with ~50 tiles
+  });
+  
+  it('should cache context effectively', async () => {
+    // Verify second call is <10ms
+  });
+  
+  it('should handle deep hierarchies (8+ levels)', async () => {
+    // Test with complex tile structures
+  });
+});
+```
+
+### Test Data Factories
+
+```typescript
+// Test data builders for consistent test setup
+export const createMockTile = (overrides?: Partial<TileData>): TileData => ({
+  id: 'test-id',
+  name: 'Test Tile',
+  description: 'Test description',
+  metadata: {
+    coordId: 'user:123,group:456:1,2',
+    coordinates: { userId: 'user:123', groupId: 'group:456', path: [1, 2] },
+    dbId: 'db-123',
+    position: 'NW'
+  },
+  ...overrides
+});
+
+export const createMockChatMessage = (overrides?: Partial<ChatMessage>): ChatMessage => ({
+  id: 'msg-123',
+  type: 'user',
+  content: 'Test message',
+  metadata: {
+    timestamp: new Date(),
+    tileId: 'tile-123'
+  },
+  ...overrides
+});
+```
+
+### Coverage Goals
+
+- **Unit Tests**: 90%+ coverage for all context builders and strategies
+- **Integration Tests**: Full coverage of happy paths and key error scenarios
+- **Critical Paths**: 100% coverage for security-sensitive code (API keys, auth)
+- **Edge Cases**: Comprehensive coverage of error states and boundaries
+
+### Testing Tools
+
+- **Vitest**: Test runner with vi.fn() for mocks
+- **MSW**: Mock OpenRouter API responses
+- **React Testing Library**: For Chat UI components
+- **Test Containers**: For database integration tests (if needed)
+
 ## Design
 
 *I am an AI assistant acting on behalf of @Diplow*
