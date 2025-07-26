@@ -19,11 +19,25 @@ This document details the isolated context computation architecture for the LLM 
 ```typescript
 // /src/lib/domains/agentic/types/context.types.ts
 
-export interface TileContext {
+// Base context interface that all strategies must implement
+export interface Context {
+  type: string;
+  metadata: ContextMetadata;
+  serialize(format: SerializationFormat): string;
+}
+
+export interface ContextMetadata {
+  computedAt: Date;
+  tokenEstimate?: number;
+}
+
+// Canvas-specific context (tile hierarchy)
+export interface CanvasContext extends Context {
+  type: 'canvas';
   center: TileContextItem;
   children: TileContextItem[];
   grandchildren: TileContextItem[];
-  metadata: ContextMetadata;
+  strategy: CanvasContextStrategy;
 }
 
 export interface TileContextItem {
@@ -35,150 +49,359 @@ export interface TileContextItem {
   hasChildren: boolean;
 }
 
-export interface ContextMetadata {
-  totalTiles: number;
-  maxDepth: number;
-  computedAt: Date;
-  strategy: ContextStrategy;
-}
-
-export type ContextStrategy = 
+export type CanvasContextStrategy = 
   | 'minimal'      // Just the center tile
   | 'standard'     // Center + 2 generations (default)
   | 'extended'     // Center + 3 generations
   | 'focused'      // Center + specific children
-  | 'historical';  // Include conversation history context
-```
+  | 'custom';      // Custom depth/filter configuration
 
-### 2. Context Builder Service
-
-```typescript
-// /src/lib/domains/agentic/services/context-builder.service.ts
-
-export interface ContextBuilderConfig {
-  strategy: ContextStrategy;
-  maxTokens?: number;
-  includeEmptyTiles?: boolean;
-  includeMetadata?: boolean;
+// Chat-specific context (conversation history)
+export interface ChatContext extends Context {
+  type: 'chat';
+  messages: ChatContextMessage[];
+  strategy: ChatContextStrategy;
 }
 
-export class ContextBuilderService {
+export interface ChatContextMessage {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  timestamp: Date;
+  metadata?: {
+    tileId?: string;
+    model?: string;
+  };
+}
+
+export type ChatContextStrategy = 
+  | 'full'         // Entire conversation history
+  | 'recent'       // Last N messages
+  | 'relevant'     // Only messages mentioning current tiles
+  | 'summary';     // Summarized older messages + recent full
+
+// Composed context that combines multiple contexts
+export interface ComposedContext extends Context {
+  type: 'composed';
+  contexts: Context[];
+  composition: ContextComposition;
+}
+
+export interface ContextComposition {
+  strategy: 'sequential' | 'interleaved' | 'prioritized';
+  tokenAllocation?: Record<string, number>; // How many tokens per context type
+}
+```
+
+### 2. Context Composition Service
+
+```typescript
+// /src/lib/domains/agentic/services/context-composition.service.ts
+
+export interface CompositionConfig {
+  canvas?: {
+    enabled: boolean;
+    strategy: CanvasContextStrategy;
+    options?: CanvasContextOptions;
+  };
+  chat?: {
+    enabled: boolean;
+    strategy: ChatContextStrategy;
+    options?: ChatContextOptions;
+  };
+  composition?: {
+    strategy: 'sequential' | 'interleaved' | 'prioritized';
+    maxTotalTokens?: number;
+    tokenAllocation?: {
+      canvas?: number;  // Max tokens for canvas context
+      chat?: number;    // Max tokens for chat context
+    };
+  };
+}
+
+export class ContextCompositionService {
   constructor(
-    private readonly tileRepository: TileRepository,
+    private readonly canvasBuilder: CanvasContextBuilder,
+    private readonly chatBuilder: ChatContextBuilder,
     private readonly tokenizer: TokenizerService
   ) {}
 
-  async buildContext(
+  async composeContext(
     centerCoordId: string,
-    config: ContextBuilderConfig
-  ): Promise<TileContext> {
-    const builder = this.getStrategyBuilder(config.strategy);
-    const rawContext = await builder.build(centerCoordId, config);
+    messages: ChatMessage[],
+    config: CompositionConfig
+  ): Promise<ComposedContext> {
+    const contexts: Context[] = [];
     
-    // Optimize context if token limit specified
-    if (config.maxTokens) {
-      return this.optimizeContext(rawContext, config.maxTokens);
+    // Build canvas context if enabled
+    if (config.canvas?.enabled) {
+      const canvasContext = await this.canvasBuilder.build(
+        centerCoordId,
+        config.canvas.strategy,
+        config.canvas.options
+      );
+      contexts.push(canvasContext);
     }
     
-    return rawContext;
+    // Build chat context if enabled
+    if (config.chat?.enabled) {
+      const chatContext = await this.chatBuilder.build(
+        messages,
+        config.chat.strategy,
+        config.chat.options
+      );
+      contexts.push(chatContext);
+    }
+    
+    // Optimize token allocation if limits specified
+    if (config.composition?.maxTotalTokens) {
+      return this.optimizeComposition(contexts, config.composition);
+    }
+    
+    return {
+      type: 'composed',
+      contexts,
+      composition: {
+        strategy: config.composition?.strategy ?? 'sequential'
+      },
+      metadata: {
+        computedAt: new Date()
+      }
+    };
   }
 
-  private getStrategyBuilder(strategy: ContextStrategy): ContextBuilder {
-    return this.strategyBuilders.get(strategy) ?? this.defaultBuilder;
+  private async optimizeComposition(
+    contexts: Context[],
+    compositionConfig: ContextComposition
+  ): Promise<ComposedContext> {
+    // Token-aware optimization logic
+    // Prioritize based on strategy and allocation
   }
 }
 ```
 
-### 3. Context Strategies
+### 3. Canvas Context Builder
 
 ```typescript
-// /src/lib/domains/agentic/services/context-strategies/base.strategy.ts
+// /src/lib/domains/agentic/services/canvas-context-builder.service.ts
 
-export abstract class BaseContextStrategy {
-  constructor(protected readonly tileRepository: TileRepository) {}
-  
-  abstract build(
+export interface CanvasContextOptions {
+  includeEmptyTiles?: boolean;
+  includeDescriptions?: boolean;
+  maxDepth?: number;
+  focusedPositions?: HexPosition[]; // For 'focused' strategy
+}
+
+export class CanvasContextBuilder {
+  constructor(
+    private readonly tileRepository: TileRepository,
+    private readonly strategies: Map<CanvasContextStrategy, ICanvasStrategy>
+  ) {}
+
+  async build(
     centerCoordId: string,
-    config: ContextBuilderConfig
-  ): Promise<TileContext>;
-  
-  protected async getTileData(coordId: string): Promise<TileContextItem> {
-    const tile = await this.tileRepository.findByCoordId(coordId);
-    return this.mapToContextItem(tile);
+    strategy: CanvasContextStrategy,
+    options?: CanvasContextOptions
+  ): Promise<CanvasContext> {
+    const strategyImpl = this.strategies.get(strategy) ?? this.strategies.get('standard')!;
+    return strategyImpl.build(centerCoordId, options ?? {});
   }
 }
 
-// /src/lib/domains/agentic/services/context-strategies/standard.strategy.ts
+// /src/lib/domains/agentic/services/canvas-strategies/standard.strategy.ts
 
-export class StandardContextStrategy extends BaseContextStrategy {
+export class StandardCanvasStrategy implements ICanvasStrategy {
+  constructor(private readonly tileRepository: TileRepository) {}
+  
   async build(
     centerCoordId: string,
-    config: ContextBuilderConfig
-  ): Promise<TileContext> {
+    options: CanvasContextOptions
+  ): Promise<CanvasContext> {
     const center = await this.getTileData(centerCoordId);
     const children = await this.getChildren(centerCoordId);
     const grandchildren = await this.getGrandchildren(children);
     
     return {
+      type: 'canvas',
       center,
-      children: config.includeEmptyTiles ? children : children.filter(c => c.name),
-      grandchildren: config.includeEmptyTiles ? grandchildren : grandchildren.filter(g => g.name),
+      children: this.filterTiles(children, options),
+      grandchildren: this.filterTiles(grandchildren, options),
+      strategy: 'standard',
       metadata: {
-        totalTiles: 1 + children.length + grandchildren.length,
-        maxDepth: 2,
-        computedAt: new Date(),
-        strategy: 'standard'
-      }
+        computedAt: new Date()
+      },
+      serialize: (format: SerializationFormat) => this.serialize(format)
     };
+  }
+  
+  private filterTiles(tiles: TileContextItem[], options: CanvasContextOptions) {
+    if (!options.includeEmptyTiles) {
+      return tiles.filter(t => t.name && t.name.trim());
+    }
+    return tiles;
+  }
+}
+
+### 4. Chat Context Builder
+
+```typescript
+// /src/lib/domains/agentic/services/chat-context-builder.service.ts
+
+export interface ChatContextOptions {
+  maxMessages?: number;        // For 'recent' strategy
+  relevantTileIds?: string[]; // For 'relevant' strategy
+  summaryThreshold?: number;  // Messages older than N to summarize
+}
+
+export class ChatContextBuilder {
+  constructor(
+    private readonly strategies: Map<ChatContextStrategy, IChatStrategy>
+  ) {}
+
+  async build(
+    messages: ChatMessage[],
+    strategy: ChatContextStrategy,
+    options?: ChatContextOptions
+  ): Promise<ChatContext> {
+    const strategyImpl = this.strategies.get(strategy) ?? this.strategies.get('full')!;
+    return strategyImpl.build(messages, options ?? {});
+  }
+}
+
+// /src/lib/domains/agentic/services/chat-strategies/full.strategy.ts
+
+export class FullChatStrategy implements IChatStrategy {
+  async build(
+    messages: ChatMessage[],
+    options: ChatContextOptions
+  ): Promise<ChatContext> {
+    const contextMessages = messages.map(msg => ({
+      role: msg.type as 'user' | 'assistant' | 'system',
+      content: this.extractTextContent(msg.content),
+      timestamp: msg.metadata?.timestamp ?? new Date(),
+      metadata: {
+        tileId: msg.metadata?.tileId
+      }
+    }));
+    
+    return {
+      type: 'chat',
+      messages: contextMessages,
+      strategy: 'full',
+      metadata: {
+        computedAt: new Date()
+      },
+      serialize: (format: SerializationFormat) => this.serialize(format)
+    };
+  }
+  
+  private extractTextContent(content: string | ChatWidget): string {
+    if (typeof content === 'string') return content;
+    // Handle widget content extraction
+    return `[${content.type} widget]`;
   }
 }
 ```
 
-### 4. Context Serializer
+### 5. Context Serializer
 
 ```typescript
 // /src/lib/domains/agentic/services/context-serializer.service.ts
 
 export interface SerializationFormat {
-  type: 'structured' | 'narrative' | 'minimal';
-  includePositions?: boolean;
-  includeDescriptions?: boolean;
+  type: 'structured' | 'narrative' | 'minimal' | 'xml';
+  includeMetadata?: boolean;
 }
 
 export class ContextSerializerService {
-  serialize(
-    context: TileContext,
-    format: SerializationFormat
-  ): string {
+  serialize(context: ComposedContext, format: SerializationFormat): string {
     switch (format.type) {
       case 'structured':
-        return this.serializeStructured(context, format);
+        return this.serializeStructured(context);
       case 'narrative':
-        return this.serializeNarrative(context, format);
+        return this.serializeNarrative(context);
       case 'minimal':
-        return this.serializeMinimal(context, format);
+        return this.serializeMinimal(context);
+      case 'xml':
+        return this.serializeXML(context);
     }
   }
 
-  private serializeStructured(
-    context: TileContext,
-    format: SerializationFormat
-  ): string {
+  private serializeStructured(context: ComposedContext): string {
+    const parts: string[] = [];
+    
+    for (const ctx of context.contexts) {
+      if (ctx.type === 'canvas') {
+        parts.push(this.serializeCanvasContext(ctx as CanvasContext));
+      } else if (ctx.type === 'chat') {
+        parts.push(this.serializeChatContext(ctx as ChatContext));
+      }
+    }
+    
+    return parts.join('\n\n---\n\n');
+  }
+
+  private serializeCanvasContext(context: CanvasContext): string {
     return `
-## Current Context
+## Tile Hierarchy Context
 
-### Center Tile: ${context.center.name}
-${format.includeDescriptions ? context.center.description : ''}
+### Current Center: ${context.center.name}
+${context.center.description}
 
-### Children (${context.children.length}):
+### Direct Children (${context.children.length}):
 ${context.children.map(child => 
-  `- ${child.name}${format.includePositions ? ` (${child.position})` : ''}${
-    format.includeDescriptions ? `: ${child.description}` : ''
-  }`
+  `- ${child.position ? `[${child.position}]` : ''} ${child.name}: ${child.description || 'No description'}`
 ).join('\n')}
 
-### Grandchildren (${context.grandchildren.length}):
-${context.grandchildren.map(gc => `- ${gc.name}`).join('\n')}
+### Grandchildren (${context.grandchildren.length} total):
+${context.grandchildren.slice(0, 10).map(gc => `- ${gc.name}`).join('\n')}
+${context.grandchildren.length > 10 ? `... and ${context.grandchildren.length - 10} more` : ''}
+    `.trim();
+  }
+
+  private serializeChatContext(context: ChatContext): string {
+    return `
+## Conversation History
+
+${context.messages.map(msg => 
+  `### ${msg.role.charAt(0).toUpperCase() + msg.role.slice(1)}
+${msg.content}
+`).join('\n')}
+    `.trim();
+  }
+
+  private serializeXML(context: ComposedContext): string {
+    // XML format can be better for some LLMs
+    return `
+<context>
+  ${context.contexts.map(ctx => {
+    if (ctx.type === 'canvas') {
+      const canvas = ctx as CanvasContext;
+      return `
+  <canvas_context>
+    <center>
+      <name>${canvas.center.name}</name>
+      <description>${canvas.center.description}</description>
+    </center>
+    <children count="${canvas.children.length}">
+      ${canvas.children.map(child => `
+      <child position="${child.position || 'unpositioned'}">
+        <name>${child.name}</name>
+        <description>${child.description}</description>
+      </child>`).join('')}
+    </children>
+  </canvas_context>`;
+    } else if (ctx.type === 'chat') {
+      const chat = ctx as ChatContext;
+      return `
+  <chat_context>
+    ${chat.messages.map(msg => `
+    <message role="${msg.role}">
+      <content>${msg.content}</content>
+    </message>`).join('')}
+  </chat_context>`;
+    }
+  }).join('\n')}
+</context>
     `.trim();
   }
 }
@@ -229,9 +452,28 @@ export class ContextCacheService {
 ```typescript
 // /src/lib/domains/agentic/services/llm-integration.service.ts
 
+export interface LLMGenerationOptions {
+  model: string;
+  temperature?: number;
+  maxTokens?: number;
+  // Context configuration
+  contextConfig?: {
+    canvas?: {
+      strategy: CanvasContextStrategy;
+      includeEmptyTiles?: boolean;
+    };
+    chat?: {
+      strategy: ChatContextStrategy;
+      maxMessages?: number;
+    };
+    serialization?: SerializationFormat;
+    maxContextTokens?: number;
+  };
+}
+
 export class LLMIntegrationService {
   constructor(
-    private readonly contextBuilder: ContextBuilderService,
+    private readonly contextComposer: ContextCompositionService,
     private readonly serializer: ContextSerializerService,
     private readonly llmClient: LLMClient
   ) {}
@@ -239,27 +481,43 @@ export class LLMIntegrationService {
   async generateResponse(
     messages: ChatMessage[],
     centerCoordId: string,
-    options: LLMOptions
+    options: LLMGenerationOptions
   ): Promise<LLMResponse> {
-    // Build context
-    const context = await this.contextBuilder.buildContext(
+    // Build composed context with default configuration for v1
+    const composedContext = await this.contextComposer.composeContext(
       centerCoordId,
+      messages,
       {
-        strategy: options.contextStrategy ?? 'standard',
-        maxTokens: options.maxContextTokens ?? 1000,
-        includeEmptyTiles: false,
-        includeMetadata: true
+        canvas: {
+          enabled: true,
+          strategy: options.contextConfig?.canvas?.strategy ?? 'standard',
+          options: {
+            includeEmptyTiles: options.contextConfig?.canvas?.includeEmptyTiles ?? false,
+            includeDescriptions: true
+          }
+        },
+        chat: {
+          enabled: true,
+          strategy: options.contextConfig?.chat?.strategy ?? 'full',
+          options: {
+            maxMessages: options.contextConfig?.chat?.maxMessages
+          }
+        },
+        composition: {
+          strategy: 'sequential',
+          maxTotalTokens: options.contextConfig?.maxContextTokens ?? 2000,
+          tokenAllocation: {
+            canvas: 800,  // ~40% for tile context
+            chat: 1200    // ~60% for conversation history
+          }
+        }
       }
     );
     
-    // Serialize context
+    // Serialize composed context
     const serializedContext = this.serializer.serialize(
-      context,
-      {
-        type: options.serializationFormat ?? 'structured',
-        includePositions: true,
-        includeDescriptions: true
-      }
+      composedContext,
+      options.contextConfig?.serialization ?? { type: 'structured' }
     );
     
     // Prepare system prompt with context
@@ -269,64 +527,127 @@ export class LLMIntegrationService {
     return this.llmClient.generate({
       messages: [
         { role: 'system', content: systemPrompt },
-        ...messages
+        ...this.convertMessages(messages)
       ],
       model: options.model,
-      temperature: options.temperature
+      temperature: options.temperature,
+      maxTokens: options.maxTokens
     });
+  }
+
+  private buildSystemPrompt(serializedContext: string): string {
+    return `You are an AI assistant helping with Hexframe, a visual framework for building AI-powered systems through hierarchical hexagonal maps.
+
+${serializedContext}
+
+Please provide helpful responses based on the current tile hierarchy and conversation history.`;
   }
 }
 ```
 
 ## Evolution Strategy
 
-### Phase 1: Basic Context (MVP)
-- Standard strategy only (center + 2 generations)
+### Phase 1: Basic Composition (MVP)
+- Canvas: Standard strategy (center + 2 generations)
+- Chat: Full history strategy
+- Sequential composition
 - Structured serialization format
-- Simple caching
 
 ### Phase 2: Advanced Strategies
-- Add focused strategy (specific branches)
-- Add historical strategy (conversation aware)
-- Narrative serialization for better LLM understanding
+- Canvas: Add focused strategy (specific branches), minimal, extended
+- Chat: Add recent (last N), relevant (tile-specific), summary strategies
+- Interleaved composition for better context flow
+- XML serialization option for Claude/GPT-4
 
 ### Phase 3: Intelligent Context
-- Token-aware context optimization
-- Dynamic strategy selection based on query
+- Token-aware optimization with dynamic allocation
+- Query-based strategy selection
 - Context importance scoring
+- Adaptive serialization based on model
 
-### Phase 4: Multi-modal Context
-- Include tile images/visualizations
+### Phase 4: Multi-modal & Advanced
+- Include tile visualizations in context
 - Add spatial relationship descriptions
-- Include user interaction patterns
+- User interaction pattern context
+- Memory-augmented context (previous conversations)
+- Tool-use context (available actions)
 
 ## Testing Strategy
 
 ```typescript
-// /src/lib/domains/agentic/services/__tests__/context-builder.test.ts
+// /src/lib/domains/agentic/services/__tests__/context-composition.test.ts
 
-describe('ContextBuilderService', () => {
-  it('should build standard context correctly', async () => {
-    const builder = new ContextBuilderService(mockRepo, mockTokenizer);
-    const context = await builder.buildContext('user:123,group:456:1,2', {
-      strategy: 'standard',
+describe('ContextCompositionService', () => {
+  it('should compose canvas and chat contexts', async () => {
+    const composer = new ContextCompositionService(
+      mockCanvasBuilder,
+      mockChatBuilder,
+      mockTokenizer
+    );
+    
+    const composed = await composer.composeContext(
+      'user:123,group:456:1,2',
+      mockMessages,
+      {
+        canvas: { enabled: true, strategy: 'standard' },
+        chat: { enabled: true, strategy: 'full' }
+      }
+    );
+    
+    expect(composed.contexts).toHaveLength(2);
+    expect(composed.contexts[0].type).toBe('canvas');
+    expect(composed.contexts[1].type).toBe('chat');
+  });
+  
+  it('should respect token allocation', async () => {
+    const composed = await composer.composeContext(
+      'user:123,group:456:1,2',
+      mockMessages,
+      {
+        canvas: { enabled: true, strategy: 'standard' },
+        chat: { enabled: true, strategy: 'full' },
+        composition: {
+          maxTotalTokens: 1000,
+          tokenAllocation: { canvas: 400, chat: 600 }
+        }
+      }
+    );
+    
+    const serialized = serializer.serialize(composed, { type: 'structured' });
+    const tokens = tokenizer.count(serialized);
+    expect(tokens).toBeLessThanOrEqual(1000);
+  });
+});
+
+describe('Canvas Context Strategies', () => {
+  it('should filter empty tiles when configured', async () => {
+    const strategy = new StandardCanvasStrategy(mockRepo);
+    const context = await strategy.build('center:id', {
       includeEmptyTiles: false
     });
     
-    expect(context.center.coordId).toBe('user:123,group:456:1,2');
-    expect(context.children).toHaveLength(6);
-    expect(context.grandchildren).toHaveLength(36);
+    expect(context.children.every(c => c.name)).toBe(true);
+  });
+});
+
+describe('Chat Context Strategies', () => {
+  it('should include all messages with full strategy', async () => {
+    const strategy = new FullChatStrategy();
+    const context = await strategy.build(mockMessages, {});
+    
+    expect(context.messages).toHaveLength(mockMessages.length);
   });
   
-  it('should respect token limits', async () => {
-    const context = await builder.buildContext('user:123,group:456:1,2', {
-      strategy: 'standard',
-      maxTokens: 500
+  it('should limit messages with recent strategy', async () => {
+    const strategy = new RecentChatStrategy();
+    const context = await strategy.build(mockMessages, {
+      maxMessages: 5
     });
     
-    const serialized = serializer.serialize(context, { type: 'structured' });
-    const tokenCount = tokenizer.count(serialized);
-    expect(tokenCount).toBeLessThanOrEqual(500);
+    expect(context.messages).toHaveLength(5);
+    expect(context.messages[0]).toEqual(
+      expect.objectContaining({ content: mockMessages[mockMessages.length - 5].content })
+    );
   });
 });
 ```
@@ -337,15 +658,33 @@ describe('ContextBuilderService', () => {
 // /src/lib/domains/agentic/config/context.config.ts
 
 export const contextConfig = {
-  defaults: {
-    strategy: 'standard' as ContextStrategy,
-    maxTokens: 1000,
-    serializationFormat: 'structured',
-    cacheEnabled: true,
-    cacheTTL: 5 * 60 * 1000 // 5 minutes
+  // Default composition for v1
+  defaultComposition: {
+    canvas: {
+      enabled: true,
+      strategy: 'standard' as CanvasContextStrategy,
+      options: {
+        includeEmptyTiles: false,
+        includeDescriptions: true
+      }
+    },
+    chat: {
+      enabled: true,
+      strategy: 'full' as ChatContextStrategy,
+      options: {}
+    },
+    composition: {
+      strategy: 'sequential' as const,
+      maxTotalTokens: 2000,
+      tokenAllocation: {
+        canvas: 800,   // 40% for tile context
+        chat: 1200     // 60% for conversation
+      }
+    }
   },
   
-  strategies: {
+  // Canvas strategy configurations
+  canvasStrategies: {
     minimal: {
       maxDepth: 0,
       includeDescriptions: false
@@ -357,31 +696,140 @@ export const contextConfig = {
     extended: {
       maxDepth: 3,
       includeDescriptions: true
+    },
+    focused: {
+      maxDepth: 2,
+      includeDescriptions: true,
+      requiresPositions: true
     }
   },
   
-  tokenLimits: {
-    'gpt-3.5-turbo': 4000,
-    'gpt-4': 8000,
-    'claude-2': 100000,
-    'claude-3-opus': 200000
+  // Chat strategy configurations
+  chatStrategies: {
+    full: {
+      includeAllMessages: true
+    },
+    recent: {
+      defaultMaxMessages: 10
+    },
+    relevant: {
+      requiresTileContext: true
+    },
+    summary: {
+      summaryThreshold: 20,
+      recentCount: 5
+    }
+  },
+  
+  // Model-specific token limits
+  modelLimits: {
+    'gpt-3.5-turbo': { context: 4000, output: 4000 },
+    'gpt-4': { context: 8000, output: 4000 },
+    'gpt-4-turbo': { context: 128000, output: 4000 },
+    'claude-2': { context: 100000, output: 4000 },
+    'claude-3-opus': { context: 200000, output: 4000 },
+    'claude-3-sonnet': { context: 200000, output: 4000 }
+  },
+  
+  // Serialization preferences by model
+  serializationPreferences: {
+    'gpt-3.5-turbo': 'structured',
+    'gpt-4': 'structured',
+    'claude-2': 'xml',
+    'claude-3-opus': 'xml',
+    'claude-3-sonnet': 'xml'
+  },
+  
+  // Cache configuration
+  cache: {
+    enabled: true,
+    ttl: 5 * 60 * 1000, // 5 minutes
+    maxEntries: 100
   }
 };
 ```
 
 ## Benefits of This Architecture
 
-1. **Isolation**: Context computation is completely separate from chat, LLM, and other concerns
-2. **Extensibility**: New strategies can be added without modifying existing code
-3. **Testability**: Each component (builder, serializer, cache) can be tested independently
-4. **Performance**: Caching and token optimization built-in
-5. **Flexibility**: Multiple serialization formats for different LLM preferences
-6. **Evolution-Ready**: Clear phases for adding advanced features over time
+1. **True Composition**: Canvas and Chat contexts are independent and composable
+2. **Strategy Isolation**: Each context type has its own strategies that evolve independently
+3. **Token Awareness**: Built-in token allocation between different context types
+4. **Model Optimization**: Different serialization formats for different LLMs
+5. **Evolution-Ready**: Can add new context types (e.g., UserContext, ToolContext) without changing existing code
+6. **Performance**: Each context type can be cached independently
+
+## Example Usage
+
+```typescript
+// In the tRPC router or service layer
+const llmService = new LLMIntegrationService(
+  contextComposer,
+  serializer,
+  openRouterClient
+);
+
+// Generate response with full context
+const response = await llmService.generateResponse(
+  chatMessages,
+  currentCenterCoordId,
+  {
+    model: 'anthropic/claude-3-opus',
+    temperature: 0.7,
+    contextConfig: {
+      canvas: {
+        strategy: 'standard',  // Center + 2 generations
+        includeEmptyTiles: false
+      },
+      chat: {
+        strategy: 'full',      // Entire conversation
+        maxMessages: undefined // No limit for v1
+      },
+      serialization: { type: 'xml' }, // Better for Claude
+      maxContextTokens: 3000
+    }
+  }
+);
+
+// The composed context would look like:
+/*
+<context>
+  <canvas_context>
+    <center>
+      <name>Product Development</name>
+      <description>Main product roadmap and features</description>
+    </center>
+    <children count="6">
+      <child position="NW">
+        <name>User Research</name>
+        <description>Understanding customer needs</description>
+      </child>
+      <child position="NE">
+        <name>Feature Planning</name>
+        <description>Prioritizing development work</description>
+      </child>
+      ...
+    </children>
+  </canvas_context>
+  
+  <chat_context>
+    <message role="user">
+      <content>Help me organize my product development tiles</content>
+    </message>
+    <message role="assistant">
+      <content>I can see you have a Product Development center...</content>
+    </message>
+    ...
+  </chat_context>
+</context>
+*/
+```
 
 ## Next Steps
 
-1. Implement the core interfaces and base strategy
-2. Create the standard context strategy
-3. Add comprehensive tests
-4. Integrate with the agentic service
-5. Add monitoring and metrics for context usage
+1. Implement core interfaces and base classes
+2. Create CanvasContextBuilder with standard strategy
+3. Create ChatContextBuilder with full strategy
+4. Implement ContextCompositionService
+5. Add serialization formats (structured, XML)
+6. Integrate with agentic domain service
+7. Add comprehensive tests for each component
