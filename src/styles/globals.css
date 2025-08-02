@@ -215,6 +215,7 @@
   --popover-foreground: var(--color-neutral-900);
   
   --primary: var(--color-primary);
+  --primary-light: var(--color-primary-light);
   --primary-foreground: var(--color-neutral-50);
   
   --secondary: var(--color-neutral-100);
@@ -337,6 +338,7 @@
   --popover-foreground: var(--color-neutral-50);
   
   --primary: var(--color-primary);
+  --primary-light: var(--color-primary-light);
   --primary-foreground: var(--color-neutral-50);
   
   --secondary: var(--color-neutral-800);

@@ -410,5 +410,11 @@ export const loggers = {
     canvas: debugLogger.createLogger(['DEBUG', 'RENDER', 'CANVAS']),
     chat: debugLogger.createLogger(['DEBUG', 'RENDER', 'CHAT']),
     hierarchy: debugLogger.createLogger(['DEBUG', 'RENDER', 'HIERARCHY'])
-  }
+  },
+  agentic: Object.assign(
+    debugLogger.createLogger(['DEBUG', 'AGENTIC']),
+    {
+      error: debugLogger.createLogger(['DEBUG', 'AGENTIC', 'ERROR'])
+    }
+  )
 };
