@@ -13,7 +13,8 @@ This context will be handed over to future steps in the workflow (solution desig
 ## Context Gathering Process
 
 ### 1. Read Issue Documentation
-- Load the issue file from `/issues/YYYY-MM-DD-*.md`
+- Load the issue file from current cycle: `.workflow/cycles/[current]/<priority>-issue.md`
+- Path from `.workflow/current.json` → `planification.cycle_plan`
 - Understand the problem statement and user impact
 - Identify the domains and components mentioned
 
@@ -51,7 +52,7 @@ This context will be handed over to future steps in the workflow (solution desig
 ## Documentation
 
 ### Issue File Update
-The issue file (`/issues/YYYY-MM-DD-<slug>-<issue-number>.md`) should already exist from the `/issue` command. This step will add or update the `## Context` section with the following structure:
+The issue file (`.workflow/cycles/[current]/<priority>-issue.md`) should already exist from the `/issue` command. This step will add or update the `## Context` section with the following structure:
 
 ```markdown
 ## Context
@@ -116,7 +117,7 @@ After completing the context analysis:
 
 2. **Commit and Push**: Commit the issue file with a descriptive message:
    ```bash
-   git add issues/YYYY-MM-DD-*.md
+   git add .workflow/cycles/*/priority-*.md
    git commit -m "feat: add context analysis for issue #<number>"
    git push
    ```

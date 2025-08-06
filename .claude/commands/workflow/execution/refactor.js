@@ -51,7 +51,7 @@ I need you to refactor the file "${filePath}" for clarity according to the workf
 
 Please follow the complete workflow from that guide:
 
-1. **Create Refactor Session**: Create a new file at "issues/${sessionFileName}" following the documentation format described in the guide (sections 342-367)
+1. **Create Refactor Session**: Create a new file at ".workflow/cycles/[current]/${sessionFileName}" following the documentation format described in the guide
 
 2. **Pre-Refactoring Analysis**: Follow the analysis steps in the guide (sections 284-340):
    - Discover existing domain concepts from documented domains

@@ -48,7 +48,7 @@ Note: E2E tests are currently not supported in the testing environment.
 ## Documentation
 
 ### Issue File Update
-Update the issue file (`/issues/YYYY-MM-DD-<slug>-<issue-number>.md`) by adding or updating the `## Tests` section with:
+Update the issue file in current cycle (`.workflow/cycles/[current]/<priority>-issue.md`) by adding or updating the `## Tests` section with:
 - Test categories and strategy
 - Specific test cases planned
 - Coverage goals
@@ -165,8 +165,8 @@ After completing test planning:
 
 2. **Commit and Push**:
    ```bash
-   git add issues/YYYY-MM-DD-*.md
-   git commit -m "test: add test plan for issue #<number>"
+   git add .workflow/cycles/*/priority-*.md
+   git commit -m "test: add test plan for priority"
    git push
    ```
 

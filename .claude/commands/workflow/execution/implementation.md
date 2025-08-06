@@ -10,7 +10,7 @@ The `/implementation` command automates the implementation of features based on 
 ## Process
 
 ### 1. Read Issue Documentation
-- Load the issue file from `/issues/` directory
+- Load the priority file from current cycle: `.workflow/cycles/[current]/<priority>-issue.md`
 - Extract problem statement, expected behavior, and test specifications
 - Identify architecture and integration points
 

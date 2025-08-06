@@ -58,7 +58,13 @@ Examples:
 - Write tests
 - Document changes
 
-**Connects to**: Various implementation commands (`/feature`, `/debug`, etc.)
+**Stay-on-track Support**: AI actively helps maintain focus by:
+- Detecting drift from current priority
+- Deferring non-blocking improvements
+- Capturing ideas without immediate action
+- These behaviors are defined in CLAUDE.md
+
+**Connects to**: Various implementation commands (`/implementation`, `/refactor`, etc.)
 **Output**: Completed work, updated documentation
 
 ### 5. Cycle Retrospective
@@ -168,7 +174,7 @@ User can jump to any phase with `/workflow [phase]`
 ## Integration with Other Commands
 
 - **During Planification**: Automatically invoke `/issue` for each priority
-- **During Execution**: Reference relevant `/feature`, `/debug` commands
+- **During Execution**: Reference relevant `/implementation`, `/refactor` commands
 - **After Retrospective**: May trigger `/refactor` based on learnings
 
 ## Example Session

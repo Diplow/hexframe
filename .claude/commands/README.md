@@ -2,9 +2,13 @@
 
 This directory contains custom commands for Claude Code to enhance development workflows.
 
+## Workflow-Driven Development
+
+Commands are organized by workflow phase. Issues and priorities are tracked in `.workflow/cycles/YYYY-MM-DD/` directories, connected to current milestones and priorities.
+
 ## Issue Management Workflow
 
-The issue management system follows a structured three-phase workflow. All commands work with a single document file (`/issues/YYYY-MM-DD-<slug-title>-<issue-number>.md`) that gets progressively completed. Each time a section is added, it's also posted as a comment on the GitHub issue.
+The issue management system follows the workflow structure. Issues are created as priority planning documents in the current cycle directory (`.workflow/cycles/YYYY-MM-DD/<priority>-issue.md`). Each issue references the current milestone and which priority it serves.
 
 ### Phase 1: Planning 📋
 1. `/issue` - Document the problem from user perspective (required)

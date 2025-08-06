@@ -147,7 +147,7 @@ Description of the principle and how it applies to this feature.
 ```
 
 ### Issue File Update
-Add or update the `## Design` section in the issue file:
+Add or update the `## Design` section in the issue file (`.workflow/cycles/[current]/<priority>-issue.md`):
 
 ```markdown
 ## Design

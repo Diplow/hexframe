@@ -31,12 +31,20 @@ Key questions:
 ## Available Commands
 
 During execution, use these commands:
-- `/feature` - Implement new functionality
-- `/debug` - Fix issues and bugs
 - `/implementation` - Code implementation guidance
 - `/refactor` - Improve code quality
 - `/refactor-clarity` - Apply Rule of 6 refactoring
 - `/walkthrough` - Document how things work
+
+## Staying Focused
+
+The AI will help you stay on track by:
+- Detecting when you're drifting from current priority
+- Suggesting whether to defer meta-work to retrospective
+- Capturing ideas without acting on them immediately
+- Providing gentle reminders about current goals
+
+These behaviors are defined in CLAUDE.md and applied automatically.
 
 ## Daily Practice
 

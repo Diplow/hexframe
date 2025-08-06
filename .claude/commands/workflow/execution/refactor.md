@@ -14,7 +14,7 @@ This command instructs Claude to refactor a file for clarity according to the wo
 ## What it does
 The command directs Claude to follow the complete workflow from `@.claude/commands/refactor-clarity.md`:
 
-1. Creates a refactor session document in `issues/YYYY-MM-DD-<filename>-clarity.md`
+1. Creates a refactor session document in `.workflow/cycles/[current]/refactor-<filename>.md`
 2. Performs pre-refactoring analysis (sections 284-340 of the guide)
 3. Presents findings for validation (sections 317-336)
 4. Waits for user approval
@@ -27,7 +27,7 @@ The command directs Claude to follow the complete workflow from `@.claude/comman
 ```
 
 This will:
-- Create `issues/2025-01-18-create-item-clarity.md`
+- Create `.workflow/cycles/[current]/refactor-create-item.md`
 - Analyze the file following the guide's methodology
 - Present findings and wait for validation
 - Apply the refactoring after approval

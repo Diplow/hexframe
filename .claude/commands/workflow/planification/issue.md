@@ -67,15 +67,17 @@ For technical issues (bugs, performance, etc.), this includes meta-technical con
 ## Workflow
 
 ### 1. Issue File Creation
-Creates the issue file:
-- **Issue file**: `/issues/YYYY-MM-DD-<slug-title>-<issue-number>.md`
-
-**Important**: Use `date +%Y-%m-%d` command to get the current date. Do not guess or hardcode dates.
+Creates the issue file in the current cycle directory:
+- **Issue file**: `.workflow/cycles/[current]/<priority-name>-issue.md`
+- Current cycle path is read from `.workflow/current.json` → `planification.cycle_plan`
+- For technical priorities, this becomes the planning document
+- Links to current milestone and priority context
 
 Example:
 ```bash
-DATE=$(date +%Y-%m-%d)
-ISSUE_FILE="/issues/${DATE}-auth-tiles-mobile-click-123.md"
+# Read current cycle from workflow state
+CYCLE_PATH=$(jq -r '.progress.planification.cycle_plan' .workflow/current.json | sed 's|/README.md||')
+ISSUE_FILE="${CYCLE_PATH}/priority-auth-tiles-issue.md"
 ```
 
 Initial issue file content:
@@ -85,11 +87,18 @@ Initial issue file content:
 **Date**: YYYY-MM-DD
 **Status**: Open
 **Tags**: #bug #tech #tiles #high
+**Milestone**: [Reference current from .workflow/current.json]
+**Priority**: [Which cycle priority does this serve]
 **GitHub Issue**: #<number>
 **Branch**: issue-<number>-<slug-title>
 
 ## Problem Statement
 <User's description focused on WHAT is wrong>
+
+## Context
+- **Current Cycle**: [Link to .workflow/cycles/current/README.md]
+- **Serves Priority**: [Which priority from the cycle]
+- **Why This Matters**: [How it connects to milestone]
 
 ## User Impact
 - Who is affected?

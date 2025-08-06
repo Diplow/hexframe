@@ -34,9 +34,9 @@
     },
     "execution": {
       "started": "2025-08-05T23:00:00Z",
-      "current_priority": 1,
-      "current_task": "Create milestone documentation",
-      "completed_tasks": 1,
+      "current_priority": null,
+      "current_task": null,
+      "completed_tasks": 5,
       "total_tasks": 5,
       "blockers": []
     },

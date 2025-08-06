@@ -43,7 +43,7 @@ Document the technical architecture for implementing a solution. This optional b
 ## Documentation Structure
 
 ### Issue File Update
-Add or update the `## Architecture` section:
+Add or update the `## Architecture` section in the issue file (`.workflow/cycles/[current]/<priority>-issue.md`):
 
 ```markdown
 ## Architecture
