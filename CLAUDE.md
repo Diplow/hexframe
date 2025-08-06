@@ -2,11 +2,46 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🚀 IMMEDIATE ACTION REQUIRED
+
+**Check the current workflow state and suggest the next action:**
+1. Read `.workflow/current.json` to identify current phase and progress
+2. Check `.workflow/cycles/[current]/` for active priorities
+3. Proactively suggest: "Based on the workflow, you're currently in [PHASE] working on [PRIORITY]. Would you like to [NEXT ACTION]?"
+
+Example: "You're in the execution phase working on Priority 0 (Establish baseline context). Would you like to start updating CLAUDE.md to serve as the index?"
+
 ## Project Overview
 
-Hexframe is a visual framework for building and sharing AI-powered systems through hierarchical hexagonal maps. It transforms complex AI interactions from "prompt engineering" into "context architecture" - allowing users to visually build, compose, and share structured AI workflows.
+Hexframe transforms visions into living systems through AI-powered hexagonal maps.
 
-Core philosophy: Where human intent meets AI capability through strategic mapping.
+### Core Documentation
+- **Mission & Vision**: `company/MISSION.md` - Why Hexframe exists
+- **Culture & Values**: `company/CULTURE.md` - The tensions that guide us  
+- **Target User**: `company/TARGET_USER.md` - Who we serve (system thinkers)
+- **Architecture**: `src/app/map/ARCHITECTURE.md` - Technical foundation
+- **Domain Model**: `src/lib/domains/README.md` - Core domain structure
+- **System Philosophy**: `src/app/SYSTEM.md` - What systems mean in Hexframe
+
+### Current Development Status
+- **Workflow State**: `.workflow/current.json` - Current phase, priorities, progress
+- **Active Cycle**: `.workflow/cycles/2025-08-06/` - Current sprint documentation
+- **Milestones**: `.workflow/milestones/` - High-level goals tracking
+
+## Key Principles
+
+### The Hexframe Thesis
+System thinkers can either become great visionaries or frustrated geniuses — most end up frustrated. The AI revolution changes this: AI can leverage systems better than humans, do the grunt work, and needs exactly the structured context that system thinkers naturally create. 
+
+Hexframe bridges this perfect match.
+
+See: `company/MISSION.md` - Top section for full thesis
+
+### Design Philosophy  
+- **Rule of 6**: Max 6 items per level (folders, functions, arguments)
+- **Single Level of Abstraction**: Consistent abstraction at each level
+- **Systems That Live**: Unused systems are failed systems
+- See: `CLAUDE.md` in project root for coding standards
 
 ## Development Commands
 
@@ -185,6 +220,25 @@ pnpm typecheck              # TypeScript checks
 pnpm build                  # Full production build
 ```
 
+## Workflow System
+
+### Using the Workflow
+The `/workflow` command guides development through phases:
+1. **Goals** - Review high-level milestones
+2. **Prioritization** - Select focus for cycle  
+3. **Planification** - Break down into tasks
+4. **Execution** - Implement the work
+5. **Retrospective** - Learn and improve
+6. **Research** - Validate with users
+
+See: `.claude/commands/workflow/README.md` for full documentation
+
+### Key Workflow Commands
+- `/workflow` - Check current status and next steps
+- `/issue` - Document problems/features (planification phase)
+- `/feature` - Implement new functionality (execution phase)
+- `/debug` - Fix issues (execution phase)
+
 ## Important Notes
 
 - Always use `pnpm` (not npm or yarn)
@@ -193,3 +247,4 @@ pnpm build                  # Full production build
 - Follow the Rule of 6 for code organization
 - Create session documents for debugging, features, and refactoring
 - Domain concepts should have README.md documentation
+- **When switching phases/priorities**: Start fresh session, CLAUDE.md will provide context
