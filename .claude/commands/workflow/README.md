@@ -154,8 +154,13 @@ When user requests workflow changes during execution:
 
 1. **Quick fixes** (typos, clarifications): Apply immediately
 2. **Structural changes** (new phases, major reorganization): Defer to retrospective
-3. **New ideas**: Capture in `.workflow/ideas/` for next prioritization
+3. **New ideas**: Capture in the current cycle's retrospective file for next prioritization
 4. **If unsure**: Ask "Is this blocking current work or can it wait for retrospective?"
+
+### Retrospective Notes
+- **During any phase**: When anticipating retrospective items, add them directly to `.workflow/cycles/[current]/retrospective.md`
+- **No separate ideas folder**: Keep everything in the cycle context
+- **Progressive documentation**: The retrospective file grows throughout the cycle
 
 The workflow should evolve, but not at the expense of getting work done.
 

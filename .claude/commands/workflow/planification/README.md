@@ -16,11 +16,14 @@ Break down the cycle's priorities into concrete, actionable tasks with clear suc
 
 For each priority:
 
-1. **Define clear success criteria** - What does "done" look like?
-2. **Identify technical requirements** - What needs to be built?
-3. **List potential blockers** - What could prevent completion?
-4. **Estimate effort** - How much work is involved?
-5. **Create `/issue` documentation** - Formal problem statements
+1. **Work in priority files** - Update `.workflow/cycles/[date]/priority-*.md` files directly
+2. **Define clear success criteria** - What does "done" look like?
+3. **Identify technical requirements** - What needs to be built?
+4. **List potential blockers** - What could prevent completion?
+5. **Estimate effort** - How much work is involved?
+6. **Create `/issue` documentation** - Formal problem statements
+
+**Important**: During planification, expand the priority files with detailed task breakdowns. Don't create separate planning documents - the priority files ARE the living planning documents.
 
 ## Task Breakdown Template
 

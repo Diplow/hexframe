@@ -22,26 +22,45 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Example: "You're in the execution phase working on Priority 0 (Establish baseline context). Would you like to start updating CLAUDE.md to serve as the index?"
 
-### Staying On Track (Active Monitoring)
+### Phase Focus & Distraction Monitoring
 
-**During execution phase, actively monitor for these patterns and respond:**
+**After 2+ distractions (any type), redirect to current phase focus.**
 
-1. **If user requests workflow/process changes**: 
-   - Response: "I'll capture that in `.workflow/ideas/[topic].md` for retrospective. Is this blocking your work on [current priority], or can we defer it?"
+#### Phase Focus:
+- **Goals**: Define what success looks like
+- **Prioritization**: Select 2-4 items from backlog
+- **Planification**: Break priorities into concrete tasks
+- **Execution**: Ship the planned work
+- **Retrospective**: Learn and update process
+- **Research**: Understand user needs, complete backlog
 
-2. **If user reads 5+ unrelated files without clear purpose**:
-   - Response: "I see you're exploring. You're working on [Priority X: Name] ([N/M] tasks done). Looking for something specific, or should we return to [next concrete action]?"
+#### Common Distractions Examples:
 
-3. **If user wants to refactor working code**:
-   - Response: "That works and tests pass. Is this essential for [current priority]? We could ship now and capture the improvement for later."
+1. **Backlog churning** (any phase)
+   - Adding features after priorities are set
+   - Reorganizing backlog during execution
 
-4. **If user switches contexts abruptly**:
-   - Response: "Switching from [current task] to [new topic]. Want to: 1) Continue [current], 2) Document blocker and switch, or 3) Take a break?"
+2. **Scope creep** 
+   - "While we're at it, let's also..."
+   - Adding "nice to have" features to a bug fix
 
-5. **If user creates unnecessary docs/tools**:
-   - Response: "Is this [doc/tool] needed for [current priority]? If not, let's note it in `.workflow/ideas/` and stay focused."
+3. **Premature optimization**
+   - Refactoring a working first version of a feature before user feedbacks
 
-**Remember**: Be supportive, not nagging. Acknowledge impulses, show progress, offer choices.
+4. **Process tweaking**
+   - Redesigning workflow if it is not an objective
+   - Creating new tools if it is not an objective or part of the plan
+
+5. **Context switching**
+   - Asking unrelated questions
+   - Starting new tasks before finishing current
+
+6. **Retrospective anticipation**
+   - "Next time we should..."
+   - "Add to the retrospective that..."
+   - Documenting lessons before trying the approach
+
+**Response pattern**: "I notice [distraction pattern]. Should we [return to phase focus] or [capture and continue]?"
 
 ## 🔍 COHERENCE CHECKING
 

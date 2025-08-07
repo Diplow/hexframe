@@ -54,8 +54,19 @@ This connects back to the Goals phase - sometimes execution reveals that our fun
 - Are systems more likely to stay alive?
 - What evidence do we have of progress?
 
+## Backlog Maintenance
+
+**Clean up the backlog based on completed work:**
+1. Remove items from `.workflow/backlog/` that were completed in this cycle
+2. Add new items discovered during the cycle
+3. Update existing items with new context learned
+4. Mark partial completions appropriately
+
+This keeps the backlog current and prevents re-selecting already completed work.
+
 ## Output
 - `retro-{date}.md` with insights and learnings
+- Updated `.workflow/backlog/` files with completed items removed
 - Updated process notes for next cycle
 - Potential goal adjustments to review in next Goals phase
 

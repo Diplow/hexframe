@@ -29,3 +29,36 @@ Hexframe enables system thinkers to:
 3. **Compose** systems by augmenting tiles with other systems (e.g., enhancing "Running an AI Company" by composing its "Product Development" tile with a specialized "Agile for AI Products" system)
 4. **Activate** systems through actual use — unused systems die (e.g., that perfect onboarding guide that no new employee ever reads is a failed system)
 5. **Monitor** which systems are actively used and which become foundations for others (revealing which ideas actually shape behavior and deserve scrutiny for bias)
+
+## The Product Vision: Where We're Going
+
+### Create: From Idea to System in Minutes
+**Today**: Basic tile creation with text and hierarchy
+**Near Future**: AI-assisted system generation from conversations. Describe your goal, and AI helps structure it into a hexagonal system. Can search the web to import information and format it via Hexframe.
+**Vision**: Your thoughts become systems as you speak. Voice-to-system creation. Domain-specific templates. Version control for system evolution.
+
+### Share: A Living Library of Human Experience  
+**Today**: Systems exist but aren't yet shareable
+**Near Future**: Public/private systems. Forking and attribution. Comments and discussions on tiles. System discovery through tags.
+**Vision**: The world's repository of practical wisdom. Find how others solved your exact problem. See lineage of ideas through fork trees. Reputation based on system usage and impact.
+
+### Compose: Systems Building on Systems
+**Today**: Manual hierarchy creation
+**Near Future**: Drag-and-drop composition. Subagents system decomposition. System marketplace. Compatibility indicators between systems.
+**Vision**: Like LEGO for knowledge. Any tile can become a gateway to another expert's system. AI suggests relevant systems to compose based on your goals. Seamless integration of specialized domains.
+
+Drag and drop composition example: compose a generic Domain Driven Architect with your domains documentations.
+
+### Activate: Your System Comes Alive Through Use
+**Today**: Static display of systems
+**Near Future**: MCP integration. Progress tracking per tile. AI chat that knows your system context. Daily check-ins guided by your system. Integration with calendar and task tools.
+**Vision**: Your system becomes your AI copilot. It reminds you of your own best practices. It challenges deviations from your stated intentions. It learns from your usage patterns and suggests improvements.
+
+MCP integration example: start a Claude session that will automatically call your HexFrame system.
+
+### Monitor: See What Actually Works
+**Today**: No analytics yet
+**Near Future**: Usage statistics. Fork and adaptation statistics. Success metrics tied to systems.
+**Vision**: Evidence-based system evolution. See which mental models actually drive results. Identify systemic biases through usage patterns. A/B test different approaches to the same goal.
+
+Usage statistics example: see your different systems usage (MCP calls, chat interactions...) via a specific chat widget.

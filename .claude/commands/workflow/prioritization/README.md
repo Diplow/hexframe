@@ -8,11 +8,15 @@ Decide what to focus on in the upcoming cycle based on impact, dependencies, and
 
 ## Critical Context: Current High-Level Goal
 
-**Before prioritizing, review the current goal from the Goals phase:**
-- Check `.workflow/current.json` → `progress.goals.core_goal`
-- Current goal: "Enable deliberate change by transforming visions into living systems"
+**Before prioritizing:**
+1. Review the current goal from `.workflow/current.json` → `progress.goals`
+2. Check the backlog in `.workflow/backlog/` for all available work:
+   - `bugs.md` - Known issues to fix
+   - `features.md` - New capabilities to add
+   - `ux.md` - Experience improvements
+   - `tech-debt.md` - Technical cleanup
 
-Every priority should directly serve this goal. Ask: "How does this help systems stay alive through actual use?"
+Every priority should directly serve the current goal. Ask: "How does this help systems stay alive through actual use?"
 
 ## Prioritization Framework
 
@@ -23,16 +27,18 @@ Consider each potential priority through these lenses:
 - **User Need**: What pain points are most urgent?
 - **Feasibility**: What can realistically be completed in one cycle?
 
-## Current Candidates
+## Selecting from Backlog
 
-Review and rank these potential priorities:
+1. **Review all categories** in `.workflow/backlog/`:
+   - Start with bugs that block users
+   - Consider features that unlock new workflows
+   - Look for quick UX wins
+   - Evaluate tech debt by risk
 
-- [ ] System creation workflow
-- [ ] AI system activation
-- [ ] System composition features
-- [ ] User onboarding flow
-- [ ] System monitoring/analytics
-- [ ] [Add new candidates based on research/retrospective]
+2. **Mix priority types** for a balanced cycle:
+   - 1-2 user-facing improvements
+   - 1 technical foundation piece
+   - Quick wins to maintain momentum
 
 ## Selection Criteria
 
@@ -44,6 +50,21 @@ For each candidate, evaluate:
 
 ## Output
 Prioritized list of 2-4 objectives for the cycle, documented in the workflow state.
+
+## AI Collaboration Note
+1. **Present each priority individually** and pause for feedback
+2. **Ask explicitly**: "Does this priority documentation look good, or would you like to adjust any details?"
+3. **Wait for confirmation** before moving to the next priority
+4. **Allow refinement** without requiring proposal rejection
+
+This ensures collaborative prioritization rather than rushed planning.
+
+## Important: Backlog vs Priority Files
+- **Backlog files** (`.workflow/backlog/`): Generic pool of all potential work
+- **Priority files** (`.workflow/cycles/[date]/priority-*.md`): Selected work for current cycle
+- **Key rule**: Once items are selected from backlog into priority files, ALL updates go to the priority files
+- **Never update backlog** after prioritization - those remain as the general pool for future cycles
+- **Priority files are living documents** that evolve during planning and execution
 
 ## Next Phase
 Once priorities are set → Move to **Planification** to break them down into actionable tasks
