@@ -14,24 +14,15 @@ The drag and drop tests fail when run as part of any test suite due to jsdom DOM
 
 **Solutions:**
 
-1. **Run tests in isolation:**
+1. **Run all tests (includes proper isolation):**
    ```bash
-   pnpm test src/app/map/Canvas/hooks/__tests__/useDragAndDrop.test.ts
+   pnpm test
    ```
+   This automatically runs drag-and-drop tests in a separate phase with proper isolation.
 
-2. **Run browser tests separately:**
+2. **Run this specific test in isolation:**
    ```bash
-   pnpm test:browser
-   ```
-
-3. **Use the test script for this specific file:**
-   ```bash
-   ./scripts/run-tests.sh src/app/map/Canvas/hooks/__tests__/useDragAndDrop.test.ts
-   ```
-
-4. **Use the all-tests script that isolates problematic tests:**
-   ```bash
-   pnpm test:all
+   pnpm test:run src/app/map/Canvas/hooks/__tests__/useDragAndDrop.test.ts
    ```
 
 ## Root Cause
