@@ -47,8 +47,6 @@ export default defineConfig({
     isolate: true,
     // Configure reporters for AI parsing
     reporters: reporters,
-    // Suppress console output in AI mode
-    silent: isAIParsing,
   },
   resolve: {
     alias: {
