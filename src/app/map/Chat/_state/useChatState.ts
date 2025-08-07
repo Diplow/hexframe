@@ -9,6 +9,7 @@ import { validateAndTransformMapEvent } from './_events/event.validators';
 import { 
   createUserMessageEvent, 
   createSystemMessageEvent,
+  createAssistantMessageEvent,
   createOperationStartedEvent 
 } from './_events/event.creators';
 import { chatSettings } from '../_settings/chat-settings';
@@ -51,7 +52,7 @@ export function useChatStateInternal(initialEvents: ChatEvent[] = []) {
       dispatch({
         type: 'system_message',
         payload: {
-          message: 'Welcome to **HexFrame**! Navigate the map by clicking on tiles, or use the chat to ask questions.',
+          message: 'Welcome to **HexFrame**! Navigate the map by clicking on tiles, or use the chat to ask questions. Type `@ai` followed by your message to chat with AI about your tile hierarchy.',
           level: 'info' as const,
         },
         id: 'welcome-message',
@@ -121,6 +122,11 @@ export function useChatStateInternal(initialEvents: ChatEvent[] = []) {
     // Send a user message
     sendMessage(text: string) {
       dispatch(createUserMessageEvent(text));
+    },
+
+    // Send an assistant message
+    sendAssistantMessage(text: string) {
+      dispatch(createAssistantMessageEvent(text));
     },
 
     // Show a system message

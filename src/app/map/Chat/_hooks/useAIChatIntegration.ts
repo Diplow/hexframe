@@ -1,0 +1,70 @@
+import { useEffect, useRef } from 'react'
+import { useChatState } from '../_state'
+import { useAIChat } from './useAIChat'
+import { loggers } from '~/lib/debug/debug-logger'
+
+/**
+ * Hook that integrates AI chat functionality into the chat system
+ * This automatically sends user messages to the AI when they start with specific patterns
+ */
+export function useAIChatIntegration() {
+  const chatState = useChatState()
+  
+  // Try to use AI chat - might fail if cache context is not available
+  let sendToAI: ((message: string) => Promise<void>) | null = null
+  let isGenerating = false
+  
+  try {
+    const aiChat = useAIChat()
+    sendToAI = aiChat.sendToAI
+    isGenerating = aiChat.isGenerating
+  } catch {
+    // AI chat not available (e.g., in tests without MapCacheProvider)
+  }
+  const lastProcessedMessageId = useRef<string | null>(null)
+  const processingMessage = useRef(false)
+
+  useEffect(() => {
+    // Find the latest message
+    const latestMessage = chatState.messages[chatState.messages.length - 1]
+    
+    // Only process user messages that haven't been processed yet
+    if (!latestMessage || 
+        latestMessage.actor !== 'user' || 
+        lastProcessedMessageId.current === latestMessage.id) {
+      return
+    }
+
+    const messageContent = latestMessage.content
+    
+    // Skip command messages (those starting with /)
+    const isCommand = messageContent.startsWith('/')
+    
+    // Skip if already processing or if it's a command
+    if (isCommand || processingMessage.current || !sendToAI) {
+      return
+    }
+    
+    // Send all non-command user messages to AI
+    processingMessage.current = true
+    lastProcessedMessageId.current = latestMessage.id
+    
+    loggers.agentic('Sending message to AI', {
+      message: messageContent,
+      actor: latestMessage.actor,
+      messageId: latestMessage.id
+    })
+
+    // Show loading message
+    chatState.showSystemMessage('Thinking...', 'info')
+
+    // Send to AI
+    void sendToAI(messageContent).finally(() => {
+      processingMessage.current = false
+    })
+  }, [chatState.messages, sendToAI, chatState])
+
+  return {
+    isGeneratingAI: isGenerating
+  }
+}

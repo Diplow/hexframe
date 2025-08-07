@@ -128,7 +128,7 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
     }
     
     if (message.actor === 'assistant') {
-      return <span className="font-bold text-primary mr-2">Lucy:</span>;
+      return <span className="font-bold text-primary-light mr-2">HexFrame:</span>;
     }
     
     if (message.actor === 'system') {
@@ -141,11 +141,13 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
   const createMarkdownComponents = () => {
     // Creating markdown components for message
     return {
-    p: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+    p: ({ children }: { children?: React.ReactNode }) => <p>{children}</p>,
     br: () => <br />,
-    ul: ({ children }: { children?: React.ReactNode }) => <ul className="list-disc list-inside mb-1">{children}</ul>,
-    ol: ({ children }: { children?: React.ReactNode }) => <ol className="list-decimal list-inside mb-1">{children}</ol>,
-    li: ({ children, ..._props }: { children?: React.ReactNode } & React.LiHTMLAttributes<HTMLLIElement>) => <li className="ml-2" {..._props}>{children}</li>,
+    ul: ({ children }: { children?: React.ReactNode }) => <ul>{children}</ul>,
+    ol: ({ children }: { children?: React.ReactNode }) => <ol>{children}</ol>,
+    li: ({ children, ..._props }: { children?: React.ReactNode } & React.LiHTMLAttributes<HTMLLIElement>) => (
+      <li {..._props}>{children}</li>
+    ),
     strong: ({ children }: { children?: React.ReactNode }) => (
       <strong className={`font-semibold ${message.actor === 'system' ? 'text-muted-foreground' : 'text-foreground'}`}>
         {children}
@@ -232,32 +234,27 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
   
   return (
     <div className="w-full">
-      <div className="text-sm whitespace-pre-wrap">
+      <div className="text-sm">
         <span className="text-xs text-muted-foreground mr-2" title={timestamps.full}>
           {timestamps.short}
         </span>
         {renderActorLabel()}
-        <span className={message.actor === 'system' ? 'text-muted-foreground' : ''}>
-          {(() => {
-            const cleanedContent = message.content.replace(/\{\{COPY_BUTTON:[^}]+\}\}/g, '');
-            // MessageActorRenderer ReactMarkdown content
-            return (
-              <ReactMarkdown 
-                remarkPlugins={[remarkGfm]}
-                components={createMarkdownComponents()}
-              >
-                {cleanedContent}
-              </ReactMarkdown>
-            );
-          })()}
-        </span>
+        <div className={`prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-li:marker:text-current [&_li>p]:inline [&_li>p]:m-0 ${message.actor === 'system' ? 'text-muted-foreground' : ''}`}>
+          <ReactMarkdown 
+            remarkPlugins={[remarkGfm]}
+            components={createMarkdownComponents()}
+          >
+            {message.content?.replace(/\{\{COPY_BUTTON:[^}]+\}\}/g, '') ?? ''}
+          </ReactMarkdown>
+        </div>
         {/* Render copy buttons after markdown content */}
         {(() => {
           // MessageActorRenderer checking for copy buttons
           
-          if (message.content.includes('{{COPY_BUTTON:')) {
+          const content = message.content ?? '';
+          if (content.includes('{{COPY_BUTTON:')) {
             const regex = /\{\{COPY_BUTTON:([^}]+)\}\}/g;
-            const matches = message.content.match(regex);
+            const matches = content.match(regex);
             // MessageActorRenderer found copy button matches
             
             return (
