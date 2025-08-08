@@ -6,7 +6,7 @@ import { resolve } from "path";
 const isAIParsing = process.env.AI_PARSING === 'true';
 
 // Configure reporters based on mode
-const reporters = isAIParsing 
+const reporters: any = isAIParsing 
   ? [['json', { outputFile: './test-results/vitest-results.json' }]]
   : ['default'];
 
