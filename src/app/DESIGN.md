@@ -202,7 +202,7 @@ The primary (and currently only) interface:
 
 #### Canvas
 **The hexagonal playground**
-- See [Canvas DESIGN.md](/src/app/map/Canvas/DESIGN.md) for detailed specifications
+- See [Canvas DESIGN.md](map/Canvas/DESIGN.md) for detailed specifications
 
 #### Hierarchy
 **Breadcrumb navigation**

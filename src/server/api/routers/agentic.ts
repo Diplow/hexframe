@@ -142,6 +142,11 @@ export const agenticRouter = createTRPCRouter({
       })
     )
     .mutation(async () => {
+      // TODO: Implement streaming functionality
+      // This will require:
+      // 1. WebSocket or Server-Sent Events infrastructure
+      // 2. Stream handling in the OpenRouter repository
+      // 3. Progressive token emission to the client
       // For now, return a simple error since streaming requires different infrastructure
       throw new Error('Streaming not yet implemented. Use generateResponse for now.')
     }),

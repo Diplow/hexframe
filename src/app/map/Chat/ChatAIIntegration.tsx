@@ -36,7 +36,7 @@ export function ChatAIIntegration() {
 
   useEffect(() => {
     // Find the latest user message
-    const userMessages = chatState.messages.filter(msg => msg.actor === 'user')
+    const userMessages = chatState.messages.filter((msg: any) => msg.actor === 'user')
     const latestMessage = userMessages[userMessages.length - 1]
     
     if (!latestMessage) return
@@ -66,7 +66,7 @@ export function ChatAIIntegration() {
     }
     
     // Convert messages for API
-    const messages: ChatMessage[] = chatState.messages.map(msg => ({
+    const messages: ChatMessage[] = chatState.messages.map((msg: any) => ({
       id: msg.id,
       type: msg.actor as 'user' | 'assistant' | 'system',
       content: msg.content,
@@ -106,7 +106,7 @@ export function ChatAIIntegration() {
         currentCenter: cacheState.currentCenter
       }
     })
-  }, [chatState.messages.length, chatState, cacheState, sendToAI]) // Include all dependencies
+  }, [chatState.messages.length, chatState, cacheState?.currentCenter, sendToAI.mutate]) // Optimize dependencies
 
   return null // This component doesn't render anything
 }

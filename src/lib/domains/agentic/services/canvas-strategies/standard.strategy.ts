@@ -28,22 +28,7 @@ export class StandardCanvasStrategy implements ICanvasStrategy {
     }
     
     // Group tiles by depth
-    const centerDepth = centerTile.metadata.coordinates.path.length
-    const children: TileData[] = []
-    const grandchildren: TileData[] = []
-    
-    regionTiles.forEach(tile => {
-      if (tile.metadata.coordId === centerCoordId) return
-      
-      const tileDepth = tile.metadata.coordinates.path.length
-      const relativeDepth = tileDepth - centerDepth
-      
-      if (relativeDepth === 1) {
-        children.push(tile)
-      } else if (relativeDepth === 2) {
-        grandchildren.push(tile)
-      }
-    })
+    const { children, grandchildren } = this.groupTilesByDepth(regionTiles, centerTile)
     
     // Convert to context items
     const center = this.toContextItem(centerTile, 0, children.length > 0)
@@ -64,6 +49,30 @@ export class StandardCanvasStrategy implements ICanvasStrategy {
         format
       )
     }
+  }
+
+  private groupTilesByDepth(
+    regionTiles: TileData[],
+    centerTile: TileData
+  ): { children: TileData[], grandchildren: TileData[] } {
+    const centerDepth = centerTile.metadata.coordinates.path.length
+    const children: TileData[] = []
+    const grandchildren: TileData[] = []
+    
+    regionTiles.forEach(tile => {
+      if (tile.metadata.coordId === centerTile.metadata.coordId) return
+      
+      const tileDepth = tile.metadata.coordinates.path.length
+      const relativeDepth = tileDepth - centerDepth
+      
+      if (relativeDepth === 1) {
+        children.push(tile)
+      } else if (relativeDepth === 2) {
+        grandchildren.push(tile)
+      }
+    })
+    
+    return { children, grandchildren }
   }
   
   private filterAndConvert(
