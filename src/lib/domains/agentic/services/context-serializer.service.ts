@@ -17,8 +17,13 @@ export class ContextSerializerService {
         return this.serializeMinimal(context)
       case 'xml':
         return this.serializeXML(context)
-      default:
+      default: {
+        // Exhaustiveness check - if new format types are added, TypeScript will error
+        const _exhaustiveCheck: never = format.type
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        void _exhaustiveCheck
         return this.serializeStructured(context, false)
+      }
     }
   }
 

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { TRPCError } from '@trpc/server'
 import { createTRPCRouter, protectedProcedure } from '../trpc'
 import { createAgenticService } from '~/lib/domains/agentic/services'
 import type { EventBus } from '~/app/map/Services/EventBus/event-bus'
@@ -103,7 +104,10 @@ export const agenticRouter = createTRPCRouter({
       })
 
       if (!agenticService.isConfigured()) {
-        throw new Error('OpenRouter API key not configured. Please set OPENROUTER_API_KEY environment variable.')
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'OpenRouter API key not configured. Please set OPENROUTER_API_KEY environment variable.',
+        })
       }
 
       // Generate the response
@@ -138,6 +142,11 @@ export const agenticRouter = createTRPCRouter({
       })
     )
     .mutation(async () => {
+      // TODO: Implement streaming functionality
+      // This will require:
+      // 1. WebSocket or Server-Sent Events infrastructure
+      // 2. Stream handling in the OpenRouter repository
+      // 3. Progressive token emission to the client
       // For now, return a simple error since streaming requires different infrastructure
       throw new Error('Streaming not yet implemented. Use generateResponse for now.')
     }),

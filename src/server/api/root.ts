@@ -6,7 +6,11 @@ import { agenticRouter } from "~/server/api/routers/agentic";
 /**
  * This is the primary router for your server.
  *
- * All routers added in /api/routers should be manually added here.
+ * All routers added in /api/routers should be manually added here:
+ * - map: Map operations and tile management
+ * - auth: Authentication endpoints
+ * - user: User profile and settings
+ * - agentic: AI/LLM integration for chat functionality
  */
 export const appRouter = createTRPCRouter({
   map: mapRouter,

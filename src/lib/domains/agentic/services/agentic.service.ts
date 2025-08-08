@@ -206,25 +206,22 @@ Instructions:
   - Use code blocks with syntax highlighting when sharing code examples`
   }
 
+  private widgetExtractors = new Map<string, (data: unknown) => string>([
+    ['preview', (data) => `[Preview Widget: ${(data as { title?: string })?.title ?? 'Untitled'}]`],
+    ['error', (data) => `[Error: ${(data as { message?: string })?.message ?? 'Unknown error'}]`],
+    ['loading', (data) => `[Loading: ${(data as { message?: string })?.message ?? 'Loading...'}]`],
+    ['creation', () => '[Creation Widget]']
+  ])
+
   private extractTextFromWidget(widget: unknown): string {
     if (!widget || typeof widget !== 'object') {
       return '[Widget]'
     }
 
     const w = widget as { type: string; data?: unknown }
+    const extractor = this.widgetExtractors.get(w.type)
     
-    switch (w.type) {
-      case 'preview':
-        return `[Preview Widget: ${(w.data as { title?: string })?.title ?? 'Untitled'}]`
-      case 'error':
-        return `[Error: ${(w.data as { message?: string })?.message ?? 'Unknown error'}]`
-      case 'loading':
-        return `[Loading: ${(w.data as { message?: string })?.message ?? 'Loading...'}]`
-      case 'creation':
-        return '[Creation Widget]'
-      default:
-        return `[${w.type} widget]`
-    }
+    return extractor ? extractor(w.data) : `[${w.type} widget]`
   }
 
   private getDefaultCompositionConfig(): CompositionConfig {

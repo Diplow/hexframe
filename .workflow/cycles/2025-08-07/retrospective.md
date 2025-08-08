@@ -35,3 +35,22 @@
 - **Example**: `pnpm test:all` runs multiple suites, output can exceed AI's ability to parse
 - **Solution Needed**: Configure test runners for concise output, especially in CI/AI contexts
 - **Consider**: Different verbosity levels for different contexts (dev vs CI vs AI)
+
+## Discovered Technical Debt: useEffect Anti-Pattern in AI Chat Integration
+- **Investigation Date**: 2025-08-08
+- **Current Implementation**: 
+  - Two AI integration files exist: `ChatAIIntegration.tsx` (unused) and `useAIChatIntegration.ts` (active)
+  - Active implementation uses `useEffect` to watch for new messages and trigger AI calls
+  - This is a classic anti-pattern: using effects as event handlers
+- **Problems Identified**:
+  1. **Race conditions**: Relies on mutation state to prevent duplicate API calls
+  2. **Unnecessary re-runs**: Effect runs on every state change, not just new messages
+  3. **Hidden business logic**: AI triggering buried in side effect, hard to test
+  4. **Confusing code**: `@ai` prefix no longer required but still referenced in welcome message
+- **Correct Approach**: Event-driven pattern where message submission directly triggers AI
+- **Recommendation for Next Cycle**:
+  - Refactor to explicit event handler in message submission flow
+  - Remove `useEffect` watching pattern
+  - Create proper tests for AI message handling
+  - Update welcome message to reflect current behavior (all messages go to AI)
+- **Immediate Action Taken**: Removed unused `ChatAIIntegration.tsx` file

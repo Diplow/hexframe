@@ -219,7 +219,7 @@ pnpm test         # Run tests
 
 ## Team
 
-Hexframe is currently developed by a single passionate developer who believes in the power of visual thinking and structured AI collaboration.
+Hexframe is currently developed by a single passionate developer who believes in the power of visual thinking and structured AI collaboration. Learn more about the [personal journey](company/USER.md) behind Hexframe.
 
 While it's a solo project now, the vision is to build a community of contributors who share the belief that AI interaction can be more than just prompting - it can be a structured, shareable, and composable process.
 

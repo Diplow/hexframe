@@ -28,26 +28,11 @@ export class StandardCanvasStrategy implements ICanvasStrategy {
     }
     
     // Group tiles by depth
-    const centerDepth = centerTile.metadata.coordinates.path.length
-    const children: TileData[] = []
-    const grandchildren: TileData[] = []
-    
-    regionTiles.forEach(tile => {
-      if (tile.metadata.coordId === centerCoordId) return
-      
-      const tileDepth = tile.metadata.coordinates.path.length
-      const relativeDepth = tileDepth - centerDepth
-      
-      if (relativeDepth === 1) {
-        children.push(tile)
-      } else if (relativeDepth === 2) {
-        grandchildren.push(tile)
-      }
-    })
+    const { children, grandchildren } = this.groupTilesByDepth(regionTiles, centerTile)
     
     // Convert to context items
-    const center = this.toContextItem(centerTile, 0)
-    const childrenItems = this.filterAndConvert(children, options, 1)
+    const center = this.toContextItem(centerTile, 0, children.length > 0)
+    const childrenItems = this.filterAndConvert(children, options, 1, grandchildren)
     const grandchildrenItems = this.filterAndConvert(grandchildren, options, 2)
     
     return {
@@ -65,11 +50,36 @@ export class StandardCanvasStrategy implements ICanvasStrategy {
       )
     }
   }
+
+  private groupTilesByDepth(
+    regionTiles: TileData[],
+    centerTile: TileData
+  ): { children: TileData[], grandchildren: TileData[] } {
+    const centerDepth = centerTile.metadata.coordinates.path.length
+    const children: TileData[] = []
+    const grandchildren: TileData[] = []
+    
+    regionTiles.forEach(tile => {
+      if (tile.metadata.coordId === centerTile.metadata.coordId) return
+      
+      const tileDepth = tile.metadata.coordinates.path.length
+      const relativeDepth = tileDepth - centerDepth
+      
+      if (relativeDepth === 1) {
+        children.push(tile)
+      } else if (relativeDepth === 2) {
+        grandchildren.push(tile)
+      }
+    })
+    
+    return { children, grandchildren }
+  }
   
   private filterAndConvert(
     tiles: TileData[], 
     options: CanvasContextOptions,
-    depth: number
+    depth: number,
+    childTiles?: TileData[]
   ): TileContextItem[] {
     let filtered = tiles
     
@@ -77,10 +87,16 @@ export class StandardCanvasStrategy implements ICanvasStrategy {
       filtered = tiles.filter(t => t.data.name?.trim())
     }
     
-    return filtered.map(t => this.toContextItem(t, depth))
+    return filtered.map(t => {
+      // Check if this tile has children (for depth 1 tiles, check grandchildren)
+      const hasChildren = childTiles 
+        ? childTiles.some(child => child.metadata.parentId === t.metadata.coordId)
+        : false
+      return this.toContextItem(t, depth, hasChildren)
+    })
   }
   
-  private toContextItem(tile: TileData, depth: number): TileContextItem {
+  private toContextItem(tile: TileData, depth: number, hasChildren = false): TileContextItem {
     const position = depth > 0 
       ? CoordSystem.getDirection(tile.metadata.coordinates)
       : undefined
@@ -91,7 +107,7 @@ export class StandardCanvasStrategy implements ICanvasStrategy {
       description: tile.data.description || '',
       position,
       depth,
-      hasChildren: false // We'll need to check this differently
+      hasChildren
     }
   }
   

@@ -3,8 +3,9 @@ import { ContextCompositionService } from '../context-composition.service'
 import type { CanvasContextBuilder } from '../canvas-context-builder.service'
 import type { ChatContextBuilder } from '../chat-context-builder.service'
 import type { TokenizerService } from '../tokenizer.service'
-import type { CompositionConfig, CanvasContext, ChatContext, TileContextItem, ChatContextMessage } from '../../types'
+import type { CompositionConfig } from '../../types'
 import type { ChatMessage } from '~/app/map/Chat/types'
+import { createMockCanvasContext, createMockChatContext } from './__fixtures__/context-mocks'
 
 describe('ContextCompositionService', () => {
   let mockCanvasBuilder: CanvasContextBuilder
@@ -12,51 +13,8 @@ describe('ContextCompositionService', () => {
   let mockTokenizer: TokenizerService
   let service: ContextCompositionService
 
-  const mockCenterTile: TileContextItem = {
-    coordId: 'user:123,group:456:1,2',
-    name: 'Center Tile',
-    description: 'Center description',
-    depth: 0,
-    hasChildren: true
-  }
-
-  const mockCanvasContext: CanvasContext = {
-    type: 'canvas',
-    center: mockCenterTile,
-    children: [
-      { coordId: 'child1', name: 'Child 1', description: 'Desc 1', position: 1, depth: 1, hasChildren: false },
-      { coordId: 'child2', name: 'Child 2', description: 'Desc 2', position: 2, depth: 1, hasChildren: false }
-    ],
-    grandchildren: [
-      { coordId: 'gc1', name: 'GC 1', description: 'GC Desc 1', depth: 2, hasChildren: false }
-    ],
-    strategy: 'standard',
-    metadata: { computedAt: new Date() },
-    serialize: vi.fn().mockReturnValue('Canvas context serialized')
-  }
-
-  const mockChatMessages: ChatContextMessage[] = [
-    {
-      role: 'user',
-      content: 'Hello',
-      timestamp: new Date(),
-      metadata: {}
-    },
-    {
-      role: 'assistant',
-      content: 'Hi there!',
-      timestamp: new Date(),
-      metadata: {}
-    }
-  ]
-
-  const mockChatContext: ChatContext = {
-    type: 'chat',
-    messages: mockChatMessages,
-    strategy: 'full',
-    metadata: { computedAt: new Date() },
-    serialize: vi.fn().mockReturnValue('Chat context serialized')
-  }
+  const mockCanvasContext = createMockCanvasContext()
+  const mockChatContext = createMockChatContext()
 
   beforeEach(() => {
     mockCanvasBuilder = {

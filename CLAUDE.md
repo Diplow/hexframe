@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 2. Monitor for distraction patterns and gently redirect (see "Staying On Track" section)
 3. When user requests meta-work during execution, offer to defer it
 4. Show progress frequently to maintain momentum
-5. Capture ideas in `.workflow/ideas/` instead of implementing them immediately
+5. Capture ideas in `.workflow/cycles/[current]/retrospective.md` instead of implementing them immediately
 
 ## 🚀 IMMEDIATE ACTION REQUIRED
 
@@ -26,7 +26,7 @@ Example: "You're in the execution phase working on Priority 0 (Establish baselin
 
 **After 2+ distractions (any type), redirect to current phase focus.**
 
-#### Phase Focus:
+#### Phase Focus
 - **Goals**: Define what success looks like
 - **Prioritization**: Select 2-4 items from backlog
 - **Planification**: Break priorities into concrete tasks
@@ -34,7 +34,7 @@ Example: "You're in the execution phase working on Priority 0 (Establish baselin
 - **Retrospective**: Learn and update process
 - **Research**: Understand user needs, complete backlog
 
-#### Common Distractions Examples:
+#### Common Distractions Examples
 
 1. **Backlog churning** (any phase)
    - Adding features after priorities are set

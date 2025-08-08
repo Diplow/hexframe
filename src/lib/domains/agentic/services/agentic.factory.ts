@@ -39,16 +39,16 @@ export function createAgenticService(options: CreateAgenticServiceOptions): Agen
 
   // Create canvas strategies
   const canvasStrategies = new Map<CanvasContextStrategy, ICanvasStrategy>([
-    ['standard' as CanvasContextStrategy, new StandardCanvasStrategy(getCacheState)],
-    ['minimal' as CanvasContextStrategy, new MinimalCanvasStrategy(getCacheState)],
-    ['extended' as CanvasContextStrategy, new ExtendedCanvasStrategy(getCacheState)]
+    ['standard', new StandardCanvasStrategy(getCacheState)],
+    ['minimal', new MinimalCanvasStrategy(getCacheState)],
+    ['extended', new ExtendedCanvasStrategy(getCacheState)]
   ])
 
   // Create chat strategies
   const chatStrategies = new Map<ChatContextStrategy, IChatStrategy>([
-    ['full' as ChatContextStrategy, new FullChatStrategy()],
-    ['recent' as ChatContextStrategy, new RecentChatStrategy()],
-    ['relevant' as ChatContextStrategy, new RelevantChatStrategy()]
+    ['full', new FullChatStrategy()],
+    ['recent', new RecentChatStrategy()],
+    ['relevant', new RelevantChatStrategy()]
   ])
 
   // Create context builders
