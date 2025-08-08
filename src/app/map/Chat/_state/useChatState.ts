@@ -52,7 +52,7 @@ export function useChatStateInternal(initialEvents: ChatEvent[] = []) {
       dispatch({
         type: 'system_message',
         payload: {
-          message: 'Welcome to **HexFrame**! Navigate the map by clicking on tiles, or use the chat to ask questions. Type `@ai` followed by your message to chat with AI about your tile hierarchy.',
+          message: 'Welcome to **HexFrame**! Navigate the map by clicking on tiles. Your messages will be sent to AI to help you explore and build your tile hierarchy.',
           level: 'info' as const,
         },
         id: 'welcome-message',
