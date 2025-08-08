@@ -17,7 +17,9 @@ export const env = createEnv({
       .default("development"),
     MISTRAL_API_KEY: z.string().optional(),
     YOUTUBE_API_KEY: z.string().optional(),
-    OPENROUTER_API_KEY: z.string().optional(),
+    OPENROUTER_API_KEY: isTestEnv
+      ? z.string().optional()
+      : z.string().min(1, "OPENROUTER_API_KEY is required in non-test environments"),
     AUTH_SECRET: z.string().min(1),
     BETTER_AUTH_URL: z.string().url(),
   },

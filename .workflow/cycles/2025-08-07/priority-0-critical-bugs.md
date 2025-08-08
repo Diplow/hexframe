@@ -8,6 +8,13 @@
 4. No waiting for full priority completion
 
 ### Branch Strategy
+**IMPORTANT**: Before creating each branch, always pull latest develop:
+```bash
+git checkout develop
+git pull origin develop
+git checkout -b [branch-name]
+```
+
 - Task 1: `p0-test-output`
 - Task 2: `p0-coderabbit-feedback`
 - Task 3: `p0-remove-offline`

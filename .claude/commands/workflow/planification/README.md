@@ -27,7 +27,7 @@ For each priority:
 
 ## Task Breakdown Template
 
-```
+```markdown
 Priority: [Name from prioritization]
 Success: [What done looks like for users]
 Tasks:

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { TRPCError } from '@trpc/server'
 import { createTRPCRouter, protectedProcedure } from '../trpc'
 import { createAgenticService } from '~/lib/domains/agentic/services'
 import type { EventBus } from '~/app/map/Services/EventBus/event-bus'
@@ -103,7 +104,10 @@ export const agenticRouter = createTRPCRouter({
       })
 
       if (!agenticService.isConfigured()) {
-        throw new Error('OpenRouter API key not configured. Please set OPENROUTER_API_KEY environment variable.')
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'OpenRouter API key not configured. Please set OPENROUTER_API_KEY environment variable.',
+        })
       }
 
       // Generate the response
