@@ -46,8 +46,8 @@ export class StandardCanvasStrategy implements ICanvasStrategy {
     })
     
     // Convert to context items
-    const center = this.toContextItem(centerTile, 0)
-    const childrenItems = this.filterAndConvert(children, options, 1)
+    const center = this.toContextItem(centerTile, 0, children.length > 0)
+    const childrenItems = this.filterAndConvert(children, options, 1, grandchildren)
     const grandchildrenItems = this.filterAndConvert(grandchildren, options, 2)
     
     return {
@@ -69,7 +69,8 @@ export class StandardCanvasStrategy implements ICanvasStrategy {
   private filterAndConvert(
     tiles: TileData[], 
     options: CanvasContextOptions,
-    depth: number
+    depth: number,
+    childTiles?: TileData[]
   ): TileContextItem[] {
     let filtered = tiles
     
@@ -77,10 +78,16 @@ export class StandardCanvasStrategy implements ICanvasStrategy {
       filtered = tiles.filter(t => t.data.name?.trim())
     }
     
-    return filtered.map(t => this.toContextItem(t, depth))
+    return filtered.map(t => {
+      // Check if this tile has children (for depth 1 tiles, check grandchildren)
+      const hasChildren = childTiles 
+        ? childTiles.some(child => child.metadata.parentId === t.metadata.coordId)
+        : false
+      return this.toContextItem(t, depth, hasChildren)
+    })
   }
   
-  private toContextItem(tile: TileData, depth: number): TileContextItem {
+  private toContextItem(tile: TileData, depth: number, hasChildren = false): TileContextItem {
     const position = depth > 0 
       ? CoordSystem.getDirection(tile.metadata.coordinates)
       : undefined
@@ -91,7 +98,7 @@ export class StandardCanvasStrategy implements ICanvasStrategy {
       description: tile.data.description || '',
       position,
       depth,
-      hasChildren: false // We'll need to check this differently
+      hasChildren
     }
   }
   

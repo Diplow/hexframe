@@ -59,7 +59,7 @@ function ChatContent() {
       <Messages messages={messages} widgets={widgets} />
       {isGeneratingAI && (
         <div className="px-4 py-2 text-sm text-muted-foreground animate-pulse">
-          AI is thinking...
+          Thinking...
         </div>
       )}
       <Input />

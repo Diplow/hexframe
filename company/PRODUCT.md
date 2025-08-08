@@ -6,7 +6,7 @@ A tool for creating and evolving AI systems. See [What is a System?](./src/app/S
 
 ### Level 1: Structured Prompt
 Start with a center concept and up to 6 key parts:
-```
+```text
 Issue Planning
 ├── Define Problem
 ├── Gather Context  
@@ -18,7 +18,7 @@ Issue Planning
 
 ### Level 2: Nested Systems
 Any part can become its own system:
-```
+```text
 Gather Context
 ├── Find Related Files
 ├── Check Documentation
