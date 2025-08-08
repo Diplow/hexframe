@@ -206,7 +206,7 @@ Instructions:
   - Use code blocks with syntax highlighting when sharing code examples`
   }
 
-  private widgetExtractors: Map<string, (data: unknown) => string> = new Map([
+  private widgetExtractors = new Map<string, (data: unknown) => string>([
     ['preview', (data) => `[Preview Widget: ${(data as { title?: string })?.title ?? 'Untitled'}]`],
     ['error', (data) => `[Error: ${(data as { message?: string })?.message ?? 'Unknown error'}]`],
     ['loading', (data) => `[Loading: ${(data as { message?: string })?.message ?? 'Loading...'}]`],

@@ -5,6 +5,7 @@ import { useChatState } from './_state'
 import { api } from '~/commons/trpc/react'
 import { useMapCacheContext } from '../Cache/map-cache'
 import type { ChatMessage } from './types'
+import type { Message } from './_state/_events/event.types'
 
 /**
  * Component that handles AI integration for the chat
@@ -36,7 +37,7 @@ export function ChatAIIntegration() {
 
   useEffect(() => {
     // Find the latest user message
-    const userMessages = chatState.messages.filter((msg: any) => msg.actor === 'user')
+    const userMessages = chatState.messages.filter((msg: Message) => msg.actor === 'user')
     const latestMessage = userMessages[userMessages.length - 1]
     
     if (!latestMessage) return
@@ -66,7 +67,7 @@ export function ChatAIIntegration() {
     }
     
     // Convert messages for API
-    const messages: ChatMessage[] = chatState.messages.map((msg: any) => ({
+    const messages: ChatMessage[] = chatState.messages.map((msg: Message) => ({
       id: msg.id,
       type: msg.actor as 'user' | 'assistant' | 'system',
       content: msg.content,
@@ -106,7 +107,7 @@ export function ChatAIIntegration() {
         currentCenter: cacheState.currentCenter
       }
     })
-  }, [chatState.messages.length, chatState, cacheState?.currentCenter, sendToAI.mutate]) // Optimize dependencies
+  }, [chatState, cacheState, sendToAI]) // Fixed dependencies
 
   return null // This component doesn't render anything
 }
