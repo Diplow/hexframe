@@ -159,7 +159,7 @@ After completing any task, refactor for clarity following the workflow in `.clau
 ### Frontend
 - **Next.js 15 App Router** with progressive enhancement
 - Static → Progressive → Dynamic component patterns
-- Offline-first with localStorage caching
+- localStorage caching for performance
 - See: `/src/app/map/ARCHITECTURE.md`
 
 ### Backend
@@ -175,13 +175,12 @@ After completing any task, refactor for clarity following the workflow in `.clau
 ### Data Layer
 - **Drizzle ORM + PostgreSQL**
 - Migrations in `/drizzle/migrations/`
-- Offline mode with localStorage persistence
+- localStorage for performance caching
 
 ## Important Notes
 
 - Always use `pnpm` (not npm or yarn)
 - Tests use Vitest (not Jest)
-- E2E tests run in offline mode
 - Follow the Rule of 6 for code organization
 - Create session documents for debugging, features, and refactoring
 - Domain concepts should have README.md documentation

@@ -7,7 +7,6 @@ import { ParentHierarchy } from "../Hierarchy";
 import { TileActionsProvider } from "../Canvas/TileActionsContext";
 import { MapContent } from "./MapContent";
 import { ChatPanel } from "../Chat/ChatPanel";
-import { OfflineIndicator } from "./offline-indicator";
 import { useTileSelectForChat } from "../_hooks/use-tile-select-for-chat";
 import { useMapCache } from "../Cache/map-cache";
 import { useRouter } from "next/navigation";
@@ -21,12 +20,10 @@ interface MapPageContentProps {
     scale?: string;
     expandedItems?: string;
     focus?: string;
-    offline?: string;
   };
   rootItemId: number;
   userId: number;
   groupId: number;
-  isOffline: boolean;
   isLoading?: boolean;
   loadingError?: Error | null;
 }
@@ -44,7 +41,6 @@ export function MapPageContent({
   rootItemId,
   userId,
   groupId,
-  isOffline,
   isLoading = false,
   loadingError = null,
 }: MapPageContentProps) {
@@ -155,8 +151,6 @@ export function MapPageContent({
             </div>
             
           </div>
-          
-          <OfflineIndicator isOffline={isOffline} />
         </MapContent>
     </TileActionsProvider>
   );
