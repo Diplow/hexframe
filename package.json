@@ -26,7 +26,6 @@
     "typecheck": "tsc --noEmit",
     "test": "./scripts/run-tests.sh",
     "test:run": "vitest run --config vitest.config.ts",
-    "test:all": "./scripts/run-tests-isolated.sh",
     "test:ui": "vitest --ui --config vitest.config.ts",
     "test:coverage": "vitest run --coverage --config vitest.config.ts",
     "test:watch": "vitest watch --config vitest.config.ts",

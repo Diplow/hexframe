@@ -15,6 +15,19 @@ if (process.env.NODE_ENV === "test" && process.env.TEST_DATABASE_URL) {
 const port = process.env.NEXT_PUBLIC_URL ? new URL(process.env.NEXT_PUBLIC_URL).port : "3000";
 const baseURL = process.env.NEXT_PUBLIC_URL || `http://localhost:${port}`;
 
+// Determine if we're in AI parsing mode
+const isAIParsing = process.env.AI_PARSING === 'true';
+
+// Configure reporters based on mode
+const getReporter = (): any => {
+  if (isAIParsing) {
+    return [['json', { outputFile: '../test-results/playwright-results.json' }]];
+  }
+  return process.env.CI
+    ? [["html", { open: "never" }], ["list"]]
+    : [["html", { open: "on-failure" }]];
+};
+
 export default defineConfig({
   testDir: "../tests/e2e",
   testMatch: "**/*.spec.ts",
@@ -26,9 +39,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: process.env.CI
-    ? [["html", { open: "never" }], ["list"]]
-    : [["html", { open: "on-failure" }]],
+  reporter: getReporter(),
   use: {
     baseURL,
     trace: "on-first-retry",
