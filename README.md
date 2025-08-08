@@ -144,15 +144,6 @@ Each tile can be:
 - **Orchestrate**: Define how tiles communicate and collaborate
 - **Maintain Control**: Always see and modify what's inside
 
-### Offline Mode
-
-Hexframe supports working offline without network connectivity:
-
-- **Local Storage**: Your maps are cached in browser storage
-- **Optimistic Updates**: Changes are applied instantly
-- **Background Sync**: Automatically syncs when connection returns
-- **Data Persistence**: Work continues seamlessly offline
-
 ## Tech
 
 ### Architecture
@@ -181,7 +172,7 @@ Hexframe follows a clean, layered architecture:
 - Type-safe database queries with Drizzle
 - PostgreSQL for reliable data storage
 - Migrations in `/drizzle/migrations/`
-- Offline mode with localStorage persistence
+- localStorage for performance caching
 
 ### Quick Start
 
