@@ -14,30 +14,27 @@ const dirname =
 export default defineWorkspace([
   // Main test configuration - extending the base config
   "vitest.config.ts",
-  // Storybook test configuration for story tests
-  ...(process.env.CI === 'true' ? [] : [{
-    plugins: [
-      // The plugin will run tests for the stories defined in your Storybook config
-      // See options at: https://storybook.js.org/docs/writing-tests/test-addon#storybooktest
-      storybookTest({ configDir: path.join(dirname, ".storybook") }),
-    ],
-    test: {
-      name: "storybook",
-      browser: {
-        enabled: true,
-        headless: true,
-        provider: "playwright",
-        instances: [{ browser: "chromium" }],
-      },
-      setupFiles: [".storybook/vitest.setup.ts"],
-      // Workaround for Vitest 3.0 compatibility issue
-      // See: https://github.com/storybookjs/storybook/issues/30308
-      pool: 'forks',
-      poolOptions: {
-        forks: {
-          singleFork: true,
-        },
-      },
-    },
-  }]),
+  // Storybook tests are currently disabled as we removed Playwright
+  // To re-enable: install @playwright/test and uncomment below
+  // ...(process.env.CI === 'true' ? [] : [{
+  //   plugins: [
+  //     storybookTest({ configDir: path.join(dirname, ".storybook") }),
+  //   ],
+  //   test: {
+  //     name: "storybook",
+  //     browser: {
+  //       enabled: true,
+  //       headless: true,
+  //       provider: "playwright",
+  //       instances: [{ browser: "chromium" }],
+  //     },
+  //     setupFiles: [".storybook/vitest.setup.ts"],
+  //     pool: 'forks',
+  //     poolOptions: {
+  //       forks: {
+  //         singleFork: true,
+  //       },
+  //     },
+  //   },
+  // }]),
 ]);

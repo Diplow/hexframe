@@ -75,9 +75,6 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: true
 
-      - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps chromium
-
       - name: Setup test database
         run: |
           # Create .env.test file with test database configuration
