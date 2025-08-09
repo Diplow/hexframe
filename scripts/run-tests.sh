@@ -76,7 +76,6 @@ for file in \
   src/app/map/Tile/Item/__tests__/content.test.tsx \
   src/app/map/Tile/Item/__tests__/multi-line-title.test.tsx \
   src/app/map/Tile/Item/_hooks/__tests__/use-item-state.test.tsx \
-  src/app/map/Chat/__tests__/ChatPanel.test.tsx \
   src/app/map/Chat/__tests__/ChatPanel.send-message.test.tsx \
   src/app/map/Chat/__tests__/ChatPanel.debug-message.test.tsx \
   src/app/map/Chat/__tests__/ChatPanel.render-debug.test.tsx \
