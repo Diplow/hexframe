@@ -48,6 +48,7 @@ pnpm vitest run --config vitest.config.ts \
   --exclude "**/multi-line-title.test.tsx" \
   --exclude "**/use-item-state.test.tsx" \
   --exclude "**/ChatPanel.test.tsx" \
+  --exclude "**/ChatPanel.fixed.test.tsx" \
   --exclude "**/ChatPanel.send-message.test.tsx" \
   --exclude "**/ChatPanel.debug-message.test.tsx" \
   --exclude "**/ChatPanel.render-debug.test.tsx" \

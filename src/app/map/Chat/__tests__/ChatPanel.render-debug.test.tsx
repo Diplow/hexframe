@@ -4,13 +4,15 @@ import { ChatPanel } from '../ChatPanel';
 import { TestProviders } from '~/test-utils/providers';
 import { createMockEventBus } from '~/test-utils/event-bus';
 import type { ChatSettings } from '../_settings/chat-settings';
-import { createTRPCMock } from '~/test-utils/trpc-mocks';
 
 // Track all renders
 let renderLogs: string[] = [];
 
 // Mock tRPC
-vi.mock('~/commons/trpc/react', () => createTRPCMock());
+vi.mock('~/commons/trpc/react', async () => {
+  const { createTRPCMock } = await import('~/test-utils/trpc-mocks');
+  return createTRPCMock();
+});
 
 // Mock minimal dependencies
 vi.mock('../_settings/chat-settings', () => ({

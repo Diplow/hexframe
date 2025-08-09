@@ -178,6 +178,25 @@ vi.mock('../_settings/chat-settings', () => ({
         }
       },
     })),
+    subscribe: vi.fn((callback: (settings: unknown) => void) => {
+      // Call the callback immediately with the current settings
+      if (typeof callback === 'function') {
+        callback({
+        messages: { 
+          debug: false,
+          tile: {
+            edit: true,
+            create: true,
+            delete: true,
+            move: true,
+            swap: true,
+          }
+        },
+        });
+      }
+      // Return unsubscribe function
+      return () => { /* cleanup */ };
+    }),
   },
 }));
 vi.mock('~/lib/auth/auth-client', () => ({

@@ -6,10 +6,8 @@ import { TestProviders } from '~/test-utils/providers';
 import { createMockEventBus } from '~/test-utils/event-bus';
 import { chatSettings } from '../_settings/chat-settings';
 import type { AppEvent } from '../../types/events';
-import { createTRPCMock } from '~/test-utils/trpc-mocks';
 
-// Mock tRPC
-vi.mock('~/commons/trpc/react', () => createTRPCMock());
+// Mock tRPC (defined later in the file with inline mock)
 
 // Mock dependencies
 vi.mock('../_settings/chat-settings', () => ({
