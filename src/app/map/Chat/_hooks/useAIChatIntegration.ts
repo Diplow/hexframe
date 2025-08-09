@@ -10,17 +10,10 @@ import { loggers } from '~/lib/debug/debug-logger'
 export function useAIChatIntegration() {
   const chatState = useChatState()
   
-  // Try to use AI chat - might fail if cache context is not available
-  let sendToAI: ((message: string) => Promise<void>) | null = null
-  let isGenerating = false
-  
-  try {
-    const aiChat = useAIChat()
-    sendToAI = aiChat.sendToAI
-    isGenerating = aiChat.isGenerating
-  } catch {
-    // AI chat not available (e.g., in tests without MapCacheProvider)
-  }
+  // Always call the hook - it now handles missing context gracefully
+  const aiChat = useAIChat()
+  const sendToAI = aiChat.sendToAI
+  const isGenerating = aiChat.isGenerating
   const lastProcessedMessageId = useRef<string | null>(null)
   const processingMessage = useRef(false)
 

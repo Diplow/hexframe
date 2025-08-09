@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { api } from '~/commons/trpc/react'
 import { useChatState } from '../_state'
-import { useMapCacheContext } from '../../Cache/map-cache'
+import { useMapCacheContextSafe } from '../../Cache/_hooks/use-cache-context'
 import type { ChatMessage } from '../types'
 import type { CompositionConfig } from '~/lib/domains/agentic/types'
 import { loggers } from '~/lib/debug/debug-logger'
@@ -14,15 +14,11 @@ interface UseAIChatOptions {
 
 export function useAIChat(options: UseAIChatOptions = {}) {
   const chatState = useChatState()
-  // Try to get cache context - might not be available in tests
-  let cacheState: ReturnType<typeof useMapCacheContext>['state'] | null = null
-  try {
-    const context = useMapCacheContext()
-    cacheState = context.state
-  } catch {
-    // Context not available (e.g., in tests)
-  }
   const [isGenerating, setIsGenerating] = useState(false)
+  
+  // Use safe version that returns null instead of throwing
+  const context = useMapCacheContextSafe()
+  const cacheState = context?.state ?? null
   
   const generateResponseMutation = api.agentic.generateResponse.useMutation({
     onSuccess: (response) => {

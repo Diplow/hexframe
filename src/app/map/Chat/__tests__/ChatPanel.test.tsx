@@ -1,4 +1,147 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
+// Mock tRPC BEFORE any other imports that might use it
+vi.mock('~/commons/trpc/react', () => {
+  const mockFn = vi.fn;
+  return {
+    api: {
+      useUtils: mockFn(() => ({
+        map: {
+          user: {
+            getUserMap: {
+              invalidate: mockFn(),
+            },
+          },
+          items: {
+            invalidate: mockFn(),
+          },
+        },
+      })),
+      agentic: {
+        generateResponse: {
+          useMutation: mockFn(() => ({
+            mutateAsync: mockFn().mockResolvedValue({
+              content: 'AI response',
+              model: 'test-model',
+              usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
+              finishReason: 'stop'
+            }),
+            mutate: mockFn((_args: unknown, options?: any) => {
+              if (options?.onSuccess) {
+                options.onSuccess({
+                  content: 'AI response',
+                  model: 'test-model',
+                  usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
+                  finishReason: 'stop'
+                });
+              }
+              if (options?.onSettled) {
+                options.onSettled();
+              }
+            }),
+            isLoading: false,
+            isError: false,
+            error: null,
+            data: null,
+          })),
+        },
+      },
+      map: {
+        user: {
+          createDefaultMapForCurrentUser: {
+            useMutation: mockFn(() => ({
+              mutateAsync: mockFn().mockResolvedValue({ success: false }),
+              mutate: mockFn(),
+              isLoading: false,
+              isPending: false,
+              isSuccess: false,
+              isError: false,
+              error: null,
+              data: null,
+            })),
+          },
+          getUserMap: {
+            useQuery: mockFn(() => ({
+              data: null,
+              isLoading: false,
+              error: null,
+            })),
+          },
+        },
+        addItem: {
+          useMutation: mockFn(() => ({
+            mutateAsync: mockFn(() => Promise.resolve({ id: 1, coordId: 'test' })),
+            mutate: mockFn(),
+            isLoading: false,
+          })),
+        },
+        updateItem: {
+          useMutation: mockFn(() => ({
+            mutateAsync: mockFn(() => Promise.resolve({ id: 1 })),
+            mutate: mockFn(),
+            isLoading: false,
+          })),
+        },
+        removeItem: {
+          useMutation: mockFn(() => ({
+            mutateAsync: mockFn(() => Promise.resolve()),
+            mutate: mockFn(),
+            isLoading: false,
+          })),
+        },
+        items: {
+          create: {
+            useMutation: () => ({
+              mutateAsync: mockFn(() => Promise.resolve({ id: 1, coordId: 'test' })),
+              mutate: mockFn(),
+              isLoading: false,
+            }),
+          },
+          update: {
+            useMutation: () => ({
+              mutateAsync: mockFn(() => Promise.resolve({ id: 1 })),
+              mutate: mockFn(),
+              isLoading: false,
+            }),
+          },
+          delete: {
+            useMutation: () => ({
+              mutateAsync: mockFn(() => Promise.resolve()),
+              mutate: mockFn(),
+              isLoading: false,
+            }),
+          },
+          move: {
+            useMutation: () => ({
+              mutateAsync: mockFn(() => Promise.resolve({ success: true })),
+              mutate: mockFn(),
+              isLoading: false,
+            }),
+          },
+          moveMapItem: {
+            useMutation: mockFn(() => ({
+              mutateAsync: mockFn(() => Promise.resolve({ success: true })),
+              mutate: mockFn(),
+              isLoading: false,
+            })),
+          },
+        },
+      },
+      iam: {
+        user: {
+          getUserIdFromMappingUserId: {
+            useQuery: mockFn(() => ({
+              data: null,
+              isLoading: false,
+              error: null,
+            })),
+          },
+        },
+      },
+    },
+  };
+});
+
 import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import { ChatPanel } from '../ChatPanel';
 import { TestProviders } from '~/test-utils/providers';
@@ -48,246 +191,230 @@ vi.mock('~/contexts/AuthContext', async () => {
 });
 
 vi.mock('../Input', () => ({
-  Input: () => (
-    <div data-testid="chat-input">
-      <button>Send</button>
+  Input: ({ onEnter }: { onEnter: (message: string) => void }) => {
+    const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      const input = e.currentTarget.querySelector('input');
+      if (input?.value) {
+        onEnter(input.value);
+        input.value = '';
+      }
+    };
+    
+    return (
+      <form data-testid="chat-input" onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="Type a message..."
+          data-testid="chat-input-field"
+        />
+        <button type="submit" data-testid="send-button">Send</button>
+      </form>
+    );
+  }
+}));
+
+// Mock AuthWidget with actions
+vi.mock('../_widgets/auth-widget', () => ({
+  AuthWidget: ({ onLogin, onLogout }: { onLogin?: () => void, onLogout?: () => void }) => (
+    <div data-testid="auth-widget">
+      <button data-testid="login-button" onClick={onLogin}>Login</button>
+      <button data-testid="logout-button" onClick={onLogout}>Logout</button>
     </div>
   ),
 }));
 
-vi.mock('../Messages', () => ({
-  Messages: ({ messages, widgets }: { messages: unknown[]; widgets: unknown[] }) => (
-    <div data-testid="chat-messages">
-      <div>Messages: {messages.length}</div>
-      <div>Widgets: {widgets.length}</div>
+// Mock PreviewWidget to test tile selection
+vi.mock('../_widgets/preview-widget', () => ({
+  PreviewWidget: ({ tile }: { tile: unknown }) => (
+    <div data-testid="preview-widget">
+      {tile ? `Selected tile: ${JSON.stringify(tile)}` : 'No tile selected'}
     </div>
   ),
 }));
 
-// Mock trpc
-vi.mock('~/commons/trpc/react', () => ({
-  api: {
-    iam: {
-      user: {
-        whoami: {
-          useQuery: vi.fn(() => ({
-            data: null,
-            isLoading: false,
-            error: null,
-          })),
-        },
-      },
+// Mock logger
+vi.mock('~/lib/debug/debug-logger', () => ({
+  loggers: {
+    render: {
+      chat: vi.fn(),
     },
+    agentic: Object.assign(vi.fn(), {
+      error: vi.fn(),
+    }),
+  },
+  debugLogger: {
+    formatLogs: vi.fn(() => ['[2024-01-01 10:00:00] Test log message']),
+    getFullLogs: vi.fn(() => []),
+    clearBuffer: vi.fn(),
+    getOptions: vi.fn(() => ({ enableConsole: false })),
+    setOptions: vi.fn(),
   },
 }));
-
-// Helper functions to simulate map events
-const simulateMapEvent = {
-  tileSelected: (eventBus: ReturnType<typeof createMockEventBus>, tileData: {
-    id: string;
-    title: string;
-    description?: string;
-    content?: string;
-    coordId: string;
-  }, openInEditMode?: boolean) => {
-    eventBus.emit({
-      type: 'map.tile_selected',
-      source: 'map_cache',
-      payload: {
-        tileId: tileData.coordId,
-        tileData,
-        openInEditMode,
-      },
-      timestamp: new Date(),
-    });
-  },
-
-  navigation: (eventBus: ReturnType<typeof createMockEventBus>, fromId: string | undefined, toId: string, toName: string) => {
-    eventBus.emit({
-      type: 'map.navigation',
-      source: 'map_cache',
-      payload: {
-        fromCenterId: fromId,
-        toCenterId: toId,
-        toCenterName: toName,
-      },
-      timestamp: new Date(),
-    });
-  },
-
-  authRequired: (eventBus: ReturnType<typeof createMockEventBus>, reason: string) => {
-    eventBus.emit({
-      type: 'auth.required',
-      source: 'map_cache',
-      payload: { reason },
-      timestamp: new Date(),
-    });
-  },
-  
-  authLogout: (eventBus: ReturnType<typeof createMockEventBus>) => {
-    eventBus.emit({
-      type: 'auth.logout',
-      source: 'auth',
-      payload: {},
-      timestamp: new Date(),
-    });
-  },
-
-  error: (eventBus: ReturnType<typeof createMockEventBus>, error: string, context?: unknown) => {
-    eventBus.emit({
-      type: 'error.occurred',
-      source: 'map_cache',
-      payload: { error, context },
-      timestamp: new Date(),
-    });
-  },
-};
 
 describe('ChatPanel', () => {
   let mockEventBus: ReturnType<typeof createMockEventBus>;
 
-  // Custom render function
-  function renderWithProviders(ui: React.ReactElement) {
-    return render(
-      <TestProviders mockEventBus={mockEventBus}>
-        {ui}
-      </TestProviders>
-    );
-  }
-
   beforeEach(() => {
-    // Ensure DOM is properly set up
-    if (typeof document !== 'undefined') {
-      if (!document.body) {
-        document.body = document.createElement('body');
-      }
-      // Ensure test container exists
-      if (!document.getElementById('test-container')) {
-        const container = document.createElement('div');
-        container.id = 'test-container';
-        document.body.appendChild(container);
-      }
-    }
-    
     mockEventBus = createMockEventBus();
     vi.clearAllMocks();
   });
 
   afterEach(() => {
     cleanup();
-    // Clean up any leftover DOM elements
-    if (typeof document !== 'undefined' && document.body) {
-      document.body.innerHTML = '';
-    }
   });
 
-  it('should render chat components', () => {
-    renderWithProviders(<ChatPanel />);
+  it('should render chat components', async () => {
+    const { container } = render(
+      <TestProviders mockEventBus={mockEventBus}>
+        <ChatPanel />
+      </TestProviders>
+    );
 
-    expect(screen.getByTestId('chat-messages')).toBeInTheDocument();
-    expect(screen.getByTestId('chat-input')).toBeInTheDocument();
+    // Should render container
+    const chatContainer = container.querySelector('[class*="chat"]');
+    expect(chatContainer).toBeInTheDocument();
+
+    // Should have input
+    await waitFor(() => {
+      expect(screen.getByTestId('chat-input')).toBeInTheDocument();
+    });
   });
 
   it('should display preview widget when tile is selected', async () => {
-    renderWithProviders(<ChatPanel />);
+    render(
+      <TestProviders mockEventBus={mockEventBus}>
+        <ChatPanel />
+      </TestProviders>
+    );
 
-    // Simulate tile selection from Canvas
-    simulateMapEvent.tileSelected(mockEventBus, {
-      id: 'tile-123',
-      title: 'Test Tile',
-      description: 'A test tile',
-      content: 'A test tile', // content can be the same as description
-      coordId: 'coord-123',
+    // Initially no tile selected
+    await waitFor(() => {
+      expect(screen.getByTestId('preview-widget')).toHaveTextContent('No tile selected');
     });
 
-    // Wait for chat to process the event
+    // Emit tile.selected event
+    const selectedTile = { id: 'test-id', title: 'Test Tile' };
+    mockEventBus.emit('tile.selected', { tile: selectedTile });
+
+    // Should display selected tile
     await waitFor(() => {
-      expect(mockEventBus).toHaveEmittedEvent('map.tile_selected');
+      expect(screen.getByTestId('preview-widget')).toHaveTextContent(JSON.stringify(selectedTile));
     });
   });
 
   it('should handle user messages', async () => {
-    renderWithProviders(<ChatPanel />);
+    render(
+      <TestProviders mockEventBus={mockEventBus}>
+        <ChatPanel />
+      </TestProviders>
+    );
 
-    // The chat should display messages
-    expect(screen.getByTestId('chat-messages')).toBeInTheDocument();
+    // Ensure input is rendered
+    const input = await screen.findByTestId('chat-input-field');
+    expect(input).toBeInTheDocument();
+
+    // Type and send a message
+    await userEvent.type(input, 'Hello, world!');
     
-    // Since we're using the real hook, the initial welcome message should be displayed
-    expect(screen.getByText(/Messages: 1/)).toBeInTheDocument();
+    const sendButton = screen.getByTestId('send-button');
+    await userEvent.click(sendButton);
+
+    // Message should be displayed in chat
+    await waitFor(() => {
+      expect(screen.getByText('Hello, world!')).toBeInTheDocument();
+    });
   });
 
   it('should react to navigation events', async () => {
-    renderWithProviders(<ChatPanel />);
-
-    // Simulate navigation from Hierarchy
-    simulateMapEvent.navigation(
-      mockEventBus,
-      'old-center-id',
-      'new-center-id',
-      'New Center Tile'
+    render(
+      <TestProviders mockEventBus={mockEventBus}>
+        <ChatPanel />
+      </TestProviders>
     );
 
+    // Emit navigation event
+    mockEventBus.emit('navigation.occurred', { 
+      center: { id: 'nav-id', title: 'Navigation Target' } 
+    });
+
+    // Should display system message about navigation
     await waitFor(() => {
-      expect(mockEventBus).toHaveEmittedEvent('map.navigation');
+      const messages = screen.getAllByText(/Navigation Target|nav-id/i);
+      expect(messages.length).toBeGreaterThan(0);
     });
   });
 
   it('should show auth widget when auth is required', async () => {
-    renderWithProviders(<ChatPanel />);
-
-    // Simulate auth required event
-    simulateMapEvent.authRequired(
-      mockEventBus,
-      'Please log in to continue'
+    render(
+      <TestProviders mockEventBus={mockEventBus}>
+        <ChatPanel />
+      </TestProviders>
     );
 
+    // Emit auth.required event
+    mockEventBus.emit('auth.required', { reason: 'Please log in' });
+
+    // Should display auth widget
     await waitFor(() => {
-      expect(mockEventBus).toHaveEmittedEvent('auth.required');
+      expect(screen.getByTestId('auth-widget')).toBeInTheDocument();
     });
   });
 
   it('should handle error events', async () => {
-    renderWithProviders(<ChatPanel />);
-
-    // Simulate error from map operations
-    simulateMapEvent.error(
-      mockEventBus,
-      'Failed to create tile',
-      { tileId: 'failed-tile' }
+    render(
+      <TestProviders mockEventBus={mockEventBus}>
+        <ChatPanel />
+      </TestProviders>
     );
 
+    // Emit error event
+    mockEventBus.emit('error.occurred', { 
+      message: 'Something went wrong',
+      context: 'test-context' 
+    });
+
+    // Should display error message
     await waitFor(() => {
-      expect(mockEventBus).toHaveEmittedEvent('error.occurred');
+      expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument();
     });
   });
 
   it('should emit auth.logout event when user logs out', async () => {
-    const userEvent = (await import('@testing-library/user-event')).default;
-    const user = userEvent.setup();
     const { authClient } = await import('~/lib/auth/auth-client');
-    const { useAuth } = await import('~/contexts/AuthContext');
     
-    // Mock authenticated user
-    vi.mocked(useAuth).mockReturnValue({
-      user: { id: 'user-123', name: 'Test User', email: 'test@example.com' },
-      mappingUserId: 123,
-      isLoading: false,
-      setMappingUserId: vi.fn(),
+    render(
+      <TestProviders mockEventBus={mockEventBus}>
+        <ChatPanel />
+      </TestProviders>
+    );
+
+    // Show auth widget
+    mockEventBus.emit('auth.required', { reason: 'Please log in' });
+    
+    await waitFor(() => {
+      expect(screen.getByTestId('auth-widget')).toBeInTheDocument();
     });
 
-    renderWithProviders(<ChatPanel />);
+    // Click logout
+    const logoutButton = screen.getByTestId('logout-button');
+    await userEvent.click(logoutButton);
 
-    // Find and click logout button
-    const authButton = screen.getByRole('button', { name: 'Logout' });
-    await user.click(authButton);
-
-    expect(authClient.signOut).toHaveBeenCalled();
-    expect(mockEventBus).toHaveEmittedEvent('auth.logout', {});
+    // Should call signOut
+    await waitFor(() => {
+      expect(authClient.signOut).toHaveBeenCalled();
+    });
   });
 
   it('should handle debug logger state', async () => {
-    // Test with debug logger enabled
-    vi.mocked(chatSettings).getSettings.mockReturnValue({
+    render(
+      <TestProviders mockEventBus={mockEventBus}>
+        <ChatPanel />
+      </TestProviders>
+    );
+
+    // Update settings to enable debug mode
+    (chatSettings.getSettings as jest.Mock).mockReturnValue({
       messages: { 
         debug: true,
         tile: {
@@ -299,10 +426,20 @@ describe('ChatPanel', () => {
         }
       },
     });
-    
-    renderWithProviders(<ChatPanel />);
 
-    // Debug logger should be configured but not affect the UI in tests
-    expect(screen.getByTestId('chat-messages')).toBeInTheDocument();
+    // Emit settings update
+    mockEventBus.emit('settings.updated', { 
+      settings: { messages: { debug: true } } 
+    });
+
+    await waitFor(() => {
+      // Verify debug mode is enabled (exact behavior depends on implementation)
+      // For now just check that the component renders without errors
+      const chatContainer = screen.getByTestId('chat-input');
+      expect(chatContainer).toBeInTheDocument();
+    });
   });
 });
+
+// Import userEvent after vi.mock declarations
+import userEvent from '@testing-library/user-event';

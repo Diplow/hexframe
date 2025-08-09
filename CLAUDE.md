@@ -136,12 +136,8 @@ pnpm typecheck    # TypeScript type checking
 pnpm test         # Run all tests with AI-friendly JSON output
 ```
 
-### Test Output
-Tests now run with AI-friendly output by default:
-- Isolated execution for React components and drag-and-drop tests
-- JSON results saved to `test-results/vitest-results.json`
-- Human-readable summary with pass/fail statistics
-- Parse detailed results with `python3 scripts/parse-test-results.py`
+### Testing
+See `TESTING.md` for strategy and `scripts/run-tests.sh` for orchestration and JSON outputs.
 
 ## Code Quality
 

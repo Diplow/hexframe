@@ -6,6 +6,10 @@ import { TestProviders } from '~/test-utils/providers';
 import { createMockEventBus } from '~/test-utils/event-bus';
 import { chatSettings } from '../_settings/chat-settings';
 import type { AppEvent } from '../../types/events';
+import { createTRPCMock } from '~/test-utils/trpc-mocks';
+
+// Mock tRPC
+vi.mock('~/commons/trpc/react', () => createTRPCMock());
 
 // Mock dependencies
 vi.mock('../_settings/chat-settings', () => ({
@@ -102,6 +106,36 @@ vi.mock('~/commons/trpc/react', () => ({
         },
       },
     },
+    agentic: {
+      generateResponse: {
+        useMutation: vi.fn(() => ({
+          mutateAsync: vi.fn().mockResolvedValue({
+            content: 'AI response',
+            model: 'test-model',
+            usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
+            finishReason: 'stop'
+          }),
+          mutate: vi.fn((args, options) => {
+            // Simulate successful response
+            if (options?.onSuccess) {
+              options.onSuccess({
+                content: 'AI response',
+                model: 'test-model',
+                usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
+                finishReason: 'stop'
+              });
+            }
+            if (options?.onSettled) {
+              options.onSettled();
+            }
+          }),
+          isLoading: false,
+          isError: false,
+          error: null,
+          data: null,
+        })),
+      },
+    },
   },
 }));
 
@@ -134,6 +168,9 @@ vi.mock('~/lib/debug/debug-logger', () => ({
     render: {
       chat: vi.fn(),
     },
+    agentic: Object.assign(vi.fn(), {
+      error: vi.fn(),
+    }),
   },
   debugLogger: {
     formatLogs: vi.fn(() => ['[2024-01-01 10:00:00] Test log message']),

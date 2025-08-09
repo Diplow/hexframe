@@ -40,6 +40,19 @@ if (!stats.isFile()) {
   process.exit(1);
 }
 
+// Read current workflow state to get the current cycle
+const workflowPath = path.join(process.cwd(), '.workflow', 'current.json');
+let currentCycle = '[current]'; // fallback value
+
+try {
+  const workflowData = JSON.parse(fs.readFileSync(workflowPath, 'utf8'));
+  // Extract cycle date from history or use a default pattern
+  const cycleDate = workflowData.phase_started || new Date().toISOString().split('T')[0];
+  currentCycle = cycleDate;
+} catch (error) {
+  console.warn('Warning: Could not read .workflow/current.json, using placeholder [current]');
+}
+
 // Create session filename
 const fileName = path.basename(filePath, path.extname(filePath));
 const date = new Date().toISOString().split('T')[0];
@@ -51,7 +64,7 @@ I need you to refactor the file "${filePath}" for clarity according to the workf
 
 Please follow the complete workflow from that guide:
 
-1. **Create Refactor Session**: Create a new file at ".workflow/cycles/[current]/${sessionFileName}" following the documentation format described in the guide
+1. **Create Refactor Session**: Create a new file at ".workflow/cycles/${currentCycle}/${sessionFileName}" following the documentation format described in the guide
 
 2. **Pre-Refactoring Analysis**: Follow the analysis steps in the guide (sections 284-340):
    - Discover existing domain concepts from documented domains

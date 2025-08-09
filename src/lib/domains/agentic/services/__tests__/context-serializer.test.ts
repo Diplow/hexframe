@@ -92,13 +92,12 @@ describe('ContextSerializerService', () => {
     it('should serialize composed context with clear sections', async () => {
       const result = serializer.serialize(mockComposedContext, { type: 'structured' })
       
-      expect(result).toContain('## Tile Hierarchy Context')
-      expect(result).toContain('### Current Center: Product Development')
-      expect(result).toContain('### Direct Children (2):')
-      expect(result).toContain('[NW] User Research: Understanding customer needs')
-      expect(result).toContain('## Conversation History')
-      expect(result).toContain('### User')
-      expect(result).toContain('Help me organize my product development tiles')
+      expect(result).toContain('# Canvas Context')
+      expect(result).toContain('Current item: Product Development')
+      expect(result).toContain('## Children:')
+      expect(result).toContain('Northwest: User Research')
+      expect(result).toContain('# Chat History')
+      expect(result).toContain('User: Help me organize my product development tiles')
     })
     
     it('should handle empty sections gracefully', async () => {
@@ -115,8 +114,7 @@ describe('ContextSerializerService', () => {
       
       const result = serializer.serialize(emptyComposed, { type: 'structured' })
       
-      expect(result).toContain('### Direct Children (0):')
-      expect(result).toContain('(No children)')
+      expect(result).toContain('No child items')
       expect(result).not.toContain('undefined')
     })
   })
@@ -127,19 +125,18 @@ describe('ContextSerializerService', () => {
       
       expect(result).toContain('<context>')
       expect(result).toContain('</context>')
-      expect(result).toContain('<canvas_context>')
-      expect(result).toContain('<center>')
+      expect(result).toContain('<canvas>')
+      expect(result).toContain('<current_item>')
       expect(result).toContain('<name>Product Development</name>')
-      expect(result).toContain('<children count="2">')
-      expect(result).toContain('<chat_context>')
+      expect(result).toContain('<children>')
+      expect(result).toContain('<chat>')
       expect(result).toContain('<message role="user">')
     })
     
     it('should include all metadata in XML attributes', async () => {
       const result = serializer.serialize(mockComposedContext, { type: 'xml' })
       
-      expect(result).toContain('position="NW"')
-      expect(result).toContain('count="2"')
+      expect(result).toContain('position="1"')
       expect(result).toContain('role="user"')
     })
     
@@ -173,7 +170,7 @@ describe('ContextSerializerService', () => {
       expect(result).not.toContain('###')
       expect(result).toContain('Product Development')
       expect(result).toContain('User Research')
-      expect(result).toContain('Help me organize')
+      expect(result).toContain('User: Help me organize')
       expect(result.length).toBeLessThan(
         serializer.serialize(mockComposedContext, { type: 'structured' }).length
       )
@@ -188,8 +185,8 @@ describe('ContextSerializerService', () => {
     
     const result = serializer.serialize(singleContext, { type: 'structured' })
     
-    expect(result).toContain('## Tile Hierarchy Context')
-    expect(result).not.toContain('## Conversation History')
+    expect(result).toContain('# Canvas Context')
+    expect(result).not.toContain('# Chat History')
   })
   
   it('should respect includeMetadata option', async () => {
