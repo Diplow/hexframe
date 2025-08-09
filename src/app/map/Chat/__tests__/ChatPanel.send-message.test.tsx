@@ -218,30 +218,8 @@ vi.mock('~/lib/debug/debug-logger', () => ({
   },
 }));
 
-// Mock the Input component to be more testable
-vi.mock('../Input', () => ({
-  Input: ({ onEnter }: { onEnter: (message: string) => void }) => {
-    const handleSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      const input = e.currentTarget.querySelector('input');
-      if (input?.value) {
-        onEnter(input.value);
-        input.value = '';
-      }
-    };
-    
-    return (
-      <form data-testid="chat-input" onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Type a message..."
-          data-testid="chat-input-field"
-        />
-        <button type="submit" data-testid="send-button">Send</button>
-      </form>
-    );
-  }
-}));
+// Don't mock the Input component - let it render naturally
+// It will use useChatState() internally to send messages
 
 // Mock widgets
 vi.mock('../_widgets/auth-widget', () => ({
@@ -273,15 +251,14 @@ describe('ChatPanel - Message Sending', () => {
       </TestProviders>
     );
 
-    // Wait for input to be available
-    const input = await screen.findByTestId('chat-input-field');
+    // Wait for textarea to be available (Input component uses textarea)
+    const textbox = await screen.findByRole('textbox');
     
     // Type message
-    await user.type(input, 'Test message');
+    await user.type(textbox, 'Test message');
     
-    // Send message
-    const sendButton = screen.getByTestId('send-button');
-    await user.click(sendButton);
+    // Send message with Enter key
+    await user.keyboard('{Enter}');
 
     // Check message appears
     await waitFor(() => {
@@ -296,16 +273,21 @@ describe('ChatPanel - Message Sending', () => {
       </TestProviders>
     );
 
-    const input = await screen.findByTestId('chat-input-field');
-    const sendButton = screen.getByTestId('send-button');
+    const textbox = await screen.findByRole('textbox');
 
     // Send first message
-    await user.type(input, 'First message');
-    await user.click(sendButton);
+    await user.type(textbox, 'First message');
+    await user.keyboard('{Enter}');
 
-    // Send second message  
-    await user.type(input, 'Second message');
-    await user.click(sendButton);
+    // Wait for first message to appear
+    await waitFor(() => {
+      expect(screen.getByText('First message')).toBeInTheDocument();
+    });
+
+    // Clear and send second message  
+    await user.clear(textbox);
+    await user.type(textbox, 'Second message');
+    await user.keyboard('{Enter}');
 
     // Both messages should be visible
     await waitFor(() => {
@@ -325,10 +307,11 @@ describe('ChatPanel - Message Sending', () => {
       </TestProviders>
     );
 
-    const input = await screen.findByTestId('chat-input-field');
+    const textbox = await screen.findByRole('textbox');
     
     // Type message and press Enter
-    await user.type(input, 'Enter key message{Enter}');
+    await user.type(textbox, 'Enter key message');
+    await user.keyboard('{Enter}');
 
     // Message should be sent
     await waitFor(() => {
@@ -343,12 +326,11 @@ describe('ChatPanel - Message Sending', () => {
       </TestProviders>
     );
 
-    const input = await screen.findByTestId('chat-input-field');
-    const sendButton = screen.getByTestId('send-button');
+    const textbox = await screen.findByRole('textbox');
 
     // Send a message
-    await user.type(input, 'Timestamped message');
-    await user.click(sendButton);
+    await user.type(textbox, 'Timestamped message');
+    await user.keyboard('{Enter}');
 
     // Check for timestamp format (e.g., HH:MM)
     await waitFor(() => {
