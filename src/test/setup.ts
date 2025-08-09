@@ -327,7 +327,19 @@ vi.mock('~/commons/trpc/react', () => ({
             usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
             finishReason: 'stop'
           }),
-          mutate: vi.fn((args, options) => {
+          mutate: vi.fn((
+            _args: unknown,
+            options?: {
+              onSuccess?: (data: {
+                content: string;
+                model: string;
+                usage: { promptTokens: number; completionTokens: number; totalTokens: number };
+                finishReason: string;
+              }) => void;
+              onSettled?: () => void;
+              onError?: (error: Error) => void;
+            }
+          ) => {
             // Simulate successful response
             if (options?.onSuccess) {
               options.onSuccess({
