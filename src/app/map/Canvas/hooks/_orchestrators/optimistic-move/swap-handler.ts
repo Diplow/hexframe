@@ -2,9 +2,7 @@ import type { TileData } from "~/app/map/types/tile-data";
 import type { CacheState } from "~/app/map/Cache/State/types";
 import type { CacheSelectors } from "./types";
 import type { Coord } from "~/lib/domains/mapping/utils/hex-coordinates";
-import { performOptimisticSwap } from "../optimistic-swap";
-import type { SwapMapItemMutation } from "../optimistic-swap/types";
-import type { MoveMapItemMutation, MoveResult } from "./types";
+import type { MoveMapItemMutation } from "./types";
 
 /**
  * Handles swap operations by delegating to the optimistic-swap module.
@@ -22,52 +20,21 @@ export interface SwapHandler {
 }
 
 /**
- * Adapts move mutation to swap mutation interface.
- * Transforms move parameters to swap parameters.
- */
-function adaptMoveToSwapMutation(
-  moveMutation: MoveMapItemMutation
-): SwapMapItemMutation {
-  return {
-    mutateAsync: async (params) => {
-      // Move mutation uses oldCoords/newCoords, swap uses coordsA/coordsB
-      const result: MoveResult = await moveMutation.mutateAsync({
-        oldCoords: params.coordsA,
-        newCoords: params.coordsB
-      });
-      
-      // Transform result to match swap expectation
-      return {
-        swappedItems: result.modifiedItems
-      };
-    }
-  };
-}
-
-/**
- * Creates a swap handler that uses the optimistic-swap implementation.
- * Reuses existing swap logic for consistency.
+ * Creates a swap handler.
+ * NOTE: This is dead code - the actual swap logic is in MutationCoordinator.
+ * Kept as a stub to avoid breaking the optimistic-move module which is also unused.
  */
 export function createSwapHandler(
-  cacheState: CacheState,
-  selectors: CacheSelectors,
-  updateCache: (updater: (state: CacheState) => CacheState) => void,
-  moveMutation: MoveMapItemMutation
+  _cacheState: CacheState,
+  _selectors: CacheSelectors,
+  _updateCache: (updater: (state: CacheState) => CacheState) => void,
+  _moveMutation: MoveMapItemMutation
 ): SwapHandler {
-  const swapMutation = adaptMoveToSwapMutation(moveMutation);
-  
   return {
-    executeSwap: async (tileA, tileB, coordsA, coordsB, onComplete, onError) => {
-      await performOptimisticSwap({
-        tileA,
-        tileB,
-        cacheState,
-        selectors,
-        updateCache,
-        swapMapItemMutation: swapMutation,
-        onSwapComplete: onComplete,
-        onSwapError: onError
-      });
+    executeSwap: async (_tileA, _tileB, _coordsA, _coordsB, onComplete, onError) => {
+      // This code path is never executed - actual swaps go through MutationCoordinator
+      console.warn('Dead code path: swap-handler.executeSwap was called');
+      onError?.(new Error('This swap handler is dead code - use MutationCoordinator'));
     }
   };
 }

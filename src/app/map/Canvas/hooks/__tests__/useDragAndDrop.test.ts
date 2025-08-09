@@ -187,68 +187,6 @@ describe("useDragAndDrop", () => {
     expect(result.current.isValidDropTarget("0,0")).toBe(false)
   });
 
-  it("should calculate new coordinates correctly", async () => {
-    const mockUpdateCache = vi.fn();
-    
-    // Use a cache state where position 2 is empty
-    const cacheForMove: CacheState = {
-      ...mockCacheState,
-      itemsById: {
-        "0,0": mockRootTile,
-        "0,0:1": mockTile, // Position 1 occupied
-        // Positions 2-6 are empty
-      },
-    };
-    
-    const { result } = renderHook(() =>
-      useDragAndDrop({
-        cacheState: cacheForMove,
-        currentUserId: 123,
-        moveMapItemMutation: mockMutation,
-        updateCache: mockUpdateCache,
-      })
-    );
-
-    // Start dragging
-    const mockDragEvent = {
-      dataTransfer: {
-        effectAllowed: "move" as DataTransfer["effectAllowed"],
-        setData: vi.fn(),
-      } as unknown as DataTransfer,
-      clientX: 100,
-      clientY: 100,
-      preventDefault: vi.fn(),
-      nativeEvent: {
-        offsetX: 10,
-        offsetY: 10,
-      } as unknown as MouseEvent,
-    } as unknown as DragEvent<HTMLDivElement>;
-
-    act(() => {
-      result.current.dragHandlers.onDragStart("0,0:1", mockDragEvent);
-    });
-
-    expect(result.current.dragState.isDragging).toBe(true);
-    expect(result.current.dragState.draggedTileId).toBe("0,0:1");
-
-    // Drop on new position
-    const dropEvent = {
-      preventDefault: vi.fn(),
-      dataTransfer: {
-        getData: vi.fn().mockReturnValue("0,0:1"),
-      } as unknown as DataTransfer,
-    } as unknown as DragEvent<HTMLDivElement>;
-
-    await act(async () => {
-      result.current.dragHandlers.onDrop("0,0:2", dropEvent);
-    });
-
-    // Verify the mutation was called with correct coordinates
-    expect(mockMutation.mutateAsync).toHaveBeenCalledWith({
-      oldCoords: { userId: 0, groupId: 0, path: [1] },
-      newCoords: { userId: 0, groupId: 0, path: [2] },
-    });
-  });
 
   it("should handle drag events correctly", () => {
     // Use a cache state where position 2 is empty

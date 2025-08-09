@@ -262,19 +262,91 @@ export class MutationCoordinator {
     targetCoordId: string,
     changeId: string
   ): void {
-    // Create swapped items with exchanged coordinates
-    const swappedSource: MapItemAPIContract = {
+    // Get current cache state
+    const currentState = this.config.getState();
+    const { itemsById } = currentState;
+    
+    // Helper to get all descendants recursively
+    const getAllDescendants = (parentId: string): TileData[] => {
+      const result: TileData[] = [];
+      const directChildren = Object.values(itemsById).filter(
+        item => item.metadata.parentId === parentId
+      );
+      
+      directChildren.forEach(child => {
+        result.push(child);
+        result.push(...getAllDescendants(child.metadata.coordId));
+      });
+      
+      return result;
+    };
+    
+    // Get all descendants before swap
+    const descendantsSource = getAllDescendants(sourceCoordId);
+    const descendantsTarget = getAllDescendants(targetCoordId);
+    
+    // Prepare items to update: swapped parents + relocated direct children
+    const itemsToUpdate: MapItemAPIContract[] = [];
+    
+    // 1. Add swapped parent items
+    itemsToUpdate.push({
       ...this._reconstructApiData(sourceItem),
       coordinates: targetCoordId,
-    };
+    });
     
-    const swappedTarget: MapItemAPIContract = {
+    itemsToUpdate.push({
       ...this._reconstructApiData(targetItem),
       coordinates: sourceCoordId,
-    };
+    });
     
-    // Apply both updates
-    this.config.dispatch(cacheActions.loadRegion([swappedSource, swappedTarget], sourceCoordId, 1));
+    // 2. Add relocated direct children (only first generation)
+    const directChildrenSource = descendantsSource.filter(
+      item => item.metadata.parentId === sourceCoordId
+    );
+    const directChildrenTarget = descendantsTarget.filter(
+      item => item.metadata.parentId === targetCoordId
+    );
+    
+    // Relocate source's children to target's position
+    directChildrenSource.forEach(child => {
+      const childCoords = CoordSystem.parseId(child.metadata.coordId);
+      const targetCoords = CoordSystem.parseId(targetCoordId);
+      const relativePath = childCoords.path.slice(CoordSystem.parseId(sourceCoordId).path.length);
+      const newPath = [...targetCoords.path, ...relativePath];
+      const newCoordId = CoordSystem.createId({ ...childCoords, path: newPath });
+      
+      itemsToUpdate.push({
+        ...this._reconstructApiData(child),
+        coordinates: newCoordId,
+      });
+    });
+    
+    // Relocate target's children to source's position
+    directChildrenTarget.forEach(child => {
+      const childCoords = CoordSystem.parseId(child.metadata.coordId);
+      const sourceCoords = CoordSystem.parseId(sourceCoordId);
+      const relativePath = childCoords.path.slice(CoordSystem.parseId(targetCoordId).path.length);
+      const newPath = [...sourceCoords.path, ...relativePath];
+      const newCoordId = CoordSystem.createId({ ...childCoords, path: newPath });
+      
+      itemsToUpdate.push({
+        ...this._reconstructApiData(child),
+        coordinates: newCoordId,
+      });
+    });
+    
+    // 3. Remove all descendants (they'll be refetched or relocated)
+    const itemsToRemove = [...descendantsSource, ...descendantsTarget]
+      .map(item => item.metadata.coordId)
+      .filter(id => !itemsToUpdate.some(updated => updated.coordinates === id));
+    
+    // Apply removal first
+    itemsToRemove.forEach(coordId => {
+      this.config.dispatch(cacheActions.removeItem(coordId));
+    });
+    
+    // Then apply updates
+    this.config.dispatch(cacheActions.loadRegion(itemsToUpdate, sourceCoordId, 1));
     
     // Track for rollback
     this.tracker.trackChange(changeId, { 
