@@ -32,23 +32,25 @@ export class UserMappingService {
         return recheck[0]!.mappingUserId;
       }
 
-      // Get the next available mapping user ID
-      const maxResult = await tx
-        .select({ maxId: max(userMapping.mappingUserId) })
-        .from(userMapping);
-
-      const nextMappingUserId = (maxResult[0]?.maxId ?? 0) + 1;
-
-      // Create the mapping
+      // Create the mapping with auto-generated ID
+      // Let the database handle the ID generation
       const newMapping = await tx
         .insert(userMapping)
         .values({
           authUserId,
-          mappingUserId: nextMappingUserId,
+          mappingUserId: 0, // Temporary value, we'll use the auto-generated ID
         })
         .returning();
 
-      return newMapping[0]!.mappingUserId;
+      // Update with the auto-generated ID as the mapping user ID
+      // This ensures unique IDs even after deletions
+      const generatedId = newMapping[0]!.id;
+      await tx
+        .update(userMapping)
+        .set({ mappingUserId: generatedId })
+        .where(eq(userMapping.id, generatedId));
+
+      return generatedId; // Return the auto-generated ID
     });
   }
 

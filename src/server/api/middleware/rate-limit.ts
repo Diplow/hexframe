@@ -1,5 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { type Context } from "../trpc";
+import { t, type Context } from "../trpc";
+import { loggers } from "~/lib/debug/debug-logger";
 
 // Helper to extract client IP from various headers
 function getClientIp(ctx: Context): string | null {
@@ -49,7 +50,7 @@ setInterval(() => {
 }, 60000); // Clean up every minute
 
 export function createRateLimitMiddleware(config: RateLimitConfig) {
-  return async ({ ctx, next }: { ctx: Context; next: () => Promise<unknown> }) => {
+  return t.middleware(async ({ ctx, next }) => {
     // Generate rate limit key
     const key = config.keyGenerator
       ? config.keyGenerator(ctx)
@@ -96,7 +97,7 @@ export function createRateLimitMiddleware(config: RateLimitConfig) {
       }
       throw error;
     }
-  };
+  });
 }
 
 // Preset configurations
@@ -114,10 +115,32 @@ export const rateLimits = {
     keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
   }),
   
-  // Very strict for expensive operations
+  // Very strict for expensive operations (verified users)
   expensive: createRateLimitMiddleware({
     windowMs: 5 * 60 * 1000, // 5 minutes
-    maxRequests: 10, // 10 requests per 5 minutes
+    maxRequests: 10, // 10 requests per 5 minutes for verified users
+    keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
+  }),
+  
+  // Extra strict for expensive operations (unverified users)
+  expensiveUnverified: createRateLimitMiddleware({
+    windowMs: 5 * 60 * 1000, // 5 minutes
+    maxRequests: 3, // Only 3 requests per 5 minutes for unverified users
+    keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
+  }),
+  
+  // Standard rate limit for verified users
+  authenticatedVerified: createRateLimitMiddleware({
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 100, // 100 requests per minute
+    keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
+  }),
+  
+  // Stricter rate limit for unverified users
+  authenticatedUnverified: createRateLimitMiddleware({
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 20, // Only 20 requests per minute for unverified users
+    keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
   }),
   
   // Custom rate limit for mutations
@@ -127,3 +150,93 @@ export const rateLimits = {
     keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
   }),
 };
+
+/**
+ * Creates a middleware that applies different rate limits based on email verification status
+ * Use this for expensive operations like AI API calls
+ */
+export function createVerificationAwareRateLimit(
+  verifiedConfig: RateLimitConfig,
+  unverifiedConfig: RateLimitConfig
+) {
+  return t.middleware(async ({ ctx, next }) => {
+    // Check if user is verified
+    const isVerified = ctx.user?.emailVerified ?? false;
+    
+    loggers.api(`Rate limit check - User: ${ctx.user?.email}, Verified: ${isVerified}`);
+    
+    // Apply the appropriate rate limit config
+    const config = isVerified ? verifiedConfig : unverifiedConfig;
+    const key = config.keyGenerator
+      ? config.keyGenerator(ctx)
+      : ctx.user?.id ?? "anonymous";
+
+    const now = Date.now();
+    const resetTime = now + config.windowMs;
+
+    // Get or create rate limit entry
+    let rateLimit = rateLimitStore.get(key);
+    
+    if (!rateLimit || rateLimit.resetTime < now) {
+      rateLimit = { count: 0, resetTime };
+      rateLimitStore.set(key, rateLimit);
+    }
+
+    // Check if rate limit exceeded
+    if (rateLimit.count >= config.maxRequests) {
+      const retryAfter = Math.ceil((rateLimit.resetTime - now) / 1000);
+      const limitType = isVerified ? "verified user" : "unverified user";
+      throw new TRPCError({
+        code: "TOO_MANY_REQUESTS",
+        message: `Rate limit exceeded for ${limitType}. Try again in ${retryAfter} seconds. ${!isVerified ? 'Please verify your email for higher limits.' : ''}`,
+      });
+    }
+
+    // Increment counter
+    if (!config.skipSuccessfulRequests) {
+      rateLimit.count++;
+    }
+
+    try {
+      const result = await next();
+      
+      if (config.skipSuccessfulRequests) {
+        rateLimit.count++;
+      }
+      
+      return result;
+    } catch (error) {
+      if (!config.skipSuccessfulRequests) {
+        rateLimit.count--;
+      }
+      throw error;
+    }
+  });
+}
+
+// Pre-configured verification-aware rate limiters
+export const verificationAwareRateLimit = createVerificationAwareRateLimit(
+  {
+    windowMs: 5 * 60 * 1000, // 5 minutes
+    maxRequests: 10, // 10 requests per 5 minutes for verified users
+    keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
+  },
+  {
+    windowMs: 5 * 60 * 1000, // 5 minutes
+    maxRequests: 3, // Only 3 requests per 5 minutes for unverified users
+    keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
+  }
+);
+
+export const verificationAwareAuthLimit = createVerificationAwareRateLimit(
+  {
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 100, // 100 requests per minute for verified users
+    keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
+  },
+  {
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 20, // Only 20 requests per minute for unverified users
+    keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
+  }
+);

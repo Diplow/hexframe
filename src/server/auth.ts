@@ -3,6 +3,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { db } from "~/server/db";
 import * as schema from "~/server/db/schema"; // Import all schemas
+import { sendEmail, generateVerificationEmail } from "~/server/email"; // Email sender functions
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -18,6 +19,25 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    requireEmailVerification: process.env.NODE_ENV === "production", // Only require verification in production
+    autoSignIn: process.env.NODE_ENV !== "production", // Auto sign in in development, not in production
+  },
+  emailVerification: {
+    sendOnSignUp: true, // Automatically send verification email after signup
+    autoSignInAfterVerification: true, // Auto sign in after email verification
+    sendVerificationEmail: async ({ user, token }: { user: { email: string; name?: string | null }, token: string }) => {
+      console.log("🔔 sendVerificationEmail called!", { user: user.email, token });
+      // Build proper verification URL with callback to redirect after verification
+      const baseUrl = process.env.BETTER_AUTH_URL || "http://localhost:3000";
+      const callbackUrl = encodeURIComponent(`${baseUrl}/auth/verify-success`); // Redirect to success page
+      const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${token}&callbackURL=${callbackUrl}`;
+      console.log("📧 Verification URL:", verificationUrl);
+      await sendEmail({
+        to: user.email,
+        subject: "Welcome to Hexframe",
+        html: generateVerificationEmail(verificationUrl, user.email, user.name),
+      });
+    },
   },
   secret: process.env.AUTH_SECRET, // Needs to be added to .env
   basePath: "/api/auth", // Standard Next.js API route

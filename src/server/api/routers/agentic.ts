@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { createTRPCRouter, protectedProcedure } from '../trpc'
+import { verificationAwareRateLimit, verificationAwareAuthLimit } from '../middleware/rate-limit'
 import { createAgenticService } from '~/lib/domains/agentic/services'
 import type { EventBus } from '~/app/map/Services/EventBus/event-bus'
 import { EventBus as EventBusImpl } from '~/app/map/Services/EventBus/event-bus'
@@ -81,6 +82,7 @@ const cacheStateSchema = z.object({
 
 export const agenticRouter = createTRPCRouter({
   generateResponse: protectedProcedure
+    .use(verificationAwareRateLimit) // Rate limit: 10 req/5min for verified, 3 req/5min for unverified
     .input(
       z.object({
         centerCoordId: z.string(),
@@ -130,6 +132,7 @@ export const agenticRouter = createTRPCRouter({
     }),
 
   generateStreamingResponse: protectedProcedure
+    .use(verificationAwareRateLimit) // Rate limit: 10 req/5min for verified, 3 req/5min for unverified
     .input(
       z.object({
         centerCoordId: z.string(),
@@ -152,6 +155,7 @@ export const agenticRouter = createTRPCRouter({
     }),
 
   getAvailableModels: protectedProcedure
+    .use(verificationAwareAuthLimit) // Rate limit: 100 req/min for verified, 20 req/min for unverified
     .query(async () => {
       const eventBus: EventBus = new EventBusImpl()
       

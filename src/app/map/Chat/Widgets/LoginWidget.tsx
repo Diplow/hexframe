@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { registerAction } from '~/lib/domains/iam/actions';
 import { authClient } from '~/lib/auth/auth-client';
-import { LogIn, Mail, Key, AlertCircle, UserPlus, Loader2, User } from 'lucide-react';
+import { LogIn, Mail, Key, UserPlus, Loader2, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEventBus } from '../../Services/EventBus/event-bus-context';
 
@@ -19,6 +19,7 @@ export function LoginWidget({ message }: LoginWidgetProps) {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
 
@@ -35,28 +36,36 @@ export function LoginWidget({ message }: LoginWidgetProps) {
         // Logging in via better-auth client
         
         try {
-          // Use better-auth client to login - this properly establishes the session
-          await authClient.signIn.email({
+          // Use better-auth client to login
+          const loginResponse = await authClient.signIn.email({
             email,
             password,
           });
           
-          // Login response received
+          // Check if login failed due to email verification
+          if (loginResponse?.error) {
+            if (loginResponse.error.code === 'EMAIL_NOT_VERIFIED' || 
+                loginResponse.error.status === 403) {
+              throw new Error('Please verify your email before logging in. Check your inbox for the verification link.');
+            }
+            // Other errors
+            throw new Error(loginResponse.error.message || 'Login failed. Please check your credentials.');
+          }
           
-          // Wait for the session to be established
-          await new Promise(resolve => setTimeout(resolve, 500));
+          // Check if login was successful
+          if (!loginResponse?.data) {
+            throw new Error('Login failed. Please check your credentials.');
+          }
           
-          // Verify session is established
+          // Login response received - session should be established immediately
+          
+          // Quick check for session
           const session = await authClient.getSession();
-          // Session after login
           
           if (!session?.data?.user) {
             // Session not established after login
             throw new Error('Failed to establish session. Please try again.');
           }
-          
-          // Give auth context time to update
-          await new Promise(resolve => setTimeout(resolve, 500));
           
           // Refresh router to update server components
           // Refreshing router
@@ -73,14 +82,16 @@ export function LoginWidget({ message }: LoginWidgetProps) {
             timestamp: new Date(),
           });
           
-          // Navigate to user's map if they have one
-          setTimeout(() => {
-            // Navigating to /map after successful login
-            router.push('/map');
-          }, 1000); // Give more time for auth to propagate
+          // Navigate to user's map immediately
+          router.push('/map');
         } catch (loginError: unknown) {
           // Login failed
-          const errorMessage = loginError instanceof Error ? loginError.message : 'Invalid email or password';
+          let errorMessage = 'Invalid email or password';
+          
+          if (loginError instanceof Error) {
+            errorMessage = loginError.message;
+          }
+          
           throw new Error(errorMessage);
         }
       } else {
@@ -101,10 +112,24 @@ export function LoginWidget({ message }: LoginWidgetProps) {
         
         // Trigger the success flow
         if (result.userId && 'defaultMapId' in result) {
-          // Since we don't auto-login in the server action anymore,
-          // we need to log the user in from the client
-          // Registration successful, now logging in
+          // Check if email verification is required
+          // For testing, this is hardcoded to true. In production, you might check NODE_ENV
+          const requiresVerification = true; // Temporarily true for testing
           
+          if (requiresVerification) {
+            // Don't try to login, just show success message
+            setError(''); // Clear any errors
+            setSuccess('✅ Registration successful! Please check your email to verify your account. You\'ll be able to log in once your email is verified.');
+            // Clear form
+            setEmail('');
+            setPassword('');
+            setUsername('');
+            // Switch to login mode for when they come back after verification
+            setMode('login');
+            return; // Exit early, don't try to login
+          }
+          
+          // Only try to auto-login if email verification is not required
           // Perform login with the same credentials
           try {
             await authClient.signIn.email({
@@ -274,9 +299,14 @@ export function LoginWidget({ message }: LoginWidgetProps) {
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 text-sm text-destructive-600 dark:text-destructive-400">
-              <AlertCircle className="h-4 w-4" />
-              <span>{error}</span>
+            <div className="text-sm text-destructive-600 dark:text-destructive-400">
+              {error}
+            </div>
+          )}
+          
+          {success && (
+            <div className="text-sm text-green-600 dark:text-green-400">
+              {success}
             </div>
           )}
 
