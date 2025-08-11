@@ -22,7 +22,7 @@ import { useMapCache } from "../Cache/map-cache";
 import type { URLInfo } from "../types/url-info";
 import { MapLoadingSkeleton } from "./LifeCycle/loading-skeleton";
 import { MapErrorBoundary } from "./LifeCycle/error-boundary";
-import { useDragAndDropWithMutation } from "./hooks/useDragAndDropWithMutation";
+import { useDragAndDrop } from "./hooks/useDragAndDrop";
 import type { DragEvent } from "react";
 import { loggers } from "~/lib/debug/debug-logger";
 import { useEventBus } from "../Services/EventBus/event-bus-context";
@@ -159,7 +159,7 @@ export function DynamicMapCanvas({
     isValidDropTarget,
     isDragging,
     getDropOperation,
-  } = useDragAndDropWithMutation();
+  } = useDragAndDrop();
 
   useEffect(() => {
     // Initialize hydration

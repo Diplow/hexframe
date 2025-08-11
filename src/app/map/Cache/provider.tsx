@@ -25,8 +25,6 @@ import { useMutationOperations } from "./_coordinators/use-mutation-operations";
 import { useCacheContextBuilder } from "./_builders/context-builder";
 import { useCacheLifecycle } from "./_lifecycle/provider-lifecycle";
 
-// Hooks
-import { useOfflineMode } from "./_hooks/use-offline-mode";
 
 // Types
 import type { MapCacheContextValue, MapCacheProviderProps } from "./types";
@@ -46,11 +44,9 @@ export function MapCacheProvider({
   cacheConfig = {},
   serverConfig = {},
   storageConfig = {},
-  offlineMode = false,
   testingOverrides = {},
   eventBus,
 }: MapCacheProviderProps) {
-  const isOffline = offlineMode || (typeof window !== "undefined" && !navigator.onLine);
   
   // Provider mounting/re-rendering
 
@@ -65,8 +61,7 @@ export function MapCacheProvider({
         expandedItemIds: initialExpandedItems,
         lastUpdated: Date.now(),
         cacheConfig: { ...initialCacheState.cacheConfig, ...cacheConfig },
-        // Start with loading true if we're in offline mode and have no initial items
-        isLoading: isOffline && Object.keys(initialItems).length === 0,
+        isLoading: false,
       };
     }
     
@@ -78,10 +73,9 @@ export function MapCacheProvider({
       expandedItemIds: initialExpandedItems,
       lastUpdated: Date.now(),
       cacheConfig: { ...initialCacheState.cacheConfig, ...cacheConfig },
-      // Start with loading true if we're in offline mode and have no initial items
-      isLoading: isOffline && Object.keys(initialItems).length === 0,
+      isLoading: false,
     };
-  }, [initialItems, initialCenter, initialExpandedItems, cacheConfig, isOffline]);
+  }, [initialItems, initialCenter, initialExpandedItems, cacheConfig]);
 
   // Core state management
   const [state, dispatch] = useReducer(cacheReducer, initialState);
@@ -90,49 +84,8 @@ export function MapCacheProvider({
   const serverService = useServerService(serverConfig);
   const storageService = useStorageService(storageConfig);
   
-  // Remove duplicate localStorage loading - useOfflineMode handles this
-
   // Initialize operations
-  // Pass a wrapped serverService that returns empty results when offline
-  const wrappedServerService = useMemo(() => {
-    // Creating wrapped server service
-    
-    if (!isOffline) return serverService;
-    
-    // Return a no-op server service for offline mode
-    return {
-      fetchItemsForCoordinate: async () => {
-        // Server call blocked - using cached data only
-        return [];
-      },
-      getItemByCoordinate: async () => {
-        // Server call blocked - using cached data only
-        return null;
-      },
-      getRootItemById: async () => {
-        // Server call blocked - using cached data only
-        return null;
-      },
-      getDescendants: async () => {
-        // Server call blocked - using cached data only
-        return [];
-      },
-      createItem: async () => {
-        throw new Error('Mutations not available in offline mode');
-      },
-      updateItem: async () => {
-        throw new Error('Mutations not available in offline mode');
-      },
-      deleteItem: async () => {
-        throw new Error('Mutations not available in offline mode');
-      },
-      getAncestors: async () => {
-        return [];
-      },
-    };
-  }, [serverService, isOffline]);
-  
-  const dataOperations = useDataOperationsWrapper(dispatch, state, wrappedServerService);
+  const dataOperations = useDataOperationsWrapper(dispatch, state, serverService);
   
   const mutationOperations = useMutationOperations({
     dispatch,
@@ -152,26 +105,13 @@ export function MapCacheProvider({
     dispatch,
     getState,
     dataOperations,
-    wrappedServerService,
+    serverService,
     eventBus,
   );
 
   const syncOperations = useSyncEngine(dispatch, state, dataOperations, {
-    enabled: !testingOverrides.disableSync && !isOffline,
+    enabled: !testingOverrides.disableSync,
     intervalMs: state.cacheConfig.backgroundRefreshInterval,
-  });
-
-  // Setup offline mode - always sync with localStorage
-  useOfflineMode({
-    enabled: isOffline,
-    dispatch,
-    state,
-    storageService,
-    syncEnabled: true, // Always sync to localStorage for seamless offline transition
-    onInitialLoad: (_data) => {
-      // Loaded data from localStorage - clear loading state
-      dispatch({ type: 'SET_LOADING', payload: false });
-    },
   });
 
   // Setup lifecycle management
@@ -181,7 +121,7 @@ export function MapCacheProvider({
     dataOperations,
     syncOperations,
     serverService,
-    disableSync: testingOverrides.disableSync ?? isOffline,
+    disableSync: testingOverrides.disableSync ?? false,
   });
 
   // Build context value

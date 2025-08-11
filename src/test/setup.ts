@@ -12,13 +12,12 @@ if (typeof global !== 'undefined') {
 // Set up environment variables for tests
 // Use process.env.VITEST to detect if we're running in Vitest
 if (process.env.VITEST) {
-  // Set test database URL if not already set
-  process.env.TEST_DATABASE_URL =
-    process.env.TEST_DATABASE_URL ??
-    "postgres://postgres:postgres@localhost:5432/test_db";
-
   // Log database connection for debugging
-  console.log(`Using test database: ${process.env.TEST_DATABASE_URL}`);
+  if (process.env.TEST_DATABASE_URL) {
+    console.log(`Using test database: ${process.env.TEST_DATABASE_URL}`);
+  } else {
+    console.error("WARNING: TEST_DATABASE_URL is not set!");
+  }
 }
 
 // Ensure document is available for React testing
@@ -319,6 +318,48 @@ vi.mock('~/commons/trpc/react', () => ({
         },
       },
     })),
+    agentic: {
+      generateResponse: {
+        useMutation: vi.fn(() => ({
+          mutateAsync: vi.fn().mockResolvedValue({
+            content: 'AI response',
+            model: 'test-model',
+            usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
+            finishReason: 'stop'
+          }),
+          mutate: vi.fn((
+            _args: unknown,
+            options?: {
+              onSuccess?: (data: {
+                content: string;
+                model: string;
+                usage: { promptTokens: number; completionTokens: number; totalTokens: number };
+                finishReason: string;
+              }) => void;
+              onSettled?: () => void;
+              onError?: (error: Error) => void;
+            }
+          ) => {
+            // Simulate successful response
+            if (options?.onSuccess) {
+              options.onSuccess({
+                content: 'AI response',
+                model: 'test-model',
+                usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
+                finishReason: 'stop'
+              });
+            }
+            if (options?.onSettled) {
+              options.onSettled();
+            }
+          }),
+          isLoading: false,
+          isError: false,
+          error: null,
+          data: null,
+        })),
+      },
+    },
     map: {
       user: {
         createDefaultMapForCurrentUser: {

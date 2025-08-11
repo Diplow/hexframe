@@ -13,6 +13,7 @@ import { authClient } from '~/lib/auth/auth-client';
 import { useEffect } from 'react';
 import { loggers } from '~/lib/debug/debug-logger';
 import { useEventBus } from '../Services/EventBus/event-bus-context';
+import { useAIChatIntegration } from './_hooks/useAIChatIntegration';
 
 interface ChatPanelProps {
   className?: string;
@@ -35,6 +36,9 @@ function ChatContent() {
   const messages = chatState.messages;
   const widgets = chatState.widgets;
   
+  // Enable AI chat integration
+  const { isGeneratingAI } = useAIChatIntegration();
+  
   // Debug logging for ChatPanel renders
   useEffect(() => {
     loggers.render.chat('ChatContent mounted');
@@ -53,6 +57,11 @@ function ChatContent() {
   return (
     <>
       <Messages messages={messages} widgets={widgets} />
+      {isGeneratingAI && (
+        <div className="px-4 py-2 text-sm text-muted-foreground animate-pulse">
+          Thinking...
+        </div>
+      )}
       <Input />
     </>
   );

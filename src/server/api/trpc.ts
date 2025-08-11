@@ -76,10 +76,6 @@ export const createContext = async (opts: CreateNextContextOptions) => {
     hasSessionData: !!sessionData,
     hasSession: !!sessionData?.session,
     hasUser: !!sessionData?.user,
-    userId: sessionData?.user?.id,
-    userEmail: sessionData?.user?.email,
-    sessionId: sessionData?.session?.id,
-    cookieHeader: sessionAPIAcceptableHeaders.get('cookie'),
   });
 
   return {
@@ -113,7 +109,7 @@ export const createInnerTRPCContext = (_opts: Record<string, never>) => {
  * ZodErrors so that you get typesafety on the frontend if your procedure fails due to validation
  * errors on the backend.
  */
-const t = initTRPC.context<typeof createContext>().create({
+export const t = initTRPC.context<typeof createContext>().create({
   transformer: superjson,
   errorFormatter({ shape, error }) {
     return {
@@ -168,7 +164,7 @@ const timingMiddleware = t.middleware(async ({ next, path, ctx, input, type }) =
     hasSession: !!ctx.session
   });
 
-  if (t._config.isDev) {
+  if (process.env.NODE_ENV !== 'production') {
     // artificial delay in dev
     const waitMs = Math.floor(Math.random() * 400) + 100;
     await new Promise((resolve) => setTimeout(resolve, waitMs));

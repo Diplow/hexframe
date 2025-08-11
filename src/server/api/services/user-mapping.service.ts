@@ -32,14 +32,15 @@ export class UserMappingService {
         return recheck[0]!.mappingUserId;
       }
 
-      // Get the next available mapping user ID
-      const maxResult = await tx
+      // First, get the next available ID by finding the max mappingUserId
+      const maxIdResult = await tx
         .select({ maxId: max(userMapping.mappingUserId) })
         .from(userMapping);
 
-      const nextMappingUserId = (maxResult[0]?.maxId ?? 0) + 1;
+      // Compute the next mapping user ID atomically
+      const nextMappingUserId = (maxIdResult[0]?.maxId ?? 0) + 1;
 
-      // Create the mapping
+      // Create the mapping with the computed ID
       const newMapping = await tx
         .insert(userMapping)
         .values({

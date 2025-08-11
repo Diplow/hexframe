@@ -8,6 +8,12 @@ import type { ChatSettings } from '../_settings/chat-settings';
 // Track all renders
 let renderLogs: string[] = [];
 
+// Mock tRPC
+vi.mock('~/commons/trpc/react', async () => {
+  const { createTRPCMock } = await import('~/test-utils/trpc-mocks');
+  return createTRPCMock();
+});
+
 // Mock minimal dependencies
 vi.mock('../_settings/chat-settings', () => ({
   chatSettings: {
@@ -66,6 +72,42 @@ vi.mock('~/commons/trpc/react', () => ({
         },
       },
     })),
+    agentic: {
+      generateResponse: {
+        useMutation: vi.fn(() => ({
+          mutate: vi.fn((_args: unknown, options?: {
+            onSuccess?: (data: unknown) => void;
+            onSettled?: () => void;
+            onError?: (error: Error) => void;
+          }) => {
+            // Simulate async AI response
+            setTimeout(() => {
+              if (options?.onSuccess) {
+                options.onSuccess({
+                  content: 'AI response',
+                  model: 'test-model',
+                  usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
+                  finishReason: 'stop'
+                });
+              }
+              if (options?.onSettled) {
+                options.onSettled();
+              }
+            }, 0);
+          }),
+          mutateAsync: vi.fn().mockResolvedValue({
+            content: 'AI response',
+            model: 'test-model',
+            usage: { promptTokens: 10, completionTokens: 20, totalTokens: 30 },
+            finishReason: 'stop'
+          }),
+          isLoading: false,
+          isError: false,
+          error: null,
+          data: undefined,
+        })),
+      },
+    },
     map: {
       user: {
         createDefaultMapForCurrentUser: {

@@ -20,7 +20,6 @@ This subdirectory holds components responsible for rendering the visual canvas o
 
 - **`index.dynamic.tsx`**: The dynamic version of the map canvas with caching and real-time updates.
 - **`index.progressive.tsx`**: Progressive enhancement wrapper that adds dynamic features to static components.
-- **`*.stories.tsx`**: Storybook files for visually testing the canvas components in isolation.
 
 ### `Controls/`
 
@@ -54,7 +53,6 @@ Manages the client-side state for the interactive map canvas. This is primarily 
 Components related to rendering individual hexagonal tiles on the map. Note: Static tile components have been moved to `/static/map/Tile/` but are still imported and used by the dynamic version.
 
 - **Dynamic tiles**: Progressive versions that enhance static tiles with client-side interactivity
-- **`*.stories.tsx`**: Storybook files for visually testing the tile components
 
 ## Overall Flow (Dynamic Rendering)
 

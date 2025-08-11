@@ -122,10 +122,12 @@ export function deriveVisibleMessages(events: ChatEvent[]): Message[] {
       }
 
       case 'message': {
-        const payload = event.payload as { content: string; actor: string };
+        // Handle both content and text properties for backward compatibility
+        const payload = event.payload as { content?: string; text?: string; actor: string };
+        const messageContent = payload.content ?? payload.text ?? '';
         messages.push({
           id: event.id,
-          content: payload.content,
+          content: messageContent,
           actor: event.actor,
           timestamp: event.timestamp,
         });
@@ -260,6 +262,13 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
       case 'widget_resolved': {
         const payload = event.payload as { widgetId: string; action: string };
         // Mark widget as completed
+        widgetStates.set(payload.widgetId, 'completed');
+        break;
+      }
+
+      case 'widget_closed': {
+        const payload = event.payload as { widgetId: string };
+        // Mark widget as completed (removes it from active widgets)
         widgetStates.set(payload.widgetId, 'completed');
         break;
       }

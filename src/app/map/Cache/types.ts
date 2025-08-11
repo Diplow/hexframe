@@ -114,7 +114,6 @@ export interface MapCacheProviderProps {
   cacheConfig?: Partial<MapCacheHook["config"]>;
   serverConfig?: ServiceConfig;
   storageConfig?: ServiceConfig;
-  offlineMode?: boolean;
   eventBus?: EventBusService;
   testingOverrides?: {
     disableSync?: boolean;

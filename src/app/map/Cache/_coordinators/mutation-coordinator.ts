@@ -179,78 +179,21 @@ export class MutationCoordinator {
     }
     
     const changeId = this.tracker.generateChangeId();
-    const sourceItem = this._getExistingItem(sourceCoordId);
-    const targetItem = this.config.getState().itemsById[targetCoordId];
-    const isSwap = !!targetItem;
-    
-    // Store state for rollback (moved outside try block)
-    const previousState: Record<string, MapItemAPIContract | undefined> = {};
-    previousState[sourceCoordId] = this._reconstructApiData(sourceItem);
-    if (isSwap && targetItem) {
-      previousState[targetCoordId] = this._reconstructApiData(targetItem);
-    }
+    const moveParams = this._prepareMoveOperation(sourceCoordId, targetCoordId, changeId);
     
     try {
+      // Apply optimistic changes
+      this._applyOptimisticChange(moveParams);
       
-      // Apply optimistic move/swap
-      if (isSwap && targetItem) {
-        // Swap operation: exchange coordinates
-        this._applyOptimisticSwap(sourceItem, targetItem, sourceCoordId, targetCoordId, changeId);
-      } else {
-        // Move operation: move source to empty target
-        this._applyOptimisticMove(sourceItem, sourceCoordId, targetCoordId, changeId);
-      }
+      // Execute server mutation
+      const result = await this._executeMoveOnServer(moveParams);
       
-      // Make server call
-      const sourceCoords = CoordSystem.parseId(sourceCoordId);
-      const targetCoords = CoordSystem.parseId(targetCoordId);
+      // Finalize the operation
+      await this._finalizeMoveOperation(result, moveParams);
       
-      const result = await this.config.moveItemMutation.mutateAsync({
-        oldCoords: sourceCoords,
-        newCoords: targetCoords,
-      });
-      
-      // Apply server response
-      if (result.modifiedItems?.length > 0) {
-        this.config.dispatch(cacheActions.loadRegion(result.modifiedItems, targetCoordId, 1));
-      }
-      
-      // Clear tracking
-      this.tracker.removeChange(changeId);
-      
-      // Emit event based on operation type
-      if (this.config.eventBus) {
-        if (isSwap && targetItem) {
-          // Emit swap event
-          this.config.eventBus.emit({
-            type: 'map.tiles_swapped',
-            source: 'map_cache',
-            payload: {
-              tile1Id: sourceItem.metadata.dbId,
-              tile1Name: sourceItem.data.name,
-              tile2Id: targetItem.metadata.dbId,
-              tile2Name: targetItem.data.name
-            }
-          });
-        } else {
-          // Emit move event
-          this.config.eventBus.emit({
-            type: 'map.tile_moved',
-            source: 'map_cache',
-            payload: {
-              tileId: sourceItem.metadata.dbId,
-              tileName: sourceItem.data.name,
-              fromCoordId: sourceCoordId,
-              toCoordId: targetCoordId
-            }
-          });
-        }
-      }
-      
-      return { success: true, data: result.modifiedItems[0], isSwap };
+      return { success: true, data: result.modifiedItems[0], isSwap: moveParams.isSwap };
     } catch (error) {
-      // Rollback on error
-      this._rollbackMove(previousState, changeId);
+      this._rollbackMove(moveParams.rollbackState, changeId);
       throw error;
     }
   }
@@ -260,27 +203,101 @@ export class MutationCoordinator {
     targetItem: TileData,
     sourceCoordId: string,
     targetCoordId: string,
-    changeId: string
+    changeId: string,
+    rollbackState?: Record<string, MapItemAPIContract | undefined>
   ): void {
-    // Create swapped items with exchanged coordinates
-    const swappedSource: MapItemAPIContract = {
+    // Get current cache state
+    const currentState = this.config.getState();
+    const { itemsById } = currentState;
+    
+    // Parse coordinates once for reuse
+    const parsedSource = CoordSystem.parseId(sourceCoordId);
+    const parsedTarget = CoordSystem.parseId(targetCoordId);
+    
+    // Get all descendants before swap
+    const descendantsSource = this._getAllDescendants(sourceCoordId, itemsById);
+    const descendantsTarget = this._getAllDescendants(targetCoordId, itemsById);
+    
+    // Prepare items to update: swapped parents + relocated direct children
+    const itemsToUpdate: MapItemAPIContract[] = [];
+    
+    // 1. Add swapped parent items with correct depth
+    itemsToUpdate.push({
       ...this._reconstructApiData(sourceItem),
       coordinates: targetCoordId,
-    };
+      depth: parsedTarget.path.length,
+    });
     
-    const swappedTarget: MapItemAPIContract = {
+    itemsToUpdate.push({
       ...this._reconstructApiData(targetItem),
       coordinates: sourceCoordId,
-    };
+      depth: parsedSource.path.length,
+    });
     
-    // Apply both updates
-    this.config.dispatch(cacheActions.loadRegion([swappedSource, swappedTarget], sourceCoordId, 1));
+    // 2. Add relocated direct children (only first generation)
+    // Select by path length AND verify parent relationship
+    const directChildrenSource = descendantsSource.filter(item => {
+      const p = CoordSystem.parseId(item.metadata.coordId).path;
+      return p.length === parsedSource.path.length + 1
+        && parsedSource.path.every((seg, i) => seg === p[i]);
+    });
+    const directChildrenTarget = descendantsTarget.filter(item => {
+      const p = CoordSystem.parseId(item.metadata.coordId).path;
+      return p.length === parsedTarget.path.length + 1
+        && parsedTarget.path.every((seg, i) => seg === p[i]);
+    });
     
-    // Track for rollback
-    this.tracker.trackChange(changeId, { 
+    // Relocate source's children to target's position
+    directChildrenSource.forEach(child => {
+      // Capture rollback for child before relocation
+      if (rollbackState) {
+        rollbackState[child.metadata.coordId] = this._reconstructApiData(child);
+      }
+      const childCoords = CoordSystem.parseId(child.metadata.coordId);
+      const relativePath = childCoords.path.slice(parsedSource.path.length);
+      const newPath = [...parsedTarget.path, ...relativePath];
+      const newCoordId = CoordSystem.createId({ ...childCoords, path: newPath });
+      
+      itemsToUpdate.push({
+        ...this._reconstructApiData(child),
+        coordinates: newCoordId,
+        depth: newPath.length,
+      });
+    });
+    
+    // Relocate target's children to source's position
+    directChildrenTarget.forEach(child => {
+      // Capture rollback for child before relocation
+      if (rollbackState) {
+        rollbackState[child.metadata.coordId] = this._reconstructApiData(child);
+      }
+      const childCoords = CoordSystem.parseId(child.metadata.coordId);
+      const relativePath = childCoords.path.slice(parsedTarget.path.length);
+      const newPath = [...parsedSource.path, ...relativePath];
+      const newCoordId = CoordSystem.createId({ ...childCoords, path: newPath });
+      
+      itemsToUpdate.push({
+        ...this._reconstructApiData(child),
+        coordinates: newCoordId,
+        depth: newPath.length,
+      });
+    });
+    
+    // Then apply updates
+    this.config.dispatch(cacheActions.loadRegion(itemsToUpdate, sourceCoordId, 1));
+    
+    // Track both sides for rollback to ensure complete restoration
+    // Store source side
+    this.tracker.trackChange(changeId + '_source', { 
       type: 'update' as const, 
       coordId: sourceCoordId,
       previousData: this._reconstructApiData(sourceItem),
+    });
+    // Store target side
+    this.tracker.trackChange(changeId + '_target', { 
+      type: 'update' as const, 
+      coordId: targetCoordId,
+      previousData: this._reconstructApiData(targetItem),
     });
   }
 
@@ -294,6 +311,7 @@ export class MutationCoordinator {
     const movedItem: MapItemAPIContract = {
       ...this._reconstructApiData(sourceItem),
       coordinates: targetCoordId,
+      depth: CoordSystem.parseId(targetCoordId).path.length,
     };
     
     // Remove from old position
@@ -324,6 +342,8 @@ export class MutationCoordinator {
     }
     
     this.tracker.removeChange(changeId);
+    this.tracker.removeChange(changeId + '_source');
+    this.tracker.removeChange(changeId + '_target');
   }
 
   rollbackChange(changeId: string): void {
@@ -520,4 +540,114 @@ export class MutationCoordinator {
       ownerId: tile.metadata.ownerId ?? this.config.mapContext?.userId.toString() ?? "unknown",
     };
   }
+
+  private _prepareMoveOperation(sourceCoordId: string, targetCoordId: string, changeId: string) {
+    const sourceItem = this._getExistingItem(sourceCoordId);
+    const targetItem = this.config.getState().itemsById[targetCoordId];
+    const isSwap = !!targetItem;
+    
+    const rollbackState: Record<string, MapItemAPIContract | undefined> = {
+      [sourceCoordId]: this._reconstructApiData(sourceItem)
+    };
+    
+    if (isSwap && targetItem) {
+      rollbackState[targetCoordId] = this._reconstructApiData(targetItem);
+    }
+    
+    return {
+      sourceItem,
+      targetItem,
+      sourceCoordId,
+      targetCoordId,
+      changeId,
+      isSwap,
+      rollbackState
+    };
+  }
+
+  private _applyOptimisticChange(moveParams: ReturnType<typeof this._prepareMoveOperation>) {
+    if (moveParams.isSwap && moveParams.targetItem) {
+      this._applyOptimisticSwap(
+        moveParams.sourceItem,
+        moveParams.targetItem,
+        moveParams.sourceCoordId,
+        moveParams.targetCoordId,
+        moveParams.changeId,
+        moveParams.rollbackState
+      );
+    } else {
+      this._applyOptimisticMove(
+        moveParams.sourceItem,
+        moveParams.sourceCoordId,
+        moveParams.targetCoordId,
+        moveParams.changeId
+      );
+    }
+  }
+
+  private async _executeMoveOnServer(moveParams: ReturnType<typeof this._prepareMoveOperation>) {
+    const sourceCoords = CoordSystem.parseId(moveParams.sourceCoordId);
+    const targetCoords = CoordSystem.parseId(moveParams.targetCoordId);
+    
+    return await this.config.moveItemMutation!.mutateAsync({
+      oldCoords: sourceCoords,
+      newCoords: targetCoords,
+    });
+  }
+
+  private async _finalizeMoveOperation(
+    result: { modifiedItems: MapItemAPIContract[] },
+    moveParams: ReturnType<typeof this._prepareMoveOperation>
+  ) {
+    // Apply server response
+    if (result.modifiedItems?.length > 0) {
+      this.config.dispatch(cacheActions.loadRegion(result.modifiedItems, moveParams.targetCoordId, 1));
+    }
+    
+    // Clear tracking
+    this.tracker.removeChange(moveParams.changeId);
+    this.tracker.removeChange(moveParams.changeId + '_source');
+    this.tracker.removeChange(moveParams.changeId + '_target');
+    
+    // Emit appropriate event
+    this._emitMoveEvent(moveParams);
+  }
+
+  private _emitMoveEvent(moveParams: ReturnType<typeof this._prepareMoveOperation>) {
+    if (!this.config.eventBus) return;
+    
+    if (moveParams.isSwap && moveParams.targetItem) {
+      this.config.eventBus.emit({
+        type: 'map.tiles_swapped',
+        source: 'map_cache',
+        payload: {
+          tile1Id: moveParams.sourceItem.metadata.dbId,
+          tile1Name: moveParams.sourceItem.data.name,
+          tile2Id: moveParams.targetItem.metadata.dbId,
+          tile2Name: moveParams.targetItem.data.name
+        }
+      });
+    } else {
+      this.config.eventBus.emit({
+        type: 'map.tile_moved',
+        source: 'map_cache',
+        payload: {
+          tileId: moveParams.sourceItem.metadata.dbId,
+          tileName: moveParams.sourceItem.data.name,
+          fromCoordId: moveParams.sourceCoordId,
+          toCoordId: moveParams.targetCoordId
+        }
+      });
+    }
+  }
+
+  private _getAllDescendants(parentCoordId: string, itemsById: Record<string, TileData>): TileData[] {
+    return Object.values(itemsById).filter(item =>
+      item.metadata.coordId !== parentCoordId &&
+      CoordSystem.isDescendant(item.metadata.coordId, parentCoordId)
+    );
+  }
+
+
+
 }

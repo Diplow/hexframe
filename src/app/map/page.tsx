@@ -17,7 +17,6 @@ interface MapPageProps {
     scale?: string;
     expandedItems?: string;
     focus?: string;
-    offline?: string;
   }>;
 }
 
@@ -27,12 +26,6 @@ const CACHE_CONFIG = {
   enableOptimisticUpdates: true,
   maxDepth: 3, // Hierarchical loading depth
 };
-
-// localStorage sync is always enabled. To test:
-// 1. Load a map while online
-// 2. Data is automatically saved to localStorage
-// 3. Add ?offline=true to URL or disconnect network
-// 4. Refresh - data loads from localStorage
 
 export default function MapPage({ searchParams }: MapPageProps) {
   // Use React 18's use() to unwrap the promise synchronously
@@ -89,8 +82,6 @@ export default function MapPage({ searchParams }: MapPageProps) {
     }
   }, [params.center, userMapData, router]);
   
-  // Handle missing center
-  const isOffline = params.offline === 'true';
   
   // Only resolve map ID if we have a center parameter
   // If no center, we'll wait for the user map redirect
@@ -119,7 +110,6 @@ export default function MapPage({ searchParams }: MapPageProps) {
             initialCenter={null}
             initialExpandedItems={[]}
             cacheConfig={CACHE_CONFIG}
-            offlineMode={isOffline}
             eventBus={eventBus}
             mapContext={{
               rootItemId: 0,
@@ -136,7 +126,6 @@ export default function MapPage({ searchParams }: MapPageProps) {
                   rootItemId={0}
                   userId={0}
                   groupId={0}
-                  isOffline={isOffline}
                   isLoading={true}
                   loadingError={null}
               />
@@ -157,7 +146,6 @@ export default function MapPage({ searchParams }: MapPageProps) {
             initialCenter={null} // Don't set a center during loading to prevent fetch attempts
             initialExpandedItems={[]}
             cacheConfig={CACHE_CONFIG}
-            offlineMode={isOffline}
             eventBus={eventBus}
             mapContext={{
               rootItemId: 0,
@@ -174,7 +162,6 @@ export default function MapPage({ searchParams }: MapPageProps) {
                   rootItemId={0}
                   userId={0}
                   groupId={0}
-                  isOffline={isOffline}
                   isLoading={true}
                   loadingError={null}
               />
@@ -194,7 +181,6 @@ export default function MapPage({ searchParams }: MapPageProps) {
             initialCenter={null} // Don't set a center during error state to prevent fetch attempts
             initialExpandedItems={[]}
             cacheConfig={CACHE_CONFIG}
-            offlineMode={isOffline}
             eventBus={eventBus}
             mapContext={{
               rootItemId: 0,
@@ -211,7 +197,6 @@ export default function MapPage({ searchParams }: MapPageProps) {
                   rootItemId={0}
                   userId={0}
                   groupId={0}
-                  isOffline={isOffline}
                   isLoading={false}
                   loadingError={resolutionError || new Error("Unable to load the requested map")}
               />
@@ -231,7 +216,6 @@ export default function MapPage({ searchParams }: MapPageProps) {
             initialCenter={null}
             initialExpandedItems={[]}
             cacheConfig={CACHE_CONFIG}
-            offlineMode={isOffline}
             eventBus={eventBus}
             mapContext={{
               rootItemId: 0,
@@ -248,7 +232,6 @@ export default function MapPage({ searchParams }: MapPageProps) {
                   rootItemId={0}
                   userId={0}
                   groupId={0}
-                  isOffline={isOffline}
                   isLoading={false}
                   loadingError={new Error("Unable to resolve map coordinates")}
               />
@@ -273,7 +256,6 @@ export default function MapPage({ searchParams }: MapPageProps) {
           initialCenter={effectiveCenter} // Use pre-fetched center or resolved coordinate
           initialExpandedItems={params.expandedItems?.split(",") ?? []}
           cacheConfig={CACHE_CONFIG}
-          offlineMode={isOffline}
           eventBus={eventBus}
           mapContext={{
             rootItemId,
@@ -290,7 +272,6 @@ export default function MapPage({ searchParams }: MapPageProps) {
             rootItemId={rootItemId}
             userId={userId}
             groupId={groupId}
-            isOffline={isOffline}
           />
         </MapCacheProvider>
       </EventBusProvider>

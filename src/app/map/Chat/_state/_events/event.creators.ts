@@ -173,6 +173,19 @@ export function createSystemMessageEvent(message: string, level: 'info' | 'warni
 }
 
 /**
+ * Create an assistant message event
+ */
+export function createAssistantMessageEvent(text: string): ChatEvent {
+  return {
+    id: `chat-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    type: 'message',
+    payload: { text },
+    timestamp: new Date(),
+    actor: 'assistant',
+  };
+}
+
+/**
  * Create an operation started event
  */
 export function createOperationStartedEvent(

@@ -75,9 +75,6 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: true
 
-      - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps chromium
-
       - name: Setup test database
         run: |
           # Create .env.test file with test database configuration
@@ -92,7 +89,7 @@ jobs:
           SKIP_ENV_VALIDATION: true
 
       - name: Run tests
-        run: pnpm test:all
+        run: pnpm test
         env:
           TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db

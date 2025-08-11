@@ -7,10 +7,13 @@ import * as schema from "./schema";
 const getDatabaseUrl = () => {
   // Check if we're in a test environment
   if (process.env.NODE_ENV === "test" || process.env.VITEST) {
-    // Use test database URL
-    const testUrl =
-      process.env.TEST_DATABASE_URL ??
-      "postgres://postgres:postgres@localhost:5432/test_db";
+    // Use test database URL - must be set in .env.test
+    const testUrl = process.env.TEST_DATABASE_URL;
+    if (!testUrl) {
+      throw new Error(
+        "TEST_DATABASE_URL is not set. Please check your .env.test file."
+      );
+    }
     console.log("🔍 USING TEST DATABASE:", testUrl);
     return testUrl;
   }
