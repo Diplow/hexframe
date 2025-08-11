@@ -8,7 +8,7 @@
   "regions": ["iad1"],
   "functions": {
     "src/app/services/api/trpc/[trpc]/route.ts": {
-      "maxDuration": 30
+      "maxDuration": 60
     },
     "src/app/api/auth/**/*.ts": {
       "maxDuration": 10

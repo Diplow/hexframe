@@ -9,6 +9,9 @@ import type { CacheState } from '~/app/map/Cache/State/types'
 import type { ChatMessage } from '~/app/map/Chat/types'
 import type { CompositionConfig } from '~/lib/domains/agentic/types'
 import { env } from '~/env'
+import { db } from '~/server/db'
+import { llmJobResults } from '~/server/db/schema'
+import { eq } from 'drizzle-orm'
 
 // Message schema matching the Chat component
 const chatMessageSchema = z.object({
@@ -17,7 +20,7 @@ const chatMessageSchema = z.object({
   content: z.union([
     z.string(),
     z.object({
-      type: z.enum(['preview', 'search', 'comparison', 'action', 'creation', 'login', 'confirm-delete', 'loading', 'error']),
+      type: z.enum(['preview', 'search', 'comparison', 'action', 'creation', 'login', 'confirm-delete', 'loading', 'error', 'ai-response']),
       data: z.unknown()
     })
   ]),
@@ -94,15 +97,28 @@ export const agenticRouter = createTRPCRouter({
         cacheState: cacheStateSchema
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       // Create a server-side event bus instance
       const eventBus: EventBus = new EventBusImpl()
+      
+      // Determine if we should use queue based on environment
+      const useQueue = process.env.USE_QUEUE === 'true' || process.env.NODE_ENV === 'production'
+      
+      console.log('[Agentic Router] Queue configuration:', {
+        USE_QUEUE: process.env.USE_QUEUE,
+        NODE_ENV: process.env.NODE_ENV,
+        useQueue,
+        model: input.model,
+        userId: ctx.session?.userId ?? 'anonymous'
+      })
       
       // Create agentic service with OpenRouter API key from environment
       const agenticService = createAgenticService({
         openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
         eventBus,
-        getCacheState: () => input.cacheState as CacheState
+        getCacheState: () => input.cacheState as CacheState,
+        useQueue,
+        userId: ctx.session?.userId ?? 'anonymous'
       })
 
       if (!agenticService.isConfigured()) {
@@ -181,5 +197,119 @@ export const agenticRouter = createTRPCRouter({
         contextWindow: model.contextWindow,
         maxOutput: model.maxOutput
       }))
+    }),
+
+  // Get job status for polling
+  getJobStatus: protectedProcedure
+    .input(z.object({ jobId: z.string() }))
+    .query(async ({ input }) => {
+      const result = await db.select()
+        .from(llmJobResults)
+        .where(eq(llmJobResults.jobId, input.jobId))
+        .limit(1)
+      
+      if (!result[0]) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Job not found'
+        })
+      }
+      
+      return {
+        jobId: result[0].jobId,
+        status: result[0].status,
+        response: result[0].response,
+        error: result[0].error,
+        createdAt: result[0].createdAt,
+        updatedAt: result[0].updatedAt
+      }
+    }),
+
+  // Subscribe to job updates (using polling for simplicity)
+  watchJobStatus: protectedProcedure
+    .input(z.object({ 
+      jobId: z.string(),
+      pollInterval: z.number().min(1000).max(10000).default(2000)
+    }))
+    .subscription(async function* ({ input }) {
+      let previousStatus = ''
+      const maxAttempts = 300 // 10 minutes max with 2s intervals
+      let attempts = 0
+      
+      while (attempts < maxAttempts) {
+        const result = await db.select()
+          .from(llmJobResults)
+          .where(eq(llmJobResults.jobId, input.jobId))
+          .limit(1)
+        
+        if (result[0]) {
+          const currentStatus = result[0].status
+          
+          // Emit update if status changed or it's the first check
+          if (currentStatus !== previousStatus) {
+            yield {
+              jobId: result[0].jobId,
+              status: currentStatus,
+              response: result[0].response,
+              error: result[0].error,
+              updatedAt: result[0].updatedAt
+            }
+            previousStatus = currentStatus
+          }
+          
+          // Stop watching if job is complete
+          if (currentStatus === 'completed' || currentStatus === 'failed' || currentStatus === 'cancelled') {
+            break
+          }
+        }
+        
+        // Wait before next poll
+        await new Promise(resolve => setTimeout(resolve, input.pollInterval))
+        attempts++
+      }
+      
+      // Timeout after max attempts
+      if (attempts >= maxAttempts) {
+        yield {
+          jobId: input.jobId,
+          status: 'timeout',
+          error: 'Job polling timed out after 10 minutes',
+          updatedAt: new Date()
+        }
+      }
+    }),
+
+  // Cancel a queued job
+  cancelJob: protectedProcedure
+    .input(z.object({ jobId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      // Check if job exists and belongs to user
+      const job = await db.select()
+        .from(llmJobResults)
+        .where(eq(llmJobResults.jobId, input.jobId))
+        .limit(1)
+      
+      if (!job[0]) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Job not found'
+        })
+      }
+      
+      if (job[0].userId !== ctx.session?.userId) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You can only cancel your own jobs'
+        })
+      }
+      
+      // Send cancel event to Inngest
+      const { inngest } = await import('~/lib/domains/agentic/infrastructure/inngest/client')
+      await inngest.send({
+        name: 'llm/generate.cancel',
+        data: { jobId: input.jobId }
+      })
+      
+      return { success: true }
     })
 })

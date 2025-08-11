@@ -14,6 +14,7 @@ import {
   renderCreationWidget,
   renderLoadingWidget,
   renderDeleteWidget,
+  renderAIResponseWidget,
   type WidgetHandlers
 } from './_renderers/widget-renderers';
 
@@ -23,6 +24,11 @@ interface WidgetManagerProps {
 }
 
 export function WidgetManager({ widgets, focusChatInput: focusChatInputProp }: WidgetManagerProps) {
+  console.log('[WidgetManager] Rendering with', widgets.length, 'widgets')
+  widgets.forEach(w => {
+    console.log('[WidgetManager] Widget:', { id: w.id, type: w.type, hasData: !!w.data })
+  })
+  
   const { createItemOptimistic, updateItemOptimistic, items } = useMapCache();
   const eventBus = useEventBus();
   const chatState = useChatState();
@@ -65,6 +71,8 @@ function _renderWidget(
   createWidgetHandlers: (widget: Widget) => WidgetHandlers, 
   items: Record<string, TileData>
 ): ReactNode {
+  console.log('[_renderWidget] Rendering widget type:', widget.type, 'with id:', widget.id)
+  
   switch (widget.type) {
     case 'preview':
       return renderPreviewWidget(widget, createWidgetHandlers(widget), items);
@@ -78,6 +86,9 @@ function _renderWidget(
       return renderLoadingWidget(widget);
     case 'delete':
       return renderDeleteWidget(widget);
+    case 'ai-response':
+      console.log('[_renderWidget] Rendering AI response widget with data:', widget.data)
+      return renderAIResponseWidget(widget);
     default:
       return null;
   }

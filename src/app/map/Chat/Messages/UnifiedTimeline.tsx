@@ -16,6 +16,18 @@ interface UnifiedTimelineProps {
 }
 
 export function UnifiedTimeline({ items }: UnifiedTimelineProps) {
+  console.log('[UnifiedTimeline] Rendering with', items.length, 'items')
+  items.forEach(item => {
+    if (item.type === 'widget') {
+      const widget = item.data as Widget
+      console.log('[UnifiedTimeline] Widget item:', { 
+        id: widget.id, 
+        type: widget.type,
+        timestamp: item.timestamp
+      })
+    }
+  })
+  
   const scrollRef = useRef<HTMLDivElement>(null);
   
   // Debug logging for UnifiedTimeline renders
@@ -75,6 +87,7 @@ export function UnifiedTimeline({ items }: UnifiedTimelineProps) {
                 <MessageActorRenderer message={item.data as Message} />
               ) : (
                 <div className="my-2">
+                  {console.log('[UnifiedTimeline] Passing widget to WidgetManager:', item.data)}
                   <WidgetManager widgets={[item.data as Widget]} />
                 </div>
               )}

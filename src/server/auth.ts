@@ -4,6 +4,7 @@ import { nextCookies } from "better-auth/next-js";
 import { db } from "~/server/db";
 import * as schema from "~/server/db/schema"; // Import all schemas
 import { sendEmail, generateVerificationEmail } from "~/server/email"; // Email sender functions
+import { env } from "~/env";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -19,8 +20,8 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: process.env.NODE_ENV === "production", // Only require verification in production
-    autoSignIn: process.env.NODE_ENV !== "production", // Auto sign in in development, not in production
+    requireEmailVerification: true, // Always require email verification
+    autoSignIn: false, // Never auto sign in - require email verification first
   },
   emailVerification: {
     sendOnSignUp: true, // Automatically send verification email after signup
@@ -28,7 +29,7 @@ export const auth = betterAuth({
     sendVerificationEmail: async ({ user, token }: { user: { email: string; name?: string | null }, token: string }) => {
       console.log("🔔 sendVerificationEmail called!", { user: user.email, token });
       // Build proper verification URL with callback to redirect after verification
-      const baseUrl = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
+      const baseUrl = env.BETTER_AUTH_URL;
       const callbackUrl = encodeURIComponent(`${baseUrl}/auth/verify-success`); // Redirect to success page
       const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${token}&callbackURL=${callbackUrl}`;
       console.log("📧 Verification URL:", verificationUrl);
@@ -39,11 +40,11 @@ export const auth = betterAuth({
       });
     },
   },
-  secret: process.env.AUTH_SECRET, // Needs to be added to .env
+  secret: env.AUTH_SECRET,
   basePath: "/api/auth", // Standard Next.js API route
-  trustedOrigins: process.env.NODE_ENV === "production" 
+  trustedOrigins: env.NODE_ENV === "production" 
     ? [
-        process.env.BETTER_AUTH_URL ?? "https://hexframe.ai",
+        env.BETTER_AUTH_URL,
         "https://www.hexframe.ai", // Add www subdomain
         // Add any Vercel preview URLs if needed
         ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : [])

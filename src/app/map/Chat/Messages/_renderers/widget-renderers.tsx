@@ -7,6 +7,8 @@ import { LoginWidget } from '../../Widgets/LoginWidget';
 import { ConfirmDeleteWidget } from '../../Widgets/ConfirmDeleteWidget';
 import { LoadingWidget } from '../../Widgets/LoadingWidget';
 import { ErrorWidget } from '../../Widgets/ErrorWidget';
+import { AIResponseWidget } from '../../Widgets/AIResponseWidget';
+import type { AIResponseWidgetData } from '../../types';
 
 function safeStringify(value: unknown, space = 0): string | undefined {
   try {
@@ -114,6 +116,17 @@ export function renderDeleteWidget(widget: Widget) {
       tileId={tileCoordId}
       tileName={tileName}
       widgetId={widget.id}
+    />
+  );
+}
+
+export function renderAIResponseWidget(widget: Widget) {
+  const data = widget.data as AIResponseWidgetData;
+  return (
+    <AIResponseWidget
+      jobId={data.jobId}
+      initialResponse={data.initialResponse}
+      model={data.model}
     />
   );
 }

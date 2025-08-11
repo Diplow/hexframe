@@ -1,9 +1,12 @@
 import { OpenRouterRepository } from '../repositories/openrouter.repository'
+import { QueuedLLMRepository } from '../repositories/queued-llm.repository'
 import { CanvasContextBuilder } from './canvas-context-builder.service'
 import { ChatContextBuilder } from './chat-context-builder.service'
 import { ContextCompositionService } from './context-composition.service'
 import { SimpleTokenizerService } from './tokenizer.service'
 import { AgenticService } from './agentic.service'
+import { inngest } from '../infrastructure/inngest/client'
+import type { ILLMRepository } from '../repositories/llm.repository.interface'
 
 // Canvas strategies
 import { StandardCanvasStrategy } from './canvas-strategies/standard.strategy'
@@ -26,13 +29,33 @@ export interface CreateAgenticServiceOptions {
   openRouterApiKey: string
   eventBus: EventBus
   getCacheState: () => CacheState
+  useQueue?: boolean
+  userId?: string // Required when using queue for rate limiting
 }
 
 export function createAgenticService(options: CreateAgenticServiceOptions): AgenticService {
-  const { openRouterApiKey, eventBus, getCacheState } = options
+  const { openRouterApiKey, eventBus, getCacheState, useQueue, userId } = options
 
-  // Create repository
-  const llmRepository = new OpenRouterRepository(openRouterApiKey)
+  // Create repository - use queued version if configured
+  let llmRepository: ILLMRepository
+  
+  const baseRepository = new OpenRouterRepository(openRouterApiKey)
+  
+  console.log('[AgenticFactory] Repository selection:', {
+    useQueue,
+    userId,
+    willUseQueue: !!(useQueue && userId)
+  })
+  
+  if (useQueue && userId) {
+    // Use queued repository for production with proper rate limiting
+    console.log('[AgenticFactory] Creating QueuedLLMRepository')
+    llmRepository = new QueuedLLMRepository(baseRepository, inngest, userId)
+  } else {
+    // Use direct repository for development or when queue is disabled
+    console.log('[AgenticFactory] Using direct OpenRouterRepository')
+    llmRepository = baseRepository
+  }
 
   // Create tokenizer
   const tokenizer = new SimpleTokenizerService()

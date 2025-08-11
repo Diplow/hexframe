@@ -9,7 +9,7 @@ export interface ChatMessage {
 }
 
 export interface ChatWidget {
-  type: 'preview' | 'search' | 'comparison' | 'action' | 'creation' | 'login' | 'confirm-delete' | 'loading' | 'error';
+  type: 'preview' | 'search' | 'comparison' | 'action' | 'creation' | 'login' | 'confirm-delete' | 'loading' | 'error' | 'ai-response';
   data: unknown; // Widget-specific data
 }
 
@@ -46,6 +46,12 @@ export interface ErrorWidgetData {
   error?: string;
   operation?: 'create' | 'update' | 'delete' | 'move' | 'swap';
   retry?: () => void;
+}
+
+export interface AIResponseWidgetData {
+  jobId?: string;
+  initialResponse?: string;
+  model?: string;
 }
 
 export interface ChatState {

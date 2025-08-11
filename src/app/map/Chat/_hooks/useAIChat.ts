@@ -4,6 +4,7 @@ import { useChatState } from '../_state'
 import { useMapCacheContextSafe } from '../../Cache/_hooks/use-cache-context'
 import type { ChatMessage } from '../types'
 import type { CompositionConfig } from '~/lib/domains/agentic/types'
+import type { QueuedJobResponse } from '~/lib/domains/agentic/types/job.types'
 import { loggers } from '~/lib/debug/debug-logger'
 
 interface UseAIChatOptions {
@@ -16,30 +17,65 @@ export function useAIChat(options: UseAIChatOptions = {}) {
   const chatState = useChatState()
   const [isGenerating, setIsGenerating] = useState(false)
   
+  console.log('[useAIChat] Hook initialized with options:', options)
+  
   // Use safe version that returns null instead of throwing
   const context = useMapCacheContextSafe()
   const cacheState = context?.state ?? null
   
+  console.log('[useAIChat] Cache state available:', !!cacheState)
+  
   const generateResponseMutation = api.agentic.generateResponse.useMutation({
     onSuccess: (response) => {
-      // Add the AI response to chat
-      chatState.sendAssistantMessage(response.content)
-      
-      // Log usage for debugging
-      loggers.agentic('AI response received', {
-        model: response.model,
-        usage: response.usage,
-        finishReason: response.finishReason
+      console.log('[useAIChat] Mutation success, response:', response)
+      console.log('[useAIChat] Response details:', {
+        hasJobId: 'jobId' in response,
+        hasStatus: 'status' in response,
+        status: 'status' in response ? response.status : undefined,
+        finishReason: 'finishReason' in response ? response.finishReason : undefined,
+        id: response.id,
+        content: response.content
       })
+      
+      // Check if response is queued (has a jobId and pending status, or finishReason is 'queued')
+      if (('jobId' in response && 'status' in response && response.status === 'pending') || 
+          ('finishReason' in response && response.finishReason === 'queued')) {
+        // Send AI Response widget for queued job
+        const queuedResponse = response as unknown as QueuedJobResponse
+        console.log('[useAIChat] Response is QUEUED, creating widget with jobId:', queuedResponse.jobId || response.id)
+        
+        chatState.showAIResponseWidget({
+          jobId: queuedResponse.jobId || response.id,
+          model: queuedResponse.model || response.model
+        })
+        
+        console.log('[useAIChat] Widget creation called for queued job')
+        loggers.agentic('Request queued, widget sent', { jobId: queuedResponse.jobId || response.id })
+      } else {
+        // Send AI Response widget for direct response
+        console.log('[useAIChat] Response is DIRECT, creating widget with content')
+        
+        chatState.showAIResponseWidget({
+          initialResponse: response.content,
+          model: response.model
+        })
+        
+        console.log('[useAIChat] Widget creation called for direct response')
+        loggers.agentic('Direct AI response, widget sent', {
+          model: response.model,
+          usage: response.usage,
+          finishReason: response.finishReason
+        })
+      }
+      setIsGenerating(false)
     },
     onError: (error) => {
+      console.error('[useAIChat] Mutation error:', error)
       chatState.showSystemMessage(
         `AI Error: ${error.message}`,
         'error'
       )
       loggers.agentic.error('AI generation failed', { error: error.message })
-    },
-    onSettled: () => {
       setIsGenerating(false)
     }
   })
@@ -84,6 +120,12 @@ export function useAIChat(options: UseAIChatOptions = {}) {
     })
 
     setIsGenerating(true)
+    
+    console.log('[useAIChat] Calling generateResponse mutation with:', {
+      centerCoordId,
+      messageCount: messages.length,
+      model: 'deepseek/deepseek-r1-0528'
+    })
     
     // Generate AI response (user message is already in chat)
     generateResponseMutation.mutate({
