@@ -1,4 +1,4 @@
-import { eq, max } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "~/server/db";
 import { userMapping } from "~/server/db/schema";
 

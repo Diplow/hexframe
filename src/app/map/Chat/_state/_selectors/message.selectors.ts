@@ -265,6 +265,13 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
         widgetStates.set(payload.widgetId, 'completed');
         break;
       }
+
+      case 'widget_closed': {
+        const payload = event.payload as { widgetId: string };
+        // Mark widget as completed (removes it from active widgets)
+        widgetStates.set(payload.widgetId, 'completed');
+        break;
+      }
     }
   }
 

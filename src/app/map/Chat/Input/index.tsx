@@ -195,6 +195,7 @@ export function Input() {
           className="flex-1 resize-none rounded-lg px-3 py-2 text-sm bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent min-h-[40px] max-h-[120px]"
           rows={1}
           data-testid="chat-input"
+          data-chat-input
         />
         <Button
         onClick={handleSend}
