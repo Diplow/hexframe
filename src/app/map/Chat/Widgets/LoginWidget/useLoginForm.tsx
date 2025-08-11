@@ -87,7 +87,7 @@ export function useLoginForm() {
     }
     
     // Trigger the success flow
-    if (result.userId && 'defaultMapId' in result) {
+    if (result.userId) {
       // Check if email verification is required
       const requiresVerification = env.NEXT_PUBLIC_REQUIRE_EMAIL_VERIFICATION;
       
@@ -143,7 +143,7 @@ export function useLoginForm() {
       });
       
       // Navigate to user's map if they have one
-      if ('defaultMapId' in result && result.defaultMapId) {
+      if (result.defaultMapId) {
         setTimeout(() => {
           router.push(`/map?center=${result.defaultMapId}`);
         }, 1000);
@@ -158,6 +158,7 @@ export function useLoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setIsLoading(true);
 
     try {

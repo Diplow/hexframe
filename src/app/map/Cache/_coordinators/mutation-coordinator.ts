@@ -234,14 +234,16 @@ export class MutationCoordinator {
     });
     
     // 2. Add relocated direct children (only first generation)
-    // Select by path length instead of parentId
+    // Select by path length AND verify parent relationship
     const directChildrenSource = descendantsSource.filter(item => {
       const p = CoordSystem.parseId(item.metadata.coordId).path;
-      return p.length === parsedSource.path.length + 1;
+      return p.length === parsedSource.path.length + 1
+        && parsedSource.path.every((seg, i) => seg === p[i]);
     });
     const directChildrenTarget = descendantsTarget.filter(item => {
       const p = CoordSystem.parseId(item.metadata.coordId).path;
-      return p.length === parsedTarget.path.length + 1;
+      return p.length === parsedTarget.path.length + 1
+        && parsedTarget.path.every((seg, i) => seg === p[i]);
     });
     
     // Relocate source's children to target's position
@@ -300,6 +302,7 @@ export class MutationCoordinator {
     const movedItem: MapItemAPIContract = {
       ...this._reconstructApiData(sourceItem),
       coordinates: targetCoordId,
+      depth: CoordSystem.parseId(targetCoordId).path.length,
     };
     
     // Remove from old position
@@ -330,6 +333,8 @@ export class MutationCoordinator {
     }
     
     this.tracker.removeChange(changeId);
+    this.tracker.removeChange(changeId + '_source');
+    this.tracker.removeChange(changeId + '_target');
   }
 
   rollbackChange(changeId: string): void {
@@ -625,12 +630,10 @@ export class MutationCoordinator {
   }
 
   private _getAllDescendants(parentCoordId: string, itemsById: Record<string, TileData>): TileData[] {
-    const parentPath = CoordSystem.parseId(parentCoordId).path;
-    return Object.values(itemsById).filter(item => {
-      const childPath = CoordSystem.parseId(item.metadata.coordId).path;
-      return childPath.length > parentPath.length
-        && parentPath.every((seg, i) => seg === childPath[i]);
-    });
+    return Object.values(itemsById).filter(item =>
+      item.metadata.coordId !== parentCoordId &&
+      CoordSystem.isDescendant(item.metadata.coordId, parentCoordId)
+    );
   }
 
 

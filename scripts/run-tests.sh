@@ -35,8 +35,6 @@ pnpm vitest run --config vitest.config.ts \
   --exclude "**/auth-tile.test.tsx" \
   --exclude "**/auth.test.tsx" \
   --exclude "**/page.test.tsx" \
-  --exclude "**/useDragAndDrop.test.ts" \
-  --exclude "**/enhanced-drag-drop.test.ts" \
   --exclude "**/TileActionsContext.test.tsx" \
   --exclude "**/Toolbox.integration.test.tsx" \
   --exclude "**/useKeyboardShortcuts.test.tsx" \
@@ -94,14 +92,9 @@ else
   REACT_EXIT_CODE=0
 fi
 
-# Then run the drag-and-drop tests in isolation
-echo "Phase 3: Drag-and-drop tests (isolated)..."
-pnpm vitest run --config vitest.config.ts \
-  src/app/map/Canvas/hooks/__tests__/useDragAndDrop.test.ts \
-  src/app/map/Canvas/hooks/__tests__/enhanced-drag-drop.test.ts 2>test-results/drag-drop.log
-
-DRAG_EXIT_CODE=$?
-mv test-results/vitest-results.json test-results/drag.tmp.json 2>>test-results/drag-drop.log || true
+# Drag-and-drop tests no longer exist (consolidated into single hook)
+echo "Phase 3: Drag-and-drop tests (skipped - tests removed after consolidation)..."
+DRAG_EXIT_CODE=0
 
 # Merge all JSON results
 echo ""
@@ -125,7 +118,7 @@ drag_exit_code = int(os.environ.get('DRAG_EXIT_CODE', '0'))
 # Load individual results
 main_data = load_json_safe('test-results/main.tmp.json')
 react_data = load_json_safe('test-results/react.tmp.json')
-drag_data = load_json_safe('test-results/drag.tmp.json')
+drag_data = None  # Drag tests removed after consolidation
 
 # Initialize combined results
 combined = {

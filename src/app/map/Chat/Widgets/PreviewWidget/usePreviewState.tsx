@@ -41,6 +41,7 @@ export function usePreviewState({
   // Update expansion state when tileId or content changes
   useEffect(() => {
     if (forceExpanded === undefined) {
+      if (isEditing) return; // Skip animation when editing
       if (!content) {
         // Keep collapsed if no content
         setIsExpanded(false);
@@ -51,7 +52,7 @@ export function usePreviewState({
         return () => clearTimeout(timer);
       }
     }
-  }, [tileId, content, forceExpanded]);
+  }, [tileId, content, forceExpanded, isEditing]);
 
   // Update edit fields when props change
   useEffect(() => {

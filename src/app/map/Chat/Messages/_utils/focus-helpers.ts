@@ -3,6 +3,8 @@
  * Provides consistent, accessible focus management patterns
  */
 
+export const DEFAULT_FOCUS_DELAY = 100;
+
 export interface FocusTarget {
   selector: string;
   delay?: number;
@@ -19,7 +21,7 @@ export const FOCUS_TARGETS = {
  */
 export function focusElementWithCallback(
   callback: () => HTMLElement | null,
-  delay = 100
+  delay = DEFAULT_FOCUS_DELAY
 ): void {
   setTimeout(() => {
     const element = callback();
@@ -32,7 +34,7 @@ export function focusElementWithCallback(
  * Uses the standard data attribute selector
  * @param delay - Delay in milliseconds before focusing (default: 100)
  */
-export function focusChatInput(delay = 100): void {
+export function focusChatInput(delay = DEFAULT_FOCUS_DELAY): void {
   focusElementWithCallback(
     () => document.querySelector<HTMLTextAreaElement>(FOCUS_TARGETS.CHAT_INPUT),
     delay

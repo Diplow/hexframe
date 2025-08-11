@@ -8,6 +8,14 @@ import { ConfirmDeleteWidget } from '../../Widgets/ConfirmDeleteWidget';
 import { LoadingWidget } from '../../Widgets/LoadingWidget';
 import { ErrorWidget } from '../../Widgets/ErrorWidget';
 
+function safeStringify(value: unknown, space = 0): string | undefined {
+  try {
+    return JSON.stringify(value, null, space);
+  } catch {
+    return undefined;
+  }
+}
+
 export interface WidgetHandlers {
   handleEdit?: () => void;
   handleDelete?: () => void;
@@ -62,7 +70,7 @@ export function renderErrorWidget(widget: Widget) {
   return (
     <ErrorWidget
       message={errorData.error}
-      error={errorData.context ? JSON.stringify(errorData.context) : undefined}
+      error={errorData.context ? safeStringify(errorData.context, 2) : undefined}
       retry={errorData.retryable ? () => {
         // Handle retry
       } : undefined}

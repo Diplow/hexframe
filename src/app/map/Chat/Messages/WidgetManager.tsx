@@ -1,10 +1,12 @@
 import type { Widget } from '../_state/types';
 import type { TileData } from '../../types/tile-data';
+import type { ReactNode } from 'react';
 import { useMapCache } from '../../Cache/_hooks/use-map-cache';
 import { useEventBus } from '../../Services/EventBus/event-bus-context';
 import { useChatState } from '../_state';
 import { createCreationHandlers } from './_handlers/creation-handlers';
 import { createPreviewHandlers } from './_handlers/preview-handlers';
+import { focusChatInput } from './_utils/focus-helpers';
 import { 
   renderPreviewWidget,
   renderLoginWidget,
@@ -17,15 +19,25 @@ import {
 
 interface WidgetManagerProps {
   widgets: Widget[];
+  focusChatInput?: () => void;
 }
 
-export function WidgetManager({ widgets }: WidgetManagerProps) {
+export function WidgetManager({ widgets, focusChatInput: focusChatInputProp }: WidgetManagerProps) {
   const { createItemOptimistic, updateItemOptimistic, items } = useMapCache();
   const eventBus = useEventBus();
   const chatState = useChatState();
+  
+  // Use provided focus function or default to the DOM-based one
+  const focusChatInputFn = focusChatInputProp ?? focusChatInput;
 
-  const createWidgetHandlers = (widget: Widget) => {
-    const deps = { createItemOptimistic, updateItemOptimistic, eventBus, chatState };
+  const createWidgetHandlers = (widget: Widget): WidgetHandlers => {
+    const deps = { 
+      createItemOptimistic, 
+      updateItemOptimistic, 
+      eventBus, 
+      chatState,
+      focusChatInput: focusChatInputFn
+    };
     
     switch (widget.type) {
       case 'preview':
@@ -52,18 +64,16 @@ function _renderWidget(
   widget: Widget, 
   createWidgetHandlers: (widget: Widget) => WidgetHandlers, 
   items: Record<string, TileData>
-) {
-  const handlers = createWidgetHandlers(widget);
-
+): ReactNode {
   switch (widget.type) {
     case 'preview':
-      return renderPreviewWidget(widget, handlers, items);
+      return renderPreviewWidget(widget, createWidgetHandlers(widget), items);
     case 'login':
       return renderLoginWidget(widget);
     case 'error':
       return renderErrorWidget(widget);
     case 'creation':
-      return renderCreationWidget(widget, handlers);
+      return renderCreationWidget(widget, createWidgetHandlers(widget));
     case 'loading':
       return renderLoadingWidget(widget);
     case 'delete':
