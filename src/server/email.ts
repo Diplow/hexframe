@@ -24,7 +24,7 @@ interface EmailOptions {
  * 3. Implement the actual sending logic below
  */
 export async function sendEmail(options: EmailOptions): Promise<void> {
-  const { to, subject, html, from = env.EMAIL_FROM || "noreply@hexframe.ai" } = options;
+  const { to, subject, html, from = env.EMAIL_FROM ?? "noreply@hexframe.ai" } = options;
 
   loggers.api(`Email send request`, {
     to,
@@ -139,7 +139,7 @@ export function generateVerificationEmail(
   userName?: string | null
 ): string {
   // Use provided username, or fall back to email prefix if no username
-  const displayName = userName || userEmail.split('@')[0];
+  const displayName = userName ?? userEmail.split('@')[0];
   
   return `
     <!DOCTYPE html>

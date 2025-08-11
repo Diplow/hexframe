@@ -28,7 +28,7 @@ export const auth = betterAuth({
     sendVerificationEmail: async ({ user, token }: { user: { email: string; name?: string | null }, token: string }) => {
       console.log("🔔 sendVerificationEmail called!", { user: user.email, token });
       // Build proper verification URL with callback to redirect after verification
-      const baseUrl = process.env.BETTER_AUTH_URL || "http://localhost:3000";
+      const baseUrl = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
       const callbackUrl = encodeURIComponent(`${baseUrl}/auth/verify-success`); // Redirect to success page
       const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${token}&callbackURL=${callbackUrl}`;
       console.log("📧 Verification URL:", verificationUrl);

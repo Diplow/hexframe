@@ -9,6 +9,7 @@ import { LoadingWidget } from '../Widgets/LoadingWidget';
 import { ErrorWidget } from '../Widgets/ErrorWidget';
 import { useMapCache } from '../../Cache/_hooks/use-map-cache';
 import { useEventBus } from '../../Services/EventBus/event-bus-context';
+import { useChatState } from '../_state';
 
 interface WidgetManagerProps {
   widgets: Widget[];
@@ -17,6 +18,7 @@ interface WidgetManagerProps {
 export function WidgetManager({ widgets }: WidgetManagerProps) {
   const { createItemOptimistic, updateItemOptimistic, items } = useMapCache();
   const eventBus = useEventBus();
+  const chatState = useChatState();
 
   const createWidgetHandlers = (widget: Widget) => {
     // Creation widget handlers
@@ -43,6 +45,15 @@ export function WidgetManager({ widgets }: WidgetManagerProps) {
           source: 'chat_cache',
           timestamp: new Date(),
         });
+        
+        // Close the widget after successful creation
+        chatState.closeWidget(widget.id);
+        
+        // Focus the chat input after widget closes
+        setTimeout(() => {
+          const chatInput = document.querySelector<HTMLTextAreaElement>('[data-chat-input]');
+          chatInput?.focus();
+        }, 100);
       } catch (error) {
         // Handle error
         eventBus.emit({
@@ -60,7 +71,14 @@ export function WidgetManager({ widgets }: WidgetManagerProps) {
     };
 
     const handleCancel = () => {
-      // Widget cancellation handled internally by chat state
+      // Close the widget when cancel is clicked
+      chatState.closeWidget(widget.id);
+      
+      // Focus the chat input after widget closes
+      setTimeout(() => {
+        const chatInput = document.querySelector<HTMLTextAreaElement>('[data-chat-input]');
+        chatInput?.focus();
+      }, 100);
     };
 
     // Preview widget handlers
@@ -83,6 +101,17 @@ export function WidgetManager({ widgets }: WidgetManagerProps) {
         source: 'chat_cache',
         timestamp: new Date(),
       });
+    };
+    
+    const handlePreviewClose = () => {
+      // Close the preview widget
+      chatState.closeWidget(widget.id);
+      
+      // Focus the chat input after widget closes
+      setTimeout(() => {
+        const chatInput = document.querySelector<HTMLTextAreaElement>('[data-chat-input]');
+        chatInput?.focus();
+      }, 100);
     };
     
     const handlePreviewSave = async (title: string, content: string) => {
@@ -118,7 +147,7 @@ export function WidgetManager({ widgets }: WidgetManagerProps) {
       }
     };
 
-    return { handleSave, handleCancel, handleEdit, handleDelete, handlePreviewSave };
+    return { handleSave, handleCancel, handleEdit, handleDelete, handlePreviewSave, handlePreviewClose };
   };
 
   return (
@@ -136,6 +165,7 @@ interface WidgetHandlers {
   handleEdit?: () => void;
   handleDelete?: () => void;
   handlePreviewSave?: (title: string, content: string) => void;
+  handlePreviewClose?: () => void;
   handleSave?: (name: string, description: string) => void;
   handleCancel?: () => void;
 }
@@ -167,7 +197,12 @@ function renderWidget(widget: Widget, createWidgetHandlers: (widget: Widget) => 
 
 function _renderPreviewWidget(widget: Widget, createWidgetHandlers: (widget: Widget) => WidgetHandlers, items: Record<string, TileData>) {
   const previewData = widget.data as TileSelectedPayload;
-  const { handleEdit = () => { /* noop */ }, handleDelete = () => { /* noop */ }, handlePreviewSave = () => { /* noop */ } } = createWidgetHandlers(widget);
+  const { 
+    handleEdit = () => { /* noop */ }, 
+    handleDelete = () => { /* noop */ }, 
+    handlePreviewSave = () => { /* noop */ },
+    handlePreviewClose = () => { /* noop */ }
+  } = createWidgetHandlers(widget);
 
   // Get real-time data from the map cache
   // The tileId is actually a coordinate ID, so we can look it up directly
@@ -186,6 +221,7 @@ function _renderPreviewWidget(widget: Widget, createWidgetHandlers: (widget: Wid
       onEdit={handleEdit}
       onDelete={handleDelete}
       onSave={handlePreviewSave}
+      onClose={handlePreviewClose}
     />
   );
 }
