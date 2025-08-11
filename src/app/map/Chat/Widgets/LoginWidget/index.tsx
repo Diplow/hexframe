@@ -40,13 +40,13 @@ export function LoginWidget({ message }: LoginWidgetProps) {
         <form onSubmit={handleSubmit} className="space-y-3">
           <FormFields
             mode={mode}
-            username={username}
-            email={email}
-            password={password}
+            values={{ username, email, password }}
             isLoading={isLoading}
-            onUsernameChange={setUsername}
-            onEmailChange={setEmail}
-            onPasswordChange={setPassword}
+            onChange={{
+              username: setUsername,
+              email: setEmail,
+              password: setPassword,
+            }}
           />
 
           <StatusMessages error={error} success={success} />

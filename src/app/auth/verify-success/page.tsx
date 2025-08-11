@@ -11,7 +11,11 @@ export default function VerifySuccessPage() {
   useEffect(() => {
     // Countdown timer
     const timer = setInterval(() => {
-      setCountdown((prev) => prev - 1);
+      setCountdown((prev) => {
+        const next = Math.max(prev - 1, 0);
+        if (next === 0) clearInterval(timer);
+        return next;
+      });
     }, 1000);
 
     return () => clearInterval(timer);

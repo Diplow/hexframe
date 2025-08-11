@@ -28,22 +28,23 @@ export function PreviewWidget({
   onSave,
   onClose,
 }: PreviewWidgetProps) {
-  const {
-    isExpanded,
-    setIsExpanded,
-    isEditing,
-    setIsEditing,
-    editTitle,
-    setEditTitle,
-    editContent,
-    setEditContent,
-  } = usePreviewState({
+  const { expansion, editing } = usePreviewState({
     title,
     content,
     forceExpanded,
     openInEditMode,
     tileId,
   });
+
+  const { isExpanded, setIsExpanded } = expansion;
+  const { 
+    isEditing, 
+    setIsEditing, 
+    title: editTitle, 
+    setTitle: setEditTitle,
+    content: editContent, 
+    setContent: setEditContent 
+  } = editing;
 
   const _handleEdit = () => {
     setIsEditing(true);

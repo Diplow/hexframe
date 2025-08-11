@@ -4,41 +4,45 @@ import { Mail, Key, User } from 'lucide-react';
 
 interface FormFieldsProps {
   mode: 'login' | 'register';
-  username: string;
-  email: string;
-  password: string;
+  values: {
+    username: string;
+    email: string;
+    password: string;
+  };
   isLoading: boolean;
-  onUsernameChange: (username: string) => void;
-  onEmailChange: (email: string) => void;
-  onPasswordChange: (password: string) => void;
+  onChange: {
+    username: (username: string) => void;
+    email: (email: string) => void;
+    password: (password: string) => void;
+  };
 }
 
 export function FormFields({
   mode,
-  username,
-  email,
-  password,
+  values,
   isLoading,
-  onUsernameChange,
-  onEmailChange,
-  onPasswordChange,
+  onChange,
 }: FormFieldsProps) {
+  const { username, email, password } = values;
+  const { username: onUsernameChange, email: onEmailChange, password: onPasswordChange } = onChange;
   return (
     <>
       {mode === 'register' && (
         <div>
-          <label className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-1">
+          <label htmlFor="username-field" className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-1">
             Username
           </label>
           <div className="relative">
-            <User className="absolute left-2 top-2.5 h-4 w-4 text-secondary-400" />
+            <User className="absolute left-2 top-2.5 h-4 w-4 text-secondary-400" aria-hidden="true" />
             <input
+              id="username-field"
               type="text"
               value={username}
               onChange={(e) => onUsernameChange(e.target.value)}
               className="w-full pl-8 pr-3 py-2 text-sm border border-secondary-300 dark:border-secondary-700 rounded-md 
                        bg-white dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-secondary-500"
               placeholder="johndoe"
+              autoComplete="username"
               required
               disabled={isLoading}
             />
@@ -47,18 +51,20 @@ export function FormFields({
       )}
 
       <div>
-        <label className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-1">
+        <label htmlFor="email-field" className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-1">
           Email
         </label>
         <div className="relative">
-          <Mail className="absolute left-2 top-2.5 h-4 w-4 text-secondary-400" />
+          <Mail className="absolute left-2 top-2.5 h-4 w-4 text-secondary-400" aria-hidden="true" />
           <input
+            id="email-field"
             type="email"
             value={email}
             onChange={(e) => onEmailChange(e.target.value)}
             className="w-full pl-8 pr-3 py-2 text-sm border border-secondary-300 dark:border-secondary-700 rounded-md 
                      bg-white dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-secondary-500"
             placeholder="you@example.com"
+            autoComplete="email"
             required
             disabled={isLoading}
           />
@@ -66,18 +72,20 @@ export function FormFields({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-1">
+        <label htmlFor="password-field" className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-1">
           Password
         </label>
         <div className="relative">
-          <Key className="absolute left-2 top-2.5 h-4 w-4 text-secondary-400" />
+          <Key className="absolute left-2 top-2.5 h-4 w-4 text-secondary-400" aria-hidden="true" />
           <input
+            id="password-field"
             type="password"
             value={password}
             onChange={(e) => onPasswordChange(e.target.value)}
             className="w-full pl-8 pr-3 py-2 text-sm border border-secondary-300 dark:border-secondary-700 rounded-md 
                      bg-white dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-secondary-500"
             placeholder="••••••••"
+            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
             required
             disabled={isLoading}
           />

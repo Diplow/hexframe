@@ -49,56 +49,6 @@ setInterval(() => {
   }
 }, 60000); // Clean up every minute
 
-export function createRateLimitMiddleware(config: RateLimitConfig) {
-  return t.middleware(async ({ ctx, next }) => {
-    // Generate rate limit key
-    const key = config.keyGenerator
-      ? config.keyGenerator(ctx)
-      : getClientIp(ctx) ?? "anonymous";
-
-    const now = Date.now();
-    const resetTime = now + config.windowMs;
-
-    // Get or create rate limit entry
-    let rateLimit = rateLimitStore.get(key);
-    
-    if (!rateLimit || rateLimit.resetTime < now) {
-      rateLimit = { count: 0, resetTime };
-      rateLimitStore.set(key, rateLimit);
-    }
-
-    // Check if rate limit exceeded
-    if (rateLimit.count >= config.maxRequests) {
-      const retryAfter = Math.ceil((rateLimit.resetTime - now) / 1000);
-      throw new TRPCError({
-        code: "TOO_MANY_REQUESTS",
-        message: `Rate limit exceeded. Try again in ${retryAfter} seconds.`,
-      });
-    }
-
-    // Increment counter if not skipping successful requests
-    if (!config.skipSuccessfulRequests) {
-      rateLimit.count++;
-    }
-
-    try {
-      const result = await next();
-      
-      // Increment counter after successful request if configured
-      if (config.skipSuccessfulRequests) {
-        rateLimit.count++;
-      }
-      
-      return result;
-    } catch (error) {
-      // Don't count failed requests against rate limit
-      if (!config.skipSuccessfulRequests) {
-        rateLimit.count--;
-      }
-      throw error;
-    }
-  });
-}
 
 // Preset configurations
 export const rateLimits = {
@@ -152,6 +102,82 @@ export const rateLimits = {
 };
 
 /**
+ * Helper function to perform rate limiting logic
+ */
+function performRateLimit(config: RateLimitConfig, ctx: Context, isVerified?: boolean): void {
+  const key = config.keyGenerator
+    ? config.keyGenerator(ctx)
+    : getClientIp(ctx) ?? "anonymous";
+
+  const now = Date.now();
+  const resetTime = now + config.windowMs;
+
+  // Get or create rate limit entry
+  let rateLimit = rateLimitStore.get(key);
+  
+  if (!rateLimit || rateLimit.resetTime < now) {
+    rateLimit = { count: 0, resetTime };
+    rateLimitStore.set(key, rateLimit);
+  }
+
+  // Check if rate limit exceeded
+  if (rateLimit.count >= config.maxRequests) {
+    const retryAfter = Math.ceil((rateLimit.resetTime - now) / 1000);
+    let message = `Rate limit exceeded. Try again in ${retryAfter} seconds.`;
+    
+    // Add verification context if provided
+    if (isVerified !== undefined) {
+      const limitType = isVerified ? "verified user" : "unverified user";
+      const verificationHint = !isVerified ? ' Please verify your email for higher limits.' : '';
+      message = `Rate limit exceeded for ${limitType}. Try again in ${retryAfter} seconds.${verificationHint}`;
+    }
+    
+    throw new TRPCError({
+      code: "TOO_MANY_REQUESTS",
+      message,
+    });
+  }
+
+  // Increment counter if not skipping successful requests
+  if (!config.skipSuccessfulRequests) {
+    rateLimit.count++;
+  }
+}
+
+/**
+ * Helper function to handle post-request rate limit logic
+ */
+function handlePostRequest(config: RateLimitConfig, ctx: Context, success: boolean): void {
+  const key = config.keyGenerator
+    ? config.keyGenerator(ctx)
+    : getClientIp(ctx) ?? "anonymous";
+    
+  const rateLimit = rateLimitStore.get(key);
+  if (!rateLimit) return;
+
+  if (config.skipSuccessfulRequests && success) {
+    rateLimit.count++;
+  } else if (!config.skipSuccessfulRequests && !success) {
+    rateLimit.count--;
+  }
+}
+
+export function createRateLimitMiddleware(config: RateLimitConfig) {
+  return t.middleware(async ({ ctx, next }) => {
+    performRateLimit(config, ctx);
+
+    try {
+      const result = await next();
+      handlePostRequest(config, ctx, true);
+      return result;
+    } catch (error) {
+      handlePostRequest(config, ctx, false);
+      throw error;
+    }
+  });
+}
+
+/**
  * Creates a middleware that applies different rate limits based on email verification status
  * Use this for expensive operations like AI API calls
  */
@@ -163,52 +189,20 @@ export function createVerificationAwareRateLimit(
     // Check if user is verified
     const isVerified = ctx.user?.emailVerified ?? false;
     
-    loggers.api(`Rate limit check - User: ${ctx.user?.email}, Verified: ${isVerified}`);
+    loggers.api(`Rate limit check`, { userId: ctx.user?.id, verified: !!isVerified });
     
     // Apply the appropriate rate limit config
     const config = isVerified ? verifiedConfig : unverifiedConfig;
-    const key = config.keyGenerator
-      ? config.keyGenerator(ctx)
-      : ctx.user?.id ?? "anonymous";
-
-    const now = Date.now();
-    const resetTime = now + config.windowMs;
-
-    // Get or create rate limit entry
-    let rateLimit = rateLimitStore.get(key);
     
-    if (!rateLimit || rateLimit.resetTime < now) {
-      rateLimit = { count: 0, resetTime };
-      rateLimitStore.set(key, rateLimit);
-    }
-
-    // Check if rate limit exceeded
-    if (rateLimit.count >= config.maxRequests) {
-      const retryAfter = Math.ceil((rateLimit.resetTime - now) / 1000);
-      const limitType = isVerified ? "verified user" : "unverified user";
-      throw new TRPCError({
-        code: "TOO_MANY_REQUESTS",
-        message: `Rate limit exceeded for ${limitType}. Try again in ${retryAfter} seconds. ${!isVerified ? 'Please verify your email for higher limits.' : ''}`,
-      });
-    }
-
-    // Increment counter
-    if (!config.skipSuccessfulRequests) {
-      rateLimit.count++;
-    }
+    // Perform rate limiting with verification context
+    performRateLimit(config, ctx, isVerified);
 
     try {
       const result = await next();
-      
-      if (config.skipSuccessfulRequests) {
-        rateLimit.count++;
-      }
-      
+      handlePostRequest(config, ctx, true);
       return result;
     } catch (error) {
-      if (!config.skipSuccessfulRequests) {
-        rateLimit.count--;
-      }
+      handlePostRequest(config, ctx, false);
       throw error;
     }
   });

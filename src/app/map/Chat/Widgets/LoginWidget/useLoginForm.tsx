@@ -5,6 +5,7 @@ import { registerAction } from '~/lib/domains/iam/actions';
 import { authClient } from '~/lib/auth/auth-client';
 import { useRouter } from 'next/navigation';
 import { useEventBus } from '../../../Services/EventBus/event-bus-context';
+import { env } from '~/env';
 
 export function useLoginForm() {
   const eventBus = useEventBus();
@@ -55,7 +56,7 @@ export function useLoginForm() {
         type: 'auth.login',
         payload: {
           userId: session.data.user.id,
-          userName: session.data.user.name || session.data.user.email
+          userName: session.data.user.name ?? session.data.user.email
         },
         source: 'auth',
         timestamp: new Date(),
@@ -82,13 +83,13 @@ export function useLoginForm() {
     });
     
     if (!result.success) {
-      throw new Error(result.error || 'Registration failed');
+      throw new Error(result.error ?? 'Registration failed');
     }
     
     // Trigger the success flow
     if (result.userId && 'defaultMapId' in result) {
       // Check if email verification is required
-      const requiresVerification = true; // Temporarily true for testing
+      const requiresVerification = env.NEXT_PUBLIC_REQUIRE_EMAIL_VERIFICATION;
       
       if (requiresVerification) {
         // Don't try to login, just show success message

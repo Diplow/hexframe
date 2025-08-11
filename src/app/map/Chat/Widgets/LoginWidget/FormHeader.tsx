@@ -24,9 +24,9 @@ export function FormHeader({ mode, message, isLoading, onModeToggle }: FormHeade
 
       <div className="flex items-center gap-2 mb-3">
         {mode === 'login' ? (
-          <LogIn className="h-5 w-5 text-secondary-600" />
+          <LogIn className="h-5 w-5 text-secondary-600" aria-hidden="true" />
         ) : (
-          <UserPlus className="h-5 w-5 text-secondary-600" />
+          <UserPlus className="h-5 w-5 text-secondary-600" aria-hidden="true" />
         )}
         <h3 className="font-semibold text-secondary-900 dark:text-secondary-100">
           {mode === 'login' ? (

@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, max } from "drizzle-orm";
 import { db } from "~/server/db";
 import { userMapping } from "~/server/db/schema";
 
@@ -32,25 +32,24 @@ export class UserMappingService {
         return recheck[0]!.mappingUserId;
       }
 
-      // Create the mapping with auto-generated ID
-      // Let the database handle the ID generation
+      // First, get the next available ID by finding the max mappingUserId
+      const maxIdResult = await tx
+        .select({ maxId: max(userMapping.mappingUserId) })
+        .from(userMapping);
+
+      // Compute the next mapping user ID atomically
+      const nextMappingUserId = (maxIdResult[0]?.maxId ?? 0) + 1;
+
+      // Create the mapping with the computed ID
       const newMapping = await tx
         .insert(userMapping)
         .values({
           authUserId,
-          mappingUserId: 0, // Temporary value, we'll use the auto-generated ID
+          mappingUserId: nextMappingUserId,
         })
         .returning();
 
-      // Update with the auto-generated ID as the mapping user ID
-      // This ensures unique IDs even after deletions
-      const generatedId = newMapping[0]!.id;
-      await tx
-        .update(userMapping)
-        .set({ mappingUserId: generatedId })
-        .where(eq(userMapping.id, generatedId));
-
-      return generatedId; // Return the auto-generated ID
+      return newMapping[0]!.mappingUserId;
     });
   }
 

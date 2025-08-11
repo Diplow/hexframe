@@ -7,8 +7,10 @@ import type { OptimisticMoveConfig } from "./types";
  */
 export async function performOptimisticMove(config: OptimisticMoveConfig): Promise<void> {
   // This code path is never executed in production - actual moves go through MutationCoordinator
+  const err = new Error('This move handler is dead code - use MutationCoordinator');
   console.warn('Dead code path: performOptimisticMove was called');
-  config.onMoveError?.(new Error('This move handler is dead code - use MutationCoordinator'));
+  config.onMoveError?.(err);
+  throw err;
 }
 
 // Re-export types and utilities for external use

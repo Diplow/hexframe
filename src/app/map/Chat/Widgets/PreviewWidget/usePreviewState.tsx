@@ -60,13 +60,14 @@ export function usePreviewState({
   }, [title, content]);
 
   return {
-    isExpanded,
-    setIsExpanded,
-    isEditing,
-    setIsEditing,
-    editTitle,
-    setEditTitle,
-    editContent,
-    setEditContent,
+    expansion: { isExpanded, setIsExpanded },
+    editing: { 
+      isEditing, 
+      setIsEditing,
+      title: editTitle,
+      setTitle: setEditTitle,
+      content: editContent,
+      setContent: setEditContent,
+    },
   };
 }
