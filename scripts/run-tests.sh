@@ -23,13 +23,15 @@ echo "========================================="
 
 # Check if we're running in CI environment
 if [ "$CI" = "true" ]; then
-  STORYBOOK_EXCLUDE="--exclude '**/not-found.stories.tsx' --exclude '**/loading-states.stories.tsx'"
+  STORYBOOK_EXCLUDE=(--exclude "**/not-found.stories.tsx" --exclude "**/loading-states.stories.tsx")
 else
-  STORYBOOK_EXCLUDE=""
+  STORYBOOK_EXCLUDE=()
 fi
 
 # First, run all tests except the problematic ones
 echo "Phase 1: Main test suite (excluding React component and drag-and-drop tests)..."
+# Temporarily disable exit-on-error to collect exit codes without aborting
+set +e
 pnpm vitest run --config vitest.config.ts \
   --exclude "**/base.test.tsx" \
   --exclude "**/auth-tile.test.tsx" \
@@ -51,7 +53,7 @@ pnpm vitest run --config vitest.config.ts \
   --exclude "**/ChatPanel.debug-message.test.tsx" \
   --exclude "**/ChatPanel.render-debug.test.tsx" \
   --exclude "**/useChatState.test.tsx" \
-  $STORYBOOK_EXCLUDE 2>test-results/main-suite.log
+  "${STORYBOOK_EXCLUDE[@]}" 2>test-results/main-suite.log
 
 MAIN_EXIT_CODE=$?
 mv test-results/vitest-results.json test-results/main.tmp.json 2>>test-results/main-suite.log || true
@@ -75,6 +77,7 @@ for file in \
   src/app/map/Tile/Item/__tests__/multi-line-title.test.tsx \
   src/app/map/Tile/Item/_hooks/__tests__/use-item-state.test.tsx \
   src/app/map/Chat/__tests__/ChatPanel.send-message.test.tsx \
+  src/app/map/Chat/__tests__/ChatPanel.fixed.test.tsx \
   src/app/map/Chat/__tests__/ChatPanel.debug-message.test.tsx \
   src/app/map/Chat/__tests__/ChatPanel.render-debug.test.tsx \
   src/app/map/Chat/__tests__/useChatState.test.tsx
@@ -95,6 +98,9 @@ fi
 # Drag-and-drop tests no longer exist (consolidated into single hook)
 echo "Phase 3: Drag-and-drop tests (skipped - tests removed after consolidation)..."
 DRAG_EXIT_CODE=0
+
+# Re-enable strict mode after collecting all phase exit codes
+set -e
 
 # Merge all JSON results
 echo ""
@@ -193,6 +199,7 @@ echo "========================================="
 
 python3 -c "
 import json
+import os
 
 with open('test-results/vitest-results.json', 'r') as f:
     data = json.load(f)
@@ -220,7 +227,10 @@ else:
     failed_count = 0
     for test_file in data.get('testResults', []):
         if test_file.get('status') == 'failed':
-            file_name = test_file['name'].replace('/home/ulysse/Documents/hexframe/', '')
+            try:
+                file_name = os.path.relpath(test_file['name'], start=os.getcwd())
+            except Exception:
+                file_name = test_file.get('name', 'unknown')
             print(f\"\\n📁 {file_name}\")
             for assertion in test_file.get('assertionResults', []):
                 if assertion.get('status') == 'failed':
@@ -249,6 +259,14 @@ if [ $MAIN_EXIT_CODE -ne 0 ] || [ $REACT_EXIT_CODE -ne 0 ] || [ $DRAG_EXIT_CODE 
   [ -f test-results/main-suite.log ] && [ -s test-results/main-suite.log ] && echo "  - test-results/main-suite.log"
   [ -f test-results/react-components.log ] && [ -s test-results/react-components.log ] && echo "  - test-results/react-components.log"
   [ -f test-results/drag-drop.log ] && [ -s test-results/drag-drop.log ] && echo "  - test-results/drag-drop.log"
+fi
+
+# Also honor merged JSON success
+if [ -f test-results/vitest-results.json ]; then
+  MERGED_FAIL=$(python3 -c 'import json,sys; d=json.load(open("test-results/vitest-results.json")); sys.stdout.write("1" if not d.get("success", False) else "0")')
+  if [ "$MERGED_FAIL" = "1" ]; then
+    OVERALL_EXIT_CODE=1
+  fi
 fi
 
 exit $OVERALL_EXIT_CODE

@@ -203,7 +203,8 @@ export class MutationCoordinator {
     targetItem: TileData,
     sourceCoordId: string,
     targetCoordId: string,
-    changeId: string
+    changeId: string,
+    rollbackState?: Record<string, MapItemAPIContract | undefined>
   ): void {
     // Get current cache state
     const currentState = this.config.getState();
@@ -248,6 +249,10 @@ export class MutationCoordinator {
     
     // Relocate source's children to target's position
     directChildrenSource.forEach(child => {
+      // Capture rollback for child before relocation
+      if (rollbackState) {
+        rollbackState[child.metadata.coordId] = this._reconstructApiData(child);
+      }
       const childCoords = CoordSystem.parseId(child.metadata.coordId);
       const relativePath = childCoords.path.slice(parsedSource.path.length);
       const newPath = [...parsedTarget.path, ...relativePath];
@@ -262,6 +267,10 @@ export class MutationCoordinator {
     
     // Relocate target's children to source's position
     directChildrenTarget.forEach(child => {
+      // Capture rollback for child before relocation
+      if (rollbackState) {
+        rollbackState[child.metadata.coordId] = this._reconstructApiData(child);
+      }
       const childCoords = CoordSystem.parseId(child.metadata.coordId);
       const relativePath = childCoords.path.slice(parsedTarget.path.length);
       const newPath = [...parsedSource.path, ...relativePath];
@@ -563,7 +572,8 @@ export class MutationCoordinator {
         moveParams.targetItem,
         moveParams.sourceCoordId,
         moveParams.targetCoordId,
-        moveParams.changeId
+        moveParams.changeId,
+        moveParams.rollbackState
       );
     } else {
       this._applyOptimisticMove(
@@ -596,6 +606,8 @@ export class MutationCoordinator {
     
     // Clear tracking
     this.tracker.removeChange(moveParams.changeId);
+    this.tracker.removeChange(moveParams.changeId + '_source');
+    this.tracker.removeChange(moveParams.changeId + '_target');
     
     // Emit appropriate event
     this._emitMoveEvent(moveParams);
