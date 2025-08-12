@@ -23,7 +23,7 @@ import type { CanvasContextStrategy, ChatContextStrategy } from '../types'
 import type { ICanvasStrategy } from './canvas-strategies/strategy.interface'
 import type { IChatStrategy } from './chat-strategies/strategy.interface'
 
-import type { CacheState } from '~/app/map/Cache/State/types'
+import type { CacheState } from '~/app/map/Cache/interface'
 
 export interface CreateAgenticServiceOptions {
   openRouterApiKey: string

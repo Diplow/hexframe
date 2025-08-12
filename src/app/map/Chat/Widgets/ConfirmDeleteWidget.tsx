@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useMapCache } from '../../Cache/_hooks/use-map-cache';
+import { useMapCache } from '~/app/map/Cache/interface';
 import { Trash2, AlertTriangle } from 'lucide-react';
 import { useEventBus } from '../../Services/EventBus/event-bus-context';
 

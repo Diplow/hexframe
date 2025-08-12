@@ -8,7 +8,7 @@ import { TileActionsProvider } from "../Canvas/TileActionsContext";
 import { MapContent } from "./MapContent";
 import { ChatPanel } from "../Chat/ChatPanel";
 import { useTileSelectForChat } from "../_hooks/use-tile-select-for-chat";
-import { useMapCache } from "../Cache/map-cache";
+import { useMapCache } from '~/app/map/Cache/interface';
 import { useRouter } from "next/navigation";
 import { MapLoadingSkeleton } from "../Canvas/LifeCycle/loading-skeleton";
 import { useEventBus } from "../Services/EventBus/event-bus-context";

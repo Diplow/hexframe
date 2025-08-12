@@ -3,7 +3,7 @@
 import { ChevronDown, Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { TileData } from "../types/tile-data";
-import { useMapCache } from "../Cache/map-cache";
+import { useMapCache } from '~/app/map/Cache/interface';
 import { _getParentHierarchy } from "./hierarchy.utils";
 import type { URLInfo } from "../types/url-info";
 import { BaseTileLayout } from "~/app/map/Canvas/base/BaseTileLayout";

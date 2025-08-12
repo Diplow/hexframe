@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
-import type { MapCacheHook } from '~/app/map/Cache/types';
+import type { MapCacheHook } from '~/app/map/Cache/interface';
 import type { Theme } from '~/contexts/ThemeContext';
 import type { User } from 'better-auth';
 
@@ -18,6 +18,7 @@ export const MockMapCacheProvider = ({ children }: { children: ReactNode }) => {
     lastUpdated: Date.now(),
 
     // Query operations
+    getItem: () => null,
     getRegionItems: () => [],
     hasItem: () => false,
     isRegionLoaded: () => false,

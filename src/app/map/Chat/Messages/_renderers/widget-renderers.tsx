@@ -30,7 +30,7 @@ export interface WidgetHandlers {
 export function renderPreviewWidget(
   widget: Widget,
   handlers: WidgetHandlers,
-  items: Record<string, TileData>
+  getItem: (coordId: string) => TileData | null
 ) {
   const previewData = widget.data as TileSelectedPayload;
   const { 
@@ -40,7 +40,7 @@ export function renderPreviewWidget(
     handlePreviewClose = () => { /* noop */ }
   } = handlers;
 
-  const tileItem = items[previewData.tileId];
+  const tileItem = getItem(previewData.tileId);
   const currentTitle = tileItem?.data.name ?? previewData.tileData.title;
   const currentContent = tileItem?.data.description ?? previewData.tileData.content ?? '';
 

@@ -21,6 +21,7 @@
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "lint:colors": "node scripts/validate-colors.mjs",
+    "lint:architecture": "bash .husky/check-architecture",
     "preview": "next build && next start",
     "start": "next start",
     "typecheck": "tsc --noEmit",

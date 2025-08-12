@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Maximize2, Minimize2, Crosshair, Pencil, Trash2, ExternalLink } from "lucide-react";
-import { useMapCache } from "../../Cache/map-cache";
+import { useMapCache } from '~/app/map/Cache/interface';
 import { testLogger } from "~/lib/test-logger";
 import {
   getButtonPositioning,

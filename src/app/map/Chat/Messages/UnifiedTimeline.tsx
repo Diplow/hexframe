@@ -87,7 +87,6 @@ export function UnifiedTimeline({ items }: UnifiedTimelineProps) {
                 <MessageActorRenderer message={item.data as Message} />
               ) : (
                 <div className="my-2">
-                  {console.log('[UnifiedTimeline] Passing widget to WidgetManager:', item.data)}
                   <WidgetManager widgets={[item.data as Widget]} />
                 </div>
               )}

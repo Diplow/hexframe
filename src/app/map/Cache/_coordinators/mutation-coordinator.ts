@@ -1,6 +1,5 @@
 import { type Dispatch } from "react";
 import { CoordSystem, type Coord } from "~/lib/domains/mapping/utils/hex-coordinates";
-import { MapItemType } from "~/lib/domains/mapping/types/contracts";
 import type { MapItemAPIContract } from "~/server/api/types/contracts";
 import type { CacheAction } from "../State/types";
 import type { DataOperations } from "../Handlers/types";
@@ -415,7 +414,7 @@ export class MutationCoordinator {
       url: data.url ?? "",
       depth: coords.path.length,
       parentId,
-      itemType: MapItemType.BASE,
+      itemType: "base",
       ownerId: this.config.mapContext?.userId.toString() ?? "unknown",
     };
   }
@@ -536,7 +535,7 @@ export class MutationCoordinator {
       descr: tile.data.description,
       url: tile.data.url,
       parentId: null, // We don't store this in TileData
-      itemType: MapItemType.BASE,
+      itemType: "base",
       ownerId: tile.metadata.ownerId ?? this.config.mapContext?.userId.toString() ?? "unknown",
     };
   }

@@ -1,7 +1,5 @@
 // Service interface types for dependency injection and mocking
 
-import type { MapItemType } from "~/lib/domains/mapping/_objects/map-item";
-
 export interface ServerService {
   // Data fetching operations (primary purpose)
   fetchItemsForCoordinate: (params: {
@@ -15,7 +13,7 @@ export interface ServerService {
     descr: string;
     url: string;
     parentId: string | null;
-    itemType: MapItemType;
+    itemType: string;
     ownerId: string;
   }[]>;
 
@@ -28,7 +26,7 @@ export interface ServerService {
     descr: string;
     url: string;
     parentId: string | null;
-    itemType: MapItemType;
+    itemType: string;
     ownerId: string;
   } | null>;
   getRootItemById: (mapItemId: number) => Promise<{
@@ -39,7 +37,7 @@ export interface ServerService {
     descr: string;
     url: string;
     parentId: string | null;
-    itemType: MapItemType;
+    itemType: string;
     ownerId: string;
   } | null>;
   getDescendants: (itemId: number) => Promise<{
@@ -50,7 +48,7 @@ export interface ServerService {
     descr: string;
     url: string;
     parentId: string | null;
-    itemType: MapItemType;
+    itemType: string;
     ownerId: string;
   }[]>;
   getAncestors: (itemId: number) => Promise<{
@@ -61,7 +59,7 @@ export interface ServerService {
     descr: string;
     url: string;
     parentId: string | null;
-    itemType: MapItemType;
+    itemType: string;
     ownerId: string;
   }[]>;
 

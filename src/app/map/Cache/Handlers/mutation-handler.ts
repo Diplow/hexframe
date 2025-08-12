@@ -1,7 +1,6 @@
 import type { CacheAction, CacheState } from "../State/types";
 import { cacheActions } from "../State/actions";
 import type { DataOperations } from "./types";
-import { MapItemType } from "~/lib/domains/mapping/_objects/map-item";
 import type { EventBusService } from "~/app/map/types/events";
 
 // Note: Server mutations are NOT handled through the server service
@@ -76,7 +75,7 @@ export function createMutationHandler(
           depth: 1, // TODO: Calculate actual depth
           id: `optimistic_${changeId}`,
           parentId: null, // TODO: Determine parent
-          itemType: MapItemType.BASE,
+          itemType: "base",
           ownerId: "current-user", // TODO: Get actual user
         };
 
@@ -147,7 +146,7 @@ export function createMutationHandler(
           coordinates: coordId,
           depth: existingItem.metadata.depth,
           parentId: existingItem.metadata.parentId ?? null,
-          itemType: MapItemType.BASE,
+          itemType: "base",
           ownerId: existingItem.metadata.ownerId,
         };
         

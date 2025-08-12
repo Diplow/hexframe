@@ -190,7 +190,7 @@ beforeEach(() => {
 });
 
 // Mock providers for tests
-vi.mock('~/app/map/Cache/_hooks/use-map-cache', () => ({
+vi.mock('~/app/map/Cache/use-map-cache', () => ({
   useMapCache: vi.fn(() => ({
     // State queries
     items: {},

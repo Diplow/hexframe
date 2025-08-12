@@ -12,7 +12,7 @@ import { LoginWidget } from './Widgets/LoginWidget';
 import { ConfirmDeleteWidget } from './Widgets/ConfirmDeleteWidget';
 import { LoadingWidget } from './Widgets/LoadingWidget';
 import { ErrorWidget } from './Widgets/ErrorWidget';
-import { useMapCache } from '../Cache/_hooks/use-map-cache';
+import { useMapCache } from '~/app/map/Cache/interface';
 import { useUnifiedAuth } from '~/contexts/UnifiedAuthContext';
 import { useRouter } from 'next/navigation';
 import { useChatSettings } from './_settings/useChatSettings';

@@ -1,9 +1,8 @@
 import { useState, useCallback } from "react";
 import type { DragEvent } from "react";
 import { useUnifiedAuth } from "~/contexts/UnifiedAuthContext";
-import { useMapCache } from "../../Cache/_hooks/use-map-cache";
+import { useMapCache } from '~/app/map/Cache/interface';
 import { useEventBus } from "../../Services/EventBus/event-bus-context";
-import { cacheSelectors } from "~/app/map/Cache/State/selectors";
 import { canDragTile } from "./_validators";
 import { isValidDropTarget, getDropOperationType } from "./_calculators";
 import {
@@ -45,35 +44,17 @@ export interface UseDragAndDropReturn {
 export function useDragAndDrop(): UseDragAndDropReturn {
   const { mappingUserId } = useUnifiedAuth();
   const eventBus = useEventBus();
-  const { items, moveItemOptimistic } = useMapCache();
+  const { getItem, moveItemOptimistic } = useMapCache();
   const [dragState, setDragState] = useState<DragState>(initialDragState);
-  
-  // Create selectors from the current items
-  const cacheState = {
-    itemsById: items,
-    regionMetadata: {},
-    currentCenter: null,
-    expandedItemIds: [],
-    isLoading: false,
-    error: null,
-    lastUpdated: Date.now(),
-    cacheConfig: {
-      maxAge: 300000,
-      backgroundRefreshInterval: 60000,
-      enableOptimisticUpdates: true,
-      maxDepth: 3
-    }
-  };
-  const selectors = cacheSelectors(cacheState);
 
   const checkCanDrag = useCallback((coordId: string): boolean => {
-    const tile = selectors.getItem(coordId);
+    const tile = getItem(coordId);
     return canDragTile(tile, mappingUserId ?? null);
-  }, [selectors, mappingUserId]);
+  }, [getItem, mappingUserId]);
 
   const checkDropTarget = useCallback((targetCoordId: string): boolean => {
-    return isValidDropTarget(targetCoordId, dragState.draggedTileId, selectors, mappingUserId ?? null);
-  }, [dragState.draggedTileId, selectors, mappingUserId]);
+    return isValidDropTarget(targetCoordId, dragState.draggedTileId, getItem, mappingUserId ?? null);
+  }, [dragState.draggedTileId, getItem, mappingUserId]);
 
   const handleDragStart = useCallback((coordId: string, event: DragEvent<HTMLDivElement>) => {
     if (!checkCanDrag(coordId)) {
@@ -82,11 +63,11 @@ export function useDragAndDrop(): UseDragAndDropReturn {
     }
     
     setupDragStart(event, coordId);
-    const tile = selectors.getItem(coordId);
+    const tile = getItem(coordId);
     if (tile) {
       setDragState(createDragState(coordId, tile, event));
     }
-  }, [checkCanDrag, selectors]);
+  }, [checkCanDrag, getItem]);
 
   const handleDragOver = useCallback((targetCoordId: string, event: DragEvent<HTMLDivElement>) => {
     const isValid = checkDropTarget(targetCoordId);
@@ -94,13 +75,13 @@ export function useDragAndDrop(): UseDragAndDropReturn {
     
     if (isValid) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-      const operation: DropOperation = getDropOperationType(targetCoordId, selectors);
+      const operation: DropOperation = getDropOperationType(targetCoordId, getItem);
       setDragState(prev => ({
         ...updateDropTarget(prev, targetCoordId),
         dropOperation: operation
       }));
     }
-  }, [checkDropTarget, selectors]);
+  }, [checkDropTarget, getItem]);
 
   const handleDragLeave = useCallback(() => {
     setDragState(prev => ({
@@ -122,8 +103,8 @@ export function useDragAndDrop(): UseDragAndDropReturn {
       return;
     }
     
-    const sourceItem = items[sourceCoordId];
-    const targetItem = items[targetCoordId];
+    const sourceItem = getItem(sourceCoordId);
+    const targetItem = getItem(targetCoordId);
     
     if (!sourceItem) return;
     
@@ -156,7 +137,7 @@ export function useDragAndDrop(): UseDragAndDropReturn {
     
     // Reset drag state
     setDragState(initialDragState);
-  }, [dragState.draggedTileData, dragState.draggedTileId, checkDropTarget, items, moveItemOptimistic, eventBus]);
+  }, [dragState.draggedTileData, dragState.draggedTileId, checkDropTarget, getItem, moveItemOptimistic, eventBus]);
 
   const handleDragEnd = useCallback(() => {
     setDragState(initialDragState);

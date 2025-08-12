@@ -254,56 +254,12 @@ vi.mock('~/lib/debug/debug-logger', () => ({
   },
 }));
 
-// Mock map cache context to provide required context
-vi.mock('../../Cache/_hooks/use-cache-context', () => ({
-  useMapCacheContext: vi.fn(() => ({
-    state: {
-      currentCenter: 'center-tile-id',
-      itemsById: {
-        'center-tile-id': {
-          metadata: {
-            coordId: 'center-tile-id',
-            coordinates: { q: 0, r: 0 },
-            depth: 0,
-            parentId: null,
-          },
-          data: {
-            name: 'Center Tile',
-            description: 'Test tile',
-            url: '',
-            color: '#000000',
-          },
-        },
-      },
-    },
-    actions: {
-      selectTile: vi.fn(),
-    },
-  })),
-  useMapCacheContextSafe: vi.fn(() => ({
-    state: {
-      currentCenter: 'center-tile-id',
-      itemsById: {
-        'center-tile-id': {
-          metadata: {
-            coordId: 'center-tile-id',
-            coordinates: { q: 0, r: 0 },
-            depth: 0,
-            parentId: null,
-          },
-          data: {
-            name: 'Center Tile',
-            description: 'Test tile',
-            url: '',
-            color: '#000000',
-          },
-        },
-      },
-    },
-    actions: {
-      selectTile: vi.fn(),
-    },
-  })),
+// Mock MapCacheContext to return null (simulating no provider)
+vi.mock('../../Cache/provider', () => ({
+  MapCacheContext: {
+    Provider: ({ children }: { children: React.ReactNode }) => children,
+    Consumer: () => null,
+  }
 }));
 
 // DON'T mock internal components - let them render naturally

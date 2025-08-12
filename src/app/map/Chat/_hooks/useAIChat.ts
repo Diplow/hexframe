@@ -1,7 +1,8 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useContext } from 'react'
 import { api } from '~/commons/trpc/react'
 import { useChatState } from '../_state'
-import { useMapCacheContextSafe } from '../../Cache/_hooks/use-cache-context'
+import { MapCacheContext } from '../../Cache/interface'
+import { useMapCache } from '../../Cache/interface'
 import type { ChatMessage } from '../types'
 import type { CompositionConfig } from '~/lib/domains/agentic/types'
 import type { QueuedJobResponse } from '~/lib/domains/agentic/types/job.types'
@@ -19,11 +20,11 @@ export function useAIChat(options: UseAIChatOptions = {}) {
   
   console.log('[useAIChat] Hook initialized with options:', options)
   
-  // Use safe version that returns null instead of throwing
-  const context = useMapCacheContextSafe()
-  const cacheState = context?.state ?? null
+  // Check if cache context is available (handles SSR/hydration)
+  const context = useContext(MapCacheContext)
+  const cache = context ? useMapCache() : null
   
-  console.log('[useAIChat] Cache state available:', !!cacheState)
+  console.log('[useAIChat] Cache available:', !!cache)
   
   const generateResponseMutation = api.agentic.generateResponse.useMutation({
     onSuccess: (response) => {
@@ -37,9 +38,8 @@ export function useAIChat(options: UseAIChatOptions = {}) {
         content: response.content
       })
       
-      // Check if response is queued (has a jobId and pending status, or finishReason is 'queued')
-      if (('jobId' in response && 'status' in response && response.status === 'pending') || 
-          ('finishReason' in response && response.finishReason === 'queued')) {
+      // Check if response is queued (has a jobId and pending status)
+      if ('jobId' in response && 'status' in response && response.status === 'pending') {
         // Send AI Response widget for queued job
         const queuedResponse = response as unknown as QueuedJobResponse
         console.log('[useAIChat] Response is QUEUED, creating widget with jobId:', queuedResponse.jobId || response.id)
@@ -81,7 +81,7 @@ export function useAIChat(options: UseAIChatOptions = {}) {
   })
 
   const sendToAI = useCallback(async (message: string) => {
-    if (!cacheState) {
+    if (!cache) {
       chatState.showSystemMessage(
         'Cache not available. Please ensure you are using the chat within a map context.',
         'error'
@@ -89,7 +89,7 @@ export function useAIChat(options: UseAIChatOptions = {}) {
       return
     }
     
-    const centerCoordId = cacheState.currentCenter
+    const centerCoordId = cache.center
     
     if (!centerCoordId) {
       chatState.showSystemMessage(
@@ -137,7 +137,7 @@ export function useAIChat(options: UseAIChatOptions = {}) {
       compositionConfig: options.compositionConfig,
       cacheState: {
         itemsById: Object.fromEntries(
-          Object.entries(cacheState.itemsById).map(([id, item]) => [
+          Object.entries(cache.items).map(([id, item]) => [
             id,
             {
               metadata: {
@@ -155,10 +155,22 @@ export function useAIChat(options: UseAIChatOptions = {}) {
             }
           ])
         ),
-        currentCenter: cacheState.currentCenter ?? ''
+        currentCenter: cache.center ?? ''
       }
     })
-  }, [chatState, cacheState, generateResponseMutation, options])
+  }, [chatState, cache, generateResponseMutation, options])
+
+  // Return no-op functions if cache is not available
+  if (!cache) {
+    return {
+      sendToAI: async () => {
+        console.warn('[useAIChat] Cannot send to AI - cache context not available')
+      },
+      isGenerating: false,
+      isError: false,
+      error: null
+    }
+  }
 
   return {
     sendToAI,

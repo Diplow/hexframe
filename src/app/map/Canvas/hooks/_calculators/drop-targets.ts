@@ -1,8 +1,6 @@
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
-import type { cacheSelectors } from "~/app/map/Cache/State/selectors";
+import type { TileData } from "~/app/map/types/tile-data";
 import { canSwapTiles } from "../_validators";
-
-type CacheSelectors = ReturnType<typeof cacheSelectors>;
 
 /**
  * @deprecated This function is no longer needed with universal drop targets.
@@ -10,7 +8,7 @@ type CacheSelectors = ReturnType<typeof cacheSelectors>;
  */
 export function getValidDropTargets(
   _draggedTileId: string,
-  _selectors: CacheSelectors
+  _items: Record<string, TileData>
 ): string[] {
   // With the new approach, we don't pre-calculate valid targets
   // Every user-owned tile (except root) is a potential target
@@ -20,7 +18,7 @@ export function getValidDropTargets(
 export function isValidDropTarget(
   targetCoordId: string,
   draggedTileId: string | null,
-  selectors: CacheSelectors,
+  getItem: (coordId: string) => TileData | null,
   currentUserId: number | null
 ): boolean {
   if (!draggedTileId || !currentUserId) {
@@ -41,7 +39,7 @@ export function isValidDropTarget(
   }
   
   // Check if this would be a problematic swap
-  const targetTile = selectors.getItem(targetCoordId);
+  const targetTile = getItem(targetCoordId);
   if (targetTile && !canSwapTiles(draggedTileId, targetCoordId)) {
     // This swap would cause issues in the backend
     return false;
@@ -63,8 +61,8 @@ export function isValidDropTarget(
  */
 export function getDropOperationType(
   targetCoordId: string,
-  selectors: CacheSelectors
+  getItem: (coordId: string) => TileData | null
 ): 'move' | 'swap' {
-  const hasItem = selectors.hasItem(targetCoordId);
+  const hasItem = getItem(targetCoordId) !== null;
   return hasItem ? 'swap' : 'move';
 }

@@ -5,7 +5,7 @@ import { verificationAwareRateLimit, verificationAwareAuthLimit } from '../middl
 import { createAgenticService } from '~/lib/domains/agentic/services'
 import type { EventBus } from '~/app/map/Services/EventBus/event-bus'
 import { EventBus as EventBusImpl } from '~/app/map/Services/EventBus/event-bus'
-import type { CacheState } from '~/app/map/Cache/State/types'
+import type { CacheState } from '~/app/map/Cache/interface'
 import type { ChatMessage } from '~/app/map/Chat/types'
 import type { CompositionConfig } from '~/lib/domains/agentic/types'
 import { env } from '~/env'

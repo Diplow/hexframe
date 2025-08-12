@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { chatSettings } from '../../_settings/chat-settings';
 import { useChatState } from '../../_state';
-import { useMapCache } from '../../../Cache/_hooks/use-map-cache';
+import { useMapCache } from '~/app/map/Cache/interface';
 import { debugLogger } from '~/lib/debug/debug-logger';
 import { authClient } from '~/lib/auth/auth-client';
 import { useEventBus } from '../../../Services/EventBus/event-bus-context';

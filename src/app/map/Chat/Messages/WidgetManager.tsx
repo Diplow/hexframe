@@ -1,7 +1,7 @@
 import type { Widget } from '../_state/types';
 import type { TileData } from '../../types/tile-data';
 import type { ReactNode } from 'react';
-import { useMapCache } from '../../Cache/_hooks/use-map-cache';
+import { useMapCache } from '~/app/map/Cache/interface';
 import { useEventBus } from '../../Services/EventBus/event-bus-context';
 import { useChatState } from '../_state';
 import { createCreationHandlers } from './_handlers/creation-handlers';
@@ -29,7 +29,7 @@ export function WidgetManager({ widgets, focusChatInput: focusChatInputProp }: W
     console.log('[WidgetManager] Widget:', { id: w.id, type: w.type, hasData: !!w.data })
   })
   
-  const { createItemOptimistic, updateItemOptimistic, items } = useMapCache();
+  const { createItemOptimistic, updateItemOptimistic, getItem } = useMapCache();
   const eventBus = useEventBus();
   const chatState = useChatState();
   
@@ -59,7 +59,7 @@ export function WidgetManager({ widgets, focusChatInput: focusChatInputProp }: W
     <>
       {widgets.map((widget) => (
         <div key={widget.id} className="w-full">
-          {_renderWidget(widget, createWidgetHandlers, items)}
+          {_renderWidget(widget, createWidgetHandlers, getItem)}
         </div>
       ))}
     </>
@@ -69,13 +69,13 @@ export function WidgetManager({ widgets, focusChatInput: focusChatInputProp }: W
 function _renderWidget(
   widget: Widget, 
   createWidgetHandlers: (widget: Widget) => WidgetHandlers, 
-  items: Record<string, TileData>
+  getItem: (coordId: string) => TileData | null
 ): ReactNode {
   console.log('[_renderWidget] Rendering widget type:', widget.type, 'with id:', widget.id)
   
   switch (widget.type) {
     case 'preview':
-      return renderPreviewWidget(widget, createWidgetHandlers(widget), items);
+      return renderPreviewWidget(widget, createWidgetHandlers(widget), getItem);
     case 'login':
       return renderLoginWidget(widget);
     case 'error':

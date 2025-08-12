@@ -1,5 +1,4 @@
 import type { CacheAction, CacheState } from "../State/types";
-import type { MapItemType } from "~/lib/domains/mapping/_objects/map-item";
 
 // Common handler dependencies
 export interface HandlerConfig {
@@ -21,7 +20,7 @@ export interface HandlerServices {
       descr: string;
       url: string;
       parentId: string | null;
-      itemType: MapItemType;
+      itemType: string;
       ownerId: string;
     }[]>;
     createItem?: (params: { coordId: string; data: Record<string, unknown> }) => Promise<unknown>;

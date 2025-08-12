@@ -1,0 +1,117 @@
+#!/bin/sh
+
+# Architecture Boundary Check
+# Simple checks: line counts and required files
+
+set -e
+
+echo "🏗️ Checking architectural boundaries..."
+
+# Configuration
+COMPLEXITY_THRESHOLD=1000  # Lines before requiring subsystem structure
+DOC_THRESHOLD=500          # Lines before requiring README
+
+# Count TypeScript lines in a directory
+# Recursive, but stops at subsystem boundaries (folders with README or ARCHITECTURE)
+count_ts_lines() {
+  local dir=$1
+  local total=0
+  
+  # Count direct files in this directory
+  local direct_lines=$(find "$dir" -maxdepth 1 -type f \( -name "*.ts" -o -name "*.tsx" \) -not -name "*.test.*" -not -name "*.spec.*" 2>/dev/null | \
+    xargs wc -l 2>/dev/null | \
+    tail -1 | \
+    awk '{print $1}' || echo 0)
+  
+  total=$((total + direct_lines))
+  
+  # For each subdirectory, check if it's a subsystem boundary
+  for subdir in "$dir"/*; do
+    if [ -d "$subdir" ]; then
+      # If subfolder has README or ARCHITECTURE, it's its own subsystem - don't count it
+      if [ -f "$subdir/README.md" ] || [ -f "$subdir/ARCHITECTURE.md" ]; then
+        continue  # Skip this subfolder, it's a separate subsystem
+      else
+        # Not a subsystem, count its lines recursively
+        subdir_lines=$(count_ts_lines "$subdir")
+        total=$((total + subdir_lines))
+      fi
+    fi
+  done
+  
+  echo $total
+}
+
+ERRORS=""
+WARNINGS=""
+
+# Check all directories for line count
+echo "Scanning directories (recursive, stopping at subsystem boundaries)..."
+for dir in $(find src -type d -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/dist/*" -not -path "*/build/*"); do
+  # Skip if this is a child of a documented subsystem (would be double-counted)
+  parent_dir=$(dirname "$dir")
+  if [ -f "$parent_dir/README.md" ] || [ -f "$parent_dir/ARCHITECTURE.md" ]; then
+    if [ "$parent_dir" != "$dir" ]; then
+      continue  # Skip children of documented subsystems
+    fi
+  fi
+  
+  lines=$(count_ts_lines "$dir")
+  
+  if [ "$lines" -gt "$COMPLEXITY_THRESHOLD" ]; then
+    # Complex folder - needs full subsystem structure
+    missing=""
+    [ ! -f "$dir/interface.ts" ] && [ ! -d "$dir/types" ] && missing="$missing interface.ts"
+    [ ! -f "$dir/README.md" ] && missing="$missing README.md"
+    [ ! -f "$dir/ARCHITECTURE.md" ] && missing="$missing ARCHITECTURE.md"
+    [ ! -f "$dir/dependencies.json" ] && missing="$missing dependencies.json"
+    
+    if [ -n "$missing" ]; then
+      ERRORS="${ERRORS}\n❌ $dir ($lines lines) missing:$missing"
+    fi
+    
+  elif [ "$lines" -gt "$DOC_THRESHOLD" ]; then
+    # Medium complexity - just needs README
+    if [ ! -f "$dir/README.md" ]; then
+      WARNINGS="${WARNINGS}\n⚠️  $dir ($lines lines) - missing README.md"
+    fi
+  fi
+done
+
+# Check that documented subsystems have all required files
+echo "Checking documented subsystems for completeness..."
+for readme_file in $(find src -name "README.md" -not -path "*/node_modules/*"); do
+  dir=$(dirname "$readme_file")
+  # Skip the root domains folder itself
+  if [ "$dir" = "src/lib/domains" ]; then
+    continue
+  fi
+  
+  missing=""
+  [ ! -f "$dir/interface.ts" ] && [ ! -d "$dir/types" ] && missing="$missing interface.ts"
+  [ ! -f "$dir/ARCHITECTURE.md" ] && missing="$missing ARCHITECTURE.md"
+  [ ! -f "$dir/dependencies.json" ] && missing="$missing dependencies.json"
+  
+  if [ -n "$missing" ]; then
+    ERRORS="${ERRORS}\n❌ $dir has README but missing:$missing"
+  fi
+done
+
+# Report results
+if [ -n "$ERRORS" ]; then
+  echo "\n🚨 Architecture violations:"
+  echo "$ERRORS"
+  echo "\nFolders over $COMPLEXITY_THRESHOLD lines need:"
+  echo "- interface.ts (or types/ folder)"
+  echo "- dependencies.json"
+  echo "- README.md"
+  echo "- ARCHITECTURE.md"
+  exit 1
+fi
+
+if [ -n "$WARNINGS" ]; then
+  echo "\n⚠️  Warnings:"
+  echo "$WARNINGS"
+fi
+
+echo "✅ Architecture check passed!"

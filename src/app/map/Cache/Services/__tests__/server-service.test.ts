@@ -6,7 +6,6 @@ import {
 } from "../server-service";
 import { ServiceError, NetworkError, TimeoutError } from "../types";
 import type { ServiceConfig } from "../types";
-import { MapItemType } from "~/lib/domains/mapping/_objects/map-item";
 
 // Mock console.warn to avoid noise in tests
 const mockConsoleWarn = vi.fn();
@@ -96,7 +95,7 @@ describe("Server Service", () => {
           depth: 1,
           url: "",
           parentId: null,
-          itemType: MapItemType.BASE,
+          itemType: "base",
           ownerId: "test-owner",
         },
       ];

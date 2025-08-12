@@ -18,7 +18,7 @@ export interface CenterInfo {
 }
 import { DynamicFrame } from "./frame";
 import type { TileScale } from "~/app/map/Canvas/base/BaseTileLayout";
-import { useMapCache } from "../Cache/map-cache";
+import { useMapCache } from '~/app/map/Cache/interface';
 import type { URLInfo } from "../types/url-info";
 import { MapLoadingSkeleton } from "./LifeCycle/loading-skeleton";
 import { MapErrorBoundary } from "./LifeCycle/error-boundary";
