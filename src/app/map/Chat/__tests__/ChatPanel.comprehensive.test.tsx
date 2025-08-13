@@ -501,21 +501,23 @@ describe('Chat Component Comprehensive Test Suite', () => {
     it('should show edit widget on map.tile_selected event with openInEditMode', async () => {
       renderWithProviders(<ChatPanel />);
       
-      mockEventBus.emit({
-        type: 'map.tile_selected',
-        source: 'map_cache',
-        payload: {
-          tileId: 'coord-123',
-          tileData: {
-            id: '123',
-            title: 'Edit Me',
-            description: 'Content to edit',
-            content: 'Content to edit',
-            coordId: 'coord-123',
+      await act(async () => {
+        mockEventBus.emit({
+          type: 'map.tile_selected',
+          source: 'map_cache',
+          payload: {
+            tileId: 'coord-123',
+            tileData: {
+              id: '123',
+              title: 'Edit Me',
+              description: 'Content to edit',
+              content: 'Content to edit',
+              coordId: 'coord-123',
+            },
+            openInEditMode: true,
           },
-          openInEditMode: true,
-        },
-        timestamp: new Date(),
+          timestamp: new Date(),
+        });
       });
       
       await waitFor(() => {

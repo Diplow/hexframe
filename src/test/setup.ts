@@ -158,7 +158,7 @@ afterEach(() => {
   cleanup();
   
   // More thorough DOM cleanup for React 18 createRoot compatibility
-  if (typeof document !== 'undefined') {
+  if (typeof document !== 'undefined' && document.querySelectorAll) {
     // Remove all React roots that might be lingering
     const allElements = document.querySelectorAll('[data-reactroot], #root, #test-container, .react-root');
     allElements.forEach(element => {
@@ -173,21 +173,28 @@ afterEach(() => {
     }
     
     // Clear document head of any test-added elements
-    const testElements = document.head.querySelectorAll('[data-test]');
-    testElements.forEach(element => {
-      if (element.parentNode) {
-        element.parentNode.removeChild(element);
-      }
-    });
+    if (document.head) {
+      const testElements = document.head.querySelectorAll('[data-test]');
+      testElements.forEach(element => {
+        if (element.parentNode) {
+          element.parentNode.removeChild(element);
+        }
+      });
+    }
   }
   
   // Clear any React 18 createRoot containers from memory
   if (typeof global !== 'undefined') {
-    // @ts-ignore - accessing internal React state for cleanup
-    if (global.__REACT_DEVTOOLS_GLOBAL_HOOK__) {
+    const globalWithHook = global as typeof global & {
+      __REACT_DEVTOOLS_GLOBAL_HOOK__?: {
+        onCommitFiberRoot?: unknown;
+        onCommitFiberUnmount?: unknown;
+      };
+    };
+    if (globalWithHook.__REACT_DEVTOOLS_GLOBAL_HOOK__) {
       try {
-        global.__REACT_DEVTOOLS_GLOBAL_HOOK__.onCommitFiberRoot = undefined;
-        global.__REACT_DEVTOOLS_GLOBAL_HOOK__.onCommitFiberUnmount = undefined;
+        globalWithHook.__REACT_DEVTOOLS_GLOBAL_HOOK__.onCommitFiberRoot = undefined;
+        globalWithHook.__REACT_DEVTOOLS_GLOBAL_HOOK__.onCommitFiberUnmount = undefined;
       } catch {
         // Ignore cleanup errors
       }
@@ -239,8 +246,11 @@ beforeEach(() => {
 });
 
 // Mock providers for tests
-vi.mock('~/app/map/Cache/use-map-cache', () => ({
-  useMapCache: vi.fn(() => ({
+vi.mock('~/app/map/Cache/interface', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    useMapCache: vi.fn(() => ({
     // State queries
     items: {},
     center: null,
@@ -251,6 +261,29 @@ vi.mock('~/app/map/Cache/use-map-cache', () => ({
 
     // Query operations
     getRegionItems: vi.fn(() => []),
+    getItem: vi.fn((coordId: string) => {
+      // Return mock data that matches test expectations
+      if (coordId === 'coord-123') {
+        return {
+          id: '123',
+          coordId: 'coord-123',
+          data: {
+            name: 'Edit Me',
+            description: 'Content to edit',
+          },
+          position: { q: 0, r: 0, s: 0 },
+        };
+      }
+      return {
+        id: coordId.replace('coord-', ''),
+        coordId,
+        data: {
+          name: 'Test Item',
+          description: 'Test description',
+        },
+        position: { q: 0, r: 0, s: 0 },
+      };
+    }),
     hasItem: vi.fn(() => false),
     isRegionLoaded: vi.fn(() => false),
 
@@ -306,7 +339,8 @@ vi.mock('~/app/map/Cache/use-map-cache', () => ({
     },
     updateConfig: vi.fn(),
   })),
-}));
+  };
+});
 
 vi.mock('~/contexts/ThemeContext', () => ({
   useTheme: vi.fn(() => ({
@@ -351,6 +385,7 @@ vi.mock('next/navigation', () => ({
   usePathname: vi.fn(() => '/'),
   useSearchParams: vi.fn(() => new URLSearchParams()),
 }));
+
 
 // Mock tRPC
 vi.mock('~/commons/trpc/react', () => ({
