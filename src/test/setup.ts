@@ -154,12 +154,44 @@ if (typeof window !== "undefined") {
 
 // Clean up after each test
 afterEach(() => {
+  // React Testing Library cleanup first
   cleanup();
   
-  // Clear DOM content but keep body intact
-  if (typeof document !== 'undefined' && document.body) {
-    // Clear content but don't remove body
-    document.body.innerHTML = '';
+  // More thorough DOM cleanup for React 18 createRoot compatibility
+  if (typeof document !== 'undefined') {
+    // Remove all React roots that might be lingering
+    const allElements = document.querySelectorAll('[data-reactroot], #root, #test-container, .react-root');
+    allElements.forEach(element => {
+      if (element.parentNode) {
+        element.parentNode.removeChild(element);
+      }
+    });
+    
+    // Clear body content
+    if (document.body) {
+      document.body.innerHTML = '';
+    }
+    
+    // Clear document head of any test-added elements
+    const testElements = document.head.querySelectorAll('[data-test]');
+    testElements.forEach(element => {
+      if (element.parentNode) {
+        element.parentNode.removeChild(element);
+      }
+    });
+  }
+  
+  // Clear any React 18 createRoot containers from memory
+  if (typeof global !== 'undefined') {
+    // @ts-ignore - accessing internal React state for cleanup
+    if (global.__REACT_DEVTOOLS_GLOBAL_HOOK__) {
+      try {
+        global.__REACT_DEVTOOLS_GLOBAL_HOOK__.onCommitFiberRoot = undefined;
+        global.__REACT_DEVTOOLS_GLOBAL_HOOK__.onCommitFiberUnmount = undefined;
+      } catch {
+        // Ignore cleanup errors
+      }
+    }
   }
 });
 
@@ -174,18 +206,35 @@ beforeEach(() => {
       }
     }
     
-    // Always ensure we have essential containers
-    if (!document.getElementById('root')) {
-      const root = document.createElement('div');
-      root.id = 'root';
-      document.body.appendChild(root);
+    // Force re-create containers to ensure clean state
+    // Remove existing containers first
+    const existingRoot = document.getElementById('root');
+    if (existingRoot) {
+      existingRoot.remove();
+    }
+    const existingTestContainer = document.getElementById('test-container');
+    if (existingTestContainer) {
+      existingTestContainer.remove();
     }
     
-    if (!document.getElementById('test-container')) {
-      const testContainer = document.createElement('div');
-      testContainer.id = 'test-container';
-      document.body.appendChild(testContainer);
-    }
+    // Create fresh containers
+    const root = document.createElement('div');
+    root.id = 'root';
+    // Add data attribute for easier cleanup
+    root.setAttribute('data-test', 'true');
+    document.body.appendChild(root);
+    
+    const testContainer = document.createElement('div');
+    testContainer.id = 'test-container';
+    testContainer.setAttribute('data-test', 'true');
+    document.body.appendChild(testContainer);
+    
+    // Ensure we have a clean slate for React 18 createRoot
+    // Add some additional containers that React Testing Library might need
+    const reactContainer = document.createElement('div');
+    reactContainer.id = 'react-test-container';
+    reactContainer.setAttribute('data-test', 'true');
+    document.body.appendChild(reactContainer);
   }
 });
 
