@@ -129,7 +129,7 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
           />
         </div>
         {model && (
-          <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+          <div className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
             Model: {model}
           </div>
         )}
@@ -141,23 +141,23 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   if (status === 'pending') {
     console.log('[AIResponseWidget] Rendering PENDING state')
     return (
-      <div className="ai-response-widget p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+      <div className="ai-response-widget p-4 rounded-lg bg-primary/10 dark:bg-primary/20 border border-primary/30 dark:border-primary/40">
         <div className="flex items-center gap-3">
-          <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400 animate-pulse" />
+          <Clock className="w-5 h-5 text-primary dark:text-primary-light animate-pulse" />
           <div className="flex-1">
-            <div className="font-medium text-blue-900 dark:text-blue-100">
+            <div className="font-medium text-primary-dark dark:text-primary-light">
               Request Queued
             </div>
-            <div className="text-sm text-blue-700 dark:text-blue-300">
+            <div className="text-sm text-primary dark:text-primary-light/80">
               Your request has been queued and will be processed shortly...
             </div>
             {jobId && (
-              <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+              <div className="text-xs text-primary dark:text-primary-light mt-1">
                 Job ID: {jobId}
               </div>
             )}
           </div>
-          <div className="text-sm text-blue-600 dark:text-blue-400">
+          <div className="text-sm text-primary dark:text-primary-light">
             {elapsedTime}s
           </div>
         </div>
@@ -169,23 +169,23 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   if (status === 'processing') {
     console.log('[AIResponseWidget] Rendering PROCESSING state')
     return (
-      <div className="ai-response-widget p-4 rounded-lg bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800">
+      <div className="ai-response-widget p-4 rounded-lg bg-secondary/10 dark:bg-secondary/20 border border-secondary/30 dark:border-secondary/40">
         <div className="flex items-center gap-3">
-          <Cpu className="w-5 h-5 text-indigo-600 dark:text-indigo-400 animate-spin" />
+          <Cpu className="w-5 h-5 text-secondary dark:text-secondary-light animate-spin" />
           <div className="flex-1">
-            <div className="font-medium text-indigo-900 dark:text-indigo-100">
+            <div className="font-medium text-secondary-dark dark:text-secondary-light">
               Processing with AI
             </div>
-            <div className="text-sm text-indigo-700 dark:text-indigo-300">
+            <div className="text-sm text-secondary dark:text-secondary-light/80">
               {model ?? 'AI model'} is thinking...
             </div>
             <div className="mt-2">
-              <div className="h-1.5 bg-indigo-200 dark:bg-indigo-800 rounded-full overflow-hidden">
-                <div className="h-full bg-indigo-600 dark:bg-indigo-400 animate-progress" />
+              <div className="h-1.5 bg-secondary/20 dark:bg-secondary/30 rounded-full overflow-hidden">
+                <div className="h-full bg-secondary dark:bg-secondary-light animate-progress" />
               </div>
             </div>
           </div>
-          <div className="text-sm text-indigo-600 dark:text-indigo-400">
+          <div className="text-sm text-secondary dark:text-secondary-light">
             {elapsedTime}s
           </div>
         </div>
@@ -204,9 +204,9 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
             isSystemMessage={false}
           />
         </div>
-        <div className="mt-3 flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+        <div className="mt-3 flex items-center gap-4 text-xs text-neutral-500 dark:text-neutral-400">
           <div className="flex items-center gap-1">
-            <CheckCircle className="w-3 h-3 text-green-500" />
+            <CheckCircle className="w-3 h-3 text-success" />
             <span>Completed</span>
           </div>
           {model && <span>Model: {model}</span>}
@@ -220,18 +220,18 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   if (status === 'failed') {
     console.log('[AIResponseWidget] Rendering FAILED state with error:', error)
     return (
-      <div className="ai-response-widget p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+      <div className="ai-response-widget p-4 rounded-lg bg-destructive/10 dark:bg-destructive/20 border border-destructive/30 dark:border-destructive/40">
         <div className="flex items-center gap-3">
-          <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+          <XCircle className="w-5 h-5 text-destructive dark:text-destructive-light" />
           <div className="flex-1">
-            <div className="font-medium text-red-900 dark:text-red-100">
+            <div className="font-medium text-destructive-dark dark:text-destructive-light">
               Request Failed
             </div>
-            <div className="text-sm text-red-700 dark:text-red-300">
+            <div className="text-sm text-destructive dark:text-destructive-light/80">
               {error ?? 'An error occurred while processing your request'}
             </div>
             {jobId && (
-              <div className="text-xs text-red-600 dark:text-red-400 mt-1">
+              <div className="text-xs text-destructive dark:text-destructive-light mt-1">
                 Job ID: {jobId}
               </div>
             )}
@@ -244,10 +244,10 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   // Loading initial state
   console.log('[AIResponseWidget] Rendering LOADING state (fallback)')
   return (
-    <div className="ai-response-widget p-4 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+    <div className="ai-response-widget p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
       <div className="flex items-center gap-3">
-        <Loader2 className="w-5 h-5 animate-spin text-gray-600 dark:text-gray-400" />
-        <span className="text-gray-700 dark:text-gray-300">Loading...</span>
+        <Loader2 className="w-5 h-5 animate-spin text-neutral-600 dark:text-neutral-400" />
+        <span className="text-neutral-700 dark:text-neutral-300">Loading...</span>
       </div>
     </div>
   )

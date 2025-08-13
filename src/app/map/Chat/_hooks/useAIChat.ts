@@ -1,4 +1,4 @@
-import { useState, useCallback, useContext } from 'react'
+import { useState, useCallback, useContext, useMemo } from 'react'
 import { api } from '~/commons/trpc/react'
 import { useChatState } from '../_state'
 import { MapCacheContext } from '../../Cache/interface'
@@ -22,10 +22,12 @@ export function useAIChat(options: UseAIChatOptions = {}) {
   // Check if cache context is available (handles SSR/hydration)
   const context = useContext(MapCacheContext)
   // Extract cache data directly from context if available
-  const cache = context ? {
-    items: context.state.itemsById,
-    center: context.state.currentCenter
-  } : null
+  const cache = useMemo(() => {
+    return context ? {
+      items: context.state.itemsById,
+      center: context.state.currentCenter
+    } : null
+  }, [context])
   
   console.log('[useAIChat] Cache available:', !!cache)
   

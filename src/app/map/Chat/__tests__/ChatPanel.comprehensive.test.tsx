@@ -5,7 +5,7 @@ import { ChatPanel } from '../ChatPanel';
 import { TestProviders } from '~/test-utils/providers';
 import { createMockEventBus } from '~/test-utils/event-bus';
 import { chatSettings } from '../_settings/chat-settings';
-import type { AppEvent } from '../../types/events';
+// import type { AppEvent } from '../../types/events'; // Not used in this test file
 
 // Mock tRPC (defined later in the file with inline mock)
 
