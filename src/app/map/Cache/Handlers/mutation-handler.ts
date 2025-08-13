@@ -2,6 +2,7 @@ import type { CacheAction, CacheState } from "../State/types";
 import { cacheActions } from "../State/actions";
 import type { DataOperations } from "./types";
 import type { EventBusService } from "~/app/map/types/events";
+import { MapItemType } from "~/lib/domains/mapping/types";
 
 // Note: Server mutations are NOT handled through the server service
 // They should use tRPC mutation hooks directly for proper client-side patterns
@@ -75,7 +76,7 @@ export function createMutationHandler(
           depth: 1, // TODO: Calculate actual depth
           id: `optimistic_${changeId}`,
           parentId: null, // TODO: Determine parent
-          itemType: "base",
+          itemType: MapItemType.BASE,
           ownerId: "current-user", // TODO: Get actual user
         };
 
@@ -146,7 +147,7 @@ export function createMutationHandler(
           coordinates: coordId,
           depth: existingItem.metadata.depth,
           parentId: existingItem.metadata.parentId ?? null,
-          itemType: "base",
+          itemType: MapItemType.BASE,
           ownerId: existingItem.metadata.ownerId,
         };
         

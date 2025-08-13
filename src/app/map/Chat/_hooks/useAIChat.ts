@@ -2,7 +2,6 @@ import { useState, useCallback, useContext } from 'react'
 import { api } from '~/commons/trpc/react'
 import { useChatState } from '../_state'
 import { MapCacheContext } from '../../Cache/interface'
-import { useMapCache } from '../../Cache/interface'
 import type { ChatMessage } from '../types'
 import type { CompositionConfig } from '~/lib/domains/agentic/types'
 import type { QueuedJobResponse } from '~/lib/domains/agentic/types/job.types'
@@ -22,7 +21,11 @@ export function useAIChat(options: UseAIChatOptions = {}) {
   
   // Check if cache context is available (handles SSR/hydration)
   const context = useContext(MapCacheContext)
-  const cache = context ? useMapCache() : null
+  // Extract cache data directly from context if available
+  const cache = context ? {
+    items: context.state.itemsById,
+    center: context.state.currentCenter
+  } : null
   
   console.log('[useAIChat] Cache available:', !!cache)
   

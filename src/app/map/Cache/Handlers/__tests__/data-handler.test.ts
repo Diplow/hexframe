@@ -8,6 +8,7 @@ import { initialCacheState } from "../../State/reducer";
 import type { DataHandlerConfig, DataHandlerServices } from "../data-handler";
 import type { CacheState } from "../../State/types";
 import type { MapItemAPIContract } from "~/server/api/types/contracts";
+import { MapItemType } from "~/lib/domains/mapping/types";
 
 // Mock console.warn to avoid noise in tests
 const mockConsoleWarn = vi.fn();
@@ -44,7 +45,7 @@ describe("Data Handler", () => {
       depth: 1,
       url: "",
       parentId: null,
-      itemType: "base",
+      itemType: MapItemType.BASE,
       ownerId: "test-owner",
     },
     {
@@ -55,7 +56,7 @@ describe("Data Handler", () => {
       depth: 2,
       url: "",
       parentId: null,
-      itemType: "base",
+      itemType: MapItemType.BASE,
       ownerId: "test-owner",
     },
   ];

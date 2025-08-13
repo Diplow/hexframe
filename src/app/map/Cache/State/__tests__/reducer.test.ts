@@ -2,6 +2,7 @@ import { cacheReducer, initialCacheState } from "../reducer";
 import { ACTION_TYPES } from "../types";
 import type { CacheState, CacheAction, RegionMetadata } from "../types";
 import type { MapItemAPIContract } from "~/server/api/types/contracts";
+import { MapItemType } from "~/lib/domains/mapping/types";
 
 describe("Cache Reducer", () => {
   // Mock data for testing
@@ -14,7 +15,7 @@ describe("Cache Reducer", () => {
       depth: 1,
       url: "",
       parentId: null,
-      itemType: "base",
+      itemType: MapItemType.BASE,
       ownerId: "test-owner",
     },
     {
@@ -25,7 +26,7 @@ describe("Cache Reducer", () => {
       depth: 2,
       url: "",
       parentId: null,
-      itemType: "base",
+      itemType: MapItemType.BASE,
       ownerId: "test-owner",
     },
   ];
@@ -147,7 +148,7 @@ describe("Cache Reducer", () => {
           depth: 1,
           url: "",
           parentId: null,
-          itemType: "base",
+          itemType: MapItemType.BASE,
           ownerId: "test-owner",
         },
       ];
@@ -609,7 +610,7 @@ describe("Cache Reducer", () => {
           depth: -1,
           url: "",
           parentId: null,
-          itemType: "base",
+          itemType: MapItemType.BASE,
           ownerId: "",
         },
       ];
@@ -659,7 +660,7 @@ describe("Cache Reducer", () => {
           depth: i % 5,
           url: "",
           parentId: null,
-          itemType: "base",
+          itemType: MapItemType.BASE,
           ownerId: "test-owner",
         }),
       );

@@ -12,5 +12,7 @@
     "react",
     "next/navigation"
   ],
-  "exceptions": {}
+  "exceptions": {
+    "~/lib/domains/mapping/types": ["MapItemType"]
+  }
 }

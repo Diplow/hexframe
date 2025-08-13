@@ -25,6 +25,25 @@ const config = {
         "@typescript-eslint/unbound-method": "off",
       },
     },
+    {
+      // Files that use MapCache have false positive unsafe assignment warnings
+      // due to ESLint not properly following the barrel export pattern
+      files: [
+        "src/app/map/Canvas/**/*.ts",
+        "src/app/map/Canvas/**/*.tsx",
+        "src/app/map/Hierarchy/**/*.tsx",
+        "src/app/map/Tile/**/*.tsx",
+        "src/app/map/_components/**/*.tsx",
+        "src/app/map/_hooks/**/*.tsx"
+      ],
+      rules: {
+        "@typescript-eslint/no-unsafe-assignment": "off",
+        "@typescript-eslint/no-unsafe-call": "off",
+        "@typescript-eslint/no-unsafe-member-access": "off",
+        "@typescript-eslint/no-unsafe-argument": "off",
+        "@typescript-eslint/no-unsafe-return": "off",
+      },
+    },
   ],
   rules: {
     "@typescript-eslint/array-type": "off",

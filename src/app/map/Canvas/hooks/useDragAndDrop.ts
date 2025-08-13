@@ -74,7 +74,6 @@ export function useDragAndDrop(): UseDragAndDropReturn {
     setupDragOver(event, isValid);
     
     if (isValid) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
       const operation: DropOperation = getDropOperationType(targetCoordId, getItem);
       setDragState(prev => ({
         ...updateDropTarget(prev, targetCoordId),

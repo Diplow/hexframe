@@ -8,6 +8,7 @@ import type { TileData } from "../../types/tile-data";
 import { cacheActions } from "../State/actions";
 import { OptimisticChangeTracker } from "./optimistic-tracker";
 import type { EventBusService } from "~/app/map/types/events";
+import { MapItemType } from "~/lib/domains/mapping/types";
 
 export interface MutationCoordinatorConfig {
   dispatch: Dispatch<CacheAction>;
@@ -414,7 +415,7 @@ export class MutationCoordinator {
       url: data.url ?? "",
       depth: coords.path.length,
       parentId,
-      itemType: "base",
+      itemType: MapItemType.BASE,
       ownerId: this.config.mapContext?.userId.toString() ?? "unknown",
     };
   }
@@ -535,7 +536,7 @@ export class MutationCoordinator {
       descr: tile.data.description,
       url: tile.data.url,
       parentId: null, // We don't store this in TileData
-      itemType: "base",
+      itemType: MapItemType.BASE,
       ownerId: tile.metadata.ownerId ?? this.config.mapContext?.userId.toString() ?? "unknown",
     };
   }
