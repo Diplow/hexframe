@@ -3,10 +3,10 @@
 import { ChevronDown, Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { TileData } from "../types/tile-data";
-import { useMapCache } from "../Cache/map-cache";
+import { useMapCache } from '~/app/map/Cache/interface';
 import { _getParentHierarchy } from "./hierarchy.utils";
 import type { URLInfo } from "../types/url-info";
-import { BaseTileLayout } from "~/app/map/Canvas/base/BaseTileLayout";
+import { BaseTileLayout } from "~/app/map/Canvas/interface";
 import {
   HIERARCHY_TILE_BASE_SIZE,
   HIERARCHY_TILE_SCALE,
@@ -148,7 +148,9 @@ const UserProfileTile = () => {
   };
   
   // Determine display name
-  const displayName = user ? (user.name ?? user.email.split('@')[0]) : 'Guest';
+  const displayName = user
+    ? (user.name ?? (user.email ? user.email.split('@')[0] : 'User'))
+    : 'Guest';
   
   // Show loading state during auth loading or navigation
   const showLoading = isAuthLoading || isNavigating;
@@ -156,7 +158,7 @@ const UserProfileTile = () => {
   return (
     <button
       onClick={handleUserMapNavigation}
-      disabled={!user || isAuthLoading}
+      disabled={!user || isAuthLoading || isNavigating}
       aria-label={isAuthLoading ? 'Loading user profile' : (user ? `Navigate to ${displayName}'s map` : 'Guest user')}
       className={`group relative flex-shrink-0 rounded-lg border-none bg-transparent transition-transform duration-200 ${
         user ? 'cursor-pointer hover:scale-105 focus:scale-105' : 'cursor-default'

@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Subsystem Dependencies Declaration",
+  "description": "Declares allowed imports for a subsystem. Everything not listed is forbidden.",
+  "type": "object",
+  "properties": {
+    "allowed": {
+      "type": "array",
+      "description": "Patterns for allowed imports. Everything else is forbidden.",
+      "items": {
+        "type": "string"
+      },
+      "examples": [
+        "./",
+        "~/lib/domains/shared",
+        "~/server/db",
+        "react",
+        "zod",
+        "@trpc/server"
+      ]
+    },
+    "exceptions": {
+      "type": "object",
+      "description": "Document WHY specific dependencies are needed (for human understanding)",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "examples": {
+        "~/server/db": "Repository layer needs database access",
+        "~/lib/domains/shared": "Common types and utilities",
+        "@trpc/server": "API endpoint definitions"
+      }
+    }
+  },
+  "required": ["allowed"]
+}

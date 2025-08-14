@@ -23,3 +23,6 @@ export * from "./_tables/auth/verificationTokens";
 export * from "./_tables/mapping/base-items";
 export * from "./_tables/mapping/map-items";
 export * from "./_tables/mapping/user-mapping";
+
+// LLM job results table
+export * from "./_tables/llm-job-results";

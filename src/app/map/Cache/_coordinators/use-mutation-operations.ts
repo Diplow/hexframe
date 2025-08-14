@@ -39,7 +39,7 @@ export function useMutationOperations(config: MutationOperationsConfig): Mutatio
   
   // Wrap mutations to match expected interface
   const wrappedAddItemMutation = useMemo(() => ({
-    mutateAsync: async (params: { coords: Coord; parentId: number; title?: string; descr?: string; url?: string }) => {
+    mutateAsync: async (params: { coords: Coord; parentId?: number | null; title?: string; descr?: string; url?: string }) => {
       return addItemMutation.mutateAsync({
         parentId: params.parentId,
         coords: params.coords,

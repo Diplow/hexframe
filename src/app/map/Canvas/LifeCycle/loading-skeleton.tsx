@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { cn } from "~/lib/utils";
-import { BaseFrame } from "~/app/map/Canvas/base/BaseFrame";
+import { BaseFrame } from "../Tile/Base/BaseFrame";
 import type { TileData } from "../../types/tile-data";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import type { URLInfo } from "../../types/url-info";

@@ -154,12 +154,51 @@ if (typeof window !== "undefined") {
 
 // Clean up after each test
 afterEach(() => {
+  // React Testing Library cleanup first
   cleanup();
   
-  // Clear DOM content but keep body intact
-  if (typeof document !== 'undefined' && document.body) {
-    // Clear content but don't remove body
-    document.body.innerHTML = '';
+  // More thorough DOM cleanup for React 18 createRoot compatibility
+  if (typeof document !== 'undefined' && document.querySelectorAll) {
+    // Remove all React roots that might be lingering
+    const allElements = document.querySelectorAll('[data-reactroot], #root, #test-container, .react-root');
+    allElements.forEach(element => {
+      if (element.parentNode) {
+        element.parentNode.removeChild(element);
+      }
+    });
+    
+    // Clear body content
+    if (document.body) {
+      document.body.innerHTML = '';
+    }
+    
+    // Clear document head of any test-added elements
+    if (document.head) {
+      const testElements = document.head.querySelectorAll('[data-test]');
+      testElements.forEach(element => {
+        if (element.parentNode) {
+          element.parentNode.removeChild(element);
+        }
+      });
+    }
+  }
+  
+  // Clear any React 18 createRoot containers from memory
+  if (typeof global !== 'undefined') {
+    const globalWithHook = global as typeof global & {
+      __REACT_DEVTOOLS_GLOBAL_HOOK__?: {
+        onCommitFiberRoot?: unknown;
+        onCommitFiberUnmount?: unknown;
+      };
+    };
+    if (globalWithHook.__REACT_DEVTOOLS_GLOBAL_HOOK__) {
+      try {
+        globalWithHook.__REACT_DEVTOOLS_GLOBAL_HOOK__.onCommitFiberRoot = undefined;
+        globalWithHook.__REACT_DEVTOOLS_GLOBAL_HOOK__.onCommitFiberUnmount = undefined;
+      } catch {
+        // Ignore cleanup errors
+      }
+    }
   }
 });
 
@@ -174,24 +213,44 @@ beforeEach(() => {
       }
     }
     
-    // Always ensure we have essential containers
-    if (!document.getElementById('root')) {
-      const root = document.createElement('div');
-      root.id = 'root';
-      document.body.appendChild(root);
+    // Force re-create containers to ensure clean state
+    // Remove existing containers first
+    const existingRoot = document.getElementById('root');
+    if (existingRoot) {
+      existingRoot.remove();
+    }
+    const existingTestContainer = document.getElementById('test-container');
+    if (existingTestContainer) {
+      existingTestContainer.remove();
     }
     
-    if (!document.getElementById('test-container')) {
-      const testContainer = document.createElement('div');
-      testContainer.id = 'test-container';
-      document.body.appendChild(testContainer);
-    }
+    // Create fresh containers
+    const root = document.createElement('div');
+    root.id = 'root';
+    // Add data attribute for easier cleanup
+    root.setAttribute('data-test', 'true');
+    document.body.appendChild(root);
+    
+    const testContainer = document.createElement('div');
+    testContainer.id = 'test-container';
+    testContainer.setAttribute('data-test', 'true');
+    document.body.appendChild(testContainer);
+    
+    // Ensure we have a clean slate for React 18 createRoot
+    // Add some additional containers that React Testing Library might need
+    const reactContainer = document.createElement('div');
+    reactContainer.id = 'react-test-container';
+    reactContainer.setAttribute('data-test', 'true');
+    document.body.appendChild(reactContainer);
   }
 });
 
 // Mock providers for tests
-vi.mock('~/app/map/Cache/_hooks/use-map-cache', () => ({
-  useMapCache: vi.fn(() => ({
+vi.mock('~/app/map/Cache/interface', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...(actual as Record<string, unknown>),
+    useMapCache: vi.fn(() => ({
     // State queries
     items: {},
     center: null,
@@ -202,6 +261,29 @@ vi.mock('~/app/map/Cache/_hooks/use-map-cache', () => ({
 
     // Query operations
     getRegionItems: vi.fn(() => []),
+    getItem: vi.fn((coordId: string) => {
+      // Return mock data that matches test expectations
+      if (coordId === 'coord-123') {
+        return {
+          id: '123',
+          coordId: 'coord-123',
+          data: {
+            name: 'Edit Me',
+            description: 'Content to edit',
+          },
+          position: { q: 0, r: 0, s: 0 },
+        };
+      }
+      return {
+        id: coordId.replace('coord-', ''),
+        coordId,
+        data: {
+          name: 'Test Item',
+          description: 'Test description',
+        },
+        position: { q: 0, r: 0, s: 0 },
+      };
+    }),
     hasItem: vi.fn(() => false),
     isRegionLoaded: vi.fn(() => false),
 
@@ -257,7 +339,8 @@ vi.mock('~/app/map/Cache/_hooks/use-map-cache', () => ({
     },
     updateConfig: vi.fn(),
   })),
-}));
+  };
+});
 
 vi.mock('~/contexts/ThemeContext', () => ({
   useTheme: vi.fn(() => ({
@@ -302,6 +385,7 @@ vi.mock('next/navigation', () => ({
   usePathname: vi.fn(() => '/'),
   useSearchParams: vi.fn(() => new URLSearchParams()),
 }));
+
 
 // Mock tRPC
 vi.mock('~/commons/trpc/react', () => ({

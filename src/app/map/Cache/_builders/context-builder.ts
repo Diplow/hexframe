@@ -4,7 +4,7 @@ import type { CacheState, CacheAction } from "../State/types";
 import type { DataOperations, MutationOperations, NavigationOperations } from "../Handlers/types";
 import type { SyncOperations } from "../Sync/types";
 import type { ServerService, StorageService } from "../Services/types";
-import type { MapCacheContextValue } from "../map-cache";
+import type { MapCacheContextValue } from "../types";
 
 export interface ContextBuilderConfig {
   state: CacheState;

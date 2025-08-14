@@ -1,6 +1,6 @@
 export {
   type MapItem as MapItemMappingDomainType,
-  type MapItemType,
+  MapItemType,
   type MapItemAttrs,
   type MapItemRelatedItems,
   type MapItemRelatedLists,

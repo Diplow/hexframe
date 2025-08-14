@@ -1,13 +1,13 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
-import { MapCacheProvider } from "./Cache/map-cache";
+import { MapCacheProvider } from "./Cache/interface";
 import { useMapIdResolution } from "./_hooks/use-map-id-resolution";
 // ChatCacheProvider is no longer needed - Chat state is managed internally
 import { MapPageContent } from "./_components/MapPageContent";
 import { eventBus } from "./Services/EventBus/event-bus";
 import { EventBusProvider } from "./Services/EventBus/event-bus-context";
-import { loadPreFetchedData, clearPreFetchedData } from "./Cache/Services/pre-fetch-service";
+import { loadPreFetchedData, clearPreFetchedData } from "./Services/PreFetch/pre-fetch-service";
 import { api } from "~/commons/trpc/react";
 import { useRouter } from "next/navigation";
 
@@ -38,7 +38,7 @@ export default function MapPage({ searchParams }: MapPageProps) {
   const [mounted, setMounted] = useState(false);
   
   // Check for pre-fetched data
-  const [preFetchedData, setPreFetchedData] = useState<ReturnType<typeof loadPreFetchedData>>(null);
+  const [preFetchedData, setPreFetchedData] = useState<ReturnType<typeof loadPreFetchedData> | null>(null);
   
   const router = useRouter();
   

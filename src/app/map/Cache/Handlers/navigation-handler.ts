@@ -8,6 +8,7 @@ import { checkAncestors, loadAncestorsForItem } from "./ancestor-loader";
 import type { EventBusService } from "~/app/map/types/events";
 import { adapt } from "~/app/map/types/tile-data";
 import { loggers } from "~/lib/debug/debug-logger";
+import type { MapItemType } from "~/lib/domains/mapping/types";
 
 export interface NavigationHandlerConfig {
   dispatch: React.Dispatch<CacheAction>;
@@ -101,10 +102,10 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
               loadedCoordId = loadedItem.coordinates;
               
               // Add the loaded item to cache using loadRegion action
-              dispatch(cacheActions.loadRegion([loadedItem], loadedCoordId, 0));
+              dispatch(cacheActions.loadRegion([{...loadedItem, itemType: loadedItem.itemType as MapItemType}], loadedCoordId, 0));
               
               // Convert the loaded item to the proper TileData format
-              existingItem = adapt(loadedItem);
+              existingItem = adapt({...loadedItem, itemType: loadedItem.itemType as MapItemType});
               
               loggers.mapCache.handlers('[Navigation] ✅ Using loaded item data for navigation');
             }
@@ -446,8 +447,10 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
       timestamp: new Date().toISOString(),
       stackTrace: new Error().stack
     });
-    const currentPathname = "";
-    const currentSearchParams = new URLSearchParams();
+    const currentPathname = config.pathname
+      ?? (typeof window !== 'undefined' ? window.location.pathname : '');
+    const currentSearchParams = config.searchParams
+      ?? (typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams());
 
     // Extract center item ID from query params
     const centerItemId = currentSearchParams.get("center") ?? "";

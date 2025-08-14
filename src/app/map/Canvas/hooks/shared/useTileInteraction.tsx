@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import { useTileActions } from "../../TileActionsContext";
 import type { TileData } from "../../../types/tile-data";
-import type { TileCursor } from "../../base/BaseTileLayout";
+import type { TileCursor } from "../../Tile/Base/BaseTileLayout";
 
 interface TileInteractionProps {
   tileData?: TileData | null;

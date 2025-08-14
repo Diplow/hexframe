@@ -75,11 +75,22 @@ export const mapItemsRouter = createTRPCRouter({
       }
       
       // If creating a child item, check parent ownership
-      if (input.parentId) {
+      const hasExplicitParent = input.parentId !== null && input.parentId !== undefined;
+      if (hasExplicitParent) {
         const parentItem = await ctx.mappingService.items.query.getItemById({
-          itemId: input.parentId,
+          itemId: input.parentId!,
         });
         if (parentItem.ownerId !== currentUserIdString) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You can only add items to tiles you own",
+          });
+        }
+      } else if (coords.path.length > 0) {
+        // No explicit parent provided, but creating below root: validate inferred parent ownership
+        const inferredParentCoords = { ...coords, path: coords.path.slice(0, -1) };
+        const inferredParent = await ctx.mappingService.items.crud.getItem({ coords: inferredParentCoords });
+        if (inferredParent.ownerId !== currentUserIdString) {
           throw new TRPCError({
             code: "FORBIDDEN",
             message: "You can only add items to tiles you own",
@@ -88,7 +99,7 @@ export const mapItemsRouter = createTRPCRouter({
       }
       
       const mapItem = await ctx.mappingService.items.crud.addItemToMap({
-        parentId: input.parentId,
+        parentId: input.parentId ?? null,
         coords: coords,
         title: input.title,
         descr: input.descr,

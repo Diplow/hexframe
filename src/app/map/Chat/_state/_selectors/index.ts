@@ -33,6 +33,7 @@ export function deriveVisibleMessages(events: ChatEvent[]): Message[] {
 }
 
 export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
+  console.log('[deriveActiveWidgets] Processing', events.length, 'events')
   const widgets: Widget[] = [];
   const widgetStates = new Map<string, 'active' | 'completed'>();
   
@@ -100,6 +101,16 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
         break;
       }
       
+      case 'widget_created': {
+        const payload = event.payload as { widget: Widget };
+        console.log('[deriveActiveWidgets] widget_created event found:', payload)
+        if (payload.widget) {
+          console.log('[deriveActiveWidgets] Adding widget:', payload.widget)
+          widgets.push(payload.widget);
+        }
+        break;
+      }
+      
       case 'auth_required': {
         const payload = event.payload as AuthRequiredPayload;
         widgets.push({
@@ -130,7 +141,8 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
   }
   
   // Filter out completed operation widgets and removed widgets
-  return widgets
+  console.log('[deriveActiveWidgets] Total widgets before filtering:', widgets.length)
+  const filteredWidgets = widgets
     .filter(widget => {
       const extWidget = widget as Widget & { _removed?: boolean; data?: { _widgetId?: string } };
       if (extWidget._removed) return false;
@@ -151,4 +163,11 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
       }
       return cleanWidget;
     });
+  
+  console.log('[deriveActiveWidgets] Returning', filteredWidgets.length, 'active widgets')
+  filteredWidgets.forEach(w => {
+    console.log('[deriveActiveWidgets] Widget:', { id: w.id, type: w.type })
+  })
+  
+  return filteredWidgets;
 }

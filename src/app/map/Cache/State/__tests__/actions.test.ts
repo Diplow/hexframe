@@ -20,7 +20,7 @@ import {
 import { ACTION_TYPES } from "../types";
 import type { MapItemAPIContract } from "~/server/api/types/contracts";
 import type { CacheAction, CacheState } from "../types";
-import { MapItemType } from "~/lib/domains/mapping/_objects/map-item";
+import { MapItemType } from "~/lib/domains/mapping/types";
 
 describe("Cache Actions", () => {
   // Mock data for testing

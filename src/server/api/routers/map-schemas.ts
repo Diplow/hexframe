@@ -36,7 +36,7 @@ export const userMapIdentifierSchema = z.object({
 
 // Item creation schema
 export const itemCreationSchema = z.object({
-  parentId: z.number(),
+  parentId: z.number().int().positive().optional().nullable(),
   coords: hexCoordSchema,
   title: z.string().optional(),
   descr: z.string().optional(),

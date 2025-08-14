@@ -128,6 +128,31 @@ export function useChatStateInternal(initialEvents: ChatEvent[] = []) {
     sendAssistantMessage(text: string) {
       dispatch(createAssistantMessageEvent(text));
     },
+    
+    // Show AI response widget
+    showAIResponseWidget(data: { jobId?: string; initialResponse?: string; model?: string }) {
+      console.log('[useChatState] showAIResponseWidget called with:', data)
+      
+      const widget = {
+        id: `ai-response-${Date.now()}`,
+        type: 'ai-response' as const,
+        data,
+        priority: 'info' as const,
+        timestamp: new Date()
+      }
+      
+      const event = {
+        type: 'widget_created' as const,
+        payload: { widget },
+        id: `chat-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        timestamp: new Date(),
+        actor: 'assistant' as const
+      }
+      
+      console.log('[useChatState] Dispatching widget_created event:', event)
+      dispatch(event);
+      console.log('[useChatState] Widget event dispatched')
+    },
 
     // Show a system message
     showSystemMessage(message: string, level: 'info' | 'warning' | 'error' = 'info') {

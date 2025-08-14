@@ -1,7 +1,6 @@
 import type { ICanvasStrategy } from './strategy.interface'
 import type { CanvasContext, CanvasContextOptions, TileContextItem } from '../../types'
-import type { CacheState } from '~/app/map/Cache/State/types'
-import { selectRegionItems } from '~/app/map/Cache/State/selectors'
+import type { CacheState } from '~/app/map/Cache/interface'
 import type { TileData } from '~/app/map/types/tile-data'
 import { CoordSystem } from '~/lib/domains/mapping/utils/hex-coordinates'
 
@@ -14,12 +13,8 @@ export class StandardCanvasStrategy implements ICanvasStrategy {
   ): Promise<CanvasContext> {
     const state = this.getCacheState()
     
-    // Get all tiles within 2 generations
-    const regionTiles = selectRegionItems({ 
-      state, 
-      centerCoordId, 
-      maxDepth: 2 
-    })
+    // Get all tiles within 2 generations using the same logic as selectRegionItems
+    const regionTiles = this.getRegionItems(state, centerCoordId, 2)
     
     // Find center tile
     const centerTile = regionTiles.find(t => t.metadata.coordId === centerCoordId)
@@ -94,6 +89,53 @@ export class StandardCanvasStrategy implements ICanvasStrategy {
         : false
       return this.toContextItem(t, depth, hasChildren)
     })
+  }
+  
+  private getRegionItems(state: CacheState, centerCoordId: string, maxDepth: number): TileData[] {
+    const regionItems: TileData[] = []
+    const centerItem = state.itemsById[centerCoordId]
+    
+    if (!centerItem) return regionItems
+    
+    // Add center item
+    regionItems.push(centerItem)
+    
+    // Get center coordinates for hierarchy calculation
+    const centerCoords = centerItem.metadata.coordinates
+    const centerDepth = centerCoords.path.length
+    
+    // Add items within the specified depth from center
+    Object.values(state.itemsById).forEach((item) => {
+      if (item.metadata.coordId === centerCoordId) return // Skip center (already added)
+      
+      const itemCoords = item.metadata.coordinates
+      
+      // Check if item belongs to the same coordinate tree
+      if (
+        itemCoords.userId !== centerCoords.userId ||
+        itemCoords.groupId !== centerCoords.groupId
+      ) {
+        return
+      }
+      
+      // Calculate relative depth from center
+      const itemDepth = itemCoords.path.length
+      const relativeDepth = itemDepth - centerDepth
+      
+      // Include items within maxDepth generations from center
+      if (relativeDepth > 0 && relativeDepth <= maxDepth) {
+        // Check if item is descendant of center
+        const isDescendant = centerCoords.path.every(
+          (coord, index) => itemCoords.path[index] === coord
+        )
+        
+        if (isDescendant) {
+          regionItems.push(item)
+        }
+      }
+    })
+    
+    return regionItems
   }
   
   private toContextItem(tile: TileData, depth: number, hasChildren = false): TileContextItem {

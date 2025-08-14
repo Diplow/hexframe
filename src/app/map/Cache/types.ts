@@ -39,6 +39,7 @@ export interface MapCacheHook {
   lastUpdated: number;
 
   // Query operations
+  getItem: (coordId: string) => TileData | null;
   getRegionItems: (centerCoordId: string, maxDepth?: number) => TileData[];
   hasItem: (coordId: string) => boolean;
   isRegionLoaded: (centerCoordId: string, maxDepth?: number) => boolean;

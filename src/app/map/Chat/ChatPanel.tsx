@@ -36,6 +36,12 @@ function ChatContent() {
   const messages = chatState.messages;
   const widgets = chatState.widgets;
   
+  console.log('[ChatContent] Using chat state:', {
+    messageCount: messages.length,
+    widgetCount: widgets.length,
+    widgets: widgets.map(w => ({ id: w.id, type: w.type }))
+  });
+  
   // Enable AI chat integration
   const { isGeneratingAI } = useAIChatIntegration();
   

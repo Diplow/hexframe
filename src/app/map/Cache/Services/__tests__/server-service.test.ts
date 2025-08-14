@@ -6,11 +6,11 @@ import {
 } from "../server-service";
 import { ServiceError, NetworkError, TimeoutError } from "../types";
 import type { ServiceConfig } from "../types";
-import { MapItemType } from "~/lib/domains/mapping/_objects/map-item";
 
-// Mock console.warn to avoid noise in tests
-const mockConsoleWarn = vi.fn();
-console.warn = mockConsoleWarn;
+// Mock console.warn to avoid noise in tests (restored after each test)
+vi.spyOn(console, 'warn').mockImplementation(() => {
+  // Intentionally empty to silence warnings in tests
+});
 
 describe("Server Service", () => {
   let mockUtils: Parameters<typeof createServerService>[0];
@@ -51,7 +51,7 @@ describe("Server Service", () => {
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe("createServerService (Pure Function)", () => {
@@ -96,7 +96,7 @@ describe("Server Service", () => {
           depth: 1,
           url: "",
           parentId: null,
-          itemType: MapItemType.BASE,
+          itemType: "base",
           ownerId: "test-owner",
         },
       ];

@@ -5,7 +5,7 @@ import { Check, X } from 'lucide-react';
 import { cn } from '~/lib/utils';
 import { Button } from '~/components/ui/button';
 import { CoordSystem } from '~/lib/domains/mapping/utils/hex-coordinates';
-import { useMapCache } from '../../Cache/_hooks/use-map-cache';
+import { useMapCache } from '~/app/map/Cache/interface';
 
 interface CreationWidgetProps {
   coordId: string;
