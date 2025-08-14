@@ -249,7 +249,7 @@ beforeEach(() => {
 vi.mock('~/app/map/Cache/interface', async (importOriginal) => {
   const actual = await importOriginal();
   return {
-    ...actual,
+    ...(actual as Record<string, unknown>),
     useMapCache: vi.fn(() => ({
     // State queries
     items: {},

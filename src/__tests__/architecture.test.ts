@@ -55,12 +55,12 @@ describe('Architecture Rules', () => {
                   }
                 }
               }
-            } catch (error) {
+            } catch {
               // Skip files that can't be read
             }
           }
         }
-      } catch (error) {
+      } catch {
         // Skip directories that can't be read
       }
     }
@@ -106,12 +106,12 @@ describe('Architecture Rules', () => {
                   violations.push(`${fullPath}: Client component imports server environment variables`);
                 }
               }
-            } catch (error) {
+            } catch {
               // Skip files that can't be read
             }
           }
         }
-      } catch (error) {
+      } catch {
         // Skip directories that can't be read
       }
     }
