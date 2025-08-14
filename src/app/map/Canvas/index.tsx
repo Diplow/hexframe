@@ -17,7 +17,7 @@ export interface CenterInfo {
   groupId: number;
 }
 import { DynamicFrame } from "./frame";
-import type { TileScale } from "~/app/map/Canvas/base/BaseTileLayout";
+import type { TileScale } from "./Tile/Base/BaseTileLayout";
 import { useMapCache } from '~/app/map/Cache/interface';
 import type { URLInfo } from "../types/url-info";
 import { MapLoadingSkeleton } from "./LifeCycle/loading-skeleton";
@@ -84,6 +84,9 @@ interface DynamicMapCanvasProps {
   expandedItemIds: string[];
   urlInfo: URLInfo;
 
+  // Theme
+  isDarkMode?: boolean;
+
   // Progressive enhancement options
   fallback?: ReactNode;
   errorBoundary?: ReactNode;
@@ -103,6 +106,7 @@ export function DynamicMapCanvas({
   centerInfo,
   expandedItemIds,
   urlInfo,
+  isDarkMode = false,
   fallback,
   errorBoundary,
   enableBackgroundSync: _enableBackgroundSync = true,
@@ -119,7 +123,7 @@ export function DynamicMapCanvas({
     updateCenter,
   } = useMapCache();
   const [isHydrated, setIsHydrated] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  // isDarkMode is now passed as prop
   const [selectedTileId, setSelectedTileId] = useState<string | null>(null);
   const { mappingUserId } = useUnifiedAuth();
   const eventBus = useEventBus();
@@ -164,22 +168,6 @@ export function DynamicMapCanvas({
   useEffect(() => {
     // Initialize hydration
     setIsHydrated(true);
-    
-    // Check initial dark mode state
-    const checkDarkMode = () => {
-      setIsDarkMode(document.documentElement.classList.contains('dark'));
-    };
-    
-    checkDarkMode();
-    
-    // Listen for theme changes
-    const observer = new MutationObserver(checkDarkMode);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class'],
-    });
-    
-    return () => observer.disconnect();
   }, []); // Run only once on mount
 
   // Separate effect for center initialization - only on first mount

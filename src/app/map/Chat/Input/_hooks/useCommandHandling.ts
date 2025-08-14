@@ -6,6 +6,16 @@ import { debugLogger } from '~/lib/debug/debug-logger';
 import { authClient } from '~/lib/auth/auth-client';
 import { useEventBus } from '../../../Services/EventBus/event-bus-context';
 
+// UTF-8 safe base64 encoder
+function toBase64(s: string): string {
+  const bytes = new TextEncoder().encode(s);
+  let binary = '';
+  bytes.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+  return btoa(binary);
+}
+
 interface Command {
   description: string;
   action?: () => string;
@@ -26,7 +36,7 @@ const commands: Record<string, Command> = {
         return 'No debug logs available.';
       }
       const logContent = logs.join('\n');
-      const result = `**Debug Logs (Full Mode - ${logs.length} messages):**\n\n\`\`\`\n${logContent}\n\`\`\`\n\n{{COPY_BUTTON:${btoa(logContent)}}}`;
+      const result = `**Debug Logs (Full Mode - ${logs.length} messages):**\n\n\`\`\`\n${logContent}\n\`\`\`\n\n{{COPY_BUTTON:${toBase64(logContent)}}}`;
       
       // Generated debug command result
       
@@ -41,7 +51,7 @@ const commands: Record<string, Command> = {
         return 'No debug logs available.';
       }
       const logContent = logs.join('\n');
-      return `**Debug Logs (Full Mode - ${logs.length} messages):**\n\n\`\`\`\n${logContent}\n\`\`\`\n\n{{COPY_BUTTON:${btoa(logContent)}}}`;
+      return `**Debug Logs (Full Mode - ${logs.length} messages):**\n\n\`\`\`\n${logContent}\n\`\`\`\n\n{{COPY_BUTTON:${toBase64(logContent)}}}`;
     }
   },
   '/debug/full/50': {
@@ -52,7 +62,7 @@ const commands: Record<string, Command> = {
         return 'No debug logs available.';
       }
       const logContent = logs.join('\n');
-      return `**Debug Logs (Full Mode - ${logs.length} messages):**\n\n\`\`\`\n${logContent}\n\`\`\`\n\n{{COPY_BUTTON:${btoa(logContent)}}}`;
+      return `**Debug Logs (Full Mode - ${logs.length} messages):**\n\n\`\`\`\n${logContent}\n\`\`\`\n\n{{COPY_BUTTON:${toBase64(logContent)}}}`;
     }
   },
   '/debug/full/100': {
@@ -63,7 +73,7 @@ const commands: Record<string, Command> = {
         return 'No debug logs available.';
       }
       const logContent = logs.join('\n');
-      return `**Debug Logs (Full Mode - ${logs.length} messages):**\n\n\`\`\`\n${logContent}\n\`\`\`\n\n{{COPY_BUTTON:${btoa(logContent)}}}`;
+      return `**Debug Logs (Full Mode - ${logs.length} messages):**\n\n\`\`\`\n${logContent}\n\`\`\`\n\n{{COPY_BUTTON:${toBase64(logContent)}}}`;
     }
   },
   '/debug/full/all': {
@@ -74,7 +84,7 @@ const commands: Record<string, Command> = {
         return 'No debug logs available.';
       }
       const logContent = logs.join('\n');
-      return `**Debug Logs (Full Mode - ${logs.length} messages):**\n\n\`\`\`\n${logContent}\n\`\`\`\n\n{{COPY_BUTTON:${btoa(logContent)}}}`;
+      return `**Debug Logs (Full Mode - ${logs.length} messages):**\n\n\`\`\`\n${logContent}\n\`\`\`\n\n{{COPY_BUTTON:${toBase64(logContent)}}}`;
     }
   },
   '/debug/succinct': {
@@ -89,7 +99,7 @@ const commands: Record<string, Command> = {
         return 'No debug logs available.';
       }
       const logContent = logs.join('\n');
-      return `**Debug Logs (Succinct Mode - ${totalMessages} messages):**\n\n\`\`\`\n${logContent}\n\`\`\`\n\n{{COPY_BUTTON:${btoa(logContent)}}}`;
+      return `**Debug Logs (Succinct Mode - ${totalMessages} messages):**\n\n\`\`\`\n${logContent}\n\`\`\`\n\n{{COPY_BUTTON:${toBase64(logContent)}}}`;
     }
   },
   '/debug/succinct/25': {
@@ -101,7 +111,7 @@ const commands: Record<string, Command> = {
         return 'No debug logs available.';
       }
       const logContent = logs.join('\n');
-      return `**Debug Logs (Succinct Mode - ${totalMessages} messages):**\n\n\`\`\`\n${logContent}\n\`\`\`\n\n{{COPY_BUTTON:${btoa(logContent)}}}`;
+      return `**Debug Logs (Succinct Mode - ${totalMessages} messages):**\n\n\`\`\`\n${logContent}\n\`\`\`\n\n{{COPY_BUTTON:${toBase64(logContent)}}}`;
     }
   },
   '/debug/succinct/50': {
@@ -113,7 +123,7 @@ const commands: Record<string, Command> = {
         return 'No debug logs available.';
       }
       const logContent = logs.join('\n');
-      return `**Debug Logs (Succinct Mode - ${totalMessages} messages):**\n\n\`\`\`\n${logContent}\n\`\`\`\n\n{{COPY_BUTTON:${btoa(logContent)}}}`;
+      return `**Debug Logs (Succinct Mode - ${totalMessages} messages):**\n\n\`\`\`\n${logContent}\n\`\`\`\n\n{{COPY_BUTTON:${toBase64(logContent)}}}`;
     }
   },
   '/debug/succinct/100': {
@@ -125,7 +135,7 @@ const commands: Record<string, Command> = {
         return 'No debug logs available.';
       }
       const logContent = logs.join('\n');
-      return `**Debug Logs (Succinct Mode - ${totalMessages} messages):**\n\n\`\`\`\n${logContent}\n\`\`\`\n\n{{COPY_BUTTON:${btoa(logContent)}}}`;
+      return `**Debug Logs (Succinct Mode - ${totalMessages} messages):**\n\n\`\`\`\n${logContent}\n\`\`\`\n\n{{COPY_BUTTON:${toBase64(logContent)}}}`;
     }
   },
   '/debug/succinct/all': {
@@ -137,7 +147,7 @@ const commands: Record<string, Command> = {
         return 'No debug logs available.';
       }
       const logContent = logs.join('\n');
-      return `**Debug Logs (Succinct Mode - ${totalMessages} messages):**\n\n\`\`\`\n${logContent}\n\`\`\`\n\n{{COPY_BUTTON:${btoa(logContent)}}}`;
+      return `**Debug Logs (Succinct Mode - ${totalMessages} messages):**\n\n\`\`\`\n${logContent}\n\`\`\`\n\n{{COPY_BUTTON:${toBase64(logContent)}}}`;
     }
   },
   '/debug/clear': {
@@ -457,11 +467,16 @@ export function useCommandHandling() {
       const parts = payload.command.split(':');
       if (parts.length >= 3 && parts[1] && parts[2]) {
         const tileId = parts[1];
-        const tileName = decodeURIComponent(parts[2]);
+        let tileName = parts[2];
         
         // Navigation command received
         
         try {
+          try {
+            tileName = decodeURIComponent(parts[2]);
+          } catch {
+            // Leave tileName as provided if decoding fails
+          }
           // Calling navigateToItem
           await navigateToItem(tileId);
           // Navigation successful

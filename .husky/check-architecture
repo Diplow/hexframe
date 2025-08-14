@@ -2,17 +2,22 @@
 
 # Architecture Boundary Check
 # Simple checks: line counts and required files
+# Usage: ./check-architecture [path]
+# Default path: src
 
 set -e
 
-echo "🏗️ Checking architectural boundaries..."
+# Get target path from argument or default to src
+TARGET_PATH=${1:-src}
+
+echo "🏗️ Checking architectural boundaries in $TARGET_PATH..."
 
 # Configuration
 COMPLEXITY_THRESHOLD=1000  # Lines before requiring subsystem structure
 DOC_THRESHOLD=500          # Lines before requiring README
 
 # Count TypeScript lines in a directory
-# Recursive, but stops at subsystem boundaries (folders with README or ARCHITECTURE)
+# Recursive, but stops at subsystem boundaries (folders with interface.ts)
 count_ts_lines() {
   local dir=$1
   local total=0
@@ -28,8 +33,8 @@ count_ts_lines() {
   # For each subdirectory, check if it's a subsystem boundary
   for subdir in "$dir"/*; do
     if [ -d "$subdir" ]; then
-      # If subfolder has README or ARCHITECTURE, it's its own subsystem - don't count it
-      if [ -f "$subdir/README.md" ] || [ -f "$subdir/ARCHITECTURE.md" ]; then
+      # If subfolder has interface.ts, it's its own subsystem - don't count it
+      if [ -f "$subdir/interface.ts" ]; then
         continue  # Skip this subfolder, it's a separate subsystem
       else
         # Not a subsystem, count its lines recursively
@@ -47,12 +52,12 @@ WARNINGS=""
 
 # Check all directories for line count
 echo "Scanning directories (recursive, stopping at subsystem boundaries)..."
-for dir in $(find src -type d -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/dist/*" -not -path "*/build/*"); do
-  # Skip if this is a child of a documented subsystem (would be double-counted)
+for dir in $(find "$TARGET_PATH" -type d -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/dist/*" -not -path "*/build/*"); do
+  # Skip if this is a child of a subsystem (would be double-counted)
   parent_dir=$(dirname "$dir")
-  if [ -f "$parent_dir/README.md" ] || [ -f "$parent_dir/ARCHITECTURE.md" ]; then
+  if [ -f "$parent_dir/interface.ts" ]; then
     if [ "$parent_dir" != "$dir" ]; then
-      continue  # Skip children of documented subsystems
+      continue  # Skip children of subsystems
     fi
   fi
   
@@ -78,22 +83,48 @@ for dir in $(find src -type d -not -path "*/node_modules/*" -not -path "*/.git/*
   fi
 done
 
-# Check that documented subsystems have all required files
-echo "Checking documented subsystems for completeness..."
-for readme_file in $(find src -name "README.md" -not -path "*/node_modules/*"); do
-  dir=$(dirname "$readme_file")
-  # Skip the root domains folder itself
-  if [ "$dir" = "src/lib/domains" ]; then
-    continue
-  fi
+# Check that subsystems (with interface.ts) have all required files
+echo "Checking subsystems for completeness..."
+for interface_file in $(find "$TARGET_PATH" -name "interface.ts" -not -path "*/node_modules/*"); do
+  dir=$(dirname "$interface_file")
   
   missing=""
-  [ ! -f "$dir/interface.ts" ] && [ ! -d "$dir/types" ] && missing="$missing interface.ts"
+  [ ! -f "$dir/README.md" ] && missing="$missing README.md"
   [ ! -f "$dir/ARCHITECTURE.md" ] && missing="$missing ARCHITECTURE.md"
   [ ! -f "$dir/dependencies.json" ] && missing="$missing dependencies.json"
   
   if [ -n "$missing" ]; then
-    ERRORS="${ERRORS}\n❌ $dir has README but missing:$missing"
+    ERRORS="${ERRORS}\n❌ $dir has interface.ts but missing:$missing"
+  fi
+done
+
+# Check import boundaries for subsystems with interface.ts
+echo "Checking import boundaries..."
+for interface_file in $(find "$TARGET_PATH" -name "interface.ts" -not -path "*/node_modules/*"); do
+  subsystem_dir=$(dirname "$interface_file")
+  subsystem_name=$(basename "$subsystem_dir")
+  
+  # Find all imports to this subsystem from outside
+  # Pattern: import ... from "~/.../$subsystem_name/..."
+  # But exclude imports from the interface itself and from within the same subsystem
+  violations=$(find src -name "*.ts" -o -name "*.tsx" | \
+    xargs grep -l "from [\"']~/.*/$subsystem_name/" 2>/dev/null | \
+    grep -v "^$subsystem_dir/" | \
+    xargs grep -H "from [\"']~/.*/$subsystem_name/[^\"']*[\"']" 2>/dev/null | \
+    grep -v "/$subsystem_name/interface[\"']" || true)
+  
+  if [ -n "$violations" ]; then
+    ERRORS="${ERRORS}\n❌ External imports bypass $subsystem_name/interface.ts:"
+    # Format violations nicely  
+    while IFS= read -r violation; do
+      if [ -n "$violation" ]; then
+        file_and_line=$(echo "$violation" | cut -d: -f1,2)
+        import_line=$(echo "$violation" | cut -d: -f3-)
+        ERRORS="${ERRORS}\n  $file_and_line: $import_line"
+      fi
+    done << EOF
+$violations
+EOF
   fi
 done
 
@@ -106,6 +137,8 @@ if [ -n "$ERRORS" ]; then
   echo "- dependencies.json"
   echo "- README.md"
   echo "- ARCHITECTURE.md"
+  echo "\nSubsystems with interface.ts must be imported ONLY through interface.ts"
+  echo "External imports should use: import { X } from '~/path/to/subsystem/interface'"
   exit 1
 fi
 

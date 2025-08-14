@@ -191,60 +191,6 @@ vi.mock('~/lib/debug/debug-logger', () => ({
   },
 }));
 
-vi.mock('../../Cache/use-map-cache', () => ({
-  useMapCache: () => ({
-    items: {},
-    navigateToItem: vi.fn(),
-    updateItemOptimistic: vi.fn(),
-    createItemOptimistic: vi.fn(),
-    deleteItemOptimistic: vi.fn(),
-    moveItemOptimistic: vi.fn(),
-    rollbackOptimisticChange: vi.fn(),
-    rollbackAllOptimistic: vi.fn(),
-    getPendingOptimisticChanges: vi.fn(() => []),
-    center: null,
-    expandedItems: [],
-    isLoading: false,
-    error: null,
-    lastUpdated: Date.now(),
-    getRegionItems: vi.fn(() => []),
-    hasItem: vi.fn(() => false),
-    isRegionLoaded: vi.fn(() => false),
-    loadRegion: vi.fn().mockResolvedValue({ success: true, items: [] }),
-    loadItemChildren: vi.fn().mockResolvedValue({ success: true, items: [] }),
-    prefetchRegion: vi.fn().mockResolvedValue({ success: true, items: [] }),
-    invalidateRegion: vi.fn(),
-    invalidateAll: vi.fn(),
-    updateCenter: vi.fn(),
-    prefetchForNavigation: vi.fn(),
-    toggleItemExpansionWithURL: vi.fn(),
-    sync: {
-      isOnline: true,
-      lastSyncTime: null,
-      performSync: vi.fn().mockResolvedValue({ success: true }),
-      forceSync: vi.fn().mockResolvedValue({ success: true }),
-      pauseSync: vi.fn(),
-      resumeSync: vi.fn(),
-      getSyncStatus: vi.fn(() => ({
-        isOnline: true,
-        isSyncing: false,
-        lastSyncAt: null,
-        nextSyncAt: null,
-        syncCount: 0,
-        errorCount: 0,
-        lastError: null,
-      })),
-    },
-    config: {
-      maxAge: 300000,
-      backgroundRefreshInterval: 30000,
-      enableOptimisticUpdates: true,
-      maxDepth: 3,
-    },
-    updateConfig: vi.fn(),
-  }),
-}));
-
 // Mock router and pathname
 vi.mock('next/navigation', () => ({
   useRouter: vi.fn(() => ({
@@ -266,6 +212,7 @@ vi.mock('../../Cache/use-map-cache', () => ({
     rollbackOptimisticChange: vi.fn(),
     revalidateCache: vi.fn(),
     setSelectedItemId: vi.fn(),
+    getItem: vi.fn(() => null),
     currentItem: null,
     hasItems: false,
     isInitialized: true,

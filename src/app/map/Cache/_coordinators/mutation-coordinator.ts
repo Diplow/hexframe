@@ -24,7 +24,7 @@ export interface MutationCoordinatorConfig {
   addItemMutation: {
     mutateAsync: (params: {
       coords: Coord;
-      parentId: number;
+      parentId?: number | null;
       title?: string;
       descr?: string;
       url?: string;
@@ -88,10 +88,14 @@ export class MutationCoordinator {
       const optimisticItem = this._createOptimisticItem(coordId, coords, data, parentId);
       this._applyOptimisticCreate(coordId, optimisticItem, changeId);
       
-      // Make server call
+      // Make server call — safely convert parentId (omit when unknown)
+      const parentIdNumber = parentId !== null ? Number(parentId) : undefined;
+      if (parentId !== null && !Number.isFinite(parentIdNumber)) {
+        throw new Error(`Invalid parentId from cache: ${parentId}`);
+      }
       const result = await this.config.addItemMutation.mutateAsync({
         coords,
-        parentId: parseInt(parentId ?? "0"),
+        ...(parentIdNumber !== undefined ? { parentId: parentIdNumber } : {}),
         title: data.title ?? data.name,
         descr: data.description ?? data.descr,
         url: data.url,
@@ -382,7 +386,7 @@ export class MutationCoordinator {
 
   // Private helper methods
   private async _resolveParentId(coords: ReturnType<typeof CoordSystem.parseId>, providedParentId?: number): Promise<string | null> {
-    if (providedParentId) {
+    if (providedParentId !== undefined && providedParentId !== null) {
       return providedParentId.toString();
     }
     
@@ -435,7 +439,12 @@ export class MutationCoordinator {
     changeId: string
   ): Promise<void> {
     this.config.dispatch(cacheActions.loadRegion([result], coordId, 1));
-    await this.config.storageService.save(`item:${result.id}`, result);
+    try {
+      await this.config.storageService.save(`item:${result.id}`, result);
+    } catch (e) {
+      // Best-effort persistence; do not break UX if local storage fails
+      console.warn('MapCache storage save failed on create:', e);
+    }
     this.tracker.removeChange(changeId);
   }
 
@@ -493,7 +502,11 @@ export class MutationCoordinator {
     changeId: string
   ): Promise<void> {
     this.config.dispatch(cacheActions.loadRegion([result], coordId, 1));
-    await this.config.storageService.save(`item:${result.id}`, result);
+    try {
+      await this.config.storageService.save(`item:${result.id}`, result);
+    } catch (e) {
+      console.warn('MapCache storage save failed on update:', e);
+    }
     this.tracker.removeChange(changeId);
   }
 

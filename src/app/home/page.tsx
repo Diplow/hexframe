@@ -10,7 +10,7 @@ import {
   FetchingMapState,
 } from "./_components/loading-states";
 import { MapCreationError, MapFetchError } from "./_components/error-states";
-import { WelcomeScreen } from "./_components/welcome-screen";
+import { WelcomeScreen } from "~/app/_components/welcome-screen";
 
 /**
  * Home page that orchestrates user authentication and map access

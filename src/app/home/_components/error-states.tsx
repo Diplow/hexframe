@@ -1,5 +1,5 @@
 import React from "react";
-import ErrorTile from "~/app/map/Tile/Error/error";
+import { ErrorTile } from "~/app/map/Canvas/interface";
 
 interface ErrorStateProps {
   title: string;

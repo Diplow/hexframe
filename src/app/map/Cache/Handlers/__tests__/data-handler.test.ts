@@ -10,9 +10,10 @@ import type { CacheState } from "../../State/types";
 import type { MapItemAPIContract } from "~/server/api/types/contracts";
 import { MapItemType } from "~/lib/domains/mapping/types";
 
-// Mock console.warn to avoid noise in tests
-const mockConsoleWarn = vi.fn();
-console.warn = mockConsoleWarn;
+// Mock console.warn to avoid noise in tests (restored after each test)
+vi.spyOn(console, 'warn').mockImplementation(() => {
+  // Intentionally empty to silence warnings in tests
+});
 
 describe("Data Handler", () => {
   let mockDispatch: ReturnType<typeof vi.fn>;
@@ -107,7 +108,7 @@ describe("Data Handler", () => {
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe("loadRegion", () => {
@@ -308,7 +309,7 @@ describe("Data Handler", () => {
         cacheActions.setError(serverError),
       );
       // Should log warning
-      expect(mockConsoleWarn).toHaveBeenCalledWith(
+      expect(console.warn).toHaveBeenCalledWith(
         "Prefetch failed:",
         serverError,
       );

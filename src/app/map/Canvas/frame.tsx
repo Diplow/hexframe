@@ -13,10 +13,10 @@
  * The 90% scaling (scale-90) creates visual depth showing children are "inside" their parent.
  */
 
-import { DynamicItemTile, getColorFromItem } from "../Tile/Item";
-import { DynamicBaseTileLayout } from "../Tile/Base";
-import type { TileScale } from "~/app/map/Canvas/base/BaseTileLayout";
-import { DynamicEmptyTile } from "../Tile/Empty/empty";
+import { DynamicItemTile, getColorFromItem } from "./Tile/Item";
+import { DynamicBaseTileLayout } from "./Tile/Base";
+import type { TileScale } from "./Tile/Base/BaseTileLayout";
+import { DynamicEmptyTile } from "./Tile/Empty/empty";
 import type { TileData } from "../types/tile-data";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import type { URLInfo } from "../types/url-info";

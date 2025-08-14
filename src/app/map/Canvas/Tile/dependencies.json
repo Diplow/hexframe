@@ -1,0 +1,20 @@
+{
+  "$schema": "../../../../../schemas/dependencies.schema.json",
+  "allowed": [
+    "./",
+    "react",
+    "react/*",
+    "~/lib/domains/mapping/utils/hex-coordinates",
+    "~/lib/utils",
+    "~/lib/debug/debug-logger",
+    "~/contexts/UnifiedAuthContext"
+  ],
+  "exceptions": {
+    "~/app/map/types/tile-data": "Tile data type definitions",
+    "~/app/map/types/url-info": "URL info for tile interactions", 
+    "~/app/map/types/theme-colors": "Theme color utilities",
+    "~/app/map/Services/EventBus/event-bus-context": "Event bus for tile interactions",
+    "~/app/map/Canvas/TileActionsContext": "Tile action context from parent Canvas",
+    "~/app/map/Canvas/hooks/shared/useTileInteraction": "Tile interaction hook from parent Canvas"
+  }
+}

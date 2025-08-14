@@ -35,33 +35,36 @@ export class ItemCrudService {
     descr,
     url,
   }: {
-    parentId: number;
+    parentId: number | null;
     coords: Coord;
     title?: string;
     descr?: string;
     url?: string;
   }): Promise<MapItemContract> {
-    const parentItem = await this.actions.mapItems.getOne(parentId);
-    if (!parentItem) {
-      throw new Error(`Parent MapItem with ID ${parentId} not found.`);
-    }
+    let parentItem = null;
+    if (parentId !== null) {
+      parentItem = await this.actions.mapItems.getOne(parentId);
+      if (!parentItem) {
+        throw new Error(`Parent MapItem with ID ${parentId} not found.`);
+      }
 
-    if (
-      coords.userId !== parentItem.attrs.coords.userId ||
-      coords.groupId !== parentItem.attrs.coords.groupId
-    ) {
-      throw new Error("New item's userId/groupId must match parent's.");
-    }
-    const expectedParentPath =
-      CoordSystem.getParentCoord(coords)?.path.join(",");
-    const actualParentPath = parentItem.attrs.coords.path.join(",");
-    if (
-      coords.path.length !== parentItem.attrs.coords.path.length + 1 ||
-      actualParentPath !== expectedParentPath
-    ) {
-      throw new Error(
-        "New item's coordinates are not a direct child of the parent.",
-      );
+      if (
+        coords.userId !== parentItem.attrs.coords.userId ||
+        coords.groupId !== parentItem.attrs.coords.groupId
+      ) {
+        throw new Error("New item's userId/groupId must match parent's.");
+      }
+      const expectedParentPath =
+        CoordSystem.getParentCoord(coords)?.path.join(",");
+      const actualParentPath = parentItem.attrs.coords.path.join(",");
+      if (
+        coords.path.length !== parentItem.attrs.coords.path.length + 1 ||
+        actualParentPath !== expectedParentPath
+      ) {
+        throw new Error(
+          "New item's coordinates are not a direct child of the parent.",
+        );
+      }
     }
 
     const newItem = await this.actions.createMapItem({
@@ -70,7 +73,7 @@ export class ItemCrudService {
       title,
       descr,
       url,
-      parentId: parentItem.id,
+      parentId: parentItem?.id,
     });
     return adapt.mapItem(newItem, newItem.attrs.coords.userId);
   }

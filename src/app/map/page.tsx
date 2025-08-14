@@ -38,7 +38,7 @@ export default function MapPage({ searchParams }: MapPageProps) {
   const [mounted, setMounted] = useState(false);
   
   // Check for pre-fetched data
-  const [preFetchedData, setPreFetchedData] = useState<ReturnType<typeof loadPreFetchedData>>(null);
+  const [preFetchedData, setPreFetchedData] = useState<ReturnType<typeof loadPreFetchedData> | null>(null);
   
   const router = useRouter();
   

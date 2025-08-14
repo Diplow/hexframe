@@ -447,8 +447,10 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
       timestamp: new Date().toISOString(),
       stackTrace: new Error().stack
     });
-    const currentPathname = "";
-    const currentSearchParams = new URLSearchParams();
+    const currentPathname = config.pathname
+      ?? (typeof window !== 'undefined' ? window.location.pathname : '');
+    const currentSearchParams = config.searchParams
+      ?? (typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams());
 
     // Extract center item ID from query params
     const centerItemId = currentSearchParams.get("center") ?? "";

@@ -88,7 +88,7 @@ export const mapItemsRouter = createTRPCRouter({
       }
       
       const mapItem = await ctx.mappingService.items.crud.addItemToMap({
-        parentId: input.parentId,
+        parentId: input.parentId ?? null,
         coords: coords,
         title: input.title,
         descr: input.descr,

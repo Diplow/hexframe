@@ -348,12 +348,12 @@ describe("Navigation Handler", () => {
 
       const context = handler.getMapContext();
 
-      // The current implementation returns empty values
+      // Should extract values from the search params and pathname
       expect(context).toEqual({
-        centerItemId: "",
-        expandedItems: [],
-        pathname: "",
-        searchParams: new URLSearchParams(),
+        centerItemId: "123",
+        expandedItems: ["1", "2"],
+        pathname: "/map",
+        searchParams: config.searchParams,
       });
     });
 
@@ -387,8 +387,8 @@ describe("Navigation Handler", () => {
 
       const context = handler.getMapContext();
 
-      // The current implementation returns empty values
-      expect(context.expandedItems).toEqual([]);
+      // Should filter out empty strings from expandedItems
+      expect(context.expandedItems).toEqual(["1", "3"]);
     });
 
     test("handles missing dependencies gracefully", () => {
@@ -403,7 +403,7 @@ describe("Navigation Handler", () => {
       expect(context).toEqual({
         centerItemId: "",
         expandedItems: [],
-        pathname: "",
+        pathname: "/", // Falls back to window.location.pathname in tests
         searchParams: new URLSearchParams(),
       });
     });
@@ -431,12 +431,12 @@ describe("Navigation Handler", () => {
       expect(mockDispatch).toHaveBeenCalledWith(cacheActions.setCenter("1,2"));
 
       const context = handler.getMapContext();
-      // The current implementation returns empty values
+      // Should return pathname from provided config
       expect(context).toEqual({
         centerItemId: "",
         expandedItems: [],
-        pathname: "",
-        searchParams: new URLSearchParams(),
+        pathname: "/map", // From mockTestPathname
+        searchParams: mockTestSearchParams, // Should match the provided mockTestSearchParams
       });
     });
 
@@ -452,7 +452,7 @@ describe("Navigation Handler", () => {
 
       // Should handle missing dependencies gracefully
       const context = handler.getMapContext();
-      expect(context.pathname).toBe("");
+      expect(context.pathname).toBe("/"); // Falls back to window.location.pathname
     });
   });
 
