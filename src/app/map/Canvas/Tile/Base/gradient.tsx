@@ -45,15 +45,16 @@ export const getGradientPosition = (direction: Direction) => {
 };
 
 // Render gradient definitions for dynamic tiles
-export const renderTileGradient = (
-  coordId: string,
-  isExpanded: boolean,
-  isShallow: boolean,
-  hasPath: boolean,
-  lastDirection: Direction | null,
-  isDarkMode: boolean,
-  scale: TileScale
-): ReactNode => {
+export const renderTileGradient = (params: {
+  coordId: string;
+  isExpanded: boolean;
+  isShallow: boolean;
+  hasPath: boolean;
+  lastDirection: Direction | null;
+  isDarkMode: boolean;
+  scale: TileScale;
+}): ReactNode => {
+  const { coordId, isExpanded, isShallow, hasPath, lastDirection, isDarkMode, scale } = params;
   const lightColor = isDarkMode ? "0,0,0" : "255,255,255";
   const darkColor = isDarkMode ? "255,255,255" : "0,0,0";
   const opacityMultiplier = getOpacityMultiplier(scale);
@@ -90,14 +91,15 @@ export const renderTileGradient = (
 };
 
 // Render gradient definitions for static tiles (supports both light and dark mode)
-export const renderStaticTileGradients = (
-  coordId: string,
-  isExpanded: boolean,
-  isShallow: boolean,
-  hasPath: boolean,
-  lastDirection: Direction | null,
-  scale: TileScale
-): ReactNode => {
+export const renderStaticTileGradients = (params: {
+  coordId: string;
+  isExpanded: boolean;
+  isShallow: boolean;
+  hasPath: boolean;
+  lastDirection: Direction | null;
+  scale: TileScale;
+}): ReactNode => {
+  const { coordId, isExpanded, isShallow, hasPath, lastDirection, scale } = params;
   const opacityMultiplier = getOpacityMultiplier(scale);
   if (isExpanded && !isShallow) {
     return (

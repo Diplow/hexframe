@@ -296,8 +296,8 @@ const FrameSlot = (props: {
     );
   }
   
-  // For non-center slots: they can be expanded into frames (recursive!)
-  if (isExpanded) {
+  // Only allow expansion if we can reduce scale further (slotScale > 1)
+  if (isExpanded && slotScale > 1) {
     return (
       <DynamicFrame 
         center={coordId}

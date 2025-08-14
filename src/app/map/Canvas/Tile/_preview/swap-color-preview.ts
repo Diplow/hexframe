@@ -60,6 +60,19 @@ export function createSwapColorPreview(
 }
 
 /**
+ * Robust path equality: handles undefined paths and avoids join-collisions
+ */
+function samePath(a?: number[], b?: number[]): boolean {
+  const ap = a ?? [];
+  const bp = b ?? [];
+  if (ap.length !== bp.length) return false;
+  for (let i = 0; i < ap.length; i++) {
+    if (ap[i] !== bp[i]) return false;
+  }
+  return true;
+}
+
+/**
  * Gets the preview color for a tile during a swap operation
  */
 export function getSwapPreviewColor(
@@ -69,12 +82,12 @@ export function getSwapPreviewColor(
   const isSource = 
     tileCoord.userId === swapPreview.sourceCoord.userId &&
     tileCoord.groupId === swapPreview.sourceCoord.groupId &&
-    tileCoord.path.join("") === swapPreview.sourceCoord.path.join("");
+    samePath(tileCoord.path, swapPreview.sourceCoord.path);
     
   const isTarget = 
     tileCoord.userId === swapPreview.targetCoord.userId &&
     tileCoord.groupId === swapPreview.targetCoord.groupId &&
-    tileCoord.path.join("") === swapPreview.targetCoord.path.join("");
+    samePath(tileCoord.path, swapPreview.targetCoord.path);
   
   if (isSource) {
     return swapPreview.data.sourcePreviewColor;

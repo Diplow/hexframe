@@ -32,7 +32,7 @@ export const BaseItemTile = ({
   const title = item.data.name ?? 'Untitled';
   
   // Scale-based styling
-  const baseFontSize = scale === 1 ? "text-xs" : scale === 2 ? "text-md" : "text-lg";
+  const baseFontSize = scale === 1 ? "text-xs" : scale === 2 ? "text-base" : "text-lg";
   const fontWeight = scale === 1 ? "font-medium" : scale === 2 ? "font-medium" : "font-semibold";
   
   return (

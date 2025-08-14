@@ -104,9 +104,7 @@ export const BaseTileLayout = ({
 
   return (
     <div
-      className={`flex flex-col items-center justify-center ${cursor} ${
-        isFocusable ? "outline-none" : "" // Remove default outline if focusable
-      }`}
+      className={`flex flex-col items-center justify-center ${cursor}`}
       tabIndex={isFocusable ? 0 : undefined}
       role={isFocusable ? "button" : undefined}
       aria-label={isFocusable ? `Tile ${coordId}` : undefined}
@@ -133,7 +131,7 @@ export const BaseTileLayout = ({
           preserveAspectRatio="xMidYMid meet"
         >
           <defs>
-            {renderStaticTileGradients(coordId, isExpanded, _shallow, hasPath, lastDirection, scale)}
+            {renderStaticTileGradients({ coordId, isExpanded, isShallow: _shallow, hasPath, lastDirection, scale })}
           </defs>
           <path
             d={svgPath}

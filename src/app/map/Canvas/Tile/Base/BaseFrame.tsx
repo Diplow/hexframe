@@ -302,7 +302,8 @@ const RenderChild = ({
     (childId) => mapItems[childId],
   );
 
-  if (isExpanded) {
+  // Only allow expansion if we can reduce scale further (scale > 1)
+  if (isExpanded && scale > 1) {
     return (
       <BaseFrame
         center={coords}

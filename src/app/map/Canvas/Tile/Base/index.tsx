@@ -78,9 +78,7 @@ export const DynamicBaseTileLayout = ({
 
   return (
     <div
-      className={`flex flex-col items-center justify-center ${cursor} ${
-        isFocusable ? "outline-none" : "" // Remove default outline if focusable
-      }`}
+      className={`flex flex-col items-center justify-center ${cursor}`}
       tabIndex={isFocusable ? 0 : undefined}
       role={isFocusable ? "button" : undefined}
       aria-label={isFocusable ? `Tile ${coordId}` : undefined}
@@ -106,7 +104,7 @@ export const DynamicBaseTileLayout = ({
           preserveAspectRatio="xMidYMid meet"
         >
           <defs>
-            {renderTileGradient(coordId, isExpanded, _shallow, hasPath, lastDirection, isDarkMode, scale)}
+            {renderTileGradient({ coordId, isExpanded, isShallow: _shallow, hasPath, lastDirection, isDarkMode, scale })}
           </defs>
           <path
             d={svgPath}
