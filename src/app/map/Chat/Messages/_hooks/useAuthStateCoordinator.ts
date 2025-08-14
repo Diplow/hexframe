@@ -3,7 +3,7 @@ import { useUnifiedAuth } from '~/contexts/UnifiedAuthContext';
 import { useRouter } from 'next/navigation';
 import { api } from '~/commons/trpc/react';
 import type { Widget } from '../../_state/types';
-import { preloadUserMapData, savePreFetchedData } from '../../../Cache/Services/pre-fetch-service';
+import { preloadUserMapData, savePreFetchedData } from '../../../Services/PreFetch/pre-fetch-service';
 import { useEventBus } from '../../../Services/EventBus/event-bus-context';
 
 export function useAuthStateCoordinator(widgets: Widget[]) {

@@ -1,11 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { registerAction } from '~/lib/domains/iam/actions';
 import { authClient } from '~/lib/auth/auth-client';
 import { useRouter } from 'next/navigation';
 import { useEventBus } from '../../../Services/EventBus/event-bus-context';
-import { env } from '~/env';
 
 export function useLoginForm() {
   const eventBus = useEventBus();
@@ -76,82 +74,37 @@ export function useLoginForm() {
   };
 
   const _handleRegisterFlow = async () => {
-    const result = await registerAction({
-      email,
-      password,
-      name: username.trim() || (email.split('@')[0] ?? 'User'),
-    });
-    
-    if (!result.success) {
-      throw new Error(result.error ?? 'Registration failed');
-    }
-    
-    // Trigger the success flow
-    if (result.userId) {
-      // Check if email verification is required
-      const requiresVerification = env.NEXT_PUBLIC_REQUIRE_EMAIL_VERIFICATION;
-      
-      if (requiresVerification) {
-        // Don't try to login, just show success message
-        setError(''); // Clear any errors
-        setSuccess('✅ Registration successful! Please check your email to verify your account. You\'ll be able to log in once your email is verified.');
-        // Clear form
-        setEmail('');
-        setPassword('');
-        setUsername('');
-        // Switch to login mode for when they come back after verification
-        setMode('login');
-        return; // Exit early, don't try to login
-      }
-      
-      // Only try to auto-login if email verification is not required
-      try {
-        await authClient.signIn.email({
-          email,
-          password,
-        });
-        
-        // Wait for the session to be established
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Verify session is established
-        const session = await authClient.getSession();
-        
-        if (!session?.data?.user) {
-          throw new Error('Failed to establish session. Please try logging in manually.');
-        }
-        
-        // Give auth context time to update
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        // Refresh router to update server components
-        router.refresh();
-      } catch (_loginError) {
-        console.warn('Failed to login after registration:', _loginError);
-        throw new Error('Registration successful but login failed. Please try logging in manually.');
-      }
-      
-      // Emit login success event (registration followed by login)
-      eventBus.emit({
-        type: 'auth.login',
-        payload: {
-          userId: result.userId,
-          userName: username.trim() || (email.split('@')[0] ?? 'User')
-        },
-        source: 'auth',
-        timestamp: new Date(),
+    try {
+      const registerResponse = await authClient.signUp.email({
+        email,
+        password,
+        name: username.trim() || (email.split('@')[0] ?? 'User'),
       });
       
-      // Navigate to user's map if they have one
-      if (result.defaultMapId) {
-        setTimeout(() => {
-          router.push(`/map?center=${result.defaultMapId}`);
-        }, 1000);
-      } else {
-        setTimeout(() => {
-          router.push('/map');
-        }, 1000);
+      if (registerResponse.error) {
+        throw new Error(registerResponse.error.message ?? 'Registration failed');
       }
+      
+      // Registration successful
+      setError(''); // Clear any errors
+      setSuccess('✅ Registration successful! You can now log in with your credentials.');
+      
+      // Clear form
+      setEmail('');
+      setPassword('');
+      setUsername('');
+      
+      // Switch to login mode
+      setMode('login');
+      
+    } catch (registerError: unknown) {
+      let errorMessage = 'Registration failed';
+      
+      if (registerError instanceof Error) {
+        errorMessage = registerError.message;
+      }
+      
+      throw new Error(errorMessage);
     }
   };
 

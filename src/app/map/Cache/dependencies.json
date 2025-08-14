@@ -1,0 +1,18 @@
+{
+  "$schema": "../../../../schemas/dependencies.schema.json",
+  "allowed": [
+    "./",
+    "~/app/map/types",
+    "~/commons/trpc",
+    "~/lib/domains/mapping/utils",
+    "~/server/api/types/contracts",
+    "~/lib/debug/debug-logger",
+    "~/test-utils/event-bus",
+    "vitest",
+    "react",
+    "next/navigation"
+  ],
+  "exceptions": {
+    "~/lib/domains/mapping/types": ["MapItemType"]
+  }
+}

@@ -11,7 +11,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
 }));
 
-vi.mock("~/app/map/Cache/map-cache", () => ({
+vi.mock("~/app/map/Cache/use-map-cache", () => ({
   useMapCache: () => ({
     navigateToItem: vi.fn(),
     toggleItemExpansionWithURL: vi.fn(),

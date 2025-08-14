@@ -1,7 +1,6 @@
 import type { ICanvasStrategy } from './strategy.interface'
 import type { CanvasContext, CanvasContextOptions, TileContextItem } from '../../types'
-import type { CacheState } from '~/app/map/Cache/State/types'
-import { selectItem } from '~/app/map/Cache/State/selectors'
+import type { CacheState } from '~/app/map/Cache/interface'
 import type { TileData } from '~/app/map/types/tile-data'
 import { CoordSystem } from '~/lib/domains/mapping/utils/hex-coordinates'
 
@@ -15,7 +14,7 @@ export class MinimalCanvasStrategy implements ICanvasStrategy {
     const state = this.getCacheState()
     
     // Get only the center tile
-    const centerTile = selectItem(state, centerCoordId)
+    const centerTile = state.itemsById[centerCoordId]
     if (!centerTile) {
       throw new Error(`Center tile not found: ${centerCoordId}`)
     }

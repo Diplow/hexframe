@@ -7,6 +7,8 @@ import { LoginWidget } from '../../Widgets/LoginWidget';
 import { ConfirmDeleteWidget } from '../../Widgets/ConfirmDeleteWidget';
 import { LoadingWidget } from '../../Widgets/LoadingWidget';
 import { ErrorWidget } from '../../Widgets/ErrorWidget';
+import { AIResponseWidget } from '../../Widgets/AIResponseWidget';
+import type { AIResponseWidgetData } from '../../types';
 
 function safeStringify(value: unknown, space = 0): string | undefined {
   try {
@@ -28,7 +30,7 @@ export interface WidgetHandlers {
 export function renderPreviewWidget(
   widget: Widget,
   handlers: WidgetHandlers,
-  items: Record<string, TileData>
+  getItem: (coordId: string) => TileData | null
 ) {
   const previewData = widget.data as TileSelectedPayload;
   const { 
@@ -38,7 +40,7 @@ export function renderPreviewWidget(
     handlePreviewClose = () => { /* noop */ }
   } = handlers;
 
-  const tileItem = items[previewData.tileId];
+  const tileItem = getItem(previewData.tileId);
   const currentTitle = tileItem?.data.name ?? previewData.tileData.title;
   const currentContent = tileItem?.data.description ?? previewData.tileData.content ?? '';
 
@@ -114,6 +116,17 @@ export function renderDeleteWidget(widget: Widget) {
       tileId={tileCoordId}
       tileName={tileName}
       widgetId={widget.id}
+    />
+  );
+}
+
+export function renderAIResponseWidget(widget: Widget) {
+  const data = widget.data as AIResponseWidgetData;
+  return (
+    <AIResponseWidget
+      jobId={data.jobId}
+      initialResponse={data.initialResponse}
+      model={data.model}
     />
   );
 }

@@ -1,7 +1,7 @@
 import { useContext, useMemo, useCallback } from "react";
-import { MapCacheContext } from "../provider";
-import { cacheSelectors } from "../State/selectors";
-import type { MapCacheHook } from "../types";
+import { MapCacheContext } from "./provider";
+import { cacheSelectors } from "./State/selectors";
+import type { MapCacheHook } from "./types";
 
 /**
  * Main hook that provides clean public API for cache operations
@@ -26,6 +26,13 @@ export function useMapCache(): MapCacheHook {
   const selectors = useMemo(() => cacheSelectors(state), [state]);
 
   // Memoized query operations
+  const getItem = useCallback(
+    (coordId: string) => {
+      return selectors.getItem(coordId);
+    },
+    [selectors],
+  );
+
   const getRegionItems = useCallback(
     (centerCoordId: string, maxDepth?: number) => {
       return selectors.getRegionItems(centerCoordId, maxDepth);
@@ -171,6 +178,7 @@ export function useMapCache(): MapCacheHook {
     lastUpdated: state.lastUpdated,
 
     // Query operations
+    getItem,
     getRegionItems,
     hasItem,
     isRegionLoaded,

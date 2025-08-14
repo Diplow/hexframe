@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { StandardCanvasStrategy } from '../standard.strategy'
-import type { CacheState } from '~/app/map/Cache/State/types'
+import type { CacheState } from '~/app/map/Cache/interface'
 import type { TileData } from '~/app/map/types/tile-data'
 
 describe('StandardCanvasStrategy', () => {

@@ -15,6 +15,13 @@
       "when": 1748009606909,
       "tag": "0001_friendly_mariko_yashida",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1754945515441,
+      "tag": "0002_nasty_silver_sable",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,119 @@
+#!/bin/sh
+
+# Architecture Compliance Pre-commit Hook
+# Ensures subsystems follow architectural rules
+
+set -e
+
+echo "🏗️ Checking architecture compliance..."
+
+# Configuration
+MIN_LINES_FOR_FOLDER=300
+REQUIRED_FILES="README.md ARCHITECTURE.md interface.ts dependencies.json"
+
+# Function to count lines in a directory
+count_lines() {
+  find "$1" -name "*.ts" -o -name "*.tsx" 2>/dev/null | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}' || echo 0
+}
+
+# Function to check if a directory has required files
+check_required_files() {
+  local dir=$1
+  local missing=""
+  
+  for file in $REQUIRED_FILES; do
+    if [ "$file" = "interface.ts" ]; then
+      # interface.ts OR types/ folder is acceptable
+      if [ ! -f "$dir/interface.ts" ] && [ ! -d "$dir/types" ]; then
+        missing="$missing interface.ts"
+      fi
+    else
+      if [ ! -f "$dir/$file" ]; then
+        missing="$missing $file"
+      fi
+    fi
+  done
+  
+  echo "$missing"
+}
+
+# Check each domain
+VIOLATIONS=""
+for domain_dir in src/lib/domains/*/; do
+  if [ -d "$domain_dir" ]; then
+    domain_name=$(basename "$domain_dir")
+    
+    # Skip shared domain (special case)
+    if [ "$domain_name" = "shared" ]; then
+      continue
+    fi
+    
+    lines=$(count_lines "$domain_dir")
+    missing=$(check_required_files "$domain_dir")
+    
+    if [ "$lines" -gt "$MIN_LINES_FOR_FOLDER" ] && [ -n "$missing" ]; then
+      VIOLATIONS="${VIOLATIONS}\n❌ $domain_name ($lines lines): Missing$missing"
+    fi
+  fi
+done
+
+# Check for scattered complex logic (files not in proper folders)
+echo "Checking for scattered complex logic..."
+for ts_file in $(find src -name "*.ts" -o -name "*.tsx" | grep -v node_modules | grep -v ".test."); do
+  # Skip if already in a domain folder
+  if echo "$ts_file" | grep -q "src/lib/domains/[^/]*/"; then
+    continue
+  fi
+  
+  # Check if this file plus related files exceed threshold
+  base_path=$(dirname "$ts_file")
+  base_name=$(basename "$ts_file" .ts | sed 's/\.tsx$//')
+  related_lines=$(find "$base_path" -name "${base_name}*" -type f | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}' || echo 0)
+  
+  if [ "$related_lines" -gt "$MIN_LINES_FOR_FOLDER" ]; then
+    VIOLATIONS="${VIOLATIONS}\n⚠️  Scattered logic: $base_path/$base_name* ($related_lines lines) - Consider creating subsystem folder"
+  fi
+done
+
+# Check README references ARCHITECTURE
+echo "Checking documentation linking..."
+for readme in $(find src/lib/domains -name "README.md"); do
+  if ! grep -q "ARCHITECTURE.md" "$readme" 2>/dev/null; then
+    domain=$(dirname "$readme" | xargs basename)
+    VIOLATIONS="${VIOLATIONS}\n⚠️  $domain/README.md doesn't reference ARCHITECTURE.md"
+  fi
+done
+
+# Check dependencies.json compliance
+echo "Checking dependency declarations..."
+for deps_file in $(find src/lib/domains -name "dependencies.json"); do
+  domain_dir=$(dirname "$deps_file")
+  domain_name=$(basename "$domain_dir")
+  
+  # Get allowed imports from dependencies.json
+  if [ -f "$deps_file" ]; then
+    # Check for cross-domain imports not in allowed list
+    for ts_file in $(find "$domain_dir" -name "*.ts" -o -name "*.tsx"); do
+      # Look for imports from other domains
+      if grep -E "from ['\"].*domains/(?!$domain_name|shared)" "$ts_file" > /dev/null 2>&1; then
+        import_line=$(grep -E "from ['\"].*domains/" "$ts_file" | head -1)
+        VIOLATIONS="${VIOLATIONS}\n⚠️  $domain_name has unauthorized cross-domain import: $import_line"
+      fi
+    done
+  fi
+done
+
+# Report results
+if [ -n "$VIOLATIONS" ]; then
+  echo "\n🚨 Architecture violations found:"
+  echo "$VIOLATIONS"
+  echo "\n📚 To fix:"
+  echo "1. Create missing files with: ./scripts/create-subsystem.sh [name]"
+  echo "2. Move scattered logic into proper subsystem folders"
+  echo "3. Update dependencies.json with allowed imports"
+  echo "4. Ensure README.md references ARCHITECTURE.md"
+  echo "\n❓ Ask yourself: Are these boundary changes intentional?"
+  exit 1
+else
+  echo "✅ Architecture compliance check passed!"
+fi

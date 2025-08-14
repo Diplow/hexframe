@@ -174,6 +174,7 @@ export function deriveVisibleMessages(events: ChatEvent[]): Message[] {
  * Widgets are derived from events that require user interaction
  */
 export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
+  console.log('[message.selectors.deriveActiveWidgets] Processing', events.length, 'events')
   const widgets: Widget[] = [];
   const activeOperations = new Set<string>();
   const widgetStates = new Map<string, 'active' | 'completed'>();
@@ -256,6 +257,17 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
         // Add error widget
         const widgetId = `error-${event.id}`;
         widgetStates.set(widgetId, 'active');
+        break;
+      }
+
+      case 'widget_created': {
+        const payload = event.payload as { widget: Widget };
+        console.log('[message.selectors.deriveActiveWidgets] widget_created event found:', payload)
+        if (payload.widget) {
+          // Add the widget directly - it's already fully formed
+          widgetStates.set(payload.widget.id, 'active');
+          console.log('[message.selectors.deriveActiveWidgets] Widget state set to active:', payload.widget.id)
+        }
         break;
       }
 
@@ -351,6 +363,15 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
         }
         break;
       }
+      case 'widget_created': {
+        const payload = event.payload as { widget: Widget };
+        if (payload.widget && widgetStates.get(payload.widget.id) === 'active') {
+          console.log('[message.selectors.deriveActiveWidgets] Adding widget_created widget to array:', payload.widget)
+          // Add the widget directly - it's already fully formed
+          widgets.push(payload.widget);
+        }
+        break;
+      }
     }
   }
 
@@ -368,6 +389,11 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
   const result = Array.from(latestWidgets.values()).sort((a, b) => 
     b.timestamp.getTime() - a.timestamp.getTime()
   );
+  
+  console.log('[message.selectors.deriveActiveWidgets] Returning', result.length, 'widgets')
+  result.forEach(w => {
+    console.log('[message.selectors.deriveActiveWidgets] Widget:', { id: w.id, type: w.type })
+  })
   
   return result;
 }

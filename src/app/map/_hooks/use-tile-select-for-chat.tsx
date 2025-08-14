@@ -1,15 +1,15 @@
 import { useCallback } from 'react';
 import { useEventBus } from '../Services/EventBus/event-bus-context';
-import { useMapCache } from '../Cache/_hooks/use-map-cache';
+import { useMapCache } from '~/app/map/Cache/interface';
 import type { TileData } from '../types/tile-data';
 
 export function useTileSelectForChat() {
   const eventBus = useEventBus();
-  const { items } = useMapCache();
+  const { getItem } = useMapCache();
   
   const handleTileSelect = useCallback((tileData: TileData, options?: { openInEditMode?: boolean }) => {
     // Get the full tile data from cache
-    const fullTileData = items[tileData.metadata.coordId] ?? tileData;
+    const fullTileData = getItem(tileData.metadata.coordId) ?? tileData;
     
     // Emit tile selected event via event bus
     eventBus.emit({
@@ -27,7 +27,7 @@ export function useTileSelectForChat() {
       },
       timestamp: new Date(),
     });
-  }, [eventBus, items]);
+  }, [eventBus, getItem]);
   
   return { handleTileSelect };
 }

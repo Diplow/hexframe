@@ -52,6 +52,7 @@ pnpm vitest run --config vitest.config.ts \
   --exclude "**/ChatPanel.send-message.test.tsx" \
   --exclude "**/ChatPanel.debug-message.test.tsx" \
   --exclude "**/ChatPanel.render-debug.test.tsx" \
+  --exclude "**/ChatPanel.comprehensive.test.tsx" \
   --exclude "**/useChatState.test.tsx" \
   "${STORYBOOK_EXCLUDE[@]}" 2>test-results/main-suite.log
 
@@ -80,6 +81,7 @@ for file in \
   src/app/map/Chat/__tests__/ChatPanel.fixed.test.tsx \
   src/app/map/Chat/__tests__/ChatPanel.debug-message.test.tsx \
   src/app/map/Chat/__tests__/ChatPanel.render-debug.test.tsx \
+  src/app/map/Chat/__tests__/ChatPanel.comprehensive.test.tsx \
   src/app/map/Chat/__tests__/useChatState.test.tsx
 do
   if [ -f "$file" ]; then
