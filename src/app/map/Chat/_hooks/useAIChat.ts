@@ -5,6 +5,7 @@ import { MapCacheContext } from '../../Cache/interface'
 import type { ChatMessage } from '../types'
 import type { CompositionConfig } from '~/lib/domains/agentic/types'
 import type { QueuedJobResponse } from '~/lib/domains/agentic/types/job.types'
+import type { Message } from '../_state/_events/event.types'
 import { loggers } from '~/lib/debug/debug-logger'
 
 interface UseAIChatOptions {
@@ -23,7 +24,7 @@ export function useAIChat(options: UseAIChatOptions = {}) {
   const context = useContext(MapCacheContext)
   // Extract cache data directly from context if available
   const cache = useMemo(() => {
-    return context ? {
+    return context?.state ? {
       items: context.state.itemsById,
       center: context.state.currentCenter
     } : null
@@ -43,19 +44,18 @@ export function useAIChat(options: UseAIChatOptions = {}) {
         content: response.content
       })
       
-      // Check if response is queued (has a jobId and pending status)
-      if ('jobId' in response && 'status' in response && response.status === 'pending') {
+      // Check if response is queued based on finishReason
+      if ((response as QueuedJobResponse).finishReason === 'queued') {
         // Send AI Response widget for queued job
-        const queuedResponse = response as unknown as QueuedJobResponse
-        console.log('[useAIChat] Response is QUEUED, creating widget with jobId:', queuedResponse.jobId || response.id)
+        console.log('[useAIChat] Response is QUEUED, creating widget with jobId:', response.id)
         
         chatState.showAIResponseWidget({
-          jobId: queuedResponse.jobId || response.id,
-          model: queuedResponse.model || response.model
+          jobId: response.id,
+          model: response.model
         })
         
         console.log('[useAIChat] Widget creation called for queued job')
-        loggers.agentic('Request queued, widget sent', { jobId: queuedResponse.jobId || response.id })
+        loggers.agentic('Request queued, widget sent', { jobId: response.id })
       } else {
         // Send AI Response widget for direct response
         console.log('[useAIChat] Response is DIRECT, creating widget with content')
@@ -105,7 +105,7 @@ export function useAIChat(options: UseAIChatOptions = {}) {
     }
 
     // Get current chat messages for context
-    const messages: ChatMessage[] = chatState.messages.map(msg => ({
+    const messages: ChatMessage[] = chatState.messages.map((msg: Message) => ({
       id: msg.id,
       type: msg.actor as 'user' | 'assistant' | 'system',
       content: msg.content,
