@@ -1,13 +1,13 @@
 import type { Widget } from '../../_state/types';
 import type { TileSelectedPayload, AuthRequiredPayload, ErrorOccurredPayload } from '../../_state/_events/event.types';
 import type { TileData } from '../../../types/tile-data';
-import { PreviewWidget } from '../../Widgets/PreviewWidget';
-import { CreationWidget } from '../../Widgets/CreationWidget';
-import { LoginWidget } from '../../Widgets/LoginWidget';
-import { ConfirmDeleteWidget } from '../../Widgets/ConfirmDeleteWidget';
-import { LoadingWidget } from '../../Widgets/LoadingWidget';
-import { ErrorWidget } from '../../Widgets/ErrorWidget';
-import { AIResponseWidget } from '../../Widgets/AIResponseWidget';
+import { PreviewWidget } from '../Widgets/PreviewWidget';
+import { CreationWidget } from '../Widgets/CreationWidget';
+import { LoginWidget } from '../Widgets/LoginWidget';
+import { ConfirmDeleteWidget } from '../Widgets/ConfirmDeleteWidget';
+import { LoadingWidget } from '../Widgets/LoadingWidget';
+import { ErrorWidget } from '../Widgets/ErrorWidget';
+import { AIResponseWidget } from '../Widgets/AIResponseWidget';
 import type { AIResponseWidgetData } from '../../types';
 
 function safeStringify(value: unknown, space = 0): string | undefined {

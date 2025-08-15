@@ -1,0 +1,11 @@
+{
+  "$schema": "../../../../../schemas/dependencies.schema.json",
+  "allowed": [
+    "react",
+    "~/lib/debug/debug-logger",
+    "../_state/types",
+    "../_state/_events/event.types",
+    "../_settings/useChatSettings"
+  ],
+  "exceptions": {}
+}

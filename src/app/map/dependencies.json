@@ -1,0 +1,10 @@
+{
+  "$schema": "../../../schemas/dependencies.schema.json",
+  "allowed": [
+    "~/commons/trpc/react",
+    "~/contexts/UnifiedAuthContext",
+    "next/navigation",
+    "react"
+  ],
+  "exceptions": {}
+}

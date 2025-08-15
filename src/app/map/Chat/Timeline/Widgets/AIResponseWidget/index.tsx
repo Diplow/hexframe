@@ -3,7 +3,7 @@ import { api } from '~/commons/trpc/react'
 import { loggers } from '~/lib/debug/debug-logger'
 import type { JobResult } from '~/lib/domains/agentic/types/job.types'
 import { Loader2, CheckCircle, XCircle, Clock, Cpu } from 'lucide-react'
-import { MarkdownRenderer } from '../../Messages/MarkdownRenderer'
+import { MarkdownRenderer } from '../../MarkdownRenderer'
 
 interface AIResponseWidgetProps {
   jobId?: string

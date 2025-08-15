@@ -14,12 +14,6 @@ interface MessagesProps {
 }
 
 export function Messages({ messages, widgets }: MessagesProps) {
-  console.log('[Messages] Component rendered with:', {
-    messageCount: messages.length,
-    widgetCount: widgets.length,
-    widgets: widgets.map(w => ({ id: w.id, type: w.type }))
-  })
-  
   useChatSettings(); // Trigger re-render when settings change
   useAuthStateCoordinator(widgets);
   

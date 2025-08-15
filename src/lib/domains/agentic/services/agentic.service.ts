@@ -9,7 +9,7 @@ import type {
   ModelInfo,
   LLMMessage
 } from '../types'
-import type { ChatMessage } from '~/app/map/Chat/types'
+import type { ChatMessage } from '~/app/map/Chat/interface'
 
 export interface GenerateResponseOptions {
   centerCoordId: string

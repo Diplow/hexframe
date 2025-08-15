@@ -136,12 +136,12 @@ vi.mock('~/commons/trpc/react', () => ({
   },
 }));
 
-// Track renders of Messages component
-vi.mock('../Messages/index.tsx', () => ({
-  Messages: ({ messages, widgets }: { messages: unknown[]; widgets: unknown[] }) => {
-    renderLogs.push(`Messages rendered: ${messages.length} messages, ${widgets.length} widgets`);
+// Track renders of Timeline component (formerly Messages)
+vi.mock('../Timeline/interface', () => ({
+  Timeline: ({ messages, widgets }: { messages: unknown[]; widgets: unknown[] }) => {
+    renderLogs.push(`Timeline rendered: ${messages.length} messages, ${widgets.length} widgets`);
     return (
-      <div data-testid="chat-messages">
+      <div data-testid="chat-timeline">
         <div data-testid="message-count">Messages: {messages.length}</div>
         <div data-testid="widget-count">Widgets: {widgets.length}</div>
         {messages.map((msg: unknown, idx) => {
@@ -192,7 +192,7 @@ describe('ChatPanel - Render Debug', () => {
     renderWithProviders(<ChatPanel />);
     
     // Verify components are rendered
-    expect(screen.getByTestId('chat-messages')).toBeInTheDocument();
+    expect(screen.getByTestId('chat-timeline')).toBeInTheDocument();
     expect(screen.getByTestId('chat-input-mock')).toBeInTheDocument();
     
     // Verify initial render
@@ -200,7 +200,7 @@ describe('ChatPanel - Render Debug', () => {
     expect(messageCount).toBeInTheDocument();
     
     // Verify render logs show components were rendered
-    expect(renderLogs.some(log => log.includes('Messages rendered'))).toBe(true);
+    expect(renderLogs.some(log => log.includes('Timeline rendered'))).toBe(true);
     expect(renderLogs).toContain('Input rendered');
   });
 });

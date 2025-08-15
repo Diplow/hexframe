@@ -1,0 +1,12 @@
+{
+  "$schema": "../../../../../schemas/dependencies.schema.json",
+  "allowed": [
+    "./",
+    "react",
+    "lucide-react",
+    "~/components/ui/button",
+    "~/lib/debug/debug-logger",
+    "../_state"
+  ],
+  "exceptions": {}
+}

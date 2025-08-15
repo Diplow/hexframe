@@ -4,7 +4,6 @@ import { ChevronDown, Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { TileData } from "../types/tile-data";
 import { useMapCache } from '~/app/map/Cache/interface';
-import { _getParentHierarchy } from "./hierarchy.utils";
 import type { URLInfo } from "../types/url-info";
 import { BaseTileLayout } from "~/app/map/Canvas/interface";
 import {
@@ -192,7 +191,7 @@ export const ParentHierarchy = ({
   items,
   urlInfo,
 }: ParentHierarchyProps) => {
-  const { center, items: cacheItems } = useMapCache();
+  const { center, items: cacheItems, getParentHierarchy } = useMapCache();
   const renderCountRef = useRef(0);
   const previousPropsRef = useRef({
     centerCoordId,
@@ -204,10 +203,8 @@ export const ParentHierarchy = ({
   // Use currentCenter from cache state if available, otherwise fall back to prop
   const effectiveCenter = center ?? centerCoordId;
   
-  // Use items from cache if the prop is empty
-  const effectiveItems = Object.keys(items).length > 0 ? items : cacheItems;
-
-  const hierarchy = _getParentHierarchy(effectiveCenter, effectiveItems);
+  // Get hierarchy from cache (it will use the effective center and items internally)
+  const hierarchy = getParentHierarchy(effectiveCenter);
 
   // Track renders and what changed
   useEffect(() => {

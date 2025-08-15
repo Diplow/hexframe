@@ -44,6 +44,12 @@ export interface MapCacheHook {
   hasItem: (coordId: string) => boolean;
   isRegionLoaded: (centerCoordId: string, maxDepth?: number) => boolean;
 
+  // Hierarchy operations
+  getParentHierarchy: (centerCoordId?: string) => TileData[];
+  getCenterItem: (centerCoordId?: string) => TileData | null;
+  isUserMapCenter: (item: TileData) => boolean;
+  shouldShowHierarchy: (hierarchy: TileData[], currentCenter?: string) => boolean;
+
   // Data operations
   loadRegion: (centerCoordId: string, maxDepth?: number) => Promise<LoadResult>;
   loadItemChildren: (parentCoordId: string, maxDepth?: number) => Promise<LoadResult>;

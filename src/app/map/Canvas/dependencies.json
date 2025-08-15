@@ -18,11 +18,5 @@
     "~/lib/debug/debug-logger",
     "~/test-utils/providers"
   ],
-  "exceptions": {
-    "~/app/map/Tile/Item/_utils/color": "Specific color utility function needed for base components",
-    "~/app/map/Tile/Item/item": "Dynamic ItemTile component used in BaseFrame",
-    "~/app/map/Tile/Empty/empty": "Dynamic EmptyTile component used in BaseFrame", 
-    "~/app/map/Tile/Base/gradient": "Gradient rendering utility for base layout",
-    "~/app/map/Tile/utils/stroke": "Stroke utility functions for tile borders"
-  }
+  "exceptions": {}
 }

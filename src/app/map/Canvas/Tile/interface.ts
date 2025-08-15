@@ -10,6 +10,10 @@ export { BaseTileLayout } from './Base/BaseTileLayout'
 export { BaseItemTile } from './Base/BaseItemTile'
 export { BaseEmptyTile } from './Base/BaseEmptyTile'
 
+// Dynamic base tile component (used by Canvas parent)
+export { DynamicBaseTileLayout } from './Base/index'
+export type { DynamicBaseTileLayoutProps } from './Base/index'
+
 // Base component types
 export type { 
   BaseTileLayoutProps,

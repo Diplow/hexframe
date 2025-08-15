@@ -1,0 +1,16 @@
+{
+  "$schema": "../../../../../schemas/dependencies.schema.json",
+  "allowed": [
+    "./",
+    "react",
+    "lucide-react",
+    "~/lib/utils",
+    "~/components/ui/button",
+    "~/components/ui/input",
+    "~/components/ui/textarea",
+    "~/components/ui/label",
+    "~/lib/domains/mapping/utils/hex-coordinates",
+    "~/app/map/Cache/interface"
+  ],
+  "exceptions": {}
+}

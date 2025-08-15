@@ -2,7 +2,7 @@
 
 import { cn } from '~/lib/utils';
 import { useChatState, ChatProvider } from './_state';
-import { Messages } from './Messages';
+import { Timeline } from './Timeline/interface';
 import { Input } from './Input';
 import { ThemeToggle } from '~/components/ThemeToggle';
 import { Logo } from '~/components/ui/logo';
@@ -36,33 +36,12 @@ function ChatContent() {
   const messages = chatState.messages;
   const widgets = chatState.widgets;
   
-  console.log('[ChatContent] Using chat state:', {
-    messageCount: messages.length,
-    widgetCount: widgets.length,
-    widgets: widgets.map(w => ({ id: w.id, type: w.type }))
-  });
-  
   // Enable AI chat integration
   const { isGeneratingAI } = useAIChatIntegration();
-  
-  // Debug logging for ChatPanel renders
-  useEffect(() => {
-    loggers.render.chat('ChatContent mounted');
-    return () => {
-      loggers.render.chat('ChatContent unmounted');
-    };
-  }, []);
-  
-  useEffect(() => {
-    loggers.render.chat('ChatContent updated', {
-      messageCount: messages.length,
-      widgetCount: widgets.length
-    });
-  }, [messages, widgets]);
 
   return (
     <>
-      <Messages messages={messages} widgets={widgets} />
+      <Timeline messages={messages} widgets={widgets} />
       {isGeneratingAI && (
         <div className="px-4 py-2 text-sm text-muted-foreground animate-pulse">
           Thinking...

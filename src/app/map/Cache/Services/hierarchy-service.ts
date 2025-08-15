@@ -2,9 +2,16 @@ import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import type { TileData } from "~/app/map/types/tile-data";
 
 /**
+ * Hierarchy Service
+ * 
+ * Provides utilities for traversing and understanding tile hierarchy relationships.
+ * These functions operate on the tile data structure to extract parent-child relationships.
+ */
+
+/**
  * Builds the parent hierarchy chain from root to direct parent (excluding current center)
  */
-export const _getParentHierarchy = (
+export const getParentHierarchy = (
   centerCoordId: string,
   items: Record<string, TileData>,
 ): TileData[] => {
@@ -33,22 +40,43 @@ export const _getParentHierarchy = (
 /**
  * Checks if the given item is a UserMapItem center (has no parent)
  */
-export const _isUserMapCenter = (item: TileData): boolean => {
+export const isUserMapCenter = (item: TileData): boolean => {
   return item.metadata.coordinates.path.length === 0;
 };
 
 /**
  * Determines if the hierarchy should be displayed
- * Returns false if center is UserMapItem (no parents), true otherwise
+ * Returns false if:
+ * - No hierarchy exists (center is UserMapItem with no parents)
+ * - Center is already one of the hierarchy items (we navigated to a parent)
  */
-export const _shouldShowHierarchy = (hierarchy: TileData[]): boolean => {
-  return hierarchy.length > 0;
+export const shouldShowHierarchy = (
+  hierarchy: TileData[],
+  currentCenter?: string,
+): boolean => {
+  // No hierarchy to show
+  if (hierarchy.length === 0) {
+    return false;
+  }
+
+  // If we have a current center and it's one of the items in the hierarchy,
+  // then we're already looking at a parent item, so don't show hierarchy
+  if (currentCenter) {
+    const isViewingHierarchyItem = hierarchy.some(
+      (item) => item.metadata.coordId === currentCenter,
+    );
+    if (isViewingHierarchyItem) {
+      return false;
+    }
+  }
+
+  return true;
 };
 
 /**
  * Gets the current center item from the items record
  */
-export const _getCenterItem = (
+export const getCenterItem = (
   centerCoordId: string,
   items: Record<string, TileData>,
 ): TileData | null => {

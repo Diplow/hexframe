@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { FullChatStrategy } from '../full.strategy'
-import type { ChatMessage } from '~/app/map/Chat/types'
+import type { ChatMessage } from '~/app/map/Chat/interface'
 
 describe('FullChatStrategy', () => {
   let strategy: FullChatStrategy

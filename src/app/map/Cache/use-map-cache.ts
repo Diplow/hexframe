@@ -2,6 +2,8 @@ import { useContext, useMemo, useCallback } from "react";
 import { MapCacheContext } from "./provider";
 import { cacheSelectors } from "./State/selectors";
 import type { MapCacheHook } from "./types";
+import type { TileData } from "~/app/map/types/tile-data";
+import * as hierarchyService from "./Services/hierarchy-service";
 
 /**
  * Main hook that provides clean public API for cache operations
@@ -168,6 +170,42 @@ export function useMapCache(): MapCacheHook {
   // Sync operations with clean interface
   const syncStatus = syncOperations.getSyncStatus();
 
+  // Hierarchy operations
+  const getParentHierarchy = useCallback(
+    (centerCoordId?: string) => {
+      const effectiveCenter = centerCoordId ?? state.currentCenter;
+      if (!effectiveCenter) return [];
+      return hierarchyService.getParentHierarchy(effectiveCenter, state.itemsById);
+    },
+    [state.currentCenter, state.itemsById],
+  );
+
+  const getCenterItem = useCallback(
+    (centerCoordId?: string) => {
+      const effectiveCenter = centerCoordId ?? state.currentCenter;
+      if (!effectiveCenter) return null;
+      return hierarchyService.getCenterItem(effectiveCenter, state.itemsById);
+    },
+    [state.currentCenter, state.itemsById],
+  );
+
+  const isUserMapCenter = useCallback(
+    (item: TileData) => {
+      return hierarchyService.isUserMapCenter(item);
+    },
+    [],
+  );
+
+  const shouldShowHierarchy = useCallback(
+    (hierarchy: TileData[], currentCenter?: string) => {
+      return hierarchyService.shouldShowHierarchy(
+        hierarchy, 
+        currentCenter ?? state.currentCenter ?? undefined
+      );
+    },
+    [state.currentCenter],
+  );
+
   return {
     // State queries
     items: state.itemsById,
@@ -182,6 +220,12 @@ export function useMapCache(): MapCacheHook {
     getRegionItems,
     hasItem,
     isRegionLoaded,
+
+    // Hierarchy operations
+    getParentHierarchy,
+    getCenterItem,
+    isUserMapCenter,
+    shouldShowHierarchy,
 
     // Data operations
     loadRegion: dataOperations.loadRegion,

@@ -4,7 +4,7 @@ import type { CanvasContextBuilder } from '../canvas-context-builder.service'
 import type { ChatContextBuilder } from '../chat-context-builder.service'
 import type { TokenizerService } from '../tokenizer.service'
 import type { CompositionConfig } from '../../types'
-import type { ChatMessage } from '~/app/map/Chat/types'
+import type { ChatMessage } from '~/app/map/Chat/interface'
 import { createMockCanvasContext, createMockChatContext } from './__fixtures__/context-mocks'
 
 describe('ContextCompositionService', () => {

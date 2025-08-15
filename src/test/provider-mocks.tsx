@@ -23,6 +23,12 @@ export const MockMapCacheProvider = ({ children }: { children: ReactNode }) => {
     hasItem: () => false,
     isRegionLoaded: () => false,
 
+    // Hierarchy operations
+    getParentHierarchy: () => [],
+    getCenterItem: () => null,
+    isUserMapCenter: () => false,
+    shouldShowHierarchy: () => false,
+
     // Data operations
     loadRegion: async () => ({ success: true, itemCount: 0 }),
     loadItemChildren: async () => ({ success: true, itemCount: 0 }),

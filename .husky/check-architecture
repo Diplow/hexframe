@@ -103,19 +103,18 @@ echo "Checking import boundaries..."
 for interface_file in $(find "$TARGET_PATH" -name "interface.ts" -not -path "*/node_modules/*"); do
   subsystem_dir=$(dirname "$interface_file")
   subsystem_name=$(basename "$subsystem_dir")
+  parent_dir=$(dirname "$subsystem_dir")
   
-  # Find all imports to this subsystem from outside
-  # Pattern: import ... from "~/.../$subsystem_name/..."
-  # But exclude imports from the interface itself and from within the same subsystem
+  # Check external imports (from completely outside the parent system)
   violations=$(find src -name "*.ts" -o -name "*.tsx" | \
     xargs grep -l "from [\"']~/.*/$subsystem_name/" 2>/dev/null | \
     grep -v "^$subsystem_dir/" | \
+    grep -v "^$parent_dir/" | \
     xargs grep -H "from [\"']~/.*/$subsystem_name/[^\"']*[\"']" 2>/dev/null | \
     grep -v "/$subsystem_name/interface[\"']" || true)
   
   if [ -n "$violations" ]; then
     ERRORS="${ERRORS}\n❌ External imports bypass $subsystem_name/interface.ts:"
-    # Format violations nicely  
     while IFS= read -r violation; do
       if [ -n "$violation" ]; then
         file_and_line=$(echo "$violation" | cut -d: -f1,2)
@@ -124,6 +123,25 @@ for interface_file in $(find "$TARGET_PATH" -name "interface.ts" -not -path "*/n
       fi
     done << EOF
 $violations
+EOF
+  fi
+  
+  # Check parent imports (from the direct parent system) - should use relative interface
+  parent_violations=$(find "$parent_dir" -maxdepth 1 -name "*.ts" -o -name "*.tsx" | \
+    xargs grep -H "from [\"']\..*/$subsystem_name/[^\"']*[\"']" 2>/dev/null | \
+    grep -v "/$subsystem_name/interface[\"']" || true)
+  
+  if [ -n "$parent_violations" ]; then
+    ERRORS="${ERRORS}\n❌ Parent system imports bypass $subsystem_name/interface.ts:"
+    while IFS= read -r violation; do
+      if [ -n "$violation" ]; then
+        file_and_line=$(echo "$violation" | cut -d: -f1,2)
+        import_line=$(echo "$violation" | cut -d: -f3-)
+        ERRORS="${ERRORS}\n  $file_and_line: $import_line"
+        ERRORS="${ERRORS}\n    Should use: from './$subsystem_name/interface'"
+      fi
+    done << EOF
+$parent_violations
 EOF
   fi
 done
