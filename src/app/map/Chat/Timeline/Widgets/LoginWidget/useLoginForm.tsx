@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { authClient } from '~/lib/auth/auth-client';
+import { authClient } from '~/lib/auth/interface';
 import { useRouter } from 'next/navigation';
 import { useEventBus } from '../../../../Services/EventBus/event-bus-context';
 

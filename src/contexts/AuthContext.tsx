@@ -7,7 +7,7 @@ import React, {
   useState,
   useEffect,
 } from "react";
-import { authClient } from "~/lib/auth/auth-client"; // Your auth client
+import { authClient } from "~/lib/auth/interface"; // Your auth client
 
 // Define User type based on what better-auth session returns
 // This should align with better-auth's User type or the user object shape it provides.

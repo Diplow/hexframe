@@ -2,13 +2,13 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import type { CacheAction, CacheState } from "../State/types";
 import { cacheActions } from "../State/actions";
 import type { DataOperations, NavigationOperations } from "./types";
-import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { CoordSystem } from "~/lib/domains/mapping/interface";
 import type { ServerService } from "../Services/types";
 import { checkAncestors, loadAncestorsForItem } from "./ancestor-loader";
-import type { EventBusService } from "~/app/map/types/events";
-import { adapt } from "~/app/map/types/tile-data";
+import type { EventBusService } from "../../Services/EventBus/interface";
+import { adapt } from "../../types/tile-data";
 import { loggers } from "~/lib/debug/debug-logger";
-import type { MapItemType } from "~/lib/domains/mapping/types";
+import { type MapItemType } from "~/lib/domains/mapping/interface";
 
 export interface NavigationHandlerConfig {
   dispatch: React.Dispatch<CacheAction>;
@@ -58,7 +58,7 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
       
       // 1. Find item by database ID only
       const allItems = Object.values(getState().itemsById);
-      let existingItem = allItems.find(item => item.metadata.dbId.toString() === itemDbId);
+      let existingItem = allItems.find(item => String(item.metadata.dbId) === itemDbId);
       
       if (!existingItem) {
         loggers.mapCache.handlers(`❌ No item found with database ID: ${itemDbId}`, {
@@ -320,7 +320,7 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
         urlUpdated,
       };
     } catch (error) {
-      const errorObj = error as Error;
+      const errorObj = error instanceof Error ? error : new Error(String(error));
       dispatch(cacheActions.setError(errorObj));
 
       return {
@@ -430,7 +430,7 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
         urlUpdated: false,
       };
     } catch (error) {
-      const errorObj = error as Error;
+      const errorObj = error instanceof Error ? error : new Error(String(error));
       dispatch(cacheActions.setError(errorObj));
 
       return {

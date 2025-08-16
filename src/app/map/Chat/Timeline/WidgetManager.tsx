@@ -1,7 +1,7 @@
 import type { Widget } from '../_state/types';
 import type { TileData } from '../../types/tile-data';
 import type { ReactNode } from 'react';
-import { useMapCache } from '~/app/map/Cache/interface';
+import { useMapCache } from '../../Cache/interface';
 import { useEventBus } from '../../Services/EventBus/event-bus-context';
 import { useChatState } from '../_state';
 import { createCreationHandlers } from './_handlers/creation-handlers';

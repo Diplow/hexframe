@@ -1,14 +1,14 @@
 "use client";
 
-import type { TileData } from "~/app/map/types/tile-data";
-import { DynamicBaseTileLayout } from "~/app/map/Canvas/Tile/Base";
-import type { TileScale, TileColor } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
+import type { TileData } from "../../../../types/tile-data";
+import { DynamicBaseTileLayout } from "../../Base";
+import type { TileScale, TileColor } from "../../Base/BaseTileLayout";
 import { DynamicTileContent } from "../content";
-import type { URLInfo } from "~/app/map/types/url-info";
-import { useTileInteraction } from "~/app/map/Canvas/hooks/shared/useTileInteraction";
+import type { URLInfo } from "../../../../types/url-info";
+import { useTileInteraction } from "../../../hooks/shared/useTileInteraction";
 import { useRouter } from "next/navigation";
-import { useMapCache } from '~/app/map/Cache/interface';
-import { useCanvasTheme } from "~/app/map/Canvas";
+import { useMapCache } from '../../../../Cache/interface';
+import { useCanvasTheme } from "../../..";
 
 interface ItemTileContentProps {
   item: TileData;

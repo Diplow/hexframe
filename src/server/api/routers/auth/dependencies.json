@@ -1,0 +1,8 @@
+{
+  "$schema": "../../../../../schemas/dependencies.schema.json",
+  "allowed": [
+    "~/server/api/trpc",
+    "~/server/auth"
+  ],
+  "exceptions": {}
+}

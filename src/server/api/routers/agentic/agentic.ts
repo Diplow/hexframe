@@ -1,13 +1,11 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
-import { createTRPCRouter, protectedProcedure } from '../trpc'
-import { verificationAwareRateLimit, verificationAwareAuthLimit } from '../middleware/rate-limit'
-import { createAgenticService } from '~/lib/domains/agentic/services'
-import type { EventBus } from '~/app/map/Services/EventBus/event-bus'
-import { EventBus as EventBusImpl } from '~/app/map/Services/EventBus/event-bus'
-import type { CacheState } from '~/app/map/Cache/interface'
-import type { ChatMessage } from '~/app/map/Chat/interface'
-import type { CompositionConfig } from '~/lib/domains/agentic/types'
+import { createTRPCRouter, protectedProcedure } from '../../trpc'
+import { verificationAwareRateLimit, verificationAwareAuthLimit } from '../../middleware/rate-limit'
+import { createAgenticService, type CompositionConfig } from '~/lib/domains/agentic/interface'
+import { EventBus as EventBusImpl } from '~/app/map/interface'
+import type { CacheState } from '~/app/map/interface'
+import type { ChatMessage } from '~/app/map/interface'
 import { env } from '~/env'
 import { db } from '~/server/db'
 import { llmJobResults } from '~/server/db/schema'
@@ -99,7 +97,7 @@ export const agenticRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       // Create a server-side event bus instance
-      const eventBus: EventBus = new EventBusImpl()
+      const eventBus = new EventBusImpl()
       
       // Determine if we should use queue based on environment
       const useQueue = process.env.USE_QUEUE === 'true' || process.env.NODE_ENV === 'production'
@@ -173,7 +171,7 @@ export const agenticRouter = createTRPCRouter({
   getAvailableModels: protectedProcedure
     .use(verificationAwareAuthLimit) // Rate limit: 100 req/min for verified, 20 req/min for unverified
     .query(async () => {
-      const eventBus: EventBus = new EventBusImpl()
+      const eventBus = new EventBusImpl()
       
       const agenticService = createAgenticService({
         openRouterApiKey: env.OPENROUTER_API_KEY ?? '',

@@ -1,8 +1,8 @@
 "use client";
 
-import type { TileData } from "~/app/map/types/tile-data";
-import type { TileScale } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
-import type { URLInfo } from "~/app/map/types/url-info";
+import type { TileData } from "../../../types/tile-data";
+import type { TileScale } from "../Base/BaseTileLayout";
+import type { URLInfo } from "../../../types/url-info";
 import { useItemState } from "./_hooks";
 import { ItemTileContent } from "./_components/item-tile-content";
 import { useEffect } from "react";

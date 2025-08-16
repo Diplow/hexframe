@@ -4,7 +4,7 @@
 import type {
   MapContract,
   MapItemContract,
-} from "~/lib/domains/mapping/types/contracts";
+} from "~/lib/domains/mapping/interface";
 
 /**
  * Transform a domain map item contract to an API map item contract

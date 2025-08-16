@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ChatContextBuilder } from '../chat-context-builder.service'
 import type { IChatStrategy } from '../chat-strategies/strategy.interface'
 import type { ChatContextOptions, ChatContextMessage, ChatContextStrategy } from '../../types'
-import type { ChatMessage } from '~/app/map/Chat/interface'
+import type { ChatMessage } from '~/app/map/interface'
 
 describe('ChatContextBuilder', () => {
   let mockFullStrategy: IChatStrategy

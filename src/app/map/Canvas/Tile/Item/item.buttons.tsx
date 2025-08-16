@@ -3,15 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Maximize2, Minimize2, Crosshair, Pencil, Trash2, ExternalLink } from "lucide-react";
-import { useMapCache } from '~/app/map/Cache/interface';
+import { useMapCache } from '../../../Cache/interface';
 import { testLogger } from "~/lib/test-logger";
 import {
   getButtonPositioning,
   getButtonsSizing,
 } from "./_utils/button-utils";
-import type { TileData } from "~/app/map/types/tile-data";
-import type { TileScale } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
-import type { URLInfo } from "~/app/map/types/url-info";
+import type { TileData } from "../../../types/tile-data";
+import type { TileScale } from "../Base/BaseTileLayout";
+import type { URLInfo } from "../../../types/url-info";
 
 export interface TileButtonsProps {
   item: TileData;

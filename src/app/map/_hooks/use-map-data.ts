@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { api } from "~/commons/trpc/react";
-import { CoordSystem, type Coord } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { CoordSystem, type Coord } from "~/lib/domains/mapping/interface";
 import { adapt, type TileData } from "../types/tile-data";
 import type { URLInfo } from "../types/url-info";
 import type { MapItemAPIContract } from "~/server/api/types/contracts";

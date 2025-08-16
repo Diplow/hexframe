@@ -6,9 +6,9 @@ import type {
   TileColor, 
   TileStroke, 
   TileCursor 
-} from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
+} from "../Base/BaseTileLayout";
 import { getDefaultStroke, getStrokeHexColor } from "../utils/stroke";
-import { CoordSystem, type Direction } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { CoordSystem, type Direction } from "~/lib/domains/mapping/interface";
 import { renderTileGradient } from "./gradient";
 
 export interface DynamicBaseTileLayoutProps {

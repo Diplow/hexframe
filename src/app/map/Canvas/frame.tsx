@@ -16,7 +16,7 @@
 import { DynamicItemTile, getColorFromItem, DynamicBaseTileLayout, DynamicEmptyTile } from "./Tile/interface";
 import type { TileScale } from "./Tile/interface";
 import type { TileData } from "../types/tile-data";
-import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { CoordSystem } from "~/lib/domains/mapping/interface";
 import type { URLInfo } from "../types/url-info";
 import { useCanvasTheme } from ".";
 import { useEffect } from "react";

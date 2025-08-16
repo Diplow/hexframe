@@ -1,0 +1,34 @@
+# Architecture Lint Exceptions
+# These paths will be ignored by the architecture linting script
+# Add paths that should be exempted from architecture requirements
+
+# UI Components - shared across the app, not a subsystem
+src/components
+src/components/ui
+
+# Test fixtures and mocks
+src/**/__tests__
+src/**/__fixtures__
+src/**/__mocks__
+src/test-utils
+src/test
+
+# Generated files
+src/generated
+src/**/*.generated.ts
+
+# Root directories - these are containers, not subsystems
+src
+src/app
+src/lib
+src/server
+
+# Small subsystems under 500 lines (will get warnings but not errors)
+src/app/home
+src/app/services/mcp
+
+# Test helpers - internal to services
+src/lib/domains/mapping/services/__tests__/helpers
+
+# Legacy code being refactored
+# (add paths here temporarily while refactoring)

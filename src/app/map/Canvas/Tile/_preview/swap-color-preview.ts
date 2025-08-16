@@ -1,7 +1,7 @@
-import type { Coord } from "~/lib/domains/mapping/utils/hex-coordinates";
-import { Direction } from "~/lib/domains/mapping/utils/hex-coordinates";
+import type { Coord } from "~/lib/domains/mapping/interface";
+import { Direction } from "~/lib/domains/mapping/interface";
 import type { SwapPreviewState } from "./types";
-import { DEFAULT_MAP_COLORS } from "~/app/map/constants";
+import { DEFAULT_MAP_COLORS } from "../../../constants";
 
 /**
  * Type guard to check if a value is a valid Direction

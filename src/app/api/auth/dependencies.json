@@ -1,0 +1,7 @@
+{
+  "$schema": "../../../../schemas/dependencies.schema.json",
+  "allowed": [
+    "~/server/auth"
+  ],
+  "exceptions": {}
+}

@@ -1,13 +1,13 @@
-import { getColorFromItem } from "~/app/map/Canvas/Tile/Item/_utils/color";
+import { getColorFromItem } from "../Item/_utils/color";
 import { BaseTileLayout } from "./BaseTileLayout";
 import type { TileScale } from "./BaseTileLayout";
-import { DynamicEmptyTile } from "~/app/map/Canvas/Tile/Empty/empty";
-import { DynamicItemTile } from "~/app/map/Canvas/Tile/Item/item";
+import { DynamicEmptyTile } from "../Empty/empty";
+import { DynamicItemTile } from "../Item/item";
 import { BaseEmptyTile } from "./BaseEmptyTile";
 import { BaseItemTile } from "./BaseItemTile";
-import type { TileData } from "~/app/map/types/tile-data";
-import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
-import type { URLInfo } from "~/app/map/types/url-info";
+import type { TileData } from "../../../types/tile-data";
+import { CoordSystem } from "~/lib/domains/mapping/interface";
+import type { URLInfo } from "../../../types/url-info";
 
 export interface BaseFrameProps {
   center: string;

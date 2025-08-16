@@ -1,0 +1,13 @@
+{
+  "$schema": "../../../../schemas/dependencies.schema.json",
+  "allowed": [
+    "drizzle-orm",
+    "drizzle-orm/postgres-js",
+    "~/server/db/schema",
+    "~/server/auth",
+    "~/server/api/services/user-mapping.service",
+    "../_objects/user",
+    "../_repositories/user.repository"
+  ],
+  "exceptions": {}
+}

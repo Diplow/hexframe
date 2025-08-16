@@ -1,8 +1,8 @@
 import type { CacheAction, CacheState } from "../State/types";
 import { cacheActions } from "../State/actions";
 import type { DataOperations } from "./types";
-import type { EventBusService } from "~/app/map/types/events";
-import { MapItemType } from "~/lib/domains/mapping/types";
+import type { EventBusService } from "../../Services/EventBus/interface";
+import { MapItemType } from "~/lib/domains/mapping/interface";
 
 // Note: Server mutations are NOT handled through the server service
 // They should use tRPC mutation hooks directly for proper client-side patterns
@@ -101,10 +101,11 @@ export function createMutationHandler(
 
       return { success: true, optimisticApplied: false };
     } catch (error) {
-      dispatch(cacheActions.setError(error as Error));
+      const errorInstance = error instanceof Error ? error : new Error(String(error));
+      dispatch(cacheActions.setError(errorInstance));
       return {
         success: false,
-        error: error as Error,
+        error: errorInstance,
         optimisticApplied: false,
         rolledBack: false,
       };
@@ -172,10 +173,11 @@ export function createMutationHandler(
 
       return { success: true, optimisticApplied: false };
     } catch (error) {
-      dispatch(cacheActions.setError(error as Error));
+      const errorInstance = error instanceof Error ? error : new Error(String(error));
+      dispatch(cacheActions.setError(errorInstance));
       return {
         success: false,
-        error: error as Error,
+        error: errorInstance,
         optimisticApplied: false,
         rolledBack: false,
       };
@@ -229,10 +231,11 @@ export function createMutationHandler(
 
       return { success: true, optimisticApplied: false };
     } catch (error) {
-      dispatch(cacheActions.setError(error as Error));
+      const errorInstance = error instanceof Error ? error : new Error(String(error));
+      dispatch(cacheActions.setError(errorInstance));
       return {
         success: false,
-        error: error as Error,
+        error: errorInstance,
         optimisticApplied: false,
         rolledBack: false,
       };

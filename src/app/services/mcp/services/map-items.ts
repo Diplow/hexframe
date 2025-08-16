@@ -1,4 +1,4 @@
-import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { CoordSystem } from "~/lib/domains/mapping/interface";
 
 interface MapItem {
   id: number;

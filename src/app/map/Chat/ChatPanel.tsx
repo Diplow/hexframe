@@ -9,7 +9,7 @@ import { Logo } from '~/components/ui/logo';
 import { Button } from '~/components/ui/button';
 import { LogOut, LogIn } from 'lucide-react';
 import { useUnifiedAuth } from '~/contexts/UnifiedAuthContext';
-import { authClient } from '~/lib/auth/auth-client';
+import { authClient } from '~/lib/auth/interface';
 import { useEffect } from 'react';
 import { loggers } from '~/lib/debug/debug-logger';
 import { useEventBus } from '../Services/EventBus/event-bus-context';

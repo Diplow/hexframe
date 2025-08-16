@@ -1,0 +1,14 @@
+{
+  "$schema": "../../../../schemas/dependencies.schema.json",
+  "allowed": [
+    "drizzle-orm",
+    "drizzle-orm/postgres-js",
+    "~/server/db",
+    "~/server/db/schema",
+    "../_objects",
+    "../_repositories",
+    "../utils/hex-coordinates",
+    "../types"
+  ],
+  "exceptions": {}
+}

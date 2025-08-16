@@ -22,3 +22,6 @@ export type { MapCacheHook } from './types'
 
 // Cache state type needed by AI services for context composition
 export type { CacheState } from './State/types'
+
+// Tile data type needed by external consumers
+export type { TileData } from '../types/tile-data'

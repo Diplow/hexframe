@@ -1,6 +1,6 @@
 import type { IChatStrategy } from './strategy.interface'
 import type { ChatContext, ChatContextOptions, ChatContextMessage } from '../../types'
-import type { ChatMessage, ChatWidget } from '~/app/map/Chat/interface'
+import type { ChatMessage, ChatWidget } from '~/app/map/interface'
 
 export class RelevantChatStrategy implements IChatStrategy {
   async build(

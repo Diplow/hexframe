@@ -2,7 +2,7 @@ import { cacheReducer, initialCacheState } from "../reducer";
 import { ACTION_TYPES } from "../types";
 import type { CacheState, CacheAction, RegionMetadata } from "../types";
 import type { MapItemAPIContract } from "~/server/api/types/contracts";
-import { MapItemType } from "~/lib/domains/mapping/types";
+import { MapItemType } from "~/lib/domains/mapping/interface";
 
 describe("Cache Reducer", () => {
   // Mock data for testing

@@ -16,6 +16,41 @@ echo "🏗️ Checking architectural boundaries in $TARGET_PATH..."
 COMPLEXITY_THRESHOLD=1000  # Lines before requiring subsystem structure
 DOC_THRESHOLD=500          # Lines before requiring README
 
+# Load exceptions from .architecture-ignore file if it exists
+load_exceptions() {
+  if [ -f ".architecture-ignore" ]; then
+    # Read non-comment, non-empty lines from the ignore file
+    grep -v '^#' .architecture-ignore 2>/dev/null | grep -v '^$' || echo ""
+  else
+    # Fallback to hardcoded exceptions
+    echo "src/components"
+  fi
+}
+
+# Check if a path matches any exception pattern
+is_exception() {
+  local path=$1
+  local exceptions=$(load_exceptions)
+  
+  if [ -z "$exceptions" ]; then
+    return 1  # No exceptions defined
+  fi
+  
+  while IFS= read -r pattern; do
+    if [ -z "$pattern" ]; then
+      continue
+    fi
+    # Check if path matches the pattern (supports wildcards)
+    case "$path" in
+      $pattern)
+        return 0  # Match found - is an exception
+        ;;
+    esac
+  done <<< "$exceptions"
+  
+  return 1  # No match - not an exception
+}
+
 # Count TypeScript lines in a directory
 # Recursive, but stops at subsystem boundaries (folders with interface.ts)
 count_ts_lines() {
@@ -49,10 +84,16 @@ count_ts_lines() {
 
 ERRORS=""
 WARNINGS=""
+NEWLINE=$'\n'
 
 # Check all directories for line count
 echo "Scanning directories (recursive, stopping at subsystem boundaries)..."
 for dir in $(find "$TARGET_PATH" -type d -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/dist/*" -not -path "*/build/*"); do
+  # Skip if this directory is in the exception list
+  if is_exception "$dir"; then
+    continue
+  fi
+  
   # Skip if this is a child of a subsystem (would be double-counted)
   parent_dir=$(dirname "$dir")
   if [ -f "$parent_dir/interface.ts" ]; then
@@ -72,13 +113,13 @@ for dir in $(find "$TARGET_PATH" -type d -not -path "*/node_modules/*" -not -pat
     [ ! -f "$dir/dependencies.json" ] && missing="$missing dependencies.json"
     
     if [ -n "$missing" ]; then
-      ERRORS="${ERRORS}\n❌ $dir ($lines lines) missing:$missing"
+      ERRORS="${ERRORS}${NEWLINE}❌ $dir ($lines lines) missing:$missing"
     fi
     
   elif [ "$lines" -gt "$DOC_THRESHOLD" ]; then
     # Medium complexity - just needs README
     if [ ! -f "$dir/README.md" ]; then
-      WARNINGS="${WARNINGS}\n⚠️  $dir ($lines lines) - missing README.md"
+      WARNINGS="${WARNINGS}${NEWLINE}⚠️  $dir ($lines lines) - missing README.md"
     fi
   fi
 done
@@ -94,7 +135,7 @@ for interface_file in $(find "$TARGET_PATH" -name "interface.ts" -not -path "*/n
   [ ! -f "$dir/dependencies.json" ] && missing="$missing dependencies.json"
   
   if [ -n "$missing" ]; then
-    ERRORS="${ERRORS}\n❌ $dir has interface.ts but missing:$missing"
+    ERRORS="${ERRORS}${NEWLINE}❌ $dir has interface.ts but missing:$missing"
   fi
 done
 
@@ -114,12 +155,14 @@ for interface_file in $(find "$TARGET_PATH" -name "interface.ts" -not -path "*/n
     grep -v "/$subsystem_name/interface[\"']" || true)
   
   if [ -n "$violations" ]; then
-    ERRORS="${ERRORS}\n❌ External imports bypass $subsystem_name/interface.ts:"
+    ERRORS="${ERRORS}${NEWLINE}${NEWLINE}❌ External imports bypass $subsystem_name/interface.ts:"
     while IFS= read -r violation; do
       if [ -n "$violation" ]; then
-        file_and_line=$(echo "$violation" | cut -d: -f1,2)
-        import_line=$(echo "$violation" | cut -d: -f3-)
-        ERRORS="${ERRORS}\n  $file_and_line: $import_line"
+        file=$(echo "$violation" | cut -d: -f1)
+        import_line=$(echo "$violation" | cut -d: -f2-)
+        # Format the import line to be more readable
+        import_clean=$(echo "$import_line" | sed 's/^[[:space:]]*//' | sed 's/;$//')
+        ERRORS="${ERRORS}${NEWLINE}  🔸 $file${NEWLINE}     $import_clean"
       fi
     done << EOF
 $violations
@@ -132,13 +175,14 @@ EOF
     grep -v "/$subsystem_name/interface[\"']" || true)
   
   if [ -n "$parent_violations" ]; then
-    ERRORS="${ERRORS}\n❌ Parent system imports bypass $subsystem_name/interface.ts:"
+    ERRORS="${ERRORS}${NEWLINE}${NEWLINE}❌ Parent system imports bypass $subsystem_name/interface.ts:"
     while IFS= read -r violation; do
       if [ -n "$violation" ]; then
-        file_and_line=$(echo "$violation" | cut -d: -f1,2)
-        import_line=$(echo "$violation" | cut -d: -f3-)
-        ERRORS="${ERRORS}\n  $file_and_line: $import_line"
-        ERRORS="${ERRORS}\n    Should use: from './$subsystem_name/interface'"
+        file=$(echo "$violation" | cut -d: -f1)
+        import_line=$(echo "$violation" | cut -d: -f2-)
+        # Format the import line to be more readable
+        import_clean=$(echo "$import_line" | sed 's/^[[:space:]]*//' | sed 's/;$//')
+        ERRORS="${ERRORS}${NEWLINE}  🔸 $file${NEWLINE}     $import_clean${NEWLINE}     → Should use: from './$subsystem_name/interface'"
       fi
     done << EOF
 $parent_violations
@@ -148,21 +192,31 @@ done
 
 # Report results
 if [ -n "$ERRORS" ]; then
-  echo "\n🚨 Architecture violations:"
-  echo "$ERRORS"
-  echo "\nFolders over $COMPLEXITY_THRESHOLD lines need:"
-  echo "- interface.ts (or types/ folder)"
-  echo "- dependencies.json"
-  echo "- README.md"
-  echo "- ARCHITECTURE.md"
-  echo "\nSubsystems with interface.ts must be imported ONLY through interface.ts"
-  echo "External imports should use: import { X } from '~/path/to/subsystem/interface'"
+  echo ""
+  echo "🚨 Architecture violations:"
+  echo "════════════════════════════════════════════════════════════════════════"
+  printf "%s\n" "$ERRORS"
+  echo ""
+  echo "📋 Requirements:"
+  echo "────────────────────────────────────────────────────────────────────────"
+  echo "• Folders over $COMPLEXITY_THRESHOLD lines need:"
+  echo "  - interface.ts (or types/ folder)"
+  echo "  - dependencies.json"
+  echo "  - README.md"
+  echo "  - ARCHITECTURE.md"
+  echo ""
+  echo "• Subsystems with interface.ts must be imported ONLY through interface.ts"
+  echo "• External imports should use: import { X } from '~/path/to/subsystem/interface'"
+  echo "════════════════════════════════════════════════════════════════════════"
   exit 1
 fi
 
 if [ -n "$WARNINGS" ]; then
-  echo "\n⚠️  Warnings:"
-  echo "$WARNINGS"
+  echo ""
+  echo "⚠️  Warnings:"
+  echo "────────────────────────────────────────────────────────────────────────"
+  printf "%s\n" "$WARNINGS"
+  echo "────────────────────────────────────────────────────────────────────────"
 fi
 
 echo "✅ Architecture check passed!"

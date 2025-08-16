@@ -1,4 +1,4 @@
-import type { Coord } from "~/lib/domains/mapping/utils/hex-coordinates";
+import type { Coord } from "~/lib/domains/mapping/interface";
 
 /**
  * Base preview state interface

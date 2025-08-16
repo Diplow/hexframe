@@ -46,3 +46,38 @@ export const MAPPING_ERRORS = {
 } as const;
 
 export type MappingError = keyof typeof MAPPING_ERRORS;
+
+export class MapNotFoundError extends Error {
+  constructor(message = "Map not found") {
+    super(message);
+    this.name = "MapNotFoundError";
+  }
+}
+
+export class ItemNotFoundError extends Error {
+  constructor(message = "Item not found") {
+    super(message);
+    this.name = "ItemNotFoundError";
+  }
+}
+
+export class InvalidCoordinatesError extends Error {
+  constructor(message = "Invalid coordinates") {
+    super(message);
+    this.name = "InvalidCoordinatesError";
+  }
+}
+
+export class InvalidMoveError extends Error {
+  constructor(message = "Invalid move operation") {
+    super(message);
+    this.name = "InvalidMoveError";
+  }
+}
+
+export class PermissionDeniedError extends Error {
+  constructor(message = "Permission denied") {
+    super(message);
+    this.name = "PermissionDeniedError";
+  }
+}

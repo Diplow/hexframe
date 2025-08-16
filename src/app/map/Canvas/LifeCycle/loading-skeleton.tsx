@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { cn } from "~/lib/utils";
 import { BaseFrame } from "../Tile/interface";
 import type { TileData } from "../../types/tile-data";
-import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { CoordSystem } from "~/lib/domains/mapping/interface";
 import type { URLInfo } from "../../types/url-info";
 
 interface MapLoadingSkeletonProps {

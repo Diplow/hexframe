@@ -1,5 +1,5 @@
 import { type Dispatch } from "react";
-import { CoordSystem, type Coord } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { CoordSystem, type Coord } from "~/lib/domains/mapping/interface";
 import type { MapItemAPIContract } from "~/server/api/types/contracts";
 import type { CacheAction } from "../State/types";
 import type { DataOperations } from "../Handlers/types";
@@ -7,8 +7,8 @@ import type { StorageService } from "../Services/types";
 import type { TileData } from "../../types/tile-data";
 import { cacheActions } from "../State/actions";
 import { OptimisticChangeTracker } from "./optimistic-tracker";
-import type { EventBusService } from "~/app/map/types/events";
-import { MapItemType } from "~/lib/domains/mapping/types";
+import type { EventBusService } from "../../Services/EventBus/interface";
+import { MapItemType } from "~/lib/domains/mapping/interface";
 
 export interface MutationCoordinatorConfig {
   dispatch: Dispatch<CacheAction>;
@@ -166,7 +166,7 @@ export class MutationCoordinator {
       // Server delete successful
       
       // Finalize deletion
-      await this._finalizeDelete(existingItem.metadata.dbId, changeId);
+      await this._finalizeDelete(String(existingItem.metadata.dbId), changeId);
       // Delete finalized
       
       return { success: true };
@@ -255,7 +255,7 @@ export class MutationCoordinator {
     directChildrenSource.forEach(child => {
       // Capture rollback for child before relocation
       if (rollbackState) {
-        rollbackState[child.metadata.coordId] = this._reconstructApiData(child);
+        rollbackState[String(child.metadata.coordId)] = this._reconstructApiData(child);
       }
       const childCoords = CoordSystem.parseId(child.metadata.coordId);
       const relativePath = childCoords.path.slice(parsedSource.path.length);
@@ -273,7 +273,7 @@ export class MutationCoordinator {
     directChildrenTarget.forEach(child => {
       // Capture rollback for child before relocation
       if (rollbackState) {
-        rollbackState[child.metadata.coordId] = this._reconstructApiData(child);
+        rollbackState[String(child.metadata.coordId)] = this._reconstructApiData(child);
       }
       const childCoords = CoordSystem.parseId(child.metadata.coordId);
       const relativePath = childCoords.path.slice(parsedTarget.path.length);
@@ -396,7 +396,7 @@ export class MutationCoordinator {
     const parentCoordId = CoordSystem.createId(parentCoords);
     const parentItem = this.config.getState().itemsById[parentCoordId];
     
-    return parentItem?.metadata.dbId ?? null;
+    return parentItem ? String(parentItem.metadata.dbId) : null;
   }
 
   private _createOptimisticItem(
@@ -542,7 +542,7 @@ export class MutationCoordinator {
 
   private _reconstructApiData(tile: TileData): MapItemAPIContract {
     return {
-      id: tile.metadata.dbId,
+      id: String(tile.metadata.dbId),
       coordinates: tile.metadata.coordId,
       depth: tile.metadata.depth,
       name: tile.data.name,
@@ -634,9 +634,9 @@ export class MutationCoordinator {
         type: 'map.tiles_swapped',
         source: 'map_cache',
         payload: {
-          tile1Id: moveParams.sourceItem.metadata.dbId,
+          tile1Id: String(moveParams.sourceItem.metadata.dbId),
           tile1Name: moveParams.sourceItem.data.name,
-          tile2Id: moveParams.targetItem.metadata.dbId,
+          tile2Id: String(moveParams.targetItem.metadata.dbId),
           tile2Name: moveParams.targetItem.data.name
         }
       });
@@ -645,7 +645,7 @@ export class MutationCoordinator {
         type: 'map.tile_moved',
         source: 'map_cache',
         payload: {
-          tileId: moveParams.sourceItem.metadata.dbId,
+          tileId: String(moveParams.sourceItem.metadata.dbId),
           tileName: moveParams.sourceItem.data.name,
           fromCoordId: moveParams.sourceCoordId,
           toCoordId: moveParams.targetCoordId

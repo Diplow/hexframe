@@ -1,6 +1,6 @@
 import type { CacheState } from "./types";
 import type { TileData } from "../../types/tile-data";
-import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { CoordSystem } from "~/lib/domains/mapping/interface";
 import type { RegionMetadata } from "./types";
 
 // Selector factory for creating memoized selectors
@@ -515,8 +515,8 @@ export function cacheSelectors(state: CacheState) {
       const lowerQuery = query.toLowerCase();
       return Object.values(state.itemsById).filter(
         (item) =>
-          item.data.name.toLowerCase().includes(lowerQuery) ||
-          item.data.description.toLowerCase().includes(lowerQuery),
+          item.data.name?.toLowerCase().includes(lowerQuery) ||
+          item.data.description?.toLowerCase().includes(lowerQuery),
       );
     },
 

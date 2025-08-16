@@ -9,7 +9,7 @@ import type {
 } from "./Handlers/types";
 import type { ServerService, StorageService, ServiceConfig } from "./Services/types";
 import type { SyncOperations, SyncResult, SyncStatus } from "./Sync/types";
-import type { EventBusService } from "~/app/map/types/events";
+import type { EventBusService } from "../Services/EventBus";
 
 // Cache context interface
 export interface MapCacheContextValue {

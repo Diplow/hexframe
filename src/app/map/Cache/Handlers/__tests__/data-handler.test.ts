@@ -8,7 +8,7 @@ import { initialCacheState } from "../../State/reducer";
 import type { DataHandlerConfig, DataHandlerServices } from "../data-handler";
 import type { CacheState } from "../../State/types";
 import type { MapItemAPIContract } from "~/server/api/types/contracts";
-import { MapItemType } from "~/lib/domains/mapping/types";
+import { MapItemType } from "~/lib/domains/mapping/interface";
 
 // Mock console.warn to avoid noise in tests (restored after each test)
 vi.spyOn(console, 'warn').mockImplementation(() => {

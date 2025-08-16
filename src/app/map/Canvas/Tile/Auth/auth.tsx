@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { DynamicBaseTileLayout } from "~/app/map/Canvas/Tile/Base";
-import { useCanvasTheme } from "~/app/map/Canvas";
+import { DynamicBaseTileLayout } from "../Base";
+import { useCanvasTheme } from "../..";
 import styles from "./auth.module.css";
 
 export interface AuthTileProps {

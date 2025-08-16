@@ -1,0 +1,8 @@
+{
+  "$schema": "../../../../../schemas/dependencies.schema.json",
+  "allowed": [
+    "react",
+    "../../types/events"
+  ],
+  "exceptions": {}
+}

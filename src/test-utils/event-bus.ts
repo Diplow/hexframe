@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import type { AppEvent, EventListener, EventBusService } from '~/app/map/types/events';
+import type { AppEvent, EventListener, EventBusService } from '~/app/map/interface';
 
 /**
  * Creates a mock EventBus for testing

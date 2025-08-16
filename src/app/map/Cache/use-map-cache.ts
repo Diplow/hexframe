@@ -2,7 +2,7 @@ import { useContext, useMemo, useCallback } from "react";
 import { MapCacheContext } from "./provider";
 import { cacheSelectors } from "./State/selectors";
 import type { MapCacheHook } from "./types";
-import type { TileData } from "~/app/map/types/tile-data";
+import type { TileData } from "../types/tile-data";
 import * as hierarchyService from "./Services/hierarchy-service";
 
 /**
@@ -115,7 +115,7 @@ export function useMapCache(): MapCacheHook {
   // Helper function to convert coordinate ID to database ID
   const getDbIdFromCoordId = useCallback((coordId: string): string | null => {
     const item = state.itemsById[coordId];
-    return item ? item.metadata.dbId.toString() : null;
+    return item ? String(item.metadata.dbId) : null;
   }, [state.itemsById]);
 
   // Navigation operations - now converts coordinate IDs to database IDs

@@ -1,7 +1,7 @@
 import { BaseTileLayout } from "./BaseTileLayout";
 import type { TileScale, TileColor } from "./BaseTileLayout";
-import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
-import { getColor } from "~/app/map/types/tile-data";
+import { CoordSystem } from "~/lib/domains/mapping/interface";
+import { getColor } from "../../../types/tile-data";
 
 export interface BaseEmptyTileProps {
   coordId: string;

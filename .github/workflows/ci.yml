@@ -1,5 +1,10 @@
 name: CI
 
+# Limit GITHUB_TOKEN permissions for security
+permissions:
+  contents: read
+  pull-requests: read
+
 on:
   pull_request:
     branches: [main, develop]

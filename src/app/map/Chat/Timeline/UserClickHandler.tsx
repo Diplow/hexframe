@@ -1,6 +1,6 @@
 import { useUnifiedAuth } from '~/contexts/UnifiedAuthContext';
 import { api } from '~/commons/trpc/react';
-import { useMapCache } from '~/app/map/Cache/interface';
+import { useMapCache } from '../../Cache/interface';
 import { useEventBus } from '../../Services/EventBus/event-bus-context';
 
 export function useUserClickHandler() {

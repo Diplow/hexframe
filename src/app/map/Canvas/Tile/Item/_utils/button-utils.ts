@@ -1,5 +1,5 @@
-import type { TileData } from "~/app/map/types/tile-data";
-import type { URLInfo } from "~/app/map/types/url-info";
+import type { TileData } from "../../../../types/tile-data";
+import type { URLInfo } from "../../../../types/url-info";
 
 // Shared helper functions for tile buttons
 

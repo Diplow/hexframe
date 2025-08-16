@@ -1,0 +1,10 @@
+{
+  "$schema": "../../../../../schemas/dependencies.schema.json",
+  "allowed": [
+    "zod",
+    "~/server/api/trpc",
+    "~/lib/domains/iam/interface",
+    "~/lib/domains/mapping/interface"
+  ],
+  "exceptions": {}
+}
