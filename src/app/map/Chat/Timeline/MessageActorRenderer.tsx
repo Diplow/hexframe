@@ -6,7 +6,6 @@ import { TimestampRenderer } from './TimestampRenderer';
 import { useUserClickHandler } from './UserClickHandler';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { CopyButton } from './CopyButton';
-import { MessageActions } from './MessageActions';
 
 interface MessageActorRendererProps {
   message: Message;
@@ -69,21 +68,14 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
   };
   
   return (
-    <div className="w-full group">
+    <div className="w-full">
       <div className="text-sm">
         <TimestampRenderer timestamp={message.timestamp} />
         {renderActorLabel()}
-        {message.isEditing ? (
-          <MessageActions message={message} />
-        ) : (
-          <>
-            <MarkdownRenderer 
-              content={message.content} 
-              isSystemMessage={message.actor === 'system'} 
-            />
-            <MessageActions message={message} />
-          </>
-        )}
+        <MarkdownRenderer 
+          content={message.content} 
+          isSystemMessage={message.actor === 'system'} 
+        />
         {renderCopyButtons()}
       </div>
     </div>

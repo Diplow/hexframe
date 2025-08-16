@@ -16,10 +16,7 @@ export type ChatEventType =
   | 'widget_resolved'
   | 'widget_created'
   | 'widget_closed'
-  | 'execute_command'
-  | 'message_edit_started'
-  | 'message_edited'
-  | 'message_deleted';
+  | 'execute_command';
 
 export type ChatEventActor = 'user' | 'system' | 'assistant';
 
@@ -42,8 +39,6 @@ export interface Message {
   content: string;
   actor: ChatEventActor;
   timestamp: Date;
-  isEditing?: boolean;
-  originalContent?: string;
 }
 
 export interface Widget {
@@ -108,17 +103,4 @@ export interface ErrorOccurredPayload {
 
 export interface ExecuteCommandPayload {
   command: string;
-}
-
-export interface MessageEditStartedPayload {
-  messageId: string;
-}
-
-export interface MessageEditedPayload {
-  messageId: string;
-  newContent: string;
-}
-
-export interface MessageDeletedPayload {
-  messageId: string;
 }

@@ -1,4 +1,4 @@
-import type { ChatEvent, Message, Widget, OperationStartedPayload, OperationCompletedPayload, SystemMessagePayload, UserMessagePayload, TileSelectedPayload, AuthRequiredPayload, ErrorOccurredPayload, NavigationPayload, MessageEditStartedPayload, MessageEditedPayload } from '../_events/event.types';
+import type { ChatEvent, Message, Widget, OperationStartedPayload, OperationCompletedPayload, SystemMessagePayload, UserMessagePayload, TileSelectedPayload, AuthRequiredPayload, ErrorOccurredPayload, NavigationPayload } from '../_events/event.types';
 import { chatSettings } from '../../_settings/chat-settings';
 
 /**
@@ -8,8 +8,6 @@ import { chatSettings } from '../../_settings/chat-settings';
 export function deriveVisibleMessages(events: ChatEvent[]): Message[] {
   const messages: Message[] = [];
   const settings = chatSettings.getSettings();
-  const editingStates = new Map<string, boolean>();
-  const editedContents = new Map<string, string>();
 
   for (const event of events) {
     switch (event.type) {
@@ -152,18 +150,6 @@ export function deriveVisibleMessages(events: ChatEvent[]): Message[] {
         break;
       }
 
-      case 'message_edit_started': {
-        const payload = event.payload as MessageEditStartedPayload;
-        editingStates.set(payload.messageId, true);
-        break;
-      }
-
-      case 'message_edited': {
-        const payload = event.payload as MessageEditedPayload;
-        editingStates.set(payload.messageId, false);
-        editedContents.set(payload.messageId, payload.newContent);
-        break;
-      }
 
       // Other event types don't produce messages
       default: {
@@ -180,18 +166,7 @@ export function deriveVisibleMessages(events: ChatEvent[]): Message[] {
     }
   }
 
-  // Apply editing states and edited contents to messages
-  return messages.map(message => {
-    const isEditing = editingStates.get(message.id) ?? false;
-    const editedContent = editedContents.get(message.id);
-    
-    return {
-      ...message,
-      isEditing,
-      originalContent: editedContent !== undefined ? message.content : undefined,
-      content: editedContent ?? message.content,
-    };
-  });
+  return messages;
 }
 
 /**

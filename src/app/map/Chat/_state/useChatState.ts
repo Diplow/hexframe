@@ -227,39 +227,6 @@ export function useChatStateInternal(initialEvents: ChatEvent[] = []) {
         actor: 'system',
       });
     },
-
-    // Start editing a message
-    startEditingMessage(messageId: string) {
-      dispatch({
-        type: 'message_edit_started',
-        payload: { messageId },
-        id: `chat-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-        timestamp: new Date(),
-        actor: 'user',
-      });
-    },
-
-    // Save edited message
-    saveEditedMessage(messageId: string, newContent: string) {
-      dispatch({
-        type: 'message_edited',
-        payload: { messageId, newContent },
-        id: `chat-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-        timestamp: new Date(),
-        actor: 'user',
-      });
-    },
-
-    // Delete a message
-    deleteMessage(messageId: string) {
-      dispatch({
-        type: 'message_deleted',
-        payload: { messageId },
-        id: `chat-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-        timestamp: new Date(),
-        actor: 'user',
-      });
-    },
   }), [dispatch]);
 
   return {
