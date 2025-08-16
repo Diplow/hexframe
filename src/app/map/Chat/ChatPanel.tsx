@@ -43,8 +43,13 @@ function ChatContent() {
     <>
       <Timeline messages={messages} widgets={widgets} />
       {isGeneratingAI && (
-        <div className="px-4 py-2 text-sm text-muted-foreground animate-pulse">
-          Thinking...
+        <div className="flex items-center gap-2 text-muted-foreground text-sm p-3 bg-muted/50 rounded-lg mx-4 my-2">
+          <div className="flex gap-1">
+            <span className="animate-bounce" style={{ animationDelay: '0ms' }}>●</span>
+            <span className="animate-bounce" style={{ animationDelay: '150ms' }}>●</span>
+            <span className="animate-bounce" style={{ animationDelay: '300ms' }}>●</span>
+          </div>
+          <span>HexFrame is thinking</span>
         </div>
       )}
       <Input />

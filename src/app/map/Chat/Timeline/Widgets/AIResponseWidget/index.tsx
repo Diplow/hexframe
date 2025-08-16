@@ -4,6 +4,7 @@ import { loggers } from '~/lib/debug/debug-logger'
 import type { JobResult } from '~/lib/domains/agentic/interface'
 import { Loader2, CheckCircle, XCircle, Clock, Cpu } from 'lucide-react'
 import { MarkdownRenderer } from '../../MarkdownRenderer'
+import { cn } from '~/lib/utils'
 
 interface AIResponseWidgetProps {
   jobId?: string
@@ -141,23 +142,26 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   if (status === 'pending') {
     console.log('[AIResponseWidget] Rendering PENDING state')
     return (
-      <div className="ai-response-widget p-4 rounded-lg bg-primary/10 dark:bg-primary/20 border border-primary/30 dark:border-primary/40">
+      <div className={cn(
+        "ai-response-widget p-4 rounded-lg transition-all duration-300 ease-in-out",
+        "bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800"
+      )}>
         <div className="flex items-center gap-3">
-          <Clock className="w-5 h-5 text-primary dark:text-primary-light animate-pulse" />
+          <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400 animate-pulse" />
           <div className="flex-1">
-            <div className="font-medium text-primary-dark dark:text-primary-light">
+            <div className="font-medium text-yellow-800 dark:text-yellow-300">
               Request Queued
             </div>
-            <div className="text-sm text-primary dark:text-primary-light/80">
+            <div className="text-sm text-yellow-700 dark:text-yellow-400/80">
               Your request has been queued and will be processed shortly...
             </div>
             {jobId && (
-              <div className="text-xs text-primary dark:text-primary-light mt-1">
+              <div className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
                 Job ID: {jobId}
               </div>
             )}
           </div>
-          <div className="text-sm text-primary dark:text-primary-light">
+          <div className="text-sm text-yellow-600 dark:text-yellow-400">
             {elapsedTime}s
           </div>
         </div>
@@ -169,23 +173,26 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   if (status === 'processing') {
     console.log('[AIResponseWidget] Rendering PROCESSING state')
     return (
-      <div className="ai-response-widget p-4 rounded-lg bg-secondary/10 dark:bg-secondary/20 border border-secondary/30 dark:border-secondary/40">
+      <div className={cn(
+        "ai-response-widget p-4 rounded-lg transition-all duration-300 ease-in-out",
+        "bg-orange-50 border border-orange-200 dark:bg-orange-900/20 dark:border-orange-800"
+      )}>
         <div className="flex items-center gap-3">
-          <Cpu className="w-5 h-5 text-secondary dark:text-secondary-light animate-spin" />
+          <Cpu className="w-5 h-5 text-orange-600 dark:text-orange-400 animate-spin" />
           <div className="flex-1">
-            <div className="font-medium text-secondary-dark dark:text-secondary-light">
+            <div className="font-medium text-orange-800 dark:text-orange-300">
               Processing with AI
             </div>
-            <div className="text-sm text-secondary dark:text-secondary-light/80">
+            <div className="text-sm text-orange-700 dark:text-orange-400/80">
               {model ?? 'AI model'} is thinking...
             </div>
             <div className="mt-2">
-              <div className="h-1.5 bg-secondary/20 dark:bg-secondary/30 rounded-full overflow-hidden">
-                <div className="h-full bg-secondary dark:bg-secondary-light animate-progress" />
+              <div className="h-1.5 bg-orange-200 dark:bg-orange-800 rounded-full overflow-hidden">
+                <div className="h-full bg-orange-500 dark:bg-orange-400 animate-progress" />
               </div>
             </div>
           </div>
-          <div className="text-sm text-secondary dark:text-secondary-light">
+          <div className="text-sm text-orange-600 dark:text-orange-400">
             {elapsedTime}s
           </div>
         </div>
@@ -197,16 +204,19 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   if (status === 'completed') {
     console.log('[AIResponseWidget] Rendering COMPLETED state with response:', response?.substring(0, 100))
     return (
-      <div className="ai-response-widget">
+      <div className={cn(
+        "ai-response-widget p-4 rounded-lg transition-all duration-300 ease-in-out",
+        "bg-green-50 border border-green-200 dark:bg-green-900/20 dark:border-green-800"
+      )}>
         <div className="prose dark:prose-invert max-w-none">
           <MarkdownRenderer 
             content={response || 'No response content'} 
             isSystemMessage={false}
           />
         </div>
-        <div className="mt-3 flex items-center gap-4 text-xs text-neutral-500 dark:text-neutral-400">
+        <div className="mt-3 flex items-center gap-4 text-xs text-green-600 dark:text-green-400">
           <div className="flex items-center gap-1">
-            <CheckCircle className="w-3 h-3 text-success" />
+            <CheckCircle className="w-3 h-3 text-green-600 dark:text-green-400" />
             <span>Completed</span>
           </div>
           {model && <span>Model: {model}</span>}
@@ -220,18 +230,21 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   if (status === 'failed') {
     console.log('[AIResponseWidget] Rendering FAILED state with error:', error)
     return (
-      <div className="ai-response-widget p-4 rounded-lg bg-destructive/10 dark:bg-destructive/20 border border-destructive/30 dark:border-destructive/40">
+      <div className={cn(
+        "ai-response-widget p-4 rounded-lg transition-all duration-300 ease-in-out",
+        "bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-800"
+      )}>
         <div className="flex items-center gap-3">
-          <XCircle className="w-5 h-5 text-destructive dark:text-destructive-light" />
+          <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
           <div className="flex-1">
-            <div className="font-medium text-destructive-dark dark:text-destructive-light">
+            <div className="font-medium text-red-800 dark:text-red-300">
               Request Failed
             </div>
-            <div className="text-sm text-destructive dark:text-destructive-light/80">
+            <div className="text-sm text-red-700 dark:text-red-400/80">
               {error ?? 'An error occurred while processing your request'}
             </div>
             {jobId && (
-              <div className="text-xs text-destructive dark:text-destructive-light mt-1">
+              <div className="text-xs text-red-600 dark:text-red-400 mt-1">
                 Job ID: {jobId}
               </div>
             )}
