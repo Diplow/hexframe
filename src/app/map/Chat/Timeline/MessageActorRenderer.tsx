@@ -71,13 +71,13 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
   const getBackgroundClass = () => {
     switch (message.actor) {
       case 'user':
-        return 'bg-secondary/10 dark:bg-secondary/15';
+        return 'bg-secondary/5 dark:bg-secondary/10';
       case 'assistant':
-        return 'bg-primary/10 dark:bg-primary/15';
+        return 'bg-primary/5 dark:bg-primary/10';
       case 'system':
-        return 'bg-muted/30';
+        return 'bg-muted/20';
       default:
-        return 'bg-muted/30';
+        return 'bg-muted/20';
     }
   };
 

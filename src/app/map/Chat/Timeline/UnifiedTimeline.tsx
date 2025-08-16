@@ -82,7 +82,7 @@ export function UnifiedTimeline({ items }: UnifiedTimelineProps) {
         <div key={dateKey}>
           <DaySeparator date={new Date(dayItems[0]?.timestamp ?? Date.now())} />
           {dayItems.map((item, index) => (
-            <div key={`${item.type}-${item.data.id}`} className={`w-full ${index > 0 ? 'mt-0.5' : ''}`}>
+            <div key={`${item.type}-${item.data.id}`} className={`w-full ${index > 0 ? 'mt-2' : ''}`}>
               {item.type === 'message' ? (
                 <MessageActorRenderer message={item.data as Message} />
               ) : (

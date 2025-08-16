@@ -50,14 +50,13 @@ export function useChatStateInternal(initialEvents: ChatEvent[] = []) {
     if (!hasAddedWelcomeMessage.current && initialEvents.length === 0) {
       hasAddedWelcomeMessage.current = true;
       dispatch({
-        type: 'system_message',
+        type: 'message',
         payload: {
-          message: 'Welcome to **HexFrame**! Navigate the map by clicking on tiles. Your messages will be sent to AI to help you explore and build your tile hierarchy.',
-          level: 'info' as const,
+          text: 'Welcome to **HexFrame**! Navigate the map by clicking on tiles. Your messages will be sent to AI to help you explore and build your tile hierarchy.',
         },
         id: 'welcome-message',
         timestamp: new Date(),
-        actor: 'system' as const,
+        actor: 'assistant' as const,
       });
     }
   }, [dispatch, initialEvents.length]); // Run once on mount

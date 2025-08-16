@@ -141,7 +141,7 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   if (status === 'direct') {
     console.log('[AIResponseWidget] Rendering DIRECT response, content:', response)
     return (
-      <div className="w-full p-4 rounded-lg bg-primary/10 dark:bg-primary/15">
+      <div className="w-full p-4 rounded-lg bg-primary/5 dark:bg-primary/10">
         <div className="text-sm">
           <div className="flex items-center gap-1 mb-1">
             <span className="font-medium">
@@ -172,7 +172,7 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   if (status === 'pending') {
     console.log('[AIResponseWidget] Rendering PENDING state')
     return (
-      <div className="w-full p-4 rounded-lg bg-primary/10 dark:bg-primary/15">
+      <div className="w-full p-4 rounded-lg bg-primary/5 dark:bg-primary/10">
         <div className="text-sm">
           <div className="flex items-center gap-1 mb-1">
             <span className="font-medium">
@@ -211,7 +211,7 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   if (status === 'processing') {
     console.log('[AIResponseWidget] Rendering PROCESSING state')
     return (
-      <div className="w-full p-4 rounded-lg bg-primary/10 dark:bg-primary/15">
+      <div className="w-full p-4 rounded-lg bg-primary/5 dark:bg-primary/10">
         <div className="text-sm">
           <div className="flex items-center gap-1 mb-1">
             <span className="font-medium">
@@ -250,7 +250,7 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   if (status === 'completed') {
     console.log('[AIResponseWidget] Rendering COMPLETED state with response:', response?.substring(0, 100))
     return (
-      <div className="w-full p-4 rounded-lg bg-primary/10 dark:bg-primary/15">
+      <div className="w-full p-4 rounded-lg bg-primary/5 dark:bg-primary/10">
         <div className="text-sm">
           <div className="flex items-center gap-1 mb-1">
             <span className="font-medium">
@@ -284,7 +284,7 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   if (status === 'failed') {
     console.log('[AIResponseWidget] Rendering FAILED state with error:', error)
     return (
-      <div className="w-full p-4 rounded-lg bg-primary/10 dark:bg-primary/15">
+      <div className="w-full p-4 rounded-lg bg-primary/5 dark:bg-primary/10">
         <div className="text-sm">
           <div className="flex items-center gap-1 mb-1">
             <span className="font-medium">
