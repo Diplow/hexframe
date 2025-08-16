@@ -30,7 +30,7 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
 
   // Poll for job status if we have a jobId
   const jobStatusQuery = api.agentic.getJobStatus.useQuery(
-    { jobId: jobId! },
+    { jobId: jobId || 'no-job-id' }, // Provide a dummy value when jobId is undefined
     {
       enabled: !!jobId && status !== 'completed' && status !== 'failed',
       refetchInterval: 2000, // Poll every 2 seconds
