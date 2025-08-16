@@ -38,7 +38,7 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
     }
     
     if (message.actor === 'assistant') {
-      return <span className="font-bold text-primary-light">HexFrame</span>;
+      return <span className="font-bold text-primary">HexFrame</span>;
     }
     
     if (message.actor === 'system') {

@@ -145,7 +145,7 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
         <div className="text-sm">
           <div className="flex items-center gap-1 mb-1">
             <span className="font-medium">
-              <span className="font-bold text-primary-light">HexFrame</span>
+              <span className="font-bold text-primary">HexFrame</span>
             </span>
             <span className="text-muted-foreground">-</span>
             <span className="text-xs text-muted-foreground">
@@ -176,7 +176,7 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
         <div className="text-sm">
           <div className="flex items-center gap-1 mb-1">
             <span className="font-medium">
-              <span className="font-bold text-primary-light">HexFrame</span>
+              <span className="font-bold text-primary">HexFrame</span>
             </span>
             <span className="text-muted-foreground">-</span>
             <span className="text-xs text-muted-foreground">
@@ -215,7 +215,7 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
         <div className="text-sm">
           <div className="flex items-center gap-1 mb-1">
             <span className="font-medium">
-              <span className="font-bold text-primary-light">HexFrame</span>
+              <span className="font-bold text-primary">HexFrame</span>
             </span>
             <span className="text-muted-foreground">-</span>
             <span className="text-xs text-muted-foreground">
@@ -254,7 +254,7 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
         <div className="text-sm">
           <div className="flex items-center gap-1 mb-1">
             <span className="font-medium">
-              <span className="font-bold text-primary-light">HexFrame</span>
+              <span className="font-bold text-primary">HexFrame</span>
             </span>
             <span className="text-muted-foreground">-</span>
             <span className="text-xs text-muted-foreground">
@@ -288,7 +288,7 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
         <div className="text-sm">
           <div className="flex items-center gap-1 mb-1">
             <span className="font-medium">
-              <span className="font-bold text-primary-light">HexFrame</span>
+              <span className="font-bold text-primary">HexFrame</span>
             </span>
             <span className="text-muted-foreground">-</span>
             <span className="text-xs text-muted-foreground">
