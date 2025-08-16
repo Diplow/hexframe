@@ -152,7 +152,8 @@ for interface_file in $(find "$TARGET_PATH" -name "interface.ts" -not -path "*/n
     grep -v "^$subsystem_dir/" | \
     grep -v "^$parent_dir/" | \
     xargs grep -H "from [\"']~/.*/$subsystem_name/[^\"']*[\"']" 2>/dev/null | \
-    grep -v "/$subsystem_name/interface[\"']" || true)
+    grep -v "/$subsystem_name/interface[\"']" | \
+    grep -v "/$subsystem_name/interface\.client[\"']" || true)
   
   if [ -n "$violations" ]; then
     ERRORS="${ERRORS}${NEWLINE}${NEWLINE}❌ External imports bypass $subsystem_name/interface.ts:"
@@ -172,7 +173,8 @@ EOF
   # Check parent imports (from the direct parent system) - should use relative interface
   parent_violations=$(find "$parent_dir" -maxdepth 1 -name "*.ts" -o -name "*.tsx" | \
     xargs grep -H "from [\"']\..*/$subsystem_name/[^\"']*[\"']" 2>/dev/null | \
-    grep -v "/$subsystem_name/interface[\"']" || true)
+    grep -v "/$subsystem_name/interface[\"']" | \
+    grep -v "/$subsystem_name/interface\.client[\"']" || true)
   
   if [ -n "$parent_violations" ]; then
     ERRORS="${ERRORS}${NEWLINE}${NEWLINE}❌ Parent system imports bypass $subsystem_name/interface.ts:"
@@ -205,8 +207,8 @@ if [ -n "$ERRORS" ]; then
   echo "  - README.md"
   echo "  - ARCHITECTURE.md"
   echo ""
-  echo "• Subsystems with interface.ts must be imported ONLY through interface.ts"
-  echo "• External imports should use: import { X } from '~/path/to/subsystem/interface'"
+  echo "• Subsystems with interface.ts must be imported ONLY through interface.ts or interface.client.ts"
+  echo "• External imports should use: import { X } from '~/path/to/subsystem/interface' (server) or '~/path/to/subsystem/interface.client' (client)"
   echo "════════════════════════════════════════════════════════════════════════"
   exit 1
 fi
