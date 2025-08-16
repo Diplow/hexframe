@@ -141,18 +141,29 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   if (status === 'direct') {
     console.log('[AIResponseWidget] Rendering DIRECT response, content:', response)
     return (
-      <div className="ai-response-widget">
-        <div className="prose dark:prose-invert max-w-none">
-          <MarkdownRenderer 
-            content={response || 'Processing...'} 
-            isSystemMessage={false}
-          />
-        </div>
-        {model && (
-          <div className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
-            Model: {model}
+      <div className="w-full p-4 rounded-lg border border-border bg-card">
+        <div className="text-sm">
+          <div className="flex items-center gap-1 mb-1">
+            <span className="font-medium">
+              <span className="font-bold text-primary-light">HexFrame</span>
+            </span>
+            <span className="text-muted-foreground">-</span>
+            <span className="text-xs text-muted-foreground">
+              {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+            </span>
           </div>
-        )}
+          <div className="prose dark:prose-invert max-w-none">
+            <MarkdownRenderer 
+              content={response || 'Processing...'} 
+              isSystemMessage={false}
+            />
+          </div>
+          {model && (
+            <div className="mt-2 text-xs text-muted-foreground">
+              Model: {model}
+            </div>
+          )}
+        </div>
       </div>
     )
   }
@@ -161,27 +172,40 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   if (status === 'pending') {
     console.log('[AIResponseWidget] Rendering PENDING state')
     return (
-      <div className={cn(
-        "ai-response-widget p-4 rounded-lg transition-all duration-300 ease-in-out",
-        "bg-muted/30 border border-muted"
-      )}>
-        <div className="flex items-center gap-3">
-          <Clock className="w-5 h-5 text-muted-foreground animate-pulse" />
-          <div className="flex-1">
-            <div className="font-medium text-foreground">
-              Request Queued
-            </div>
-            <div className="text-sm text-muted-foreground">
-              Your request has been queued and will be processed shortly...
-            </div>
-            {jobId && (
-              <div className="text-xs text-muted-foreground mt-1">
-                Job ID: {jobId}
-              </div>
-            )}
+      <div className="w-full p-4 rounded-lg border border-border bg-card">
+        <div className="text-sm">
+          <div className="flex items-center gap-1 mb-1">
+            <span className="font-medium">
+              <span className="font-bold text-primary-light">HexFrame</span>
+            </span>
+            <span className="text-muted-foreground">-</span>
+            <span className="text-xs text-muted-foreground">
+              {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+            </span>
           </div>
-          <div className="text-sm text-muted-foreground">
-            {elapsedTime}s
+          <div className={cn(
+            "mt-2 p-3 rounded-lg transition-all duration-300 ease-in-out",
+            "bg-muted/30 border border-muted"
+          )}>
+            <div className="flex items-center gap-3">
+              <Clock className="w-5 h-5 text-muted-foreground animate-pulse" />
+              <div className="flex-1">
+                <div className="font-medium text-foreground">
+                  Request Queued
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Your request has been queued and will be processed shortly...
+                </div>
+                {jobId && (
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Job ID: {jobId}
+                  </div>
+                )}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                {elapsedTime}s
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -192,56 +216,75 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   if (status === 'processing') {
     console.log('[AIResponseWidget] Rendering PROCESSING state')
     return (
-      <div className={cn(
-        "ai-response-widget p-4 rounded-lg transition-all duration-300 ease-in-out",
-        "bg-primary/10 border border-primary/30 dark:bg-primary/20 dark:border-primary/40"
-      )}>
-        <div className="flex items-center gap-3">
-          <Cpu className="w-5 h-5 text-primary dark:text-primary-light animate-spin" />
-          <div className="flex-1">
-            <div className="font-medium text-primary-dark dark:text-primary-light">
-              Processing with AI
-            </div>
-            <div className="text-sm text-primary dark:text-primary-light/80">
-              {model ?? 'AI model'} is thinking...
-            </div>
-            <div className="mt-2">
-              <div className="h-1.5 bg-primary/20 dark:bg-primary/30 rounded-full overflow-hidden">
-                <div className="h-full bg-primary dark:bg-primary-light animate-progress" />
+      <div className="w-full p-4 rounded-lg border border-border bg-card">
+        <div className="text-sm">
+          <div className="flex items-center gap-1 mb-1">
+            <span className="font-medium">
+              <span className="font-bold text-primary-light">HexFrame</span>
+            </span>
+            <span className="text-muted-foreground">-</span>
+            <span className="text-xs text-muted-foreground">
+              {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+            </span>
+          </div>
+          <div className={cn(
+            "mt-2 p-3 rounded-lg transition-all duration-300 ease-in-out",
+            "bg-primary/10 border border-primary/30 dark:bg-primary/20 dark:border-primary/40"
+          )}>
+            <div className="flex items-center gap-3">
+              <Cpu className="w-5 h-5 text-primary dark:text-primary-light animate-spin" />
+              <div className="flex-1">
+                <div className="font-medium text-primary-dark dark:text-primary-light">
+                  Processing with AI
+                </div>
+                <div className="text-sm text-primary dark:text-primary-light/80">
+                  {model ?? 'AI model'} is thinking...
+                </div>
+                <div className="mt-2">
+                  <div className="h-1.5 bg-primary/20 dark:bg-primary/30 rounded-full overflow-hidden">
+                    <div className="h-full bg-primary dark:bg-primary-light animate-progress" />
+                  </div>
+                </div>
+              </div>
+              <div className="text-sm text-primary dark:text-primary-light">
+                {elapsedTime}s
               </div>
             </div>
-          </div>
-          <div className="text-sm text-primary dark:text-primary-light">
-            {elapsedTime}s
           </div>
         </div>
       </div>
     )
   }
 
-  // Completed state (success) - starts with success colors but fades to neutral
+  // Completed state (success) - keeps the message visible
   if (status === 'completed') {
     console.log('[AIResponseWidget] Rendering COMPLETED state with response:', response?.substring(0, 100))
     return (
-      <div className={cn(
-        "ai-response-widget p-4 rounded-lg",
-        "transition-all duration-[3000ms] ease-in-out",
-        "bg-success/5 border border-success/20",
-        "hover:bg-background hover:border-border"
-      )}>
-        <div className="prose dark:prose-invert max-w-none">
-          <MarkdownRenderer 
-            content={response || 'No response content'} 
-            isSystemMessage={false}
-          />
-        </div>
-        <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <CheckCircle className="w-3 h-3 text-success" />
-            <span>Completed</span>
+      <div className="w-full p-4 rounded-lg border border-border bg-card">
+        <div className="text-sm">
+          <div className="flex items-center gap-1 mb-1">
+            <span className="font-medium">
+              <span className="font-bold text-primary-light">HexFrame</span>
+            </span>
+            <span className="text-muted-foreground">-</span>
+            <span className="text-xs text-muted-foreground">
+              {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+            </span>
           </div>
-          {model && <span>Model: {model}</span>}
-          {elapsedTime > 0 && <span>Time: {elapsedTime}s</span>}
+          <div className="prose dark:prose-invert max-w-none">
+            <MarkdownRenderer 
+              content={response || 'No response content'} 
+              isSystemMessage={false}
+            />
+          </div>
+          <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <CheckCircle className="w-3 h-3 text-success" />
+              <span>Completed</span>
+            </div>
+            {model && <span>Model: {model}</span>}
+            {elapsedTime > 0 && <span>Time: {elapsedTime}s</span>}
+          </div>
         </div>
       </div>
     )
@@ -251,24 +294,37 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   if (status === 'failed') {
     console.log('[AIResponseWidget] Rendering FAILED state with error:', error)
     return (
-      <div className={cn(
-        "ai-response-widget p-4 rounded-lg transition-all duration-300 ease-in-out",
-        "bg-destructive/10 border border-destructive/30 dark:bg-destructive/20 dark:border-destructive/40"
-      )}>
-        <div className="flex items-center gap-3">
-          <XCircle className="w-5 h-5 text-destructive dark:text-destructive-light" />
-          <div className="flex-1">
-            <div className="font-medium text-destructive-dark dark:text-destructive-light">
-              Request Failed
-            </div>
-            <div className="text-sm text-destructive dark:text-destructive-light/80">
-              {error ?? 'An error occurred while processing your request'}
-            </div>
-            {jobId && (
-              <div className="text-xs text-destructive dark:text-destructive-light mt-1">
-                Job ID: {jobId}
+      <div className="w-full p-4 rounded-lg border border-border bg-card">
+        <div className="text-sm">
+          <div className="flex items-center gap-1 mb-1">
+            <span className="font-medium">
+              <span className="font-bold text-primary-light">HexFrame</span>
+            </span>
+            <span className="text-muted-foreground">-</span>
+            <span className="text-xs text-muted-foreground">
+              {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+            </span>
+          </div>
+          <div className={cn(
+            "mt-2 p-3 rounded-lg transition-all duration-300 ease-in-out",
+            "bg-destructive/10 border border-destructive/30 dark:bg-destructive/20 dark:border-destructive/40"
+          )}>
+            <div className="flex items-center gap-3">
+              <XCircle className="w-5 h-5 text-destructive dark:text-destructive-light" />
+              <div className="flex-1">
+                <div className="font-medium text-destructive-dark dark:text-destructive-light">
+                  Request Failed
+                </div>
+                <div className="text-sm text-destructive dark:text-destructive-light/80">
+                  {error ?? 'An error occurred while processing your request'}
+                </div>
+                {jobId && (
+                  <div className="text-xs text-destructive dark:text-destructive-light mt-1">
+                    Job ID: {jobId}
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
@@ -278,10 +334,21 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   // Loading initial state
   console.log('[AIResponseWidget] Rendering LOADING state (fallback)')
   return (
-    <div className="ai-response-widget p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
-      <div className="flex items-center gap-3">
-        <Loader2 className="w-5 h-5 animate-spin text-neutral-600 dark:text-neutral-400" />
-        <span className="text-neutral-700 dark:text-neutral-300">Loading...</span>
+    <div className="w-full p-4 rounded-lg border border-border bg-card">
+      <div className="text-sm">
+        <div className="flex items-center gap-1 mb-1">
+          <span className="font-medium">
+            <span className="font-bold text-primary-light">HexFrame</span>
+          </span>
+          <span className="text-muted-foreground">-</span>
+          <span className="text-xs text-muted-foreground">
+            {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+          <span className="text-muted-foreground">Loading...</span>
+        </div>
       </div>
     </div>
   )

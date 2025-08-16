@@ -68,7 +68,7 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
   };
   
   return (
-    <div className="w-full">
+    <div className="w-full p-4 rounded-lg border border-border bg-card">
       <div className="text-sm">
         <div className="flex items-center gap-1 mb-1">
           <span className="font-medium">
