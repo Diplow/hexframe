@@ -42,8 +42,10 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
       enabled: shouldPoll,
       refetchInterval: shouldPoll ? 2000 : undefined, // Poll every 2 seconds
       refetchIntervalInBackground: shouldPoll,
-      retry: false, // Don't retry on error
-      staleTime: 0 // Always consider data stale to ensure polling
+      retry: 3, // Retry a few times for transient errors
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000), // Exponential backoff
+      staleTime: 0, // Always consider data stale to ensure polling
+      gcTime: 0 // Don't cache failed results
     }
   )
   
@@ -79,17 +81,25 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
     }
   }, [jobStatusQuery.data, jobId])
   
-  // Handle query errors
+  // Handle query errors - but don't immediately fail for transient errors
   useEffect(() => {
     if (jobStatusQuery.error) {
-      loggers.agentic.error('Failed to fetch job status', { 
+      const errorMessage = jobStatusQuery.error.message || 'Unknown error';
+      loggers.agentic.error('Error fetching job status', { 
         jobId, 
-        error: jobStatusQuery.error.message 
+        error: errorMessage,
+        status
       })
-      setError('Failed to fetch job status')
-      setStatus('failed')
+      
+      // Only set to failed if we've been trying for a while (more than 10 seconds)
+      // This gives time for the job to be created on the server
+      if (elapsedTime > 10) {
+        setError(`Failed to fetch job status: ${errorMessage}`)
+        setStatus('failed')
+      }
+      // Otherwise, keep trying - the job might not be ready yet
     }
-  }, [jobStatusQuery.error, jobId])
+  }, [jobStatusQuery.error, jobId, elapsedTime, status])
 
   // Track elapsed time for pending/processing jobs
   useEffect(() => {
