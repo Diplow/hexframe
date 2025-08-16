@@ -384,11 +384,16 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
     }
   }
 
-  // Return only the most recent widget of each type
+  // Return only the most recent widget of each type (except AI responses which should all persist)
   const latestWidgets = new Map<string, Widget>();
   
   for (const widget of widgets) {
-    const key = widget.type === 'preview' ? `${widget.type}-${(widget.data as TileSelectedPayload).tileId}` : widget.type;
+    // Each AI response widget should be unique (keep all of them)
+    const key = widget.type === 'ai-response' 
+      ? widget.id  // Use widget ID to keep all AI responses
+      : widget.type === 'preview' 
+        ? `${widget.type}-${(widget.data as TileSelectedPayload).tileId}` 
+        : widget.type;
     const existing = latestWidgets.get(key);
     if (!existing || widget.timestamp > existing.timestamp) {
       latestWidgets.set(key, widget);

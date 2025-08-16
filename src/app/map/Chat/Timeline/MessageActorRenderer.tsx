@@ -67,8 +67,22 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
     );
   };
   
+  // Different background colors based on actor
+  const getBackgroundClass = () => {
+    switch (message.actor) {
+      case 'user':
+        return 'bg-secondary/10 dark:bg-secondary/15';
+      case 'assistant':
+        return 'bg-primary/10 dark:bg-primary/15';
+      case 'system':
+        return 'bg-muted/30';
+      default:
+        return 'bg-muted/30';
+    }
+  };
+
   return (
-    <div className="w-full p-4 rounded-lg bg-muted/30">
+    <div className={`w-full p-4 rounded-lg ${getBackgroundClass()}`}>
       <div className="text-sm">
         <div className="flex items-center gap-1 mb-1">
           <span className="font-medium">
