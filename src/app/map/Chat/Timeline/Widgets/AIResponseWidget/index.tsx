@@ -29,13 +29,21 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   console.log('[AIResponseWidget] Initial status:', status)
 
   // Poll for job status if we have a jobId
+  // Skip the query entirely if no jobId to avoid errors
+  const shouldPoll = !!jobId && status !== 'completed' && status !== 'failed';
+  
+  // Debug the query input
+  const queryInput = { jobId: jobId ?? '' };
+  console.log('[AIResponseWidget] Query input:', queryInput, 'shouldPoll:', shouldPoll);
+  
   const jobStatusQuery = api.agentic.getJobStatus.useQuery(
-    { jobId: jobId || 'no-job-id' }, // Provide a dummy value when jobId is undefined
+    queryInput,
     {
-      enabled: !!jobId && status !== 'completed' && status !== 'failed',
-      refetchInterval: 2000, // Poll every 2 seconds
-      refetchIntervalInBackground: true,
-      retry: false // Don't retry on error
+      enabled: shouldPoll,
+      refetchInterval: shouldPoll ? 2000 : undefined, // Poll every 2 seconds
+      refetchIntervalInBackground: shouldPoll,
+      retry: false, // Don't retry on error
+      staleTime: 0 // Always consider data stale to ensure polling
     }
   )
   
