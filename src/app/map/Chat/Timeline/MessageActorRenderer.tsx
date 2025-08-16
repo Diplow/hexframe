@@ -81,8 +81,9 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
   if (message.actor === 'system') {
     return (
       <div className={`w-full p-4 rounded-lg ${getBackgroundClass()}`}>
-        <div className="text-xs text-muted-foreground flex items-start gap-1">
+        <div className="text-xs text-muted-foreground flex items-center gap-2">
           <TimestampRenderer timestamp={message.timestamp} />
+          <span className="text-muted-foreground">•</span>
           <MarkdownRenderer 
             content={message.content} 
             isSystemMessage={true} 
@@ -107,7 +108,7 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
         <div>
           <MarkdownRenderer 
             content={message.content} 
-            isSystemMessage={message.actor === 'system'} 
+            isSystemMessage={false} 
           />
           {renderCopyButtons()}
         </div>
