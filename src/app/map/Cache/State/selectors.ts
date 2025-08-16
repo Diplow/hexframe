@@ -1,6 +1,6 @@
 import type { CacheState } from "./types";
 import type { TileData } from "../../types/tile-data";
-import { CoordSystem } from "~/lib/domains/mapping/interface";
+import { CoordSystem } from "~/lib/domains/mapping/interface.client";
 import type { RegionMetadata } from "./types";
 
 // Selector factory for creating memoized selectors

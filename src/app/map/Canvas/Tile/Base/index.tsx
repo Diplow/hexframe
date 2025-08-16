@@ -8,7 +8,7 @@ import type {
   TileCursor 
 } from "../Base/BaseTileLayout";
 import { getDefaultStroke, getStrokeHexColor } from "../utils/stroke";
-import { CoordSystem, type Direction } from "~/lib/domains/mapping/interface";
+import { CoordSystem, type Direction } from "~/lib/domains/mapping/interface.client";
 import { renderTileGradient } from "./gradient";
 
 export interface DynamicBaseTileLayoutProps {

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { getDefaultStroke, getStrokeHexColor } from "../utils/stroke";
-import { CoordSystem, type Direction } from "~/lib/domains/mapping/interface";
+import { CoordSystem, type Direction } from "~/lib/domains/mapping/interface.client";
 import { renderStaticTileGradients } from "../Base/gradient";
 
 export type TileCursor =

@@ -6,7 +6,7 @@ import {
   mappingServiceMiddleware,
 } from "~/server/api/trpc";
 import { contractToApiAdapters } from "~/server/api/types/contracts";
-import { type Coord } from "~/lib/domains/mapping/interface";
+import { type Coord } from "~/lib/domains/mapping/interface.client";
 import {
   hexCoordSchema,
   itemCreationSchema,

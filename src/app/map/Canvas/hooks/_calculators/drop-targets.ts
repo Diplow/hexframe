@@ -1,4 +1,4 @@
-import { CoordSystem } from "~/lib/domains/mapping/interface";
+import { CoordSystem } from "~/lib/domains/mapping/interface.client";
 import type { TileData } from "../../../types/tile-data";
 import { canSwapTiles } from "../_validators";
 

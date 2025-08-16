@@ -6,7 +6,7 @@ import type { MutationOperations } from "../Handlers/types";
 import type { DataOperations } from "../Handlers/types";
 import type { StorageService } from "../Services/types";
 import { MutationCoordinator } from "./mutation-coordinator";
-import type { Coord } from "~/lib/domains/mapping/interface";
+import type { Coord } from "~/lib/domains/mapping/interface.client";
 import type { EventBusService } from "../../Services/EventBus/interface";
 
 interface MutationOperationsConfig {

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Direction } from "~/lib/domains/mapping/interface";
+import { Direction } from "~/lib/domains/mapping/interface.client";
 import type { TileScale } from "../Base/BaseTileLayout";
 
 // Get gradient opacity multiplier based on scale

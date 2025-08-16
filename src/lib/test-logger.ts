@@ -6,9 +6,11 @@
  * Client-side logs appear in the browser console and can be captured by Playwright
  */
 
-// For server-side: check process.env
+// For server-side: check process.env (only if we're actually on the server)
 const isServerTestEnvironment = 
-  typeof process !== 'undefined' && process.env.E2E_TEST === 'true';
+  typeof process !== 'undefined' && 
+  typeof window === 'undefined' && 
+  process.env.E2E_TEST === 'true';
 
 // For client-side: check multiple indicators
 const isClientTestEnvironment = 

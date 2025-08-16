@@ -5,7 +5,7 @@ import { ACTION_TYPES } from "../../State/types";
 import type { DataOperations } from "../types";
 import type { TileData } from "../../../types/tile-data";
 import { initialCacheState } from "../../State/reducer";
-import { CoordSystem } from "~/lib/domains/mapping/interface";
+import { CoordSystem } from "~/lib/domains/mapping/interface.client";
 
 describe("NavigationHandler - Collapse distant tiles", () => {
   let dispatch: MockedFunction<React.Dispatch<CacheAction>>;

@@ -1,6 +1,6 @@
 import { BaseTileLayout } from "./BaseTileLayout";
 import type { TileScale, TileColor } from "./BaseTileLayout";
-import { CoordSystem } from "~/lib/domains/mapping/interface";
+import { CoordSystem } from "~/lib/domains/mapping/interface.client";
 import { getColor } from "../../../types/tile-data";
 
 export interface BaseEmptyTileProps {

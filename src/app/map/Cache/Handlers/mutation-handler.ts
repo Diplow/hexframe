@@ -2,7 +2,7 @@ import type { CacheAction, CacheState } from "../State/types";
 import { cacheActions } from "../State/actions";
 import type { DataOperations } from "./types";
 import type { EventBusService } from "../../Services/EventBus/interface";
-import { MapItemType } from "~/lib/domains/mapping/interface";
+import { MapItemType } from "~/lib/domains/mapping/interface.client";
 
 // Note: Server mutations are NOT handled through the server service
 // They should use tRPC mutation hooks directly for proper client-side patterns

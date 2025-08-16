@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Check, X } from 'lucide-react';
 import { cn } from '~/lib/utils';
 import { Button } from '~/components/ui/button';
-import { CoordSystem } from '~/lib/domains/mapping/interface';
+import { CoordSystem } from '~/lib/domains/mapping/interface.client';
 import { useMapCache } from '../../../Cache/interface';
 
 interface CreationWidgetProps {

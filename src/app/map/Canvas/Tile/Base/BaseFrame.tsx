@@ -6,7 +6,7 @@ import { DynamicItemTile } from "../Item/item";
 import { BaseEmptyTile } from "./BaseEmptyTile";
 import { BaseItemTile } from "./BaseItemTile";
 import type { TileData } from "../../../types/tile-data";
-import { CoordSystem } from "~/lib/domains/mapping/interface";
+import { CoordSystem } from "~/lib/domains/mapping/interface.client";
 import type { URLInfo } from "../../../types/url-info";
 
 export interface BaseFrameProps {

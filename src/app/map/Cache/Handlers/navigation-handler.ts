@@ -2,13 +2,13 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import type { CacheAction, CacheState } from "../State/types";
 import { cacheActions } from "../State/actions";
 import type { DataOperations, NavigationOperations } from "./types";
-import { CoordSystem } from "~/lib/domains/mapping/interface";
+import { CoordSystem } from "~/lib/domains/mapping/interface.client";
 import type { ServerService } from "../Services/types";
 import { checkAncestors, loadAncestorsForItem } from "./ancestor-loader";
 import type { EventBusService } from "../../Services/EventBus/interface";
 import { adapt } from "../../types/tile-data";
 import { loggers } from "~/lib/debug/debug-logger";
-import { type MapItemType } from "~/lib/domains/mapping/interface";
+import { type MapItemType } from "~/lib/domains/mapping/interface.client";
 
 export interface NavigationHandlerConfig {
   dispatch: React.Dispatch<CacheAction>;

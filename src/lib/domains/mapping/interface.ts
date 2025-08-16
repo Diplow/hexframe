@@ -1,21 +1,16 @@
 /**
  * Public API for Mapping Domain
  * 
- * Consumers: App layer (map pages), tRPC API, Agentic domain
+ * Consumers: Server-side code (tRPC API, Agentic domain, actions)
+ * 
+ * WARNING: This file imports server-side code and MUST NOT be imported by client components.
+ * For client-side imports, use './interface.client.ts' instead.
  */
 
-// Domain entities
-export { 
-  MapItem, 
-  BaseItem,
-  type MapItemWithId,
-  type BaseItemWithId,
-  type MapItemAttrs,
-  type BaseItemAttrs,
-  MapItemType,
-} from './_objects';
+// Re-export all client-safe exports
+export * from './interface.client';
 
-// Domain services
+// Domain services (server-only)
 export { 
   MappingService,
   MapManagementService,
@@ -25,52 +20,7 @@ export {
   MappingUtils,
 } from './services';
 
-// Repository interfaces (for testing/mocking)
-export type {
-  MapItemRepository,
-  BaseItemRepository,
-} from './_repositories';
-
-// Domain types
-export type {
-  MapContract,
-  MapItemContract,
-} from './types/contracts';
-
-export type {
-  CreateMapInput,
-  CreateItemInput,
-  UpdateItemInput,
-  MoveItemInput,
-  SwapItemsInput,
-} from './types';
-
-export {
-  mapItemDomainToContractAdapter,
-} from './types/contracts';
-
-// Domain errors
-export {
-  MapNotFoundError,
-  ItemNotFoundError,
-  InvalidCoordinatesError,
-  InvalidMoveError,
-  PermissionDeniedError,
-} from './types/errors';
-
-
-// Utilities
-export {
-  type Coord,
-  Direction,
-  CoordSystem,
-  getNeighborCoord,
-  isValidCoord,
-  coordToString,
-  stringToCoord,
-} from './utils/hex-coordinates';
-
-// Infrastructure (for service instantiation)
+// Infrastructure (server-only - contains database connections)
 export {
   DbMapItemRepository,
   DbBaseItemRepository,

@@ -1,5 +1,5 @@
-import type { Coord } from "~/lib/domains/mapping/interface";
-import { Direction } from "~/lib/domains/mapping/interface";
+import type { Coord } from "~/lib/domains/mapping/interface.client";
+import { Direction } from "~/lib/domains/mapping/interface.client";
 import type { SwapPreviewState } from "./types";
 import { DEFAULT_MAP_COLORS } from "../../../constants";
 

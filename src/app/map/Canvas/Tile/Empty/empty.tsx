@@ -5,7 +5,7 @@ import { DynamicBaseTileLayout } from "../Base";
 import type { TileScale, TileColor } from "../Base/BaseTileLayout";
 import { LegacyTileActionsContext, useCanvasTheme } from "../..";
 import type { URLInfo } from "../../../types/url-info";
-import { CoordSystem } from "~/lib/domains/mapping/interface";
+import { CoordSystem } from "~/lib/domains/mapping/interface.client";
 import { getColor } from "../../../types/tile-data";
 import { getDefaultStroke } from "../utils/stroke";
 import { useTileInteraction } from "../../hooks/shared/useTileInteraction";

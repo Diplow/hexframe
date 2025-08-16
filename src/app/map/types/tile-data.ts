@@ -2,7 +2,7 @@ import type { MapItemAPIContract } from "~/server/api/types/contracts";
 import {
   CoordSystem,
   type Coord,
-} from "~/lib/domains/mapping/interface";
+} from "~/lib/domains/mapping/interface.client";
 import { Direction } from "../constants";
 import { getSemanticColorClass } from "./theme-colors";
 

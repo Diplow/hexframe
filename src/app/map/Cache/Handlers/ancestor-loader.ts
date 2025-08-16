@@ -2,7 +2,7 @@ import type { Dispatch } from "react";
 import type { CacheAction } from "../State/types";
 import type { ServerService } from "../Services/types";
 import type { TileData } from "../../types/tile-data";
-import { CoordSystem } from "~/lib/domains/mapping/interface";
+import { CoordSystem } from "~/lib/domains/mapping/interface.client";
 import { cacheActions } from "../State/actions";
 import { getColor } from "../../types/tile-data";
 
