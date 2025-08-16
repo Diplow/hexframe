@@ -69,14 +69,17 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
   
   return (
     <div className="w-full">
-      <div className="text-sm flex items-start gap-2">
-        <span className="text-xs text-muted-foreground shrink-0">
-          <TimestampRenderer timestamp={message.timestamp} />
-        </span>
-        <span className="font-medium shrink-0">
-          {renderActorLabel()}
-        </span>
-        <div className="flex-1">
+      <div className="text-sm">
+        <div className="flex items-center gap-1 mb-1">
+          <span className="font-medium">
+            {renderActorLabel()}
+          </span>
+          <span className="text-muted-foreground">-</span>
+          <span className="text-xs text-muted-foreground">
+            <TimestampRenderer timestamp={message.timestamp} />
+          </span>
+        </div>
+        <div>
           <MarkdownRenderer 
             content={message.content} 
             isSystemMessage={message.actor === 'system'} 

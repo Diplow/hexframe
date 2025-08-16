@@ -48,10 +48,7 @@ export function useAIChatIntegration() {
       messageId: latestMessage.id
     })
 
-    // Show loading message
-    chatState.showSystemMessage('Thinking...', 'info')
-
-    // Send to AI
+    // Send to AI (the thinking indicator is shown via isGeneratingAI)
     void sendToAI(messageContent).finally(() => {
       processingMessage.current = false
     })
