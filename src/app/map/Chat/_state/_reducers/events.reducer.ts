@@ -1,4 +1,4 @@
-import type { ChatEvent } from '../_events/event.types';
+import type { ChatEvent, MessageDeletedPayload } from '../_events/event.types';
 
 /**
  * Events reducer - manages the event log
@@ -24,6 +24,21 @@ export function eventsReducer(events: ChatEvent[], newEvent: ChatEvent): ChatEve
     };
     
     return [...baseEvents, logoutMessage];
+  }
+  
+  // Handle message deletion - remove the deleted message event from history
+  if (newEvent.type === 'message_deleted') {
+    const payload = newEvent.payload as MessageDeletedPayload;
+    // Filter out the original message event
+    const filteredEvents = events.filter(e => {
+      // Remove the message event with matching ID
+      if (e.type === 'message' || e.type === 'user_message' || e.type === 'system_message') {
+        return e.id !== payload.messageId;
+      }
+      return true;
+    });
+    // Add the deletion event to track what happened
+    return [...filteredEvents, newEvent];
   }
   
   // Simply append the new event to the log
