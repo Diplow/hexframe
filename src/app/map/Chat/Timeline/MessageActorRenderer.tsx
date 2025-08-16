@@ -41,10 +41,6 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
       return <span className="font-bold text-primary">HexFrame</span>;
     }
     
-    if (message.actor === 'system') {
-      return <span className="font-bold text-muted-foreground">System</span>;
-    }
-    
     return null;
   };
 
@@ -80,6 +76,21 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
         return 'bg-muted/20';
     }
   };
+
+  // System messages have a different layout
+  if (message.actor === 'system') {
+    return (
+      <div className={`w-full p-4 rounded-lg ${getBackgroundClass()}`}>
+        <div className="text-xs text-muted-foreground flex items-start gap-1">
+          <TimestampRenderer timestamp={message.timestamp} />
+          <MarkdownRenderer 
+            content={message.content} 
+            isSystemMessage={true} 
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`w-full p-4 rounded-lg ${getBackgroundClass()}`}>
