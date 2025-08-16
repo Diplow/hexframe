@@ -9,7 +9,7 @@ import type {
 } from "./Handlers/types";
 import type { ServerService, StorageService, ServiceConfig } from "./Services/types";
 import type { SyncOperations, SyncResult, SyncStatus } from "./Sync/types";
-import type { EventBusService } from "~/app/map/types/events";
+import type { EventBusService } from "../Services/EventBus";
 
 // Cache context interface
 export interface MapCacheContextValue {
@@ -43,6 +43,12 @@ export interface MapCacheHook {
   getRegionItems: (centerCoordId: string, maxDepth?: number) => TileData[];
   hasItem: (coordId: string) => boolean;
   isRegionLoaded: (centerCoordId: string, maxDepth?: number) => boolean;
+
+  // Hierarchy operations
+  getParentHierarchy: (centerCoordId?: string) => TileData[];
+  getCenterItem: (centerCoordId?: string) => TileData | null;
+  isUserMapCenter: (item: TileData) => boolean;
+  shouldShowHierarchy: (hierarchy: TileData[], currentCenter?: string) => boolean;
 
   // Data operations
   loadRegion: (centerCoordId: string, maxDepth?: number) => Promise<LoadResult>;

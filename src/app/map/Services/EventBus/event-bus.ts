@@ -1,4 +1,4 @@
-import type { AppEvent, EventListener } from '../../types/events';
+import type { AppEvent, EventListener, EventBusService } from '../../types/events';
 import { loggers } from '~/lib/debug/debug-logger';
 
 /**
@@ -10,7 +10,7 @@ import { loggers } from '~/lib/debug/debug-logger';
  * - Memory leak prevention
  * - Error isolation (one listener error doesn't affect others)
  */
-export class EventBus {
+export class EventBus implements EventBusService {
   private listeners = new Map<string, Set<EventListener>>();
 
   emit(event: AppEvent): void {

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { api } from "~/commons/trpc/react";
-import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { CoordSystem } from "~/lib/domains/mapping/interface.client";
 import type {
   ServerService,
   ServiceConfig,
@@ -44,7 +44,7 @@ async function withRetry<T>(
       const result = await Promise.race([operation(), timeoutPromise]);
       return result;
     } catch (error) {
-      lastError = error as Error;
+      lastError = error instanceof Error ? error : new Error(String(error));
 
       // Don't retry on certain error types
       if (
@@ -119,7 +119,7 @@ export function createServerService(
       // The retry mechanism will handle wrapping it in NetworkError after retries are exhausted
       // However, if retry is disabled, we need to wrap it ourselves
       if (!finalConfig.enableRetry) {
-        throw new NetworkErrorClass("Server request failed", error as Error);
+        throw new NetworkErrorClass("Server request failed", error instanceof Error ? error : new Error(String(error)));
       }
 
       throw error;

@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
 import { chatSettings } from '../../_settings/chat-settings';
 import { useChatState } from '../../_state';
-import { useMapCache } from '~/app/map/Cache/interface';
+import { useMapCache } from '../../../Cache/interface';
 import { debugLogger } from '~/lib/debug/debug-logger';
-import { authClient } from '~/lib/auth/auth-client';
+import { authClient } from '~/lib/auth/interface';
 import { useEventBus } from '../../../Services/EventBus/event-bus-context';
 
 // UTF-8 safe base64 encoder

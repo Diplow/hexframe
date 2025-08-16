@@ -17,8 +17,8 @@ export interface CenterInfo {
   groupId: number;
 }
 import { DynamicFrame } from "./frame";
-import type { TileScale } from "./Tile/Base/BaseTileLayout";
-import { useMapCache } from '~/app/map/Cache/interface';
+import type { TileScale } from "./Tile/interface";
+import { useMapCache } from '../Cache/interface';
 import type { URLInfo } from "../types/url-info";
 import { MapLoadingSkeleton } from "./LifeCycle/loading-skeleton";
 import { MapErrorBoundary } from "./LifeCycle/error-boundary";

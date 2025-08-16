@@ -1,0 +1,12 @@
+{
+  "$schema": "../../../../../schemas/dependencies.schema.json",
+  "allowed": [
+    "zod",
+    "@trpc/server",
+    "~/server/api/trpc",
+    "~/server/api/types/contracts",
+    "~/server/api/services/user-mapping.service",
+    "~/lib/domains/mapping/interface"
+  ],
+  "exceptions": {}
+}

@@ -1,8 +1,8 @@
 "use client";
 
 import { useContext, useEffect } from "react";
-import type { TileData } from "~/app/map/types/tile-data";
-import { LegacyTileActionsContext } from "~/app/map/Canvas";
+import type { TileData } from "../../../../types/tile-data";
+import { LegacyTileActionsContext } from "../../..";
 import { useItemInteraction } from "./use-item-interaction";
 import { generateTileTestId } from "../_utils";
 import { canEditTile } from "../_validators";

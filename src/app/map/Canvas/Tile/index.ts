@@ -1,6 +1,6 @@
 // Base components
-export { BaseTileLayout } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
-export { BaseTileLayout as StaticBaseTileLayout } from "~/app/map/Canvas/Tile/Base/BaseTileLayout"; // Alias for backward compatibility
+export { BaseTileLayout } from "./Base/BaseTileLayout";
+export { BaseTileLayout as StaticBaseTileLayout } from "./Base/BaseTileLayout"; // Alias for backward compatibility
 export type {
   BaseTileLayoutProps,
   BaseTileLayoutProps as StaticBaseTileLayoutProps, // Alias for backward compatibility
@@ -8,7 +8,7 @@ export type {
   TileColor,
   TileStroke,
   TileCursor,
-} from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
+} from "./Base/BaseTileLayout";
 
 // Item components
 export { DynamicItemTile } from "./Item/item";

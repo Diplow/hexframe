@@ -17,19 +17,10 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const isE2ETest = process.env.E2E_TEST === 'true';
-  
   return (
     <html lang="en" className={`${GeistSans.variable}`} suppressHydrationWarning>
       <head>
         <meta name="view-transition" content="same-origin" />
-        {isE2ETest && (
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `window.__E2E_TEST__ = true;`,
-            }}
-          />
-        )}
         <script
           dangerouslySetInnerHTML={{
             __html: `

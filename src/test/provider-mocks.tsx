@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
-import type { MapCacheHook } from '~/app/map/Cache/interface';
+import type { MapCacheHook } from '~/app/map/interface';
 import type { Theme } from '~/contexts/ThemeContext';
 import type { User } from 'better-auth';
 
@@ -22,6 +22,12 @@ export const MockMapCacheProvider = ({ children }: { children: ReactNode }) => {
     getRegionItems: () => [],
     hasItem: () => false,
     isRegionLoaded: () => false,
+
+    // Hierarchy operations
+    getParentHierarchy: () => [],
+    getCenterItem: () => null,
+    isUserMapCenter: () => false,
+    shouldShowHierarchy: () => false,
 
     // Data operations
     loadRegion: async () => ({ success: true, itemCount: 0 }),

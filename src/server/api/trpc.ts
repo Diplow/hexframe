@@ -13,11 +13,15 @@ import { ZodError } from "zod";
 import { auth } from "~/server/auth";
 import { db } from "../db";
 import { loggers } from "~/lib/debug/debug-logger";
-import { MappingService } from "~/lib/domains/mapping/services/mapping.service";
-import { DbMapItemRepository } from "~/lib/domains/mapping/infrastructure/map-item/db";
-import { DbBaseItemRepository } from "~/lib/domains/mapping/infrastructure/base-item/db";
-import { IAMService } from "~/lib/domains/iam/services/iam.service";
-import { BetterAuthUserRepository } from "~/lib/domains/iam/infrastructure/user/better-auth-repository";
+import { 
+  MappingService, 
+  DbMapItemRepository, 
+  DbBaseItemRepository 
+} from "~/lib/domains/mapping/interface";
+import { 
+  IAMService, 
+  BetterAuthUserRepository 
+} from "~/lib/domains/iam/interface";
 import type { IncomingHttpHeaders } from "http";
 
 /**

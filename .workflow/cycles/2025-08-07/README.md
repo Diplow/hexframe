@@ -14,13 +14,21 @@ Each priority will be implemented in its own feature branch from `develop`:
 
 ## Selected Priorities
 
-### Priority 0: Foundation Cleanup
+### Priority 0: Foundation Cleanup ✅ COMPLETED
 **Branch**: `priority-0-foundation-cleanup`
 - Test output configuration for AI parsing
 - CodeRabbit PR #95 feedback resolution
 - Remove offline mode references
 - Fix critical bugs (swap state, focus, widget close)
 - **Estimated**: 1-2 days
+
+### Priority 0.5: Document All Subsystems 🔄 CURRENT
+**Branch**: Various `docs/*-subsystem` branches
+- Document all major subsystems for architectural clarity
+- Create README.md, ARCHITECTURE.md, interface.ts, dependencies.json for each
+- Establish clear boundaries and dependencies
+- **Estimated**: 2-3 days
+- **Status**: 0/8 tasks completed
 
 ### Priority 1: MCP Integration
 **Branch**: `priority-1-mcp-integration`

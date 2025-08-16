@@ -4,7 +4,7 @@ import type {
   ChatContextStrategy 
 } from '../types'
 import type { IChatStrategy } from './chat-strategies/strategy.interface'
-import type { ChatMessage } from '~/app/map/Chat/types'
+import type { ChatMessage } from '~/app/map/interface'
 
 export class ChatContextBuilder {
   constructor(

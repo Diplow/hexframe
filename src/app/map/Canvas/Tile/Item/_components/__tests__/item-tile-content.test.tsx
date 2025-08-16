@@ -3,8 +3,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render } from "@testing-library/react";
 import React from "react";
 import { ItemTileContent } from "../item-tile-content";
-import type { TileData } from "~/app/map/types/tile-data";
-import { TileActionsProvider } from "~/app/map/Canvas/TileActionsContext";
+import type { TileData } from "../../../../../types/tile-data";
+import { TileActionsProvider } from "../../../../TileActionsContext";
 
 // Mock the hooks
 vi.mock("next/navigation", () => ({

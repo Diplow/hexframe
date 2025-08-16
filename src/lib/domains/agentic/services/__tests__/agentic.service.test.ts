@@ -2,9 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { AgenticService } from '../agentic.service'
 import type { ILLMRepository } from '../../repositories/llm.repository.interface'
 import type { ContextCompositionService } from '../context-composition.service'
-import type { EventBus } from '~/app/map/Services/EventBus/event-bus'
+import type { EventBus } from '~/app/map/interface'
 import type { ComposedContext, LLMResponse, StreamChunk } from '../../types'
-import type { ChatMessage } from '~/app/map/Chat/types'
+import type { ChatMessage } from '~/app/map/interface'
 
 describe('AgenticService', () => {
   let mockLLMRepository: ILLMRepository

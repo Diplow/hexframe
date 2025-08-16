@@ -1,7 +1,6 @@
 {
   "$schema": "../../../../schemas/dependencies.schema.json",
   "allowed": [
-    "./",
     "~/app/map/types",
     "~/commons/trpc",
     "~/lib/domains/mapping/utils",
@@ -13,6 +12,6 @@
     "next/navigation"
   ],
   "exceptions": {
-    "~/lib/domains/mapping/types": ["MapItemType"]
+    "~/lib/domains/mapping/types/MapItemType": "Needed for specific type import while avoiding full types folder"
   }
 }

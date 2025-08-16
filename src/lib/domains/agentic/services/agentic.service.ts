@@ -1,6 +1,6 @@
 import type { ILLMRepository } from '../repositories/llm.repository.interface'
 import type { ContextCompositionService } from './context-composition.service'
-import type { EventBus } from '~/app/map/Services/EventBus/event-bus'
+import type { EventBus } from '~/app/map/interface'
 import type { 
   CompositionConfig, 
   LLMResponse, 
@@ -9,7 +9,7 @@ import type {
   ModelInfo,
   LLMMessage
 } from '../types'
-import type { ChatMessage } from '~/app/map/Chat/types'
+import type { ChatMessage } from '~/app/map/interface'
 
 export interface GenerateResponseOptions {
   centerCoordId: string

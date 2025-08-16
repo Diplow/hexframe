@@ -1,5 +1,5 @@
 import { type api } from "~/commons/trpc/react";
-import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { CoordSystem } from "~/lib/domains/mapping/interface.client";
 import type { CacheAction, CacheState } from "../State/types";
 import { cacheActions } from "../State/actions";
 import {

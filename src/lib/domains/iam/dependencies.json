@@ -1,0 +1,17 @@
+{
+  "$schema": "../../../schemas/dependencies.schema.json",
+  "allowed": [
+    "zod",
+    "next/cache",
+    "~/server/auth",
+    "~/server/db",
+    "~/server/api/services/user-mapping.service",
+    "~/lib/domains/mapping",
+    "./infrastructure",
+    "./_objects",
+    "./_repositories",
+    "./services",
+    "./types"
+  ],
+  "exceptions": {}
+}

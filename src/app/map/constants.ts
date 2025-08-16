@@ -1,4 +1,4 @@
-import { Direction } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { Direction } from "~/lib/domains/mapping/interface.client";
 
 // Re-export Direction for convenience
 export { Direction };

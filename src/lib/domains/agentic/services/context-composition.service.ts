@@ -9,7 +9,7 @@ import type {
 import type { CanvasContextBuilder } from './canvas-context-builder.service'
 import type { ChatContextBuilder } from './chat-context-builder.service'
 import type { TokenizerService } from './tokenizer.service'
-import type { ChatMessage } from '~/app/map/Chat/types'
+import type { ChatMessage } from '~/app/map/interface'
 
 export class ContextCompositionService {
   constructor(

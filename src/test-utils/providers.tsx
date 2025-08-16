@@ -3,8 +3,8 @@ import { expect } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '~/contexts/AuthContext';
 import { ThemeProvider } from '~/contexts/ThemeContext';
-import { EventBusProvider, EventBusContext } from '~/app/map/Services/EventBus/event-bus-context';
-import { EventBus } from '~/app/map/Services/EventBus/event-bus';
+import { EventBusProvider, EventBusContext } from '~/app/map/interface';
+import { EventBus } from '~/app/map/interface';
 import { createMockEventBus, type MockEventBus } from './event-bus';
 import { debugLogger } from '~/lib/debug/debug-logger';
 

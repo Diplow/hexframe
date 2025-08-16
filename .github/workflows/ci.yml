@@ -1,33 +1,28 @@
 name: CI
 
+# Limit GITHUB_TOKEN permissions for security
+permissions:
+  contents: read
+  pull-requests: read
+
 on:
   pull_request:
     branches: [main, develop]
+    types: [opened, synchronize, reopened]
   push:
-    branches: [main, develop]
+    branches: [main]  # Only run on direct pushes to main (after merge)
+  workflow_dispatch: # Allow manual triggering if needed
+
+# Cancel in-progress runs of the same workflow/branch combination
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  test:
-    name: Lint, Type Check, and Test
+  # Shared setup job for dependency caching
+  setup:
+    name: Setup Dependencies
     runs-on: ubuntu-latest
-
-    services:
-      # Setup PostgreSQL service for integration tests
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
-        ports:
-          - 5432:5432
-        # Set health checks to wait until postgres has started
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -60,24 +55,151 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Run linter
-        run: pnpm lint
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+  # Linting job (runs in parallel)
+  lint:
+    name: Lint
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - name: Run all lint checks
+        run: |
+          # Run all lint commands, continue even if one fails
+          set +e
+          EXIT_CODE=0
+          
+          echo "Running ESLint..."
+          pnpm lint
+          if [ $? -ne 0 ]; then
+            echo "❌ ESLint check failed"
+            EXIT_CODE=1
+          else
+            echo "✅ ESLint check passed"
+          fi
+          
+          echo ""
+          echo "Running color validation..."
+          pnpm lint:colors
+          if [ $? -ne 0 ]; then
+            echo "❌ Color validation failed"
+            EXIT_CODE=1
+          else
+            echo "✅ Color validation passed"
+          fi
+          
+          echo ""
+          echo "Running architecture validation..."
+          pnpm lint:architecture
+          if [ $? -ne 0 ]; then
+            echo "❌ Architecture validation failed"
+            EXIT_CODE=1
+          else
+            echo "✅ Architecture validation passed"
+          fi
+          
+          exit $EXIT_CODE
         env:
           SKIP_ENV_VALIDATION: true
 
-      - name: Run color validation
-        run: pnpm lint:colors
-        env:
-          SKIP_ENV_VALIDATION: true
+  # Type checking job (runs in parallel)
+  typecheck:
+    name: Type Check
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
 
       - name: Run type checking
         run: pnpm typecheck
         env:
           SKIP_ENV_VALIDATION: true
 
+  # Test Phase 1: Main test suite (runs in parallel)
+  test-phase1:
+    name: Tests - Phase 1 (Main Suite)
+    needs: setup
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+
       - name: Setup test database
         run: |
-          # Create .env.test file with test database configuration
           echo "TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/test_db" > .env.test
           echo "DATABASE_URL=postgres://postgres:postgres@localhost:5432/test_db" >> .env.test
           echo "SKIP_ENV_VALIDATION=true" >> .env.test
@@ -88,19 +210,136 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
           SKIP_ENV_VALIDATION: true
 
-      - name: Run tests
-        run: pnpm test
+      - name: Run Phase 1 tests
+        run: ./scripts/run-tests.sh phase1
         env:
           TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
           SKIP_ENV_VALIDATION: true
-          # CI=true flag triggers exclusion of problematic Storybook tests
-          # Due to Vitest 3.0 compatibility issue with @storybook/experimental-addon-test
-          # See: https://github.com/storybookjs/storybook/issues/30308
           CI: true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-phase1
+          path: test-results/
+
+  # Test Phase 2: React component tests (runs in parallel)
+  test-phase2:
+    name: Tests - Phase 2 (React Components)
+    needs: setup
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - name: Setup test database
+        run: |
+          echo "TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/test_db" > .env.test
+          echo "DATABASE_URL=postgres://postgres:postgres@localhost:5432/test_db" >> .env.test
+          echo "SKIP_ENV_VALIDATION=true" >> .env.test
+
+      - name: Run database migrations
+        run: pnpm db:push
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
+          SKIP_ENV_VALIDATION: true
+
+      - name: Run Phase 2 tests
+        run: ./scripts/run-tests.sh phase2
+        env:
+          TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
+          SKIP_ENV_VALIDATION: true
+          CI: true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-phase2
+          path: test-results/
+
+  # Build job (runs in parallel)
+  build:
+    name: Build
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
 
       - name: Build project
         run: pnpm build
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
           SKIP_ENV_VALIDATION: true
+
+  # Final check that all parallel jobs succeeded
+  ci-status:
+    name: CI Status Check
+    needs: [lint, typecheck, test-phase1, test-phase2, build]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check all job statuses
+        run: |
+          if [[ "${{ needs.lint.result }}" != "success" || \
+                "${{ needs.typecheck.result }}" != "success" || \
+                "${{ needs.test-phase1.result }}" != "success" || \
+                "${{ needs.test-phase2.result }}" != "success" || \
+                "${{ needs.build.result }}" != "success" ]]; then
+            echo "One or more CI checks failed"
+            exit 1
+          fi
+          echo "All CI checks passed successfully!"

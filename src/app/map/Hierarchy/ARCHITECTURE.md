@@ -1,86 +1,89 @@
-# Hierarchy Component Architecture
+# Architecture: Hierarchy
 
 ## Overview
+See [README.md](./README.md) for why this subsystem exists.
 
-The Hierarchy component provides a vertical navigation control that displays the hierarchical path from the root tile to the current center tile. It serves as a breadcrumb-style navigation aid, allowing users to quickly navigate to parent tiles.
+## Internal Structure
 
-## Component Structure
+```
+Hierarchy/
+├── interface.ts       # Public API
+├── dependencies.json  # Allowed imports
+├── index.tsx         # Exports aggregation
+└── parent-hierarchy.tsx  # Main hierarchy component with user profile
+```
 
-### ParentHierarchy (`parent-hierarchy.tsx`)
+## Key Patterns
+- **Component Composition**: UserProfileTile and DynamicHierarchyTile composed within ParentHierarchy
+- **Cache Integration**: Uses useMapCache hook for hierarchy data, navigation, and tile access
+- **Render Tracking**: Debug logging for render performance monitoring
+- **Data Delegation**: Hierarchy calculation delegated to Cache subsystem
 
-The main component that renders the hierarchical navigation.
+## Components
 
-**Key Features**:
-- Displays a vertical chain of tiles from root to current
-- Each tile is clickable for navigation
+### ParentHierarchy
+Main component that renders the hierarchical navigation:
+- Displays vertical chain of tiles from root to current
 - Shows user profile tile at the top
 - Visual chevron indicators between tiles
+- Gets hierarchy data from Cache via useMapCache hook
 
-### Components
-
-#### UserProfileTile
-- Shows the logged-in user's profile or "Guest"
+### UserProfileTile
+User profile display and navigation:
+- Shows logged-in user's profile or "Guest"
 - Navigates to user's personal map when clicked
-- Uses the Logo component with username overlay
-- Disabled state for guest users
+- Uses Logo component with username overlay
+- Fetches user map data via tRPC API
+- Loading state during navigation
 
-#### DynamicHierarchyTile
-- Renders individual tiles in the hierarchy
+### DynamicHierarchyTile
+Individual tile rendering in hierarchy:
 - Uses BaseTileLayout for consistent hexagonal appearance
-- Scaled down size for compact display
-- Hover and click interactions for navigation
+- Scaled down size for compact display (HIERARCHY_TILE_SCALE)
+- Click handler for navigation via MapCache
 
-#### HierarchyTileContent
-- Content renderer for hierarchy tiles
-- Truncates long names with ellipsis
-- Depth-aware text coloring
-- Tooltip for full name on hover
+### HierarchyTileContent
+Content renderer for hierarchy tiles:
+- Truncates long names with CSS line clamping
+- Depth-aware text coloring via getTextColorForDepth
+- Title attribute for full name on hover
 
-## Integration
+## Data Management
 
-The Hierarchy component integrates with:
+Hierarchy traversal and data operations are handled by the Cache subsystem:
+- Parent hierarchy calculation via `getParentHierarchy()`
+- Center item retrieval via `getCenterItem()`
+- All hierarchy logic centralized in Cache's hierarchy service
 
-### MapCache (Direct Integration)
-- Uses `navigateToItem` for tile navigation
-- Accesses `center` and `items` from cache state
-- Falls back to props when cache is initializing
-- All state changes go through MapCache
+## Dependencies
 
-### Event Bus (Indirect via MapCache)
-- Hierarchy doesn't know about EventBus
-- When navigation happens, MapCache emits the notification
-- Hierarchy simply calls MapCache methods and re-renders based on state
+| Dependency | Purpose |
+|------------|---------|
+| ~/app/map/Cache/interface | Navigation and tile data access |
+| ~/app/map/Canvas/interface | BaseTileLayout for rendering tiles |
+| ~/lib/domains/mapping/utils/hex-coordinates | Parent coordinate calculation |
+| ~/contexts/UnifiedAuthContext | User authentication state |
+| ~/commons/trpc/react | User map data fetching |
+| ~/app/map/types/* | Type definitions and theme colors |
+| ~/app/map/constants | Size and scale constants |
+| ~/lib/debug/debug-logger | Debug logging |
+| ~/components/ui/logo | Logo component for user tile |
+| lucide-react | Icon components (ChevronDown, Loader2) |
+| react | React hooks and state management |
 
-### Authentication
-- Shows user profile when authenticated
-- Fetches user map data via tRPC
-- Guest mode with limited functionality
+## Interactions
 
-## Utilities
+### Inbound (Who uses this subsystem)
+- **Map Page Layout** → Uses ParentHierarchy component to display hierarchy
 
-### hierarchy.utils.ts
-The `_getParentHierarchy` function builds the parent chain:
-- Traverses from current tile to root
-- Returns array in top-to-bottom order
-- Handles missing parent references gracefully
+### Outbound (What this subsystem uses)
+- **Cache** ← For navigation operations and tile data
+- **Canvas** ← For tile rendering via BaseTileLayout
+- **UnifiedAuth** ← For user authentication state
+- **TRPC** ← For fetching user map data
+- **Mapping Domain** ← For coordinate system operations
 
-## Styling
-
-- Fixed width for consistent layout
-- Vertical flex layout with gaps
-- Transparent background
-- Overflow handling for long hierarchies
-- Responsive hover states
-
-## Performance Considerations
-
-- Uses render count tracking for debugging
-- Memoization opportunities for hierarchy calculation
-- Minimal re-renders through proper prop comparison
-
-## Future Enhancements
-
-- Collapsible sections for deep hierarchies
-- Alternative compact view modes
-- Keyboard navigation support
-- Drag-to-reorder functionality
+## TO BE IMPROVED
+- UserProfileTile has complex navigation logic that might belong in a service
+- Render tracking logs could be consolidated into a performance monitoring pattern
+- Props (centerCoordId, items) might be unnecessary now that Cache provides everything

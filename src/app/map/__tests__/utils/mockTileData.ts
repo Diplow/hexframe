@@ -1,5 +1,5 @@
 import type { TileData } from "../../types/tile-data";
-import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { CoordSystem } from "~/lib/domains/mapping/interface.client";
 
 export function createMockTileData(overrides?: Partial<TileData>): TileData {
   const defaultCoordId = "0,0";

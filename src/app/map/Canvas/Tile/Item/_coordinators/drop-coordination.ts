@@ -1,5 +1,5 @@
 import type { DragEvent } from "react";
-import type { LegacyTileActionsContextValue } from "~/app/map/Canvas";
+import type { LegacyTileActionsContextValue } from "../../..";
 
 export interface DropProps {
   onDragOver?: (e: DragEvent<HTMLDivElement>) => void;

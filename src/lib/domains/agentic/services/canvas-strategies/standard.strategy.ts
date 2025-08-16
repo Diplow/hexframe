@@ -1,7 +1,7 @@
 import type { ICanvasStrategy } from './strategy.interface'
 import type { CanvasContext, CanvasContextOptions, TileContextItem } from '../../types'
-import type { CacheState } from '~/app/map/Cache/interface'
-import type { TileData } from '~/app/map/types/tile-data'
+import type { CacheState } from '~/app/map/interface'
+import type { TileData } from '~/app/map/interface'
 import { CoordSystem } from '~/lib/domains/mapping/utils/hex-coordinates'
 
 export class StandardCanvasStrategy implements ICanvasStrategy {

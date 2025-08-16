@@ -1,7 +1,7 @@
 import "server-only";
 
 import { api } from "~/commons/trpc/server";
-import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { CoordSystem } from "~/lib/domains/mapping/interface.client";
 import type { ServiceConfig } from "./types";
 
 /**

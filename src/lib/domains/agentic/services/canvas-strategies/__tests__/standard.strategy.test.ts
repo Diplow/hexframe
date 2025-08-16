@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { StandardCanvasStrategy } from '../standard.strategy'
-import type { CacheState } from '~/app/map/Cache/interface'
-import type { TileData } from '~/app/map/types/tile-data'
+import type { CacheState } from '~/app/map/interface'
+import type { TileData } from '~/app/map/interface'
 
 describe('StandardCanvasStrategy', () => {
   let mockGetCacheState: () => CacheState

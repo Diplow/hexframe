@@ -191,3 +191,20 @@ export class CoordSystem {
     return CoordSystem.isDescendant(childId, parentId);
   }
 }
+
+// Standalone utility functions for backward compatibility
+export function getNeighborCoord(coord: Coord, direction: Direction): Coord {
+  return CoordSystem.getNeighborCoord(coord, direction);
+}
+
+export function isValidCoord(coord: Coord): boolean {
+  return coord.userId > 0 && coord.groupId >= 0 && Array.isArray(coord.path);
+}
+
+export function coordToString(coord: Coord): string {
+  return CoordSystem.createId(coord);
+}
+
+export function stringToCoord(coordId: string): Coord {
+  return CoordSystem.parseId(coordId);
+}

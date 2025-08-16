@@ -1,0 +1,18 @@
+{
+  "$schema": "../../../schemas/dependencies.schema.json",
+  "allowed": [
+    "~/lib/domains/mapping",
+    "~/lib/debug/debug-logger",
+    "inngest",
+    "tiktoken",
+    "./infrastructure",
+    "./repositories",
+    "./_objects",
+    "./_actions",
+    "./_repositories",
+    "./_security",
+    "./services",
+    "./types"
+  ],
+  "exceptions": {}
+}

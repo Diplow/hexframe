@@ -1,0 +1,9 @@
+{
+  "$schema": "../../../../schemas/dependencies.schema.json",
+  "allowed": [
+    "~/lib/debug/debug-logger",
+    "../types",
+    "../infrastructure/inngest"
+  ],
+  "exceptions": {}
+}

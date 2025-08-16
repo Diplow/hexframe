@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createMockEventBus, expectEventEmitted, expectEventNotEmitted, clearEmittedEvents } from '../event-bus';
-import type { AppEvent } from '~/app/map/types/events';
+import type { AppEvent } from '~/app/map/interface';
 
 describe('EventBus Test Utilities', () => {
   let mockEventBus: ReturnType<typeof createMockEventBus>;

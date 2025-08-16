@@ -1,4 +1,4 @@
-import type { TileScale } from "../Tile/Base/BaseTileLayout";
+import type { TileScale } from "../Tile/interface";
 
 /**
  * Calculates the negative margin needed for hexagon row overlap

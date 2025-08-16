@@ -2,15 +2,15 @@
 
 import { useState, useContext, useEffect } from "react";
 import { DynamicBaseTileLayout } from "../Base";
-import type { TileScale, TileColor } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
-import { LegacyTileActionsContext, useCanvasTheme } from "~/app/map/Canvas";
-import type { URLInfo } from "~/app/map/types/url-info";
-import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
-import { getColor } from "~/app/map/types/tile-data";
+import type { TileScale, TileColor } from "../Base/BaseTileLayout";
+import { LegacyTileActionsContext, useCanvasTheme } from "../..";
+import type { URLInfo } from "../../../types/url-info";
+import { CoordSystem } from "~/lib/domains/mapping/interface.client";
+import { getColor } from "../../../types/tile-data";
 import { getDefaultStroke } from "../utils/stroke";
-import { useTileInteraction } from "~/app/map/Canvas/hooks/shared/useTileInteraction";
+import { useTileInteraction } from "../../hooks/shared/useTileInteraction";
 import { loggers } from "~/lib/debug/debug-logger";
-import { useEventBus } from "~/app/map/Services/EventBus/event-bus-context";
+import { useEventBus } from "../../../Services/EventBus/interface";
 
 export interface DynamicEmptyTileProps {
   coordId: string;

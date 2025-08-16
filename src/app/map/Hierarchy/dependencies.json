@@ -1,0 +1,18 @@
+{
+  "$schema": "../../../schemas/dependencies.schema.json",
+  "allowed": [
+    "../types/tile-data",
+    "../types/url-info",
+    "../types/theme-colors",
+    "../constants",
+    "~/app/map/Cache/interface",
+    "~/app/map/Canvas/interface",
+    "~/contexts/UnifiedAuthContext",
+    "~/commons/trpc/react",
+    "~/lib/debug/debug-logger",
+    "~/components/ui/logo",
+    "lucide-react",
+    "react"
+  ],
+  "exceptions": {}
+}

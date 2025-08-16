@@ -18,12 +18,12 @@ import { FullChatStrategy } from './chat-strategies/full.strategy'
 import { RecentChatStrategy } from './chat-strategies/recent.strategy'
 import { RelevantChatStrategy } from './chat-strategies/relevant.strategy'
 
-import type { EventBus } from '~/app/map/Services/EventBus/event-bus'
+import type { EventBus } from '~/app/map/interface'
 import type { CanvasContextStrategy, ChatContextStrategy } from '../types'
 import type { ICanvasStrategy } from './canvas-strategies/strategy.interface'
 import type { IChatStrategy } from './chat-strategies/strategy.interface'
 
-import type { CacheState } from '~/app/map/Cache/interface'
+import type { CacheState } from '~/app/map/interface'
 
 export interface CreateAgenticServiceOptions {
   openRouterApiKey: string

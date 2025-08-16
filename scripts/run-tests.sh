@@ -2,6 +2,14 @@
 
 # Run tests with proper isolation for React component tests - AI version
 # This replicates run-tests-isolated.sh but with AI-friendly JSON output
+#
+# Usage: ./run-tests.sh [phase1|phase2|all]
+#   phase1 - Run main test suite only
+#   phase2 - Run React component tests only  
+#   all    - Run all tests (default)
+
+# Parse command line arguments
+PHASE="${1:-all}"
 
 # Exit on error and ensure pipeline failures are detected
 set -e
@@ -28,40 +36,46 @@ else
   STORYBOOK_EXCLUDE=()
 fi
 
-# First, run all tests except the problematic ones
-echo "Phase 1: Main test suite (excluding React component and drag-and-drop tests)..."
-# Temporarily disable exit-on-error to collect exit codes without aborting
-set +e
-pnpm vitest run --config vitest.config.ts \
-  --exclude "**/base.test.tsx" \
-  --exclude "**/auth-tile.test.tsx" \
-  --exclude "**/auth.test.tsx" \
-  --exclude "**/page.test.tsx" \
-  --exclude "**/TileActionsContext.test.tsx" \
-  --exclude "**/Toolbox.integration.test.tsx" \
-  --exclude "**/useKeyboardShortcuts.test.tsx" \
-  --exclude "**/ToolStateManager.test.tsx" \
-  --exclude "**/Toolbox.test.tsx" \
-  --exclude "**/item-tile-content.test.tsx" \
-  --exclude "**/BaseComponents.test.tsx" \
-  --exclude "**/content.test.tsx" \
-  --exclude "**/multi-line-title.test.tsx" \
-  --exclude "**/use-item-state.test.tsx" \
-  --exclude "**/ChatPanel.test.tsx" \
-  --exclude "**/ChatPanel.fixed.test.tsx" \
-  --exclude "**/ChatPanel.send-message.test.tsx" \
-  --exclude "**/ChatPanel.debug-message.test.tsx" \
-  --exclude "**/ChatPanel.render-debug.test.tsx" \
-  --exclude "**/ChatPanel.comprehensive.test.tsx" \
-  --exclude "**/useChatState.test.tsx" \
-  --exclude "**/navigation-handler.test.ts" \
-  "${STORYBOOK_EXCLUDE[@]}" 2>test-results/main-suite.log
+# Run Phase 1 if requested
+if [[ "$PHASE" == "phase1" ]] || [[ "$PHASE" == "all" ]]; then
+  echo "Phase 1: Main test suite (excluding React component and drag-and-drop tests)..."
+  # Temporarily disable exit-on-error to collect exit codes without aborting
+  set +e
+  pnpm vitest run --config vitest.config.ts \
+    --exclude "**/base.test.tsx" \
+    --exclude "**/auth-tile.test.tsx" \
+    --exclude "**/auth.test.tsx" \
+    --exclude "**/page.test.tsx" \
+    --exclude "**/TileActionsContext.test.tsx" \
+    --exclude "**/Toolbox.integration.test.tsx" \
+    --exclude "**/useKeyboardShortcuts.test.tsx" \
+    --exclude "**/ToolStateManager.test.tsx" \
+    --exclude "**/Toolbox.test.tsx" \
+    --exclude "**/item-tile-content.test.tsx" \
+    --exclude "**/BaseComponents.test.tsx" \
+    --exclude "**/content.test.tsx" \
+    --exclude "**/multi-line-title.test.tsx" \
+    --exclude "**/use-item-state.test.tsx" \
+    --exclude "**/ChatPanel.test.tsx" \
+    --exclude "**/ChatPanel.fixed.test.tsx" \
+    --exclude "**/ChatPanel.send-message.test.tsx" \
+    --exclude "**/ChatPanel.debug-message.test.tsx" \
+    --exclude "**/ChatPanel.render-debug.test.tsx" \
+    --exclude "**/ChatPanel.comprehensive.test.tsx" \
+    --exclude "**/useChatState.test.tsx" \
+    --exclude "**/navigation-handler.test.ts" \
+    "${STORYBOOK_EXCLUDE[@]}" 2>test-results/main-suite.log
 
-MAIN_EXIT_CODE=$?
-mv test-results/vitest-results.json test-results/main.tmp.json 2>>test-results/main-suite.log || true
+  MAIN_EXIT_CODE=$?
+  mv test-results/vitest-results.json test-results/main.tmp.json 2>>test-results/main-suite.log || true
+else
+  MAIN_EXIT_CODE=0
+  echo "Skipping Phase 1 (not requested)"
+fi
 
-# Then run the React component tests in isolation with single thread
-echo "Phase 2: React component tests (isolated, single thread)..."
+# Run Phase 2 if requested
+if [[ "$PHASE" == "phase2" ]] || [[ "$PHASE" == "all" ]]; then
+  echo "Phase 2: React component tests (isolated, single thread)..."
 REACT_TEST_FILES=""
 for file in \
   src/app/static/map/Tile/Base/base.test.tsx \
@@ -91,12 +105,16 @@ do
   fi
 done
 
-if [ -n "$REACT_TEST_FILES" ]; then
-  pnpm vitest run --config vitest.config.ts --pool=forks --poolOptions.forks.singleFork $REACT_TEST_FILES 2>test-results/react-components.log
-  REACT_EXIT_CODE=$?
-  mv test-results/vitest-results.json test-results/react.tmp.json 2>>test-results/react-components.log || true
+  if [ -n "$REACT_TEST_FILES" ]; then
+    pnpm vitest run --config vitest.config.ts --pool=forks --poolOptions.forks.singleFork $REACT_TEST_FILES 2>test-results/react-components.log
+    REACT_EXIT_CODE=$?
+    mv test-results/vitest-results.json test-results/react.tmp.json 2>>test-results/react-components.log || true
+  else
+    REACT_EXIT_CODE=0
+  fi
 else
   REACT_EXIT_CODE=0
+  echo "Skipping Phase 2 (not requested)"
 fi
 
 # Drag-and-drop tests no longer exist (consolidated into single hook)
@@ -106,11 +124,12 @@ DRAG_EXIT_CODE=0
 # Re-enable strict mode after collecting all phase exit codes
 set -e
 
-# Merge all JSON results
-echo ""
-echo "Merging test results..."
-# Pass exit codes as environment variables to Python
-MAIN_EXIT_CODE=$MAIN_EXIT_CODE REACT_EXIT_CODE=$REACT_EXIT_CODE DRAG_EXIT_CODE=$DRAG_EXIT_CODE python3 -c "
+# Only merge results if running all phases or if specific phase completed
+if [[ "$PHASE" == "all" ]] || [[ "$PHASE" == "phase1" ]] || [[ "$PHASE" == "phase2" ]]; then
+  echo ""
+  echo "Merging test results..."
+  # Pass exit codes and phase as environment variables to Python
+  PHASE=$PHASE MAIN_EXIT_CODE=$MAIN_EXIT_CODE REACT_EXIT_CODE=$REACT_EXIT_CODE DRAG_EXIT_CODE=$DRAG_EXIT_CODE python3 -c "
 import json
 import os
 
@@ -120,14 +139,23 @@ def load_json_safe(filepath):
             return json.load(f)
     return None
 
-# Get exit codes from environment
+# Get exit codes and phase from environment
+phase = os.environ.get('PHASE', 'all')
 main_exit_code = int(os.environ.get('MAIN_EXIT_CODE', '0'))
 react_exit_code = int(os.environ.get('REACT_EXIT_CODE', '0'))
 drag_exit_code = int(os.environ.get('DRAG_EXIT_CODE', '0'))
 
-# Load individual results
-main_data = load_json_safe('test-results/main.tmp.json')
-react_data = load_json_safe('test-results/react.tmp.json')
+# Load individual results based on phase
+if phase == 'phase1':
+    main_data = load_json_safe('test-results/main.tmp.json')
+    react_data = None
+elif phase == 'phase2':
+    main_data = None
+    react_data = load_json_safe('test-results/react.tmp.json')
+else:  # all
+    main_data = load_json_safe('test-results/main.tmp.json')
+    react_data = load_json_safe('test-results/react.tmp.json')
+
 drag_data = None  # Drag tests removed after consolidation
 
 # Initialize combined results
@@ -252,25 +280,29 @@ print()
 print(\"📄 Full JSON results: test-results/vitest-results.json\")
 "
 
-echo "========================================="
+  echo "========================================="
 
-# Calculate final exit code
-OVERALL_EXIT_CODE=0
-if [ $MAIN_EXIT_CODE -ne 0 ] || [ $REACT_EXIT_CODE -ne 0 ] || [ $DRAG_EXIT_CODE -ne 0 ]; then
-  OVERALL_EXIT_CODE=1
-  echo ""
-  echo "📋 Error logs available in:"
-  [ -f test-results/main-suite.log ] && [ -s test-results/main-suite.log ] && echo "  - test-results/main-suite.log"
-  [ -f test-results/react-components.log ] && [ -s test-results/react-components.log ] && echo "  - test-results/react-components.log"
-  [ -f test-results/drag-drop.log ] && [ -s test-results/drag-drop.log ] && echo "  - test-results/drag-drop.log"
-fi
-
-# Also honor merged JSON success
-if [ -f test-results/vitest-results.json ]; then
-  MERGED_FAIL=$(python3 -c 'import json,sys; d=json.load(open("test-results/vitest-results.json")); sys.stdout.write("1" if not d.get("success", False) else "0")')
-  if [ "$MERGED_FAIL" = "1" ]; then
+  # Calculate final exit code
+  OVERALL_EXIT_CODE=0
+  if [ $MAIN_EXIT_CODE -ne 0 ] || [ $REACT_EXIT_CODE -ne 0 ] || [ $DRAG_EXIT_CODE -ne 0 ]; then
     OVERALL_EXIT_CODE=1
+    echo ""
+    echo "📋 Error logs available in:"
+    [ -f test-results/main-suite.log ] && [ -s test-results/main-suite.log ] && echo "  - test-results/main-suite.log"
+    [ -f test-results/react-components.log ] && [ -s test-results/react-components.log ] && echo "  - test-results/react-components.log"
+    [ -f test-results/drag-drop.log ] && [ -s test-results/drag-drop.log ] && echo "  - test-results/drag-drop.log"
   fi
+
+  # Also honor merged JSON success
+  if [ -f test-results/vitest-results.json ]; then
+    MERGED_FAIL=$(python3 -c 'import json,sys; d=json.load(open("test-results/vitest-results.json")); sys.stdout.write("1" if not d.get("success", False) else "0")')
+    if [ "$MERGED_FAIL" = "1" ]; then
+      OVERALL_EXIT_CODE=1
+    fi
+  fi
+else
+  echo "No tests were run for phase: $PHASE"
+  OVERALL_EXIT_CODE=0
 fi
 
 exit $OVERALL_EXIT_CODE

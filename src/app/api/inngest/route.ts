@@ -1,6 +1,5 @@
 import { serve } from 'inngest/next'
-import { inngest } from '~/lib/domains/agentic/infrastructure/inngest/client'
-import { inngestFunctions } from '~/lib/domains/agentic/infrastructure/inngest/functions'
+import { inngest, inngestFunctions } from '~/lib/domains/agentic/interface'
 
 // Create the Inngest route handler
 // This will handle incoming events and function execution

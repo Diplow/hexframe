@@ -1,65 +1,35 @@
 # Agentic Domain
 
-The agentic domain provides LLM integration capabilities for Hexframe, enabling AI-powered interactions with contextual awareness of the tile hierarchy.
+## Why This Exists
+The Agentic domain enables AI-powered interactions within Hexframe, making systems truly alive by providing intelligent assistance, content generation, and contextual understanding of hexagonal maps.
 
-## Overview
+## Mental Model
+An AI assistant that understands the spatial and hierarchical context of your hexagonal maps, providing intelligent responses based on the surrounding content.
 
-This domain handles:
-- LLM API integration (OpenRouter)
-- Context building from tile hierarchies and chat history
-- Secure prompt management and response filtering
-- Token optimization and model selection
+## Core Responsibility
+This domain owns:
+- LLM provider integration and abstraction
+- Context building from map hierarchies and chat history
+- Prompt engineering and optimization
+- Response generation and streaming
+- Security against prompt injection
+- Token management and cost optimization
+
+This domain does NOT own:
+- Map data storage (delegated to Mapping domain)
+- User authentication (delegated to IAM domain)
+- UI chat components (delegated to app layer)
+- Real-time event distribution (delegated to EventBus)
+
+## Public API
+See `interface.ts` for the public API. Main capabilities:
+- `AgenticService` - Main service for AI operations
+- Context building strategies for different use cases
+- LLM repository implementations
+- Security filters and validators
+
+## Dependencies
+See `dependencies.json` for allowed imports.
 
 ## Architecture
-
-### Domain Structure
-
-```
-agentic/
-├── _objects/           # Domain entities and value objects
-├── _actions/          # Business logic and use cases
-├── _security/         # Security layer for prompt injection protection
-├── _repositories/     # Abstract interfaces for external services
-├── services/          # Public API and orchestration
-├── infrastructure/    # Concrete implementations (OpenRouter)
-└── types/            # Type definitions and contracts
-```
-
-### Key Components
-
-1. **Context Building**: Composable strategies for building LLM context from tiles and chat
-2. **LLM Integration**: Repository pattern for provider abstraction
-3. **Security Layer**: Multi-layer defense against prompt injection
-4. **Service Facade**: Clean public API for domain operations
-
-## Integration Points
-
-- **Mapping Domain**: Retrieves tile hierarchies for context
-- **tRPC Router**: API layer for frontend communication
-- **EventBus**: Emits LLM response events for Chat UI
-
-## Security Considerations
-
-The domain implements comprehensive security measures:
-- Input sanitization for tile content
-- System prompt hardening
-- Output filtering for harmful responses
-- Audit logging for all LLM interactions
-
-See `_security/` directory for implementation details.
-
-## Testing
-
-Tests follow TDD principles with comprehensive coverage:
-- Unit tests for context builders and strategies
-- Integration tests for service orchestration
-- Security tests for injection protection
-- Performance tests for context optimization
-
-## Configuration
-
-The domain respects environment variables:
-- `OPENROUTER_API_KEY`: Required for LLM API access
-- `OPENROUTER_BASE_URL`: Optional API endpoint override
-
-Default context strategies and token allocations are configured in `config/context.config.ts`.
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for structure details.

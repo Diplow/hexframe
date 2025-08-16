@@ -1,9 +1,9 @@
 import { BaseTileLayout } from "./BaseTileLayout";
 import type { TileScale } from "./BaseTileLayout";
-import type { TileData } from "~/app/map/types/tile-data";
-import { getColorFromItem } from "~/app/map/Canvas/Tile/Item/_utils/color";
+import type { TileData } from "../../../types/tile-data";
+import { getColorFromItem } from "../Item/_utils/color";
 import { cn } from "~/lib/utils";
-import { getTextColorForDepth } from "~/app/map/types/theme-colors";
+import { getTextColorForDepth } from "../../../types/theme-colors";
 
 export interface BaseItemTileProps {
   item: TileData;

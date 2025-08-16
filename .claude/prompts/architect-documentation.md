@@ -158,13 +158,12 @@ export interface I[SubsystemName] {
 
 ### Step 6: Generate dependencies.json
 
-List all current dependencies as allowed:
+List all EXTERNAL dependencies (imports from outside the current subsystem):
 
 ```json
 {
   "$schema": "../../../schemas/dependencies.schema.json",
   "allowed": [
-    "./",
     "[Each external dependency found in the code]"
   ],
   "exceptions": {
@@ -173,9 +172,11 @@ List all current dependencies as allowed:
 }
 ```
 
+**IMPORTANT**: Do NOT include `"./"` in the allowed list. Internal imports within the same subsystem are always implicitly allowed and should not be listed.
+
 The **"exceptions"** field is for documenting specific file imports from folders that are NOT in the allowed list. For example, if you need one specific utility from a large subsystem but don't want to allow importing the entire subsystem. Items should NOT appear in both "allowed" and "exceptions" - that's redundant.
 
-Just list what IS currently imported. The reviewer will question if any should be removed or be interpreted as exceptions.
+Just list what IS currently imported from OUTSIDE the subsystem. The reviewer will question if any should be removed or be interpreted as exceptions.
 
 ### Step 7: Validate Generated Files
 
