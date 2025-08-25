@@ -28,12 +28,23 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   console.log('[AIResponseWidget] Initial status:', status)
 
   // Poll for job status if we have a jobId
+  // Skip the query entirely if no jobId to avoid errors
+  const shouldPoll = !!jobId && status !== 'completed' && status !== 'failed';
+  
+  // Debug the query input
+  const queryInput = { jobId: jobId ?? '' };
+  console.log('[AIResponseWidget] Query input:', queryInput, 'shouldPoll:', shouldPoll);
+  
   const jobStatusQuery = api.agentic.getJobStatus.useQuery(
-    { jobId: jobId ?? '' },
+    queryInput,
     {
-      enabled: !!jobId && status !== 'completed' && status !== 'failed',
-      refetchInterval: 2000, // Poll every 2 seconds
-      refetchIntervalInBackground: true
+      enabled: shouldPoll,
+      refetchInterval: shouldPoll ? 2000 : undefined, // Poll every 2 seconds
+      refetchIntervalInBackground: shouldPoll,
+      retry: 3, // Retry a few times for transient errors
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000), // Exponential backoff
+      staleTime: 0, // Always consider data stale to ensure polling
+      gcTime: 0 // Don't cache failed results
     }
   )
   
@@ -69,17 +80,25 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
     }
   }, [jobStatusQuery.data, jobId])
   
-  // Handle query errors
+  // Handle query errors - but don't immediately fail for transient errors
   useEffect(() => {
     if (jobStatusQuery.error) {
-      loggers.agentic.error('Failed to fetch job status', { 
+      const errorMessage = jobStatusQuery.error.message || 'Unknown error';
+      loggers.agentic.error('Error fetching job status', { 
         jobId, 
-        error: jobStatusQuery.error.message 
+        error: errorMessage,
+        status
       })
-      setError('Failed to fetch job status')
-      setStatus('failed')
+      
+      // Only set to failed if we've been trying for a while (more than 10 seconds)
+      // This gives time for the job to be created on the server
+      if (elapsedTime > 10) {
+        setError(`Failed to fetch job status: ${errorMessage}`)
+        setStatus('failed')
+      }
+      // Otherwise, keep trying - the job might not be ready yet
     }
-  }, [jobStatusQuery.error, jobId])
+  }, [jobStatusQuery.error, jobId, elapsedTime, status])
 
   // Track elapsed time for pending/processing jobs
   useEffect(() => {
@@ -121,120 +140,175 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   if (status === 'direct') {
     console.log('[AIResponseWidget] Rendering DIRECT response, content:', response)
     return (
-      <div className="ai-response-widget">
-        <div className="prose dark:prose-invert max-w-none">
-          <MarkdownRenderer 
-            content={response || 'Processing...'} 
-            isSystemMessage={false}
-          />
-        </div>
-        {model && (
-          <div className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
-            Model: {model}
+      <div className="w-full p-4 rounded-lg bg-primary/5 dark:bg-primary/10">
+        <div className="text-sm">
+          <div className="flex items-center gap-1 mb-1">
+            <span className="font-medium">
+              <span className="font-bold text-primary">HexFrame</span>
+            </span>
+            <span className="text-muted-foreground">-</span>
+            <span className="text-xs text-muted-foreground">
+              {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+            </span>
           </div>
-        )}
+          <div className="prose dark:prose-invert max-w-none">
+            <MarkdownRenderer 
+              content={response || 'Processing...'} 
+              isSystemMessage={false}
+            />
+          </div>
+          {model && (
+            <div className="mt-2 text-xs text-muted-foreground">
+              Model: {model}
+            </div>
+          )}
+        </div>
       </div>
     )
   }
 
-  // Pending state
+  // Pending state (queued) - using muted colors
   if (status === 'pending') {
     console.log('[AIResponseWidget] Rendering PENDING state')
     return (
-      <div className="ai-response-widget p-4 rounded-lg bg-primary/10 dark:bg-primary/20 border border-primary/30 dark:border-primary/40">
-        <div className="flex items-center gap-3">
-          <Clock className="w-5 h-5 text-primary dark:text-primary-light animate-pulse" />
-          <div className="flex-1">
-            <div className="font-medium text-primary-dark dark:text-primary-light">
-              Request Queued
-            </div>
-            <div className="text-sm text-primary dark:text-primary-light/80">
-              Your request has been queued and will be processed shortly...
-            </div>
-            {jobId && (
-              <div className="text-xs text-primary dark:text-primary-light mt-1">
-                Job ID: {jobId}
-              </div>
-            )}
+      <div className="w-full p-4 rounded-lg bg-primary/5 dark:bg-primary/10">
+        <div className="text-sm">
+          <div className="flex items-center gap-1 mb-1">
+            <span className="font-medium">
+              <span className="font-bold text-primary">HexFrame</span>
+            </span>
+            <span className="text-muted-foreground">-</span>
+            <span className="text-xs text-muted-foreground">
+              {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+            </span>
           </div>
-          <div className="text-sm text-primary dark:text-primary-light">
-            {elapsedTime}s
+          <div className="flex items-center gap-3 mt-2">
+            <Clock className="w-5 h-5 text-muted-foreground animate-pulse" />
+            <div className="flex-1">
+              <div className="font-medium text-foreground">
+                Request Queued
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Your request has been queued and will be processed shortly...
+              </div>
+              {jobId && (
+                <div className="text-xs text-muted-foreground mt-1">
+                  Job ID: {jobId}
+                </div>
+              )}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {elapsedTime}s
+            </div>
           </div>
         </div>
       </div>
     )
   }
 
-  // Processing state
+  // Processing state (thinking) - using primary colors
   if (status === 'processing') {
     console.log('[AIResponseWidget] Rendering PROCESSING state')
     return (
-      <div className="ai-response-widget p-4 rounded-lg bg-secondary/10 dark:bg-secondary/20 border border-secondary/30 dark:border-secondary/40">
-        <div className="flex items-center gap-3">
-          <Cpu className="w-5 h-5 text-secondary dark:text-secondary-light animate-spin" />
-          <div className="flex-1">
-            <div className="font-medium text-secondary-dark dark:text-secondary-light">
-              Processing with AI
-            </div>
-            <div className="text-sm text-secondary dark:text-secondary-light/80">
-              {model ?? 'AI model'} is thinking...
-            </div>
-            <div className="mt-2">
-              <div className="h-1.5 bg-secondary/20 dark:bg-secondary/30 rounded-full overflow-hidden">
-                <div className="h-full bg-secondary dark:bg-secondary-light animate-progress" />
+      <div className="w-full p-4 rounded-lg bg-primary/5 dark:bg-primary/10">
+        <div className="text-sm">
+          <div className="flex items-center gap-1 mb-1">
+            <span className="font-medium">
+              <span className="font-bold text-primary">HexFrame</span>
+            </span>
+            <span className="text-muted-foreground">-</span>
+            <span className="text-xs text-muted-foreground">
+              {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+            </span>
+          </div>
+          <div className="flex items-center gap-3 mt-2">
+            <Cpu className="w-5 h-5 text-primary dark:text-primary-light animate-spin" />
+            <div className="flex-1">
+              <div className="font-medium text-primary-dark dark:text-primary-light">
+                Processing with AI
+              </div>
+              <div className="text-sm text-primary dark:text-primary-light/80">
+                {model ?? 'AI model'} is thinking...
+              </div>
+              <div className="mt-2">
+                <div className="h-1.5 bg-primary/20 dark:bg-primary/30 rounded-full overflow-hidden">
+                  <div className="h-full bg-primary dark:bg-primary-light animate-progress" />
+                </div>
               </div>
             </div>
-          </div>
-          <div className="text-sm text-secondary dark:text-secondary-light">
-            {elapsedTime}s
+            <div className="text-sm text-primary dark:text-primary-light">
+              {elapsedTime}s
+            </div>
           </div>
         </div>
       </div>
     )
   }
 
-  // Completed state
+  // Completed state (success) - keeps the message visible
   if (status === 'completed') {
     console.log('[AIResponseWidget] Rendering COMPLETED state with response:', response?.substring(0, 100))
     return (
-      <div className="ai-response-widget">
-        <div className="prose dark:prose-invert max-w-none">
-          <MarkdownRenderer 
-            content={response || 'No response content'} 
-            isSystemMessage={false}
-          />
-        </div>
-        <div className="mt-3 flex items-center gap-4 text-xs text-neutral-500 dark:text-neutral-400">
-          <div className="flex items-center gap-1">
-            <CheckCircle className="w-3 h-3 text-success" />
-            <span>Completed</span>
+      <div className="w-full p-4 rounded-lg bg-primary/5 dark:bg-primary/10">
+        <div className="text-sm">
+          <div className="flex items-center gap-1 mb-1">
+            <span className="font-medium">
+              <span className="font-bold text-primary">HexFrame</span>
+            </span>
+            <span className="text-muted-foreground">-</span>
+            <span className="text-xs text-muted-foreground">
+              {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+            </span>
           </div>
-          {model && <span>Model: {model}</span>}
-          {elapsedTime > 0 && <span>Time: {elapsedTime}s</span>}
+          <div className="prose dark:prose-invert max-w-none">
+            <MarkdownRenderer 
+              content={response || 'No response content'} 
+              isSystemMessage={false}
+            />
+          </div>
+          <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <CheckCircle className="w-3 h-3 text-success" />
+              <span>Completed</span>
+            </div>
+            {model && <span>Model: {model}</span>}
+            {elapsedTime > 0 && <span>Time: {elapsedTime}s</span>}
+          </div>
         </div>
       </div>
     )
   }
 
-  // Failed state
+  // Failed state (error) - using destructive colors
   if (status === 'failed') {
     console.log('[AIResponseWidget] Rendering FAILED state with error:', error)
     return (
-      <div className="ai-response-widget p-4 rounded-lg bg-destructive/10 dark:bg-destructive/20 border border-destructive/30 dark:border-destructive/40">
-        <div className="flex items-center gap-3">
-          <XCircle className="w-5 h-5 text-destructive dark:text-destructive-light" />
-          <div className="flex-1">
-            <div className="font-medium text-destructive-dark dark:text-destructive-light">
-              Request Failed
-            </div>
-            <div className="text-sm text-destructive dark:text-destructive-light/80">
-              {error ?? 'An error occurred while processing your request'}
-            </div>
-            {jobId && (
-              <div className="text-xs text-destructive dark:text-destructive-light mt-1">
-                Job ID: {jobId}
+      <div className="w-full p-4 rounded-lg bg-primary/5 dark:bg-primary/10">
+        <div className="text-sm">
+          <div className="flex items-center gap-1 mb-1">
+            <span className="font-medium">
+              <span className="font-bold text-primary">HexFrame</span>
+            </span>
+            <span className="text-muted-foreground">-</span>
+            <span className="text-xs text-muted-foreground">
+              {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+            </span>
+          </div>
+          <div className="flex items-center gap-3 mt-2">
+            <XCircle className="w-5 h-5 text-destructive dark:text-destructive-light" />
+            <div className="flex-1">
+              <div className="font-medium text-destructive-dark dark:text-destructive-light">
+                Request Failed
               </div>
-            )}
+              <div className="text-sm text-destructive dark:text-destructive-light/80">
+                {error ?? 'An error occurred while processing your request'}
+              </div>
+              {jobId && (
+                <div className="text-xs text-destructive dark:text-destructive-light mt-1">
+                  Job ID: {jobId}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -244,10 +318,21 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   // Loading initial state
   console.log('[AIResponseWidget] Rendering LOADING state (fallback)')
   return (
-    <div className="ai-response-widget p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
-      <div className="flex items-center gap-3">
-        <Loader2 className="w-5 h-5 animate-spin text-neutral-600 dark:text-neutral-400" />
-        <span className="text-neutral-700 dark:text-neutral-300">Loading...</span>
+    <div className="w-full p-4 rounded-lg bg-muted/30">
+      <div className="text-sm">
+        <div className="flex items-center gap-1 mb-1">
+          <span className="font-medium">
+            <span className="font-bold text-primary-light">HexFrame</span>
+          </span>
+          <span className="text-muted-foreground">-</span>
+          <span className="text-xs text-muted-foreground">
+            {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+          <span className="text-muted-foreground">Loading...</span>
+        </div>
       </div>
     </div>
   )

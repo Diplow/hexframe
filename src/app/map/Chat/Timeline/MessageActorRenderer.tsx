@@ -30,19 +30,15 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
       return (
         <button
           onClick={handleUserClick}
-          className="font-bold text-secondary mr-2 hover:underline focus:outline-none"
+          className="font-bold text-secondary hover:underline focus:outline-none"
         >
-          {user ? 'You:' : 'Guest (you):'}
+          {user ? 'You' : 'Guest'}
         </button>
       );
     }
     
     if (message.actor === 'assistant') {
-      return <span className="font-bold text-primary-light mr-2">HexFrame:</span>;
-    }
-    
-    if (message.actor === 'system') {
-      return <span className="font-bold text-muted-foreground mr-2">System:</span>;
+      return <span className="font-bold text-primary">HexFrame</span>;
     }
     
     return null;
@@ -67,16 +63,55 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
     );
   };
   
+  // Different background colors based on actor
+  const getBackgroundClass = () => {
+    switch (message.actor) {
+      case 'user':
+        return 'bg-secondary/5 dark:bg-secondary/10';
+      case 'assistant':
+        return 'bg-primary/5 dark:bg-primary/10';
+      case 'system':
+        return 'bg-muted/20';
+      default:
+        return 'bg-muted/20';
+    }
+  };
+
+  // System messages have a different layout
+  if (message.actor === 'system') {
+    return (
+      <div className={`w-full p-4 rounded-lg ${getBackgroundClass()}`}>
+        <div className="text-xs text-muted-foreground flex items-center gap-2">
+          <TimestampRenderer timestamp={message.timestamp} />
+          <span className="text-muted-foreground">•</span>
+          <MarkdownRenderer 
+            content={message.content} 
+            isSystemMessage={true} 
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full">
+    <div className={`w-full p-4 rounded-lg ${getBackgroundClass()}`}>
       <div className="text-sm">
-        <TimestampRenderer timestamp={message.timestamp} />
-        {renderActorLabel()}
-        <MarkdownRenderer 
-          content={message.content} 
-          isSystemMessage={message.actor === 'system'} 
-        />
-        {renderCopyButtons()}
+        <div className="flex items-center gap-1 mb-1">
+          <span className="font-medium">
+            {renderActorLabel()}
+          </span>
+          <span className="text-muted-foreground">-</span>
+          <span className="text-xs text-muted-foreground">
+            <TimestampRenderer timestamp={message.timestamp} />
+          </span>
+        </div>
+        <div>
+          <MarkdownRenderer 
+            content={message.content} 
+            isSystemMessage={false} 
+          />
+          {renderCopyButtons()}
+        </div>
       </div>
     </div>
   );

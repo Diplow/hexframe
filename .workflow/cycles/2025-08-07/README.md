@@ -30,39 +30,49 @@ Each priority will be implemented in its own feature branch from `develop`:
 - **Estimated**: 2-3 days
 - **Status**: 0/8 tasks completed
 
-### Priority 1: MCP Integration
-**Branch**: `priority-1-mcp-integration`
+### Priority 1: Chat UX Enhancement
+**Branch**: `priority-1-chat-ux-enhancement`
+- Slack-inspired message layout improvements
+- AI thinking feedback with streaming tokens
+- Smooth Canvas scanning animations during AI processing
+- Professional state transitions (yellow→green→message)
+- **Estimated**: 3-4 days
+
+### Priority 2: MCP Integration
+**Branch**: `priority-2-mcp-integration`
 - Enable AI to access Hexframe systems
 - Start Claude sessions that auto-call systems
 - Foundation for "living systems" concept
 - **Estimated**: 3-4 days (ambitious)
 
-### Priority 2: Privacy Controls & Sharing
-**Branch**: `priority-2-privacy-sharing`  
+### Priority 3: Privacy Controls & Sharing
+**Branch**: `priority-3-privacy-sharing`  
 - Public/private tiles with AI context isolation
 - Basic forking capability
 - Server-side filtering for AI access
 - **Estimated**: 2-3 days
 
-### Priority 3: Usage Statistics Widget
-**Branch**: `priority-3-usage-stats`
+### Priority 4: Usage Statistics Widget
+**Branch**: `priority-4-usage-stats`
 - Track MCP calls and chat interactions
 - Display system usage metrics
 - Foundation for Monitor value
 - **Estimated**: 1-2 days
 
-### Priority 4: Web Search Integration
-**Branch**: `priority-4-web-search`
+### Priority 5: Web Search Integration
+**Branch**: `priority-5-web-search`
 - Import external knowledge into systems
 - Search and format via Hexframe
 - Accelerate system creation
 - **Estimated**: 2 days
 
 ## Total Estimated Effort
-9-13 days of focused work
+12-16 days of focused work
 
 ## Success Metrics
 - [ ] All critical bugs fixed
+- [ ] Chat UX provides professional, polished experience
+- [ ] AI thinking process visible with smooth transitions
 - [ ] MCP server functional (at least read-only)
 - [ ] Users can share systems publicly
 - [ ] Usage metrics visible
