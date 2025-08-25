@@ -4,7 +4,6 @@ import { loggers } from '~/lib/debug/debug-logger'
 import type { JobResult } from '~/lib/domains/agentic/interface'
 import { Loader2, CheckCircle, XCircle, Clock, Cpu } from 'lucide-react'
 import { MarkdownRenderer } from '../../MarkdownRenderer'
-import { cn } from '~/lib/utils'
 
 interface AIResponseWidgetProps {
   jobId?: string

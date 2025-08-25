@@ -46,7 +46,7 @@ describe('useChatState', () => {
     });
     
     expect(result.current.messages[0]?.content).toContain('Welcome to');
-    expect(result.current.messages[0]?.actor).toBe('system');
+    expect(result.current.messages[0]?.actor).toBe('assistant');
   });
 
   it('should add user messages when sendMessage is called', async () => {
