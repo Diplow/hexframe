@@ -88,7 +88,7 @@ export function PreviewWidget({
     <div 
       data-testid="preview-widget" 
       className={cn(
-        "flex flex-col flex-1 w-full bg-neutral-400 dark:bg-neutral-600",
+        "flex flex-col flex-1 w-full my-2 bg-neutral-400/20 dark:bg-neutral-600/20",
         "rounded-lg shadow-md",
         "overflow-hidden relative"
       )}

@@ -75,6 +75,7 @@ export function TileActionsProvider({
   const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const onTileClick = useCallback((tileData: TileData, event: React.MouseEvent) => {
+    
     // Clear any existing timeout
     if (clickTimeoutRef.current) {
       clearTimeout(clickTimeoutRef.current);

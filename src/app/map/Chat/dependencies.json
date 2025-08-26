@@ -11,5 +11,9 @@
     "../Services/EventBus/event-bus-context",
     "../types"
   ],
+  "subsystems": [
+    "./Input",
+    "./Timeline"
+  ],
   "exceptions": {}
 }

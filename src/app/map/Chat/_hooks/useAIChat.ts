@@ -17,7 +17,6 @@ export function useAIChat(options: UseAIChatOptions = {}) {
   const chatState = useChatState()
   const [isGenerating, setIsGenerating] = useState(false)
   
-  console.log('[useAIChat] Hook initialized with options:', options)
   
   // Check if cache context is available (handles SSR/hydration)
   const context = useContext(MapCacheContext)
@@ -29,42 +28,28 @@ export function useAIChat(options: UseAIChatOptions = {}) {
     } : null
   }, [context])
   
-  console.log('[useAIChat] Cache available:', !!cache)
   
   const generateResponseMutation = api.agentic.generateResponse.useMutation({
     onSuccess: (response) => {
-      console.log('[useAIChat] Mutation success, response:', response)
-      console.log('[useAIChat] Response details:', {
-        hasJobId: 'jobId' in response,
-        hasStatus: 'status' in response,
-        status: 'status' in response ? response.status : undefined,
-        finishReason: 'finishReason' in response ? response.finishReason : undefined,
-        id: response.id,
-        content: response.content
-      })
       
       // Check if response is queued based on finishReason
       if ((response as QueuedJobResponse).finishReason === 'queued') {
         // Send AI Response widget for queued job
-        console.log('[useAIChat] Response is QUEUED, creating widget with jobId:', response.id)
         
         chatState.showAIResponseWidget({
           jobId: response.id,
           model: response.model
         })
         
-        console.log('[useAIChat] Widget creation called for queued job')
         loggers.agentic('Request queued, widget sent', { jobId: response.id })
       } else {
         // Send AI Response widget for direct response
-        console.log('[useAIChat] Response is DIRECT, creating widget with content')
         
         chatState.showAIResponseWidget({
           initialResponse: response.content,
           model: response.model
         })
         
-        console.log('[useAIChat] Widget creation called for direct response')
         loggers.agentic('Direct AI response, widget sent', {
           model: response.model,
           usage: response.usage,
@@ -124,12 +109,6 @@ export function useAIChat(options: UseAIChatOptions = {}) {
     })
 
     setIsGenerating(true)
-    
-    console.log('[useAIChat] Calling generateResponse mutation with:', {
-      centerCoordId,
-      messageCount: messages.length,
-      model: 'deepseek/deepseek-r1-0528'
-    })
     
     // Generate AI response (user message is already in chat)
     generateResponseMutation.mutate({

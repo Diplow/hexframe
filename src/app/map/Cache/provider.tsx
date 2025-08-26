@@ -6,6 +6,7 @@ import React, {
   useMemo,
   useRef,
   useCallback,
+  useEffect,
 } from "react";
 
 // Core infrastructure
@@ -26,6 +27,7 @@ import { useDataOperationsWrapper } from "./_coordinators/data-operations-wrappe
 import { useMutationOperations } from "./_coordinators/use-mutation-operations";
 import { useCacheContextBuilder } from "./_builders/context-builder";
 import { useCacheLifecycle } from "./_lifecycle/provider-lifecycle";
+import { cacheActions } from "./State/actions";
 
 
 // Types
@@ -50,12 +52,12 @@ export function MapCacheProvider({
   eventBus,
 }: MapCacheProviderProps) {
   
-  // Provider mounting/re-rendering
 
-  // Initialize state
+  // Initialize state - only memoize on serializable values
   const hasInitializedRef = useRef(false);
+  const initialItemsCount = Object.keys(initialItems).length;
   const initialState = useMemo(() => {
-    if (hasInitializedRef.current && Object.keys(initialItems).length === 0) {
+    if (hasInitializedRef.current && initialItemsCount === 0) {
       // Detected possible remount with empty items
       return {
         ...initialCacheState,
@@ -77,10 +79,19 @@ export function MapCacheProvider({
       cacheConfig: { ...initialCacheState.cacheConfig, ...cacheConfig },
       isLoading: false,
     };
-  }, [initialItems, initialCenter, initialExpandedItems, cacheConfig]);
+  }, [initialItems, initialCenter, initialExpandedItems, cacheConfig, initialItemsCount]);
 
   // Core state management
   const [state, dispatch] = useReducer(cacheReducer, initialState);
+  
+  // Update center when initialCenter changes after mount, but only if we haven't set a center yet
+  const hasInitializedCenter = useRef(false);
+  useEffect(() => {
+    if (initialCenter && !hasInitializedCenter.current && !state.currentCenter) {
+      dispatch(cacheActions.setCenter(initialCenter));
+      hasInitializedCenter.current = true;
+    }
+  }, [initialCenter, state.currentCenter]);
 
   // Initialize services
   const serverService = useServerService(serverConfig);
@@ -98,7 +109,7 @@ export function MapCacheProvider({
     eventBus,
   });
 
-  // Create getState function for handlers
+  // Create stable getState function for handlers
   const stateRef = useRef(state);
   stateRef.current = state;
   const getState = useCallback(() => stateRef.current, []);

@@ -33,7 +33,6 @@ export function deriveVisibleMessages(events: ChatEvent[]): Message[] {
 }
 
 export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
-  console.log('[deriveActiveWidgets] Processing', events.length, 'events')
   const widgets: Widget[] = [];
   const widgetStates = new Map<string, 'active' | 'completed'>();
   
@@ -103,9 +102,7 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
       
       case 'widget_created': {
         const payload = event.payload as { widget: Widget };
-        console.log('[deriveActiveWidgets] widget_created event found:', payload)
         if (payload.widget) {
-          console.log('[deriveActiveWidgets] Adding widget:', payload.widget)
           widgets.push(payload.widget);
         }
         break;
@@ -141,7 +138,6 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
   }
   
   // Filter out completed operation widgets and removed widgets
-  console.log('[deriveActiveWidgets] Total widgets before filtering:', widgets.length)
   const filteredWidgets = widgets
     .filter(widget => {
       const extWidget = widget as Widget & { _removed?: boolean; data?: { _widgetId?: string } };
@@ -163,11 +159,6 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
       }
       return cleanWidget;
     });
-  
-  console.log('[deriveActiveWidgets] Returning', filteredWidgets.length, 'active widgets')
-  filteredWidgets.forEach(w => {
-    console.log('[deriveActiveWidgets] Widget:', { id: w.id, type: w.type })
-  })
   
   return filteredWidgets;
 }

@@ -80,7 +80,7 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
   // System messages have a different layout
   if (message.actor === 'system') {
     return (
-      <div className={`w-full p-4 rounded-lg ${getBackgroundClass()}`}>
+      <div className={`w-full px-2 rounded-lg ${getBackgroundClass()}`}>
         <div className="text-xs text-muted-foreground flex items-center gap-2">
           <TimestampRenderer timestamp={message.timestamp} />
           <span className="text-muted-foreground">•</span>
@@ -94,7 +94,7 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
   }
 
   return (
-    <div className={`w-full p-4 rounded-lg ${getBackgroundClass()}`}>
+    <div className={`w-full p-4 my-2 rounded-lg ${getBackgroundClass()}`}>
       <div className="text-sm">
         <div className="flex items-center gap-1 mb-1">
           <span className="font-medium">

@@ -31,6 +31,7 @@ export function useTileInteraction({
   const { onTileClick, onTileDoubleClick, onTileRightClick } = useTileActions();
 
   const handleClick = useCallback((e: React.MouseEvent) => {
+    
     // Prevent default behavior
     e.preventDefault();
     e.stopPropagation();

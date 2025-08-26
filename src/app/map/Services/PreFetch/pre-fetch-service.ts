@@ -26,6 +26,16 @@ export async function preloadUserMapData(
   utils: ReturnType<typeof api.useUtils>
 ): Promise<PreFetchedMapData | null> {
   try {
+    // Validate userId to prevent NaN errors
+    if (!userId || isNaN(userId) || userId <= 0) {
+      console.warn('[PreFetch] Invalid userId provided:', {
+        userId,
+        isNaN: isNaN(userId),
+        type: typeof userId
+      });
+      return null;
+    }
+
     // Starting user map data preload
     
     // Get user's map info

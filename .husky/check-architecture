@@ -139,6 +139,30 @@ for interface_file in $(find "$TARGET_PATH" -name "interface.ts" -not -path "*/n
   fi
 done
 
+# Check that subsystems are declared in their parent's dependencies.json
+echo "Checking subsystem declarations..."
+for interface_file in $(find "$TARGET_PATH" -name "interface.ts" -not -path "*/node_modules/*"); do
+  subsystem_dir=$(dirname "$interface_file")
+  parent_dir=$(dirname "$subsystem_dir")
+  
+  # Skip if parent is the target path itself (no parent dependencies.json expected)
+  if [ "$parent_dir" = "$TARGET_PATH" ] || [ "$parent_dir" = "." ]; then
+    continue
+  fi
+  
+  parent_deps_file="$parent_dir/dependencies.json"
+  if [ -f "$parent_deps_file" ]; then
+    # Get relative path from parent to subsystem
+    relative_path=$(echo "$subsystem_dir" | sed "s|$parent_dir/|./|")
+    
+    # Check if subsystem is declared in parent's dependencies.json
+    if ! grep -q "\"$relative_path\"" "$parent_deps_file" 2>/dev/null; then
+      ERRORS="${ERRORS}${NEWLINE}❌ Subsystem $subsystem_dir not declared in $parent_deps_file"
+      ERRORS="${ERRORS}${NEWLINE}   → Add \"$relative_path\" to the \"subsystems\" array"
+    fi
+  fi
+done
+
 # Check import boundaries for subsystems with interface.ts
 echo "Checking import boundaries..."
 for interface_file in $(find "$TARGET_PATH" -name "interface.ts" -not -path "*/node_modules/*"); do
@@ -207,6 +231,7 @@ if [ -n "$ERRORS" ]; then
   echo "  - README.md"
   echo "  - ARCHITECTURE.md"
   echo ""
+  echo "• Subsystems with interface.ts must be declared in their parent's dependencies.json \"subsystems\" array"
   echo "• Subsystems with interface.ts must be imported ONLY through interface.ts or interface.client.ts"
   echo "• External imports should use: import { X } from '~/path/to/subsystem/interface' (server) or '~/path/to/subsystem/interface.client' (client)"
   echo "════════════════════════════════════════════════════════════════════════"

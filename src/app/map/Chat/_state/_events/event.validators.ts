@@ -148,6 +148,19 @@ export function validateAndTransformMapEvent(mapEvent: AppEvent): ChatEvent | nu
       };
     }
 
+    case 'auth.login': {
+      // When user logs in successfully, resolve the login widget
+      return {
+        ...baseEvent,
+        type: 'widget_resolved',
+        payload: {
+          widgetType: 'login',
+          result: 'success',
+          message: 'Login successful!',
+        },
+      };
+    }
+
     case 'auth.logout': {
       return {
         ...baseEvent,

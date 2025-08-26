@@ -18,5 +18,8 @@
     "~/lib/debug/debug-logger",
     "~/test-utils/providers"
   ],
+  "subsystems": [
+    "./Tile"
+  ],
   "exceptions": {}
 }

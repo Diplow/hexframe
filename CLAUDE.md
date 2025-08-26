@@ -181,3 +181,4 @@ After completing any task, refactor for clarity following the workflow in `.clau
 - Create session documents for debugging, features, and refactoring
 - Domain concepts should have README.md documentation
 - **When switching phases/priorities**: Start fresh session, CLAUDE.md will provide context
+- never use pnpm dev to check something is working. just run pnpm lint typecheck test

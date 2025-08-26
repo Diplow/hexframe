@@ -120,7 +120,6 @@ export function DynamicMapCanvas({
     isLoading,
     error,
     invalidateRegion,
-    updateCenter,
   } = useMapCache();
   const [isHydrated, setIsHydrated] = useState(false);
   // isDarkMode is now passed as prop
@@ -170,16 +169,8 @@ export function DynamicMapCanvas({
     setIsHydrated(true);
   }, []); // Run only once on mount
 
-  // Separate effect for center initialization - only on first mount
-  useEffect(() => {
-    // Initialize cache state with props if not already set
-    if (!center && centerInfo.center) {
-      loggers.render.canvas('DynamicMapCanvas initializing center', {
-        newCenter: centerInfo.center,
-      });
-      updateCenter(centerInfo.center);
-    }
-  }, [center, centerInfo.center, updateCenter]); // Include dependencies
+  // Removed center initialization effect - MapCacheProvider handles initial center
+  // The Canvas should not override the center that was set during provider initialization
 
   // Tile actions with drag and drop support
   const tileActions = useMemo(
@@ -224,6 +215,7 @@ export function DynamicMapCanvas({
       isDarkMode,
       isHydrated,
     });
+    
   });
 
   // Canvas should just display, not manage loading

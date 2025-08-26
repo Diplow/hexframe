@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef } from "react";
+import { useEffect, useRef } from "react";
 import type { Dispatch } from "react";
 import type { CacheState, CacheAction } from "../State/types";
 import type { DataOperations } from "../Handlers/types";
@@ -23,13 +23,6 @@ export interface LifecycleHookConfig {
  */
 export function useCacheLifecycle(config: LifecycleHookConfig): void {
 
-  // Provider lifecycle logging
-  useEffect(() => {
-    // Provider mounted
-    return () => {
-      // Provider unmounting
-    };
-  }, []);
 
   // Sync is disabled for now - will be re-enabled once basic cache works
   // TODO: Re-enable sync operations when ready
@@ -37,8 +30,15 @@ export function useCacheLifecycle(config: LifecycleHookConfig): void {
   // Track loading centers to prevent concurrent loads
   const loadingCentersRef = useRef(new Set<string>());
   
-  // Create stable prefetch function
-  const prefetchRegion = useCallback(async (centerCoordId: string, maxDepth: number) => {
+  // Use refs to store current config to avoid any dependency issues
+  const configRef = useRef(config);
+  configRef.current = config;
+  
+  // Create prefetch function without useCallback to avoid any dependency issues
+  const prefetchRegion = async (centerCoordId: string, maxDepth: number) => {
+    // Get current config from ref
+    const currentConfig = configRef.current;
+    
     // Prevent concurrent loads for the same center
     if (loadingCentersRef.current.has(centerCoordId)) {
       return;
@@ -48,15 +48,15 @@ export function useCacheLifecycle(config: LifecycleHookConfig): void {
       loadingCentersRef.current.add(centerCoordId);
       
       // Set loading state before fetching
-      config.dispatch(cacheActions.setLoading(true));
+      currentConfig.dispatch(cacheActions.setLoading(true));
       
-      const items = await config.serverService.fetchItemsForCoordinate({
+      const items = await currentConfig.serverService.fetchItemsForCoordinate({
         centerCoordId,
         maxDepth,
       });
 
       // Items fetched successfully
-      config.dispatch(
+      currentConfig.dispatch(
         cacheActions.loadRegion(
           items as Parameters<typeof cacheActions.loadRegion>[0],
           centerCoordId,
@@ -65,7 +65,7 @@ export function useCacheLifecycle(config: LifecycleHookConfig): void {
       );
       
       // Clear loading state after successful load
-      config.dispatch(cacheActions.setLoading(false));
+      currentConfig.dispatch(cacheActions.setLoading(false));
       
       // Check if ancestors need to be loaded for the center item
       const centerItem = items.find(item => item.coordinates === centerCoordId);
@@ -77,43 +77,58 @@ export function useCacheLifecycle(config: LifecycleHookConfig): void {
         if (!hasAllAncestors && centerItem.id) {
           const centerDbId = typeof centerItem.id === 'string' ? parseInt(centerItem.id) : centerItem.id;
           if (!isNaN(centerDbId)) {
-            void loadAncestorsForItem(centerDbId, config.serverService, config.dispatch, "Initial Load");
+            void loadAncestorsForItem(centerDbId, currentConfig.serverService, currentConfig.dispatch, "Initial Load");
           }
         }
       }
     } catch (error) {
       console.error('[MapCache] Failed to load region:', error);
-      config.dispatch(cacheActions.setError(error as Error));
-      config.dispatch(cacheActions.setLoading(false));
+      currentConfig.dispatch(cacheActions.setError(error as Error));
+      currentConfig.dispatch(cacheActions.setLoading(false));
     } finally {
       loadingCentersRef.current.delete(centerCoordId);
     }
-  }, [config]);
+  };
 
   // Handle center changes and trigger region loads
+  // Use a timeout to defer prefetch and break the dispatch cascade
   useEffect(() => {
-    const { currentCenter, regionMetadata, itemsById, cacheConfig, isLoading } = config.state;
+    const { currentCenter, itemsById, cacheConfig, isLoading } = config.state;
+    
+    
     
     if (!currentCenter) return;
     
+    // SAFETY NET: Validate that currentCenter is in coordinate format (contains comma)
+    // This prevents trying to fetch with database IDs that haven't been resolved yet
+    if (!currentCenter.includes(',')) {
+      return;
+    }
+    
     // Simple check: do we have data or are we loading?
-    const hasRegion = regionMetadata[currentCenter];
     const hasItem = itemsById[currentCenter];
     
-    if ((hasItem && hasRegion) || isLoading || loadingCentersRef.current.has(currentCenter)) {
+    // If the item already exists in cache, no need to load (even without region metadata)
+    if (hasItem || isLoading || loadingCentersRef.current.has(currentCenter)) {
       // Data already loaded, loading globally, or loading this specific center
       return;
     }
     
-    // Start loading region for center
-    void prefetchRegion(currentCenter, cacheConfig.maxDepth);
+    
+    // Defer prefetch to break the dispatch cascade - use setTimeout to escape current render cycle
+    const timeoutId = setTimeout(() => {
+      void prefetchRegion(currentCenter, cacheConfig.maxDepth);
+    }, 0);
+    
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, [
     config.state.currentCenter,
     config.state.cacheConfig.maxDepth,
-    config.state.regionMetadata,
     config.state.itemsById,
     config.state.isLoading,
-    config.state,
+    // Include prefetchRegion since we're calling it
     prefetchRegion,
   ]);
 }

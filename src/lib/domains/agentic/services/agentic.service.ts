@@ -1,5 +1,6 @@
 import type { ILLMRepository } from '../repositories/llm.repository.interface'
 import type { ContextCompositionService } from './context-composition.service'
+import { PromptTemplateService } from './prompt-template.service'
 import type { EventBus } from '~/app/map/interface'
 import type { 
   CompositionConfig, 
@@ -21,11 +22,15 @@ export interface GenerateResponseOptions {
 }
 
 export class AgenticService {
+  private promptTemplate: PromptTemplateService
+
   constructor(
     private readonly llmRepository: ILLMRepository,
     private readonly contextComposition: ContextCompositionService,
     private readonly eventBus: EventBus
-  ) {}
+  ) {
+    this.promptTemplate = new PromptTemplateService()
+  }
 
   async generateResponse(options: GenerateResponseOptions): Promise<LLMResponse> {
     if (!this.llmRepository.isConfigured()) {
@@ -188,22 +193,9 @@ export class AgenticService {
   }
 
   private buildSystemPrompt(contextString: string): string {
-    return `You are an AI assistant helping users work with Hexframe, a visual framework for building AI-powered systems through hierarchical hexagonal maps.
-
-Current Context:
-${contextString}
-
-Instructions:
-- Help users understand and work with their tile hierarchies
-- Suggest improvements to their tile organization
-- Answer questions about the current context
-- Be concise and helpful
-- Format your responses using Markdown for better readability:
-  - Use **bold** for emphasis on important concepts
-  - Use \`code\` for technical terms or commands
-  - Use bullet points or numbered lists for structured information
-  - Use headers (##, ###) to organize longer responses
-  - Use code blocks with syntax highlighting when sharing code examples`
+    return this.promptTemplate.renderTemplate('system-prompt', {
+      CONTEXT: contextString
+    })
   }
 
   private widgetExtractors = new Map<string, (data: unknown) => string>([

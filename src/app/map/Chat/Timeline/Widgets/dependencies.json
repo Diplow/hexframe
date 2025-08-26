@@ -12,5 +12,10 @@
     "~/lib/domains/mapping/utils/hex-coordinates",
     "~/app/map/Cache/interface"
   ],
+  "subsystems": [
+    "./AIResponseWidget",
+    "./LoginWidget",
+    "./PreviewWidget"
+  ],
   "exceptions": {}
 }

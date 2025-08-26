@@ -12,11 +12,6 @@ interface AIResponseWidgetProps {
 }
 
 export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWidgetProps) {
-  console.log('[AIResponseWidget] Component mounted with props:', {
-    jobId,
-    hasInitialResponse: !!initialResponse,
-    model
-  })
   
   const [status, setStatus] = useState<'pending' | 'processing' | 'completed' | 'failed' | 'direct'>
     (jobId ? 'pending' : 'direct')
@@ -25,7 +20,6 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   const [elapsedTime, setElapsedTime] = useState(0)
   const styleInjected = useRef(false)
   
-  console.log('[AIResponseWidget] Initial status:', status)
 
   // Poll for job status if we have a jobId
   // Skip the query entirely if no jobId to avoid errors
@@ -33,7 +27,6 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   
   // Debug the query input
   const queryInput = { jobId: jobId ?? '' };
-  console.log('[AIResponseWidget] Query input:', queryInput, 'shouldPoll:', shouldPoll);
   
   const jobStatusQuery = api.agentic.getJobStatus.useQuery(
     queryInput,
@@ -51,15 +44,12 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   // Handle job status updates
   useEffect(() => {
     if (!jobStatusQuery.data) {
-      console.log('[AIResponseWidget] No job status data yet')
       return
     }
     
     const jobData = jobStatusQuery.data as JobResult
-    console.log('[AIResponseWidget] Job status update:', jobData)
     
     if (jobData.status === 'completed' && jobData.response) {
-      console.log('[AIResponseWidget] Job COMPLETED, setting response')
       setStatus('completed')
       setResponse(jobData.response.content || '')
       loggers.agentic('Job completed', { 
@@ -68,15 +58,12 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
         usage: jobData.response.usage 
       })
     } else if (jobData.status === 'failed') {
-      console.log('[AIResponseWidget] Job FAILED:', jobData.error)
       setStatus('failed')
       setError(jobData.error ?? 'Unknown error occurred')
       loggers.agentic.error('Job failed', { jobId, error: jobData.error })
     } else if (jobData.status === 'processing') {
-      console.log('[AIResponseWidget] Job PROCESSING')
       setStatus('processing')
     } else {
-      console.log('[AIResponseWidget] Job status unknown:', jobData.status)
     }
   }, [jobStatusQuery.data, jobId])
   
@@ -138,7 +125,6 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
 
   // Direct response (no job)
   if (status === 'direct') {
-    console.log('[AIResponseWidget] Rendering DIRECT response, content:', response)
     return (
       <div className="w-full p-4 rounded-lg bg-primary/5 dark:bg-primary/10">
         <div className="text-sm">
@@ -169,7 +155,6 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
 
   // Pending state (queued) - using muted colors
   if (status === 'pending') {
-    console.log('[AIResponseWidget] Rendering PENDING state')
     return (
       <div className="w-full p-4 rounded-lg bg-primary/5 dark:bg-primary/10">
         <div className="text-sm">
@@ -208,7 +193,6 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
 
   // Processing state (thinking) - using primary colors
   if (status === 'processing') {
-    console.log('[AIResponseWidget] Rendering PROCESSING state')
     return (
       <div className="w-full p-4 rounded-lg bg-primary/5 dark:bg-primary/10">
         <div className="text-sm">
@@ -247,7 +231,6 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
 
   // Completed state (success) - keeps the message visible
   if (status === 'completed') {
-    console.log('[AIResponseWidget] Rendering COMPLETED state with response:', response?.substring(0, 100))
     return (
       <div className="w-full p-4 rounded-lg bg-primary/5 dark:bg-primary/10">
         <div className="text-sm">
@@ -281,7 +264,6 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
 
   // Failed state (error) - using destructive colors
   if (status === 'failed') {
-    console.log('[AIResponseWidget] Rendering FAILED state with error:', error)
     return (
       <div className="w-full p-4 rounded-lg bg-primary/5 dark:bg-primary/10">
         <div className="text-sm">
@@ -316,7 +298,6 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   }
 
   // Loading initial state
-  console.log('[AIResponseWidget] Rendering LOADING state (fallback)')
   return (
     <div className="w-full p-4 rounded-lg bg-muted/30">
       <div className="text-sm">

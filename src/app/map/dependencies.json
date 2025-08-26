@@ -6,5 +6,13 @@
     "next/navigation",
     "react"
   ],
+  "subsystems": [
+    "./Cache",
+    "./Canvas",
+    "./Chat",
+    "./Hierarchy",
+    "./MapResolver",
+    "./Services/EventBus"
+  ],
   "exceptions": {}
 }

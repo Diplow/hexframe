@@ -130,8 +130,6 @@ export function useChatStateInternal(initialEvents: ChatEvent[] = []) {
     
     // Show AI response widget
     showAIResponseWidget(data: { jobId?: string; initialResponse?: string; model?: string }) {
-      console.log('[useChatState] showAIResponseWidget called with:', data)
-      
       const widget = {
         id: `ai-response-${Date.now()}`,
         type: 'ai-response' as const,
@@ -148,9 +146,7 @@ export function useChatStateInternal(initialEvents: ChatEvent[] = []) {
         actor: 'assistant' as const
       }
       
-      console.log('[useChatState] Dispatching widget_created event:', event)
       dispatch(event);
-      console.log('[useChatState] Widget event dispatched')
     },
 
     // Show a system message

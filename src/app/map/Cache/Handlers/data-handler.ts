@@ -219,7 +219,11 @@ export function createDataHandlerWithTRPC(
         
         // Don't make API calls with invalid userId/groupId values
         if (coords.userId === 0 || isNaN(coords.userId)) {
-          console.warn('[DataHandler] Skipping API call with invalid userId:', coords.userId);
+          console.warn('[DataHandler] Skipping API call due to invalid coordinate format:', {
+            centerCoordId: params.centerCoordId,
+            parsedCoords: coords,
+            issue: isNaN(coords.userId) ? 'NaN userId (likely database ID passed instead of coordinate)' : 'Zero userId'
+          });
           return [];
         }
         

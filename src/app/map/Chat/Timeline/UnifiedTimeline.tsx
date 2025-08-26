@@ -16,17 +16,6 @@ interface UnifiedTimelineProps {
 }
 
 export function UnifiedTimeline({ items }: UnifiedTimelineProps) {
-  console.log('[UnifiedTimeline] Rendering with', items.length, 'items')
-  items.forEach(item => {
-    if (item.type === 'widget') {
-      const widget = item.data as Widget
-      console.log('[UnifiedTimeline] Widget item:', { 
-        id: widget.id, 
-        type: widget.type,
-        timestamp: item.timestamp
-      })
-    }
-  })
   
   const scrollRef = useRef<HTMLDivElement>(null);
   
@@ -82,7 +71,7 @@ export function UnifiedTimeline({ items }: UnifiedTimelineProps) {
         <div key={dateKey}>
           <DaySeparator date={new Date(dayItems[0]?.timestamp ?? Date.now())} />
           {dayItems.map((item, index) => (
-            <div key={`${item.type}-${item.data.id}`} className={`w-full ${index > 0 ? 'mt-2' : ''}`}>
+            <div key={`${item.type}-${item.data.id}`} className={`w-full ${index > 0 && item.type === 'message' && (item.data as Message).actor !== "system" ? 'my-1' : ''}`}>
               {item.type === 'message' ? (
                 <MessageActorRenderer message={item.data as Message} />
               ) : (
