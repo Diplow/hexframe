@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { OpenRouterRepository } from '../openrouter.repository'
-import type { LLMGenerationParams } from '../../types/llm.types'
+import { OpenRouterRepository } from '~/lib/domains/agentic/repositories/openrouter.repository'
+import type { LLMGenerationParams } from '~/lib/domains/agentic/types/llm.types'
 
 // Mock fetch globally
 global.fetch = vi.fn()

@@ -1,0 +1,14 @@
+{
+  "$schema": "../../../../../schemas/dependencies.schema.json",
+  "allowed": [
+    "zod",
+    "~/lib/domains/mapping/_actions",
+    "~/lib/domains/mapping/_objects",
+    "~/lib/domains/mapping/_repositories", 
+    "~/lib/domains/mapping/infrastructure",
+    "~/lib/domains/mapping/types",
+    "~/lib/domains/mapping/utils",
+    "~/server/db"
+  ],
+  "exceptions": {}
+}

@@ -1,4 +1,4 @@
-import { Direction } from '../constants';
+import { Direction } from '~/app/map/constants';
 
 // Map Direction enum to CSS class abbreviations
 export const directionToClassAbbr: Record<Direction, string> = {

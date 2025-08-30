@@ -1,8 +1,8 @@
-import type { CacheState, CacheAction } from "./types";
-import { ACTION_TYPES } from "./types";
-import type { TileData } from "../../types/tile-data";
+import type { CacheState, CacheAction } from "~/app/map/Cache/State/types";
+import { ACTION_TYPES } from "~/app/map/Cache/State/types";
+import type { TileData } from "~/app/map/types";
 import type { MapItemAPIContract } from "~/server/api/types/contracts";
-import { adapt } from "../../types/tile-data";
+import { adapt } from "~/app/map/types";
 
 // Initial state for the cache
 export const initialCacheState: CacheState = {

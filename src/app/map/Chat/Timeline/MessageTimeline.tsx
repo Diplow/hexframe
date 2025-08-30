@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
-import type { Message } from '../_state/_events/event.types';
-import { DaySeparator } from './DaySeparator';
-import { MessageActorRenderer } from './MessageActorRenderer';
+import type { Message } from '~/app/map/Chat/_state';
+import { DaySeparator } from '~/app/map/Chat/Timeline/DaySeparator';
+import { MessageActorRenderer } from '~/app/map/Chat/Timeline/MessageActorRenderer';
 
 interface MessageTimelineProps {
   messages: Message[];

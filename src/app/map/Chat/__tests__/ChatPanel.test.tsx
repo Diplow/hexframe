@@ -155,10 +155,10 @@ vi.mock('~/commons/trpc/react', () => {
 });
 
 import { render, screen, waitFor, cleanup } from '@testing-library/react';
-import { ChatPanel } from '../ChatPanel';
+import { ChatPanel } from '~/app/map/Chat/ChatPanel';
 import { TestProviders } from '~/test-utils/providers';
 import { createMockEventBus } from '~/test-utils/event-bus';
-import { chatSettings } from '../_settings/chat-settings';
+import { chatSettings } from '~/app/map/Chat/_settings/chat-settings';
 
 // We'll use the real useChatState hook instead of mocking it
 // This avoids potential issues with React rendering

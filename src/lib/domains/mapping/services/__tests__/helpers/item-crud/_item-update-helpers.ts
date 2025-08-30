@@ -1,8 +1,8 @@
 import { expect } from "vitest";
-import { Direction } from "../../../../utils/hex-coordinates";
-import type { Coord } from "../../../../utils/hex-coordinates";
-import type { TestEnvironment } from "../_test-utilities";
-import { _setupBasicMap, _createTestCoordinates } from "../_test-utilities";
+import { Direction } from "~/lib/domains/mapping/utils/hex-coordinates";
+import type { Coord } from "~/lib/domains/mapping/utils/hex-coordinates";
+import type { TestEnvironment } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
+import { _setupBasicMap, _createTestCoordinates } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 
 export async function _setupItemForUpdate(
   testEnv: TestEnvironment,

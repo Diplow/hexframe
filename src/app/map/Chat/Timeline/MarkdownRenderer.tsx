@@ -1,6 +1,6 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { CommandButtonRenderer } from './CommandButtonRenderer';
+import { CommandButtonRenderer } from '~/app/map/Chat/Timeline/CommandButtonRenderer';
 
 interface MarkdownRendererProps {
   content: string;
@@ -54,7 +54,7 @@ export function MarkdownRenderer({ content, isSystemMessage }: MarkdownRendererP
   };
 
   return (
-    <div className={`prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0 prose-li:marker:text-current [&_li>p]:inline [&_li>p]:m-0 ${isSystemMessage ? 'text-muted-foreground' : ''}`}>
+    <div className={`prose prose-sm max-w-none prose-li:my-0 prose-li:marker:text-current [&_li>p]:inline [&_li>p]:m-0 ${isSystemMessage ? 'text-muted-foreground' : ''}`}>
       <ReactMarkdown 
         remarkPlugins={[remarkGfm]}
         components={createMarkdownComponents()}

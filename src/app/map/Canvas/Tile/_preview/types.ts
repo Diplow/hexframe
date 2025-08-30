@@ -1,4 +1,4 @@
-import type { Coord } from "~/lib/domains/mapping/interface.client";
+import type { Coord } from "~/lib/domains/mapping/utils";
 
 /**
  * Base preview state interface

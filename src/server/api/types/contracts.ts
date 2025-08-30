@@ -2,9 +2,9 @@
  * Contract to API adapters for transforming domain contracts to API responses
  */
 import type {
-  MapContract,
-  MapItemContract,
-} from "~/lib/domains/mapping/interface";
+  MapMappingContract as MapContract,
+  MapItemMappingContract as MapItemContract,
+} from "~/lib/domains/mapping";
 
 /**
  * Transform a domain map item contract to an API map item contract

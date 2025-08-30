@@ -13,11 +13,11 @@
  * The 90% scaling (scale-90) creates visual depth showing children are "inside" their parent.
  */
 
-import { DynamicItemTile, getColorFromItem, DynamicBaseTileLayout, DynamicEmptyTile } from "./Tile/interface";
-import type { TileScale } from "./Tile/interface";
-import type { TileData } from "../types/tile-data";
-import { CoordSystem } from "~/lib/domains/mapping/interface.client";
-import type { URLInfo } from "../types/url-info";
+import { DynamicItemTile, getColorFromItem, DynamicBaseTileLayout, DynamicEmptyTile } from "~/app/map/Canvas/Tile";
+import type { TileScale } from "~/app/map/Canvas/Tile";
+import type { TileData } from "~/app/map/types/tile-data";
+import { CoordSystem } from "~/lib/domains/mapping/utils";
+import type { URLInfo } from "~/app/map/types/url-info";
 import { useCanvasTheme } from ".";
 import { useEffect } from "react";
 import { loggers } from "~/lib/debug/debug-logger";
@@ -34,6 +34,15 @@ export interface DynamicFrameProps {
   interactive?: boolean;
   currentUserId?: number;
   selectedTileId?: string | null;
+  // Callbacks for tile actions
+  onNavigate?: (coordId: string) => void;
+  onToggleExpansion?: (itemId: string, coordId: string) => void;
+  onCreateRequested?: (payload: {
+    coordId: string;
+    parentName?: string;
+    parentId?: string;
+    parentCoordId?: string;
+  }) => void;
 }
 
 /**
@@ -75,6 +84,8 @@ export const DynamicFrame = (props: DynamicFrameProps) => {
         interactive={props.interactive}
         currentUserId={props.currentUserId}
         isSelected={props.selectedTileId === centerItem.metadata.coordId}
+        onNavigate={props.onNavigate}
+        onToggleExpansion={props.onToggleExpansion}
       />
     );
   }
@@ -104,6 +115,9 @@ export const DynamicFrame = (props: DynamicFrameProps) => {
           interactive={props.interactive}
           currentUserId={props.currentUserId}
           selectedTileId={props.selectedTileId}
+          onNavigate={props.onNavigate}
+          onToggleExpansion={props.onToggleExpansion}
+          onCreateRequested={props.onCreateRequested}
         />
       </div>
     </DynamicBaseTileLayout>
@@ -124,6 +138,14 @@ const FrameInterior = (props: {
   interactive?: boolean;
   currentUserId?: number;
   selectedTileId?: string | null;
+  onNavigate?: (coordId: string) => void;
+  onToggleExpansion?: (itemId: string, coordId: string) => void;
+  onCreateRequested?: (payload: {
+    coordId: string;
+    parentName?: string;
+    parentId?: string;
+    parentCoordId?: string;
+  }) => void;
 }) => {
   const { centerItem, baseHexSize = 50, childScale } = props;
   
@@ -198,6 +220,9 @@ const FrameInterior = (props: {
                 interactive={props.interactive}
                 currentUserId={props.currentUserId}
                 selectedTileId={props.selectedTileId}
+                onNavigate={props.onNavigate}
+                onToggleExpansion={props.onToggleExpansion}
+                onCreateRequested={props.onCreateRequested}
               />
             );
           })}
@@ -228,6 +253,14 @@ const FrameSlot = (props: {
   interactive?: boolean;
   currentUserId?: number;
   selectedTileId?: string | null;
+  onNavigate?: (coordId: string) => void;
+  onToggleExpansion?: (itemId: string, coordId: string) => void;
+  onCreateRequested?: (payload: {
+    coordId: string;
+    parentName?: string;
+    parentId?: string;
+    parentCoordId?: string;
+  }) => void;
 }) => {
   const { coordId, mapItems, slotScale, isCenter } = props;
   const item = mapItems[coordId];
@@ -268,6 +301,7 @@ const FrameSlot = (props: {
         } : undefined}
         interactive={props.interactive}
         currentUserId={props.currentUserId}
+        onCreateRequested={props.onCreateRequested}
       />
     );
   }
@@ -290,6 +324,8 @@ const FrameSlot = (props: {
         interactive={props.interactive}
         currentUserId={props.currentUserId}
         isSelected={props.selectedTileId === item.metadata.coordId}
+        onNavigate={props.onNavigate}
+        onToggleExpansion={props.onToggleExpansion}
       />
     );
   }
@@ -307,6 +343,9 @@ const FrameSlot = (props: {
         interactive={props.interactive}
         currentUserId={props.currentUserId}
         selectedTileId={props.selectedTileId}
+        onNavigate={props.onNavigate}
+        onToggleExpansion={props.onToggleExpansion}
+        onCreateRequested={props.onCreateRequested}
       />
     );
   }
@@ -323,6 +362,8 @@ const FrameSlot = (props: {
       interactive={props.interactive}
       currentUserId={props.currentUserId}
       isSelected={props.selectedTileId === item.metadata.coordId}
+      onNavigate={props.onNavigate}
+      onToggleExpansion={props.onToggleExpansion}
     />
   );
 };

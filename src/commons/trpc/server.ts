@@ -7,7 +7,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { createCaller, type AppRouter } from "~/server/api/root";
 import { createContext as apiCreateContext } from "~/server/api/trpc";
-import { createQueryClient } from "./query-client";
+import { createQueryClient } from "~/commons/trpc/query-client";
 
 /**
  * This wraps the `createTRPCContext` helper and provides the required context for the tRPC API when

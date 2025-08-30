@@ -1,18 +1,17 @@
 import { useEffect, useReducer, useMemo, useCallback, useRef } from 'react';
-import { useEventBus } from '../../Services/EventBus/event-bus-context';
-import type { ChatEvent, ChatUIState } from './_events/event.types';
-import type { AppEvent } from '../../types/events';
-import type { TileData } from '../../types/tile-data';
-import { eventsReducer } from './_reducers/events.reducer';
-import { deriveVisibleMessages, deriveActiveWidgets } from './_selectors/message.selectors';
-import { validateAndTransformMapEvent } from './_events/event.validators';
+import { useEventBus } from '~/app/map/Services';
+import type { ChatEvent, ChatUIState } from '~/app/map/Chat/_state/_events/event.types';
+import type { AppEvent, TileData } from '~/app/map/types';
+import { eventsReducer } from '~/app/map/Chat/_state/_reducers/events.reducer';
+import { deriveVisibleMessages, deriveActiveWidgets } from '~/app/map/Chat/_state/_selectors/message.selectors';
+import { validateAndTransformMapEvent } from '~/app/map/Chat/_state/_events/event.validators';
 import { 
   createUserMessageEvent, 
   createSystemMessageEvent,
   createAssistantMessageEvent,
   createOperationStartedEvent 
 } from './_events/event.creators';
-import { chatSettings } from '../_settings/chat-settings';
+import { chatSettings } from '~/app/map/Chat/_settings/chat-settings';
 
 /**
  * Chat state hook - provides domain operations for chat functionality
@@ -50,14 +49,13 @@ export function useChatStateInternal(initialEvents: ChatEvent[] = []) {
     if (!hasAddedWelcomeMessage.current && initialEvents.length === 0) {
       hasAddedWelcomeMessage.current = true;
       dispatch({
-        type: 'system_message',
+        type: 'message',
         payload: {
-          message: 'Welcome to **HexFrame**! Navigate the map by clicking on tiles. Your messages will be sent to AI to help you explore and build your tile hierarchy.',
-          level: 'info' as const,
+          text: 'Welcome to **HexFrame**! Navigate the map by clicking on tiles. Your messages will be sent to AI to help you explore and build your tile hierarchy.',
         },
         id: 'welcome-message',
         timestamp: new Date(),
-        actor: 'system' as const,
+        actor: 'assistant' as const,
       });
     }
   }, [dispatch, initialEvents.length]); // Run once on mount
@@ -131,8 +129,6 @@ export function useChatStateInternal(initialEvents: ChatEvent[] = []) {
     
     // Show AI response widget
     showAIResponseWidget(data: { jobId?: string; initialResponse?: string; model?: string }) {
-      console.log('[useChatState] showAIResponseWidget called with:', data)
-      
       const widget = {
         id: `ai-response-${Date.now()}`,
         type: 'ai-response' as const,
@@ -149,9 +145,7 @@ export function useChatStateInternal(initialEvents: ChatEvent[] = []) {
         actor: 'assistant' as const
       }
       
-      console.log('[useChatState] Dispatching widget_created event:', event)
       dispatch(event);
-      console.log('[useChatState] Widget event dispatched')
     },
 
     // Show a system message

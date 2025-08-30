@@ -7,7 +7,7 @@ import {
   type Coord,
   CoordSystem,
 } from "~/lib/domains/mapping/utils/hex-coordinates";
-import { MAPPING_ERRORS } from "../types/errors";
+import { MAPPING_ERRORS } from "~/lib/domains/mapping/types/errors";
 
 export class MapItemQueryHelpers {
   constructor(

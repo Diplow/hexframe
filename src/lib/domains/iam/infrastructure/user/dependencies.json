@@ -1,0 +1,11 @@
+{
+  "$schema": "~/schemas/dependencies.schema.json",
+  "allowed": [
+    "drizzle-orm",
+    "~/lib/domains/iam",
+    "~/server/api/services/user-mapping.service",
+    "~/server/auth",
+    "~/server/db"
+  ],
+  "exceptions": {}
+}

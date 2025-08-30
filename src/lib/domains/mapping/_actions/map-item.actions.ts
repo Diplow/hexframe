@@ -9,11 +9,11 @@ import {
   MapItemType,
 } from "~/lib/domains/mapping/_objects";
 import type { Coord } from "~/lib/domains/mapping/utils/hex-coordinates";
-import type { MapItemIdr } from "../_repositories/map-item";
-import { MapItemCreationHelpers } from "./_map-item-creation-helpers";
-import { MapItemQueryHelpers } from "./_map-item-query-helpers";
-import { MapItemMovementHelpers } from "./_map-item-movement-helpers";
-import type { DatabaseTransaction } from "../types/transaction";
+import type { MapItemIdr } from "~/lib/domains/mapping/_repositories/map-item";
+import { MapItemCreationHelpers } from "~/lib/domains/mapping/_actions/_map-item-creation-helpers";
+import { MapItemQueryHelpers } from "~/lib/domains/mapping/_actions/_map-item-query-helpers";
+import { MapItemMovementHelpers } from "~/lib/domains/mapping/_actions/_map-item-movement-helpers";
+import type { DatabaseTransaction } from "~/lib/domains/mapping/types/transaction";
 
 export class MapItemActions {
   public readonly mapItems: MapItemRepository;

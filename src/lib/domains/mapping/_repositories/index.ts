@@ -1,2 +1,2 @@
-export type { MapItemRepository } from "./map-item";
-export type { BaseItemRepository } from "./base-item";
+export type { MapItemRepository, MapItemIdr } from "~/lib/domains/mapping/_repositories/map-item";
+export type { BaseItemRepository } from "~/lib/domains/mapping/_repositories/base-item";

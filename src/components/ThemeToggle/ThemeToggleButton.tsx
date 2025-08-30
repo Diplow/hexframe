@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { cn } from '~/lib/utils';
-import { themeToggleSizes } from './_utils/theme-toggle-styles';
+import { themeToggleSizes } from '~/components/ThemeToggle/_utils/theme-toggle-styles';
 
 interface ThemeToggleButtonProps {
   isDark: boolean;

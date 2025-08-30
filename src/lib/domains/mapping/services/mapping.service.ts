@@ -2,8 +2,8 @@ import type {
   MapItemRepository,
   BaseItemRepository,
 } from "~/lib/domains/mapping/_repositories";
-import { MapManagementService } from "./_map-management.service";
-import { ItemManagementService } from "./_item-management.service";
+import { MapManagementService } from "~/lib/domains/mapping/services/_map-management.service";
+import { ItemManagementService } from "~/lib/domains/mapping/services/_item-management.service";
 
 /**
  * Main coordinating service for mapping operations.

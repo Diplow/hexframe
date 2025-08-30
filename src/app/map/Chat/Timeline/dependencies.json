@@ -1,11 +1,14 @@
 {
   "$schema": "../../../../../schemas/dependencies.schema.json",
-  "allowed": [
-    "react",
-    "~/lib/debug/debug-logger",
-    "../_state/types",
-    "../_state/_events/event.types",
-    "../_settings/useChatSettings"
+  "allowedChildren": [
+    "~/app/map/Chat/_state/types",
+    "~/app/map/Chat/types"
   ],
-  "exceptions": {}
+  "allowed": [
+    "remark-gfm",
+    "~/app/map"
+  ],
+  "subsystems": [
+    "./Widgets"
+  ]
 }

@@ -4,10 +4,19 @@ export type {
   ChatEventActor,
   Message,
   Widget,
-  ChatUIState
+  ChatUIState,
+  UserMessagePayload,
+  SystemMessagePayload,
+  TileSelectedPayload,
+  NavigationPayload,
+  OperationStartedPayload,
+  OperationCompletedPayload,
+  AuthRequiredPayload,
+  ErrorOccurredPayload,
+  ExecuteCommandPayload
 } from './_events/event.types';
 
-import type { ChatEvent } from './_events/event.types';
+import type { ChatEvent } from '~/app/map/Chat/_state/_events/event.types';
 
 export type ChatCacheAction = 
   | { type: 'ADD_EVENT'; payload: ChatEvent }

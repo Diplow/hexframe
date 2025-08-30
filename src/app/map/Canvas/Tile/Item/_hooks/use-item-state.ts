@@ -1,12 +1,12 @@
 "use client";
 
 import { useContext, useEffect } from "react";
-import type { TileData } from "../../../../types/tile-data";
-import { LegacyTileActionsContext } from "../../..";
-import { useItemInteraction } from "./use-item-interaction";
-import { generateTileTestId } from "../_utils";
-import { canEditTile } from "../_validators";
-import { createDragProps, createDropProps, getSwapPreviewColor } from "../_coordinators";
+import type { TileData } from "~/app/map/Canvas/types";
+import { LegacyTileActionsContext } from "~/app/map/Canvas";
+import { useItemInteraction } from "~/app/map/Canvas/Tile/Item/_hooks/use-item-interaction";
+import { generateTileTestId } from "~/app/map/Canvas/Tile/Item/_utils";
+import { canEditTile } from "~/app/map/Canvas/Tile/Item/_validators";
+import { createDragProps, createDropProps, getSwapPreviewColor } from "~/app/map/Canvas/Tile/Item/_coordinators";
 import { testLogger } from "~/lib/test-logger";
 
 interface ItemStateProps {

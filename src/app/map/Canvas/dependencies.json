@@ -1,22 +1,16 @@
 {
-  "$schema": "../../../../schemas/dependencies.schema.json",
+  "$schema": "~/schemas/dependencies.schema.json",
+  "allowedChildren": [
+    "~/app/types"
+  ],
   "allowed": [
-    "./",
-    "react",
-    "react/*",
-    "lucide-react",
-    "vitest",
     "@testing-library/react",
-    "~/contexts/UnifiedAuthContext",
-    "~/app/map/Cache/interface",
-    "~/app/map/Services/EventBus/event-bus-context",
-    "~/app/map/types/tile-data",
-    "~/app/map/types/url-info", 
-    "~/app/map/types/theme-colors",
-    "~/lib/domains/mapping/utils/hex-coordinates",
-    "~/lib/utils",
-    "~/lib/debug/debug-logger",
+    "vitest",
+    "~/app/map/Cache",
+    "~/app/map",
     "~/test-utils/providers"
   ],
-  "exceptions": {}
+  "subsystems": [
+    "./Tile"
+  ]
 }

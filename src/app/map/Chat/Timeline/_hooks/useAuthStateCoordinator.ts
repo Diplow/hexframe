@@ -2,9 +2,9 @@ import { useEffect } from 'react';
 import { useUnifiedAuth } from '~/contexts/UnifiedAuthContext';
 import { useRouter } from 'next/navigation';
 import { api } from '~/commons/trpc/react';
-import type { Widget } from '../../_state/types';
-import { preloadUserMapData, savePreFetchedData } from '../../../Services/PreFetch/pre-fetch-service';
-import { useEventBus } from '../../../Services/EventBus/event-bus-context';
+import type { Widget } from '~/app/map/Chat/_state';
+import { preloadUserMapData, savePreFetchedData } from '~/app/map/Services';
+import { useEventBus } from '~/app/map/Services';
 
 export function useAuthStateCoordinator(widgets: Widget[]) {
   const { user } = useUnifiedAuth();
@@ -14,10 +14,12 @@ export function useAuthStateCoordinator(widgets: Widget[]) {
   const eventBus = useEventBus();
 
   useEffect(() => {
+
     if (!user) return;
 
     const loginWidget = widgets.find(w => w.type === 'login');
     if (!loginWidget) return;
+
 
     // Handle user authentication - widget resolution handled by chat state
     
@@ -28,12 +30,11 @@ export function useAuthStateCoordinator(widgets: Widget[]) {
 
 
   const _handleUserMapNavigation = async () => {
+    
     try {
-      // Starting user map navigation for user
-      
       // Get user map info first
       const result = await trpcUtils.map.user.getUserMap.fetch();
-      // getUserMap result
+      
       
       if (result?.success && result.map?.id) {
         // Found user map
@@ -41,7 +42,12 @@ export function useAuthStateCoordinator(widgets: Widget[]) {
         // Pre-fetch all map data before navigation
         if (user?.id) {
           // Starting pre-fetch for user
-          const preFetchedData = await preloadUserMapData(parseInt(user.id), 0, trpcUtils);
+          const userId = parseInt(user.id);
+          if (isNaN(userId)) {
+            console.warn('[AuthCoordinator] Invalid user ID format:', user.id);
+            return;
+          }
+          const preFetchedData = await preloadUserMapData(userId, 0, trpcUtils);
           if (preFetchedData) {
             // Save pre-fetched data for MapCacheProvider to use
             savePreFetchedData(preFetchedData);
@@ -75,17 +81,14 @@ export function useAuthStateCoordinator(widgets: Widget[]) {
   };
 
   const _handleExistingMap = (map: { id: number; name?: string }) => {
-    // Handling existing map navigation
     
     const returnUrl = sessionStorage.getItem('auth-return-url');
     sessionStorage.removeItem('auth-return-url');
     
     if (returnUrl?.includes('/map')) {
-      // Using return URL
       window.location.href = returnUrl;
     } else {
       const newUrl = `/map?center=${map.id}`;
-      // Navigating to new URL
       // Use router.replace instead of router.push to avoid adding to history
       router.replace(newUrl);
     }
@@ -97,7 +100,12 @@ export function useAuthStateCoordinator(widgets: Widget[]) {
       if (createResult?.success && createResult.mapId) {
         // Pre-fetch the newly created map data
         if (user?.id) {
-          const preFetchedData = await preloadUserMapData(parseInt(user.id), 0, trpcUtils);
+          const userId = parseInt(user.id);
+          if (isNaN(userId)) {
+            console.warn('[AuthCoordinator] Invalid user ID format for new map:', user.id);
+            return;
+          }
+          const preFetchedData = await preloadUserMapData(userId, 0, trpcUtils);
           if (preFetchedData) {
             savePreFetchedData(preFetchedData);
             // Pre-fetched newly created map data

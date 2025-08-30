@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { api } from "~/commons/trpc/react";
-import { CoordSystem } from "~/lib/domains/mapping/interface.client";
+import { CoordSystem } from "~/lib/domains/mapping/utils";
 import type {
   ServerService,
   ServiceConfig,
@@ -146,7 +146,11 @@ export function createServerService(
         
         // Don't make API calls with invalid userId/groupId values
         if (coords.userId === 0 || isNaN(coords.userId)) {
-          // Skipping API call with invalid userId
+          console.warn('[ServerService] Skipping API call due to invalid coordinate parsing:', {
+            centerCoordId: params.centerCoordId,
+            parsedCoords: coords,
+            issue: isNaN(coords.userId) ? 'NaN userId (likely database ID format)' : 'Zero userId'
+          });
           return [];
         }
         

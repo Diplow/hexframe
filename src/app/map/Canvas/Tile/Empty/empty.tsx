@@ -1,16 +1,15 @@
 "use client";
 
 import { useState, useContext, useEffect } from "react";
-import { DynamicBaseTileLayout } from "../Base";
-import type { TileScale, TileColor } from "../Base/BaseTileLayout";
-import { LegacyTileActionsContext, useCanvasTheme } from "../..";
-import type { URLInfo } from "../../../types/url-info";
-import { CoordSystem } from "~/lib/domains/mapping/interface.client";
-import { getColor } from "../../../types/tile-data";
-import { getDefaultStroke } from "../utils/stroke";
-import { useTileInteraction } from "../../hooks/shared/useTileInteraction";
+import { DynamicBaseTileLayout } from "~/app/map/Canvas/Tile/Base";
+import type { TileScale, TileColor } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
+import { LegacyTileActionsContext, useCanvasTheme } from "~/app/map/Canvas";
+import type { URLInfo } from "~/app/map/Canvas/types";
+import { CoordSystem } from "~/lib/domains/mapping/utils";
+import { getColor } from "~/app/map/Canvas/types";
+import { getDefaultStroke } from "~/app/map/Canvas/Tile/utils/stroke";
+import { useTileInteraction } from "~/app/map/Canvas";
 import { loggers } from "~/lib/debug/debug-logger";
-import { useEventBus } from "../../../Services/EventBus/interface";
 
 export interface DynamicEmptyTileProps {
   coordId: string;
@@ -20,6 +19,12 @@ export interface DynamicEmptyTileProps {
   parentItem?: { id: string; name: string; ownerId?: string };
   interactive?: boolean;
   currentUserId?: number;
+  onCreateRequested?: (payload: {
+    coordId: string;
+    parentName?: string;
+    parentId?: string;
+    parentCoordId?: string;
+  }) => void;
 }
 
 function getDropHandlers(
@@ -44,7 +49,6 @@ function getDropHandlers(
 
 export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
   const [isHovered, setIsHovered] = useState(false);
-  const eventBus = useEventBus();
   const { isDarkMode } = useCanvasTheme();
   
   // Log empty tile render
@@ -81,17 +85,12 @@ export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
       const parentCoords = CoordSystem.getParentCoord(childCoords);
       const parentCoordId = parentCoords ? CoordSystem.createId(parentCoords) : undefined;
       
-      // Emit request event to show creation widget in Chat
-      eventBus.emit({
-        type: 'map.create_requested',
-        source: 'canvas',
-        payload: {
-          coordId: props.coordId,
-          parentName: props.parentItem?.name,
-          parentId: props.parentItem?.id,
-          parentCoordId,
-        },
-        timestamp: new Date(),
+      // Request creation through callback
+      props.onCreateRequested?.({
+        coordId: props.coordId,
+        parentName: props.parentItem?.name,
+        parentId: props.parentItem?.id,
+        parentCoordId,
       });
     },
   });

@@ -1,19 +1,19 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { cn } from '~/lib/utils';
-import { useChatState, ChatProvider } from './_state';
-import { Timeline } from './Timeline/interface';
-import { Input } from './Input';
+import { useChatState, ChatProvider } from '~/app/map/Chat/_state';
+import { Timeline } from '~/app/map/Chat/Timeline';
+import { Input } from '~/app/map/Chat/Input';
 import { ThemeToggle } from '~/components/ThemeToggle';
 import { Logo } from '~/components/ui/logo';
 import { Button } from '~/components/ui/button';
 import { LogOut, LogIn } from 'lucide-react';
 import { useUnifiedAuth } from '~/contexts/UnifiedAuthContext';
-import { authClient } from '~/lib/auth/interface';
-import { useEffect } from 'react';
+import { authClient } from '~/lib/auth';
 import { loggers } from '~/lib/debug/debug-logger';
-import { useEventBus } from '../Services/EventBus/event-bus-context';
-import { useAIChatIntegration } from './_hooks/useAIChatIntegration';
+import { useEventBus } from '~/app/map/Services';
+import { useAIChatIntegration } from '~/app/map/Chat/_hooks/useAIChatIntegration';
 
 interface ChatPanelProps {
   className?: string;
@@ -43,8 +43,13 @@ function ChatContent() {
     <>
       <Timeline messages={messages} widgets={widgets} />
       {isGeneratingAI && (
-        <div className="px-4 py-2 text-sm text-muted-foreground animate-pulse">
-          Thinking...
+        <div className="flex items-center gap-2 text-muted-foreground text-sm p-3 bg-muted/50 rounded-lg mx-4 my-2">
+          <div className="flex gap-1">
+            <span className="animate-bounce" style={{ animationDelay: '0ms' }}>●</span>
+            <span className="animate-bounce" style={{ animationDelay: '150ms' }}>●</span>
+            <span className="animate-bounce" style={{ animationDelay: '300ms' }}>●</span>
+          </div>
+          <span>HexFrame is thinking</span>
         </div>
       )}
       <Input />
@@ -55,6 +60,12 @@ function ChatContent() {
 function ChatHeader() {
   const { user } = useUnifiedAuth();
   const eventBus = useEventBus();
+  const [mounted, setMounted] = useState(false);
+  
+  // Prevent hydration mismatch by checking if component is mounted
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   // Debug logging for ChatHeader renders
   useEffect(() => {
@@ -103,9 +114,9 @@ function ChatHeader() {
           size="sm"
           onClick={handleAuthClick}
           className="h-8 w-8 p-0"
-          aria-label={user ? 'Logout' : 'Login'}
+          aria-label={mounted && user ? 'Logout' : 'Login'}
         >
-          {user ? <LogOut className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
+          {mounted && user ? <LogOut className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
         </Button>
       </div>
     </div>

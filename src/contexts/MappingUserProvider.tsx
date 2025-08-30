@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { api } from "~/commons/trpc/react";
-import { useUnifiedAuth } from "./UnifiedAuthContext";
+import { useUnifiedAuth } from "~/contexts/UnifiedAuthContext";
 
 export function MappingUserProvider({ children }: { children: React.ReactNode }) {
   const { user, setMappingUserId, isLoading: isAuthLoading } = useUnifiedAuth();

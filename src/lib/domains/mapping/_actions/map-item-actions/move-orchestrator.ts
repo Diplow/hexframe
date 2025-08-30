@@ -1,9 +1,9 @@
 import type { MapItemWithId } from "~/lib/domains/mapping/_objects";
 import type { Coord } from "~/lib/domains/mapping/utils/hex-coordinates";
 import type { MapItemRepository, BaseItemRepository } from "~/lib/domains/mapping/_repositories";
-import type { MapItemQueryHelpers } from "../_map-item-query-helpers";
-import type { MapItemMovementHelpers } from "../_map-item-movement-helpers";
-import type { ValidationStrategy } from "./validation-strategy";
+import type { MapItemQueryHelpers } from "~/lib/domains/mapping/_actions/_map-item-query-helpers";
+import type { MapItemMovementHelpers } from "~/lib/domains/mapping/_actions/_map-item-movement-helpers";
+import type { ValidationStrategy } from "~/lib/domains/mapping/_actions/map-item-actions/validation-strategy";
 import { MapItemType } from "~/lib/domains/mapping/_objects";
 
 interface MoveContext {

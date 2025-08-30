@@ -1,12 +1,12 @@
-import type { Widget } from '../_state/types';
-import type { TileData } from '../../types/tile-data';
+import type { Widget } from '~/app/map/Chat/_state/types';
+import type { TileData } from '~/app/map/types';
 import type { ReactNode } from 'react';
-import { useMapCache } from '../../Cache/interface';
-import { useEventBus } from '../../Services/EventBus/event-bus-context';
-import { useChatState } from '../_state';
-import { createCreationHandlers } from './_handlers/creation-handlers';
-import { createPreviewHandlers } from './_handlers/preview-handlers';
-import { focusChatInput } from './_utils/focus-helpers';
+import { useMapCache } from '~/app/map/Cache';
+import { useEventBus } from '~/app/map/Services';
+import { useChatState } from '~/app/map/Chat/_state';
+import { createCreationHandlers } from '~/app/map/Chat/Timeline/_handlers/creation-handlers';
+import { createPreviewHandlers } from '~/app/map/Chat/Timeline/_handlers/preview-handlers';
+import { focusChatInput } from '~/app/map/Chat/Timeline/_utils/focus-helpers';
 import { 
   renderPreviewWidget,
   renderLoginWidget,
@@ -24,10 +24,6 @@ interface WidgetManagerProps {
 }
 
 export function WidgetManager({ widgets, focusChatInput: focusChatInputProp }: WidgetManagerProps) {
-  console.log('[WidgetManager] Rendering with', widgets.length, 'widgets')
-  widgets.forEach(w => {
-    console.log('[WidgetManager] Widget:', { id: w.id, type: w.type, hasData: !!w.data })
-  })
   
   const { createItemOptimistic, updateItemOptimistic, getItem } = useMapCache();
   const eventBus = useEventBus();
@@ -71,7 +67,6 @@ function _renderWidget(
   createWidgetHandlers: (widget: Widget) => WidgetHandlers, 
   getItem: (coordId: string) => TileData | null
 ): ReactNode {
-  console.log('[_renderWidget] Rendering widget type:', widget.type, 'with id:', widget.id)
   
   switch (widget.type) {
     case 'preview':
@@ -87,7 +82,6 @@ function _renderWidget(
     case 'delete':
       return renderDeleteWidget(widget);
     case 'ai-response':
-      console.log('[_renderWidget] Rendering AI response widget with data:', widget.data)
       return renderAIResponseWidget(widget);
     default:
       return null;

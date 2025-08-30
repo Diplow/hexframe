@@ -6,7 +6,7 @@
   "properties": {
     "allowed": {
       "type": "array",
-      "description": "Patterns for allowed imports. Everything else is forbidden.",
+      "description": "Patterns for allowed imports specific to this subsystem.",
       "items": {
         "type": "string"
       },
@@ -19,17 +19,40 @@
         "@trpc/server"
       ]
     },
+    "allowedChildren": {
+      "type": "array",
+      "description": "Dependencies that cascade to all child subsystems. Use for common framework deps like React, Next.js.",
+      "items": {
+        "type": "string"
+      },
+      "examples": [
+        "react",
+        "next/navigation",
+        "_objects"
+      ]
+    },
+    "subsystems": {
+      "type": "array",
+      "description": "Child subsystems of this subsystem (relative paths to folders with dependencies.json).",
+      "items": {
+        "type": "string"
+      },
+      "examples": [
+        "./Cache",
+        "./Services/EventBus"
+      ]
+    },
     "exceptions": {
       "type": "object",
       "description": "Document WHY specific dependencies are needed (for human understanding)",
       "additionalProperties": {
         "type": "string"
       },
-      "examples": {
+      "examples": [{
         "~/server/db": "Repository layer needs database access",
         "~/lib/domains/shared": "Common types and utilities",
         "@trpc/server": "API endpoint definitions"
-      }
+      }]
     }
   },
   "required": ["allowed"]

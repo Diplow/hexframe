@@ -1,0 +1,435 @@
+
+> hexframe@0.1.0 check:architecture /home/ulysse/Documents/hexframe
+> bash .husky/check-architecture
+
+🏗️ Checking architectural boundaries in src...
+Scanning directories for complexity requirements...
+Checking subsystems for completeness...
+Checking subsystem declarations...
+Checking import boundaries...
+Checking dependencies.json path format...
+Checking for redundant dependency declarations...
+Checking for file/folder naming conflicts...
+Checking outbound dependencies...
+Checking domain structure...
+Checking domain import restrictions...
+⏱️  Completed in 1.51 seconds
+
+🚨 Architecture violations:
+========================================================================
+❌ External imports bypass mapping/index:
+  🔸 src/server/db/schema/_tables/mapping/map-items.ts:14
+     from "~/lib/domains/mapping/types"
+  🔸 src/server/api/types/contracts.ts:7
+     from "~/lib/domains/mapping/types"
+  🔸 src/app/services/mcp/services/map-items.ts:1
+     from "~/lib/domains/mapping/utils"
+❌ Hierarchical redundancy in map:
+  🔸 '~/lib/domains/mapping/index' is redundant because '~/lib/domains/mapping' already allows access
+     → Remove '~/lib/domains/mapping/index' from src/server/api/routers/map/dependencies.json 'allowed' array
+     → '~/lib/domains/mapping' already provides hierarchical access
+❌ Hierarchical redundancy in map:
+  🔸 '~/lib/domains/mapping/utils' is redundant because '~/lib/domains/mapping' already allows access
+     → Remove '~/lib/domains/mapping/utils' from src/server/api/routers/map/dependencies.json 'allowed' array
+     → '~/lib/domains/mapping' already provides hierarchical access
+❌ Hierarchical redundancy in map:
+  🔸 '~/server/api/services/user-mapping.service' is redundant because '~/server/api/services' already allows access
+     → Remove '~/server/api/services/user-mapping.service' from src/server/api/routers/map/dependencies.json 'allowed' array
+     → '~/server/api/services' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/server/api/middleware/rate-limit' is redundant because '~/server/api/middleware' already allows access
+     → Remove '~/server/api/middleware/rate-limit' from src/server/api/routers/agentic/dependencies.json 'allowed' array
+     → '~/server/api/middleware' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/server/db/schema' is redundant because '~/server/db' already allows access
+     → Remove '~/server/db/schema' from src/server/api/routers/agentic/dependencies.json 'allowed' array
+     → '~/server/db' already provides hierarchical access
+❌ Hierarchical redundancy in map:
+  🔸 '~/app/Services/server-service' is redundant because '~/app/Services' already allows access
+     → Remove '~/app/Services/server-service' from src/app/map/dependencies.json 'allowed' array
+     → '~/app/Services' already provides hierarchical access
+❌ Hierarchical redundancy in Services:
+  🔸 '~/app/map/types' is redundant because '~/app/map' already allows access
+     → Remove '~/app/map/types' from src/app/map/Services/dependencies.json 'allowed' array
+     → '~/app/map' already provides hierarchical access
+❌ Hierarchical redundancy in Chat:
+  🔸 '~/app/map/Services' is redundant because '~/app' already allows access
+     → Remove '~/app/map/Services' from src/app/map/Chat/dependencies.json 'allowed' array
+     → '~/app' already provides hierarchical access
+❌ Hierarchical redundancy in Chat:
+  🔸 '~/app/map/Services/EventBus' is redundant because '~/app' already allows access
+     → Remove '~/app/map/Services/EventBus' from src/app/map/Chat/dependencies.json 'allowed' array
+     → '~/app' already provides hierarchical access
+❌ Hierarchical redundancy in Chat:
+  🔸 '~/app/map/Services/EventBus' is redundant because '~/app/map/Services' already allows access
+     → Remove '~/app/map/Services/EventBus' from src/app/map/Chat/dependencies.json 'allowed' array
+     → '~/app/map/Services' already provides hierarchical access
+❌ Hierarchical redundancy in Chat:
+  🔸 '~/app/map/Services/EventBus/event-bus-context' is redundant because '~/app' already allows access
+     → Remove '~/app/map/Services/EventBus/event-bus-context' from src/app/map/Chat/dependencies.json 'allowed' array
+     → '~/app' already provides hierarchical access
+❌ Hierarchical redundancy in Chat:
+  🔸 '~/app/map/Services/EventBus/event-bus-context' is redundant because '~/app/map/Services' already allows access
+     → Remove '~/app/map/Services/EventBus/event-bus-context' from src/app/map/Chat/dependencies.json 'allowed' array
+     → '~/app/map/Services' already provides hierarchical access
+❌ Hierarchical redundancy in Chat:
+  🔸 '~/app/map/Services/EventBus/event-bus-context' is redundant because '~/app/map/Services/EventBus' already allows access
+     → Remove '~/app/map/Services/EventBus/event-bus-context' from src/app/map/Chat/dependencies.json 'allowed' array
+     → '~/app/map/Services/EventBus' already provides hierarchical access
+❌ Hierarchical redundancy in Chat:
+  🔸 '~/app/map/Services/PreFetch/pre-fetch-service' is redundant because '~/app' already allows access
+     → Remove '~/app/map/Services/PreFetch/pre-fetch-service' from src/app/map/Chat/dependencies.json 'allowed' array
+     → '~/app' already provides hierarchical access
+❌ Hierarchical redundancy in Chat:
+  🔸 '~/app/map/Services/PreFetch/pre-fetch-service' is redundant because '~/app/map/Services' already allows access
+     → Remove '~/app/map/Services/PreFetch/pre-fetch-service' from src/app/map/Chat/dependencies.json 'allowed' array
+     → '~/app/map/Services' already provides hierarchical access
+❌ Hierarchical redundancy in Chat:
+  🔸 '~/app/services' is redundant because '~/app' already allows access
+     → Remove '~/app/services' from src/app/map/Chat/dependencies.json 'allowed' array
+     → '~/app' already provides hierarchical access
+❌ Hierarchical redundancy in Chat:
+  🔸 '~/app/map/types/tile-data' is redundant because '~/app/map/types' already allows access
+     → Remove '~/app/map/types/tile-data' from src/app/map/Chat/dependencies.json 'allowedChildren' array
+     → '~/app/map/types' already provides hierarchical access
+❌ Hierarchical redundancy in Input:
+  🔸 '~/app/map/Chat/Input' is redundant because '~/app/map' already allows access
+     → Remove '~/app/map/Chat/Input' from src/app/map/Chat/Input/dependencies.json 'allowed' array
+     → '~/app/map' already provides hierarchical access
+❌ Hierarchical redundancy in Input:
+  🔸 '~/app/map/Chat/_state' is redundant because '~/app/map' already allows access
+     → Remove '~/app/map/Chat/_state' from src/app/map/Chat/Input/dependencies.json 'allowed' array
+     → '~/app/map' already provides hierarchical access
+❌ Hierarchical redundancy in Input:
+  🔸 '~/app/map/Chat/services' is redundant because '~/app/map' already allows access
+     → Remove '~/app/map/Chat/services' from src/app/map/Chat/Input/dependencies.json 'allowed' array
+     → '~/app/map' already provides hierarchical access
+❌ Hierarchical redundancy in Timeline:
+  🔸 '~/app/map/Chat/_settings/useChatSettings' is redundant because '~/app/map' already allows access
+     → Remove '~/app/map/Chat/_settings/useChatSettings' from src/app/map/Chat/Timeline/dependencies.json 'allowed' array
+     → '~/app/map' already provides hierarchical access
+❌ Hierarchical redundancy in Timeline:
+  🔸 '~/app/map/Chat/_state' is redundant because '~/app/map' already allows access
+     → Remove '~/app/map/Chat/_state' from src/app/map/Chat/Timeline/dependencies.json 'allowed' array
+     → '~/app/map' already provides hierarchical access
+❌ Hierarchical redundancy in Timeline:
+  🔸 '~/app/map/Chat/_state/_events/event.types' is redundant because '~/app/map' already allows access
+     → Remove '~/app/map/Chat/_state/_events/event.types' from src/app/map/Chat/Timeline/dependencies.json 'allowed' array
+     → '~/app/map' already provides hierarchical access
+❌ Hierarchical redundancy in Timeline:
+  🔸 '~/app/map/Chat/_state/_events/event.types' is redundant because '~/app/map/Chat/_state' already allows access
+     → Remove '~/app/map/Chat/_state/_events/event.types' from src/app/map/Chat/Timeline/dependencies.json 'allowed' array
+     → '~/app/map/Chat/_state' already provides hierarchical access
+❌ Hierarchical redundancy in Timeline:
+  🔸 '~/app/map/Chat/services' is redundant because '~/app/map' already allows access
+     → Remove '~/app/map/Chat/services' from src/app/map/Chat/Timeline/dependencies.json 'allowed' array
+     → '~/app/map' already provides hierarchical access
+❌ Hierarchical redundancy in Timeline:
+  🔸 '~/app/map/Services/EventBus' is redundant because '~/app/map' already allows access
+     → Remove '~/app/map/Services/EventBus' from src/app/map/Chat/Timeline/dependencies.json 'allowed' array
+     → '~/app/map' already provides hierarchical access
+❌ Hierarchical redundancy in Timeline:
+  🔸 '~/app/map/Services/EventBus/event-bus-context' is redundant because '~/app/map' already allows access
+     → Remove '~/app/map/Services/EventBus/event-bus-context' from src/app/map/Chat/Timeline/dependencies.json 'allowed' array
+     → '~/app/map' already provides hierarchical access
+❌ Hierarchical redundancy in Timeline:
+  🔸 '~/app/map/Services/EventBus/event-bus-context' is redundant because '~/app/map/Services/EventBus' already allows access
+     → Remove '~/app/map/Services/EventBus/event-bus-context' from src/app/map/Chat/Timeline/dependencies.json 'allowed' array
+     → '~/app/map/Services/EventBus' already provides hierarchical access
+❌ Hierarchical redundancy in Canvas:
+  🔸 '~/app/map/Base/BaseTileLayout' is redundant because '~/app/map' already allows access
+     → Remove '~/app/map/Base/BaseTileLayout' from src/app/map/Canvas/dependencies.json 'allowed' array
+     → '~/app/map' already provides hierarchical access
+❌ Hierarchical redundancy in Canvas:
+  🔸 '~/app/map/Services/EventBus/event-bus-context' is redundant because '~/app/map' already allows access
+     → Remove '~/app/map/Services/EventBus/event-bus-context' from src/app/map/Canvas/dependencies.json 'allowed' array
+     → '~/app/map' already provides hierarchical access
+❌ Hierarchical redundancy in Canvas:
+  🔸 '~/app/map/types/tile-data' is redundant because '~/app/map/types' already allows access
+     → Remove '~/app/map/types/tile-data' from src/app/map/Canvas/dependencies.json 'allowedChildren' array
+     → '~/app/map/types' already provides hierarchical access
+❌ Hierarchical redundancy in Canvas:
+  🔸 '~/app/map/types/url-info' is redundant because '~/app/map/types' already allows access
+     → Remove '~/app/map/types/url-info' from src/app/map/Canvas/dependencies.json 'allowedChildren' array
+     → '~/app/map/types' already provides hierarchical access
+❌ Hierarchical redundancy in Tile:
+  🔸 '~/app/map' is redundant because '~/app' already allows access
+     → Remove '~/app/map' from src/app/map/Canvas/Tile/dependencies.json 'allowed' array
+     → '~/app' already provides hierarchical access
+❌ Hierarchical redundancy in Tile:
+  🔸 '~/app/map/Canvas' is redundant because '~/app' already allows access
+     → Remove '~/app/map/Canvas' from src/app/map/Canvas/Tile/dependencies.json 'allowed' array
+     → '~/app' already provides hierarchical access
+❌ Hierarchical redundancy in Tile:
+  🔸 '~/app/map/Canvas' is redundant because '~/app/map' already allows access
+     → Remove '~/app/map/Canvas' from src/app/map/Canvas/Tile/dependencies.json 'allowed' array
+     → '~/app/map' already provides hierarchical access
+❌ Hierarchical redundancy in Cache:
+  🔸 '~/app/map/Services/EventBus' is redundant because '~/app/map' already allows access
+     → Remove '~/app/map/Services/EventBus' from src/app/map/Cache/dependencies.json 'allowed' array
+     → '~/app/map' already provides hierarchical access
+❌ Hierarchical redundancy in Cache:
+  🔸 '~/app/map/Services/types' is redundant because '~/app/map' already allows access
+     → Remove '~/app/map/Services/types' from src/app/map/Cache/dependencies.json 'allowed' array
+     → '~/app/map' already provides hierarchical access
+❌ Hierarchical redundancy in Cache:
+  🔸 '~/app/map/types' is redundant because '~/app/map' already allows access
+     → Remove '~/app/map/types' from src/app/map/Cache/dependencies.json 'allowed' array
+     → '~/app/map' already provides hierarchical access
+❌ Hierarchical redundancy in Cache:
+  🔸 '~/app/map/types/tile-data' is redundant because '~/app/map' already allows access
+     → Remove '~/app/map/types/tile-data' from src/app/map/Cache/dependencies.json 'allowed' array
+     → '~/app/map' already provides hierarchical access
+❌ Hierarchical redundancy in Cache:
+  🔸 '~/app/map/types/tile-data' is redundant because '~/app/map/types' already allows access
+     → Remove '~/app/map/types/tile-data' from src/app/map/Cache/dependencies.json 'allowed' array
+     → '~/app/map/types' already provides hierarchical access
+❌ Hierarchical redundancy in inngest:
+  🔸 '~/lib/domains/agentic/interface' is redundant because '~/lib/domains/agentic' already allows access
+     → Remove '~/lib/domains/agentic/interface' from src/app/api/inngest/dependencies.json 'allowed' array
+     → '~/lib/domains/agentic' already provides hierarchical access
+❌ Hierarchical redundancy in iam:
+  🔸 '~/lib/domains/iam/_objects' is redundant because '~/lib' already allows access
+     → Remove '~/lib/domains/iam/_objects' from src/lib/domains/iam/dependencies.json 'allowed' array
+     → '~/lib' already provides hierarchical access
+❌ Hierarchical redundancy in iam:
+  🔸 '~/lib/domains/iam/_repositories' is redundant because '~/lib' already allows access
+     → Remove '~/lib/domains/iam/_repositories' from src/lib/domains/iam/dependencies.json 'allowed' array
+     → '~/lib' already provides hierarchical access
+❌ Hierarchical redundancy in iam:
+  🔸 '~/lib/domains/iam/infrastructure' is redundant because '~/lib' already allows access
+     → Remove '~/lib/domains/iam/infrastructure' from src/lib/domains/iam/dependencies.json 'allowed' array
+     → '~/lib' already provides hierarchical access
+❌ Hierarchical redundancy in iam:
+  🔸 '~/lib/domains/iam/services' is redundant because '~/lib' already allows access
+     → Remove '~/lib/domains/iam/services' from src/lib/domains/iam/dependencies.json 'allowed' array
+     → '~/lib' already provides hierarchical access
+❌ Hierarchical redundancy in iam:
+  🔸 '~/lib/domains/iam/types' is redundant because '~/lib' already allows access
+     → Remove '~/lib/domains/iam/types' from src/lib/domains/iam/dependencies.json 'allowed' array
+     → '~/lib' already provides hierarchical access
+❌ Hierarchical redundancy in iam:
+  🔸 '~/lib/domains/mapping' is redundant because '~/lib' already allows access
+     → Remove '~/lib/domains/mapping' from src/lib/domains/iam/dependencies.json 'allowed' array
+     → '~/lib' already provides hierarchical access
+❌ Hierarchical redundancy in infrastructure:
+  🔸 'drizzle-orm/postgres-js' is redundant because 'drizzle-orm' already allows access
+     → Remove 'drizzle-orm/postgres-js' from src/lib/domains/iam/infrastructure/dependencies.json 'allowed' array
+     → 'drizzle-orm' already provides hierarchical access
+❌ Hierarchical redundancy in infrastructure:
+  🔸 '~/lib/domains/iam/_objects/user' is redundant because '~/lib/domains' already allows access
+     → Remove '~/lib/domains/iam/_objects/user' from src/lib/domains/iam/infrastructure/dependencies.json 'allowed' array
+     → '~/lib/domains' already provides hierarchical access
+❌ Hierarchical redundancy in infrastructure:
+  🔸 '~/lib/domains/iam/_repositories/user.repository' is redundant because '~/lib/domains' already allows access
+     → Remove '~/lib/domains/iam/_repositories/user.repository' from src/lib/domains/iam/infrastructure/dependencies.json 'allowed' array
+     → '~/lib/domains' already provides hierarchical access
+❌ Hierarchical redundancy in user:
+  🔸 '~/lib/domains/iam/_objects' is redundant because '~/lib/domains/iam' already allows access
+     → Remove '~/lib/domains/iam/_objects' from src/lib/domains/iam/infrastructure/user/dependencies.json 'allowed' array
+     → '~/lib/domains/iam' already provides hierarchical access
+❌ Hierarchical redundancy in user:
+  🔸 '~/lib/domains/iam/_repositories' is redundant because '~/lib/domains/iam' already allows access
+     → Remove '~/lib/domains/iam/_repositories' from src/lib/domains/iam/infrastructure/user/dependencies.json 'allowed' array
+     → '~/lib/domains/iam' already provides hierarchical access
+❌ Hierarchical redundancy in user:
+  🔸 '~/lib/domains/iam/types' is redundant because '~/lib/domains/iam' already allows access
+     → Remove '~/lib/domains/iam/types' from src/lib/domains/iam/infrastructure/user/dependencies.json 'allowed' array
+     → '~/lib/domains/iam' already provides hierarchical access
+❌ Hierarchical redundancy in mapping:
+  🔸 '~/lib/domains/types/contracts' is redundant because '~/lib/domains/types' already allows access
+     → Remove '~/lib/domains/types/contracts' from src/lib/domains/mapping/dependencies.json 'allowed' array
+     → '~/lib/domains/types' already provides hierarchical access
+❌ Hierarchical redundancy in mapping:
+  🔸 '~/lib/domains/types/errors' is redundant because '~/lib/domains/types' already allows access
+     → Remove '~/lib/domains/types/errors' from src/lib/domains/mapping/dependencies.json 'allowed' array
+     → '~/lib/domains/types' already provides hierarchical access
+❌ Hierarchical redundancy in infrastructure:
+  🔸 'drizzle-orm/postgres-js' is redundant because 'drizzle-orm' already allows access
+     → Remove 'drizzle-orm/postgres-js' from src/lib/domains/mapping/infrastructure/dependencies.json 'allowed' array
+     → 'drizzle-orm' already provides hierarchical access
+❌ Hierarchical redundancy in infrastructure:
+  🔸 '~/server/db/schema' is redundant because '~/server/db' already allows access
+     → Remove '~/server/db/schema' from src/lib/domains/mapping/infrastructure/dependencies.json 'allowed' array
+     → '~/server/db' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/debug/debug-logger' is redundant because '~/lib' already allows access
+     → Remove '~/lib/debug/debug-logger' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic' is redundant because '~/lib' already allows access
+     → Remove '~/lib/domains/agentic' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/_actions' is redundant because '~/lib' already allows access
+     → Remove '~/lib/domains/agentic/_actions' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/_actions' is redundant because '~/lib/domains/agentic' already allows access
+     → Remove '~/lib/domains/agentic/_actions' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib/domains/agentic' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/_objects' is redundant because '~/lib' already allows access
+     → Remove '~/lib/domains/agentic/_objects' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/_objects' is redundant because '~/lib/domains/agentic' already allows access
+     → Remove '~/lib/domains/agentic/_objects' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib/domains/agentic' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/_repositories' is redundant because '~/lib' already allows access
+     → Remove '~/lib/domains/agentic/_repositories' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/_repositories' is redundant because '~/lib/domains/agentic' already allows access
+     → Remove '~/lib/domains/agentic/_repositories' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib/domains/agentic' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/_security' is redundant because '~/lib' already allows access
+     → Remove '~/lib/domains/agentic/_security' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/_security' is redundant because '~/lib/domains/agentic' already allows access
+     → Remove '~/lib/domains/agentic/_security' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib/domains/agentic' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/infrastructure' is redundant because '~/lib' already allows access
+     → Remove '~/lib/domains/agentic/infrastructure' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/infrastructure' is redundant because '~/lib/domains/agentic' already allows access
+     → Remove '~/lib/domains/agentic/infrastructure' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib/domains/agentic' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/prompts/prompts.constants' is redundant because '~/lib' already allows access
+     → Remove '~/lib/domains/agentic/prompts/prompts.constants' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/prompts/prompts.constants' is redundant because '~/lib/domains/agentic' already allows access
+     → Remove '~/lib/domains/agentic/prompts/prompts.constants' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib/domains/agentic' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/repositories' is redundant because '~/lib' already allows access
+     → Remove '~/lib/domains/agentic/repositories' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/repositories' is redundant because '~/lib/domains/agentic' already allows access
+     → Remove '~/lib/domains/agentic/repositories' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib/domains/agentic' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/repositories/llm.repository.interface' is redundant because '~/lib' already allows access
+     → Remove '~/lib/domains/agentic/repositories/llm.repository.interface' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/repositories/llm.repository.interface' is redundant because '~/lib/domains/agentic' already allows access
+     → Remove '~/lib/domains/agentic/repositories/llm.repository.interface' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib/domains/agentic' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/repositories/llm.repository.interface' is redundant because '~/lib/domains/agentic/repositories' already allows access
+     → Remove '~/lib/domains/agentic/repositories/llm.repository.interface' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib/domains/agentic/repositories' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/repositories/openrouter.repository' is redundant because '~/lib' already allows access
+     → Remove '~/lib/domains/agentic/repositories/openrouter.repository' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/repositories/openrouter.repository' is redundant because '~/lib/domains/agentic' already allows access
+     → Remove '~/lib/domains/agentic/repositories/openrouter.repository' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib/domains/agentic' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/repositories/openrouter.repository' is redundant because '~/lib/domains/agentic/repositories' already allows access
+     → Remove '~/lib/domains/agentic/repositories/openrouter.repository' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib/domains/agentic/repositories' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/repositories/queued-llm.repository' is redundant because '~/lib' already allows access
+     → Remove '~/lib/domains/agentic/repositories/queued-llm.repository' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/repositories/queued-llm.repository' is redundant because '~/lib/domains/agentic' already allows access
+     → Remove '~/lib/domains/agentic/repositories/queued-llm.repository' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib/domains/agentic' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/repositories/queued-llm.repository' is redundant because '~/lib/domains/agentic/repositories' already allows access
+     → Remove '~/lib/domains/agentic/repositories/queued-llm.repository' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib/domains/agentic/repositories' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/services' is redundant because '~/lib' already allows access
+     → Remove '~/lib/domains/agentic/services' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/services' is redundant because '~/lib/domains/agentic' already allows access
+     → Remove '~/lib/domains/agentic/services' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib/domains/agentic' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/types' is redundant because '~/lib' already allows access
+     → Remove '~/lib/domains/agentic/types' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/types' is redundant because '~/lib/domains/agentic' already allows access
+     → Remove '~/lib/domains/agentic/types' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib/domains/agentic' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/types/llm.types' is redundant because '~/lib' already allows access
+     → Remove '~/lib/domains/agentic/types/llm.types' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/types/llm.types' is redundant because '~/lib/domains/agentic' already allows access
+     → Remove '~/lib/domains/agentic/types/llm.types' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib/domains/agentic' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/agentic/types/llm.types' is redundant because '~/lib/domains/agentic/types' already allows access
+     → Remove '~/lib/domains/agentic/types/llm.types' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib/domains/agentic/types' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/mapping' is redundant because '~/lib' already allows access
+     → Remove '~/lib/domains/mapping' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/mapping/utils/hex-coordinates' is redundant because '~/lib' already allows access
+     → Remove '~/lib/domains/mapping/utils/hex-coordinates' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/lib/domains/mapping/utils/hex-coordinates' is redundant because '~/lib/domains/mapping' already allows access
+     → Remove '~/lib/domains/mapping/utils/hex-coordinates' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/lib/domains/mapping' already provides hierarchical access
+❌ Hierarchical redundancy in agentic:
+  🔸 '~/server/db/schema' is redundant because '~/server/db' already allows access
+     → Remove '~/server/db/schema' from src/lib/domains/agentic/dependencies.json 'allowed' array
+     → '~/server/db' already provides hierarchical access
+❌ Hierarchical redundancy in infrastructure:
+  🔸 '~/server/db/schema' is redundant because '~/server/db' already allows access
+     → Remove '~/server/db/schema' from src/lib/domains/agentic/infrastructure/dependencies.json 'allowed' array
+     → '~/server/db' already provides hierarchical access
+❌ Hierarchical redundancy in inngest:
+  🔸 '~/lib/domains/agentic/_objects' is redundant because '~/lib/domains/agentic' already allows access
+     → Remove '~/lib/domains/agentic/_objects' from src/lib/domains/agentic/infrastructure/inngest/dependencies.json 'allowed' array
+     → '~/lib/domains/agentic' already provides hierarchical access
+❌ Hierarchical redundancy in inngest:
+  🔸 '~/lib/domains/agentic/repositories' is redundant because '~/lib/domains/agentic' already allows access
+     → Remove '~/lib/domains/agentic/repositories' from src/lib/domains/agentic/infrastructure/inngest/dependencies.json 'allowed' array
+     → '~/lib/domains/agentic' already provides hierarchical access
+❌ Hierarchical redundancy in inngest:
+  🔸 '~/lib/domains/agentic/services' is redundant because '~/lib/domains/agentic' already allows access
+     → Remove '~/lib/domains/agentic/services' from src/lib/domains/agentic/infrastructure/inngest/dependencies.json 'allowed' array
+     → '~/lib/domains/agentic' already provides hierarchical access
+❌ Hierarchical redundancy in inngest:
+  🔸 '~/lib/domains/agentic/types' is redundant because '~/lib/domains/agentic' already allows access
+     → Remove '~/lib/domains/agentic/types' from src/lib/domains/agentic/infrastructure/inngest/dependencies.json 'allowed' array
+     → '~/lib/domains/agentic' already provides hierarchical access
+❌ Hierarchical redundancy in inngest:
+  🔸 '~/server/db/schema' is redundant because '~/server/db' already allows access
+     → Remove '~/server/db/schema' from src/lib/domains/agentic/infrastructure/inngest/dependencies.json 'allowed' array
+     → '~/server/db' already provides hierarchical access
+❌ Hierarchical redundancy in repositories:
+  🔸 '~/lib/domains/agentic/types/llm.types' is redundant because '~/lib/domains/agentic/types' already allows access
+     → Remove '~/lib/domains/agentic/types/llm.types' from src/lib/domains/agentic/repositories/dependencies.json 'allowed' array
+     → '~/lib/domains/agentic/types' already provides hierarchical access
+
+📋 Requirements:
+------------------------------------------------------------------------
+• Folders over 1000 lines need:
+  - dependencies.json
+  - README.md
+  - ARCHITECTURE.md
+========================================================================
+ ELIFECYCLE  Command failed with exit code 1.

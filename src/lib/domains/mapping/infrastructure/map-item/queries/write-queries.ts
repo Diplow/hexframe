@@ -7,8 +7,8 @@ import type {
   MapItemIdr,
   Attrs,
 } from "~/lib/domains/mapping/_objects/map-item";
-import type { CreateMapItemDbAttrs, UpdateMapItemDbAttrs } from "../types";
-import { pathToString } from "../mappers";
+import type { CreateMapItemDbAttrs, UpdateMapItemDbAttrs } from "~/lib/domains/mapping/infrastructure/map-item/types";
+import { pathToString } from "~/lib/domains/mapping/infrastructure/map-item/mappers";
 
 export class WriteQueries {
   constructor(private db: PostgresJsDatabase<typeof schemaImport>) {}

@@ -1,4 +1,4 @@
-import type { ComposedContext } from '../../types'
+import type { ComposedContext } from '~/lib/domains/agentic/types'
 
 export class NarrativeContextSerializer {
   serialize(_context: ComposedContext): string {

@@ -1,7 +1,7 @@
 import '~/test/setup'; // Import test setup FIRST
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { DynamicTileContent } from '../content';
+import { DynamicTileContent } from '~/app/map/Canvas/Tile/Item/content';
 
 describe('DynamicTileContent - Simplified', () => {
   const defaultData = {

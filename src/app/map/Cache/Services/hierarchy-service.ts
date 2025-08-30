@@ -1,5 +1,5 @@
-import { CoordSystem } from "~/lib/domains/mapping/interface.client";
-import type { TileData } from "../../types/tile-data";
+import { CoordSystem } from "~/lib/domains/mapping/utils";
+import type { TileData } from "~/app/map/types";
 
 /**
  * Hierarchy Service

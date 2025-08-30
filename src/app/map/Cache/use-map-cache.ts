@@ -1,9 +1,9 @@
 import { useContext, useMemo, useCallback } from "react";
-import { MapCacheContext } from "./provider";
-import { cacheSelectors } from "./State/selectors";
-import type { MapCacheHook } from "./types";
-import type { TileData } from "../types/tile-data";
-import * as hierarchyService from "./Services/hierarchy-service";
+import { MapCacheContext } from "~/app/map/Cache/provider";
+import { cacheSelectors } from "~/app/map/Cache/State/selectors";
+import type { MapCacheHook } from "~/app/map/Cache/types";
+import type { TileData } from "~/app/map/types/tile-data";
+import * as hierarchyService from "~/app/map/Cache/Services/hierarchy-service";
 
 /**
  * Main hook that provides clean public API for cache operations
@@ -112,38 +112,13 @@ export function useMapCache(): MapCacheHook {
     [dispatch],
   );
 
-  // Helper function to convert coordinate ID to database ID
-  const getDbIdFromCoordId = useCallback((coordId: string): string | null => {
-    const item = state.itemsById[coordId];
-    return item ? String(item.metadata.dbId) : null;
-  }, [state.itemsById]);
-
-  // Navigation operations - now converts coordinate IDs to database IDs
+  // Navigation operations - now passes identifiers directly to handler
   const navigateToItem = useCallback(
     async (itemIdentifier: string, options?: { pushToHistory?: boolean }) => {
-      // Navigate request for identifier
-      
-      let dbId: string;
-      
-      // Check if it's already a database ID (pure number) or coordinate ID
-      if (/^\d+$/.test(itemIdentifier)) {
-        // It's already a database ID
-        dbId = itemIdentifier;
-        // Using provided database ID
-      } else {
-        // It's a coordinate ID, convert to database ID
-        const resolvedDbId = getDbIdFromCoordId(itemIdentifier);
-        if (!resolvedDbId) {
-          // Cannot find database ID for coordinate
-          throw new Error(`No item found with coordinate ID: ${itemIdentifier}`);
-        }
-        dbId = resolvedDbId;
-        // Converted coordinate ID to database ID
-      }
-      
-      await navigationOperations.navigateToItem(dbId, options);
+      // Navigate request for identifier - handler supports both coordinate and database IDs
+      await navigationOperations.navigateToItem(itemIdentifier, options);
     },
-    [navigationOperations, getDbIdFromCoordId],
+    [navigationOperations],
   );
 
   const updateCenter = useCallback(

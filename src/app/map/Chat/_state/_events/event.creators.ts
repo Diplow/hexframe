@@ -1,5 +1,5 @@
-import type { AppEvent } from '../../../types/events';
-import type { ChatEvent, TileSelectedPayload, OperationCompletedPayload, NavigationPayload, AuthRequiredPayload, ErrorOccurredPayload } from './event.types';
+import type { AppEvent } from '~/app/map/types';
+import type { ChatEvent, TileSelectedPayload, OperationCompletedPayload, NavigationPayload, AuthRequiredPayload, ErrorOccurredPayload } from '~/app/map/Chat/_state/_events/event.types';
 
 /**
  * Create a chat event from a map event

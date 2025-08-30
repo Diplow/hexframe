@@ -1,6 +1,8 @@
 import { eq, max } from "drizzle-orm";
 import { db } from "~/server/db";
-import { userMapping } from "~/server/db/schema";
+import { schema } from "~/server/db";
+
+const { userMapping } = schema;
 
 export class UserMappingService {
   /**

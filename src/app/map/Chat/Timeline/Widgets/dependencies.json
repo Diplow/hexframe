@@ -1,16 +1,15 @@
 {
   "$schema": "../../../../../schemas/dependencies.schema.json",
-  "allowed": [
-    "./",
-    "react",
-    "lucide-react",
-    "~/lib/utils",
-    "~/components/ui/button",
-    "~/components/ui/input",
-    "~/components/ui/textarea",
-    "~/components/ui/label",
-    "~/lib/domains/mapping/utils/hex-coordinates",
-    "~/app/map/Cache/interface"
+  "allowedChildren": [
+    "~/app/map/Chat/Timeline/MarkdownRenderer"
   ],
-  "exceptions": {}
+  "allowed": [
+    "~/app/map/Chat",
+    "~/app/map/Services"
+  ],
+  "subsystems": [
+    "./AIResponseWidget",
+    "./LoginWidget", 
+    "./PreviewWidget"
+  ]
 }

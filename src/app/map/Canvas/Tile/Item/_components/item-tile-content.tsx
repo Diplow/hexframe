@@ -1,14 +1,12 @@
 "use client";
 
-import type { TileData } from "../../../../types/tile-data";
-import { DynamicBaseTileLayout } from "../../Base";
-import type { TileScale, TileColor } from "../../Base/BaseTileLayout";
-import { DynamicTileContent } from "../content";
-import type { URLInfo } from "../../../../types/url-info";
-import { useTileInteraction } from "../../../hooks/shared/useTileInteraction";
-import { useRouter } from "next/navigation";
-import { useMapCache } from '../../../../Cache/interface';
-import { useCanvasTheme } from "../../..";
+import type { TileData, URLInfo } from "~/app/map/Canvas/types";
+import { DynamicBaseTileLayout } from "~/app/map/Canvas/Tile/Base";
+import type { TileScale, TileColor } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
+import { DynamicTileContent } from "~/app/map/Canvas/Tile/Item/content";
+import { useTileInteraction } from "~/app/map/Canvas";
+// import { useRouter } from "next/navigation"; // Removed unused import
+import { useCanvasTheme } from "~/app/map/Canvas";
 
 interface ItemTileContentProps {
   item: TileData;
@@ -24,6 +22,8 @@ interface ItemTileContentProps {
   isCenter: boolean;
   canEdit: boolean;
   isSelected?: boolean;
+  onNavigate?: (coordId: string) => void;
+  onToggleExpansion?: (itemId: string, coordId: string) => void;
 }
 
 /**
@@ -44,9 +44,10 @@ export function ItemTileContent({
   isCenter: _isCenter,
   canEdit,
   isSelected,
+  onNavigate,
+  onToggleExpansion,
 }: ItemTileContentProps) {
-  const router = useRouter();
-  const { navigateToItem, toggleItemExpansionWithURL } = useMapCache();
+  // const router = useRouter(); // Removed unused variable
   const { isDarkMode } = useCanvasTheme();
   
   // Check if this tile is expanded
@@ -72,13 +73,10 @@ export function ItemTileContent({
     tileData: tileDataWithExpanded,
     canEdit,
     onNavigate: () => {
-      void navigateToItem(item.metadata.coordId, { pushToHistory: true }).catch((error) => {
-        console.warn("Navigation failed, falling back to page navigation", error);
-        router.push(`/map?center=${item.metadata.dbId}`);
-      });
+      onNavigate?.(item.metadata.coordId);
     },
     onExpand: () => {
-      toggleItemExpansionWithURL(item.metadata.dbId);
+      onToggleExpansion?.(item.metadata.dbId, item.metadata.coordId);
     },
   });
   

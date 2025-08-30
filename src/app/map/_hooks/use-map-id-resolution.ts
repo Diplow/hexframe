@@ -15,7 +15,7 @@ interface ResolvedMapInfo {
  * This ensures the cache only ever sees proper coordinates, not mapItemIds
  */
 export function useMapIdResolution(centerParam: string): ResolvedMapInfo {
-  // useMapIdResolution called
+  
   const [resolvedInfo, setResolvedInfo] = useState<ResolvedMapInfo>({
     centerCoordinate: "",
     userId: 0,
@@ -40,7 +40,6 @@ export function useMapIdResolution(centerParam: string): ResolvedMapInfo {
   );
 
   useEffect(() => {
-    // Effect running
     
     // Handle empty parameter case
     if (!hasValidParam) {
@@ -75,7 +74,7 @@ export function useMapIdResolution(centerParam: string): ResolvedMapInfo {
         isLoading: false,
         error: null,
       };
-      // Resolved coordinate
+      
       setResolvedInfo(info);
     } else if (rootItem) {
       // Resolved from mapItemId to actual item
@@ -97,7 +96,7 @@ export function useMapIdResolution(centerParam: string): ResolvedMapInfo {
         isLoading: false,
         error: null,
       };
-      // Resolved from rootItem
+      
       setResolvedInfo(info);
     } else if (error) {
       // Error resolving

@@ -1,27 +1,49 @@
-// Base components
-export { BaseTileLayout } from "./Base/BaseTileLayout";
-export { BaseTileLayout as StaticBaseTileLayout } from "./Base/BaseTileLayout"; // Alias for backward compatibility
-export type {
+/**
+ * Public API for Canvas/Tile Subsystem
+ * 
+ * Consumers: Canvas (parent), external systems that need to render tiles
+ */
+
+// Base tile components for static rendering
+export { BaseFrame } from '~/app/map/Canvas/Tile/Base/BaseFrame'
+export { BaseTileLayout } from '~/app/map/Canvas/Tile/Base/BaseTileLayout'
+export { BaseItemTile } from '~/app/map/Canvas/Tile/Base/BaseItemTile'
+export { BaseEmptyTile } from '~/app/map/Canvas/Tile/Base/BaseEmptyTile'
+
+// Dynamic base tile component (used by Canvas parent)
+export { DynamicBaseTileLayout } from '~/app/map/Canvas/Tile/Base/index'
+export type { DynamicBaseTileLayoutProps } from '~/app/map/Canvas/Tile/Base/index'
+
+// Base component types
+export type { 
   BaseTileLayoutProps,
-  BaseTileLayoutProps as StaticBaseTileLayoutProps, // Alias for backward compatibility
   TileScale,
   TileColor,
   TileStroke,
-  TileCursor,
-} from "./Base/BaseTileLayout";
+  TileCursor
+} from './Base/BaseTileLayout'
+export type { BaseFrameProps } from '~/app/map/Canvas/Tile/Base/BaseFrame'
+export type { BaseItemTileProps } from '~/app/map/Canvas/Tile/Base/BaseItemTile'  
+export type { BaseEmptyTileProps } from '~/app/map/Canvas/Tile/Base/BaseEmptyTile'
 
-// Item components
-export { DynamicItemTile } from "./Item/item";
-export type { DynamicItemTileProps } from "./Item/item";
+// Dynamic tile components
+export { DynamicItemTile } from '~/app/map/Canvas/Tile/Item/item'
+export { DynamicEmptyTile } from '~/app/map/Canvas/Tile/Empty/empty'
 
-// Empty tile components
-export { DynamicEmptyTile } from "./Empty/empty";
-export type { DynamicEmptyTileProps } from "./Empty/empty";
+// Specialized tile components (used by external systems)
+export { default as ErrorTile } from '~/app/map/Canvas/Tile/Error/error'
 
-// Button components
-export { DynamicTileButtons as TileButtons } from "./Item/item.buttons";
-export type { TileButtonsProps } from "./Item/item.buttons";
+// Tile utilities (frequently needed by external systems and internal subsystems)  
+export { getColorFromItem } from '~/app/map/Canvas/Tile/Item/_utils/color'
 
-// Auth components
-export { default as DynamicAuthTile } from "./Auth/auth";
-export type { AuthTileProps as DynamicAuthTileProps } from "./Auth/auth";
+// NOTE: MapCache reexports removed - Tile components now use callbacks
+// Canvas should import MapCache directly and pass handlers as props
+
+// NOTE: External reexports removed to fix architecture violations.
+// Components should import these directly from their source modules:
+// - import type { TileData, TileState } from '~/app/map/types/tile-data'
+// - import type { URLInfo } from '~/app/map/types/url-info'
+// - import { getColor, getTextColorForDepth, DEFAULT_MAP_COLORS } from '~/app/map/Canvas/types'
+// - import { useTileInteraction } from '~/app/map/Canvas'
+
+// Base types already exported above

@@ -2,7 +2,7 @@ import '~/test/setup'; // Import test setup FIRST
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import AuthTile from '../auth';
+import AuthTile from '~/app/map/Canvas/Tile/Auth/auth';
 
 // No need to mock forms anymore as they're not used
 

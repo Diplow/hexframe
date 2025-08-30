@@ -1,18 +1,13 @@
 {
-  "$schema": "../../../schemas/dependencies.schema.json",
+  "$schema": "~/schemas/dependencies.schema.json",
   "allowed": [
-    "../types/tile-data",
-    "../types/url-info",
-    "../types/theme-colors",
-    "../constants",
-    "~/app/map/Cache/interface",
-    "~/app/map/Canvas/interface",
-    "~/contexts/UnifiedAuthContext",
-    "~/commons/trpc/react",
-    "~/lib/debug/debug-logger",
-    "~/components/ui/logo",
-    "lucide-react",
-    "react"
+    "~/app/map/Cache",
+    "~/app/map/Canvas",
+    "~/app/map/constants", 
+    "~/app/map/types/tile-data",
+    "~/app/map/types/url-info",
+    "~/app/map/types/theme-colors",
+    "~/components/ui/logo"
   ],
   "exceptions": {}
 }

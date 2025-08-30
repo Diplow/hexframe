@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { TileData } from "../types/tile-data";
+import type { TileData } from "~/app/map/types/tile-data";
 import { 
   Eye, 
   Maximize2, 

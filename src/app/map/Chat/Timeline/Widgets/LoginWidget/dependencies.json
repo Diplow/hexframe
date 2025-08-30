@@ -1,14 +1,7 @@
 {
-  "$schema": "../../../../../../schemas/dependencies.schema.json",
+  "$schema": "~/schemas/dependencies.schema.json", 
   "allowed": [
-    "./",
-    "react",
-    "~/components/ui/button",
-    "~/components/ui/input",
-    "~/components/ui/label",
-    "~/lib/auth/auth-client",
-    "~/contexts/UnifiedAuthContext",
-    "lucide-react"
-  ],
-  "exceptions": {}
+    "~/app/map/Chat/Timeline/Widgets/LoginWidget",
+    "~/app/map/Services"
+  ]
 }

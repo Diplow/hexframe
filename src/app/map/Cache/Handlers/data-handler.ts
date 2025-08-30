@@ -1,12 +1,12 @@
 import { type api } from "~/commons/trpc/react";
-import { CoordSystem } from "~/lib/domains/mapping/interface.client";
-import type { CacheAction, CacheState } from "../State/types";
-import { cacheActions } from "../State/actions";
+import { CoordSystem } from "~/lib/domains/mapping/utils";
+import type { CacheAction, CacheState } from "~/app/map/Cache/State/types";
+import { cacheActions } from "~/app/map/Cache/State/actions";
 import {
   createServerService,
   type useServerService,
 } from "../Services/server-service";
-import type { LoadResult } from "./types";
+import type { LoadResult } from "~/app/map/Cache/Handlers/types";
 import { loggers } from "~/lib/debug/debug-logger";
 
 export interface DataHandlerServices {
@@ -219,7 +219,11 @@ export function createDataHandlerWithTRPC(
         
         // Don't make API calls with invalid userId/groupId values
         if (coords.userId === 0 || isNaN(coords.userId)) {
-          console.warn('[DataHandler] Skipping API call with invalid userId:', coords.userId);
+          console.warn('[DataHandler] Skipping API call due to invalid coordinate format:', {
+            centerCoordId: params.centerCoordId,
+            parsedCoords: coords,
+            issue: isNaN(coords.userId) ? 'NaN userId (likely database ID passed instead of coordinate)' : 'Zero userId'
+          });
           return [];
         }
         

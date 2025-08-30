@@ -2,12 +2,12 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { IAMService } from './services/iam.service';
-import { BetterAuthUserRepository } from './infrastructure/interface';
+import { IAMService } from '~/lib/domains/iam/services';
+import { BetterAuthUserRepository } from '~/lib/domains/iam/infrastructure';
 import { auth } from '~/server/auth';
 import { db } from '~/server/db';
-import { MappingService } from '~/lib/domains/mapping/services/mapping.service';
-import { DbMapItemRepository, DbBaseItemRepository } from '~/lib/domains/mapping/infrastructure/interface';
+import { MappingService } from '~/lib/domains/mapping/services';
+import { DbMapItemRepository, DbBaseItemRepository } from '~/lib/domains/mapping/infrastructure';
 
 const loginSchema = z.object({
   email: z.string().email(),

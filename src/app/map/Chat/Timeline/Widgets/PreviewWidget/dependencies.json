@@ -1,13 +1,7 @@
 {
-  "$schema": "../../../../../../schemas/dependencies.schema.json",
+  "$schema": "~/schemas/dependencies.schema.json",
   "allowed": [
-    "./",
-    "react",
-    "~/components/ui/button",
-    "~/components/ui/input",
-    "~/components/ui/textarea",
-    "~/lib/utils",
-    "lucide-react"
-  ],
-  "exceptions": {}
+    "~/app/map/Chat/Timeline/Widgets/Portal",
+    "~/app/map/Chat/Timeline/Widgets/PreviewWidget"
+  ]
 }

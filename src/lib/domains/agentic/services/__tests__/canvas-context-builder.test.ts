@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { CanvasContextBuilder } from '../canvas-context-builder.service'
-import type { ICanvasStrategy } from '../canvas-strategies/strategy.interface'
-import type { CanvasContextOptions, TileContextItem, CanvasContextStrategy } from '../../types'
+import { CanvasContextBuilder } from '~/lib/domains/agentic/services/canvas-context-builder.service'
+import type { ICanvasStrategy } from '~/lib/domains/agentic/services/canvas-strategies/strategy.interface'
+import type { CanvasContextOptions, TileContextItem, CanvasContextStrategy } from '~/lib/domains/agentic/types'
 
 describe('CanvasContextBuilder', () => {
   let mockStandardStrategy: ICanvasStrategy
