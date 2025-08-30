@@ -1,4 +1,4 @@
-import { CoordSystem } from "~/lib/domains/mapping/interface.client";
+import { CoordSystem } from "~/lib/domains/mapping/utils";
 
 interface MapItem {
   id: number;

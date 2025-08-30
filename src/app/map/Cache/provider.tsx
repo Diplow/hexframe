@@ -10,28 +10,28 @@ import React, {
 } from "react";
 
 // Core infrastructure
-import { cacheReducer, initialCacheState } from "./State/reducer";
+import { cacheReducer, initialCacheState } from "~/app/map/Cache/State/reducer";
 
 // Services
-import { useServerService } from "./Services/server-service";
-import { useStorageService } from "./Services/storage-service";
+import { useServerService } from "~/app/map/Cache/Services/server-service";
+import { useStorageService } from "~/app/map/Cache/Services/storage-service";
 
 // Handlers
-import { useNavigationHandler } from "./Handlers/navigation-handler";
+import { useNavigationHandler } from "~/app/map/Cache/Handlers/navigation-handler";
 
 // Sync engine
-import { useSyncEngine } from "./Sync/sync-engine";
+import { useSyncEngine } from "~/app/map/Cache/Sync/sync-engine";
 
 // Coordinators and lifecycle
-import { useDataOperationsWrapper } from "./_coordinators/data-operations-wrapper";
-import { useMutationOperations } from "./_coordinators/use-mutation-operations";
-import { useCacheContextBuilder } from "./_builders/context-builder";
-import { useCacheLifecycle } from "./_lifecycle/provider-lifecycle";
-import { cacheActions } from "./State/actions";
+import { useDataOperationsWrapper } from "~/app/map/Cache/_coordinators/data-operations-wrapper";
+import { useMutationOperations } from "~/app/map/Cache/_coordinators/use-mutation-operations";
+import { useCacheContextBuilder } from "~/app/map/Cache/_builders/context-builder";
+import { useCacheLifecycle } from "~/app/map/Cache/_lifecycle/provider-lifecycle";
+import { cacheActions } from "~/app/map/Cache/State/actions";
 
 
 // Types
-import type { MapCacheContextValue, MapCacheProviderProps } from "./types";
+import type { MapCacheContextValue, MapCacheProviderProps } from "~/app/map/Cache/types";
 
 // Create the context
 export const MapCacheContext = createContext<MapCacheContextValue | null>(null);

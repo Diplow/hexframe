@@ -2,9 +2,9 @@ import { useEffect } from 'react';
 import { useUnifiedAuth } from '~/contexts/UnifiedAuthContext';
 import { useRouter } from 'next/navigation';
 import { api } from '~/commons/trpc/react';
-import type { Widget } from '../../_state/types';
-import { preloadUserMapData, savePreFetchedData } from '../../../Services/PreFetch/pre-fetch-service';
-import { useEventBus } from '../../../Services/EventBus/event-bus-context';
+import type { Widget } from '~/app/map/Chat/_state';
+import { preloadUserMapData, savePreFetchedData } from '~/app/map/Chat/Timeline/services';
+import { useEventBus } from '~/app/map/Chat/Timeline/services';
 
 export function useAuthStateCoordinator(widgets: Widget[]) {
   const { user } = useUnifiedAuth();

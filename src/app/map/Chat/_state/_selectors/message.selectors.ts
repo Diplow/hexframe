@@ -1,5 +1,5 @@
-import type { ChatEvent, Message, Widget, OperationStartedPayload, OperationCompletedPayload, SystemMessagePayload, UserMessagePayload, TileSelectedPayload, AuthRequiredPayload, ErrorOccurredPayload, NavigationPayload } from '../_events/event.types';
-import { chatSettings } from '../../_settings/chat-settings';
+import type { ChatEvent, Message, Widget, OperationStartedPayload, OperationCompletedPayload, SystemMessagePayload, UserMessagePayload, TileSelectedPayload, AuthRequiredPayload, ErrorOccurredPayload, NavigationPayload } from '~/app/map/Chat/_state/_events/event.types';
+import { chatSettings } from '~/app/map/Chat';
 
 /**
  * Derive visible messages from events

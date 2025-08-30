@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { chatSettings, type ChatSettings } from './chat-settings';
+import { chatSettings, type ChatSettings } from '~/app/map/Chat/_settings/chat-settings';
 
 export function useChatSettings() {
   const [settings, setSettings] = useState<ChatSettings>(chatSettings.getSettings());

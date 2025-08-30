@@ -13,6 +13,8 @@ export {
   type MapItemContract as MapItemMappingContract,
 } from "./contracts";
 
+export type { DatabaseTransaction } from "~/lib/domains/mapping/types/transaction";
+
 // Input types for operations
 export interface CreateMapInput {
   title: string;

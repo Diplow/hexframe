@@ -2,8 +2,8 @@
 
 import React from "react";
 import { Button } from "~/components/ui/button";
-import { DynamicBaseTileLayout } from "../Base";
-import { useCanvasTheme } from "../..";
+import { DynamicBaseTileLayout } from "~/app/map/Canvas/Tile/Base";
+import { useCanvasTheme } from "~/app/map/Canvas";
 
 export interface ErrorTileProps {
   title: string;

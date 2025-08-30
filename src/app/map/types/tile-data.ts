@@ -2,9 +2,9 @@ import type { MapItemAPIContract } from "~/server/api/types/contracts";
 import {
   CoordSystem,
   type Coord,
-} from "~/lib/domains/mapping/interface.client";
-import { Direction } from "../constants";
-import { getSemanticColorClass } from "./theme-colors";
+} from "~/lib/domains/mapping/utils";
+import { Direction } from "~/app/map/constants";
+import { getSemanticColorClass } from "~/app/map/types/theme-colors";
 
 export interface TileState {
   isDragged: boolean;

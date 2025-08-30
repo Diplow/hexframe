@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { env } from "~/env";
-import * as schema from "./schema";
+import * as schema from "~/server/db/schema";
 
 // Function to get database connection string based on environment
 const getDatabaseUrl = () => {

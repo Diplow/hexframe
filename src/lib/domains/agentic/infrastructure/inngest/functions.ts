@@ -1,9 +1,8 @@
-import { inngest } from './client'
-import { OpenRouterRepository } from '../../repositories/openrouter.repository'
+import { inngest } from '~/lib/domains/agentic/infrastructure/inngest/client'
+import { OpenRouterRepository, type LLMGenerationParams } from '~/lib/domains/agentic'
 import { db } from '~/server/db'
 import { llmJobResults } from '~/server/db/schema'
 import { eq, sql } from 'drizzle-orm'
-import type { LLMGenerationParams } from '../../types/llm.types'
 import { loggers } from '~/lib/debug/debug-logger'
 import { env } from '~/env'
 

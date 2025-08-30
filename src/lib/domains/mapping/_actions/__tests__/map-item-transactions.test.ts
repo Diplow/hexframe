@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { MapItemActions } from "../map-item.actions";
-import { ItemCrudService } from "../../services/_item-crud.service";
-import { MapItemType } from "../../_objects";
-import type { MapItemWithId } from "../../_objects";
-import { TransactionManager } from "../../infrastructure/transaction-manager";
-import type { MapItemRepository, BaseItemRepository } from "../../_repositories";
-import type { DatabaseTransaction } from "../../types/transaction";
-import type { MapItemIdr } from "../../_repositories/map-item";
+import { MapItemActions } from "~/lib/domains/mapping/_actions/map-item.actions";
+import { ItemCrudService } from "~/lib/domains/mapping/services/_item-crud.service";
+import { MapItemType } from "~/lib/domains/mapping/_objects";
+import type { MapItemWithId } from "~/lib/domains/mapping/_objects";
+import { TransactionManager } from "~/lib/domains/mapping/infrastructure/transaction-manager";
+import type { MapItemRepository, BaseItemRepository } from "~/lib/domains/mapping/_repositories";
+import type { DatabaseTransaction } from "~/lib/domains/mapping/types/transaction";
+import type { MapItemIdr } from "~/lib/domains/mapping/_repositories/map-item";
 
 describe("MapItemActions - Transaction Support", () => {
   let mapItemRepo: MapItemRepository & { withTransaction: (tx: DatabaseTransaction) => MapItemRepository };

@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { cn } from "~/lib/utils";
-import { BaseFrame } from "../Tile/interface";
-import type { TileData } from "../../types/tile-data";
-import { CoordSystem } from "~/lib/domains/mapping/interface.client";
-import type { URLInfo } from "../../types/url-info";
+import { BaseFrame } from "~/app/map/Canvas/Tile";
+import type { TileData, URLInfo } from "~/app/map/Canvas/types";
+import { CoordSystem } from "~/lib/domains/mapping/utils";
 
 interface MapLoadingSkeletonProps {
   className?: string;

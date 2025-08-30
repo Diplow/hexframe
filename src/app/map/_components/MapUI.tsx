@@ -1,16 +1,15 @@
 "use client";
 
 import { useCallback } from "react";
-import { DynamicMapCanvas } from "../Canvas";
-import type { TileData } from "../types/tile-data";
-import { ParentHierarchy } from "../Hierarchy";
-import { TileActionsProvider } from "../Canvas/TileActionsContext";
-import { ChatPanel } from "../Chat/ChatPanel";
-import { useTileSelectForChat } from "../_hooks/use-tile-select-for-chat";
-import { useMapCache } from '../Cache/interface';
+import { DynamicMapCanvas, MapLoadingSkeleton } from "~/app/map/Canvas";
+import type { TileData } from "~/app/map/types/tile-data";
+import { ParentHierarchy } from "~/app/map/Hierarchy";
+import { TileActionsProvider } from "~/app/map/Canvas/TileActionsContext";
+import { ChatPanel } from "~/app/map/Chat/ChatPanel";
+import { useTileSelectForChat } from "~/app/map/_hooks/use-tile-select-for-chat";
+import { useMapCache } from '~/app/map/Cache';
 import { useRouter } from "next/navigation";
-import { MapLoadingSkeleton } from "../Canvas/LifeCycle/loading-skeleton";
-import { useEventBus } from "../Services/EventBus/event-bus-context";
+import { useEventBus } from '~/app/map';
 
 const CACHE_CONFIG = {
   maxAge: 300000,

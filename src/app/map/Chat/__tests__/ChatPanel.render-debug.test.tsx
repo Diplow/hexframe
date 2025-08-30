@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
-import { ChatPanel } from '../ChatPanel';
+import { ChatPanel } from '~/app/map/Chat/ChatPanel';
 import { TestProviders } from '~/test-utils/providers';
 import { createMockEventBus } from '~/test-utils/event-bus';
-import type { ChatSettings } from '../_settings/chat-settings';
+import type { ChatSettings } from '~/app/map/Chat/_settings/chat-settings';
 
 // Track all renders
 let renderLogs: string[] = [];

@@ -6,14 +6,14 @@ import {
   mappingServiceMiddleware,
 } from "~/server/api/trpc";
 import { contractToApiAdapters } from "~/server/api/types/contracts";
-import { type Coord } from "~/lib/domains/mapping/interface.client";
+import { type Coord } from "~/lib/domains/mapping/utils";
 import {
   hexCoordSchema,
   itemCreationSchema,
   itemUpdateSchema,
   itemMovementSchema,
 } from "./map-schemas";
-import { _createSuccessResponse, _getUserId } from "./_map-auth-helpers";
+import { _createSuccessResponse, _getUserId } from "~/server/api/routers/map/_map-auth-helpers";
 import { TRPCError } from "@trpc/server";
 
 export const mapItemsRouter = createTRPCRouter({

@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useMapCache } from '../Cache/interface';
-import { useMapResolver } from '../MapResolver/interface';
+import { useMapCache } from '~/app/map/Cache';
+import { useMapResolver } from '~/app/map/MapResolver';
 
 interface MapCacheUpdaterProps {
   centerParam?: string;

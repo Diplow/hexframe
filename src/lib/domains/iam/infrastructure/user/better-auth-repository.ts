@@ -3,14 +3,8 @@ import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { users } from "~/server/db/schema";
 import type * as schema from "~/server/db/schema";
 import { UserMappingService } from "~/server/api/services/user-mapping.service";
-import { User } from "../../_objects/user";
+import { User, type UserRepository, type CreateUserInput, type AuthenticateUserInput, type AuthenticationResult } from "~/lib/domains/iam";
 import type { auth as authInstance } from "~/server/auth";
-import type {
-  UserRepository,
-  CreateUserInput,
-  AuthenticateUserInput,
-  AuthenticationResult,
-} from "../../_repositories/user.repository";
 
 // Type for better-auth API responses
 interface BetterAuthUser {

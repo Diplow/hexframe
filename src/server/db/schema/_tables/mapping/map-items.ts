@@ -9,9 +9,9 @@ import {
   check,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { createTable } from "../../_utils";
-import { baseItems } from "./base-items";
-import { type MapItemType } from "~/lib/domains/mapping/interface";
+import { createTable } from "~/server/db/schema/_utils";
+import { baseItems } from "~/server/db/schema/_tables/mapping/base-items";
+import { type MapItemType } from "~/lib/domains/mapping/types";
 
 export const mapItems = createTable(
   "map_items",

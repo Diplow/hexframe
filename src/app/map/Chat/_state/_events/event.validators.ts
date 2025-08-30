@@ -1,5 +1,5 @@
-import type { AppEvent } from '../../../types/events';
-import type { ChatEvent } from './event.types';
+import type { AppEvent } from '~/app/map/types';
+import type { ChatEvent } from '~/app/map/Chat/_state/_events/event.types';
 import { 
   mapTileSelectedEventSchema,
   mapTileCreatedEventSchema,
@@ -14,7 +14,7 @@ import {
   mapDeleteRequestedEventSchema,
   mapCreateRequestedEventSchema,
   safeValidateEvent,
-} from '../../../types/event-schemas';
+} from '../../../types';
 
 /**
  * Validates and transforms a map event into a chat event

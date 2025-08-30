@@ -9,7 +9,23 @@
     "~/test-utils/event-bus",
     "vitest",
     "react",
-    "next/navigation"
+    "next/navigation",
+    "../utils",
+    "../types",
+    "../../types",
+    "../types/tile-data",
+    "~/app/map",
+    "../Services/EventBus",
+    "../Services/types",
+    "../Services/server-service",
+    "../State/types",
+    "../State/actions",
+    "../Handlers/types",
+    "../Handlers/data-handler",
+    "../Handlers/ancestor-loader",
+    "../Sync/types",
+    "../../Services/EventBus/interface",
+    "../../types/tile-data"
   ],
   "exceptions": {
     "~/lib/domains/mapping/types/MapItemType": "Needed for specific type import while avoiding full types folder"

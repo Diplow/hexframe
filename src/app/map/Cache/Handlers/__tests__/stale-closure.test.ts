@@ -1,10 +1,10 @@
 import { describe, test, expect, vi } from "vitest";
-import { createNavigationHandler } from "../navigation-handler";
-import { cacheActions } from "../../State/actions";
-import { cacheReducer, initialCacheState } from "../../State/reducer";
-import type { NavigationHandlerConfig } from "../navigation-handler";
-import type { CacheState, CacheAction } from "../../State/types";
-import type { DataOperations } from "../types";
+import { createNavigationHandler } from "~/app/map/Cache/Handlers/navigation-handler";
+import { cacheActions } from "~/app/map/Cache/State/actions";
+import { cacheReducer, initialCacheState } from "~/app/map/Cache/State/reducer";
+import type { NavigationHandlerConfig } from "~/app/map/Cache/Handlers/navigation-handler";
+import type { CacheState, CacheAction } from "~/app/map/Cache/State/types";
+import type { DataOperations } from "~/app/map/Cache/Handlers/types";
 
 describe("Stale State Closure Bug", () => {
   test("navigation handler should use current maxDepth config not stale value", async () => {

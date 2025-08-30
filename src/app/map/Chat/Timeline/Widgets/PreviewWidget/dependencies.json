@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../../../../schemas/dependencies.schema.json",
+  "$schema": "~/schemas/dependencies.schema.json",
   "allowed": [
     "./",
     "react",
@@ -7,7 +7,8 @@
     "~/components/ui/input",
     "~/components/ui/textarea",
     "~/lib/utils",
-    "lucide-react"
+    "lucide-react",
+    "../Portal"
   ],
   "exceptions": {}
 }

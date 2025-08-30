@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useMemo, useReducer, useCallback } from 'react';
-import type { MapResolverContextValue, MapResolverProviderProps, ResolvedMapInfo, MapResolverState, ResolverAction } from './types';
+import type { MapResolverContextValue, MapResolverProviderProps, ResolvedMapInfo, MapResolverState, ResolverAction } from '~/app/map/MapResolver/types';
 
 const MapResolverContext = createContext<MapResolverContextValue | null>(null);
 

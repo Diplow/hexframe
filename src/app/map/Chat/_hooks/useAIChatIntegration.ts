@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { useChatState } from '../_state'
-import { useAIChat } from './useAIChat'
+import { useChatState } from '~/app/map/Chat/_state'
+import { useAIChat } from '~/app/map/Chat/_hooks/useAIChat'
 import { loggers } from '~/lib/debug/debug-logger'
 
 /**

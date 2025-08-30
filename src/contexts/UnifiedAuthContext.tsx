@@ -1,7 +1,7 @@
 "use client";
 
 import React, { type ReactNode } from "react";
-import { AuthProvider, useAuth } from "./AuthContext";
+import { AuthProvider, useAuth } from "~/contexts/AuthContext";
 
 /**
  * Unified auth provider that uses better-auth

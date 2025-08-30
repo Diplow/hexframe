@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { CompositionConfig } from './context.types'
+import type { CompositionConfig } from '~/lib/domains/agentic/types/context.types'
 
 export const generateResponseInputSchema = z.object({
   message: z.string().min(1),

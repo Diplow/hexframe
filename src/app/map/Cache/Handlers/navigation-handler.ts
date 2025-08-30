@@ -1,14 +1,14 @@
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import type { CacheAction, CacheState } from "../State/types";
-import { cacheActions } from "../State/actions";
-import type { DataOperations, NavigationOperations } from "./types";
-import { CoordSystem } from "~/lib/domains/mapping/interface.client";
-import type { ServerService } from "../Services/types";
-import { checkAncestors, loadAncestorsForItem } from "./ancestor-loader";
-import type { EventBusService } from "../../Services/EventBus/interface";
-import { adapt } from "../../types/tile-data";
+import type { CacheAction, CacheState } from "~/app/map/Cache/State/types";
+import { cacheActions } from "~/app/map/Cache/State/actions";
+import type { DataOperations, NavigationOperations } from "~/app/map/Cache/Handlers/types";
+import { CoordSystem } from "~/lib/domains/mapping/utils";
+import type { ServerService } from "~/app/map/Cache/Services/types";
+import { checkAncestors, loadAncestorsForItem } from "~/app/map/Cache/Handlers/ancestor-loader";
+import type { EventBusService } from '~/app/map';
+import { adapt } from "~/app/map/types";
 import { loggers } from "~/lib/debug/debug-logger";
-import { type MapItemType } from "~/lib/domains/mapping/interface.client";
+import { type MapItemType } from "~/lib/domains/mapping/utils";
 
 export interface NavigationHandlerConfig {
   dispatch: React.Dispatch<CacheAction>;

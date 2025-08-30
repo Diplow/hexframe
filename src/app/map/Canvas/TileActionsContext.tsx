@@ -9,8 +9,8 @@ import {
   useRef,
   type ReactNode,
 } from "react";
-import type { TileData } from "../types/tile-data";
-import { TileContextMenu } from "./TileContextMenu";
+import type { TileData } from "~/app/map/types/tile-data";
+import { TileContextMenu } from "~/app/map/Canvas/TileContextMenu";
 
 export interface TileActionsContextValue {
   // Click handlers

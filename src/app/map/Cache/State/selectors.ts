@@ -1,7 +1,7 @@
-import type { CacheState } from "./types";
-import type { TileData } from "../../types/tile-data";
-import { CoordSystem } from "~/lib/domains/mapping/interface.client";
-import type { RegionMetadata } from "./types";
+import type { CacheState } from "~/app/map/Cache/State/types";
+import type { TileData } from "~/app/map/types";
+import { CoordSystem } from "~/lib/domains/mapping/utils";
+import type { RegionMetadata } from "~/app/map/Cache/State/types";
 
 // Selector factory for creating memoized selectors
 function createMemoizedSelector<TInput, TOutput>(

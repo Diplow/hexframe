@@ -3,7 +3,7 @@
  * to populate MapCacheProvider with initial data
  */
 
-import { adapt, type TileData } from '../../types/tile-data';
+import { adapt, type TileData } from '~/app/map/Services/types';
 import type { MapItemAPIContract } from '~/server/api/types/contracts';
 import type { api } from '~/commons/trpc/react';
 

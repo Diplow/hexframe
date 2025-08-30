@@ -1,1 +1,1 @@
-export { MapItemActions } from "./map-item-actions";
+export { MapItemActions } from "~/lib/domains/mapping/_actions/map-item-actions";

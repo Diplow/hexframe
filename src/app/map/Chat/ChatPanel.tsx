@@ -2,18 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { cn } from '~/lib/utils';
-import { useChatState, ChatProvider } from './_state';
-import { Timeline } from './Timeline/interface';
-import { Input } from './Input';
+import { useChatState, ChatProvider } from '~/app/map/Chat/_state';
+import { Timeline } from '~/app/map/Chat/Timeline';
+import { Input } from '~/app/map/Chat/Input';
 import { ThemeToggle } from '~/components/ThemeToggle';
 import { Logo } from '~/components/ui/logo';
 import { Button } from '~/components/ui/button';
 import { LogOut, LogIn } from 'lucide-react';
 import { useUnifiedAuth } from '~/contexts/UnifiedAuthContext';
-import { authClient } from '~/lib/auth/interface';
+import { authClient } from '~/lib/auth';
 import { loggers } from '~/lib/debug/debug-logger';
-import { useEventBus } from '../Services/EventBus/event-bus-context';
-import { useAIChatIntegration } from './_hooks/useAIChatIntegration';
+import { useEventBus } from '~/app/map/Chat/services';
+import { useAIChatIntegration } from '~/app/map/Chat/_hooks/useAIChatIntegration';
 
 interface ChatPanelProps {
   className?: string;

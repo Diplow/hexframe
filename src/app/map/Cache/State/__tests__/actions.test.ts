@@ -17,10 +17,10 @@ import {
   createErrorHandlingActions,
   createBatchActions,
 } from "../actions";
-import { ACTION_TYPES } from "../types";
+import { ACTION_TYPES } from "~/app/map/Cache/State/types";
 import type { MapItemAPIContract } from "~/server/api/types/contracts";
-import type { CacheAction, CacheState } from "../types";
-import { MapItemType } from "~/lib/domains/mapping/interface.client";
+import type { CacheAction, CacheState } from "~/app/map/Cache/State/types";
+import { MapItemType } from "~/lib/domains/mapping/utils";
 
 describe("Cache Actions", () => {
   // Mock data for testing

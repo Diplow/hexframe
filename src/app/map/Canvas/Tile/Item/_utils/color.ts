@@ -1,5 +1,5 @@
-import type { TileData } from "../../../../types/tile-data";
-import type { TileColor } from "../../Base/BaseTileLayout";
+import type { TileData } from "~/app/map/Canvas/Tile";
+import type { TileColor } from "~/app/map/Canvas/Tile";
 
 /**
  * Extracts color configuration from a tile's data

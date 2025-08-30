@@ -8,9 +8,9 @@ import {
   type Coord,
   CoordSystem,
 } from "~/lib/domains/mapping/utils/hex-coordinates";
-import { MapItemType } from "../_objects";
-import type { MapItemContract } from "../types/contracts";
-import { TransactionManager } from "../infrastructure/transaction-manager";
+import { MapItemType } from "~/lib/domains/mapping/_objects";
+import type { MapItemContract } from "~/lib/domains/mapping/types/contracts";
+import { TransactionManager } from "~/lib/domains/mapping/infrastructure/transaction-manager";
 
 export class ItemCrudService {
   private readonly actions: MapItemActions;

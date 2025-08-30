@@ -1,4 +1,4 @@
-import type { User } from "../_objects/user";
+import type { User } from "~/lib/domains/iam/_objects/user";
 
 export interface CreateUserInput {
   email: string;

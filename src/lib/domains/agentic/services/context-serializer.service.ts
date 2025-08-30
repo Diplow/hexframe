@@ -2,10 +2,10 @@ import type {
   ComposedContext,
   SerializationFormat 
 } from '../types'
-import { StructuredContextSerializer } from './serializers/structured-serializer'
-import { XMLContextSerializer } from './serializers/xml-serializer'
-import { MinimalContextSerializer } from './serializers/minimal-serializer'
-import { NarrativeContextSerializer } from './serializers/narrative-serializer'
+import { StructuredContextSerializer } from '~/lib/domains/agentic/services/serializers/structured-serializer'
+import { XMLContextSerializer } from '~/lib/domains/agentic/services/serializers/xml-serializer'
+import { MinimalContextSerializer } from '~/lib/domains/agentic/services/serializers/minimal-serializer'
+import { NarrativeContextSerializer } from '~/lib/domains/agentic/services/serializers/narrative-serializer'
 
 /**
  * Main serializer service that delegates to format-specific serializers.

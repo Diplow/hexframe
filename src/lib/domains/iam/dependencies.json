@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../schemas/dependencies.schema.json",
+  "$schema": "~/schemas/dependencies.schema.json",
   "allowed": [
     "zod",
     "next/cache",
@@ -11,7 +11,16 @@
     "./_objects",
     "./_repositories",
     "./services",
-    "./types"
+    "./types",
+    "../_objects",
+    "../_repositories",
+    "../types",
+    "../../_objects",
+    "../../_repositories",
+    "../../types",
+    "../..",
+    "../infrastructure",
+    "../services/mapping.service"
   ],
   "exceptions": {}
 }

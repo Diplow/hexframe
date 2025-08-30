@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { api } from "~/commons/trpc/react";
-import { CoordSystem } from "~/lib/domains/mapping/interface.client";
+import { CoordSystem } from "~/lib/domains/mapping/utils";
 import type {
   ServerService,
   ServiceConfig,

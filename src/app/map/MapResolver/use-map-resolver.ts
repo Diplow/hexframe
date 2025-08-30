@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
-import { useMapResolverContext } from './provider';
-import { useResolverService } from './resolver-service';
-import type { ResolvedMapInfo } from './types';
+import { useMapResolverContext } from '~/app/map/MapResolver/provider';
+import { useResolverService } from '~/app/map/MapResolver/resolver-service';
+import type { ResolvedMapInfo } from '~/app/map/MapResolver/types';
 
 /**
  * Hook for resolving map identifiers to coordinates

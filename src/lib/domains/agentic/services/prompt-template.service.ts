@@ -1,4 +1,4 @@
-import { PROMPT_TEMPLATES, type PromptTemplateName, type PromptVariables } from '../prompts/prompts.constants'
+import { PROMPT_TEMPLATES, type PromptTemplateName, type PromptVariables } from '~/lib/domains/agentic/prompts/prompts.constants'
 
 export class PromptTemplateService {
   renderTemplate(templateName: PromptTemplateName, variables: PromptVariables): string {

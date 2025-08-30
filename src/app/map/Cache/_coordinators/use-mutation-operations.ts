@@ -1,13 +1,13 @@
 import { useMemo, useRef, useCallback } from "react";
 import type { Dispatch } from "react";
 import { api } from "~/commons/trpc/react";
-import type { CacheState, CacheAction } from "../State/types";
-import type { MutationOperations } from "../Handlers/types";
-import type { DataOperations } from "../Handlers/types";
-import type { StorageService } from "../Services/types";
-import { MutationCoordinator } from "./mutation-coordinator";
-import type { Coord } from "~/lib/domains/mapping/interface.client";
-import type { EventBusService } from "../../Services/EventBus/interface";
+import type { CacheState, CacheAction } from "~/app/map/Cache/State/types";
+import type { MutationOperations } from "~/app/map/Cache/Handlers/types";
+import type { DataOperations } from "~/app/map/Cache/Handlers/types";
+import type { StorageService } from "~/app/map/Cache/Services/types";
+import { MutationCoordinator } from "~/app/map/Cache/_coordinators/mutation-coordinator";
+import type { Coord } from "~/lib/domains/mapping/utils";
+import type { EventBusService } from '~/app/map';
 
 interface MutationOperationsConfig {
   dispatch: Dispatch<CacheAction>;

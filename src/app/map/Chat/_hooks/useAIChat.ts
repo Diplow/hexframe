@@ -1,10 +1,10 @@
 import { useState, useCallback, useContext, useMemo } from 'react'
 import { api } from '~/commons/trpc/react'
-import { useChatState } from '../_state'
-import { MapCacheContext } from '../../Cache/interface'
-import type { ChatMessage } from '../types'
-import type { CompositionConfig, QueuedJobResponse } from '~/lib/domains/agentic/interface'
-import type { Message } from '../_state/_events/event.types'
+import { useChatState } from '~/app/map/Chat/_state'
+import { MapCacheContext } from '~/app/map/Cache'
+import type { ChatMessage } from '~/app/map/Chat/types'
+import type { CompositionConfig, QueuedJobResponse } from '~/lib/domains/agentic'
+import type { Message } from '~/app/map/Chat/_state'
 import { loggers } from '~/lib/debug/debug-logger'
 
 interface UseAIChatOptions {
@@ -30,7 +30,7 @@ export function useAIChat(options: UseAIChatOptions = {}) {
   
   
   const generateResponseMutation = api.agentic.generateResponse.useMutation({
-    onSuccess: (response) => {
+    onSuccess: (response: any) => {
       
       // Check if response is queued based on finishReason
       if ((response as QueuedJobResponse).finishReason === 'queued') {
@@ -58,7 +58,7 @@ export function useAIChat(options: UseAIChatOptions = {}) {
       }
       setIsGenerating(false)
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('[useAIChat] Mutation error:', error)
       chatState.showSystemMessage(
         `AI Error: ${error.message}`,

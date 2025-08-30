@@ -1,8 +1,9 @@
 {
-  "$schema": "../../../../../schemas/dependencies.schema.json",
+  "$schema": "~/schemas/dependencies.schema.json",
   "allowed": [
     "react",
-    "../../types/events"
+    "../types",
+    "~/lib/debug/debug-logger"
   ],
   "exceptions": {}
 }

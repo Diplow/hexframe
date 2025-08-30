@@ -1,11 +1,11 @@
 import { useEffect, useRef } from "react";
 import type { Dispatch } from "react";
-import type { CacheState, CacheAction } from "../State/types";
-import type { DataOperations } from "../Handlers/types";
-import type { SyncOperations } from "../Sync/types";
-import type { ServerService } from "../Services/types";
-import { cacheActions } from "../State/actions";
-import { checkAncestors, loadAncestorsForItem } from "../Handlers/ancestor-loader";
+import type { CacheState, CacheAction } from "~/app/map/Cache/State/types";
+import type { DataOperations } from "~/app/map/Cache/Handlers/types";
+import type { SyncOperations } from "~/app/map/Cache/Sync/types";
+import type { ServerService } from "~/app/map/Cache/Services/types";
+import { cacheActions } from "~/app/map/Cache/State/actions";
+import { checkAncestors, loadAncestorsForItem } from "~/app/map/Cache/Handlers/ancestor-loader";
 
 export interface LifecycleHookConfig {
   dispatch: Dispatch<CacheAction>;

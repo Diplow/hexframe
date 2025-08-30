@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../../schemas/dependencies.schema.json",
+  "$schema": "~/schemas/dependencies.schema.json",
   "allowed": [
     "drizzle-orm",
     "drizzle-orm/postgres-js",
@@ -7,7 +7,10 @@
     "~/server/auth",
     "~/server/api/services/user-mapping.service",
     "../_objects/user",
-    "../_repositories/user.repository"
+    "../_repositories/user.repository",
+    "../../_objects/user",
+    "../../_repositories/user.repository",
+    "../.."
   ],
   "exceptions": {}
 }

@@ -3,9 +3,9 @@ import {
   createSyncEngine,
   createSyncEngineForTesting,
 } from "../sync-engine";
-import { initialCacheState } from "../../State/reducer";
-import type { CacheState } from "../../State/types";
-import type { DataOperations } from "../../Handlers/types";
+import { initialCacheState } from "~/app/map/Cache/State/reducer";
+import type { CacheState } from "~/app/map/Cache/State/types";
+import type { DataOperations } from "~/app/map/Cache/Handlers/types";
 import type {
   SyncConfig,
   SyncEvent,

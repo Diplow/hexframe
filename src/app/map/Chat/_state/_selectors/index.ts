@@ -1,5 +1,5 @@
-import type { ChatEvent, Message, Widget } from '../types';
-import type { UserMessagePayload, SystemMessagePayload, OperationCompletedPayload, TileSelectedPayload, OperationStartedPayload, ErrorOccurredPayload, AuthRequiredPayload } from '../_events/event.types';
+import type { ChatEvent, Message, Widget } from '~/app/map/Chat/_state/types';
+import type { UserMessagePayload, SystemMessagePayload, OperationCompletedPayload, TileSelectedPayload, OperationStartedPayload, ErrorOccurredPayload, AuthRequiredPayload } from '~/app/map/Chat/_state/_events/event.types';
 
 export function deriveVisibleMessages(events: ChatEvent[]): Message[] {
   return events

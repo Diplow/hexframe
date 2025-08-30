@@ -1,12 +1,14 @@
 {
-  "$schema": "../../../schemas/dependencies.schema.json",
+  "$schema": "~/schemas/dependencies.schema.json",
   "allowed": [
+    "../Cache",
+    "../Canvas",
     "../types/tile-data",
     "../types/url-info",
     "../types/theme-colors",
     "../constants",
-    "~/app/map/Cache/interface",
-    "~/app/map/Canvas/interface",
+    "../Cache/interface",
+    "../Canvas/interface",
     "~/contexts/UnifiedAuthContext",
     "~/commons/trpc/react",
     "~/lib/debug/debug-logger",

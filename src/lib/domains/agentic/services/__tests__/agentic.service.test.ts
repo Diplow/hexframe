@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { AgenticService } from '../agentic.service'
-import type { ILLMRepository } from '../../repositories/llm.repository.interface'
-import type { ContextCompositionService } from '../context-composition.service'
-import type { EventBus } from '~/app/map/interface'
-import type { ComposedContext, LLMResponse, StreamChunk } from '../../types'
-import type { ChatMessage } from '~/app/map/interface'
+import { AgenticService } from '~/lib/domains/agentic/services/agentic.service'
+import type { ILLMRepository } from '~/lib/domains/agentic/repositories/llm.repository.interface'
+import type { ContextCompositionService } from '~/lib/domains/agentic/services/context-composition.service'
+import type { EventBus } from '~/app/map'
+import type { ComposedContext, LLMResponse, StreamChunk } from '~/lib/domains/agentic/types'
+import type { ChatMessage } from '~/app/map'
 
 describe('AgenticService', () => {
   let mockLLMRepository: ILLMRepository

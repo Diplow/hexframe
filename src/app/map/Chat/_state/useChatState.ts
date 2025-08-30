@@ -1,18 +1,17 @@
 import { useEffect, useReducer, useMemo, useCallback, useRef } from 'react';
-import { useEventBus } from '../../Services/EventBus/event-bus-context';
-import type { ChatEvent, ChatUIState } from './_events/event.types';
-import type { AppEvent } from '../../types/events';
-import type { TileData } from '../../types/tile-data';
-import { eventsReducer } from './_reducers/events.reducer';
-import { deriveVisibleMessages, deriveActiveWidgets } from './_selectors/message.selectors';
-import { validateAndTransformMapEvent } from './_events/event.validators';
+import { useEventBus } from '~/app/map/Chat/services';
+import type { ChatEvent, ChatUIState } from '~/app/map/Chat/_state/_events/event.types';
+import type { AppEvent, TileData } from '~/app/map/types';
+import { eventsReducer } from '~/app/map/Chat/_state/_reducers/events.reducer';
+import { deriveVisibleMessages, deriveActiveWidgets } from '~/app/map/Chat/_state/_selectors/message.selectors';
+import { validateAndTransformMapEvent } from '~/app/map/Chat/_state/_events/event.validators';
 import { 
   createUserMessageEvent, 
   createSystemMessageEvent,
   createAssistantMessageEvent,
   createOperationStartedEvent 
 } from './_events/event.creators';
-import { chatSettings } from '../_settings/chat-settings';
+import { chatSettings } from '~/app/map/Chat/_settings/chat-settings';
 
 /**
  * Chat state hook - provides domain operations for chat functionality

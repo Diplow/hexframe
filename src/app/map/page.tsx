@@ -1,12 +1,12 @@
 "use client";
 
-import { MapResolverProvider } from './MapResolver/interface';
-import { MapCacheProvider } from './Cache/interface';
-import { EventBusProvider } from './Services/EventBus/interface';
-import { eventBus } from './Services/EventBus/event-bus';
-import { MapLoadingUI } from './_components/MapLoadingUI';
-import { MapUI } from './_components/MapUI';
-import { useMapPageSetup } from './_hooks/useMapPageSetup';
+import { MapResolverProvider } from '~/app/map/MapResolver';
+import { MapCacheProvider } from '~/app/map/Cache';
+import { EventBusProvider, EventBus } from './';
+const eventBus = new EventBus();
+import { MapLoadingUI } from '~/app/map/_components/MapLoadingUI';
+import { MapUI } from '~/app/map/_components/MapUI';
+import { useMapPageSetup } from '~/app/map/_hooks/useMapPageSetup';
 
 interface MapPageProps {
   searchParams: Promise<{

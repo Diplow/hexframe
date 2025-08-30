@@ -1,7 +1,7 @@
 "use client";
 
-import { ChatPanel } from "../Chat/ChatPanel";
-import { MapLoadingSkeleton } from "../Canvas/LifeCycle/loading-skeleton";
+import { ChatPanel } from "~/app/map/Chat/ChatPanel";
+import { MapLoadingSkeleton } from "~/app/map/Canvas";
 
 interface MapLoadingUIProps {
   message: string;

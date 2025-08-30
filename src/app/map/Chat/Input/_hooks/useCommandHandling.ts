@@ -1,10 +1,8 @@
 import { useCallback } from 'react';
-import { chatSettings } from '../../_settings/chat-settings';
-import { useChatState } from '../../_state';
-import { useMapCache } from '../../../Cache/interface';
+import { chatSettings, useChatState, useMapCache } from '~/app/map/Chat';
 import { debugLogger } from '~/lib/debug/debug-logger';
-import { authClient } from '~/lib/auth/interface';
-import { useEventBus } from '../../../Services/EventBus/event-bus-context';
+import { authClient } from '~/lib/auth';
+import { useEventBus } from '~/app/map/Chat/services';
 
 // UTF-8 safe base64 encoder
 function toBase64(s: string): string {

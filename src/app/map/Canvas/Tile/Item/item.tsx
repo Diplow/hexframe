@@ -1,10 +1,9 @@
 "use client";
 
-import type { TileData } from "../../../types/tile-data";
-import type { TileScale } from "../Base/BaseTileLayout";
-import type { URLInfo } from "../../../types/url-info";
-import { useItemState } from "./_hooks";
-import { ItemTileContent } from "./_components/item-tile-content";
+import type { TileData, URLInfo } from "..";
+import type { TileScale } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
+import { useItemState } from "~/app/map/Canvas/Tile/Item/_hooks";
+import { ItemTileContent } from "~/app/map/Canvas/Tile/Item/_components/item-tile-content";
 import { useEffect } from "react";
 import { loggers } from "~/lib/debug/debug-logger";
 
@@ -19,6 +18,8 @@ export interface DynamicItemTileProps {
   interactive?: boolean;
   currentUserId?: number;
   isSelected?: boolean;
+  onNavigate?: (coordId: string) => void;
+  onToggleExpansion?: (itemId: string, coordId: string) => void;
 }
 
 export const DynamicItemTile = (props: DynamicItemTileProps) => {
@@ -63,7 +64,7 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
   return (
     <>
       <div 
-        className={`group relative hover:z-10 ${state.interaction.isBeingDragged ? 'dragging' : ''}`} 
+        className={`group relative hover:z-10 select-none ${state.interaction.isBeingDragged ? 'dragging' : ''}`} 
         data-testid={state.testId}
         {...state.dragProps}
         {...state.dropProps}>

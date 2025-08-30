@@ -1,5 +1,5 @@
 import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
-import { users } from "./users"; // Import for foreign key
+import { users } from "~/server/db/schema/_tables/auth/users"; // Import for foreign key
 
 export const sessions = pgTable("sessions", {
   id: text("id").primaryKey(), // better-auth generates string IDs
