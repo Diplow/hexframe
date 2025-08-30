@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import type { Dispatch } from "react";
 import type { CacheState, CacheAction } from "~/app/map/Cache/State/types";
 import type { DataOperations } from "~/app/map/Cache/Handlers/types";
@@ -34,8 +34,8 @@ export function useCacheLifecycle(config: LifecycleHookConfig): void {
   const configRef = useRef(config);
   configRef.current = config;
   
-  // Create prefetch function without useCallback to avoid any dependency issues
-  const prefetchRegion = async (centerCoordId: string, maxDepth: number) => {
+  // Create prefetch function with useCallback to avoid dependency issues
+  const prefetchRegion = useCallback(async (centerCoordId: string, maxDepth: number) => {
     // Get current config from ref
     const currentConfig = configRef.current;
     
@@ -88,7 +88,7 @@ export function useCacheLifecycle(config: LifecycleHookConfig): void {
     } finally {
       loadingCentersRef.current.delete(centerCoordId);
     }
-  };
+  }, []); // Empty dependencies since we use configRef
 
   // Handle center changes and trigger region loads
   // Use a timeout to defer prefetch and break the dispatch cascade
@@ -124,10 +124,7 @@ export function useCacheLifecycle(config: LifecycleHookConfig): void {
       clearTimeout(timeoutId);
     };
   }, [
-    config.state.currentCenter,
-    config.state.cacheConfig.maxDepth,
-    config.state.itemsById,
-    config.state.isLoading,
+    config.state,
     // Include prefetchRegion since we're calling it
     prefetchRegion,
   ]);

@@ -4,7 +4,6 @@ export {
   type MapItemAttrs,
   type MapItemRelatedItems,
   type MapItemRelatedLists,
-  type MapItemIdr,
   type MapItemWithId,
 } from "../_objects";
 

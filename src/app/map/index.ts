@@ -11,8 +11,7 @@ export {
   MapCacheContext,
   useMapCache,
   type MapCacheHook,
-  type CacheState,
-  type TileData
+  type CacheState
 } from './Cache';
 
 // Chat subsystem

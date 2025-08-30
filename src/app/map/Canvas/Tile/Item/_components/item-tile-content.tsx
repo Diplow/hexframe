@@ -5,7 +5,7 @@ import { DynamicBaseTileLayout } from "~/app/map/Canvas/Tile/Base";
 import type { TileScale, TileColor } from "~/app/map/Canvas/Tile";
 import { DynamicTileContent } from "~/app/map/Canvas/Tile/Item/content";
 import { useTileInteraction } from "~/app/map/Canvas/Tile";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation"; // Removed unused import
 import { useCanvasTheme } from "~/app/map/Canvas";
 
 interface ItemTileContentProps {
@@ -47,7 +47,7 @@ export function ItemTileContent({
   onNavigate,
   onToggleExpansion,
 }: ItemTileContentProps) {
-  const router = useRouter();
+  // const router = useRouter(); // Removed unused variable
   const { isDarkMode } = useCanvasTheme();
   
   // Check if this tile is expanded

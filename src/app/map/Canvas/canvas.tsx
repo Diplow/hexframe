@@ -21,18 +21,18 @@ import type { URLInfo } from "~/app/map/types/url-info";
 import { MapLoadingSkeleton } from "~/app/map/Canvas/LifeCycle/loading-skeleton";
 import { MapErrorBoundary } from "~/app/map/Canvas/LifeCycle/error-boundary";
 import { useDragAndDrop } from "~/app/map/Canvas/hooks/useDragAndDrop";
-import type { DragEvent } from "react";
+// import type { DragEvent } from "react"; // Removed unused import
 import { loggers } from "~/lib/debug/debug-logger";
 import { useEventBus } from '~/app/map';
 
 // Import all shared contexts to ensure tiles and canvas use the same context instances
 import { 
   LegacyTileActionsContext, 
-  useLegacyTileActionsContext,
-  type LegacyTileActionsContextValue,
+  // useLegacyTileActionsContext, // Removed unused import
+  // type LegacyTileActionsContextValue, // Removed unused import
   CanvasThemeContext,
-  useCanvasTheme,
-  type ThemeContextValue
+  // useCanvasTheme, // Removed unused import
+  // type ThemeContextValue // Removed unused import
 } from './_shared/contexts';
 
 interface DynamicMapCanvasProps {
@@ -221,7 +221,7 @@ export function DynamicMapCanvas({
     });
   };
 
-  const handleToggleExpansion = (itemId: string, coordId: string) => {
+  const handleToggleExpansion = (itemId: string, _coordId: string) => {
     toggleItemExpansionWithURL(itemId);
   };
 
