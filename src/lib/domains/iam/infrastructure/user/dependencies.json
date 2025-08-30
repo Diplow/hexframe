@@ -1,0 +1,12 @@
+{
+  "$schema": "~/schemas/dependencies.schema.json",
+  "allowed": [
+    "drizzle-orm",
+    "~/lib/domains/iam/_objects",
+    "~/lib/domains/iam/_repositories",
+    "~/lib/domains/iam/types",
+    "~/server/auth",
+    "~/server/db"
+  ],
+  "exceptions": {}
+}

@@ -1,12 +1,10 @@
 #!/bin/sh
 #
-# Architecture Boundary Check
+# Architecture Boundary Check - Fast Python Implementation with Bash Fallback
 # 
 # Usage:
 #   pnpm check:architecture [path]     # Recommended: uses pnpm environment
-#   bash .husky/check-architecture    # Direct execution (may fail if tools not in PATH)
-#
-# Required tools: find, grep, sed, awk, wc (jq optional for better performance)
+#   bash .husky/check-architecture     # Direct execution (may fail if tools not in PATH)
 #
 # CORE PRINCIPLE: Boundaries are complexity inflection points. When this script
 # fails, it's a signal to pause and consider if we're adding necessary complexity.
@@ -30,6 +28,16 @@
 # Default path: src
 
 set -e
+
+# Try Python implementation first (much faster), fallback to bash
+if command -v python3 >/dev/null 2>&1 && [ -f "scripts/check-architecture.py" ]; then
+    python3 scripts/check-architecture.py "$@"
+    exit $?
+fi
+
+echo "⚠️  Python3 not available or scripts/check-architecture.py missing, using bash fallback..."
+echo "   (This will be slower - consider installing Python3 for better performance)"
+echo ""
 
 # Get target path from argument or default to src
 TARGET_PATH=${1:-src}
@@ -198,6 +206,48 @@ is_path_allowed() {
   done
   
   return 1  # Not allowed
+}
+
+# Resolve full inheritance chain of allowedChildren from all ancestors
+resolve_full_inheritance_chain() {
+  local subsystem_dir=$1
+  local all_inherited=""
+  
+  # Walk up the directory tree to find all parents with dependencies.json
+  local current_dir="$subsystem_dir"
+  
+  while true; do
+    local parent_dir=$(dirname "$current_dir")
+    
+    # Stop if we've reached src or root (don't stop at TARGET_PATH)
+    if [ "$parent_dir" = "src" ] || [ "$parent_dir" = "/" ] || [ "$parent_dir" = "." ] || [ "$parent_dir" = "$current_dir" ]; then
+      break
+    fi
+    
+    local parent_deps_file="$parent_dir/dependencies.json"
+    if [ -f "$parent_deps_file" ]; then
+      # Extract allowedChildren from this parent
+      local parent_allowed_children=""
+      if command -v jq >/dev/null 2>&1; then
+        parent_allowed_children=$(jq -r '.allowedChildren[]?' "$parent_deps_file" 2>/dev/null | tr '\n' '|' | sed 's/|$//')
+      else
+        parent_allowed_children=$(grep -A 20 '"allowedChildren"' "$parent_deps_file" | grep -o '"[^"]*"' | sed 's/"//g' | tr '\n' '|' | sed 's/|$//')
+      fi
+      
+      # Add to inherited chain
+      if [ -n "$parent_allowed_children" ]; then
+        if [ -n "$all_inherited" ]; then
+          all_inherited="$all_inherited|$parent_allowed_children"
+        else
+          all_inherited="$parent_allowed_children"
+        fi
+      fi
+    fi
+    
+    current_dir="$parent_dir"
+  done
+  
+  echo "$all_inherited"
 }
 
 # Load and resolve subsystem dependencies
@@ -493,8 +543,8 @@ EOF
   fi
 done
 
-# Check outbound dependencies for subsystems
-echo "Checking outbound dependencies..."
+# Check for redundant dependencies (child redeclaring parent allowedChildren)
+echo "Checking for redundant dependency declarations..."
 find_subsystems | while read subsystem_dir; do
   subsystem_name=$(basename "$subsystem_dir")
   deps_file="$subsystem_dir/dependencies.json"
@@ -505,8 +555,8 @@ find_subsystems | while read subsystem_dir; do
   fi
   
   # Get parent's allowedChildren
-  parent_allowed_children=""
   parent_deps_file="$parent_dir/dependencies.json"
+  parent_allowed_children=""
   if [ -f "$parent_deps_file" ]; then
     if command -v jq >/dev/null 2>&1; then
       parent_allowed_children=$(jq -r '.allowedChildren[]?' "$parent_deps_file" 2>/dev/null | tr '\n' '|' | sed 's/|$//')
@@ -515,50 +565,198 @@ find_subsystems | while read subsystem_dir; do
     fi
   fi
   
-  # Resolve all allowed dependencies
-  allowed_deps=$(resolve_allowed_dependencies "$deps_file" "$parent_allowed_children")
-  
-  # Find all TypeScript files in the subsystem
-  for ts_file in $(find "$subsystem_dir" -name "*.ts" -o -name "*.tsx" | grep -v "__tests__" | grep -v ".test.ts" | grep -v ".spec.ts"); do
-    # Find imports that go outside the subsystem
-    outbound_imports=$(grep -n "from [\"']\.\./\|from [\"']~/" "$ts_file" 2>/dev/null || true)
+  # If parent has allowedChildren, check child's allowed array for conflicts
+  if [ -n "$parent_allowed_children" ]; then
+    # Get child's allowed dependencies
+    child_allowed=""
+    if command -v jq >/dev/null 2>&1; then
+      child_allowed=$(jq -r '.allowed[]?' "$deps_file" 2>/dev/null | tr '\n' '|' | sed 's/|$//')
+    else
+      child_allowed=$(sed -n '/"allowed":/,/\]/p' "$deps_file" | grep -o '    "[^"]*"' | sed 's/[[:space:]]*"//g' | sed 's/"//g' | tr '\n' '|' | sed 's/|$//')
+    fi
     
-    if [ -n "$outbound_imports" ]; then
-      # Process imports without subshell to preserve ERRORS variable
-      echo "$outbound_imports" | while IFS= read -r import_line; do
-        if [ -n "$import_line" ]; then
-          line_num=$(echo "$import_line" | cut -d: -f1)
-          import_path=$(echo "$import_line" | sed "s/.*from [\"']\([^\"']*\)[\"'].*/\1/")
-          
-          # Check if this import is allowed using hierarchical logic
-          if is_path_allowed "$import_path" "$allowed_deps" "$subsystem_dir"; then
-            is_allowed=true
-          else
-            is_allowed=false
-          fi
-          
-          if [ "$is_allowed" = false ]; then
-            # Write to temporary error file instead of variable due to subshell
-            relative_file=$(echo "$ts_file" | sed "s|^$subsystem_dir/||")
-            echo "❌ Undeclared outbound dependency in $subsystem_name:" >> "/tmp/arch_errors_$$"
-            echo "  🔸 $relative_file:$line_num" >> "/tmp/arch_errors_$$"
-            echo "     import from '$import_path'" >> "/tmp/arch_errors_$$"
-            echo "     → Add '$import_path' to dependencies.json 'allowed' array" >> "/tmp/arch_errors_$$"
-            echo "" >> "/tmp/arch_errors_$$"
-          fi
+    # Check each child allowed dependency against parent allowedChildren
+    if [ -n "$child_allowed" ]; then
+      IFS='|' read -ra CHILD_DEPS <<< "$child_allowed"
+      
+      for child_dep in "${CHILD_DEPS[@]}"; do
+        # Use exact match with pipe delimiters as word boundaries
+        if echo "|$parent_allowed_children|" | grep -q "|$child_dep|"; then
+          echo "❌ Redundant dependency in $subsystem_name:" >> "/tmp/redundant_deps_$$"
+          echo "  🔸 '$child_dep' is already provided by parent allowedChildren" >> "/tmp/redundant_deps_$$"
+          echo "     → Remove from $deps_file 'allowed' array" >> "/tmp/redundant_deps_$$"
+          echo "     → Parent allowedChildren automatically cascades to children" >> "/tmp/redundant_deps_$$"
+          echo "" >> "/tmp/redundant_deps_$$"
         fi
       done
     fi
-  done
+  fi
 done
 
-# Read temporary error file and add to ERRORS
-if [ -f "/tmp/arch_errors_$$" ]; then
-  temp_errors=$(cat "/tmp/arch_errors_$$")
-  if [ -n "$temp_errors" ]; then
-    ERRORS="${ERRORS}${NEWLINE}${NEWLINE}$temp_errors"
+# Check for redundant allowedChildren (child redeclaring parent allowedChildren)
+echo "Checking for redundant allowedChildren declarations..."
+find_subsystems | while read subsystem_dir; do
+  subsystem_name=$(basename "$subsystem_dir")
+  deps_file="$subsystem_dir/dependencies.json"
+  parent_dir=$(dirname "$subsystem_dir")
+  
+  if [ ! -f "$deps_file" ]; then
+    continue
   fi
-  rm -f "/tmp/arch_errors_$$"
+  
+  # Get parent's allowedChildren
+  parent_deps_file="$parent_dir/dependencies.json"
+  parent_allowed_children=""
+  if [ -f "$parent_deps_file" ]; then
+    if command -v jq >/dev/null 2>&1; then
+      parent_allowed_children=$(jq -r '.allowedChildren[]?' "$parent_deps_file" 2>/dev/null | tr '\n' '|' | sed 's/|$//')
+    else
+      parent_allowed_children=$(grep -A 20 '"allowedChildren"' "$parent_deps_file" | grep -o '"[^"]*"' | sed 's/"//g' | tr '\n' '|' | sed 's/|$//')
+    fi
+  fi
+  
+  # If parent has allowedChildren, check child's allowedChildren array for conflicts
+  if [ -n "$parent_allowed_children" ]; then
+    # Get child's allowedChildren dependencies
+    child_allowed_children=""
+    if command -v jq >/dev/null 2>&1; then
+      child_allowed_children=$(jq -r '.allowedChildren[]?' "$deps_file" 2>/dev/null | tr '\n' '|' | sed 's/|$//')
+    else
+      child_allowed_children=$(sed -n '/"allowedChildren":/,/\]/p' "$deps_file" | grep -o '    "[^"]*"' | sed 's/[[:space:]]*"//g' | sed 's/"//g' | tr '\n' '|' | sed 's/|$//')
+    fi
+    
+    # Check each child allowedChildren dependency against parent allowedChildren
+    if [ -n "$child_allowed_children" ]; then
+      IFS='|' read -ra CHILD_ALLOWED_CHILDREN <<< "$child_allowed_children"
+      
+      for child_dep in "${CHILD_ALLOWED_CHILDREN[@]}"; do
+        # Use exact match with pipe delimiters as word boundaries
+        if echo "|$parent_allowed_children|" | grep -q "|$child_dep|"; then
+          echo "❌ Redundant allowedChildren in $subsystem_name:" >> "/tmp/redundant_allowed_children_$$"
+          echo "  🔸 '$child_dep' is already provided by parent allowedChildren" >> "/tmp/redundant_allowed_children_$$"
+          echo "     → Remove from $deps_file 'allowedChildren' array" >> "/tmp/redundant_allowed_children_$$"
+          echo "     → Parent allowedChildren automatically cascades to children" >> "/tmp/redundant_allowed_children_$$"
+          echo "" >> "/tmp/redundant_allowed_children_$$"
+        fi
+      done
+    fi
+  fi
+done
+
+# Check for hierarchical redundancy (child declaring sub-paths of parent allowedChildren)
+echo "Checking for hierarchical redundancy..."
+find_subsystems | while read subsystem_dir; do
+  subsystem_name=$(basename "$subsystem_dir")
+  deps_file="$subsystem_dir/dependencies.json"
+  parent_dir=$(dirname "$subsystem_dir")
+  
+  if [ ! -f "$deps_file" ]; then
+    continue
+  fi
+  
+  # Get parent's allowedChildren
+  parent_deps_file="$parent_dir/dependencies.json"
+  parent_allowed_children=""
+  if [ -f "$parent_deps_file" ]; then
+    if command -v jq >/dev/null 2>&1; then
+      parent_allowed_children=$(jq -r '.allowedChildren[]?' "$parent_deps_file" 2>/dev/null | tr '\n' '|' | sed 's/|$//')
+    else
+      parent_allowed_children=$(grep -A 20 '"allowedChildren"' "$parent_deps_file" | grep -o '"[^"]*"' | sed 's/"//g' | tr '\n' '|' | sed 's/|$//')
+    fi
+  fi
+  
+  # If parent has allowedChildren, check child's dependencies for hierarchical redundancy
+  if [ -n "$parent_allowed_children" ]; then
+    # Get all child dependencies (both allowed and allowedChildren)
+    child_all_deps=""
+    if command -v jq >/dev/null 2>&1; then
+      child_allowed=$(jq -r '.allowed[]?' "$deps_file" 2>/dev/null | tr '\n' '|' | sed 's/|$//')
+      child_allowed_children=$(jq -r '.allowedChildren[]?' "$deps_file" 2>/dev/null | tr '\n' '|' | sed 's/|$//')
+    else
+      child_allowed=$(sed -n '/"allowed":/,/\]/p' "$deps_file" | grep -o '    "[^"]*"' | sed 's/[[:space:]]*"//g' | sed 's/"//g' | tr '\n' '|' | sed 's/|$//')
+      child_allowed_children=$(sed -n '/"allowedChildren":/,/\]/p' "$deps_file" | grep -o '    "[^"]*"' | sed 's/[[:space:]]*"//g' | sed 's/"//g' | tr '\n' '|' | sed 's/|$//')
+    fi
+    
+    # Combine both arrays
+    if [ -n "$child_allowed" ] && [ -n "$child_allowed_children" ]; then
+      child_all_deps="$child_allowed|$child_allowed_children"
+    elif [ -n "$child_allowed" ]; then
+      child_all_deps="$child_allowed"
+    elif [ -n "$child_allowed_children" ]; then
+      child_all_deps="$child_allowed_children"
+    fi
+    
+    # Check each child dependency against parent allowedChildren for hierarchical matches
+    if [ -n "$child_all_deps" ]; then
+      IFS='|' read -ra CHILD_ALL_DEPS <<< "$child_all_deps"
+      IFS='|' read -ra PARENT_ALLOWED_CHILDREN <<< "$parent_allowed_children"
+      
+      for child_dep in "${CHILD_ALL_DEPS[@]}"; do
+        for parent_dep in "${PARENT_ALLOWED_CHILDREN[@]}"; do
+          # Check if child dependency starts with parent dependency
+          case "$child_dep" in
+            "$parent_dep"/*)
+              # Child is a sub-path of parent allowedChildren
+              # But check if it's a subsystem that needs explicit permission
+              potential_subsystem_path=""
+              if [[ "$parent_dep" == ~/* ]]; then
+                # Convert ~/path to src/path for file system checking
+                parent_fs_path="src/${parent_dep#\~/}"
+                child_suffix="${child_dep#$parent_dep/}"
+                potential_subsystem_path="$parent_fs_path/$child_suffix"
+              else
+                potential_subsystem_path="$parent_dep/${child_dep#$parent_dep/}"
+              fi
+              
+              # If child path is NOT a subsystem, it's redundant
+              if [ ! -f "$potential_subsystem_path/dependencies.json" ]; then
+                # Determine which array the dependency is in
+                dep_array="unknown"
+                if echo "|$child_allowed|" | grep -q "|$child_dep|"; then
+                  dep_array="allowed"
+                elif echo "|$child_allowed_children|" | grep -q "|$child_dep|"; then
+                  dep_array="allowedChildren"
+                fi
+                
+                echo "❌ Hierarchical redundancy in $subsystem_name:" >> "/tmp/hierarchical_redundancy_$$"
+                echo "  🔸 '$child_dep' is covered by parent's '$parent_dep'" >> "/tmp/hierarchical_redundancy_$$"
+                echo "     → Remove from $deps_file '$dep_array' array" >> "/tmp/hierarchical_redundancy_$$"
+                echo "     → Parent allowedChildren '$parent_dep' already allows access to sub-paths" >> "/tmp/hierarchical_redundancy_$$"
+                echo "" >> "/tmp/hierarchical_redundancy_$$"
+              fi
+              ;;
+          esac
+        done
+      done
+    fi
+  fi
+done
+
+# Read redundant dependencies file and add to ERRORS
+if [ -f "/tmp/redundant_deps_$$" ]; then
+  redundant_errors=$(cat "/tmp/redundant_deps_$$")
+  if [ -n "$redundant_errors" ]; then
+    ERRORS="${ERRORS}${NEWLINE}${NEWLINE}$redundant_errors"
+  fi
+  rm -f "/tmp/redundant_deps_$$"
+fi
+
+# Read redundant allowedChildren file and add to ERRORS
+if [ -f "/tmp/redundant_allowed_children_$$" ]; then
+  redundant_allowed_children_errors=$(cat "/tmp/redundant_allowed_children_$$")
+  if [ -n "$redundant_allowed_children_errors" ]; then
+    ERRORS="${ERRORS}${NEWLINE}${NEWLINE}$redundant_allowed_children_errors"
+  fi
+  rm -f "/tmp/redundant_allowed_children_$$"
+fi
+
+# Read hierarchical redundancy file and add to ERRORS
+if [ -f "/tmp/hierarchical_redundancy_$$" ]; then
+  hierarchical_redundancy_errors=$(cat "/tmp/hierarchical_redundancy_$$")
+  if [ -n "$hierarchical_redundancy_errors" ]; then
+    ERRORS="${ERRORS}${NEWLINE}${NEWLINE}$hierarchical_redundancy_errors"
+  fi
+  rm -f "/tmp/hierarchical_redundancy_$$"
 fi
 
 # Check hierarchical dependency violations
@@ -578,19 +776,23 @@ is_hierarchical_violation() {
   # Skip non-relative imports
   case "$import_path" in
     "../"*)
-      # Count the number of ../ segments
-      depth=$(count_path_depth "$import_path")
+      # PHILOSOPHY: 
+      # - Going UP the hierarchy (../../../parent) is ALWAYS allowed
+      # - Going DOWN/ACROSS to grandchildren (../sibling/grandchild) is FORBIDDEN
       
-      # More than 1 ../ means going beyond direct parent/sibling
-      # More than 2 levels deep in relative imports suggests accessing grandchildren
-      if [ "$depth" -gt 2 ]; then
-        return 0  # Is a violation
-      fi
+      # Check if path goes DOWN after going UP
+      # Pattern: ../[directory]/[directory] means "go up, then down into sibling, then down into grandchild"
+      # But ../../.. or ../../../types means "just go up multiple levels" which is fine
       
-      # Check if the path goes through multiple subsystem boundaries
-      # Pattern: ../SubsystemA/SubsystemB/something (accessing grandchild)
-      if echo "$import_path" | grep -q "\.\./[^/]*/[^/]*/"; then
-        return 0  # Is a violation
+      # Remove all leading ../ segments to see what's left
+      local path_after_ups=$(echo "$import_path" | sed 's|^\(\.\./\)*||')
+      
+      # If what's left contains multiple directory levels, it's going down through grandchildren
+      # Count slashes in the remaining path - more than 1 slash means multiple levels down
+      local slash_count=$(echo "$path_after_ups" | tr -cd '/' | wc -c)
+      
+      if [ "$slash_count" -gt 1 ]; then
+        return 0  # Is a violation - going down through multiple subsystem levels
       fi
       ;;
   esac
@@ -669,17 +871,132 @@ EOF
   return 1  # Not allowed
 }
 
+# Helper function to check if import is allowed by resolved dependencies (pipe-separated)
+is_import_allowed_by_resolved() {
+  local import_path="$1"
+  local resolved_deps="$2"
+  
+  if [ -z "$resolved_deps" ]; then
+    return 1  # No dependencies resolved
+  fi
+  
+  # Check direct match using pipe delimiters
+  if echo "|$resolved_deps|" | grep -q "|$import_path|"; then
+    return 0  # Exact match found
+  fi
+  
+  # Check hierarchical matches (if ~/lib/utils is allowed, ~/lib/utils/something should be allowed)
+  IFS='|' read -ra DEPS <<< "$resolved_deps"
+  for allowed_dep in "${DEPS[@]}"; do
+    if [ -n "$allowed_dep" ]; then
+      # Handle both ~/path and ~/path/ forms
+      local normalized_dep="${allowed_dep%/}"  # Remove trailing slash if present
+      if echo "$import_path" | grep -q "^${normalized_dep}/"; then
+        return 0  # Allowed by hierarchy
+      fi
+    fi
+  done
+  
+  return 1  # Not allowed
+}
+
+# Helper function to find the top-level subsystem containing a path
+find_top_level_subsystem() {
+  local target_path="$1"
+  local original_target="$target_path"
+  
+  # Convert ~/path to src/path for file system checking
+  if [[ "$target_path" == \~/* ]]; then
+    target_path="${target_path/\~\//src/}"
+  fi
+  
+  # Special handling for major areas - look for the top-level subsystem
+  # For src/app/map/... paths, we want to find src/app/map as the boundary
+  # For src/lib/... paths, we want to find src/lib as the boundary
+  
+  # Check specific patterns for known top-level subsystems
+  case "$target_path" in
+    src/app/map/*)
+      if [ -f "src/app/map/dependencies.json" ]; then
+        echo "src/app/map"
+        return 0
+      fi
+      ;;
+    src/lib/*)
+      # For lib, the first level is the boundary (src/lib/domains, src/lib/utils, etc.)
+      echo "$target_path" | sed 's|^src/lib/\([^/]*\).*|src/lib/\1|'
+      return 0
+      ;;
+    src/commons/*)
+      echo "$target_path" | sed 's|^src/commons/\([^/]*\).*|src/commons/\1|'
+      return 0
+      ;;
+    src/components/*)
+      echo "src/components"
+      return 0
+      ;;
+  esac
+  
+  # Fallback: find the nearest subsystem by walking up
+  local current_dir="$target_path"
+  while [ "$current_dir" != "src" ] && [ "$current_dir" != "/" ] && [ "$current_dir" != "." ]; do
+    if [ -f "$current_dir/dependencies.json" ]; then
+      echo "$current_dir"
+      return 0
+    fi
+    current_dir=$(dirname "$current_dir")
+  done
+  
+  # Final fallback: return the immediate child of src
+  if [[ "$target_path" == src/* ]]; then
+    echo "$target_path" | sed 's|^src/\([^/]*\).*|src/\1|'
+  else
+    echo "$original_target"
+  fi
+}
+
+# Helper function to check if an import is truly outbound (crosses subsystem boundaries)
+is_truly_outbound() {
+  local import_path="$1"
+  local current_subsystem_dir="$2"
+  
+  # Skip non-absolute imports (relative imports like ../ are handled separately)
+  if [[ "$import_path" != \~/* ]]; then
+    return 0  # Consider relative imports as potentially outbound
+  fi
+  
+  # Find the top-level subsystem containing the current file
+  local current_top_subsystem=$(find_top_level_subsystem "$current_subsystem_dir")
+  
+  # Find the top-level subsystem containing the import target
+  local import_target_subsystem=$(find_top_level_subsystem "$import_path")
+  
+  # If both are in the same top-level subsystem, it's internal
+  if [ "$current_top_subsystem" = "$import_target_subsystem" ]; then
+    return 1  # Not outbound - internal to same subsystem
+  fi
+  
+  return 0  # Truly outbound - crosses subsystem boundaries
+}
+
 # Check outbound dependencies against allowlist
 echo "Checking outbound dependencies..."
 
 find_subsystems | while read subsystem_dir; do
   subsystem_name=$(basename "$subsystem_dir")
   deps_file="$subsystem_dir/dependencies.json"
+  parent_dir=$(dirname "$subsystem_dir")
   
   # Skip if no dependencies.json
   if [ ! -f "$deps_file" ]; then
     continue
   fi
+  
+  # Get full inheritance chain of allowedChildren from all ancestors
+  full_inherited_allowedchildren=$(resolve_full_inheritance_chain "$subsystem_dir")
+  
+  # Resolve all allowed dependencies (local + inherited from full chain)
+  resolved_allowed_deps=$(resolve_allowed_dependencies "$deps_file" "$full_inherited_allowedchildren")
   
   # Find all TypeScript files in the subsystem
   for ts_file in $(find "$subsystem_dir" -name "*.ts" -o -name "*.tsx" | grep -v "__tests__" | grep -v ".test.ts" | grep -v ".spec.ts"); do
@@ -692,6 +1009,11 @@ find_subsystems | while read subsystem_dir; do
           line_num=$(echo "$import_line" | cut -d: -f1)
           import_path=$(echo "$import_line" | sed "s/.*from [\"']\([^\"']*\)[\"'].*/\1/")
           
+          # Skip internal imports that don't cross subsystem boundaries
+          if ! is_truly_outbound "$import_path" "$subsystem_dir"; then
+            continue  # Skip this import - it's internal to the same top-level subsystem
+          fi
+          
           # Check if this is a hierarchical violation
           if is_hierarchical_violation "$import_path" "$subsystem_dir"; then
             relative_file=$(echo "$ts_file" | sed "s|^$subsystem_dir/||")
@@ -702,14 +1024,15 @@ find_subsystems | while read subsystem_dir; do
             echo "" >> "/tmp/hierarchical_errors_$$"
           fi
           
-          # Check if this import is allowed by dependencies.json
+          # Check if this import is allowed by resolved dependencies (local + inherited)
           resolved_path=$(resolve_import_path "$import_path" "$subsystem_dir")
-          if ! is_import_allowed "$resolved_path" "$deps_file"; then
+          if ! is_import_allowed_by_resolved "$resolved_path" "$resolved_allowed_deps"; then
             relative_file=$(echo "$ts_file" | sed "s|^$subsystem_dir/||")
-            echo "🔥 CUSTOM ERROR MESSAGE - Undeclared outbound dependency in $subsystem_name:" >> "/tmp/dependency_errors_$$"
+            echo "❌ Undeclared outbound dependency in $subsystem_name:" >> "/tmp/dependency_errors_$$"
             echo "  🔸 $relative_file:$line_num" >> "/tmp/dependency_errors_$$"
             echo "     import from '$import_path' → resolves to '$resolved_path'" >> "/tmp/dependency_errors_$$"
             echo "     → Add '$resolved_path' to dependencies.json 'allowed' array" >> "/tmp/dependency_errors_$$"
+            echo "     → Or ensure parent allowedChildren includes this dependency" >> "/tmp/dependency_errors_$$"
             echo "" >> "/tmp/dependency_errors_$$"
           fi
         fi
@@ -805,6 +1128,10 @@ if [ -n "$ERRORS" ]; then
   echo "• Subsystems with dependencies.json must be declared in their parent's \"subsystems\" array"
   echo "• Subsystems must be imported through their index.ts (renamed from interface.ts)"
   echo "• External imports should use: import { X } from '~/path/to/subsystem' (automatically uses index.ts)"
+  echo "• Child subsystems cannot redeclare dependencies from parent allowedChildren"
+  echo "  - allowedChildren cascade automatically to all children"
+  echo "  - Use allowedChildren for external tools/libraries shared by multiple children"
+  echo "  - Use allowed for subsystem-specific dependencies only"
   echo "• Domain services can only be imported by API/server code"
   echo "• Domain utils can be imported by anyone"
   echo "════════════════════════════════════════════════════════════════════════"

@@ -1,23 +1,10 @@
 {
   "$schema": "../../../../../schemas/dependencies.schema.json",
   "allowedChildren": [
-    "lucide-react",
-    "next/navigation", 
-    "react",
-    "react-dom",
-    "react-markdown",
-    "~/app/map/Chat/Timeline/MarkdownRenderer",
-    "~/app/map/Chat/Timeline/services",
-    "~/components/ui/button",
-    "~/lib/auth",
-    "~/lib/debug/debug-logger", 
-    "~/lib/domains/agentic",
-    "~/lib/utils"
+    "~/app/map/Chat/Timeline/MarkdownRenderer"
   ],
   "allowed": [
-    "~/app/map/Chat",
-    "~/commons/trpc/react",
-    "~/lib/domains/mapping/utils"
+    "~/app/map/Chat"
   ],
   "subsystems": [
     "./AIResponseWidget",

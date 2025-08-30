@@ -1,17 +1,17 @@
 {
   "$schema": "../../../../../schemas/dependencies.schema.json",
   "allowed": [
-    "zod",
     "@trpc/server",
     "drizzle-orm",
-    "../../trpc",
-    "../../middleware/rate-limit",
-    "../../middleware",
-    "~/lib/domains/agentic",
+    "zod",
     "~/app/map",
+    "~/env",
+    "~/lib/domains/agentic",
+    "~/server/api/middleware",
+    "~/server/api/middleware/rate-limit",
+    "~/server/api/trpc",
     "~/server/db",
-    "~/server/db/schema",
-    "~/env"
+    "~/server/db/schema"
   ],
   "exceptions": {}
 }

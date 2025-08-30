@@ -1,22 +1,11 @@
 {
   "$schema": "~/schemas/dependencies.schema.json",
   "allowed": [
-    "next/cache",
-    "zod",
-    "~/lib",
     "~/lib/domains/iam/_objects",
     "~/lib/domains/iam/_repositories",
     "~/lib/domains/iam/infrastructure",
-    "~/lib/domains/iam/services",
     "~/lib/domains/iam/types",
-    "~/lib/domains/mapping",
-    "~/server/api/services/user-mapping.service",
-    "~/server/auth",
     "~/server/db"
-  ],
-  "subsystems": [
-    "./infrastructure",
-    "./services"
   ],
   "exceptions": {}
 }

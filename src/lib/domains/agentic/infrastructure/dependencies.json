@@ -1,15 +1,16 @@
 {
   "$schema": "../../../../schemas/dependencies.schema.json",
   "allowed": [
+    "drizzle-orm",
     "inngest",
-    "../../repositories/openrouter.repository",
-    "~/server/db",
-    "~/server/db/schema",
-    "../../types/llm.types",
-    "../..",
-    "~/lib/debug/debug-logger",
     "~/env",
-    "drizzle-orm"
+    "~/lib/debug/debug-logger",
+    "~/lib/domains",
+    "~/server/db",
+    "~/server/db/schema"
+  ],
+  "subsystems": [
+    "./inngest"
   ],
   "exceptions": {}
 }

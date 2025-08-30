@@ -3,14 +3,15 @@
   "allowed": [
     "drizzle-orm",
     "drizzle-orm/postgres-js",
-    "~/server/db/schema",
-    "~/server/auth",
+    "~/lib/domains",
+    "~/lib/domains/iam/_objects/user",
+    "~/lib/domains/iam/_repositories/user.repository",
     "~/server/api/services/user-mapping.service",
-    "../_objects/user",
-    "../_repositories/user.repository",
-    "../../_objects/user",
-    "../../_repositories/user.repository",
-    "../.."
+    "~/server/auth",
+    "~/server/db/schema"
+  ],
+  "subsystems": [
+    "./user"
   ],
   "exceptions": {}
 }

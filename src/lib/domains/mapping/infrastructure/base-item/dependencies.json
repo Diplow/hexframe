@@ -1,0 +1,11 @@
+{
+  "$schema": "~/schemas/dependencies.schema.json",
+  "allowed": [
+    "drizzle-orm",
+    "~/lib/domains/mapping/_objects",
+    "~/lib/domains/mapping/types",
+    "~/lib/domains/mapping/utils",
+    "~/server/db"
+  ],
+  "exceptions": {}
+}

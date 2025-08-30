@@ -1,9 +1,4 @@
 {
   "$schema": "~/schemas/dependencies.schema.json",
-  "allowed": [
-    "react",
-    "../types",
-    "~/lib/debug/debug-logger"
-  ],
   "exceptions": {}
 }

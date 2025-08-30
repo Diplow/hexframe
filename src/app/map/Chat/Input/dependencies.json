@@ -1,21 +1,11 @@
 {
   "$schema": "~/schemas/dependencies.schema.json",
   "allowed": [
-    "./",
-    "react",
-    "lucide-react",
-    "~/components/ui/button",
-    "~/lib/debug/debug-logger",
-    "~/lib/auth",
-    "~/lib/auth/interface",
-    "../_state",
-    "../../_state",
-    "../../_settings/chat-settings",
-    "../../../Cache",
-    "../../../Cache/interface",
-    "../../../Services/EventBus/event-bus-context",
-    "../..",
-    "../../services"
+    "~/app/map",
+    "~/app/map/Chat/Input",
+    "~/app/map/Chat/_state",
+    "~/app/map/Chat/services",
+    "~/lib/auth/index"
   ],
   "exceptions": {}
 }
