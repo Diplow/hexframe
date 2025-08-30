@@ -1,12 +1,11 @@
 {
-  "$schema": "~/schemas/dependencies.schema.json",
+  "$schema": "../../../../../../schemas/dependencies.schema.json",
   "allowed": [
     "inngest",
-    "~/lib/domains/agentic/_objects",
-    "~/lib/domains/agentic/repositories", 
-    "~/lib/domains/agentic/services",
-    "~/lib/domains/agentic/types",
-    "~/env"
+    "~/lib/debug/debug-logger",
+    "~/lib/domains/agentic",
+    "~/env",
+    "~/server/db"
   ],
   "exceptions": {}
 }

@@ -298,44 +298,51 @@ class ArchitectureChecker:
                     ))
     
     def _check_import_boundaries(self, subsystems: List[SubsystemInfo]) -> None:
-        """Check import boundaries for subsystems."""
+        """Check that external imports go through subsystem index files."""
         print("Checking import boundaries...")
         
         for subsystem in subsystems:
-            # Check external imports (from completely outside parent system)
-            parent_dir = subsystem.parent_path
-            parent_pattern = str(parent_dir).replace("src/", "~/") if parent_dir else ""
-            subsystem_pattern = f"{parent_pattern}/{subsystem.name}" if parent_pattern else subsystem.name
-            
             violations = []
             
-            # Find files that import directly into subsystem internals
+            # We want to find EXTERNAL files that import directly into this subsystem
             for ts_file in self.target_path.rglob("*.ts"):
                 if self._is_test_file(ts_file):
                     continue
                 
-                # Skip files within same subsystem or parent
-                file_str = str(ts_file)
-                if str(subsystem.path) in file_str or str(parent_dir) in file_str:
-                    continue
-                
                 # Skip index.ts files - they're allowed to import from their children
-                # Also skip files within the subsystem itself - those are internal
                 if ts_file.name == "index.ts":
                     continue
                 
+                file_str = str(ts_file)
+                
+                # Skip if file IS within this subsystem (internal files, not external importers)
+                if str(subsystem.path) in file_str:
+                    continue
+                
+                # Skip if file is in a child subsystem (children can import parent freely)  
+                if self._is_child_of_subsystem(ts_file, subsystem):
+                    continue
+                
+                # Now check if this external file imports into the subsystem
                 content = self._get_file_content(ts_file)
                 if not content:
                     continue
                 
                 # Find imports that bypass index.ts
-                import_pattern = rf'from\s+["\']~/.*/{re.escape(subsystem.name)}/([^"\']*)["\']'
+                # Use full subsystem path for precise matching
+                subsystem_abs_path = f"~/{subsystem.path.relative_to(Path('src'))}"
+                import_pattern = rf'from\s+["\']{re.escape(subsystem_abs_path)}/([^"\']*)["\']'
                 matches = re.finditer(import_pattern, content, re.MULTILINE)
                 
                 for match in matches:
                     import_path = match.group(1)
                     # Skip if importing from index or root
                     if not import_path or import_path == "index":
+                        continue
+                    
+                    # Check if importing file has permission through its own inheritance chain
+                    full_import_path = f"{subsystem_abs_path}/{import_path}"
+                    if self._file_has_import_permission(ts_file, full_import_path):
                         continue
                     
                     line_num = content[:match.start()].count('\n') + 1
@@ -352,6 +359,102 @@ class ArchitectureChecker:
                 for v in violations:
                     self.errors.append(ArchError(
                         f"  🔸 {v['file']}:{v['line']}\n     {v['import']}"
+                    ))
+    
+    def _check_reexport_boundaries(self, subsystems: List[SubsystemInfo]) -> None:
+        """Check that index.ts files only reexport from child subsystems or internal files."""
+        print("Checking reexport boundaries...")
+        
+        for subsystem in subsystems:
+            index_file = subsystem.path / "index.ts"
+            if not index_file.exists():
+                continue
+                
+            content = self._get_file_content(index_file)
+            if not content:
+                continue
+            
+            # Find all reexport statements (export { ... } from '...')
+            reexport_pattern = r'export\s+\{[^}]*\}\s+from\s+["\']([^"\']+)["\']'
+            reexport_type_pattern = r'export\s+type\s+\{[^}]*\}\s+from\s+["\']([^"\']+)["\']'
+            
+            violations = []
+            
+            for pattern in [reexport_pattern, reexport_type_pattern]:
+                matches = re.finditer(pattern, content, re.MULTILINE)
+                
+                for match in matches:
+                    import_path = match.group(1)
+                    line_num = content[:match.start()].count('\n') + 1
+                    
+                    # STRICT RULE: Only allow reexports from child subsystems or internal files
+                    if import_path.startswith('./'):
+                        # This is a child reference - check if it's a declared child subsystem or internal file
+                        child_name = import_path[2:]  # Remove './'
+                        child_subsystems = subsystem.dependencies.get("subsystems", [])
+                        
+                        if f"./{child_name}" in child_subsystems:
+                            continue  # Valid child subsystem reexport
+                        else:
+                            # Check if it's a file within the current subsystem
+                            potential_file = subsystem.path / f"{child_name}.ts"
+                            potential_tsx_file = subsystem.path / f"{child_name}.tsx"
+                            # Also check for directories with index files
+                            potential_dir_index = subsystem.path / child_name / "index.ts"
+                            potential_dir_index_tsx = subsystem.path / child_name / "index.tsx"
+                            
+                            if (potential_file.exists() or potential_tsx_file.exists() or 
+                                potential_dir_index.exists() or potential_dir_index_tsx.exists()):
+                                continue  # Valid internal file reexport
+                    
+                    elif import_path.startswith('../'):
+                        # STRICT: No reexports from siblings or parents
+                        violations.append({
+                            'line': line_num,
+                            'import': import_path,
+                            'full_statement': match.group(0),
+                            'reason': 'reexport from external subsystem violates encapsulation'
+                        })
+                    
+                    elif import_path.startswith('~/'):
+                        # Check if this is an internal absolute path within the same subsystem
+                        subsystem_abs_path = f"~/{subsystem.path.relative_to(Path('src'))}"
+                        
+                        if import_path.startswith(f"{subsystem_abs_path}/"):
+                            # This is an internal absolute path reexport - allowed
+                            continue
+                        else:
+                            # This is an external absolute path reexport - not allowed
+                            violations.append({
+                                'line': line_num,
+                                'import': import_path,
+                                'full_statement': match.group(0),
+                                'reason': 'reexport from external subsystem violates encapsulation'
+                            })
+                    
+                    else:
+                        # Check for external library imports (node_modules, etc.) - these are allowed
+                        if not import_path.startswith('.') and not import_path.startswith('~'):
+                            continue  # External library reexport is allowed
+                        
+                        # Any other pattern is invalid
+                        violations.append({
+                            'line': line_num,
+                            'import': import_path,
+                            'full_statement': match.group(0),
+                            'reason': 'invalid reexport pattern'
+                        })
+            
+            if violations:
+                self.errors.append(ArchError(
+                    f"❌ Invalid reexports in {subsystem.name}/index.ts:"
+                ))
+                for v in violations:
+                    self.errors.append(ArchError(
+                        f"  🔸 Line {v['line']}: {v['full_statement']}\n"
+                        f"     → {v['reason']}\n"
+                        f"     → Reexports should only expose child subsystems or internal files\n"
+                        f"     → External dependencies should be imported directly where needed"
                     ))
     
     def _check_dependencies_json_format(self, subsystems: List[SubsystemInfo]) -> None:
@@ -403,6 +506,37 @@ class ArchitectureChecker:
         
         return inherited
     
+    def _is_child_of_subsystem(self, file_path: Path, parent_subsystem: SubsystemInfo) -> bool:
+        """Check if a file is in a child subsystem of the given parent."""
+        # Find all child subsystems of parent
+        for child_subsystem in self.subsystem_cache.values():
+            if child_subsystem.parent_path == parent_subsystem.path:
+                if str(child_subsystem.path) in str(file_path):
+                    return True
+        return False
+    
+    def _file_has_import_permission(self, file_path: Path, import_path: str) -> bool:
+        """Check if a file has permission to import from the given path through inheritance."""
+        # Find which subsystem this file belongs to
+        file_subsystem = None
+        for subsystem in self.subsystem_cache.values():
+            if str(subsystem.path) in str(file_path):
+                # Choose the most specific subsystem (deepest path)
+                if file_subsystem is None or len(str(subsystem.path)) > len(str(file_subsystem.path)):
+                    file_subsystem = subsystem
+        
+        if not file_subsystem:
+            return False
+        
+        # Get all allowed dependencies for this file's subsystem (local + inherited)
+        allowed_deps = set(file_subsystem.dependencies.get("allowed", []))
+        allowed_children = set(file_subsystem.dependencies.get("allowedChildren", []))
+        inherited = set(self._resolve_inheritance_chain(file_subsystem))
+        all_allowed = allowed_deps | allowed_children | inherited
+        
+        # Check if import is allowed using the same logic as outbound dependency checking
+        return self._is_import_allowed_by_set(import_path, all_allowed, file_subsystem.path)
+    
     def _is_import_allowed_by_set(self, import_path: str, allowed_set: Set[str], subsystem_path: Path) -> bool:
         """Check if import is allowed by a set of allowed dependencies with proper hierarchical logic."""
         # Convert subsystem_path to absolute path format for internal import checking
@@ -453,6 +587,48 @@ class ArchitectureChecker:
                 return True
         
         return False
+    
+    def _check_hierarchical_redundancy(self, subsystems: List[SubsystemInfo]) -> None:
+        """Check for hierarchical redundancy within the same dependencies.json."""
+        for subsystem in subsystems:
+            deps = subsystem.dependencies
+            
+            # Check allowed array for hierarchical redundancy
+            allowed = deps.get("allowed", [])
+            if allowed:
+                self._check_hierarchical_redundancy_in_list(subsystem, allowed, "allowed")
+            
+            # Check allowedChildren array for hierarchical redundancy  
+            allowed_children = deps.get("allowedChildren", [])
+            if allowed_children:
+                self._check_hierarchical_redundancy_in_list(subsystem, allowed_children, "allowedChildren")
+    
+    def _check_hierarchical_redundancy_in_list(self, subsystem: SubsystemInfo, dep_list: list, list_name: str) -> None:
+        """Check for hierarchical redundancy within a single dependency list."""
+        for i, dep in enumerate(dep_list):
+            for j, other_dep in enumerate(dep_list):
+                if i != j and dep != other_dep:
+                    # Check if dep is made redundant by other_dep (other_dep is broader)
+                    if dep.startswith(f"{other_dep}/"):
+                        # BUT only flag as redundant if the child path is NOT a subsystem
+                        # Convert ~/path to src/path for file system checking
+                        potential_subsystem_path = None
+                        if other_dep.startswith("~/"):
+                            base_path = Path("src") / other_dep[2:]
+                            child_suffix = dep[len(other_dep) + 1:]  # +1 to skip the "/"
+                            potential_subsystem_path = base_path / child_suffix
+                        else:
+                            potential_subsystem_path = Path(other_dep) / dep[len(other_dep) + 1:]
+                        
+                        # If child path is NOT a subsystem (no dependencies.json), it's truly redundant
+                        if potential_subsystem_path and not (potential_subsystem_path / "dependencies.json").exists():
+                            self.errors.append(ArchError(
+                                f"❌ Hierarchical redundancy in {subsystem.name}:\n"
+                                f"  🔸 '{dep}' is redundant because '{other_dep}' already allows access\n"
+                                f"     → Remove '{dep}' from {subsystem.path}/dependencies.json '{list_name}' array\n"
+                                f"     → '{other_dep}' already provides hierarchical access"
+                            ))
+                        # If child path IS a subsystem, it's NOT redundant - subsystems need explicit access
     
     def _check_redundant_dependencies(self, subsystems: List[SubsystemInfo]) -> None:
         """Check for redundant dependency declarations."""
@@ -686,7 +862,9 @@ class ArchitectureChecker:
         self._check_subsystem_completeness(subsystems)
         self._check_subsystem_declarations(subsystems)
         self._check_import_boundaries(subsystems)
+        self._check_reexport_boundaries(subsystems)
         self._check_dependencies_json_format(subsystems)
+        self._check_hierarchical_redundancy(subsystems)
         self._check_redundant_dependencies(subsystems)
         self._check_file_folder_conflicts()
         self._check_outbound_dependencies_parallel(subsystems)

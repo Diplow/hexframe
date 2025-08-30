@@ -8,10 +8,8 @@
     "~/env",
     "~/lib/domains/agentic",
     "~/server/api/middleware",
-    "~/server/api/middleware/rate-limit",
     "~/server/api/trpc",
-    "~/server/db",
-    "~/server/db/schema"
+    "~/server/db"
   ],
   "exceptions": {}
 }

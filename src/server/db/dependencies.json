@@ -2,17 +2,12 @@
   "$schema": "../../../schemas/dependencies.schema.json",
   "allowed": [
     "drizzle-orm",
-    "inngest",
-    "tiktoken",
-    "~/app/map",
+    "postgres",
     "~/env",
-    "~/lib",
-    "~/server/db"
+    "~/lib/domains/mapping"
   ],
   "subsystems": [
-    "./infrastructure",
-    "./repositories",
-    "./services"
+    "./schema"
   ],
   "exceptions": {}
 }

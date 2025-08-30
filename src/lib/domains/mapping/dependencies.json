@@ -13,8 +13,6 @@
     "~/lib/domains/mapping/types",
     "~/lib/domains/mapping/utils",
     "~/lib/domains/types",
-    "~/lib/domains/types/contracts",
-    "~/lib/domains/types/errors",
     "~/lib/domains/utils",
     "~/lib/utils",
     "~/server/db"

@@ -3,10 +3,10 @@
 import { use, useEffect, useState } from "react";
 import { redirect } from "next/navigation";
 import { api } from "~/commons/trpc/react";
-import { loadPreFetchedData, clearPreFetchedData, type PreFetchedMapData } from '~/app/map/Services';
+import { loadPreFetchedData, clearPreFetchedData, type PreFetchedMapData } from '~/app/map';
 import { EventBus } from '~/app/map';
 const eventBus = new EventBus();
-import type { TileData } from '~/app/map/types/tile-data';
+import type { TileData } from '~/app/map';
 import { useMapResolver } from '~/app/map/MapResolver';
 
 interface MapPageSetupParams {

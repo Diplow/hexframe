@@ -1,4 +1,7 @@
 {
-  "$schema": "~/schemas/dependencies.schema.json",
+  "$schema": "../../../../../schemas/dependencies.schema.json",
+  "allowed": [
+    "~/app/map"
+  ],
   "exceptions": {}
 }

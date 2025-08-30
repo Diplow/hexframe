@@ -1,4 +1,4 @@
-import { inngest } from '~/lib/domains/agentic/infrastructure/inngest/client'
+import { inngest } from '~/lib/domains/agentic/infrastructure'
 import { OpenRouterRepository, type LLMGenerationParams } from '~/lib/domains/agentic'
 import { db } from '~/server/db'
 import { llmJobResults } from '~/server/db/schema'

@@ -2,9 +2,8 @@
   "$schema": "~/schemas/dependencies.schema.json",
   "allowed": [
     "drizzle-orm",
-    "~/lib/domains/iam/_objects",
-    "~/lib/domains/iam/_repositories",
-    "~/lib/domains/iam/types",
+    "~/lib/domains/iam",
+    "~/server/api/services/user-mapping.service",
     "~/server/auth",
     "~/server/db"
   ],

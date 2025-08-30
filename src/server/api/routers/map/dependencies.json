@@ -4,10 +4,7 @@
     "@trpc/server",
     "zod",
     "~/lib/domains/mapping",
-    "~/lib/domains/mapping/index",
-    "~/lib/domains/mapping/utils",
     "~/server/api/services",
-    "~/server/api/services/user-mapping.service",
     "~/server/api/trpc",
     "~/server/api/types/contracts"
   ],

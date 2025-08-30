@@ -3,7 +3,6 @@
   "allowed": [
     "~/lib/debug/debug-logger",
     "~/lib/domains/agentic/types",
-    "~/lib/domains/agentic/types/llm.types",
     "~/lib/domains/agentic/infrastructure/inngest"
   ],
   "exceptions": {}

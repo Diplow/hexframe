@@ -7,7 +7,7 @@ import { adapt } from "~/lib/domains/mapping/types/contracts";
 import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import { MapItemType } from "~/lib/domains/mapping/_objects";
 import type { MapContract } from "~/lib/domains/mapping/types/contracts";
-import { MappingUtils } from "~/lib/domains/mapping/services/_mapping-utils";
+import { MappingUtils } from "~/lib/domains/mapping/services";
 
 export class MapManagementService {
   private readonly actions: MapItemActions;

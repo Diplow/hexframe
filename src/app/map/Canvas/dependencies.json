@@ -1,19 +1,13 @@
 {
   "$schema": "~/schemas/dependencies.schema.json",
   "allowedChildren": [
-    "~/app/map/Cache",
-    "~/app/map/constants",
-    "~/app/map/types",
-    "~/app/map/types/tile-data",
-    "~/app/map/types/url-info",
     "~/app/types"
   ],
   "allowed": [
     "@testing-library/react",
     "vitest",
+    "~/app/map/Cache",
     "~/app/map",
-    "~/app/map/Base/BaseTileLayout",
-    "~/app/map/Services/EventBus/event-bus-context",
     "~/test-utils/providers"
   ],
   "subsystems": [

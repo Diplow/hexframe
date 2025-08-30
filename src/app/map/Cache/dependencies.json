@@ -3,10 +3,6 @@
   "allowed": [
     "vitest",
     "~/app/map",
-    "~/app/map/Services/EventBus",
-    "~/app/map/Services/types",
-    "~/app/map/types",
-    "~/app/map/types/tile-data",
     "~/app/types",
     "~/server/api/types/contracts",
     "~/test-utils/event-bus"

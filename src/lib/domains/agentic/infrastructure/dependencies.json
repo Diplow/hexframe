@@ -6,8 +6,7 @@
     "~/env",
     "~/lib/debug/debug-logger",
     "~/lib/domains",
-    "~/server/db",
-    "~/server/db/schema"
+    "~/server/db"
   ],
   "subsystems": [
     "./inngest"

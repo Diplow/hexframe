@@ -3,6 +3,7 @@
   "allowed": [
     "drizzle-orm",
     "~/lib/domains/mapping/_objects",
+    "~/lib/domains/mapping/_repositories",
     "~/lib/domains/mapping/types",
     "~/lib/domains/mapping/utils",
     "~/server/db"

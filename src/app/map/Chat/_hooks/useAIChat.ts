@@ -1,10 +1,7 @@
 import { useState, useCallback, useContext, useMemo } from 'react'
 import { api } from '~/commons/trpc/react'
-import { useChatState } from '~/app/map/Chat/_state'
-import { MapCacheContext } from '~/app/map/Cache'
-import type { ChatMessage } from '~/app/map/Chat/types'
+import { useChatState, MapCacheContext, type ChatMessage, type Message } from '~/app/map/Chat'
 import type { CompositionConfig, QueuedJobResponse } from '~/lib/domains/agentic'
-import type { Message } from '~/app/map/Chat/_state'
 import { loggers } from '~/lib/debug/debug-logger'
 
 interface UseAIChatOptions {

@@ -21,13 +21,23 @@ export type { ChatMessage, ChatWidget } from '~/app/map/Chat';
 // Canvas subsystem  
 export { ErrorTile, BaseTileLayout } from '~/app/map/Canvas';
 
-// EventBus subsystem
+// Services subsystem
 export {
   EventBus,
   EventBusProvider,
   EventBusContext,
   useEventBus,
+  preloadUserMapData,
+  transformApiItemsToTileData,
+  savePreFetchedData,
+  loadPreFetchedData,
+  clearPreFetchedData,
   type AppEvent,
   type EventListener,
-  type EventBusService
-} from './Services/EventBus';
+  type EventBusService,
+  type PreFetchedMapData
+} from './Services';
+
+// Types subsystem
+export type { TileData, TileState, URLInfo, URLSearchParams } from './types';
+export { adapt, getColor } from './types';

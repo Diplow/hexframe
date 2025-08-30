@@ -1,4 +1,4 @@
-import type { AppEvent, EventListener, EventBusService } from '~/app/map/Services/types';
+import type { AppEvent, EventListener, EventBusService } from '~/app/map';
 import { loggers } from '~/lib/debug/debug-logger';
 
 /**

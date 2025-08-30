@@ -8,6 +8,7 @@
  */
 
 // Re-export all client-safe exports
+export * from '~/lib/domains/mapping/types';
 export * from '~/lib/domains/mapping/utils';
 
 // Domain services (server-only)

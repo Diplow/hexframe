@@ -27,7 +27,6 @@
     "~/app/Handlers/types",
     "~/app/services",
     "~/app/Services",
-    "~/app/Services/server-service",
     "~/app/types",
     "~/app/_state",
     "~/components/ThemeToggle",

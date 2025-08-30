@@ -3,17 +3,11 @@
   "allowedChildren": [
     "~/app/map/Cache",
     "~/app/map/types",
-    "~/app/map/types/tile-data",
     "~/app/types"
   ],
   "allowed": [
     "remark-gfm",
     "~/app",
-    "~/app/map/Services",
-    "~/app/map/Services/EventBus",
-    "~/app/map/Services/EventBus/event-bus-context", 
-    "~/app/map/Services/PreFetch/pre-fetch-service",
-    "~/app/services",
     "~/components/ThemeToggle"
   ],
   "subsystems": [

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useChatState } from '~/app/map/Chat/_state'
+import { useChatState } from '~/app/map/Chat'
 import { useAIChat } from '~/app/map/Chat/_hooks/useAIChat'
 import { loggers } from '~/lib/debug/debug-logger'
 

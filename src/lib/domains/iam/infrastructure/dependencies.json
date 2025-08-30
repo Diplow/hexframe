@@ -2,10 +2,7 @@
   "$schema": "~/schemas/dependencies.schema.json",
   "allowed": [
     "drizzle-orm",
-    "drizzle-orm/postgres-js",
     "~/lib/domains",
-    "~/lib/domains/iam/_objects/user",
-    "~/lib/domains/iam/_repositories/user.repository",
     "~/server/api/services/user-mapping.service",
     "~/server/auth",
     "~/server/db/schema"

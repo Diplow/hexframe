@@ -2,8 +2,6 @@
   "$schema": "~/schemas/dependencies.schema.json",
   "allowed": [
     "~/app/map",
-    "~/app/map/Chat/Input",
-    "~/app/map/Chat/_state",
     "~/app/map/Chat/services",
     "~/lib/auth/index"
   ],

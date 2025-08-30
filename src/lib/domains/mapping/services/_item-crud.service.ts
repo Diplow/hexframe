@@ -10,7 +10,7 @@ import {
 } from "~/lib/domains/mapping/utils/hex-coordinates";
 import { MapItemType } from "~/lib/domains/mapping/_objects";
 import type { MapItemContract } from "~/lib/domains/mapping/types/contracts";
-import { TransactionManager } from "~/lib/domains/mapping/infrastructure/transaction-manager";
+import { TransactionManager } from "~/lib/domains/mapping/infrastructure";
 
 export class ItemCrudService {
   private readonly actions: MapItemActions;

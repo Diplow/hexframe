@@ -7,13 +7,7 @@
   ],
   "allowed": [
     "remark-gfm",
-    "~/app/map",
-    "~/app/map/Chat/_settings/useChatSettings",
-    "~/app/map/Chat/_state",
-    "~/app/map/Chat/_state/_events/event.types",
-    "~/app/map/Chat/services",
-    "~/app/map/Services/EventBus",
-    "~/app/map/Services/EventBus/event-bus-context"
+    "~/app/map"
   ],
   "subsystems": [
     "./Widgets",
