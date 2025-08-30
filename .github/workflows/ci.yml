@@ -114,7 +114,7 @@ jobs:
           
           echo ""
           echo "Running architecture validation..."
-          pnpm lint:architecture
+          pnpm check:architecture
           if [ $? -ne 0 ]; then
             echo "❌ Architecture validation failed"
             EXIT_CODE=1

@@ -2,8 +2,22 @@ import { useState, useCallback, useContext, useMemo } from 'react'
 import { api } from '~/commons/trpc/react'
 import { useChatState, type ChatMessage, type Message } from '~/app/map/Chat'
 import { MapCacheContext } from '~/app/map/Cache'
-import type { CompositionConfig, QueuedJobResponse } from '~/lib/domains/agentic'
+import type { CompositionConfig } from '~/lib/domains/agentic'
 import { loggers } from '~/lib/debug/debug-logger'
+
+// Type for the tRPC response that might include jobId for queued responses
+interface GenerateResponseResult {
+  id: string
+  content: string
+  model: string
+  usage: {
+    promptTokens: number
+    completionTokens: number
+    totalTokens: number
+  }
+  finishReason?: 'stop' | 'length' | 'content_filter' | 'error' | 'queued'
+  jobId?: string // Present when finishReason is 'queued'
+}
 
 interface UseAIChatOptions {
   temperature?: number
@@ -28,18 +42,18 @@ export function useAIChat(options: UseAIChatOptions = {}) {
   
   
   const generateResponseMutation = api.agentic.generateResponse.useMutation({
-    onSuccess: (response: any) => {
+    onSuccess: (response: GenerateResponseResult) => {
       
       // Check if response is queued based on finishReason
-      if ((response as QueuedJobResponse).finishReason === 'queued') {
+      if (response.finishReason === 'queued' && response.jobId) {
         // Send AI Response widget for queued job
         
         chatState.showAIResponseWidget({
-          jobId: response.id,
+          jobId: response.jobId,
           model: response.model
         })
         
-        loggers.agentic('Request queued, widget sent', { jobId: response.id })
+        loggers.agentic('Request queued, widget sent', { jobId: response.jobId })
       } else {
         // Send AI Response widget for direct response
         
@@ -56,7 +70,7 @@ export function useAIChat(options: UseAIChatOptions = {}) {
       }
       setIsGenerating(false)
     },
-    onError: (error: any) => {
+    onError: (error) => {
       console.error('[useAIChat] Mutation error:', error)
       chatState.showSystemMessage(
         `AI Error: ${error.message}`,
