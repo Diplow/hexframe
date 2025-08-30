@@ -135,7 +135,8 @@ describe('AgenticService', () => {
         source: 'agentic',
         payload: {
           response: mockLLMResponse,
-          context: mockComposedContext
+          context: mockComposedContext,
+          personality: 'system-prompt'
         }
       })
 
@@ -265,7 +266,8 @@ describe('AgenticService', () => {
         type: 'agentic.stream_started',
         source: 'agentic',
         payload: {
-          context: mockComposedContext
+          context: mockComposedContext,
+          personality: 'system-prompt'
         }
       })
       expect(mockEventBus.emit).toHaveBeenCalledWith({
@@ -273,7 +275,8 @@ describe('AgenticService', () => {
         source: 'agentic',
         payload: {
           response: mockLLMResponse,
-          context: mockComposedContext
+          context: mockComposedContext,
+          personality: 'system-prompt'
         }
       })
     })
