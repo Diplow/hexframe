@@ -1,4 +1,4 @@
-import type { TileData, URLInfo } from "~/app/map/Canvas/Tile";
+import type { TileData, URLInfo } from "~/app/map/Canvas/types";
 
 // Shared helper functions for tile buttons
 

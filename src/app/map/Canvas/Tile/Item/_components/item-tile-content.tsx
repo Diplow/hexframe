@@ -1,10 +1,10 @@
 "use client";
 
-import type { TileData, URLInfo } from "~/app/map/Canvas/Tile";
+import type { TileData, URLInfo } from "~/app/map/Canvas/types";
 import { DynamicBaseTileLayout } from "~/app/map/Canvas/Tile/Base";
-import type { TileScale, TileColor } from "~/app/map/Canvas/Tile";
+import type { TileScale, TileColor } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
 import { DynamicTileContent } from "~/app/map/Canvas/Tile/Item/content";
-import { useTileInteraction } from "~/app/map/Canvas/Tile";
+import { useTileInteraction } from "~/app/map/Canvas";
 // import { useRouter } from "next/navigation"; // Removed unused import
 import { useCanvasTheme } from "~/app/map/Canvas";
 

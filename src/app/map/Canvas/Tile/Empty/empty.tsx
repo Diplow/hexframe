@@ -4,11 +4,11 @@ import { useState, useContext, useEffect } from "react";
 import { DynamicBaseTileLayout } from "~/app/map/Canvas/Tile/Base";
 import type { TileScale, TileColor } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
 import { LegacyTileActionsContext, useCanvasTheme } from "~/app/map/Canvas";
-import type { URLInfo } from "..";
+import type { URLInfo } from "~/app/map/Canvas/types";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
-import { getColor } from "..";
+import { getColor } from "~/app/map/Canvas/types";
 import { getDefaultStroke } from "~/app/map/Canvas/Tile/utils/stroke";
-import { useTileInteraction } from "..";
+import { useTileInteraction } from "~/app/map/Canvas";
 import { loggers } from "~/lib/debug/debug-logger";
 
 export interface DynamicEmptyTileProps {

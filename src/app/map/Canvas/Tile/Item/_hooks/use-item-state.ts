@@ -1,7 +1,7 @@
 "use client";
 
 import { useContext, useEffect } from "react";
-import type { TileData } from "~/app/map/Canvas/Tile";
+import type { TileData } from "~/app/map/Canvas/types";
 import { LegacyTileActionsContext } from "~/app/map/Canvas";
 import { useItemInteraction } from "~/app/map/Canvas/Tile/Item/_hooks/use-item-interaction";
 import { generateTileTestId } from "~/app/map/Canvas/Tile/Item/_utils";

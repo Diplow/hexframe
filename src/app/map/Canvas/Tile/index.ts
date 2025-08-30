@@ -39,10 +39,11 @@ export { getColorFromItem } from '~/app/map/Canvas/Tile/Item/_utils/color'
 // NOTE: MapCache reexports removed - Tile components now use callbacks
 // Canvas should import MapCache directly and pass handlers as props
 
-// Tile subsystem type reexports for internal components
-export type { TileData, TileState } from '~/app/map/types/tile-data';
-export type { URLInfo } from '~/app/map/types/url-info';
-export { getColor, getTextColorForDepth, DEFAULT_MAP_COLORS } from '~/app/map/Canvas/types';
-export { useTileInteraction } from '~/app/map/Canvas';
+// NOTE: External reexports removed to fix architecture violations.
+// Components should import these directly from their source modules:
+// - import type { TileData, TileState } from '~/app/map/types/tile-data'
+// - import type { URLInfo } from '~/app/map/types/url-info'
+// - import { getColor, getTextColorForDepth, DEFAULT_MAP_COLORS } from '~/app/map/Canvas/types'
+// - import { useTileInteraction } from '~/app/map/Canvas'
 
 // Base types already exported above

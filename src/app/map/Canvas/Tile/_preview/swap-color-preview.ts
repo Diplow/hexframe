@@ -1,7 +1,7 @@
 import type { Coord } from "~/lib/domains/mapping/utils";
 import { Direction } from "~/lib/domains/mapping/utils";
 import type { SwapPreviewState } from "~/app/map/Canvas/Tile/_preview/types";
-import { DEFAULT_MAP_COLORS } from "..";
+import { DEFAULT_MAP_COLORS } from "~/app/map/Canvas/types";
 
 /**
  * Type guard to check if a value is a valid Direction
