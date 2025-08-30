@@ -1,36 +1,27 @@
 {
   "$schema": "../../../../../schemas/dependencies.schema.json",
-  "allowed": [
-    "./",
-    "react",
+  "allowedChildren": [
     "lucide-react",
-    "~/lib/utils",
-    "~/lib/auth",
-    "~/lib/debug/debug-logger",
-    "~/lib/domains/agentic",
-    "~/lib/domains/mapping/utils",
-    "~/lib/domains/mapping/utils/hex-coordinates",
-    "~/commons/trpc/react",
+    "next/navigation", 
+    "react",
+    "react-dom",
+    "react-markdown",
+    "~/app/map/Chat/Timeline/MarkdownRenderer",
+    "~/app/map/Chat/Timeline/services",
     "~/components/ui/button",
-    "~/components/ui/input",
-    "~/components/ui/textarea",
-    "~/components/ui/label",
-    "~/app/map/Cache/interface",
-    "../services",
-    "../../services",
-    "../..",
-    "../../../Cache",
-    "../../../Services/EventBus/event-bus-context",
-    "../Portal",
-    "../MarkdownRenderer",
-    "../../MarkdownRenderer",
-    "../../../../Services/EventBus/event-bus-context",
-    "../utils"
+    "~/lib/auth",
+    "~/lib/debug/debug-logger", 
+    "~/lib/domains/agentic",
+    "~/lib/utils"
+  ],
+  "allowed": [
+    "~/app/map/Chat",
+    "~/commons/trpc/react",
+    "~/lib/domains/mapping/utils"
   ],
   "subsystems": [
     "./AIResponseWidget",
-    "./LoginWidget",
+    "./LoginWidget", 
     "./PreviewWidget"
-  ],
-  "exceptions": {}
+  ]
 }

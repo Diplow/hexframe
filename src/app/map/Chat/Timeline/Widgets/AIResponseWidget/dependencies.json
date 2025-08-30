@@ -1,15 +1,6 @@
 {
   "$schema": "~/schemas/dependencies.schema.json",
   "allowed": [
-    "./",
-    "react",
-    "~/commons/trpc/react",
-    "~/lib/debug/debug-logger",
-    "~/lib/domains/agentic",
-    "~/lib/domains/agentic/interface",
-    "lucide-react",
-    "../../Messages/MarkdownRenderer",
-    "../../MarkdownRenderer"
-  ],
-  "exceptions": {}
+    "~/app/map/Chat/Timeline/Widgets/AIResponseWidget"
+  ]
 }

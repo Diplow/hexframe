@@ -1,19 +1,6 @@
 {
-  "$schema": "~/schemas/dependencies.schema.json",
+  "$schema": "~/schemas/dependencies.schema.json", 
   "allowed": [
-    "./",
-    "react",
-    "~/components/ui/button",
-    "~/components/ui/input",
-    "~/components/ui/label",
-    "~/lib/auth",
-    "~/lib/auth/auth-client",
-    "~/lib/auth/interface",
-    "~/contexts/UnifiedAuthContext",
-    "../services",
-    "../../services",
-    "../../../../Services/EventBus/event-bus-context",
-    "lucide-react"
-  ],
-  "exceptions": {}
+    "~/app/map/Chat/Timeline/Widgets/LoginWidget"
+  ]
 }
