@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { authClient } from '~/lib/auth';
 import { useRouter } from 'next/navigation';
-import { useEventBus } from '~/app/map/Chat/Timeline/services';
+import { useEventBus } from '~/app/map/Services';
 
 export function useLoginForm() {
   const eventBus = useEventBus();

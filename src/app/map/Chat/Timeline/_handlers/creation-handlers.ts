@@ -1,6 +1,6 @@
 import type { Widget } from '~/app/map/Chat/_state';
 import { focusChatInput } from '~/app/map/Chat/Timeline/_utils/focus-helpers';
-import type { EventBusService } from '~/app/map/Chat/Timeline/services';
+import type { EventBusService } from '~/app/map/Services';
 
 interface CreationHandlerDeps {
   createItemOptimistic: (coordId: string, data: {

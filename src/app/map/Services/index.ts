@@ -7,7 +7,7 @@
 
 // Event Bus - Core system communication
 export { EventBus, EventBusProvider, EventBusContext, useEventBus } from '~/app/map/Services/EventBus';
-export type { AppEvent, EventListener, EventBusService } from '~/app/map/Services/types';
+export type { AppEvent, EventListener, EventBusService } from './types';
 
 // Prefetch Service - Data loading and caching
 export { 

@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useMemo, useCallback, useRef } from 'react';
-import { useEventBus } from '~/app/map/Chat/services';
+import { useEventBus } from '~/app/map/Services';
 import type { ChatEvent, ChatUIState } from '~/app/map/Chat/_state/_events/event.types';
 import type { AppEvent, TileData } from '~/app/map/types';
 import { eventsReducer } from '~/app/map/Chat/_state/_reducers/events.reducer';

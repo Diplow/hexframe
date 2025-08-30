@@ -23,5 +23,5 @@ export type { MapCacheHook } from '~/app/map/Cache/types'
 // Cache state type needed by AI services for context composition
 export type { CacheState } from '~/app/map/Cache/State/types'
 
-// Tile data type needed by external consumers
-export type { TileData } from '~/app/map/types/tile-data'
+// NOTE: TileData type reexport removed to fix architecture violations.
+// Consumers should import TileData directly from '~/app/map/types/tile-data'

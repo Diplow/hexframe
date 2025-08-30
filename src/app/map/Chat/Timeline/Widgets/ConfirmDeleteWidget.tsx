@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useMapCache } from '~/app/map/Chat';
 import { Trash2, AlertTriangle } from 'lucide-react';
-import { useEventBus } from '~/app/map/Chat/Timeline/services';
+import { useEventBus } from '~/app/map/Services';
 
 interface ConfirmDeleteWidgetProps {
   tileId: string;

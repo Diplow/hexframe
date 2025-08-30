@@ -12,7 +12,7 @@ import { LogOut, LogIn } from 'lucide-react';
 import { useUnifiedAuth } from '~/contexts/UnifiedAuthContext';
 import { authClient } from '~/lib/auth';
 import { loggers } from '~/lib/debug/debug-logger';
-import { useEventBus } from '~/app/map/Chat/services';
+import { useEventBus } from '~/app/map/Services';
 import { useAIChatIntegration } from '~/app/map/Chat/_hooks/useAIChatIntegration';
 
 interface ChatPanelProps {

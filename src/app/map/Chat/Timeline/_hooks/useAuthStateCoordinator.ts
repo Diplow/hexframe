@@ -3,8 +3,8 @@ import { useUnifiedAuth } from '~/contexts/UnifiedAuthContext';
 import { useRouter } from 'next/navigation';
 import { api } from '~/commons/trpc/react';
 import type { Widget } from '~/app/map/Chat/_state';
-import { preloadUserMapData, savePreFetchedData } from '~/app/map/Chat/Timeline/services';
-import { useEventBus } from '~/app/map/Chat/Timeline/services';
+import { preloadUserMapData, savePreFetchedData } from '~/app/map/Services';
+import { useEventBus } from '~/app/map/Services';
 
 export function useAuthStateCoordinator(widgets: Widget[]) {
   const { user } = useUnifiedAuth();

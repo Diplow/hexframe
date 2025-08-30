@@ -2,7 +2,7 @@ import type { Widget } from '~/app/map/Chat/_state/types';
 import type { TileData } from '~/app/map/types';
 import type { ReactNode } from 'react';
 import { useMapCache } from '~/app/map/Cache';
-import { useEventBus } from '~/app/map/Chat/Timeline/services';
+import { useEventBus } from '~/app/map/Services';
 import { useChatState } from '~/app/map/Chat/_state';
 import { createCreationHandlers } from '~/app/map/Chat/Timeline/_handlers/creation-handlers';
 import { createPreviewHandlers } from '~/app/map/Chat/Timeline/_handlers/preview-handlers';

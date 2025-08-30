@@ -4,7 +4,8 @@
     "~/app/map/Chat/Timeline/MarkdownRenderer"
   ],
   "allowed": [
-    "~/app/map/Chat"
+    "~/app/map/Chat",
+    "~/app/map/Services"
   ],
   "subsystems": [
     "./AIResponseWidget",

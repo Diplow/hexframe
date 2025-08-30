@@ -1,6 +1,7 @@
 {
   "$schema": "~/schemas/dependencies.schema.json", 
   "allowed": [
-    "~/app/map/Chat/Timeline/Widgets/LoginWidget"
+    "~/app/map/Chat/Timeline/Widgets/LoginWidget",
+    "~/app/map/Services"
   ]
 }

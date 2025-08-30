@@ -2,15 +2,13 @@
   "$schema": "../../../../../schemas/dependencies.schema.json",
   "allowedChildren": [
     "~/app/map/Chat/_state/types",
-    "~/app/map/Chat/types",
-    "~/app/map/Chat/Timeline/services"
+    "~/app/map/Chat/types"
   ],
   "allowed": [
     "remark-gfm",
     "~/app/map"
   ],
   "subsystems": [
-    "./Widgets",
-    "./services"
+    "./Widgets"
   ]
 }

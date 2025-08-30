@@ -1,4 +1,4 @@
-import { useEventBus } from '~/app/map/Chat/Timeline/services';
+import { useEventBus } from '~/app/map/Services';
 
 interface CommandButtonRendererProps {
   href: string;

@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { chatSettings, useChatState, useMapCache } from '~/app/map/Chat';
 import { debugLogger } from '~/lib/debug/debug-logger';
 import { authClient } from '~/lib/auth';
-import { useEventBus } from '~/app/map/Chat/services';
+import { useEventBus } from '~/app/map/Services';
 
 // UTF-8 safe base64 encoder
 function toBase64(s: string): string {

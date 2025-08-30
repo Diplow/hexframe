@@ -42,36 +42,8 @@ export { chatSettings } from '~/app/map/Chat/_settings/chat-settings';
 // AI Integration
 export { useAIChatIntegration } from '~/app/map/Chat/_hooks/useAIChatIntegration';
 
-// Cache reexports for Timeline and other Chat subsystems
-export { 
-  MapCacheProvider, 
-  MapCacheContext, 
-  useMapCache 
-} from '../Cache';
-export type { 
-  MapCacheHook, 
-  CacheState,
-  TileData as CacheTileData
-} from '../Cache';
-
-// Services reexports for Timeline and other Chat subsystems
-export {
-  EventBus,
-  EventBusProvider,
-  EventBusContext,
-  useEventBus,
-  preloadUserMapData,
-  transformApiItemsToTileData,
-  savePreFetchedData,
-  loadPreFetchedData,
-  clearPreFetchedData
-} from '../Services';
-export type {
-  AppEvent,
-  EventListener,
-  EventBusService,
-  PreFetchedMapData
-} from '../Services';
+// NOTE: Cache and Services reexports removed to fix architecture violations.
+// Components should import directly from ../Cache and ../Services as needed.
 
 /**
  * Chat Subsystem Public Interface

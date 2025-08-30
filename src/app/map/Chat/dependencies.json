@@ -8,11 +8,11 @@
   "allowed": [
     "remark-gfm",
     "~/app",
+    "~/app/map/Services",
     "~/components/ThemeToggle"
   ],
   "subsystems": [
     "./Input",
-    "./Timeline", 
-    "./services"
+    "./Timeline"
   ]
 }

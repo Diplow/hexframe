@@ -43,17 +43,8 @@ export type {
   ThemeContextValue
 } from './_shared/contexts'
 
-// Cache reexports for Tile and other Canvas subsystems
-export { 
-  MapCacheProvider, 
-  MapCacheContext, 
-  useMapCache 
-} from '../Cache';
-export type { 
-  MapCacheHook, 
-  CacheState,
-  TileData as CacheTileData
-} from '../Cache';
+// NOTE: Cache reexports removed to fix architecture violations.
+// Canvas subsystems should import directly from ../Cache as needed.
 
 // Shared hooks for Tile subsystem
 export { useTileInteraction } from '~/app/map/Canvas/hooks/shared/useTileInteraction';
