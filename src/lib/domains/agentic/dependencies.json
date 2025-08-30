@@ -1,18 +1,18 @@
 {
   "$schema": "../../../schemas/dependencies.schema.json",
   "allowed": [
-    "~/lib/domains/mapping",
-    "~/lib/debug/debug-logger",
+    "drizzle-orm",
     "inngest",
     "tiktoken",
+    "~/app/map",
+    "~/env",
+    "~/lib",
+    "~/server/db"
+  ],
+  "subsystems": [
     "./infrastructure",
     "./repositories",
-    "./_objects",
-    "./_actions",
-    "./_repositories",
-    "./_security",
-    "./services",
-    "./types"
+    "./services"
   ],
   "exceptions": {}
 }

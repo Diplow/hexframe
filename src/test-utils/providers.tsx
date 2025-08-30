@@ -3,9 +3,9 @@ import { expect } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '~/contexts/AuthContext';
 import { ThemeProvider } from '~/contexts/ThemeContext';
-import { EventBusProvider, EventBusContext } from '~/app/map/interface';
-import { EventBus } from '~/app/map/interface';
-import { createMockEventBus, type MockEventBus } from './event-bus';
+import { EventBusProvider, EventBusContext } from '~/app/map';
+import { EventBus } from '~/app/map';
+import { createMockEventBus, type MockEventBus } from '~/test-utils/event-bus';
 import { debugLogger } from '~/lib/debug/debug-logger';
 
 interface TestProvidersProps {
@@ -107,4 +107,4 @@ export function createTestSetup(options: Omit<TestProvidersProps, 'children'> = 
 }
 
 // Re-export event bus utilities for convenience
-export { createMockEventBus, expectEventEmitted, expectEventNotEmitted, clearEmittedEvents } from './event-bus';
+export { createMockEventBus, expectEventEmitted, expectEventNotEmitted, clearEmittedEvents } from '~/test-utils/event-bus';

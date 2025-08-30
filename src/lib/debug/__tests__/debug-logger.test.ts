@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { debugLogger } from '../debug-logger';
+import { debugLogger } from '~/lib/debug/debug-logger';
 
 describe('DebugLogger', () => {
   beforeEach(() => {

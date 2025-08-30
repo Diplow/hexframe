@@ -3,15 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Maximize2, Minimize2, Crosshair, Pencil, Trash2, ExternalLink } from "lucide-react";
-import { useMapCache } from '../../../Cache/interface';
 import { testLogger } from "~/lib/test-logger";
 import {
   getButtonPositioning,
   getButtonsSizing,
 } from "./_utils/button-utils";
-import type { TileData } from "../../../types/tile-data";
-import type { TileScale } from "../Base/BaseTileLayout";
-import type { URLInfo } from "../../../types/url-info";
+import type { TileData, URLInfo } from "~/app/map/Canvas/types";
+import type { TileScale } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
 
 export interface TileButtonsProps {
   item: TileData;
@@ -30,6 +28,8 @@ interface DynamicTileButtonsProps extends TileButtonsProps {
   onEditClick?: () => void;
   onDeleteClick?: () => void;
   canEdit?: boolean;
+  onNavigate?: (coordId: string) => void;
+  onToggleExpansion?: (itemId: string, coordId: string) => void;
 }
 
 export const DynamicTileButtons = ({
@@ -40,11 +40,12 @@ export const DynamicTileButtons = ({
   onEditClick,
   onDeleteClick,
   canEdit = false,
+  onNavigate,
+  onToggleExpansion,
 }: DynamicTileButtonsProps) => {
   const { scale = 1, isCenter = false } = displayConfig;
   const { allExpandedItemIds, hasChildren } = expansionState;
   const router = useRouter();
-  const { navigateToItem, toggleItemExpansionWithURL } = useMapCache();
 
   const [isNavigating, setIsNavigating] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
@@ -101,7 +102,7 @@ export const DynamicTileButtons = ({
 
     try {
       // Use the cache's toggle method with URL sync
-      toggleItemExpansionWithURL(item.metadata.dbId);
+      onToggleExpansion?.(item.metadata.dbId, item.metadata.coordId);
     } catch (error) {
       console.warn("Expansion failed", error);
     } finally {
@@ -124,7 +125,7 @@ export const DynamicTileButtons = ({
     try {
       // Use dynamic navigation method for instant feedback
       // Navigation should push to history (user wants to go back)
-      await navigateToItem(item.metadata.coordId, { pushToHistory: true });
+      onNavigate?.(item.metadata.coordId);
       testLogger.info(`Navigation successful to ${item.metadata.coordId}`);
     } catch (error) {
       testLogger.error(

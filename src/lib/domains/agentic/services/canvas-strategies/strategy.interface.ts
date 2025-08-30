@@ -1,4 +1,4 @@
-import type { CanvasContext, CanvasContextOptions } from '../../types'
+import type { CanvasContext, CanvasContextOptions } from '~/lib/domains/agentic/types'
 
 export interface ICanvasStrategy {
   build(

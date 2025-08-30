@@ -1,15 +1,18 @@
 {
   "$schema": "../../../../schemas/dependencies.schema.json",
-  "allowed": [
-    "react",
-    "lucide-react",
-    "~/lib/utils",
-    "~/lib/auth/auth-client",
-    "~/lib/debug/debug-logger",
-    "~/components/",
-    "~/contexts/UnifiedAuthContext",
-    "../Services/EventBus/event-bus-context",
-    "../types"
+  "allowedChildren": [
+    "~/app/map/Cache",
+    "~/app/map/types",
+    "~/app/types"
   ],
-  "exceptions": {}
+  "allowed": [
+    "remark-gfm",
+    "~/app",
+    "~/app/map/Services",
+    "~/components/ThemeToggle"
+  ],
+  "subsystems": [
+    "./Input",
+    "./Timeline"
+  ]
 }

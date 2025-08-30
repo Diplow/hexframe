@@ -2,11 +2,11 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { db } from "~/server/db";
 import { mapItems } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
-import { DbMapItemRepository } from "../../infrastructure/map-item/db";
-import { DbBaseItemRepository } from "../../infrastructure/base-item/db";
-import { ItemQueryService } from "../_item-query.service";
-import { MapItemActions } from "../../_actions/map-item.actions";
-import { MapItemType } from "../../_objects";
+import { DbMapItemRepository } from "~/lib/domains/mapping/infrastructure/map-item/db";
+import { DbBaseItemRepository } from "~/lib/domains/mapping/infrastructure/base-item/db";
+import { ItemQueryService } from "~/lib/domains/mapping/services/_item-query.service";
+import { MapItemActions } from "~/lib/domains/mapping/_actions/map-item.actions";
+import { MapItemType } from "~/lib/domains/mapping/_objects";
 
 describe("Item Swap Transaction - Integration Test", () => {
   let mapItemRepo: DbMapItemRepository;

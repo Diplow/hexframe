@@ -1,4 +1,4 @@
-import type { ILLMRepository } from './llm.repository.interface'
+import type { ILLMRepository } from '~/lib/domains/agentic/repositories/llm.repository.interface'
 import type { 
   LLMGenerationParams, 
   LLMResponse, 

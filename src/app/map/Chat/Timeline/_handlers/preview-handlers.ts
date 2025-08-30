@@ -1,7 +1,6 @@
-import type { Widget } from '../../_state/types';
-import type { TileSelectedPayload } from '../../_state/_events/event.types';
-import { focusChatInput } from '../_utils/focus-helpers';
-import type { EventBusService } from '../../../Services/EventBus';
+import type { Widget, TileSelectedPayload } from '~/app/map/Chat/_state';
+import { focusChatInput } from '~/app/map/Chat/Timeline/_utils/focus-helpers';
+import type { EventBusService } from '~/app/map/Services';
 
 interface PreviewHandlerDeps {
   updateItemOptimistic: (tileId: string, data: {

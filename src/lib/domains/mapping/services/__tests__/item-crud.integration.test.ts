@@ -31,7 +31,7 @@ import {
   _validateRootItemRemoval,
   _validateRemoveNonExistentItemError,
 } from "./helpers/item-crud/_item-remove-helpers";
-import { Direction } from "../../utils/hex-coordinates";
+import { Direction } from "~/lib/domains/mapping/utils/hex-coordinates";
 
 describe("MappingService - Item CRUD [Integration - DB]", () => {
   let testEnv: TestEnvironment;

@@ -2,8 +2,8 @@
   "$schema": "../../../../schemas/dependencies.schema.json",
   "allowed": [
     "~/lib/debug/debug-logger",
-    "../types",
-    "../infrastructure/inngest"
+    "~/lib/domains/agentic/types",
+    "~/lib/domains/agentic/infrastructure/inngest"
   ],
   "exceptions": {}
 }

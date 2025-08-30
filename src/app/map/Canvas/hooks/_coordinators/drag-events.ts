@@ -1,6 +1,6 @@
 import type { DragEvent } from "react";
-import type { DragState } from "../types";
-import type { TileData } from "../../../types/tile-data";
+import type { DragState } from "~/app/map/Canvas/hooks/types";
+import type { TileData } from "~/app/map/Canvas/types";
 
 export function setupDragStart(
   event: DragEvent<HTMLDivElement>,

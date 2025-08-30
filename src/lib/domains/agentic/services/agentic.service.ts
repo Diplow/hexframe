@@ -1,6 +1,8 @@
-import type { ILLMRepository } from '../repositories/llm.repository.interface'
-import type { ContextCompositionService } from './context-composition.service'
-import type { EventBus } from '~/app/map/interface'
+import type { ILLMRepository } from '~/lib/domains/agentic/repositories/llm.repository.interface'
+import type { ContextCompositionService } from '~/lib/domains/agentic/services/context-composition.service'
+import { PromptTemplateService } from '~/lib/domains/agentic/services/prompt-template.service'
+// import { IntentClassifierService } from '../intent-classification/intent-classifier.service'
+import type { EventBus } from '~/app/map'
 import type { 
   CompositionConfig, 
   LLMResponse, 
@@ -9,7 +11,9 @@ import type {
   ModelInfo,
   LLMMessage
 } from '../types'
-import type { ChatMessage } from '~/app/map/interface'
+import type { ChatMessage } from '~/app/map'
+// import type { Intent, ClassificationContext } from '../intent-classification/intent.types'
+import type { PromptTemplateName } from '~/lib/domains/agentic/prompts/prompts.constants'
 
 export interface GenerateResponseOptions {
   centerCoordId: string
@@ -18,14 +22,23 @@ export interface GenerateResponseOptions {
   temperature?: number
   maxTokens?: number
   compositionConfig?: CompositionConfig
+  // Context for intent classification
+  isOwnSystem?: boolean
+  systemBriefDescription?: string
+  specialContext?: 'onboarding' | 'importing'
 }
 
 export class AgenticService {
+  private promptTemplate: PromptTemplateService
+  // private intentClassifier: IntentClassifierService
+
   constructor(
     private readonly llmRepository: ILLMRepository,
     private readonly contextComposition: ContextCompositionService,
     private readonly eventBus: EventBus
-  ) {}
+  ) {
+    this.promptTemplate = new PromptTemplateService()
+  }
 
   async generateResponse(options: GenerateResponseOptions): Promise<LLMResponse> {
     if (!this.llmRepository.isConfigured()) {
@@ -40,8 +53,11 @@ export class AgenticService {
     )
 
     try {
-      // Build LLM messages with context
-      const llmMessages = this.buildLLMMessages(composedContext, options.messages)
+      // Use default prompt template (intent classification temporarily disabled)
+      const promptTemplate = 'system-prompt' as PromptTemplateName
+      
+      // Build LLM messages with context and selected personality
+      const llmMessages = this.buildLLMMessages(composedContext, options.messages, promptTemplate)
 
       // Generate response
       const llmParams: LLMGenerationParams = {
@@ -54,13 +70,14 @@ export class AgenticService {
 
       const response = await this.llmRepository.generate(llmParams)
 
-      // Emit success event
+      // Emit success event with personality info
       this.eventBus.emit({
         type: 'agentic.response_generated',
         source: 'agentic',
         payload: {
           response,
-          context: composedContext
+          context: composedContext,
+          personality: promptTemplate
         }
       })
 
@@ -95,17 +112,21 @@ export class AgenticService {
     )
 
     try {
+      // Use default prompt template (intent classification temporarily disabled)
+      const promptTemplate = 'system-prompt' as PromptTemplateName
+      
       // Emit stream started event
       this.eventBus.emit({
         type: 'agentic.stream_started',
         source: 'agentic',
         payload: {
-          context: composedContext
+          context: composedContext,
+          personality: promptTemplate
         }
       })
 
-      // Build LLM messages with context
-      const llmMessages = this.buildLLMMessages(composedContext, options.messages)
+      // Build LLM messages with context and selected personality
+      const llmMessages = this.buildLLMMessages(composedContext, options.messages, promptTemplate)
 
       // Generate streaming response
       const llmParams: LLMGenerationParams = {
@@ -124,7 +145,8 @@ export class AgenticService {
         source: 'agentic',
         payload: {
           response,
-          context: composedContext
+          context: composedContext,
+          personality: promptTemplate
         }
       })
 
@@ -153,7 +175,8 @@ export class AgenticService {
 
   private buildLLMMessages(
     composedContext: ReturnType<ContextCompositionService['composeContext']> extends Promise<infer T> ? T : never,
-    chatMessages: ChatMessage[]
+    chatMessages: ChatMessage[],
+    promptTemplateName: PromptTemplateName = 'system-prompt'
   ): LLMMessage[] {
     const messages: LLMMessage[] = []
 
@@ -165,7 +188,7 @@ export class AgenticService {
 
     messages.push({
       role: 'system',
-      content: this.buildSystemPrompt(contextString)
+      content: this.buildSystemPrompt(contextString, promptTemplateName)
     })
 
     // Convert chat messages to LLM messages
@@ -187,23 +210,10 @@ export class AgenticService {
     return messages
   }
 
-  private buildSystemPrompt(contextString: string): string {
-    return `You are an AI assistant helping users work with Hexframe, a visual framework for building AI-powered systems through hierarchical hexagonal maps.
-
-Current Context:
-${contextString}
-
-Instructions:
-- Help users understand and work with their tile hierarchies
-- Suggest improvements to their tile organization
-- Answer questions about the current context
-- Be concise and helpful
-- Format your responses using Markdown for better readability:
-  - Use **bold** for emphasis on important concepts
-  - Use \`code\` for technical terms or commands
-  - Use bullet points or numbered lists for structured information
-  - Use headers (##, ###) to organize longer responses
-  - Use code blocks with syntax highlighting when sharing code examples`
+  private buildSystemPrompt(contextString: string, templateName: PromptTemplateName = 'system-prompt'): string {
+    return this.promptTemplate.renderTemplate(templateName, {
+      CONTEXT: contextString
+    })
   }
 
   private widgetExtractors = new Map<string, (data: unknown) => string>([
@@ -223,6 +233,8 @@ Instructions:
     
     return extractor ? extractor(w.data) : `[${w.type} widget]`
   }
+
+  // Intent classification methods temporarily removed due to missing dependencies
 
   private getDefaultCompositionConfig(): CompositionConfig {
     return {

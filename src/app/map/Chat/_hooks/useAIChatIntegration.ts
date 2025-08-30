@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { useChatState } from '../_state'
-import { useAIChat } from './useAIChat'
+import { useChatState } from '~/app/map/Chat'
+import { useAIChat } from '~/app/map/Chat/_hooks/useAIChat'
 import { loggers } from '~/lib/debug/debug-logger'
 
 /**
@@ -48,10 +48,7 @@ export function useAIChatIntegration() {
       messageId: latestMessage.id
     })
 
-    // Show loading message
-    chatState.showSystemMessage('Thinking...', 'info')
-
-    // Send to AI
+    // Send to AI (the thinking indicator is shown via isGeneratingAI)
     void sendToAI(messageContent).finally(() => {
       processingMessage.current = false
     })

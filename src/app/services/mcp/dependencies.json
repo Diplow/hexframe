@@ -1,0 +1,13 @@
+{
+  "$schema": "../../../../schemas/dependencies.schema.json",
+  "allowed": [
+    "@modelcontextprotocol/sdk/server",
+    "@modelcontextprotocol/sdk/types",
+    "~/lib/domains/mapping"
+  ],
+  "subsystems": [
+    "./services",
+    "./transport"
+  ],
+  "exceptions": {}
+}

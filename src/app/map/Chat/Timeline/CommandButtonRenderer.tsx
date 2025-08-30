@@ -1,4 +1,4 @@
-import { useEventBus } from '../../Services/EventBus/event-bus-context';
+import { useEventBus } from '~/app/map/Services';
 
 interface CommandButtonRendererProps {
   href: string;

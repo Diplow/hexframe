@@ -1,4 +1,4 @@
-import type { TileScale } from "../Tile/interface";
+import type { TileScale } from "~/app/map/Canvas/Tile";
 
 /**
  * Calculates the negative margin needed for hexagon row overlap

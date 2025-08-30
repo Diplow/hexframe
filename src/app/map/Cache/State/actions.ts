@@ -4,9 +4,9 @@ import type {
   LoadItemChildrenPayload,
   UpdateCacheConfigPayload,
 } from "./types";
-import { ACTION_TYPES } from "./types";
+import { ACTION_TYPES } from "~/app/map/Cache/State/types";
 import type { MapItemAPIContract } from "~/server/api/types/contracts";
-import type { TileData } from "../../types/tile-data";
+import type { TileData } from "~/app/map/types";
 
 // Action creators - pure functions that return action objects
 

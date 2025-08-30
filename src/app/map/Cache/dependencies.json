@@ -1,15 +1,11 @@
 {
   "$schema": "../../../../schemas/dependencies.schema.json",
   "allowed": [
-    "~/app/map/types",
-    "~/commons/trpc",
-    "~/lib/domains/mapping/utils",
-    "~/server/api/types/contracts",
-    "~/lib/debug/debug-logger",
-    "~/test-utils/event-bus",
     "vitest",
-    "react",
-    "next/navigation"
+    "~/app/map",
+    "~/app/types",
+    "~/server/api/types/contracts",
+    "~/test-utils/event-bus"
   ],
   "exceptions": {
     "~/lib/domains/mapping/types/MapItemType": "Needed for specific type import while avoiding full types folder"

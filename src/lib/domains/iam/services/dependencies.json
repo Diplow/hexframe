@@ -1,0 +1,11 @@
+{
+  "$schema": "~/schemas/dependencies.schema.json",
+  "allowed": [
+    "~/lib/domains/iam/_objects",
+    "~/lib/domains/iam/_repositories",
+    "~/lib/domains/iam/infrastructure",
+    "~/lib/domains/iam/types",
+    "~/server/db"
+  ],
+  "exceptions": {}
+}

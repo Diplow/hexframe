@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { User } from "../user";
+import { User } from "~/lib/domains/iam/_objects/user";
 
 describe("User Entity", () => {
   const validProps = {

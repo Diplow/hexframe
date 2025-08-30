@@ -1,7 +1,6 @@
 import { type ReactNode } from "react";
-import { MapErrorBoundary } from "../Canvas/LifeCycle/error-boundary";
-import { MapLoadingSkeleton } from "../Canvas/LifeCycle/loading-skeleton";
-import type { URLInfo } from "../types/url-info";
+import { MapErrorBoundary, MapLoadingSkeleton } from "~/app/map/Canvas";
+import type { URLInfo } from "~/app/map/types/url-info";
 
 interface MapStateHandlerProps {
   urlInfo: URLInfo | null;

@@ -2,8 +2,8 @@ import type {
   MapItemRepository,
   BaseItemRepository,
 } from "~/lib/domains/mapping/_repositories";
-import { ItemCrudService } from "./_item-crud.service";
-import { ItemQueryService } from "./_item-query.service";
+import { ItemCrudService } from "~/lib/domains/mapping/services/_item-crud.service";
+import { ItemQueryService } from "~/lib/domains/mapping/services/_item-query.service";
 
 /**
  * Coordinating service for item-level operations.

@@ -1,0 +1,14 @@
+{
+  "$schema": "../../../../schemas/dependencies.schema.json",
+  "allowedChildren": [
+    "~/app/map/Services/types"
+  ],
+  "allowed": [
+    "~/app/map",
+    "~/server/api/types/contracts", 
+    "~/app/types"
+  ],
+  "subsystems": [
+    "./EventBus"
+  ]
+}

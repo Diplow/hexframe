@@ -1,6 +1,6 @@
 import { integer, text, timestamp, index } from "drizzle-orm/pg-core";
-import { createTable } from "../../_utils";
-import { users } from "../auth/users";
+import { createTable } from "~/server/db/schema/_utils";
+import { users } from "~/server/db/schema/_tables/auth/users";
 
 export const userMapping = createTable(
   "user_mapping",

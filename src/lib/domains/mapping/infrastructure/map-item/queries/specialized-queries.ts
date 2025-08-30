@@ -5,8 +5,8 @@ import { mapItems, baseItems } from "~/server/db/schema";
 
 import { MapItemType } from "~/lib/domains/mapping/_objects/map-item";
 import type { Direction } from "~/lib/domains/mapping/utils/hex-coordinates";
-import type { DbMapItemWithBase } from "../types";
-import { pathToString } from "../mappers";
+import type { DbMapItemWithBase } from "~/lib/domains/mapping/infrastructure/map-item/types";
+import { pathToString } from "~/lib/domains/mapping/infrastructure/map-item/mappers";
 
 export class SpecializedQueries {
   constructor(private db: PostgresJsDatabase<typeof schemaImport>) {}

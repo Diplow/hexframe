@@ -1,7 +1,7 @@
 import '~/test/setup'; // Import test setup FIRST
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
-import { DynamicTileContent } from "../content";
+import { DynamicTileContent } from "~/app/map/Canvas/Tile/Item/content";
 
 describe("DynamicTileContent Multi-line Title", () => {
   it("should truncate title for scale 1 tiles", () => {

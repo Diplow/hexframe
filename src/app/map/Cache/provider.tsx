@@ -6,30 +6,32 @@ import React, {
   useMemo,
   useRef,
   useCallback,
+  useEffect,
 } from "react";
 
 // Core infrastructure
-import { cacheReducer, initialCacheState } from "./State/reducer";
+import { cacheReducer, initialCacheState } from "~/app/map/Cache/State/reducer";
 
 // Services
-import { useServerService } from "./Services/server-service";
-import { useStorageService } from "./Services/storage-service";
+import { useServerService } from "~/app/map/Cache/Services/server-service";
+import { useStorageService } from "~/app/map/Cache/Services/storage-service";
 
 // Handlers
-import { useNavigationHandler } from "./Handlers/navigation-handler";
+import { useNavigationHandler } from "~/app/map/Cache/Handlers/navigation-handler";
 
 // Sync engine
-import { useSyncEngine } from "./Sync/sync-engine";
+import { useSyncEngine } from "~/app/map/Cache/Sync/sync-engine";
 
 // Coordinators and lifecycle
-import { useDataOperationsWrapper } from "./_coordinators/data-operations-wrapper";
-import { useMutationOperations } from "./_coordinators/use-mutation-operations";
-import { useCacheContextBuilder } from "./_builders/context-builder";
-import { useCacheLifecycle } from "./_lifecycle/provider-lifecycle";
+import { useDataOperationsWrapper } from "~/app/map/Cache/_coordinators/data-operations-wrapper";
+import { useMutationOperations } from "~/app/map/Cache/_coordinators/use-mutation-operations";
+import { useCacheContextBuilder } from "~/app/map/Cache/_builders/context-builder";
+import { useCacheLifecycle } from "~/app/map/Cache/_lifecycle/provider-lifecycle";
+import { cacheActions } from "~/app/map/Cache/State/actions";
 
 
 // Types
-import type { MapCacheContextValue, MapCacheProviderProps } from "./types";
+import type { MapCacheContextValue, MapCacheProviderProps } from "~/app/map/Cache/types";
 
 // Create the context
 export const MapCacheContext = createContext<MapCacheContextValue | null>(null);
@@ -50,12 +52,12 @@ export function MapCacheProvider({
   eventBus,
 }: MapCacheProviderProps) {
   
-  // Provider mounting/re-rendering
 
-  // Initialize state
+  // Initialize state - only memoize on serializable values
   const hasInitializedRef = useRef(false);
+  const initialItemsCount = Object.keys(initialItems).length;
   const initialState = useMemo(() => {
-    if (hasInitializedRef.current && Object.keys(initialItems).length === 0) {
+    if (hasInitializedRef.current && initialItemsCount === 0) {
       // Detected possible remount with empty items
       return {
         ...initialCacheState,
@@ -77,10 +79,19 @@ export function MapCacheProvider({
       cacheConfig: { ...initialCacheState.cacheConfig, ...cacheConfig },
       isLoading: false,
     };
-  }, [initialItems, initialCenter, initialExpandedItems, cacheConfig]);
+  }, [initialItems, initialCenter, initialExpandedItems, cacheConfig, initialItemsCount]);
 
   // Core state management
   const [state, dispatch] = useReducer(cacheReducer, initialState);
+  
+  // Update center when initialCenter changes after mount, but only if we haven't set a center yet
+  const hasInitializedCenter = useRef(false);
+  useEffect(() => {
+    if (initialCenter && !hasInitializedCenter.current && !state.currentCenter) {
+      dispatch(cacheActions.setCenter(initialCenter));
+      hasInitializedCenter.current = true;
+    }
+  }, [initialCenter, state.currentCenter]);
 
   // Initialize services
   const serverService = useServerService(serverConfig);
@@ -98,7 +109,7 @@ export function MapCacheProvider({
     eventBus,
   });
 
-  // Create getState function for handlers
+  // Create stable getState function for handlers
   const stateRef = useRef(state);
   stateRef.current = state;
   const getState = useCallback(() => stateRef.current, []);

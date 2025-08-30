@@ -1,7 +1,15 @@
 {
   "$schema": "../../../../schemas/dependencies.schema.json",
   "allowed": [
-    "inngest"
+    "drizzle-orm",
+    "inngest",
+    "~/env",
+    "~/lib/debug/debug-logger",
+    "~/lib/domains",
+    "~/server/db"
+  ],
+  "subsystems": [
+    "./inngest"
   ],
   "exceptions": {}
 }
