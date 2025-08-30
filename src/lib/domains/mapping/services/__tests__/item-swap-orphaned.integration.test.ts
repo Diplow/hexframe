@@ -2,12 +2,12 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { db } from "~/server/db";
 import { mapItems } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
-import { DbMapItemRepository } from "../../infrastructure/map-item/db";
-import { DbBaseItemRepository } from "../../infrastructure/base-item/db";
-import { ItemQueryService } from "../_item-query.service";
-import { MapItemActions } from "../../_actions/map-item.actions";
-import { MapItemType } from "../../_objects";
-import { type Direction } from "../../utils/hex-coordinates";
+import { DbMapItemRepository } from "~/lib/domains/mapping/infrastructure/map-item/db";
+import { DbBaseItemRepository } from "~/lib/domains/mapping/infrastructure/base-item/db";
+import { ItemQueryService } from "~/lib/domains/mapping/services/_item-query.service";
+import { MapItemActions } from "~/lib/domains/mapping/_actions/map-item.actions";
+import { MapItemType } from "~/lib/domains/mapping/_objects";
+import { type Direction } from "~/lib/domains/mapping/utils/hex-coordinates";
 
 describe("Item Swap with Orphaned Temp Item - Integration Test", () => {
   let mapItemRepo: DbMapItemRepository;

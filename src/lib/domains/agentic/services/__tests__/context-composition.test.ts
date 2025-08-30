@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ContextCompositionService } from '../context-composition.service'
-import type { CanvasContextBuilder } from '../canvas-context-builder.service'
-import type { ChatContextBuilder } from '../chat-context-builder.service'
-import type { TokenizerService } from '../tokenizer.service'
-import type { CompositionConfig } from '../../types'
-import type { ChatMessage } from '~/app/map/interface'
-import { createMockCanvasContext, createMockChatContext } from './__fixtures__/context-mocks'
+import { ContextCompositionService } from '~/lib/domains/agentic/services/context-composition.service'
+import type { CanvasContextBuilder } from '~/lib/domains/agentic/services/canvas-context-builder.service'
+import type { ChatContextBuilder } from '~/lib/domains/agentic/services/chat-context-builder.service'
+import type { TokenizerService } from '~/lib/domains/agentic/services/tokenizer.service'
+import type { CompositionConfig } from '~/lib/domains/agentic/types'
+import type { ChatMessage } from '~/app/map'
+import { createMockCanvasContext, createMockChatContext } from '~/lib/domains/agentic/services/__tests__/__fixtures__/context-mocks'
 
 describe('ContextCompositionService', () => {
   let mockCanvasBuilder: CanvasContextBuilder

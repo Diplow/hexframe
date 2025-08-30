@@ -6,8 +6,8 @@ import {
   type Coord,
   type Direction,
 } from "~/lib/domains/mapping/utils/hex-coordinates";
-import type { BaseItemWithId } from "./base-item";
-import { MAPPING_ERRORS } from "../types/errors";
+import type { BaseItemWithId } from "~/lib/domains/mapping/_objects/base-item";
+import { MAPPING_ERRORS } from "~/lib/domains/mapping/types/errors";
 
 export enum MapItemType {
   USER = "user",

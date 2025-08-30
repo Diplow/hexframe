@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
-import { useEventBus } from '../Services/EventBus/event-bus-context';
-import { useMapCache } from '../Cache/interface';
-import type { TileData } from '../types/tile-data';
+import { useEventBus } from '~/app/map';
+import { useMapCache } from '~/app/map/Cache';
+import type { TileData } from '~/app/map/types/tile-data';
 
 export function useTileSelectForChat() {
   const eventBus = useEventBus();

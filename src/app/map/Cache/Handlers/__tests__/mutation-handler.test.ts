@@ -3,14 +3,14 @@ import {
   createMutationHandler,
   createMutationHandlerForCache,
 } from "../mutation-handler";
-import { cacheActions } from "../../State/actions";
-import { initialCacheState } from "../../State/reducer";
+import { cacheActions } from "~/app/map/Cache/State/actions";
+import { initialCacheState } from "~/app/map/Cache/State/reducer";
 import type {
   MutationHandlerConfig,
   MutationHandlerServices,
 } from "../mutation-handler";
-import type { CacheState } from "../../State/types";
-import type { DataOperations } from "../types";
+import type { CacheState } from "~/app/map/Cache/State/types";
+import type { DataOperations } from "~/app/map/Cache/Handlers/types";
 import { createMockEventBus, expectEventEmitted } from "~/test-utils/event-bus";
 
 describe("Mutation Handler", () => {

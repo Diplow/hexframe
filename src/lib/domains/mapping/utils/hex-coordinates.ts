@@ -1,4 +1,4 @@
-import { MAPPING_ERRORS } from "../types/errors";
+import { MAPPING_ERRORS } from "~/lib/domains/mapping/types/errors";
 
 // Represents a direction from a parent hex to its child hexes
 export enum Direction {

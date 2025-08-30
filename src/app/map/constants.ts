@@ -1,4 +1,4 @@
-import { Direction } from "~/lib/domains/mapping/interface.client";
+import { Direction } from "~/lib/domains/mapping/utils";
 
 // Re-export Direction for convenience
 export { Direction };

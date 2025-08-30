@@ -1,10 +1,10 @@
 import { relations } from "drizzle-orm";
-import { mapItems } from "./_tables/mapping/map-items";
-import { baseItems } from "./_tables/mapping/base-items";
-import { userMapping } from "./_tables/mapping/user-mapping";
-import { users } from "./_tables/auth/users";
-import { accounts } from "./_tables/auth/accounts";
-import { sessions } from "./_tables/auth/sessions";
+import { mapItems } from "~/server/db/schema/_tables/mapping/map-items";
+import { baseItems } from "~/server/db/schema/_tables/mapping/base-items";
+import { userMapping } from "~/server/db/schema/_tables/mapping/user-mapping";
+import { users } from "~/server/db/schema/_tables/auth/users";
+import { accounts } from "~/server/db/schema/_tables/auth/accounts";
+import { sessions } from "~/server/db/schema/_tables/auth/sessions";
 
 /**
  * Relations for map_items table

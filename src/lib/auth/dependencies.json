@@ -1,10 +1,11 @@
 {
-  "$schema": "../../../schemas/dependencies.schema.json",
+  "$schema": "~/schemas/dependencies.schema.json",
   "allowed": [
     "better-auth",
     "@better-auth/next",
     "react",
-    "next"
+    "next",
+    "~/lib/debug/debug-logger"
   ],
   "exceptions": {}
 }

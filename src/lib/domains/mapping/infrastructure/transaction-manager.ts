@@ -1,5 +1,5 @@
 import { db } from "~/server/db";
-import type { DatabaseConnection, DatabaseTransaction } from "../types/transaction";
+import type { DatabaseConnection, DatabaseTransaction } from "~/lib/domains/mapping/types/transaction";
 
 /**
  * Manages database transactions for mapping domain operations

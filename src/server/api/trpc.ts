@@ -11,17 +11,17 @@ import type { CreateNextContextOptions } from "@trpc/server/adapters/next";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { auth } from "~/server/auth";
-import { db } from "../db";
+import { db } from "~/server/db";
 import { loggers } from "~/lib/debug/debug-logger";
 import { 
   MappingService, 
   DbMapItemRepository, 
   DbBaseItemRepository 
-} from "~/lib/domains/mapping/interface";
+} from "~/lib/domains/mapping";
 import { 
   IAMService, 
   BetterAuthUserRepository 
-} from "~/lib/domains/iam/interface";
+} from "~/lib/domains/iam";
 import type { IncomingHttpHeaders } from "http";
 
 /**

@@ -1,5 +1,5 @@
-import { DbMapItemRepository } from "../../../infrastructure/map-item/db";
-import { DbBaseItemRepository } from "../../../infrastructure/base-item/db";
+import { DbMapItemRepository } from "~/lib/domains/mapping/infrastructure/map-item/db";
+import { DbBaseItemRepository } from "~/lib/domains/mapping/infrastructure/base-item/db";
 import { MappingService } from "~/lib/domains/mapping/services";
 import type {
   MapItemRepository,
@@ -7,7 +7,7 @@ import type {
 } from "../../../_repositories";
 import { db } from "~/server/db";
 import { mapItems, baseItems } from "~/server/db/schema";
-import { type Coord, Direction } from "../../../utils/hex-coordinates";
+import { type Coord, Direction } from "~/lib/domains/mapping/utils/hex-coordinates";
 import { sql } from "drizzle-orm";
 
 export interface TestRepositories {

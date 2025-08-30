@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { authClient } from '~/lib/auth/interface';
+import { authClient } from '~/lib/auth';
 import { useRouter } from 'next/navigation';
-import { useEventBus } from '../../../../Services/EventBus/event-bus-context';
+import { useEventBus } from '~/app/map/Chat/Timeline/services';
 
 export function useLoginForm() {
   const eventBus = useEventBus();

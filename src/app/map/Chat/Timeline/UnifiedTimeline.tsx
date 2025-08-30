@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
-import type { Message, Widget } from '../_state/_events/event.types';
-import { DaySeparator } from './DaySeparator';
-import { MessageActorRenderer } from './MessageActorRenderer';
-import { WidgetManager } from './WidgetManager';
+import type { Message, Widget } from '~/app/map/Chat/_state';
+import { DaySeparator } from '~/app/map/Chat/Timeline/DaySeparator';
+import { MessageActorRenderer } from '~/app/map/Chat/Timeline/MessageActorRenderer';
+import { WidgetManager } from '~/app/map/Chat/Timeline/WidgetManager';
 import { loggers } from '~/lib/debug/debug-logger';
 
 interface TimelineItem {
@@ -16,17 +16,6 @@ interface UnifiedTimelineProps {
 }
 
 export function UnifiedTimeline({ items }: UnifiedTimelineProps) {
-  console.log('[UnifiedTimeline] Rendering with', items.length, 'items')
-  items.forEach(item => {
-    if (item.type === 'widget') {
-      const widget = item.data as Widget
-      console.log('[UnifiedTimeline] Widget item:', { 
-        id: widget.id, 
-        type: widget.type,
-        timestamp: item.timestamp
-      })
-    }
-  })
   
   const scrollRef = useRef<HTMLDivElement>(null);
   
@@ -81,14 +70,12 @@ export function UnifiedTimeline({ items }: UnifiedTimelineProps) {
       {Object.entries(itemsByDay).map(([dateKey, dayItems]) => (
         <div key={dateKey}>
           <DaySeparator date={new Date(dayItems[0]?.timestamp ?? Date.now())} />
-          {dayItems.map((item) => (
-            <div key={`${item.type}-${item.data.id}`} className="w-full">
+          {dayItems.map((item, index) => (
+            <div key={`${item.type}-${item.data.id}`} className={`w-full ${index > 0 && item.type === 'message' && (item.data as Message).actor !== "system" ? 'my-1' : ''}`}>
               {item.type === 'message' ? (
                 <MessageActorRenderer message={item.data as Message} />
               ) : (
-                <div className="my-2">
-                  <WidgetManager widgets={[item.data as Widget]} />
-                </div>
+                <WidgetManager widgets={[item.data as Widget]} />
               )}
             </div>
           ))}

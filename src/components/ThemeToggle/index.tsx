@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 import { useTheme } from '~/contexts/ThemeContext';
-import { ThemeToggleButton } from './ThemeToggleButton';
-import { DraggableThemePill } from './DraggableThemePill';
+import { ThemeToggleButton } from '~/components/ThemeToggle/ThemeToggleButton';
+import { DraggableThemePill } from '~/components/ThemeToggle/DraggableThemePill';
 
 interface ThemeToggleProps {
   className?: string;

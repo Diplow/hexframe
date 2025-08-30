@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
-import type { MapCacheHook } from '~/app/map/interface';
+import type { MapCacheHook } from '~/app/map';
 import type { Theme } from '~/contexts/ThemeContext';
 import type { User } from 'better-auth';
 

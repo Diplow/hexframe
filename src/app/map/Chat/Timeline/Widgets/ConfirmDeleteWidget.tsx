@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useMapCache } from '../../../Cache/interface';
+import { useMapCache } from '~/app/map/Chat';
 import { Trash2, AlertTriangle } from 'lucide-react';
-import { useEventBus } from '../../../Services/EventBus/event-bus-context';
+import { useEventBus } from '~/app/map/Chat/Timeline/services';
 
 interface ConfirmDeleteWidgetProps {
   tileId: string;

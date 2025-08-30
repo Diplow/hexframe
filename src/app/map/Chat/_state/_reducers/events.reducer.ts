@@ -1,4 +1,4 @@
-import type { ChatEvent } from '../_events/event.types';
+import type { ChatEvent } from '~/app/map/Chat/_state/_events/event.types';
 
 /**
  * Events reducer - manages the event log

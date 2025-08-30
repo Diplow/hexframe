@@ -13,13 +13,13 @@ import type { MapItemRepository } from "~/lib/domains/mapping/_repositories";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import type * as schemaImport from "~/server/db/schema";
 
-import { ReadQueries } from "./queries/read-queries";
-import { WriteQueries } from "./queries/write-queries";
-import { SpecializedQueries } from "./queries/specialized-queries";
-import { RelationQueries } from "./queries/relation-queries";
-import { mapJoinedDbToDomain, pathToString } from "./mappers";
+import { ReadQueries } from "~/lib/domains/mapping/infrastructure/map-item/queries/read-queries";
+import { WriteQueries } from "~/lib/domains/mapping/infrastructure/map-item/queries/write-queries";
+import { SpecializedQueries } from "~/lib/domains/mapping/infrastructure/map-item/queries/specialized-queries";
+import { RelationQueries } from "~/lib/domains/mapping/infrastructure/map-item/queries/relation-queries";
+import { mapJoinedDbToDomain, pathToString } from "~/lib/domains/mapping/infrastructure/map-item/mappers";
 
-export { parsePathString } from "./mappers";
+export { parsePathString } from "~/lib/domains/mapping/infrastructure/map-item/mappers";
 
 export class DbMapItemRepository implements MapItemRepository {
   private readQueries: ReadQueries;

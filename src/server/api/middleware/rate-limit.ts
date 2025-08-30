@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { t, type Context } from "../trpc";
+import { t, type Context } from "~/server/api/trpc";
 import { loggers } from "~/lib/debug/debug-logger";
 
 // Helper to extract client IP from various headers

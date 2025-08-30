@@ -1,7 +1,7 @@
-import type { ICanvasStrategy } from './strategy.interface'
-import type { CanvasContext, CanvasContextOptions, TileContextItem } from '../../types'
-import type { CacheState } from '~/app/map/interface'
-import type { TileData } from '~/app/map/interface'
+import type { ICanvasStrategy } from '~/lib/domains/agentic/services/canvas-strategies/strategy.interface'
+import type { CanvasContext, CanvasContextOptions, TileContextItem } from '~/lib/domains/agentic/types'
+import type { CacheState } from '~/app/map'
+import type { TileData } from '~/app/map'
 import { CoordSystem } from '~/lib/domains/mapping/utils/hex-coordinates'
 
 export class ExtendedCanvasStrategy implements ICanvasStrategy {

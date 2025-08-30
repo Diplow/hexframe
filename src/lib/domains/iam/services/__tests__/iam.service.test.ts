@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { IAMService } from "../iam.service";
-import { User } from "../../_objects/user";
-import type { UserRepository } from "../../_repositories/user.repository";
+import { IAMService } from "~/lib/domains/iam/services/iam.service";
+import { User } from "~/lib/domains/iam/_objects/user";
+import type { UserRepository } from "~/lib/domains/iam/_repositories/user.repository";
 import {
   EmailAlreadyExistsError,
   InvalidCredentialsError,

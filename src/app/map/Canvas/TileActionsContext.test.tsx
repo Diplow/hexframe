@@ -1,11 +1,11 @@
 import '~/test/setup' // Import test setup FIRST
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act, render } from '@testing-library/react'
-import { TileActionsProvider, useTileActions } from './TileActionsContext'
+import { TileActionsProvider, useTileActions } from '~/app/map/Canvas/TileActionsContext'
 import type { ReactNode } from 'react'
 import React from 'react'
-import { createMockTileData } from '../__tests__/utils/mockTileData'
-import type { TileData } from '../types/tile-data'
+import { createMockTileData } from '~/app/map/__tests__/utils/mockTileData'
+import type { TileData } from '~/app/map/types/tile-data'
 
 describe('TileActionsContext', () => {
   beforeEach(() => {

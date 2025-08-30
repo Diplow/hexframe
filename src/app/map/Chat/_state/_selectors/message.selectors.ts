@@ -1,5 +1,5 @@
-import type { ChatEvent, Message, Widget, OperationStartedPayload, OperationCompletedPayload, SystemMessagePayload, UserMessagePayload, TileSelectedPayload, AuthRequiredPayload, ErrorOccurredPayload, NavigationPayload } from '../_events/event.types';
-import { chatSettings } from '../../_settings/chat-settings';
+import type { ChatEvent, Message, Widget, OperationStartedPayload, OperationCompletedPayload, SystemMessagePayload, UserMessagePayload, TileSelectedPayload, AuthRequiredPayload, ErrorOccurredPayload, NavigationPayload } from '~/app/map/Chat/_state/_events/event.types';
+import { chatSettings } from '~/app/map/Chat';
 
 /**
  * Derive visible messages from events
@@ -384,11 +384,16 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
     }
   }
 
-  // Return only the most recent widget of each type
+  // Return only the most recent widget of each type (except AI responses which should all persist)
   const latestWidgets = new Map<string, Widget>();
   
   for (const widget of widgets) {
-    const key = widget.type === 'preview' ? `${widget.type}-${(widget.data as TileSelectedPayload).tileId}` : widget.type;
+    // Each AI response widget should be unique (keep all of them)
+    const key = widget.type === 'ai-response' 
+      ? widget.id  // Use widget ID to keep all AI responses
+      : widget.type === 'preview' 
+        ? `${widget.type}-${(widget.data as TileSelectedPayload).tileId}` 
+        : widget.type;
     const existing = latestWidgets.get(key);
     if (!existing || widget.timestamp > existing.timestamp) {
       latestWidgets.set(key, widget);

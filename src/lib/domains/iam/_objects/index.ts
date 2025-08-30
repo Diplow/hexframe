@@ -1,1 +1,1 @@
-export { User, type UserProps, type CreateUserProps } from "./user";
+export { User, type UserProps, type CreateUserProps } from "~/lib/domains/iam/_objects/user";

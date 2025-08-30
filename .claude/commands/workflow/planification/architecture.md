@@ -1,7 +1,7 @@
 # /architecture Command
 
 ## Purpose
-Document the technical architecture for implementing a solution. This optional but recommended follow-up to `/solution` provides the mental model for thinking about the feature, including both pre-existing architecture and planned changes.
+Document how the solution will affect subsystem boundaries and interfaces. This command focuses on precisely defining what subsystems will change, what new subsystems (if any) will be created, and most importantly, how the interfaces between subsystems will evolve. The goal is to maintain clear subsystem boundaries that allow each subsystem to be understood and modified in isolation.
 
 ## Command Syntax
 ```
@@ -12,33 +12,34 @@ Document the technical architecture for implementing a solution. This optional b
 - Issue must exist with `/issue` command
 - Context must be gathered with `/context` command  
 - Solution must be designed with `/solution` command
-- Understanding of current and future architecture
+- Understanding of existing subsystem boundaries
 
 ## Architecture Documentation Process
 
 ### 1. Review Foundation
 - Load issue, context, and solution documentation
 - Understand the selected solution approach
-- Identify architectural patterns to follow
-- Consider system-wide implications
+- Identify existing subsystem boundaries
+- Review current interface definitions (`interface.ts` files)
 
-### 2. Document Current Architecture
-- **Component Structure**: How things are organized now
-- **Data Flow**: How information moves through the system
-- **State Management**: Where and how state is stored
-- **Integration Points**: Where new code will connect
+### 2. Analyze Subsystem Impact
+- **Affected Subsystems**: Which existing subsystems will be modified?
+- **New Subsystems**: Will any new subsystems be created?
+- **Interface Changes**: How will `interface.ts` files change?
+- **Dependency Changes**: Will `dependencies.json` need updates?
 
-### 3. Define New Architecture
-- **New Components**: What will be created
-- **Modified Components**: What will change
-- **Data Model**: New state and data structures
-- **Event Flow**: How interactions will work
+### 3. Document Interface Evolution
+For each affected subsystem:
+- **Current Interface**: What does it expose now?
+- **Modified Interface**: What will it expose after changes?
+- **New Dependencies**: What new external dependencies will it need?
+- **Breaking Changes**: Will existing consumers be affected?
 
-### 4. Create Mental Model
-- **Conceptual Diagram**: High-level view of the system
-- **Key Abstractions**: Core concepts to understand
-- **Patterns to Follow**: Architectural decisions to maintain
-- **Boundaries**: Clear interfaces between components
+### 4. Define Subsystem Boundaries
+- **Clear Boundaries**: Each subsystem should have a clear responsibility
+- **Minimal Coupling**: Interfaces should be as narrow as possible
+- **No Leaky Abstractions**: Internal implementation details stay internal
+- **Documented Contracts**: All inter-subsystem communication is explicit
 
 ## Documentation Structure
 
@@ -48,23 +49,56 @@ Add or update the `## Architecture` section in the issue file (`.workflow/cycles
 ```markdown
 ## Architecture
 
-### Current State
-[Description of relevant existing architecture]
+### Subsystem Changes Overview
+- **Modified Subsystems**: [List of existing subsystems that will change]
+- **New Subsystems**: [Any new subsystems to be created, or "None"]
+- **Unchanged Subsystems**: [Subsystems that interact but won't change]
 
-### New Components
-[List and describe new architectural elements]
+### [Subsystem Name] Changes
+For each affected subsystem:
 
-### Modified Components
-[List and describe changes to existing elements]
+#### Interface Changes
+```typescript
+// Current interface.ts
+export interface ICurrentSubsystem {
+  existingMethod(): void
+}
 
-### Data Flow
-[How data moves through the feature]
+// After changes
+export interface IModifiedSubsystem {
+  existingMethod(): void
+  newMethod?(): void  // NEW: Purpose
+}
+```
 
-### Mental Model
-[Conceptual description of how to think about this feature]
+#### Dependency Changes
+```json
+// Current dependencies.json
+{
+  "allowed": ["existing-dep"]
+}
 
-### Key Patterns
-[Architectural patterns that must be followed]
+// After changes
+{
+  "allowed": ["existing-dep", "new-dep"]  // NEW: new-dep for X functionality
+}
+```
+
+#### Internal Changes
+- New components (internal, not exposed)
+- Modified components (internal refactoring)
+- Data flow changes within subsystem
+
+### Cross-Subsystem Interfaces
+[Document any new or modified communication between subsystems]
+
+### Subsystem Boundary Diagram
+[ASCII diagram showing subsystem relationships and interfaces]
+
+### Key Architectural Decisions
+- Why these subsystem boundaries?
+- Why these interface changes?
+- Trade-offs in coupling vs cohesion
 ```
 
 ### GitHub Comment
@@ -80,58 +114,96 @@ Post the architecture section as a comment on the GitHub issue:
 
 ## Best Practices
 
-1. **Think in Layers**: Separate concerns clearly
-2. **Respect Patterns**: Follow existing architectural decisions
-3. **Define Boundaries**: Clear interfaces between components
-4. **Consider Scale**: Design for current and future needs
-5. **Document Trade-offs**: Explain architectural compromises
-6. **Visual When Helpful**: Use ASCII diagrams for clarity
+1. **Document What IS**: Show actual subsystem boundaries, not ideal ones
+2. **Interfaces Are Contracts**: Every change to `interface.ts` is a breaking change
+3. **Dependencies Are Explicit**: All external imports must be in `dependencies.json`
+4. **Internal vs External**: Keep internal implementation hidden from interface
+5. **Minimize Coupling**: Prefer narrow, focused interfaces
+6. **Think in Subsystems**: Each subsystem should be independently understandable
+7. **Visual Boundaries**: Use diagrams to show subsystem relationships
 
-## Example Architectural Patterns
+## Example Subsystem Documentation
 
-### Component Hierarchy
+### Subsystem Boundary Example
 ```
-PageComponent
-├── LayoutWrapper
-│   ├── Navigation
-│   └── MainContent
-│       ├── FeatureProvider
-│       │   ├── FeatureComponent
-│       │   └── FeatureControls
-│       └── DataProvider
+┌─────────────────────────────────────────────────────────┐
+│                     Chat Subsystem                       │
+│  interface.ts: IChatSubsystem                           │
+│  dependencies.json: ["@/lib/domains/agentic", "react"]  │
+│                                                          │
+│  Internal Structure (not exposed):                      │
+│  ├── Timeline/                                          │
+│  ├── Widgets/                                           │
+│  └── _hooks/                                            │
+└─────────────────────────┬───────────────────────────────┘
+                          │ IChatSubsystem
+                          ↓
+┌─────────────────────────────────────────────────────────┐
+│                    Agentic Domain                        │
+│  interface.ts: IAgenticService, ILLMRepository          │
+│  dependencies.json: ["openrouter", "inngest"]           │
+└──────────────────────────────────────────────────────────┘
 ```
 
-### Data Flow
-```
-User Action → UI Component → Hook → Context → State → UI Update
-     ↓                                    ↓
-Side Effect ← API Call ← ← ← ← ← ← ← Service
+### Interface Evolution Example
+```typescript
+// BEFORE: Chat/interface.ts
+export interface IChatSubsystem {
+  sendMessage(content: string): void
+}
+
+// AFTER: Chat/interface.ts  
+export interface IChatSubsystem {
+  sendMessage(content: string): void
+  onThinkingProgress?(progress: number): void  // NEW: Optional callback
+}
 ```
 
-### State Architecture
-```
-Global State (Context)
-├── UI State (local)
-├── Domain State (shared)
-└── Cache State (performance)
+### Dependency Change Example
+```json
+// BEFORE: Chat/dependencies.json
+{
+  "allowed": [
+    "@/lib/domains/agentic",
+    "react"
+  ]
+}
+
+// AFTER: Chat/dependencies.json
+{
+  "allowed": [
+    "@/lib/domains/agentic",
+    "react",
+    "@/app/map/Canvas"  // NEW: For AI scanning animation
+  ]
+}
 ```
 
 ## Common Architectural Decisions
 
-### When to Create New Context
-- Shared state across multiple components
-- Complex state logic
-- Need for global updates
+### When to Create a New Subsystem
+- Distinct domain responsibility (e.g., authentication, payments)
+- Could be extracted as a separate package
+- Has clear consumers and providers
+- Manages its own state and lifecycle
 
-### When to Use Local State
-- Component-specific UI state
-- Temporary form data
-- Animation/transition states
+### When to Keep Within Existing Subsystem
+- Tightly coupled to existing functionality
+- Only used by one subsystem
+- Implementation detail of a larger feature
+- Would create circular dependencies if extracted
 
-### When to Create New Hooks
-- Reusable business logic
-- Complex side effects
-- Cross-cutting concerns
+### When to Modify interface.ts
+- New functionality needed by external consumers
+- Breaking changes that require versioning
+- Exposing previously internal functionality
+- Creating new integration points
+
+### When to Update dependencies.json
+- Adding new external library
+- Importing from another subsystem
+- Removing unused dependencies
+- Documenting exception cases
 
 ## Integration with Workflow
 

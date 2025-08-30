@@ -1,5 +1,5 @@
 import { describe, beforeEach, it } from "vitest";
-import { type Coord, Direction } from "../../utils/hex-coordinates";
+import { type Coord, Direction } from "~/lib/domains/mapping/utils/hex-coordinates";
 import {
   type TestEnvironment,
   _cleanupDatabase,

@@ -3,8 +3,8 @@
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { cn } from '~/lib/utils';
 import { Button } from '~/components/ui/button';
-import { ActionMenu } from './ActionMenu';
-import { EditControls } from './EditControls';
+import { ActionMenu } from '~/app/map/Chat/Timeline/Widgets/PreviewWidget/ActionMenu';
+import { EditControls } from '~/app/map/Chat/Timeline/Widgets/PreviewWidget/EditControls';
 
 interface PreviewHeaderProps {
   title: string;

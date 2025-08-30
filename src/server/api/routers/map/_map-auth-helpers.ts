@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { UserMappingService } from "../../services/user-mapping.service";
+import { UserMappingService } from "~/server/api/services";
 
 interface AuthUser {
   id: string;

@@ -1,10 +1,10 @@
 import { useMemo } from "react";
 import type { Dispatch } from "react";
-import type { CacheState, CacheAction } from "../State/types";
-import type { DataOperations, MutationOperations, NavigationOperations } from "../Handlers/types";
-import type { SyncOperations } from "../Sync/types";
-import type { ServerService, StorageService } from "../Services/types";
-import type { MapCacheContextValue } from "../types";
+import type { CacheState, CacheAction } from "~/app/map/Cache/State/types";
+import type { DataOperations, MutationOperations, NavigationOperations } from "~/app/map/Cache/Handlers/types";
+import type { SyncOperations } from "~/app/map/Cache/Sync/types";
+import type { ServerService, StorageService } from "~/app/map/Cache/Services/types";
+import type { MapCacheContextValue } from "~/app/map/Cache/types";
 
 export interface ContextBuilderConfig {
   state: CacheState;

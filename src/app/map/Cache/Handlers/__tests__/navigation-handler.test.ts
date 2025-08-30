@@ -4,11 +4,11 @@ import {
   createNavigationHandler,
   createNavigationHandlerForTesting,
 } from "../navigation-handler";
-import { cacheActions } from "../../State/actions";
-import { initialCacheState } from "../../State/reducer";
-import type { NavigationHandlerConfig } from "../navigation-handler";
-import type { CacheState } from "../../State/types";
-import type { DataOperations } from "../types";
+import { cacheActions } from "~/app/map/Cache/State/actions";
+import { initialCacheState } from "~/app/map/Cache/State/reducer";
+import type { NavigationHandlerConfig } from "~/app/map/Cache/Handlers/navigation-handler";
+import type { CacheState } from "~/app/map/Cache/State/types";
+import type { DataOperations } from "~/app/map/Cache/Handlers/types";
 import { createMockEventBus, expectEventEmitted } from "~/test-utils/event-bus";
 
 describe("Navigation Handler", () => {

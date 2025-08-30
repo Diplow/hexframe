@@ -1,10 +1,10 @@
 import { describe, test, expect, beforeEach, vi } from "vitest";
-import { MutationCoordinator } from "../mutation-coordinator";
-import { initialCacheState } from "../../State/reducer";
+import { MutationCoordinator } from "~/app/map/Cache/_coordinators/mutation-coordinator";
+import { initialCacheState } from "~/app/map/Cache/State/reducer";
 import { createMockEventBus, expectEventEmitted } from "~/test-utils/event-bus";
-import type { CacheState } from "../../State/types";
-import type { DataOperations } from "../../Handlers/types";
-import type { StorageService } from "../../Services/types";
+import type { CacheState } from "~/app/map/Cache/State/types";
+import type { DataOperations } from "~/app/map/Cache/Handlers/types";
+import type { StorageService } from "~/app/map/Cache/Services/types";
 
 describe("MutationCoordinator Event Emissions", () => {
   let mockDispatch: ReturnType<typeof vi.fn>;

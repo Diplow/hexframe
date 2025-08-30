@@ -3,8 +3,8 @@ import type {
   ChatContextOptions, 
   ChatContextStrategy 
 } from '../types'
-import type { IChatStrategy } from './chat-strategies/strategy.interface'
-import type { ChatMessage } from '~/app/map/interface'
+import type { IChatStrategy } from '~/lib/domains/agentic/services/chat-strategies/strategy.interface'
+import type { ChatMessage } from '~/app/map'
 
 export class ChatContextBuilder {
   constructor(

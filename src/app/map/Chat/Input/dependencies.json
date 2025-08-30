@@ -1,12 +1,21 @@
 {
-  "$schema": "../../../../../schemas/dependencies.schema.json",
+  "$schema": "~/schemas/dependencies.schema.json",
   "allowed": [
     "./",
     "react",
     "lucide-react",
     "~/components/ui/button",
     "~/lib/debug/debug-logger",
-    "../_state"
+    "~/lib/auth",
+    "~/lib/auth/interface",
+    "../_state",
+    "../../_state",
+    "../../_settings/chat-settings",
+    "../../../Cache",
+    "../../../Cache/interface",
+    "../../../Services/EventBus/event-bus-context",
+    "../..",
+    "../../services"
   ],
   "exceptions": {}
 }

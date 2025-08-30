@@ -1,7 +1,7 @@
 "use client";
 
 import { useContext } from "react";
-import { LegacyTileActionsContext } from "../../..";
+import { LegacyTileActionsContext } from "~/app/map/Canvas";
 
 export interface ItemInteractionState {
   isDraggable: boolean;

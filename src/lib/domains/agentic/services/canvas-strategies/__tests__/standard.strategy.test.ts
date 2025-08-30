@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { StandardCanvasStrategy } from '../standard.strategy'
-import type { CacheState } from '~/app/map/interface'
-import type { TileData } from '~/app/map/interface'
+import { StandardCanvasStrategy } from '~/lib/domains/agentic/services/canvas-strategies/standard.strategy'
+import type { CacheState } from '~/app/map'
+import type { TileData } from '~/app/map'
 
 describe('StandardCanvasStrategy', () => {
   let mockGetCacheState: () => CacheState

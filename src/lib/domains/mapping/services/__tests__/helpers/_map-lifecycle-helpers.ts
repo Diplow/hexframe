@@ -1,7 +1,7 @@
 import { expect } from "vitest";
-import { CoordSystem } from "../../../utils/hex-coordinates";
-import { MapItemType } from "../../../types/contracts";
-import type { TestEnvironment } from "./_test-utilities";
+import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { MapItemType } from "~/lib/domains/mapping/types/contracts";
+import type { TestEnvironment } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 
 export async function _createAndValidateMap(
   testEnv: TestEnvironment,

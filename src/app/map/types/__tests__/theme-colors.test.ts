@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { getSemanticColorClass, getTextColorForDepth } from "../theme-colors";
-import { Direction } from "../../constants";
+import { getSemanticColorClass, getTextColorForDepth } from "~/app/map/types/theme-colors";
+import { Direction } from "~/app/map/constants";
 
 describe("theme-colors", () => {
   describe("getSemanticColorClass", () => {

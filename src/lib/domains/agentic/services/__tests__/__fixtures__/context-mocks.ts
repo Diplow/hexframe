@@ -1,4 +1,4 @@
-import type { TileContextItem, CanvasContext, ChatContextMessage, ChatContext } from '../../../types'
+import type { TileContextItem, CanvasContext, ChatContextMessage, ChatContext } from '~/lib/domains/agentic/types'
 import { vi } from 'vitest'
 
 export const createMockCenterTile = (): TileContextItem => ({

@@ -3,8 +3,8 @@
 import * as React from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { cn } from '~/lib/utils';
-import { getIconClasses, getPillClasses, getPillStyles } from './_utils/theme-toggle-styles';
-import { useDragInteraction } from './_hooks/useDragInteraction';
+import { getIconClasses, getPillClasses, getPillStyles } from '~/components/ThemeToggle/_utils/theme-toggle-styles';
+import { useDragInteraction } from '~/components/ThemeToggle/_hooks/useDragInteraction';
 
 interface DraggableThemePillProps {
   isDark: boolean;

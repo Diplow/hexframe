@@ -1,8 +1,8 @@
-import type { CacheAction, CacheState } from "../State/types";
-import { cacheActions } from "../State/actions";
-import type { DataOperations } from "./types";
-import type { EventBusService } from "../../Services/EventBus/interface";
-import { MapItemType } from "~/lib/domains/mapping/interface.client";
+import type { CacheAction, CacheState } from "~/app/map/Cache/State/types";
+import { cacheActions } from "~/app/map/Cache/State/actions";
+import type { DataOperations } from "~/app/map/Cache/Handlers/types";
+import type { EventBusService } from '~/app/map';
+import { MapItemType } from "~/lib/domains/mapping/utils";
 
 // Note: Server mutations are NOT handled through the server service
 // They should use tRPC mutation hooks directly for proper client-side patterns

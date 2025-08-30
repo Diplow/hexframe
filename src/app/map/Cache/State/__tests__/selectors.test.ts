@@ -21,9 +21,9 @@ import {
   selectItemChildren,
   staticSelectors,
 } from "../selectors";
-import { initialCacheState } from "../reducer";
-import type { CacheState } from "../types";
-import type { TileData } from "../../../types/tile-data";
+import { initialCacheState } from "~/app/map/Cache/State/reducer";
+import type { CacheState } from "~/app/map/Cache/State/types";
+import type { TileData } from "~/app/map/types/tile-data";
 
 describe("Cache Selectors", () => {
   // Mock data for testing

@@ -1,3 +1,9 @@
-export { EventBus } from './event-bus';
-export { EventBusProvider, useEventBus } from './event-bus-context';
-export type { AppEvent, EventBusService } from '../../types/events';
+/**
+ * EventBus Subsystem Interface
+ * 
+ * Public API for event bus functionality.
+ */
+
+export { EventBus } from '~/app/map/Services/EventBus/event-bus';
+export { EventBusProvider, EventBusContext, useEventBus } from '~/app/map/Services/EventBus/event-bus-context';
+export type { AppEvent, EventListener, EventBusService } from '~/app/map/Services/types';

@@ -1,6 +1,6 @@
 import { createTRPCRouter } from "~/server/api/trpc";
-import { mapUserRouter } from "./map-user";
-import { mapItemsRouter } from "./map-items";
+import { mapUserRouter } from "~/server/api/routers/map/map-user";
+import { mapItemsRouter } from "~/server/api/routers/map/map-items";
 
 export const mapRouter = createTRPCRouter({
   // User map management endpoints

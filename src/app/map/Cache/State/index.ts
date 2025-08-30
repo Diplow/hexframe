@@ -10,7 +10,7 @@ export type {
   UpdateCacheConfigPayload,
 } from "./types";
 
-export { ACTION_TYPES } from "./types";
+export { ACTION_TYPES } from "~/app/map/Cache/State/types";
 
 // Action creators
 export {
@@ -34,7 +34,7 @@ export {
 } from "./actions";
 
 // Reducer and initial state
-export { cacheReducer, initialCacheState } from "./reducer";
+export { cacheReducer, initialCacheState } from "~/app/map/Cache/State/reducer";
 
 // Selectors
 export {

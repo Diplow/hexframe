@@ -21,7 +21,7 @@ export function TimestampRenderer({ timestamp }: TimestampRendererProps) {
   const timestamps = formatTimestamp();
   
   return (
-    <span className="text-xs text-muted-foreground mr-2" title={timestamps.full}>
+    <span className="text-xs text-muted-foreground" title={timestamps.full}>
       {timestamps.short}
     </span>
   );

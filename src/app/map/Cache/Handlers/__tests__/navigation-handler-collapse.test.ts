@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach, type MockedFunction } from "vitest";
-import { createNavigationHandler } from "../navigation-handler";
-import type { CacheState, CacheAction } from "../../State/types";
-import { ACTION_TYPES } from "../../State/types";
-import type { DataOperations } from "../types";
-import type { TileData } from "../../../types/tile-data";
-import { initialCacheState } from "../../State/reducer";
-import { CoordSystem } from "~/lib/domains/mapping/interface.client";
+import { createNavigationHandler } from "~/app/map/Cache/Handlers/navigation-handler";
+import type { CacheState, CacheAction } from "~/app/map/Cache/State/types";
+import { ACTION_TYPES } from "~/app/map/Cache/State/types";
+import type { DataOperations } from "~/app/map/Cache/Handlers/types";
+import type { TileData } from "~/app/map/types/tile-data";
+import { initialCacheState } from "~/app/map/Cache/State/reducer";
+import { CoordSystem } from "~/lib/domains/mapping/utils";
 
 describe("NavigationHandler - Collapse distant tiles", () => {
   let dispatch: MockedFunction<React.Dispatch<CacheAction>>;

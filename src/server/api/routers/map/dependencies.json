@@ -6,7 +6,10 @@
     "~/server/api/trpc",
     "~/server/api/types/contracts",
     "~/server/api/services/user-mapping.service",
-    "~/lib/domains/mapping/interface"
+    "../../services/user-mapping.service",
+    "../../services",
+    "~/lib/domains/mapping/interface",
+    "../utils"
   ],
   "exceptions": {}
 }

@@ -6,10 +6,10 @@ import type {
   ChatContext,
   SerializationFormat
 } from '../types'
-import type { CanvasContextBuilder } from './canvas-context-builder.service'
-import type { ChatContextBuilder } from './chat-context-builder.service'
-import type { TokenizerService } from './tokenizer.service'
-import type { ChatMessage } from '~/app/map/interface'
+import type { CanvasContextBuilder } from '~/lib/domains/agentic/services/canvas-context-builder.service'
+import type { ChatContextBuilder } from '~/lib/domains/agentic/services/chat-context-builder.service'
+import type { TokenizerService } from '~/lib/domains/agentic/services/tokenizer.service'
+import type { ChatMessage } from '~/app/map'
 
 export class ContextCompositionService {
   constructor(

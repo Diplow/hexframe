@@ -1,4 +1,4 @@
-import type { StorageService, ServiceConfig } from "./types";
+import type { StorageService, ServiceConfig } from "~/app/map/Cache/Services/types";
 
 // Storage key utilities
 export const STORAGE_KEYS = {

@@ -1,4 +1,4 @@
-import type { LLMGenerationParams, LLMResponse, StreamChunk, ModelInfo } from '../types/llm.types'
+import type { LLMGenerationParams, LLMResponse, StreamChunk, ModelInfo } from '~/lib/domains/agentic/types/llm.types'
 
 export interface ILLMRepository {
   /**

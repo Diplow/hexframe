@@ -1,5 +1,5 @@
-import type { User } from "../_objects/user";
-import type { UserRepository } from "../_repositories/user.repository";
+import type { User } from "~/lib/domains/iam/_objects/user";
+import type { UserRepository } from "~/lib/domains/iam/_repositories/user.repository";
 import type {
   UserContract,
   RegisterInput,

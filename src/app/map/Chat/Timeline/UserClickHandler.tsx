@@ -1,7 +1,7 @@
 import { useUnifiedAuth } from '~/contexts/UnifiedAuthContext';
 import { api } from '~/commons/trpc/react';
-import { useMapCache } from '../../Cache/interface';
-import { useEventBus } from '../../Services/EventBus/event-bus-context';
+import { useMapCache } from '~/app/map/Cache';
+import { useEventBus } from '~/app/map/Chat/Timeline/services';
 
 export function useUserClickHandler() {
   const { user } = useUnifiedAuth();

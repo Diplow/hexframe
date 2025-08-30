@@ -3,12 +3,12 @@ import {
   createDataHandler,
   createDataHandlerWithMockableService,
 } from "../data-handler";
-import { cacheActions } from "../../State/actions";
-import { initialCacheState } from "../../State/reducer";
-import type { DataHandlerConfig, DataHandlerServices } from "../data-handler";
-import type { CacheState } from "../../State/types";
+import { cacheActions } from "~/app/map/Cache/State/actions";
+import { initialCacheState } from "~/app/map/Cache/State/reducer";
+import type { DataHandlerConfig, DataHandlerServices } from "~/app/map/Cache/Handlers/data-handler";
+import type { CacheState } from "~/app/map/Cache/State/types";
 import type { MapItemAPIContract } from "~/server/api/types/contracts";
-import { MapItemType } from "~/lib/domains/mapping/interface.client";
+import { MapItemType } from "~/lib/domains/mapping/utils";
 
 // Mock console.warn to avoid noise in tests (restored after each test)
 vi.spyOn(console, 'warn').mockImplementation(() => {

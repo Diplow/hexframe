@@ -10,7 +10,7 @@ import {
   createMockStorageOperations,
   STORAGE_KEYS,
 } from "../storage-service";
-import type { StorageOperations } from "../storage-service";
+import type { StorageOperations } from "~/app/map/Cache/Services/storage-service";
 
 // Mock console.warn to avoid noise in tests
 const mockConsoleWarn = vi.fn();

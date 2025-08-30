@@ -1,0 +1,8 @@
+{
+  "$schema": "../../../../schemas/dependencies.schema.json",
+  "allowed": [
+    "~/commons/trpc/react",
+    "react"
+  ],
+  "exceptions": {}
+}

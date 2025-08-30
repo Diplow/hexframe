@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import { getDefaultStroke, getStrokeHexColor } from "../utils/stroke";
-import { CoordSystem, type Direction } from "~/lib/domains/mapping/interface.client";
-import { renderStaticTileGradients } from "../Base/gradient";
+import { getDefaultStroke, getStrokeHexColor } from "~/app/map/Canvas/Tile/utils/stroke";
+import { CoordSystem, type Direction } from "~/lib/domains/mapping/utils";
+import { renderStaticTileGradients } from "~/app/map/Canvas/Tile/Base/gradient";
 
 export type TileCursor =
   | "cursor-pointer"

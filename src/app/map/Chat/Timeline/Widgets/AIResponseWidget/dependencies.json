@@ -1,13 +1,15 @@
 {
-  "$schema": "../../../../../../schemas/dependencies.schema.json",
+  "$schema": "~/schemas/dependencies.schema.json",
   "allowed": [
     "./",
     "react",
     "~/commons/trpc/react",
     "~/lib/debug/debug-logger",
-    "~/lib/domains/agentic/types/job.types",
+    "~/lib/domains/agentic",
+    "~/lib/domains/agentic/interface",
     "lucide-react",
-    "../../Messages/MarkdownRenderer"
+    "../../Messages/MarkdownRenderer",
+    "../../MarkdownRenderer"
   ],
   "exceptions": {}
 }

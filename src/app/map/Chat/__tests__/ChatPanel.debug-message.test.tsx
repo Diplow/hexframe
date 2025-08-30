@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ChatPanel } from '../ChatPanel';
+import { ChatPanel } from '~/app/map/Chat/ChatPanel';
 import { TestProviders } from '~/test-utils/providers';
 import { createMockEventBus } from '~/test-utils/event-bus';
-import type { ChatSettings } from '../_settings/chat-settings';
+import type { ChatSettings } from '~/app/map/Chat/_settings/chat-settings';
 
 // Mock tRPC
 vi.mock('~/commons/trpc/react', async () => {

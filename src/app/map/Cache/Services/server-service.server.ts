@@ -1,8 +1,8 @@
 import "server-only";
 
 import { api } from "~/commons/trpc/server";
-import { CoordSystem } from "~/lib/domains/mapping/interface.client";
-import type { ServiceConfig } from "./types";
+import { CoordSystem } from "~/lib/domains/mapping/utils";
+import type { ServiceConfig } from "~/app/map/Cache/Services/types";
 
 /**
  * Static server service for server-side usage (SSR, server actions, etc.)

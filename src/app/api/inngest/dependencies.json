@@ -2,7 +2,8 @@
   "$schema": "../../../../schemas/dependencies.schema.json",
   "allowed": [
     "inngest/next",
-    "~/lib/domains/agentic/interface"
+    "~/lib/domains/agentic/interface",
+    "~/lib/domains/agentic"
   ],
   "exceptions": {}
 }

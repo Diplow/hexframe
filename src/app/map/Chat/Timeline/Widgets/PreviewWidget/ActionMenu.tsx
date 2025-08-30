@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { MoreVertical, Edit, Trash2, X } from 'lucide-react';
 import { Button } from '~/components/ui/button';
-import { Portal } from '../Portal';
+import { Portal } from '~/app/map/Chat/Timeline/Widgets/Portal';
 
 interface ActionMenuProps {
   onEdit?: () => void;

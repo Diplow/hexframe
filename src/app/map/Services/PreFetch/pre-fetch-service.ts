@@ -3,7 +3,7 @@
  * to populate MapCacheProvider with initial data
  */
 
-import { adapt, type TileData } from '../../types/tile-data';
+import { adapt, type TileData } from '~/app/map/Services/types';
 import type { MapItemAPIContract } from '~/server/api/types/contracts';
 import type { api } from '~/commons/trpc/react';
 
@@ -26,6 +26,16 @@ export async function preloadUserMapData(
   utils: ReturnType<typeof api.useUtils>
 ): Promise<PreFetchedMapData | null> {
   try {
+    // Validate userId to prevent NaN errors
+    if (!userId || isNaN(userId) || userId <= 0) {
+      console.warn('[PreFetch] Invalid userId provided:', {
+        userId,
+        isNaN: isNaN(userId),
+        type: typeof userId
+      });
+      return null;
+    }
+
     // Starting user map data preload
     
     // Get user's map info

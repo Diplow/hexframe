@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { DynamicBaseTileLayout } from "../Base";
-import { useCanvasTheme } from "../..";
-import styles from "./auth.module.css";
+import { DynamicBaseTileLayout } from "~/app/map/Canvas/Tile/Base";
+import { useCanvasTheme } from "~/app/map/Canvas";
+import styles from "~/app/map/Canvas/Tile/Auth/auth.module.css";
 
 export interface AuthTileProps {
   initialView?: "login" | "register";

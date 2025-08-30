@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ChatContextBuilder } from '../chat-context-builder.service'
-import type { IChatStrategy } from '../chat-strategies/strategy.interface'
-import type { ChatContextOptions, ChatContextMessage, ChatContextStrategy } from '../../types'
-import type { ChatMessage } from '~/app/map/interface'
+import { ChatContextBuilder } from '~/lib/domains/agentic/services/chat-context-builder.service'
+import type { IChatStrategy } from '~/lib/domains/agentic/services/chat-strategies/strategy.interface'
+import type { ChatContextOptions, ChatContextMessage, ChatContextStrategy } from '~/lib/domains/agentic/types'
+import type { ChatMessage } from '~/app/map'
 
 describe('ChatContextBuilder', () => {
   let mockFullStrategy: IChatStrategy

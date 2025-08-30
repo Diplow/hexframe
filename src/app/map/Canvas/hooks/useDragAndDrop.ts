@@ -1,10 +1,10 @@
 import { useState, useCallback } from "react";
 import type { DragEvent } from "react";
 import { useUnifiedAuth } from "~/contexts/UnifiedAuthContext";
-import { useMapCache } from '../../Cache/interface';
-import { useEventBus } from "../../Services/EventBus/event-bus-context";
-import { canDragTile } from "./_validators";
-import { isValidDropTarget, getDropOperationType } from "./_calculators";
+import { useMapCache } from '~/app/map/Cache';
+import { useEventBus } from '~/app/map';
+import { canDragTile } from "~/app/map/Canvas/hooks/_validators";
+import { isValidDropTarget, getDropOperationType } from "~/app/map/Canvas/hooks/_calculators";
 import {
   setupDragStart,
   setupDragOver,

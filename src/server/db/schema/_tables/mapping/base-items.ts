@@ -1,5 +1,5 @@
 import { integer, text, timestamp } from "drizzle-orm/pg-core";
-import { createTable } from "../../_utils";
+import { createTable } from "~/server/db/schema/_utils";
 
 export const baseItems = createTable("base_items", {
   id: integer("id").primaryKey().generatedByDefaultAsIdentity(),

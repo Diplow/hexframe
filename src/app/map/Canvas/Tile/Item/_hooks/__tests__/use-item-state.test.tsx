@@ -2,9 +2,9 @@ import '~/test/setup'; // Import test setup FIRST
 import { describe, it, expect, vi } from "vitest";
 import { renderHook } from "@testing-library/react";
 import React from "react";
-import { useItemState } from "../use-item-state";
-import type { TileData } from "../../../../../types/tile-data";
-import { LegacyTileActionsContext } from "../../../..";
+import { useItemState } from "~/app/map/Canvas/Tile/Item/_hooks/use-item-state";
+import type { TileData } from "~/app/map/types/tile-data";
+import { LegacyTileActionsContext } from "~/app/map/Canvas";
 
 // Mock the dependencies - start with a variable we can control
 let mockIsDraggable = true;

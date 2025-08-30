@@ -1,4 +1,4 @@
-import type { Coord } from "~/lib/domains/mapping/interface.client";
+import type { Coord } from "~/lib/domains/mapping/utils";
 
 /**
  * Generates a test identifier for a tile based on its coordinates

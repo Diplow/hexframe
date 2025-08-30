@@ -1,8 +1,8 @@
 import { expect } from "vitest";
-import { CoordSystem } from "../../../../utils/hex-coordinates";
-import type { Coord } from "../../../../utils/hex-coordinates";
-import type { TestEnvironment } from "../_test-utilities";
-import { MapItemType } from "../../../../_objects/map-item";
+import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
+import type { Coord } from "~/lib/domains/mapping/utils/hex-coordinates";
+import type { TestEnvironment } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
+import { MapItemType } from "~/lib/domains/mapping/_objects/map-item";
 
 export async function _addAndValidateChildItem(
   testEnv: TestEnvironment,

@@ -1,6 +1,6 @@
-import type { IChatStrategy } from './strategy.interface'
-import type { ChatContext, ChatContextOptions, ChatContextMessage } from '../../types'
-import type { ChatMessage, ChatWidget } from '~/app/map/interface'
+import type { IChatStrategy } from '~/lib/domains/agentic/services/chat-strategies/strategy.interface'
+import type { ChatContext, ChatContextOptions, ChatContextMessage } from '~/lib/domains/agentic/types'
+import type { ChatMessage, ChatWidget } from '~/app/map'
 
 export class RelevantChatStrategy implements IChatStrategy {
   async build(

@@ -1,1 +1,1 @@
-export { IAMService } from "./iam.service";
+export { IAMService } from "~/lib/domains/iam/services/iam.service";
