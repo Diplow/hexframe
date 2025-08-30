@@ -1,7 +1,12 @@
 #!/bin/sh
-
+#
 # Architecture Boundary Check
-# Enforce architectural boundaries through dependency declarations
+# 
+# Usage:
+#   pnpm check:architecture [path]     # Recommended: uses pnpm environment
+#   bash .husky/check-architecture    # Direct execution (may fail if tools not in PATH)
+#
+# Required tools: find, grep, sed, awk, wc (jq optional for better performance)
 #
 # CORE PRINCIPLE: Boundaries are complexity inflection points. When this script
 # fails, it's a signal to pause and consider if we're adding necessary complexity.
@@ -17,7 +22,11 @@
 # - Utils: client-safe, exposed via utils/index.ts
 # - _objects imports are automatically allowed for domain children
 #
-# Usage: ./check-architecture [path]
+# PATH HIERARCHY LOGIC:
+# - If ~/lib/utils is allowed, automatically allows ~/lib/utils/* 
+# - Exception: Subsystems in allowed paths still need explicit permission
+# - Example: ~/app/map allows ~/app/map/types but NOT ~/app/map/Cache (subsystem)
+#
 # Default path: src
 
 set -e
@@ -122,6 +131,73 @@ count_ts_lines() {
   done
   
   echo $total
+}
+
+# Check if a path is allowed through hierarchy or explicit declaration
+is_path_allowed() {
+  local import_path=$1
+  local allowed_deps=$2
+  local subsystem_dir=$3
+  
+  # Convert subsystem_dir to absolute path format for comparison
+  local subsystem_abs_path=""
+  if [[ "$subsystem_dir" == src/* ]]; then
+    subsystem_abs_path="~/${subsystem_dir#src/}"
+  else
+    subsystem_abs_path="$subsystem_dir"
+  fi
+  
+  # Allow internal imports within the same subsystem
+  case "$import_path" in
+    "$subsystem_abs_path"*)
+      return 0  # Internal import
+      ;;
+  esac
+  
+  if [ -z "$allowed_deps" ]; then
+    return 1
+  fi
+  
+  # Check direct matches first
+  IFS='|' read -ra DEPS <<< "$allowed_deps"
+  for allowed_dep in "${DEPS[@]}"; do
+    case "$import_path" in
+      "$allowed_dep")
+        return 0  # Exact match
+        ;;
+      "$allowed_dep"*)
+        # Check if it's a hierarchical match
+        # If allowed path is ~/lib/utils, allow ~/lib/utils/something
+        # But NOT if the child is a subsystem
+        local child_path=$(echo "$import_path" | sed "s|^$allowed_dep/||" | sed "s|^$allowed_dep||")
+        
+        # If there's no child path, it's an exact match
+        if [ -z "$child_path" ] || [ "$child_path" = "$import_path" ]; then
+          return 0
+        fi
+        
+        # Check if the child path contains a subsystem
+        # Look for dependencies.json in the child path
+        local potential_subsystem_path=""
+        if [[ "$allowed_dep" == ~/* ]]; then
+          # Convert ~/path to src/path for file system checking
+          potential_subsystem_path="src/${allowed_dep#\~/}/$child_path"
+        else
+          potential_subsystem_path="$allowed_dep/$child_path"
+        fi
+        
+        # If child is a subsystem (has dependencies.json), require explicit permission
+        if [ -f "$potential_subsystem_path/dependencies.json" ]; then
+          return 1  # Child is subsystem, needs explicit permission
+        fi
+        
+        # Otherwise, hierarchy allows it
+        return 0
+        ;;
+    esac
+  done
+  
+  return 1  # Not allowed
 }
 
 # Load and resolve subsystem dependencies
@@ -372,6 +448,51 @@ EOF
   fi
 done
 
+# Check that dependencies.json files use absolute paths
+echo "Checking dependencies.json path format..."
+find_subsystems | while read subsystem_dir; do
+  deps_file="$subsystem_dir/dependencies.json"
+  
+  if [ -f "$deps_file" ]; then
+    # Check for relative paths in allowed array
+    relative_paths=$(grep -n '"\.\./' "$deps_file" 2>/dev/null | grep -v '"subsystems"' || true)
+    relative_current_paths=$(grep -n '"\\./' "$deps_file" 2>/dev/null | grep -v '"subsystems"' || true)
+    
+    if [ -n "$relative_paths" ]; then
+      while IFS= read -r line; do
+        if [ -n "$line" ]; then
+          line_num=$(echo "$line" | cut -d: -f1)
+          path_content=$(echo "$line" | cut -d: -f2-)
+          ERRORS="${ERRORS}${NEWLINE}❌ Relative path in $deps_file:$line_num"
+          ERRORS="${ERRORS}${NEWLINE}  $path_content"
+          ERRORS="${ERRORS}${NEWLINE}   → Use absolute paths with ~/ prefix instead"
+        fi
+      done << EOF
+$relative_paths
+EOF
+    fi
+    
+    if [ -n "$relative_current_paths" ]; then
+      while IFS= read -r line; do
+        if [ -n "$line" ]; then
+          # Skip subsystems array - those should remain relative
+          if echo "$line" | grep -q '"subsystems"' || echo "$line" | grep -q 'subsystem'; then
+            continue
+          fi
+          
+          line_num=$(echo "$line" | cut -d: -f1)
+          path_content=$(echo "$line" | cut -d: -f2-)
+          ERRORS="${ERRORS}${NEWLINE}❌ Relative current dir path in $deps_file:$line_num"
+          ERRORS="${ERRORS}${NEWLINE}  $path_content"
+          ERRORS="${ERRORS}${NEWLINE}   → Use absolute paths with ~/ prefix instead (except for subsystems)"
+        fi
+      done << EOF
+$relative_current_paths
+EOF
+    fi
+  fi
+done
+
 # Check outbound dependencies for subsystems
 echo "Checking outbound dependencies..."
 find_subsystems | while read subsystem_dir; do
@@ -409,35 +530,11 @@ find_subsystems | while read subsystem_dir; do
           line_num=$(echo "$import_line" | cut -d: -f1)
           import_path=$(echo "$import_line" | sed "s/.*from [\"']\([^\"']*\)[\"'].*/\1/")
           
-          # Check if this import is allowed
-          is_allowed=false
-          
-          if [ -n "$allowed_deps" ]; then
-            # Normalize the import path for comparison
-            normalized_path="$import_path"
-            case "$import_path" in
-              "../"*) 
-                normalized_path="$import_path"
-                ;;
-              "~/"*) 
-                # Convert absolute paths to relative from domain perspective
-                domain_relative=$(echo "$import_path" | sed "s|~/lib/domains/[^/]*/||")
-                if [ "$domain_relative" != "$import_path" ]; then
-                  normalized_path="../$domain_relative"
-                fi
-                ;;
-            esac
-            
-            # Check if normalized path matches any allowed dependency
-            IFS='|' read -ra DEPS <<< "$allowed_deps"
-            for allowed_dep in "${DEPS[@]}"; do
-              case "$normalized_path" in
-                "$allowed_dep"*) 
-                  is_allowed=true
-                  break
-                  ;;
-              esac
-            done
+          # Check if this import is allowed using hierarchical logic
+          if is_path_allowed "$import_path" "$allowed_deps" "$subsystem_dir"; then
+            is_allowed=true
+          else
+            is_allowed=false
           fi
           
           if [ "$is_allowed" = false ]; then
@@ -446,7 +543,7 @@ find_subsystems | while read subsystem_dir; do
             echo "❌ Undeclared outbound dependency in $subsystem_name:" >> "/tmp/arch_errors_$$"
             echo "  🔸 $relative_file:$line_num" >> "/tmp/arch_errors_$$"
             echo "     import from '$import_path'" >> "/tmp/arch_errors_$$"
-            echo "     → Add '$normalized_path' to dependencies.json 'allowed' array" >> "/tmp/arch_errors_$$"
+            echo "     → Add '$import_path' to dependencies.json 'allowed' array" >> "/tmp/arch_errors_$$"
             echo "" >> "/tmp/arch_errors_$$"
           fi
         fi
@@ -501,6 +598,80 @@ is_hierarchical_violation() {
   return 1  # Not a violation
 }
 
+# Helper function to resolve relative import paths to absolute paths
+resolve_import_path() {
+  local import_path="$1"
+  local current_subsystem_dir="$2"
+  
+  # If already absolute path with ~/, return as-is
+  if echo "$import_path" | grep -q "^~/"; then
+    echo "$import_path"
+    return
+  fi
+  
+  # Resolve relative path
+  if echo "$import_path" | grep -q "^\.\."; then
+    # Get the absolute path of the current subsystem
+    local abs_current=$(cd "$current_subsystem_dir" && pwd)
+    # Remove the src/ prefix and add ~/
+    local relative_current=$(echo "$abs_current" | sed 's|.*/src/|~/|')
+    
+    # Count ../ segments
+    local up_count=$(echo "$import_path" | grep -o "\.\.\/" | wc -l)
+    
+    # Remove ../ segments from current path
+    local resolved_base="$relative_current"
+    for i in $(seq 1 $up_count); do
+      resolved_base=$(dirname "$resolved_base")
+    done
+    
+    # Add the remaining path after ../
+    local remaining_path=$(echo "$import_path" | sed 's|\.\./||g')
+    if [ -n "$remaining_path" ]; then
+      echo "$resolved_base/$remaining_path"
+    else
+      echo "$resolved_base"
+    fi
+  else
+    # Relative path without ../ - should not happen in outbound imports
+    echo "$import_path"
+  fi
+}
+
+# Helper function to check if import is allowed by dependencies.json
+is_import_allowed() {
+  local import_path="$1"
+  local deps_file="$2"
+  
+  # Read allowed dependencies from JSON
+  local allowed_deps=""
+  if command -v jq >/dev/null 2>&1; then
+    allowed_deps=$(jq -r '.allowed[]?' "$deps_file" 2>/dev/null || echo "")
+  else
+    # Fallback parsing without jq
+    allowed_deps=$(grep -o '"[^"]*"' "$deps_file" | grep -A 100 '"allowed"' | grep -v '"allowed"' | head -n 50 | sed 's/"//g' || echo "")
+  fi
+  
+  # Check direct matches
+  if echo "$allowed_deps" | grep -q "^${import_path}$"; then
+    return 0  # Allowed
+  fi
+  
+  # Check hierarchical matches (if ~/lib/utils is allowed, ~/lib/utils/cn should be allowed)
+  while IFS= read -r allowed_dep; do
+    if [ -n "$allowed_dep" ] && echo "$import_path" | grep -q "^${allowed_dep}/"; then
+      return 0  # Allowed by hierarchy
+    fi
+  done << EOF
+$allowed_deps
+EOF
+  
+  return 1  # Not allowed
+}
+
+# Check outbound dependencies against allowlist
+echo "Checking outbound dependencies..."
+
 find_subsystems | while read subsystem_dir; do
   subsystem_name=$(basename "$subsystem_dir")
   deps_file="$subsystem_dir/dependencies.json"
@@ -530,6 +701,17 @@ find_subsystems | while read subsystem_dir; do
             echo "     → This imports from a grandchild subsystem. Create reexports in intermediate subsystems." >> "/tmp/hierarchical_errors_$$"
             echo "" >> "/tmp/hierarchical_errors_$$"
           fi
+          
+          # Check if this import is allowed by dependencies.json
+          resolved_path=$(resolve_import_path "$import_path" "$subsystem_dir")
+          if ! is_import_allowed "$resolved_path" "$deps_file"; then
+            relative_file=$(echo "$ts_file" | sed "s|^$subsystem_dir/||")
+            echo "🔥 CUSTOM ERROR MESSAGE - Undeclared outbound dependency in $subsystem_name:" >> "/tmp/dependency_errors_$$"
+            echo "  🔸 $relative_file:$line_num" >> "/tmp/dependency_errors_$$"
+            echo "     import from '$import_path' → resolves to '$resolved_path'" >> "/tmp/dependency_errors_$$"
+            echo "     → Add '$resolved_path' to dependencies.json 'allowed' array" >> "/tmp/dependency_errors_$$"
+            echo "" >> "/tmp/dependency_errors_$$"
+          fi
         fi
       done
     fi
@@ -543,6 +725,15 @@ if [ -f "/tmp/hierarchical_errors_$$" ]; then
     ERRORS="${ERRORS}${NEWLINE}${NEWLINE}$hierarchical_errors"
   fi
   rm -f "/tmp/hierarchical_errors_$$"
+fi
+
+# Read dependency error file and add to ERRORS
+if [ -f "/tmp/dependency_errors_$$" ]; then
+  dependency_errors=$(cat "/tmp/dependency_errors_$$")
+  if [ -n "$dependency_errors" ]; then
+    ERRORS="${ERRORS}${NEWLINE}${NEWLINE}$dependency_errors"
+  fi
+  rm -f "/tmp/dependency_errors_$$"
 fi
 
 # Check for file/folder naming conflicts
@@ -605,6 +796,11 @@ if [ -n "$ERRORS" ]; then
   echo "• File/folder naming conflicts:"
   echo "  - If both types.ts and types/ exist, move types.ts content to types/index.ts"
   echo "  - This prevents ambiguous imports and follows the index pattern"
+  echo ""
+  echo "• Dependencies.json format:"
+  echo "  - All paths in 'allowed' array must use absolute paths with ~/ prefix"
+  echo "  - Only 'subsystems' array may use relative paths (./subfolder)"
+  echo "  - Example: \"~/lib/utils\" not \"../utils\" or \"./utils\""
   echo ""
   echo "• Subsystems with dependencies.json must be declared in their parent's \"subsystems\" array"
   echo "• Subsystems must be imported through their index.ts (renamed from interface.ts)"
