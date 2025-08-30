@@ -54,7 +54,7 @@ export class AgenticService {
 
     try {
       // Use default prompt template (intent classification temporarily disabled)
-      const promptTemplate = 'hexframe-context' as PromptTemplateName
+      const promptTemplate = 'system-prompt' as PromptTemplateName
       
       // Build LLM messages with context and selected personality
       const llmMessages = this.buildLLMMessages(composedContext, options.messages, promptTemplate)
@@ -113,7 +113,7 @@ export class AgenticService {
 
     try {
       // Use default prompt template (intent classification temporarily disabled)
-      const promptTemplate = 'hexframe-context' as PromptTemplateName
+      const promptTemplate = 'system-prompt' as PromptTemplateName
       
       // Emit stream started event
       this.eventBus.emit({
