@@ -24,8 +24,9 @@ export interface LLMResponse {
     completionTokens: number
     totalTokens: number
   }
-  finishReason?: 'stop' | 'length' | 'content_filter' | 'error'
+  finishReason?: 'stop' | 'length' | 'content_filter' | 'error' | 'queued'
   provider?: string
+  jobId?: string // Present when finishReason is 'queued'
 }
 
 export interface StreamChunk {

@@ -136,13 +136,24 @@ export const agenticRouter = createTRPCRouter({
         compositionConfig: input.compositionConfig as CompositionConfig // Type mismatch due to zod schema limitations
       })
 
-      return {
+      // Handle queued responses differently
+      const baseResponse = {
         id: response.id,
         content: response.content,
         model: response.model,
         usage: response.usage,
         finishReason: response.finishReason
       }
+
+      // If this is a queued response, include the jobId
+      if (response.finishReason === 'queued' && response.jobId) {
+        return {
+          ...baseResponse,
+          jobId: response.jobId
+        }
+      }
+
+      return baseResponse
     }),
 
   generateStreamingResponse: protectedProcedure
