@@ -66,7 +66,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.0",
-    "drizzle-orm": "^0.33.0",
+    "drizzle-orm": "^0.44.5",
     "geist": "^1.4.2",
     "inngest": "^3.40.1",
     "lucide-react": "^0.525.0",
