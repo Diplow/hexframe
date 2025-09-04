@@ -120,13 +120,25 @@ function buildHierarchyFromFlatArray(
 
     // Add children if within depth limit
     if (currentDepth < depth) {
-      const childCoordIds = CoordSystem.getChildCoordsFromId(coordId);
       const children: MapItemWithHierarchy[] = [];
 
-      for (const childCoordId of childCoordIds) {
-        const childNode = buildNode(childCoordId, currentDepth + 1);
-        if (childNode) {
-          children.push(childNode);
+      // Find direct children from the flat array
+      for (const candidateItem of items) {
+        // Skip self
+        if (candidateItem.coordinates === coordId) continue;
+        
+        // Check if this item is a direct child (descendant with exactly one level deeper)
+        if (CoordSystem.isDescendant(candidateItem.coordinates, coordId)) {
+          const candidateDepth = CoordSystem.getDepthFromId(candidateItem.coordinates);
+          const currentItemDepth = CoordSystem.getDepthFromId(coordId);
+          
+          // Only include direct children (exactly one level deeper)
+          if (candidateDepth === currentItemDepth + 1) {
+            const childNode = buildNode(candidateItem.coordinates, currentDepth + 1);
+            if (childNode) {
+              children.push(childNode);
+            }
+          }
         }
       }
 
