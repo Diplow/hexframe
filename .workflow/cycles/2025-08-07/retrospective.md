@@ -54,3 +54,18 @@
   - Create proper tests for AI message handling
   - Update welcome message to reflect current behavior (all messages go to AI)
 - **Immediate Action Taken**: Removed unused `ChatAIIntegration.tsx` file
+
+## MCP Context Strategy: Colors for Semantic Grouping
+- **Planning Date**: 2025-09-04
+- **Context**: During Priority 2 planning, explored how to provide contextual tile data to AI
+- **Key Insight**: Colors could serve as semantic boundaries for context inclusion
+- **Future Vision**:
+  - Tiles tagged with same colors work together (e.g., all workflow phases = "blue")
+  - When asking a "blue" tile, automatically include all other "blue" tiles within relationship distance
+  - Elegant solution to composition problem without complex mechanics
+  - Cross-cutting concerns could have multiple colors
+- **Implementation Path**:
+  - Phase 1: Basic context heuristic (ancestors + siblings)
+  - Phase 2: Add color-based context grouping
+  - Phase 3: Allow tiles to specify context needs via metadata
+- **Value**: Makes tile relationships semantic rather than just hierarchical, enabling true system composition

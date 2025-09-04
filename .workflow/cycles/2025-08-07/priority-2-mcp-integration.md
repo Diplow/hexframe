@@ -1,41 +1,119 @@
-# Priority 1: MCP Integration (Make Systems Alive Through AI)
+# Priority 2: MCP Integration - Implementation Plan
 
-## Context
-Transform static hexagon maps into living systems by integrating Model Context Protocol (MCP). This is the core of the "Bringing Systems to Life" theme - enabling AI to actively work within and through the hexagonal structures.
+## Overview
+Transform Hexframe from static knowledge maps into living systems that AI can action. The first use case will be migrating the `.workflow/` system to Hexframe tiles, enabling Claude to guide workflow execution directly.
 
-## Core Vision
-Systems that live through AI interaction:
-- AI can read and understand hexagon contexts
-- AI can execute actions based on system state
-- AI can suggest system evolution paths
-- AI can bridge between different hexagon contexts
+## Phase 1: Minimum Viable MCP (What We Build Now)
 
-## Key Components
-1. **MCP Server Integration** - Connect to Claude through MCP protocol
-2. **Context Bridge** - Convert hexagon state to AI-readable context
-3. **Action Interface** - Allow AI to modify system state
-4. **System Evolution** - AI-guided system growth and adaptation
+### Core Objective
+Enable Claude to read and update Hexframe tiles via MCP, starting with the simplest approach that delivers real value.
+
+### MCP Tools to Implement
+Matching existing tRPC API naming:
+- `getItemByCoords(coords)` - Get single tile
+- `getItemsForRootItem(userId, groupId, depth?)` - Get tile hierarchy  
+- `addItem(parentCoords, title, content, position)` - Create new tile
+- `updateItem(coords, updates)` - Update existing tile
+
+### Tile Structure for Workflow Migration
+```
+HexFrame Workflow (root)
+├── Product Workflow
+│   ├── Workflow State (dynamic state, like current.json)
+│   ├── Goals
+│   ├── Prioritization
+│   ├── Planification
+│   ├── Execution
+│   ├── Retrospective
+│   └── Research
+├── Backlog
+│   ├── Critical Bugs
+│   ├── Features
+│   ├── UX Improvements
+│   ├── Tech Debt
+│   └── Ideas
+└── Milestones
+    ├── Milestone 1: Dogfood
+    │   └── Cycle 2025-08-07
+    └── Milestone 2: hexframe.ai
+```
+
+### Context Strategy
+Every MCP response includes a preface explaining Hexframe concepts:
+```markdown
+=== HEXFRAME CONTEXT ===
+You are reading tiles from a Hexframe system. Tiles are hexagonal units of knowledge organized hierarchically.
+[Key concepts about coordinates, hierarchy, navigation]
+===
+```
+
+### CLAUDE.md Update
+Replace current file-reading instructions with:
+```
+When starting work, call:
+tool:hexframe/getItemsForRootItem(userId=1, groupId=0, depth=3)
+
+This returns the HexFrame Workflow system. Use it to understand current state and guide the user.
+```
+
+## Implementation Steps
+
+### 1. Enhance MCP Server (`src/app/services/mcp/`)
+- Add the 4 core tools (get, getWithDepth, add, update)
+- Implement generic context preface
+- Connect to existing tRPC endpoints
+- Test with Claude Code locally
+
+### 2. Migrate Workflow to Tiles
+- Create "HexFrame Workflow" root tile
+- Populate nested structure from `.workflow/` content
+- Each workflow phase gets execution prompts as content
+- "Workflow State" tile holds dynamic state
+
+### 3. Update CLAUDE.md
+- Replace file-reading instructions with MCP tool calls
+- Document how to navigate tile hierarchy
+- Test workflow execution via Claude
+
+### 4. Validate & Iterate
+- Use for one week
+- Document friction points
+- Add context aggregation if needed
 
 ## Success Criteria
-- [ ] MCP server runs and connects to Claude
-- [ ] Hexagon contexts are accessible to AI
-- [ ] AI can perform basic system operations
-- [ ] AI can suggest meaningful system improvements
-- [ ] Integration feels natural within existing UX
+- [ ] MCP server connects to Claude Code
+- [ ] Can read entire workflow system via single tool call
+- [ ] Can update Workflow State tile to track progress
+- [ ] Stop using `.workflow/` files completely
+- [ ] Workflow execution feels more natural than before
 
-## Impact
-**Transformational** - This is what makes Hexframe unique. Without AI integration, it's just a mapping tool. With it, it becomes a living system that thinks and evolves.
+## Future Enhancements (Not Now)
+- Context aggregation (ancestors + siblings)
+- Search/filter capabilities
+- "Ask tile" with LLM processing
+- Color-based tile grouping
+- Tile reference mechanism
+- Hexframe.ai chat integration
 
-## Dependencies
-- Requires stable core functionality (Priority 0)
-- Enables advanced sharing features (Priority 2)
-- Provides data for usage statistics (Priority 3)
+## Key Design Decisions
+1. **Start simple**: Full context first, optimize later
+2. **Match tRPC naming**: Consistency with existing API
+3. **Include write operations**: Essential for state management
+4. **Generic preface**: Teach Claude about tiles universally
+5. **Nested hierarchy**: Preserves natural structure
 
-## Estimated Effort
-**High** - New integration requiring protocol implementation, security considerations, and UX design for AI interactions.
+## Files to Create/Modify
+- `/src/app/services/mcp/server.ts` - Add new tools
+- `/src/app/services/mcp/services/tiles.ts` - New service for tile operations
+- `/src/app/services/mcp/services/context-wrapper.ts` - Preface logic
+- `/CLAUDE.md` - Update workflow instructions
+- Create tiles in Hexframe UI for workflow system
 
-## Implementation Notes
-- Start with read-only context sharing
-- Build secure action interface
-- Design for extensible AI capabilities
-- Consider offline mode implications
+## Testing Approach
+1. Build MCP server: `pnpm mcp:build`
+2. Configure in Claude Code: `claude mcp add hexframe "node dist/mcp-server.js"`
+3. Test basic operations manually
+4. Migrate one workflow component at a time
+5. Validate daily usage for a week
+
+This plan delivers immediate value while keeping the door open for sophisticated enhancements based on real usage patterns.
