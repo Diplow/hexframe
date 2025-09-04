@@ -4,6 +4,7 @@ import { useMapCache } from '~/app/map/Cache';
 import { debugLogger } from '~/lib/debug/debug-logger';
 import { authClient } from '~/lib/auth';
 import { useEventBus } from '~/app/map/Services';
+import { CoordSystem } from '~/lib/domains/mapping/utils';
 
 // UTF-8 safe base64 encoder
 function toBase64(s: string): string {
@@ -20,7 +21,7 @@ interface Command {
   action?: () => string;
 }
 
-const commands: Record<string, Command> = {
+const getCommands = (center: string | null): Record<string, Command> => ({
   '/debug': {
     description: 'Show debug logs (use /debug/full or /debug/succinct)',
   },
@@ -272,17 +273,35 @@ const commands: Record<string, Command> = {
       // This will be handled specially in executeCommand
       return '';
     }
+  },
+  '/coords': {
+    description: 'Get current center coordinate in JSON format',
+    action: () => {
+      if (!center) {
+        return 'No current center coordinate available.';
+      }
+      
+      try {
+        const coords = CoordSystem.parseId(center);
+        const coordsJson = JSON.stringify(coords, null, 0);
+        return `Current center coordinates: \`${coordsJson}\`\n\n{{COPY_BUTTON:${toBase64(coordsJson)}}}`;
+      } catch (error) {
+        return `Error parsing coordinate: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      }
+    }
   }
-};
+});
 
 export function useCommandHandling() {
   const chatState = useChatState();
-  const { navigateToItem } = useMapCache();
+  const { navigateToItem, center } = useMapCache();
   const eventBus = useEventBus();
 
+  const commands = getCommands(center);
+  
   const findCommand = useCallback((path: string): Command | null => {
     return commands[path] ?? null;
-  }, []);
+  }, [commands]);
 
   const handleLogout = useCallback(async () => {
     try {
@@ -393,7 +412,7 @@ export function useCommandHandling() {
       });
 
     return suggestions;
-  }, []);
+  }, [commands]);
 
   const executeCommand = useCallback((cmd: string): boolean => {
     const normalizedCmd = cmd.replace(/\/+$/, '');
@@ -458,7 +477,7 @@ export function useCommandHandling() {
     }
     
     return false;
-  }, [chatState, findCommand, handleClear, handleLogin, handleLogout, handleRegister]);
+  }, [chatState, findCommand, handleClear, handleLogin, handleLogout, handleRegister, commands]);
 
   const executeCommandFromPayload = useCallback(async (payload: { command: string }) => {
     // Handle special navigation commands
@@ -509,7 +528,7 @@ export function useCommandHandling() {
         chatState.showSystemMessage(`Command not found: ${payload.command}`, 'error');
       }
     }
-  }, [chatState, executeCommand, navigateToItem]);
+  }, [chatState, executeCommand, navigateToItem, commands]);
 
   return {
     executeCommand,

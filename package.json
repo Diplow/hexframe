@@ -39,7 +39,7 @@
     "youtube:analyze": "tsx src/lib/youtube/get-transcript.ts analyze",
     "map:build": "dotenv -e .env -e .env.local -- tsx scripts/buildMap.ts",
     "map:build:js": "dotenv -e .env -e .env.local -- node scripts/buildMap.js",
-    "mcp:build": "esbuild src/app/services/mcp/server.ts --bundle --platform=node --target=node20 --outfile=dist/mcp-server.js --external:@modelcontextprotocol/sdk --external:zod --format=esm",
+    "mcp:build": "esbuild src/app/services/mcp/server.ts --bundle --platform=node --target=node20 --outfile=dist/mcp-server.js --format=esm",
     "mcp:start": "node dist/mcp-server.js",
     "mcp:dev": "tsx src/app/services/mcp/server.ts"
   },
