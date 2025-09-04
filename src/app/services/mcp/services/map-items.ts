@@ -95,67 +95,63 @@ async function getItemByCoords(coords: {
   }
 }
 
-// Helper to build hierarchical structure from a root item
-async function buildHierarchy(
-  rootId: string,
+// Helper to build hierarchical structure from flat array of items
+function buildHierarchyFromFlatArray(
+  items: MapItem[],
+  rootCoordId: string,
   depth = 3,
-): Promise<MapItemWithHierarchy | null> {
-  try {
-    // Parse the coordId to get coordinates
-    const rootCoords = CoordSystem.parseId(rootId);
+): MapItemWithHierarchy | null {
+  // Create a lookup map for efficient access
+  const itemsByCoordId = new Map<string, MapItem>();
+  items.forEach(item => {
+    itemsByCoordId.set(item.coordinates, item);
+  });
 
-    // Get the root item
-    const rootItem = await getItemByCoords(rootCoords);
-    if (!rootItem) return null;
+  // Find the root item
+  const rootItem = itemsByCoordId.get(rootCoordId);
+  if (!rootItem) return null;
 
-    // Build hierarchical structure
-    const hierarchy: MapItemWithHierarchy = { ...rootItem };
+  // Recursive function to build hierarchy
+  function buildNode(coordId: string, currentDepth: number): MapItemWithHierarchy | null {
+    const item = itemsByCoordId.get(coordId);
+    if (!item) return null;
 
-    // Get children if depth allows (always try regardless of canExpand flag)
-    if (depth > 0) {
-      const childCoordIds = CoordSystem.getChildCoordsFromId(rootId);
-      
-      const children = await Promise.all(
-        childCoordIds.map(async (childId) => {
-          try {
-            // Recursively build hierarchy for children
-            return await buildHierarchy(childId, depth - 1);
-          } catch {
-            // If child doesn't exist or has an error, return null
-            return null;
-          }
-        }),
-      );
+    const node: MapItemWithHierarchy = { ...item };
 
-      // Only add children array if there are actual children
-      const validChildren = children.filter(
-        (child): child is MapItemWithHierarchy => child !== null,
-      );
-      
-      if (validChildren.length > 0) {
-        hierarchy.children = validChildren;
+    // Add children if within depth limit
+    if (currentDepth < depth) {
+      const childCoordIds = CoordSystem.getChildCoordsFromId(coordId);
+      const children: MapItemWithHierarchy[] = [];
+
+      for (const childCoordId of childCoordIds) {
+        const childNode = buildNode(childCoordId, currentDepth + 1);
+        if (childNode) {
+          children.push(childNode);
+        }
+      }
+
+      if (children.length > 0) {
+        node.children = children;
       }
     }
 
-    // Get parent if exists
-    const parentId = CoordSystem.getParentCoordFromId(rootId);
-    if (parentId) {
-      const parentCoords = CoordSystem.parseId(parentId);
-      hierarchy.parent = await getItemByCoords(parentCoords);
-    }
-
-    return hierarchy;
-  } catch (error) {
-    // Return null if hierarchy can't be built
-    return null;
+    return node;
   }
+
+  return buildNode(rootCoordId, 0);
 }
 
-// Handler for map items list resource
+// Handler for map items list resource  
 export async function mapItemsListHandler(uri: URL, rootId: string) {
   try {
-    // Build hierarchical structure from root
-    const hierarchy = await buildHierarchy(rootId);
+    // Parse rootId to get user info and use the efficient approach
+    const coords = CoordSystem.parseId(rootId);
+    const allItems = await callTrpcEndpoint<MapItem[]>("map.getItemsForRootItem", {
+      userId: coords.userId,
+      groupId: coords.groupId,
+    });
+
+    const hierarchy = buildHierarchyFromFlatArray(allItems, rootId, 3);
 
     if (!hierarchy) {
       throw new Error(
@@ -183,10 +179,11 @@ export async function mapItemsListHandler(uri: URL, rootId: string) {
 // Handler for single map item resource
 export async function mapItemHandler(uri: URL, itemId: string) {
   try {
-    // Get the item with minimal hierarchy (just parent and direct children)
-    const hierarchy = await buildHierarchy(itemId, 1);
+    // For single items, use the simple getItemByCoords approach
+    const coords = CoordSystem.parseId(itemId);
+    const item = await getItemByCoords(coords);
 
-    if (!hierarchy) {
+    if (!item) {
       throw new Error(
         `No map item exists at coordinate '${itemId}'. ` +
           `Coordinates are structured as 'userId,groupId' for root items ` +
@@ -200,7 +197,7 @@ export async function mapItemHandler(uri: URL, itemId: string) {
         {
           uri: uri.href,
           mimeType: "application/json",
-          text: JSON.stringify(hierarchy, null, 2),
+          text: JSON.stringify(item, null, 2),
         },
       ],
     };
@@ -216,16 +213,26 @@ export async function getUserMapItemsHandler(
   depth = 3,
 ): Promise<MapItemWithHierarchy | null> {
   try {
-    // Construct the root coordinate ID for the user
-    const rootId = `${userId},${groupId}`;
+    // Get ALL items for this user in a single API call
+    const allItems = await callTrpcEndpoint<MapItem[]>("map.getItemsForRootItem", {
+      userId,
+      groupId,
+    });
 
-    // Build the hierarchy starting from the user's root
-    const hierarchy = await buildHierarchy(rootId, depth);
-
-    if (!hierarchy) {
+    if (!allItems || allItems.length === 0) {
       throw new Error(
         `No map found for user ${userId}. ` +
           `Make sure the user exists and has created a map.`,
+      );
+    }
+
+    // Build hierarchy from the flat array
+    const rootId = `${userId},${groupId}`;
+    const hierarchy = buildHierarchyFromFlatArray(allItems, rootId, depth);
+
+    if (!hierarchy) {
+      throw new Error(
+        `No root tile found for user ${userId} at coordinates ${rootId}.`,
       );
     }
 
