@@ -15,7 +15,7 @@ import {
   addItemHandler,
   updateItemHandler,
 } from "./services/map-items";
-import { wrapWithHexframeContext } from "./services/context-wrapper";
+// Context wrapper no longer needed - context is in tool descriptions
 
 // Create MCP server instance
 const server = new Server(
@@ -77,7 +77,16 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: [
       {
         name: "getItemsForRootItem",
-        description: "Get hierarchical tile structure for a user, starting from their root map",
+        description: `Get hierarchical tile structure for a user's Hexframe map.
+
+HEXFRAME CONTEXT: You're working with a hexagonal knowledge mapping system where:
+- Tiles are hexagonal units organized hierarchically around a center
+- Coordinates: {userId: 1, groupId: 0, path: [0,1]} where path=directions from root
+- Directions: 0=Center, 1=NorthWest, 2=NorthEast, 3=East, 4=SouthEast, 5=SouthWest, 6=West
+- Empty path=[] means root/center tile
+- Each tile can have up to 6 children in different directions
+
+This tool returns nested structure with children[] arrays showing the knowledge hierarchy.`,
         inputSchema: {
           type: "object",
           properties: {
@@ -103,7 +112,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "getItemByCoords",
-        description: "Get a single tile by its coordinates",
+        description: "Get a single Hexframe tile by its coordinates. Use this to read specific tiles when you know their exact location in the hexagonal hierarchy.",
         inputSchema: {
           type: "object",
           properties: {
@@ -127,7 +136,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "addItem",
-        description: "Create a new tile at specified coordinates",
+        description: "Create a new Hexframe tile at specified coordinates. The tile will be created as a child of the parent at the given direction. For root tiles, use empty path=[].",
         inputSchema: {
           type: "object",
           properties: {
@@ -163,7 +172,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "updateItem",
-        description: "Update an existing tile's content",
+        description: "Update an existing Hexframe tile's content (title, description, or URL). Use coordinates to specify which tile to modify.",
         inputSchema: {
           type: "object",
           properties: {
@@ -210,13 +219,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const depth = (args?.depth as number) ?? 3;
 
         const result = await getUserMapItemsHandler(userId, groupId, depth);
-        const wrappedResult = wrapWithHexframeContext(result, 'hierarchy');
         
         return {
           content: [
             {
               type: "text",
-              text: wrappedResult,
+              text: JSON.stringify(result, null, 2),
             },
           ],
         };
@@ -227,13 +235,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         if (!coords) throw new Error("coords parameter is required");
 
         const result = await getItemByCoordsHandler(coords);
-        const wrappedResult = wrapWithHexframeContext(result, 'single-tile');
         
         return {
           content: [
             {
               type: "text",
-              text: wrappedResult,
+              text: JSON.stringify(result, null, 2),
             },
           ],
         };
@@ -250,13 +257,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
 
         const result = await addItemHandler(coords, title, descr, url);
-        const wrappedResult = wrapWithHexframeContext(result, 'creation');
         
         return {
           content: [
             {
               type: "text",
-              text: wrappedResult,
+              text: JSON.stringify(result, null, 2),
             },
           ],
         };
@@ -271,13 +277,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
 
         const result = await updateItemHandler(coords, updates);
-        const wrappedResult = wrapWithHexframeContext(result, 'update');
         
         return {
           content: [
             {
               type: "text",
-              text: wrappedResult,
+              text: JSON.stringify(result, null, 2),
             },
           ],
         };
