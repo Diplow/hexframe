@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
+import { apiKey } from "better-auth/plugins";
 import { db } from "~/server/db";
 import { schema } from "~/server/db"; // Import all schemas
 import { sendEmail, generateVerificationEmail } from "~/server/email"; // Email sender functions
@@ -15,7 +16,7 @@ export const auth = betterAuth({
       account: schema.accounts,
       session: schema.sessions,
       verificationToken: schema.verificationTokens, // better-auth core is 'verification', adapter docs sometimes show 'verificationToken'
-      // If any other tables are implicitly expected by plugins later, they might need mapping too.
+      apikey: schema.apiKeys, // API key plugin table
     },
   }),
   emailAndPassword: {
@@ -50,7 +51,12 @@ export const auth = betterAuth({
         ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : [])
       ] 
     : ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"],
-  plugins: [nextCookies()],
+  plugins: [
+    nextCookies(),
+    apiKey({
+      apiKeyHeaders: ["x-api-key"], // MCP standard header
+    }),
+  ],
 });
 
 // Note: better-auth core schema names are singular (user, account, session, verification).

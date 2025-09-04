@@ -53,9 +53,15 @@ dependencies:
   '@trpc/server':
     specifier: ^11.0.0-rc.446
     version: 11.0.0-rc.817(typescript@5.8.3)
+  '@types/bcryptjs':
+    specifier: ^3.0.0
+    version: 3.0.0
   '@vercel/analytics':
     specifier: ^1.5.0
     version: 1.5.0(next@15.2.4)(react@18.3.1)
+  bcryptjs:
+    specifier: ^3.0.2
+    version: 3.0.2
   better-auth:
     specifier: ^1.2.10
     version: 1.2.10
@@ -4655,6 +4661,13 @@ packages:
       '@babel/types': 7.26.9
     dev: true
 
+  /@types/bcryptjs@3.0.0:
+    resolution: {integrity: sha512-WRZOuCuaz8UcZZE4R5HXTco2goQSI2XxjGY3hbM/xDvwmqFWd4ivooImsMx65OKM6CtNKbnZ5YL+YwAwK7c1dg==}
+    deprecated: This is a stub types definition. bcryptjs provides its own type definitions, so you do not need this installed.
+    dependencies:
+      bcryptjs: 3.0.2
+    dev: false
+
   /@types/bunyan@1.8.11:
     resolution: {integrity: sha512-758fRH7umIMk5qt5ELmRMff4mLDlN+xyYzC+dkPTdKwbSkJFvz6xwyScrytPU0QIBbRRwbiE8/BIg8bpajerNQ==}
     dependencies:
@@ -5484,6 +5497,11 @@ packages:
 
   /balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
+
+  /bcryptjs@3.0.2:
+    resolution: {integrity: sha512-k38b3XOZKv60C4E2hVsXTolJWfkGRMbILBIe2IBITXciy5bOsTKot5kDrf3ZfufQtQOUN5mXceUEpU1rTl9Uog==}
+    hasBin: true
+    dev: false
 
   /better-auth@1.2.10:
     resolution: {integrity: sha512-nEj1RG4DdLUuJiV5CR93ORyPCptGRBwksaPPCkUtGo9ka+UIlTpaiKoTaTqVLLYlqwX4bOj9tJ32oBNdf2G3Kg==}

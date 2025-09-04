@@ -34,6 +34,7 @@ function getApiBaseUrl(): string {
 async function callTrpcEndpoint<T>(
   endpoint: string,
   input: unknown,
+  options: { requireAuth?: boolean } = {},
 ): Promise<T> {
   const baseUrl = getApiBaseUrl();
 
@@ -45,11 +46,22 @@ async function callTrpcEndpoint<T>(
 
   const url = `${baseUrl}/services/api/trpc/${endpoint}?${params}`;
 
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  // Add API key for authenticated operations
+  if (options.requireAuth) {
+    const apiKey = process.env.HEXFRAME_API_KEY;
+    if (!apiKey) {
+      throw new Error("HEXFRAME_API_KEY environment variable is required for write operations");
+    }
+    headers["x-api-key"] = apiKey;
+  }
+
   const response = await fetch(url, {
     method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers,
   });
 
   if (!response.ok) {
@@ -309,7 +321,7 @@ export async function addItemHandler(
       title,
       descr: descr ?? null,
       url: url ?? null,
-    });
+    }, { requireAuth: true });
 
     return newItem;
   } catch (error) {
@@ -330,7 +342,7 @@ export async function updateItemHandler(
         descr: updates.descr,
         url: updates.url,
       },
-    });
+    }, { requireAuth: true });
 
     return updatedItem;
   } catch (error) {
