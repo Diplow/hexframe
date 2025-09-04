@@ -1,21 +1,15 @@
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 
 interface MapItem {
-  id: number;
-  coords: {
-    userId: number;
-    groupId: number;
-    path: number[];
-  };
-  parentId: number | null;
-  title: string;
-  descr: string | null;
-  canExpand: boolean;
+  id: string;
+  coordinates: string;
   depth: number;
-  rootId: number;
+  name: string;
+  descr: string | null;
   url: string | null;
-  createdAt: string;
-  updatedAt: string;
+  parentId: string | null;
+  itemType: string;
+  ownerId: string;
 }
 
 interface MapItemWithHierarchy extends MapItem {
@@ -117,20 +111,30 @@ async function buildHierarchy(
     // Build hierarchical structure
     const hierarchy: MapItemWithHierarchy = { ...rootItem };
 
-    // Get children if depth allows
-    if (depth > 0 && rootItem.canExpand) {
+    // Get children if depth allows (always try regardless of canExpand flag)
+    if (depth > 0) {
       const childCoordIds = CoordSystem.getChildCoordsFromId(rootId);
+      
       const children = await Promise.all(
         childCoordIds.map(async (childId) => {
-          // Recursively build hierarchy for children
-          const childHierarchy = await buildHierarchy(childId, depth - 1);
-          return childHierarchy;
+          try {
+            // Recursively build hierarchy for children
+            return await buildHierarchy(childId, depth - 1);
+          } catch {
+            // If child doesn't exist or has an error, return null
+            return null;
+          }
         }),
       );
 
-      hierarchy.children = children.filter(
+      // Only add children array if there are actual children
+      const validChildren = children.filter(
         (child): child is MapItemWithHierarchy => child !== null,
       );
+      
+      if (validChildren.length > 0) {
+        hierarchy.children = validChildren;
+      }
     }
 
     // Get parent if exists
@@ -141,7 +145,7 @@ async function buildHierarchy(
     }
 
     return hierarchy;
-  } catch {
+  } catch (error) {
     // Return null if hierarchy can't be built
     return null;
   }
@@ -277,7 +281,7 @@ export async function addItemHandler(
             `Create the parent tile first.`,
         );
       }
-      parentId = parentItem.id;
+      parentId = parseInt(parentItem.id, 10);
     }
 
     const newItem = await callTrpcEndpoint<MapItem>("map.addItem", {
