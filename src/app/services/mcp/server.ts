@@ -11,7 +11,11 @@ import {
   mapItemsListHandler,
   mapItemHandler,
   getUserMapItemsHandler,
+  getItemByCoordsHandler,
+  addItemHandler,
+  updateItemHandler,
 } from "./services/map-items";
+import { wrapWithHexframeContext } from "./services/context-wrapper";
 
 // Create MCP server instance
 const server = new Server(
@@ -72,8 +76,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
       {
-        name: "getUserMapItems",
-        description: "Get all map items for a specific user, starting from their root map",
+        name: "getItemsForRootItem",
+        description: "Get hierarchical tile structure for a user, starting from their root map",
         inputSchema: {
           type: "object",
           properties: {
@@ -97,6 +101,99 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ["userId"],
         },
       },
+      {
+        name: "getItemByCoords",
+        description: "Get a single tile by its coordinates",
+        inputSchema: {
+          type: "object",
+          properties: {
+            coords: {
+              type: "object",
+              description: "The coordinates of the tile to fetch",
+              properties: {
+                userId: { type: "number" },
+                groupId: { type: "number" },
+                path: {
+                  type: "array",
+                  items: { type: "number" },
+                  description: "Array of directions from root (empty for root tile)"
+                }
+              },
+              required: ["userId", "groupId", "path"]
+            }
+          },
+          required: ["coords"],
+        },
+      },
+      {
+        name: "addItem",
+        description: "Create a new tile at specified coordinates",
+        inputSchema: {
+          type: "object",
+          properties: {
+            coords: {
+              type: "object",
+              description: "The coordinates where to create the new tile",
+              properties: {
+                userId: { type: "number" },
+                groupId: { type: "number" },
+                path: {
+                  type: "array",
+                  items: { type: "number" },
+                  description: "Array of directions from root"
+                }
+              },
+              required: ["userId", "groupId", "path"]
+            },
+            title: {
+              type: "string",
+              description: "The title of the new tile"
+            },
+            descr: {
+              type: "string",
+              description: "The content/description of the new tile (optional)"
+            },
+            url: {
+              type: "string",
+              description: "Optional URL for the tile"
+            }
+          },
+          required: ["coords", "title"],
+        },
+      },
+      {
+        name: "updateItem",
+        description: "Update an existing tile's content",
+        inputSchema: {
+          type: "object",
+          properties: {
+            coords: {
+              type: "object",
+              description: "The coordinates of the tile to update",
+              properties: {
+                userId: { type: "number" },
+                groupId: { type: "number" },
+                path: {
+                  type: "array",
+                  items: { type: "number" },
+                  description: "Array of directions from root"
+                }
+              },
+              required: ["userId", "groupId", "path"]
+            },
+            updates: {
+              type: "object",
+              description: "The fields to update",
+              properties: {
+                title: { type: "string" },
+                descr: { type: "string" },
+                url: { type: "string" }
+              }
+            }
+          },
+          required: ["coords", "updates"],
+        },
+      },
     ],
   };
 });
@@ -105,34 +202,100 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
 
-  if (name === "getUserMapItems") {
-    const userId = args?.userId as number;
-    const groupId = (args?.groupId as number) ?? 0;
-    const depth = (args?.depth as number) ?? 3;
+  try {
+    switch (name) {
+      case "getItemsForRootItem": {
+        const userId = args?.userId as number;
+        const groupId = (args?.groupId as number) ?? 0;
+        const depth = (args?.depth as number) ?? 3;
 
-    try {
-      const result = await getUserMapItemsHandler(userId, groupId, depth);
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify(result, null, 2),
-          },
-        ],
-      };
-    } catch (error) {
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
-          },
-        ],
-      };
+        const result = await getUserMapItemsHandler(userId, groupId, depth);
+        const wrappedResult = wrapWithHexframeContext(result, 'hierarchy');
+        
+        return {
+          content: [
+            {
+              type: "text",
+              text: wrappedResult,
+            },
+          ],
+        };
+      }
+
+      case "getItemByCoords": {
+        const coords = args?.coords as { userId: number; groupId: number; path: number[] };
+        if (!coords) throw new Error("coords parameter is required");
+
+        const result = await getItemByCoordsHandler(coords);
+        const wrappedResult = wrapWithHexframeContext(result, 'single-tile');
+        
+        return {
+          content: [
+            {
+              type: "text",
+              text: wrappedResult,
+            },
+          ],
+        };
+      }
+
+      case "addItem": {
+        const coords = args?.coords as { userId: number; groupId: number; path: number[] };
+        const title = args?.title as string;
+        const descr = args?.descr as string | undefined;
+        const url = args?.url as string | undefined;
+
+        if (!coords || !title) {
+          throw new Error("coords and title parameters are required");
+        }
+
+        const result = await addItemHandler(coords, title, descr, url);
+        const wrappedResult = wrapWithHexframeContext(result, 'creation');
+        
+        return {
+          content: [
+            {
+              type: "text",
+              text: wrappedResult,
+            },
+          ],
+        };
+      }
+
+      case "updateItem": {
+        const coords = args?.coords as { userId: number; groupId: number; path: number[] };
+        const updates = args?.updates as { title?: string; descr?: string; url?: string };
+
+        if (!coords || !updates) {
+          throw new Error("coords and updates parameters are required");
+        }
+
+        const result = await updateItemHandler(coords, updates);
+        const wrappedResult = wrapWithHexframeContext(result, 'update');
+        
+        return {
+          content: [
+            {
+              type: "text",
+              text: wrappedResult,
+            },
+          ],
+        };
+      }
+
+      default:
+        throw new Error(`Unknown tool: ${name}`);
     }
+  } catch (error) {
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+        },
+      ],
+    };
   }
-
-  throw new Error(`Unknown tool: ${name}`);
 });
 
 // Start the server with stdio transport

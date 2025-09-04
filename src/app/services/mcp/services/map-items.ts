@@ -1,4 +1,4 @@
-import { CoordSystem } from "~/lib/domains/mapping";
+import { CoordSystem } from "~/lib/domains/mapping/utils";
 
 interface MapItem {
   id: number;
@@ -205,7 +205,7 @@ export async function mapItemHandler(uri: URL, itemId: string) {
   }
 }
 
-// Handler for getUserMapItems tool
+// Handler for getUserMapItems tool (renamed to getItemsForRootItem)
 export async function getUserMapItemsHandler(
   userId: number,
   groupId = 0,
@@ -226,6 +226,90 @@ export async function getUserMapItemsHandler(
     }
 
     return hierarchy;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Handler for getItemByCoords tool
+export async function getItemByCoordsHandler(coords: {
+  userId: number;
+  groupId: number;
+  path: number[];
+}): Promise<MapItem | null> {
+  try {
+    const item = await getItemByCoords(coords);
+    if (!item) {
+      throw new Error(
+        `No tile found at coordinates ${CoordSystem.createId(coords)}. ` +
+          `Make sure the coordinates are correct and the tile exists.`,
+      );
+    }
+    return item;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Handler for addItem tool
+export async function addItemHandler(
+  coords: { userId: number; groupId: number; path: number[] },
+  title: string,
+  descr?: string,
+  url?: string,
+): Promise<MapItem> {
+  try {
+    // For creation, we need parentId if it's not a root item
+    let parentId: number | null = null;
+    
+    if (coords.path.length > 0) {
+      // Get parent coordinates
+      const parentCoords = {
+        userId: coords.userId,
+        groupId: coords.groupId,
+        path: coords.path.slice(0, -1)
+      };
+      
+      const parentItem = await getItemByCoords(parentCoords);
+      if (!parentItem) {
+        throw new Error(
+          `Parent tile not found at coordinates ${CoordSystem.createId(parentCoords)}. ` +
+            `Create the parent tile first.`,
+        );
+      }
+      parentId = parentItem.id;
+    }
+
+    const newItem = await callTrpcEndpoint<MapItem>("map.addItem", {
+      coords,
+      parentId,
+      title,
+      descr: descr ?? null,
+      url: url ?? null,
+    });
+
+    return newItem;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Handler for updateItem tool
+export async function updateItemHandler(
+  coords: { userId: number; groupId: number; path: number[] },
+  updates: { title?: string; descr?: string; url?: string },
+): Promise<MapItem> {
+  try {
+    const updatedItem = await callTrpcEndpoint<MapItem>("map.updateItem", {
+      coords,
+      data: {
+        title: updates.title,
+        descr: updates.descr,
+        url: updates.url,
+      },
+    });
+
+    return updatedItem;
   } catch (error) {
     throw error;
   }
