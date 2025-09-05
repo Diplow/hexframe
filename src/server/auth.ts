@@ -55,6 +55,7 @@ export const auth = betterAuth({
     nextCookies(),
     apiKey({
       apiKeyHeaders: ["x-api-key"], // MCP standard header
+      enableMetadata: true, // Enable metadata for MCP key tracking
     }),
   ],
 });

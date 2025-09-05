@@ -141,6 +141,9 @@ See `TESTING.md` for strategy and `scripts/run-tests.sh` for orchestration and J
 
 ## Code Quality
 
+### Architecture Enforcement
+Use `scripts/check-architecture.py` to validate architectural boundaries and coding standards. See `scripts/checks/architecture/README.md` for comprehensive documentation on rules, error types, and AI-friendly filtering commands.
+
 After completing any task, refactor for clarity following the workflow in `.claude/commands/refactor-clarity.md`:
 
 1. **Pre-Refactoring Analysis**: Identify concepts and get user validation BEFORE refactoring

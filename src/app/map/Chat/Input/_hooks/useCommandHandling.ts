@@ -291,31 +291,19 @@ const getCommands = (center: string | null): Record<string, Command> => ({
     }
   },
   '/mcp': {
-    description: 'MCP API key management',
+    description: 'Open MCP API key management widget',
   },
   '/mcp/key': {
-    description: 'API key operations',
+    description: 'Open MCP API key management widget',
   },
   '/mcp/key/create': {
-    description: 'Create new MCP API key (requires password confirmation)',
-    action: () => {
-      // This will be handled specially in executeCommand to show password prompt
-      return '';
-    }
+    description: 'Open MCP API key management widget',
   },
   '/mcp/key/list': {
-    description: 'List active MCP API keys',
-    action: () => {
-      // This will be handled specially in executeCommand
-      return '';
-    }
+    description: 'Open MCP API key management widget',
   },
   '/mcp/key/revoke': {
-    description: 'Revoke an MCP API key',
-    action: () => {
-      // This will be handled specially in executeCommand
-      return '';
-    }
+    description: 'Open MCP API key management widget',
   },
   '/mcp/status': {
     description: 'Check MCP server connection and configuration',
@@ -413,62 +401,6 @@ export function useCommandHandling() {
     chatState.showSystemMessage('Message timeline cleared.', 'info');
   }, [chatState]);
 
-  const handleMcpKeyCreate = useCallback(() => {
-    chatState.showSystemMessage(`**Create MCP API Key**
-
-To create an API key for MCP access, you need to:
-
-1. **Enter a name for your key** (e.g., "Claude Code MCP")
-2. **Confirm your password** for security
-
-⚠️ **Important**: The API key will only be shown once. Copy it immediately and add it to your Claude Code MCP configuration.
-
-*Note: Password confirmation is not yet implemented in this UI. For now, you can create keys directly via the API or wait for the full implementation.*
-
-**Next steps after key creation:**
-\`\`\`bash
-# Add to Claude Code
-claude mcp add hexframe "node dist/mcp-server.js" --env HEXFRAME_API_KEY=your_key_here
-
-# Build MCP server
-pnpm mcp:build
-\`\`\``, 'info');
-  }, [chatState]);
-
-  const handleMcpKeyList = useCallback(async () => {
-    try {
-      // TODO: Call the tRPC endpoint to list keys
-      // For now, show a placeholder message
-      chatState.showSystemMessage(`**MCP API Keys**
-
-*This feature is not yet fully implemented.*
-
-Your active MCP API keys will be displayed here, showing:
-- Key name
-- Created date  
-- Last used date
-- Status (active/expired)
-
-Use \`/mcp/key/create\` to create a new key.`, 'info');
-    } catch (error) {
-      chatState.showSystemMessage(`Failed to list API keys: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
-    }
-  }, [chatState]);
-
-  const handleMcpKeyRevoke = useCallback(async () => {
-    try {
-      // TODO: Show a prompt to select which key to revoke
-      chatState.showSystemMessage(`**Revoke MCP API Key**
-
-*This feature is not yet fully implemented.*
-
-This will show a list of your active keys and allow you to revoke them.
-
-⚠️ **Warning**: Revoking a key will immediately disable MCP access using that key.`, 'info');
-    } catch (error) {
-      chatState.showSystemMessage(`Failed to revoke API key: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
-    }
-  }, [chatState]);
 
   const getCommandSuggestions = useCallback((input: string) => {
     if (!input.startsWith('/')) {
@@ -552,18 +484,8 @@ This will show a list of your active keys and allow you to revoke them.
     }
     
     // Handle special MCP commands
-    if (normalizedCmd === '/mcp/key/create') {
-      handleMcpKeyCreate();
-      return true;
-    }
-    
-    if (normalizedCmd === '/mcp/key/list') {
-      void handleMcpKeyList();
-      return true;
-    }
-    
-    if (normalizedCmd === '/mcp/key/revoke') {
-      void handleMcpKeyRevoke();
+    if (normalizedCmd === '/mcp' || normalizedCmd === '/mcp/key' || normalizedCmd === '/mcp/key/create' || normalizedCmd === '/mcp/key/list' || normalizedCmd === '/mcp/key/revoke') {
+      chatState.showMcpKeysWidget();
       return true;
     }
     
@@ -601,7 +523,7 @@ This will show a list of your active keys and allow you to revoke them.
     }
     
     return false;
-  }, [chatState, findCommand, handleClear, handleLogin, handleLogout, handleRegister, handleMcpKeyCreate, handleMcpKeyList, handleMcpKeyRevoke, commands]);
+  }, [chatState, findCommand, handleClear, handleLogin, handleLogout, handleRegister, commands]);
 
   const executeCommandFromPayload = useCallback(async (payload: { command: string }) => {
     // Handle special navigation commands

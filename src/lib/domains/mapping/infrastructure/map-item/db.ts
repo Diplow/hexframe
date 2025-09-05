@@ -11,7 +11,7 @@ import {
 } from "~/lib/domains/mapping/utils/hex-coordinates";
 import type { MapItemRepository } from "~/lib/domains/mapping/_repositories";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import type * as schemaImport from "~/server/db/schema";
+import type { schema as schemaImport } from "~/server/db";
 
 import { ReadQueries } from "~/lib/domains/mapping/infrastructure/map-item/queries/read-queries";
 import { WriteQueries } from "~/lib/domains/mapping/infrastructure/map-item/queries/write-queries";

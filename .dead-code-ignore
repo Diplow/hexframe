@@ -1,0 +1,72 @@
+# Dead Code Detection - Ignore Patterns
+#
+# This file contains patterns for code that should be ignored by dead code detection.
+# Use glob-like patterns. Lines starting with # are comments.
+
+# Environment and configuration files
+src/env.mjs
+src/env.ts
+**/config/**
+**/.env*
+
+# Test files and testing utilities
+**/__tests__/**
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+**/test-utils/**
+**/mocks/**
+
+# Storybook files
+**/*.stories.ts
+**/*.stories.tsx
+**/.storybook/**
+
+# Type definition files (often have unused exports)
+**/types.ts
+**/types/**
+**/@types/**
+
+# Index/barrel export files (intentionally re-export)
+**/index.ts
+**/index.tsx
+
+# Next.js specific patterns
+**/pages/**
+**/app/**/page.tsx
+**/app/**/layout.tsx
+**/app/**/loading.tsx
+**/app/**/error.tsx
+**/app/**/not-found.tsx
+
+# Database schema files (often have unused exports for flexibility)
+**/schema/**
+**/migrations/**
+
+# Build and dist directories
+**/dist/**
+**/build/**
+**/.next/**
+**/node_modules/**
+
+# Development and tooling files
+**/*.config.js
+**/*.config.ts
+**/*.config.mjs
+**/scripts/**
+**/tools/**
+
+# API routes (often have unused named exports)
+**/api/**
+
+# Utility libraries (may have unused utilities by design)
+**/lib/utils/**
+**/utilities/**
+
+# Component libraries (may export components not yet used)
+**/components/ui/**
+
+# Third-party integrations (may have unused wrapper functions)
+**/integrations/**
+**/adapters/**

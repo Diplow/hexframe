@@ -122,6 +122,26 @@ jobs:
             echo "✅ Architecture validation passed"
           fi
           
+          echo ""
+          echo "Running dead code detection..."
+          pnpm check:dead-code
+          if [ $? -ne 0 ]; then
+            echo "❌ Dead code check failed"
+            EXIT_CODE=1
+          else
+            echo "✅ Dead code check passed"
+          fi
+          
+          echo ""
+          echo "Running Rule of 6 validation..."
+          pnpm check:rule-of-6
+          if [ $? -ne 0 ]; then
+            echo "❌ Rule of 6 validation failed"
+            EXIT_CODE=1
+          else
+            echo "✅ Rule of 6 validation passed"
+          fi
+          
           exit $EXIT_CODE
         env:
           SKIP_ENV_VALIDATION: true

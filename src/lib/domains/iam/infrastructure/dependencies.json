@@ -5,7 +5,7 @@
     "~/lib/domains",
     "~/server/api/services/user-mapping.service",
     "~/server/auth",
-    "~/server/db/schema"
+    "~/server/db"
   ],
   "subsystems": [
     "./user"

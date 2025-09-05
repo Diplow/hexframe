@@ -1,7 +1,7 @@
 import { inngest } from '~/lib/domains/agentic/infrastructure'
 import { OpenRouterRepository, type LLMGenerationParams } from '~/lib/domains/agentic'
-import { db } from '~/server/db'
-import { llmJobResults } from '~/server/db/schema'
+import { db, schema } from '~/server/db'
+const { llmJobResults } = schema
 import { eq, sql } from 'drizzle-orm'
 import { loggers } from '~/lib/debug/debug-logger'
 import { env } from '~/env'

@@ -148,6 +148,27 @@ export function useChatStateInternal(initialEvents: ChatEvent[] = []) {
       dispatch(event);
     },
 
+    // Show MCP keys widget
+    showMcpKeysWidget() {
+      const widget = {
+        id: `mcp-keys-${Date.now()}`,
+        type: 'mcp-keys' as const,
+        data: {},
+        priority: 'action' as const,
+        timestamp: new Date()
+      }
+      
+      const event = {
+        type: 'widget_created' as const,
+        payload: { widget },
+        id: `chat-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        timestamp: new Date(),
+        actor: 'system' as const
+      }
+      
+      dispatch(event);
+    },
+
     // Show a system message
     showSystemMessage(message: string, level: 'info' | 'warning' | 'error' = 'info') {
       dispatch(createSystemMessageEvent(message, level));

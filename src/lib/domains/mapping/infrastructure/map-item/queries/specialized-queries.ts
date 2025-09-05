@@ -1,7 +1,7 @@
 import { eq, type SQL, sql, and, like, gte } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import type * as schemaImport from "~/server/db/schema";
-import { mapItems, baseItems } from "~/server/db/schema";
+import { schema as schemaImport } from "~/server/db";
+const { mapItems, baseItems } = schemaImport;
 
 import { MapItemType } from "~/lib/domains/mapping/_objects/map-item";
 import type { Direction } from "~/lib/domains/mapping/utils/hex-coordinates";

@@ -15,6 +15,7 @@ import {
   renderLoadingWidget,
   renderDeleteWidget,
   renderAIResponseWidget,
+  renderMcpKeysWidget,
   type WidgetHandlers
 } from './_renderers/widget-renderers';
 
@@ -46,6 +47,13 @@ export function WidgetManager({ widgets, focusChatInput: focusChatInputProp }: W
         return createPreviewHandlers(widget, deps);
       case 'creation':
         return createCreationHandlers(widget, deps);
+      case 'mcp-keys':
+        return {
+          handleCancel: () => {
+            chatState.closeWidget(widget.id);
+            focusChatInputFn();
+          }
+        };
       default:
         return {};
     }
@@ -83,6 +91,8 @@ function _renderWidget(
       return renderDeleteWidget(widget);
     case 'ai-response':
       return renderAIResponseWidget(widget);
+    case 'mcp-keys':
+      return renderMcpKeysWidget(widget, createWidgetHandlers(widget));
     default:
       return null;
   }

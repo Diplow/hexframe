@@ -5,6 +5,7 @@
   ],
   "allowed": [
     "~/app/map",
+    "~/app/map/types/events",
     "~/server/api/types/contracts", 
     "~/app/types"
   ],

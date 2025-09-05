@@ -7,6 +7,7 @@
     "~/app/map",
     "~/env",
     "~/lib",
+    "~/lib/domains/mapping/utils/hex-coordinates",
     "~/server/db"
   ],
   "subsystems": [

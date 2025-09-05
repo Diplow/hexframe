@@ -7,6 +7,7 @@ import { ConfirmDeleteWidget } from '~/app/map/Chat/Timeline/Widgets/ConfirmDele
 import { LoadingWidget } from '~/app/map/Chat/Timeline/Widgets/LoadingWidget';
 import { ErrorWidget } from '~/app/map/Chat/Timeline/Widgets/ErrorWidget';
 import { AIResponseWidget } from '~/app/map/Chat/Timeline/Widgets/AIResponseWidget';
+import { McpKeysWidget } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/McpKeysWidget';
 import type { AIResponseWidgetData } from '~/app/map/Chat/types';
 
 function safeStringify(value: unknown, space = 0): string | undefined {
@@ -126,6 +127,15 @@ export function renderAIResponseWidget(widget: Widget) {
       jobId={data.jobId}
       initialResponse={data.initialResponse}
       model={data.model}
+    />
+  );
+}
+
+export function renderMcpKeysWidget(widget: Widget, handlers: WidgetHandlers) {
+  const { handleCancel = () => { /* noop */ } } = handlers;
+  return (
+    <McpKeysWidget
+      onClose={handleCancel}
     />
   );
 }

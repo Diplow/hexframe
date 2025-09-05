@@ -10,7 +10,7 @@ import {
 } from "~/lib/domains/mapping/_objects/base-item";
 import type { BaseItemRepository } from "~/lib/domains/mapping/_repositories";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import * as schemaImport from "~/server/db/schema";
+import { schema as schemaImport } from "~/server/db";
 
 // Infer DB type
 type DbBaseItemSelect = typeof schemaImport.baseItems.$inferSelect;
