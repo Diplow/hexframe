@@ -132,7 +132,7 @@ See: `company/MISSION.md` - Top section for full thesis
 pnpm check:lint         # Run ESLint
 pnpm typecheck    # TypeScript type checking
 pnpm test         # Run all tests with AI-friendly JSON output
-pnpm check:dead-code
+pnpm check:deadcode
 pnpm check:architecture
 pnpm check:ruleof6
 ```
@@ -146,7 +146,7 @@ See `TESTING.md` for strategy and `scripts/run-tests.sh` for orchestration and J
 Use `pnpm check:architecture` to validate architectural boundaries and coding standards. See `scripts/checks/architecture/README.md` for comprehensive documentation on rules, error types, and AI-friendly filtering commands.
 
 ### Dead Code Detection
-Use `pnpm check:dead-code [path]` to identify unused exports, files, and transitive dead code. See `scripts/checks/deadcode/README.md` for detection logic and AI-friendly JSON filtering commands. Always review before removing - false positives can occur with dynamic imports and framework patterns.
+Use `pnpm check:deadcode [path]` to identify unused exports, files, and transitive dead code. See `scripts/checks/deadcode/README.md` for detection logic and AI-friendly JSON filtering commands. Always review before removing - false positives can occur with dynamic imports and framework patterns.
 
 
 
@@ -176,4 +176,4 @@ Use `pnpm check:dead-code [path]` to identify unused exports, files, and transit
 ## Important Notes
 - Always use `pnpm` (not npm or yarn)
 - Tests use Vitest (not Jest)
-- never use pnpm dev to check something is working. just run pnpm lint typecheck check:quality test
+- never use pnpm dev to check something is working. just run pnpm check:lint typecheck check:quality test

@@ -456,7 +456,7 @@ Ask yourself:
 3. **Verify No Behavior Changes**: Run tests after each commit
    ```bash
    pnpm test
-   pnpm lint
+   pnpm check:lint
    pnpm typecheck
    ```
 

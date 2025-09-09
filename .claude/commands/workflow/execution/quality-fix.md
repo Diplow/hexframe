@@ -10,7 +10,7 @@ Transform messy, violated code into clean, well-structured code that follows Hex
 
 **MANDATORY WORKFLOW**: After every single change in each phase, run:
 ```bash
-pnpm lint && pnpm typecheck
+pnpm check:lint && pnpm typecheck
 ```
 
 **Why This Is Critical**:
@@ -25,7 +25,7 @@ pnpm lint && pnpm typecheck
 - Time wasted hunting down cascading errors
 - Having to restart the entire quality fix process
 
-**When in doubt**: `pnpm lint && pnpm typecheck` - it takes 10 seconds and saves hours.
+**When in doubt**: `pnpm check:lint && pnpm typecheck` - it takes 10 seconds and saves hours.
 
 ## Three-Phase Quality Improvement Process
 
@@ -44,12 +44,12 @@ pnpm lint && pnpm typecheck
    - Type definitions: Keep if they represent domain concepts
    - Test utilities: Keep if they support testing patterns
 4. **Run lint and typecheck after changes**: 
-   - `pnpm lint` - Fix any ESLint violations introduced
+   - `pnpm check:lint` - Fix any ESLint violations introduced
    - `pnpm typecheck` - Resolve any TypeScript errors
    - **CRITICAL**: Dead code removal can break imports/exports, fix immediately
 5. **Validate changes**: Ensure tests still pass after dead code removal
 
-**Success Criteria**: All checks pass (`pnpm check:dead-code [folder]`, `pnpm lint`, `pnpm typecheck`)
+**Success Criteria**: All checks pass (`pnpm check:dead-code [folder]`, `pnpm check:lint`, `pnpm typecheck`)
 
 ### Phase 2: Architecture Compliance 🏗️
 
@@ -67,12 +67,12 @@ pnpm lint && pnpm typecheck
    - Look for natural groupings of related functionality
    - Consider domain boundaries and responsibilities
 4. **Run lint and typecheck after changes**:
-   - `pnpm lint` - Fix any new violations from structural changes
+   - `pnpm check:lint` - Fix any new violations from structural changes
    - `pnpm typecheck` - Resolve import/export path issues
    - **CRITICAL**: Architecture changes often affect import paths, fix all TypeScript errors
 5. **Validate structural integrity**: Ensure all imports resolve correctly
 
-**Success Criteria**: All checks pass (`pnpm check:architecture [folder]`, `pnpm lint`, `pnpm typecheck`)
+**Success Criteria**: All checks pass (`pnpm check:architecture [folder]`, `pnpm check:lint`, `pnpm typecheck`)
 
 ### Phase 3: Rule of 6 Enforcement with Intelligent Refactoring 📏
 
@@ -86,12 +86,12 @@ pnpm lint && pnpm typecheck
    - **Large function violations**: Apply the refactoring decision tree
    - **Argument violations**: Group related parameters into cohesive objects
 3. **Run lint and typecheck after each refactoring step**:
-   - `pnpm lint` - Fix style violations from new abstractions
+   - `pnpm check:lint` - Fix style violations from new abstractions
    - `pnpm typecheck` - Resolve type issues from function extractions
    - **CRITICAL**: Refactoring can introduce naming conflicts, circular imports, fix immediately
 4. **Iterative validation**: After each major refactor, verify all systems still work
 
-**Success Criteria**: All checks pass (`pnpm check:rule-of-6 [folder]`, `pnpm lint`, `pnpm typecheck`)
+**Success Criteria**: All checks pass (`pnpm check:rule-of-6 [folder]`, `pnpm check:lint`, `pnpm typecheck`)
 
 ## Intelligent Refactoring Decision Tree
 
@@ -332,16 +332,16 @@ function processUserRegistration(userData: UserData): Promise<User>
 
 ### Execute Systematically
 1. **Phase 1**: Remove dead code (safest changes first)
-   - After each change: `pnpm lint && pnpm typecheck`
+   - After each change: `pnpm check:lint && pnpm typecheck`
 2. **Phase 2**: Fix architecture (structural foundation)
-   - After each structural change: `pnpm lint && pnpm typecheck`
+   - After each structural change: `pnpm check:lint && pnpm typecheck`
 3. **Phase 3**: Apply Rule of 6 with intelligent refactoring
-   - After each refactor: `pnpm lint && pnpm typecheck`
+   - After each refactor: `pnpm check:lint && pnpm typecheck`
 4. **Final validation**: Run all quality checks to confirm fixes
    - `pnpm check:dead-code [folder]`
    - `pnpm check:architecture [folder]`  
    - `pnpm check:rule-of-6 [folder]`
-   - `pnpm lint`
+   - `pnpm check:lint`
    - `pnpm typecheck`
 5. **Document**: Update relevant README files with new concepts
 
