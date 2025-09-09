@@ -5,7 +5,7 @@ import { cacheActions } from "~/app/map/Cache/State/actions";
 import {
   createServerService,
   type useServerService,
-} from "../Services/server-service";
+} from "~/app/map/Cache/Services/server-service";
 import type { LoadResult } from "~/app/map/Cache/Handlers/types";
 import { loggers } from "~/lib/debug/debug-logger";
 

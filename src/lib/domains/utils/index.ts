@@ -6,8 +6,8 @@
 export {
   GenericAggregate,
   type GenericAggregateConstructorArgs,
-} from './generic-objects';
+} from '~/lib/domains/utils/generic-objects';
 
 export {
   type GenericRepository,
-} from './generic-repository';
+} from '~/lib/domains/utils/generic-repository';

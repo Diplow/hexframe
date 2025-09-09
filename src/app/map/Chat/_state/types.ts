@@ -14,7 +14,7 @@ export type {
   AuthRequiredPayload,
   ErrorOccurredPayload,
   ExecuteCommandPayload
-} from './_events/event.types';
+} from '~/app/map/Chat/_state/_events/event.types';
 
 import type { ChatEvent } from '~/app/map/Chat/_state/_events/event.types';
 

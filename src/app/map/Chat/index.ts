@@ -17,7 +17,7 @@ export type {
   Message,
   Widget,
   ChatCacheAction
-} from './_state';
+} from '~/app/map/Chat/_state';
 
 // Chat Types (for external consumption)
 export type { 
@@ -33,7 +33,7 @@ export type {
   ChatState,
   ChatAction,
   ChatContextValue
-} from './types';
+} from '~/app/map/Chat/types';
 
 // Chat Settings
 export { useChatSettings } from '~/app/map/Chat/_settings/useChatSettings';

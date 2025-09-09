@@ -19,7 +19,7 @@ def extract_imports(content: str) -> List[str]:
 
 
 def resolve_inheritance_chain(subsystem: SubsystemInfo, file_cache) -> List[str]:
-    """Resolve full inheritance chain of allowedChildren from ancestors."""
+    """Resolve full inheritance chain including ancestor subsystems and allowedChildren."""
     inherited = []
     current_dir = subsystem.path.parent
     
@@ -31,6 +31,11 @@ def resolve_inheritance_chain(subsystem: SubsystemInfo, file_cache) -> List[str]
         deps_file = current_dir / "dependencies.json"
         
         if deps_file.exists():
+            # Add the ancestor subsystem itself (automatic inheritance)
+            ancestor_abs_path = f"~/{current_dir.relative_to(Path('src'))}"
+            inherited.append(ancestor_abs_path)
+            
+            # Also inherit allowedChildren from ancestors
             deps = file_cache.load_dependencies_json(deps_file)
             allowed_children = deps.get("allowedChildren", [])
             inherited.extend(allowed_children)
@@ -41,6 +46,42 @@ def resolve_inheritance_chain(subsystem: SubsystemInfo, file_cache) -> List[str]
         current_dir = parent
     
     return inherited
+
+
+def get_ancestor_subsystems(subsystem: SubsystemInfo, file_cache) -> List[str]:
+    """Get list of ancestor subsystem paths (without allowedChildren)."""
+    ancestors = []
+    current_dir = subsystem.path.parent
+    
+    # Walk up the directory tree to find all parents with dependencies.json
+    src_dir = Path("src")
+    while (current_dir and current_dir != src_dir and 
+           current_dir != Path(".") and current_dir != Path("/")):
+        deps_file = current_dir / "dependencies.json"
+        
+        if deps_file.exists():
+            ancestor_abs_path = f"~/{current_dir.relative_to(Path('src'))}"
+            ancestors.append(ancestor_abs_path)
+        
+        parent = current_dir.parent
+        if parent == current_dir:  # Reached root
+            break
+        current_dir = parent
+    
+    return ancestors
+
+
+def find_redundant_ancestor_declarations(subsystem: SubsystemInfo, file_cache) -> List[str]:
+    """Find explicitly declared ancestors that are redundant (auto-inherited)."""
+    ancestor_paths = get_ancestor_subsystems(subsystem, file_cache)
+    allowed_deps = subsystem.dependencies.get("allowed", [])
+    
+    redundant = []
+    for allowed_dep in allowed_deps:
+        if allowed_dep in ancestor_paths:
+            redundant.append(allowed_dep)
+    
+    return redundant
 
 
 def is_child_of_subsystem(file_path: Path, parent_subsystem: SubsystemInfo, 
@@ -112,6 +153,14 @@ def is_import_allowed_by_set(import_path: str, allowed_set: Set[str],
         import_path == subsystem_abs_path):
         return True
     
+    # Always allow domain utils imports (implicitly allowed)
+    if "/lib/domains/" in import_path and "/utils" in import_path:
+        # Check if it's a domain utils import: ~/lib/domains/{domain}/utils or ~/lib/domains/{domain}/utils/*
+        import re
+        utils_pattern = r"~/lib/domains/[^/]+/utils(?:/.*)?$"
+        if re.match(utils_pattern, import_path):
+            return True
+    
     # Check direct matches and hierarchical matches
     for allowed_dep in allowed_set:
         if not allowed_dep:
@@ -142,11 +191,19 @@ def is_import_allowed_by_set(import_path: str, allowed_set: Set[str],
             
             # CRITICAL: If trying to import INTO a declared subsystem, must use subsystem interface
             # Even with broad permissions, subsystem boundaries are protected
-            # BUT: Allow imports within the same domain hierarchy
+            # BUT: Allow imports within the same domain hierarchy AND within current allowed hierarchy
             if import_goes_into_subsystem(import_path):
+                # Allow if it's within the current subsystem's hierarchy
+                if import_path.startswith(f"{subsystem_abs_path}/"):
+                    # This is within our current subsystem, allow it
+                    pass
+                # Allow if both the import target and current subsystem are within the same allowed hierarchy
+                elif import_path.startswith(f"{allowed_dep_normalized}/") and subsystem_abs_path.startswith(f"{allowed_dep_normalized}/"):
+                    # Both are within the same allowed parent hierarchy, allow it
+                    pass
                 # Check if this is a cross-domain import (not allowed)
                 # or same-domain hierarchical import (allowed)
-                if not is_same_domain_hierarchical_import(import_path, subsystem_path):
+                elif not is_same_domain_hierarchical_import(import_path, subsystem_path):
                     continue  # Blocked: must use subsystem interface
             
             # If child is a subsystem (has dependencies.json), require explicit permission  

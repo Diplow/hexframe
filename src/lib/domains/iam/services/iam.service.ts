@@ -5,13 +5,13 @@ import type {
   RegisterInput,
   LoginInput,
   UpdateProfileInput,
-} from "../types/contracts";
+} from "~/lib/domains/iam/types/contracts";
 import {
   UserNotFoundError,
   EmailAlreadyExistsError,
   InvalidCredentialsError,
   WeakPasswordError,
-} from "../types/errors";
+} from "~/lib/domains/iam/types/errors";
 
 /**
  * IAMService

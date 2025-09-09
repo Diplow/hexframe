@@ -119,6 +119,8 @@ class ImportRuleChecker:
             if self.path_helper.is_domain_path(subsystem.path):
                 all_allowed.add("_objects")
             
+            # Domain utils are implicitly allowed - handled in is_import_allowed_by_set
+            
             # Check each file's imports
             for file_info in subsystem.files:
                 for import_path in file_info.imports:
@@ -158,6 +160,38 @@ class ImportRuleChecker:
             for future in as_completed(future_to_subsystem):
                 subsystem_errors = future.result()
                 errors.extend(subsystem_errors)
+        
+        return errors
+    
+    def check_domain_utils_import_patterns(self, subsystems: List[SubsystemInfo]) -> List[ArchError]:
+        """Check that domain utils imports go through index.ts, not specific files."""
+        errors = []
+        # print("Checking domain utils import patterns...")
+        
+        for subsystem in subsystems:
+            for file_info in subsystem.files:
+                for import_path in file_info.imports:
+                    # Check if it's a domain utils import to a specific file (not index)
+                    import re
+                    specific_utils_pattern = r"~/lib/domains/[^/]+/utils/[^/]+$"
+                    if re.match(specific_utils_pattern, import_path) and not import_path.endswith("/index"):
+                        # Extract domain and suggest proper import
+                        domain_match = re.match(r"~/lib/domains/([^/]+)/utils/.*", import_path)
+                        if domain_match:
+                            domain_name = domain_match.group(1)
+                            proper_import = f"~/lib/domains/{domain_name}/utils"
+                            
+                            error = ArchError.create_error(
+                                message=(f"❌ Direct utils file import in {subsystem.name}:\n"
+                                       f"  🔸 {file_info.path.relative_to(subsystem.path)}\n"
+                                       f"     import from '{import_path}'\n"
+                                       f"     → Use '{proper_import}' instead (import through utils index.ts)"),
+                                error_type=ErrorType.IMPORT_BOUNDARY,
+                                subsystem=str(subsystem.path),
+                                file_path=str(file_info.path),
+                                recommendation=f"Change import from '{import_path}' to '{proper_import}' (use utils index.ts)"
+                            )
+                            errors.append(error)
         
         return errors
     

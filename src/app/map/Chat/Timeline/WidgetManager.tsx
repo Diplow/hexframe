@@ -17,7 +17,7 @@ import {
   renderAIResponseWidget,
   renderMcpKeysWidget,
   type WidgetHandlers
-} from './_renderers/widget-renderers';
+} from '~/app/map/Chat/Timeline/_renderers/widget-renderers';
 
 interface WidgetManagerProps {
   widgets: Widget[];

@@ -75,7 +75,7 @@ class DirectoryScanner:
         self.exception_manager = exception_manager
     
     def scan_directory(self, directory: Path) -> DirectoryInfo:
-        """Scan a directory and return its info."""
+        """Scan a directory and return its info, counting only .ts/.tsx files and subdirectories."""
         if not directory.is_dir():
             return DirectoryInfo(path=directory, item_count=0)
         
@@ -87,7 +87,13 @@ class DirectoryScanner:
                     continue
                 if item.name in ['node_modules', 'dist', 'build', '__pycache__']:
                     continue
-                items.append(item.name)
+                    
+                # Count directories and TypeScript files only
+                if item.is_dir():
+                    items.append(item.name)
+                elif item.suffix in ['.ts', '.tsx']:
+                    items.append(item.name)
+                    
         except PermissionError:
             return DirectoryInfo(path=directory, item_count=0)
         

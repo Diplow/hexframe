@@ -129,6 +129,21 @@ class ArchitectureChecker:
         for error in errors:
             results.add_error(error)
         
+        # Check for ancestor redundancy
+        errors = self.subsystem_checker.check_ancestor_redundancy(self.subsystems)
+        for error in errors:
+            results.add_error(error)
+        
+        # Check for domain utils redundancy
+        errors = self.subsystem_checker.check_domain_utils_redundancy(self.subsystems)
+        for error in errors:
+            results.add_error(error)
+        
+        # Check for nonexistent dependencies
+        errors = self.subsystem_checker.check_nonexistent_dependencies(self.subsystems)
+        for error in errors:
+            results.add_error(error)
+        
         # Check file/folder conflicts
         errors = self.subsystem_checker.check_file_folder_conflicts()
         for error in errors:
@@ -148,6 +163,11 @@ class ArchitectureChecker:
         
         # Check outbound dependencies
         errors = self.import_checker.check_outbound_dependencies_parallel(self.subsystems)
+        for error in errors:
+            results.add_error(error)
+        
+        # Check domain utils import patterns
+        errors = self.import_checker.check_domain_utils_import_patterns(self.subsystems)
         for error in errors:
             results.add_error(error)
     

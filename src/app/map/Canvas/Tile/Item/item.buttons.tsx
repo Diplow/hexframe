@@ -7,7 +7,7 @@ import { testLogger } from "~/lib/test-logger";
 import {
   getButtonPositioning,
   getButtonsSizing,
-} from "./_utils/button-utils";
+} from "~/app/map/Canvas/Tile/Item/_utils/button-utils";
 import type { TileData, URLInfo } from "~/app/map/Canvas/types";
 import type { TileScale } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
 

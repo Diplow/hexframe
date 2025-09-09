@@ -22,11 +22,11 @@ export type {
   AuthRequiredPayload,
   ErrorOccurredPayload,
   ExecuteCommandPayload
-} from './types';
+} from '~/app/map/Chat/_state/types';
 
 // Re-export event types from _events to prevent hierarchical violations
 export type {
   ChatEvent as EventType,
   ChatEventType as EventTypeEnum,
   ChatEventActor as EventActor
-} from './_events/event.types';
+} from '~/app/map/Chat/_state/_events/event.types';

@@ -25,7 +25,7 @@ export type {
   MapTileDeletedEvent,
   MapTileMovedEvent,
   MapTilesSwappedEvent
-} from '../../types';
+} from '~/app/map/types';
 
 // Constants used by Tile subsystem
 export { DEFAULT_MAP_COLORS } from '~/app/map/constants';

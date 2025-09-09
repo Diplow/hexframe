@@ -8,6 +8,7 @@ Usage:
 """
 
 import sys
+import argparse
 
 from .checker import ArchitectureChecker
 from .reporter import ArchitectureReporter
@@ -15,27 +16,30 @@ from .reporter import ArchitectureReporter
 
 def main():
     """Main entry point for architecture checking."""
-    # Handle help flag
+    parser = argparse.ArgumentParser(description="Check architecture boundaries and complexity requirements")
+    parser.add_argument('target_path', nargs='?', default='src', help='Target directory to check (default: src)')
+    parser.add_argument('--show-errors', action='store_true', help='Show detailed error output')
+    parser.add_argument('--format', choices=['console', 'json'], default='console', help='Output format')
+    parser.add_argument('--include-warnings', action='store_true', help='Include warnings in output (default: errors only)')
+    
+    # Handle legacy flags
     if len(sys.argv) > 1 and sys.argv[1] in ['--help', '-h', 'help']:
-        from pathlib import Path
-        readme_path = Path(__file__).parent / "README.md"
-        if readme_path.exists():
-            with open(readme_path, 'r') as f:
-                print(f.read())
-        else:
-            print(__doc__)
+        parser.print_help()
         sys.exit(0)
     
-    target_path = sys.argv[1] if len(sys.argv) > 1 else "src"
+    args = parser.parse_args()
     
     # Run checks
-    checker = ArchitectureChecker(target_path)
+    checker = ArchitectureChecker(args.target_path)
     results = checker.run_all_checks()
+    
+    # Filter out warnings if not requested
+    if not args.include_warnings:
+        results.warnings = []
     
     # Report results
     reporter = ArchitectureReporter()
-    success = reporter.report_results(results)
-    
+    success = reporter.report_results(results, show_errors=args.show_errors, format_type=args.format)
     
     sys.exit(0 if success else 1)
 

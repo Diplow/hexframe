@@ -18,11 +18,11 @@ export {
   ItemCrudService,
   ItemQueryService,
   MappingUtils,
-} from './services';
+} from '~/lib/domains/mapping/services';
 
 // Infrastructure (server-only - contains database connections)
 export {
   DbMapItemRepository,
   DbBaseItemRepository,
   TransactionManager,
-} from './infrastructure';
+} from '~/lib/domains/mapping/infrastructure';

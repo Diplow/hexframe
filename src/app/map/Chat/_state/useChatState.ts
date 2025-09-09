@@ -10,7 +10,7 @@ import {
   createSystemMessageEvent,
   createAssistantMessageEvent,
   createOperationStartedEvent 
-} from './_events/event.creators';
+} from '~/app/map/Chat/_state/_events/event.creators';
 import { chatSettings } from '~/app/map/Chat/_settings/chat-settings';
 
 /**

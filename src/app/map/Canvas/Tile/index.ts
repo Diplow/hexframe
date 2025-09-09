@@ -21,7 +21,7 @@ export type {
   TileColor,
   TileStroke,
   TileCursor
-} from './Base/BaseTileLayout'
+} from '~/app/map/Canvas/Tile/Base/BaseTileLayout'
 export type { BaseFrameProps } from '~/app/map/Canvas/Tile/Base/BaseFrame'
 export type { BaseItemTileProps } from '~/app/map/Canvas/Tile/Base/BaseItemTile'  
 export type { BaseEmptyTileProps } from '~/app/map/Canvas/Tile/Base/BaseEmptyTile'

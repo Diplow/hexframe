@@ -60,7 +60,7 @@ class RuleOf6Reporter:
             print(f"📄 Detailed report: {self.output_file}")
     
     def _display_top_violations(self, results: CheckResults) -> None:
-        """Display top 10 violations with smart sorting."""
+        """Display top 10 violations for each violation type."""
         # Group violations by type
         by_type: Dict[ViolationType, list] = {}
         for violation in results.get_all_violations():
@@ -68,67 +68,80 @@ class RuleOf6Reporter:
                 by_type[violation.violation_type] = []
             by_type[violation.violation_type].append(violation)
         
-        # Process each violation type with smart sorting
-        all_top_violations = []
+        # Define type order and display names
+        type_order = [
+            (ViolationType.DIRECTORY_ITEMS, "📁 Too Many Files in Folders"),
+            (ViolationType.FUNCTION_LINES, "📏 Too Many Lines in Functions"),
+            (ViolationType.FILE_FUNCTIONS, "🔧 Too Many Functions in Files"),
+            (ViolationType.FUNCTION_ARGS, "🔢 Too Many Function Arguments"),
+            (ViolationType.OBJECT_KEYS, "🗝️ Too Many Object Parameter Keys"),
+        ]
         
-        for violation_type, violations in by_type.items():
+        # Display violations by type
+        for violation_type, section_title in type_order:
+            if violation_type not in by_type:
+                continue
+                
+            violations = by_type[violation_type]
+            
+            # Sort violations based on type
             if violation_type == ViolationType.DIRECTORY_ITEMS:
-                # Sort by item count (highest first)
                 sorted_violations = sorted(violations, 
                     key=lambda v: v.context.get('item_count', 0) if v.context else 0, 
                     reverse=True)
             elif violation_type == ViolationType.FILE_FUNCTIONS:
-                # Sort by function count (highest first)
                 sorted_violations = sorted(violations,
                     key=lambda v: v.context.get('function_count', 0) if v.context else 0,
                     reverse=True)
             elif violation_type == ViolationType.FUNCTION_LINES:
-                # Sort by line count (highest first)
                 sorted_violations = sorted(violations,
                     key=lambda v: v.context.get('line_count', 0) if v.context else 0,
                     reverse=True)
             else:
-                # For other types, keep as-is
                 sorted_violations = violations
             
-            # Add top violations from this type
-            for violation in sorted_violations[:10]:  # Top 10 per type
+            # Display section header
+            print(section_title)
+            print("=" * len(section_title))
+            
+            # Show top 10 violations for this type
+            top_violations = sorted_violations[:10]
+            if not top_violations:
+                print("  (No violations)")
+                print()
+                continue
+                
+            for i, violation in enumerate(top_violations, 1):
                 severity_icon = "❌" if violation.severity == Severity.ERROR else "⚠️"
                 
-                if violation_type == ViolationType.DIRECTORY_ITEMS:
-                    count = violation.context.get('item_count', 0) if violation.context else 0
-                    priority_score = count
-                elif violation_type == ViolationType.FILE_FUNCTIONS:
-                    count = violation.context.get('function_count', 0) if violation.context else 0
-                    priority_score = count
-                elif violation_type == ViolationType.FUNCTION_LINES:
-                    count = violation.context.get('line_count', 0) if violation.context else 0
-                    priority_score = count
-                else:
-                    priority_score = 1
+                # Format with count information
+                count_info = ""
+                if violation_type == ViolationType.DIRECTORY_ITEMS and violation.context:
+                    count = violation.context.get('item_count', 0)
+                    count_info = f" ({count} items)"
+                elif violation_type == ViolationType.FILE_FUNCTIONS and violation.context:
+                    count = violation.context.get('function_count', 0)
+                    count_info = f" ({count} functions)"
+                elif violation_type == ViolationType.FUNCTION_LINES and violation.context:
+                    count = violation.context.get('line_count', 0)
+                    count_info = f" ({count} lines)"
+                elif violation_type == ViolationType.FUNCTION_ARGS and violation.context:
+                    count = violation.context.get('arg_count', 0)
+                    count_info = f" ({count} args)"
+                elif violation_type == ViolationType.OBJECT_KEYS and violation.context:
+                    count = violation.context.get('key_count', 0)
+                    count_info = f" ({count} keys)"
                 
-                all_top_violations.append({
-                    'violation': violation,
-                    'priority_score': priority_score,
-                    'severity_icon': severity_icon
-                })
-        
-        # Sort all violations by priority score and show top 10
-        all_top_violations.sort(key=lambda x: x['priority_score'], reverse=True)
-        
-        for item in all_top_violations[:10]:
-            violation = item['violation']
-            severity_icon = item['severity_icon']
+                print(f"{i:2}. {severity_icon} {violation.message}{count_info}")
+                if violation.file_path and violation.line_number:
+                    print(f"     {violation.file_path}:{violation.line_number}")
+                elif violation.file_path:
+                    print(f"     {violation.file_path}")
             
-            print(f"{severity_icon} {violation.message}")
-            if violation.file_path and violation.line_number:
-                print(f"   {violation.file_path}:{violation.line_number}")
-            elif violation.file_path:
-                print(f"   {violation.file_path}")
-            print()
-        
-        if len(all_top_violations) > 10:
-            print(f"... and {len(all_top_violations) - 10} more violations")
+            if len(sorted_violations) > 10:
+                remaining = len(sorted_violations) - 10
+                print(f"     ... and {remaining} more violations")
+            
             print()
     
     def _format_violation_type(self, violation_type: str) -> str:

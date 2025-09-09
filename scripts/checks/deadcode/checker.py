@@ -9,9 +9,9 @@ import os
 import re
 import time
 from pathlib import Path
-from typing import Dict, List, Set, Optional
+from typing import Dict, List, Set, Optional, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from collections import defaultdict
+from collections import defaultdict, deque
 
 from .models import (
     CheckResults, DeadCodeIssue, DeadCodeType, Severity,
@@ -19,15 +19,120 @@ from .models import (
 )
 
 
+class DependencyGraph:
+    """Tracks dependencies between symbols for transitive dead code detection."""
+    
+    def __init__(self):
+        # symbol_key -> set of symbol_keys it depends on
+        self.dependencies: Dict[str, Set[str]] = defaultdict(set)
+        # symbol_key -> set of symbol_keys that depend on it
+        self.dependents: Dict[str, Set[str]] = defaultdict(set)
+        # Track all symbols
+        self.all_symbols: Set[str] = set()
+        # Track which symbols are exports
+        self.exported_symbols: Set[str] = set()
+        # Track dead symbols
+        self.dead_symbols: Set[str] = set()
+        # Track transitively dead symbols
+        self.transitively_dead: Set[str] = set()
+    
+    def add_dependency(self, from_symbol: str, to_symbol: str) -> None:
+        """Add a dependency relationship."""
+        self.dependencies[from_symbol].add(to_symbol)
+        self.dependents[to_symbol].add(from_symbol)
+        self.all_symbols.add(from_symbol)
+        self.all_symbols.add(to_symbol)
+    
+    def mark_as_export(self, symbol: str) -> None:
+        """Mark a symbol as an export."""
+        self.exported_symbols.add(symbol)
+        self.all_symbols.add(symbol)
+    
+    def mark_as_dead(self, symbol: str) -> None:
+        """Mark a symbol as dead code."""
+        self.dead_symbols.add(symbol)
+    
+    def find_transitive_dead_code(self) -> None:
+        """Find all transitively dead code."""
+        # Multiple passes to find transitively dead code
+        changed = True
+        passes = 0
+        
+        while changed and passes < 10:  # Limit passes to avoid infinite loops
+            changed = False
+            passes += 1
+            
+            # Check each symbol that isn't already marked as dead
+            for symbol in list(self.all_symbols):
+                if symbol in self.dead_symbols or symbol in self.transitively_dead:
+                    continue
+                
+                # Check if this symbol is only used by dead code
+                dependents = self.dependents.get(symbol, set())
+                
+                # If it has no dependents and is an export, it might be directly dead (already handled)
+                if not dependents:
+                    continue
+                
+                # Check if ALL symbols that depend on this are dead
+                all_dependents_dead = True
+                for dependent in dependents:
+                    if dependent not in self.dead_symbols and dependent not in self.transitively_dead:
+                        # Special case: file-level dependencies - check if the file has any live exports
+                        if dependent.endswith(':__file__'):
+                            # Extract file path from dependent
+                            file_path = dependent[:-9]  # Remove ':__file__'
+                            # Check if this file has any non-dead exports
+                            has_live_exports = False
+                            for other_symbol in self.exported_symbols:
+                                if other_symbol.startswith(file_path + ':'):
+                                    if other_symbol not in self.dead_symbols and other_symbol not in self.transitively_dead:
+                                        has_live_exports = True
+                                        break
+                            if has_live_exports:
+                                all_dependents_dead = False
+                                break
+                        else:
+                            all_dependents_dead = False
+                            break
+                
+                if all_dependents_dead and dependents:
+                    # This symbol is only used by dead code
+                    self.transitively_dead.add(symbol)
+                    changed = True
+    
+    def count_dead_chain(self, symbol: str) -> int:
+        """Count total symbols in a dead code chain."""
+        visited = set()
+        queue = deque([symbol])
+        count = 0
+        
+        while queue:
+            current = queue.popleft()
+            if current in visited:
+                continue
+            visited.add(current)
+            count += 1
+            
+            # Add all symbols that only this symbol uses
+            for dep in self.dependencies.get(current, set()):
+                if dep in self.dead_symbols or dep in self.transitively_dead:
+                    queue.append(dep)
+        
+        return count
+
+
 class DeadCodeChecker:
     """Detects dead code in TypeScript/JavaScript codebases."""
     
     def __init__(self, target_path: str = "src"):
         self.target_path = Path(target_path)
+        self.src_path = Path("src")  # Always analyze full src
         self.file_cache: Dict[Path, FileAnalysis] = {}
         self.export_map: Dict[str, List[Export]] = defaultdict(list)
         self.import_map: Dict[str, List[Import]] = defaultdict(list)
         self.exceptions: Set[str] = set()
+        self.dependency_graph = DependencyGraph()
         
         self._load_exceptions()
     
@@ -40,20 +145,6 @@ class DeadCodeChecker:
                     line = line.strip()
                     if line and not line.startswith("#"):
                         self.exceptions.add(line)
-        else:
-            # Default exceptions
-            self.exceptions.update([
-                "src/env.mjs",  # Environment configuration
-                "**/__tests__/**",  # Test files
-                "**/*.test.ts",  # Test files
-                "**/*.test.tsx",  # Test files
-                "**/*.spec.ts",  # Test files
-                "**/*.spec.tsx",  # Test files
-                "**/*.stories.ts",  # Storybook files
-                "**/*.stories.tsx",  # Storybook files
-                "**/types.ts",  # Type definitions often have unused exports
-                "**/index.ts",  # Index files are barrel exports
-            ])
     
     def _is_exception(self, file_path: Path) -> bool:
         """Check if file matches any exception pattern."""
@@ -82,8 +173,20 @@ class DeadCodeChecker:
             ".test.", ".spec.", "__tests__/", ".stories."
         ])
     
-    def _find_typescript_files(self) -> List[Path]:
-        """Find all TypeScript files in target path (excluding test files)."""
+    def _find_all_src_files(self) -> List[Path]:
+        """Find all TypeScript files in src directory."""
+        files = []
+        for pattern in ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]:
+            files.extend(self.src_path.glob(pattern))
+        
+        # Filter out node_modules
+        return [
+            f for f in files 
+            if "node_modules" not in str(f)
+        ]
+    
+    def _find_target_files(self) -> List[Path]:
+        """Find files in the target path to check for dead code."""
         files = []
         for pattern in ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]:
             files.extend(self.target_path.glob(pattern))
@@ -93,22 +196,71 @@ class DeadCodeChecker:
             f for f in files 
             if "node_modules" not in str(f) and not self._is_test_file(f)
         ]
-
-    def _find_all_typescript_files(self) -> List[Path]:
-        """Find all TypeScript files including test files (for import analysis)."""
-        files = []
-        for pattern in ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]:
-            files.extend(self.target_path.glob(pattern))
-        
-        # Only filter out node_modules
-        return [
-            f for f in files 
-            if "node_modules" not in str(f)
-        ]
     
     def _extract_exports(self, content: str, file_path: Path) -> List[Export]:
         """Extract export statements from file content."""
         exports = []
+        
+        # First handle multi-line exports using regex on full content
+        # Multi-line named exports: export { ... }
+        multi_export_pattern = r'export\s*\{\s*((?:[^{}]|{[^}]*})*?)\s*\}(?:\s*from\s*["\']([^"\']+)["\'])?'
+        for match in re.finditer(multi_export_pattern, content, re.MULTILINE | re.DOTALL):
+            exports_str = match.group(1)
+            from_path = match.group(2)
+            is_reexport = from_path is not None
+            
+            # Find line number of the export statement
+            content_before = content[:match.start()]
+            line_number = content_before.count('\n') + 1
+            
+            # Parse individual exports
+            for export_name in exports_str.split(','):
+                export_name = export_name.strip()
+                if not export_name:
+                    continue
+                    
+                # Handle 'as' aliases: foo as bar
+                if ' as ' in export_name:
+                    export_name = export_name.split(' as ')[-1].strip()
+                
+                exports.append(Export(
+                    name=export_name,
+                    file_path=file_path,
+                    line_number=line_number,
+                    export_type='named',
+                    is_reexport=is_reexport,
+                    from_path=from_path
+                ))
+        
+        # Multi-line type exports: export type { ... }
+        multi_type_pattern = r'export\s+type\s*\{\s*((?:[^{}]|{[^}]*})*?)\s*\}(?:\s*from\s*["\']([^"\']+)["\'])?'
+        for match in re.finditer(multi_type_pattern, content, re.MULTILINE | re.DOTALL):
+            exports_str = match.group(1)
+            from_path = match.group(2)
+            is_reexport = from_path is not None
+            
+            # Find line number
+            content_before = content[:match.start()]
+            line_number = content_before.count('\n') + 1
+            
+            for export_name in exports_str.split(','):
+                export_name = export_name.strip()
+                if not export_name:
+                    continue
+                    
+                if ' as ' in export_name:
+                    export_name = export_name.split(' as ')[-1].strip()
+                
+                exports.append(Export(
+                    name=export_name,
+                    file_path=file_path,
+                    line_number=line_number,
+                    export_type='type',
+                    is_reexport=is_reexport,
+                    from_path=from_path
+                ))
+        
+        # Now process line by line for other export patterns
         lines = content.split('\n')
         
         for i, line in enumerate(lines, 1):
@@ -118,16 +270,30 @@ class DeadCodeChecker:
             if not line or line.startswith('//') or line.startswith('/*'):
                 continue
             
-            # Named exports: export { foo, bar }
-            named_export_match = re.match(r'export\s*\{\s*([^}]+)\s*\}(?:\s*from\s*["\']([^"\']+)["\'])?', line)
-            if named_export_match:
-                exports_str = named_export_match.group(1)
-                from_path = named_export_match.group(2)
+            # Skip lines that are part of multi-line exports (already processed)
+            # But don't skip direct exports like "export function Toaster() {"
+            if 'export' in line and ('{' in line or '}' in line):
+                # Check if this is a direct export pattern
+                is_direct_export = bool(re.match(r'export\s+(const|function|class|interface|type)\s+\w+', line))
+                is_single_line_export = line.startswith('export') and line.endswith('}')
+                
+                # Skip only if it's truly part of a multi-line export block
+                if not (is_direct_export or is_single_line_export):
+                    continue
+            
+            # Single-line named exports: export { foo, bar } on one line
+            single_named_match = re.match(r'^export\s*\{\s*([^}]+)\s*\}(?:\s*from\s*["\']([^"\']+)["\'])?$', line)
+            if single_named_match:
+                exports_str = single_named_match.group(1)
+                from_path = single_named_match.group(2)
                 is_reexport = from_path is not None
                 
                 # Parse individual exports
                 for export_name in exports_str.split(','):
                     export_name = export_name.strip()
+                    if not export_name:
+                        continue
+                        
                     # Handle 'as' aliases: foo as bar
                     if ' as ' in export_name:
                         export_name = export_name.split(' as ')[-1].strip()
@@ -137,7 +303,8 @@ class DeadCodeChecker:
                         file_path=file_path,
                         line_number=i,
                         export_type='named',
-                        is_reexport=is_reexport
+                        is_reexport=is_reexport,
+                        from_path=from_path
                     ))
                 continue
             
@@ -151,7 +318,8 @@ class DeadCodeChecker:
                     name=name,
                     file_path=file_path,
                     line_number=i,
-                    export_type='default'
+                    export_type='default',
+                    from_path=None
                 ))
                 continue
             
@@ -165,19 +333,23 @@ class DeadCodeChecker:
                     name=name,
                     file_path=file_path,
                     line_number=i,
-                    export_type=export_type
+                    export_type=export_type,
+                    from_path=None
                 ))
                 continue
             
-            # Type exports: export type { ... }
-            type_export_match = re.match(r'export\s+type\s*\{\s*([^}]+)\s*\}(?:\s*from\s*["\']([^"\']+)["\'])?', line)
-            if type_export_match:
-                exports_str = type_export_match.group(1)
-                from_path = type_export_match.group(2)
+            # Single-line type exports: export type { ... } on one line
+            single_type_match = re.match(r'^export\s+type\s*\{\s*([^}]+)\s*\}(?:\s*from\s*["\']([^"\']+)["\'])?$', line)
+            if single_type_match:
+                exports_str = single_type_match.group(1)
+                from_path = single_type_match.group(2)
                 is_reexport = from_path is not None
                 
                 for export_name in exports_str.split(','):
                     export_name = export_name.strip()
+                    if not export_name:
+                        continue
+                        
                     if ' as ' in export_name:
                         export_name = export_name.split(' as ')[-1].strip()
                     
@@ -186,7 +358,8 @@ class DeadCodeChecker:
                         file_path=file_path,
                         line_number=i,
                         export_type='type',
-                        is_reexport=is_reexport
+                        is_reexport=is_reexport,
+                        from_path=from_path
                     ))
         
         return exports
@@ -227,17 +400,18 @@ class DeadCodeChecker:
                 for import_name in imports_str.split(','):
                     import_name = import_name.strip()
                     # Handle 'as' aliases: foo as bar
+                    original_name = import_name
                     if ' as ' in import_name:
                         original_name = import_name.split(' as ')[0].strip()
-                        alias_name = import_name.split(' as ')[1].strip()
-                        import_name = alias_name  # We care about the alias
+                        import_name = import_name.split(' as ')[1].strip()
                     
                     imports.append(Import(
                         name=import_name,
                         from_path=from_path,
                         file_path=file_path,
                         line_number=i,
-                        import_type='named'
+                        import_type='named',
+                        original_name=original_name if ' as ' in import_name else None
                     ))
                 continue
             
@@ -249,7 +423,9 @@ class DeadCodeChecker:
                 
                 for import_name in imports_str.split(','):
                     import_name = import_name.strip()
+                    original_name = import_name
                     if ' as ' in import_name:
+                        original_name = import_name.split(' as ')[0].strip()
                         import_name = import_name.split(' as ')[-1].strip()
                     
                     imports.append(Import(
@@ -257,7 +433,8 @@ class DeadCodeChecker:
                         from_path=from_path,
                         file_path=file_path,
                         line_number=i,
-                        import_type='type'
+                        import_type='type',
+                        original_name=original_name if ' as ' in import_name else None
                     ))
                 continue
             
@@ -290,10 +467,10 @@ class DeadCodeChecker:
                 continue
             
             # Function declarations
-            func_match = re.match(r'(?:export\s+)?function\s+(\w+)', line)
+            func_match = re.match(r'(?:export\s+)?(?:async\s+)?function\s+(\w+)', line)
             if func_match:
                 name = func_match.group(1)
-                is_exported = line.startswith('export')
+                is_exported = 'export' in line
                 
                 symbols.append(Symbol(
                     name=name,
@@ -305,7 +482,7 @@ class DeadCodeChecker:
                 continue
             
             # Arrow function assignments
-            arrow_match = re.match(r'(?:export\s+)?const\s+(\w+)\s*=\s*\(.*\)\s*=>', line)
+            arrow_match = re.match(r'(?:export\s+)?const\s+(\w+)\s*=\s*(?:async\s+)?\(.*\)\s*=>', line)
             if arrow_match:
                 name = arrow_match.group(1)
                 is_exported = line.startswith('export')
@@ -319,17 +496,18 @@ class DeadCodeChecker:
                 ))
                 continue
             
-            # Const declarations
-            const_match = re.match(r'(?:export\s+)?const\s+(\w+)', line)
-            if const_match:
-                name = const_match.group(1)
+            # Const/let/var declarations
+            var_match = re.match(r'(?:export\s+)?(const|let|var)\s+(\w+)', line)
+            if var_match:
+                var_type = var_match.group(1)
+                name = var_match.group(2)
                 is_exported = line.startswith('export')
                 
                 symbols.append(Symbol(
                     name=name,
                     file_path=file_path,
                     line_number=i,
-                    symbol_type='const',
+                    symbol_type=var_type,
                     is_exported=is_exported
                 ))
                 continue
@@ -392,7 +570,8 @@ class DeadCodeChecker:
         keywords = {
             'import', 'export', 'from', 'const', 'let', 'var', 'function', 'class',
             'interface', 'type', 'if', 'else', 'for', 'while', 'return', 'true',
-            'false', 'null', 'undefined', 'string', 'number', 'boolean', 'object'
+            'false', 'null', 'undefined', 'string', 'number', 'boolean', 'object',
+            'async', 'await', 'new', 'this', 'super', 'extends', 'implements'
         }
         
         for identifier in identifiers:
@@ -436,155 +615,220 @@ class DeadCodeChecker:
             
             # Try different extensions
             for ext in ['.ts', '.tsx', '.js', '.jsx']:
-                if (resolved_path.parent / f"{resolved_path.name}{ext}").exists():
-                    return resolved_path.parent / f"{resolved_path.name}{ext}"
+                candidate = resolved_path.parent / f"{resolved_path.name}{ext}"
+                if candidate.exists():
+                    return candidate
             
             # Try index files
-            if (resolved_path / "index.ts").exists():
-                return resolved_path / "index.ts"
-            if (resolved_path / "index.tsx").exists():
-                return resolved_path / "index.tsx"
+            for ext in ['index.ts', 'index.tsx', 'index.js', 'index.jsx']:
+                candidate = resolved_path / ext
+                if candidate.exists():
+                    return candidate
         
         elif import_path.startswith('~/'):
             # Absolute import from src
-            src_path = Path('src') / import_path[2:]
+            relative_path = import_path[2:]
             
-            # Try different extensions
-            for ext in ['.ts', '.tsx', '.js', '.jsx']:
-                if (src_path.parent / f"{src_path.name}{ext}").exists():
-                    return src_path.parent / f"{src_path.name}{ext}"
+            # Try direct file
+            for ext in ['.ts', '.tsx', '.js', '.jsx', '']:
+                candidate = self.src_path / f"{relative_path}{ext}" if ext else self.src_path / relative_path
+                if candidate.exists() and candidate.is_file():
+                    return candidate
             
             # Try index files
-            if (src_path / "index.ts").exists():
-                return src_path / "index.ts"
-            if (src_path / "index.tsx").exists():
-                return src_path / "index.tsx"
+            base_path = self.src_path / relative_path
+            if base_path.is_dir():
+                for ext in ['index.ts', 'index.tsx', 'index.js', 'index.jsx']:
+                    candidate = base_path / ext
+                    if candidate.exists():
+                        return candidate
         
         return None
     
-    def _is_symbol_imported_elsewhere(self, symbol_key: str) -> bool:
-        """Check if a symbol is imported in other files."""
-        file_path_str, symbol_name = symbol_key.split(':', 1)
-        file_path = Path(file_path_str)
+    def _build_dependency_graph(self) -> None:
+        """Build the dependency graph from analyzed files."""
+        # First, register all exports
+        for file_analysis in self.file_cache.values():
+            for export in file_analysis.exports:
+                symbol_key = f"{export.file_path}:{export.name}"
+                self.dependency_graph.mark_as_export(symbol_key)
+            
+            # Also track internal symbols
+            for symbol in file_analysis.symbols:
+                if not symbol.is_exported:
+                    symbol_key = f"{symbol.file_path}:{symbol.name}"
+                    self.dependency_graph.all_symbols.add(symbol_key)
         
+        # Build import dependencies
         for file_analysis in self.file_cache.values():
             for imp in file_analysis.imports:
                 resolved_path = self._resolve_import_path(imp.from_path, imp.file_path)
-                if resolved_path and resolved_path == file_path:
-                    if imp.name == symbol_name or (imp.import_type == 'default' and symbol_name == 'default'):
-                        return True
-        return False
+                if resolved_path and resolved_path in self.file_cache:
+                    # Find the actual export name (handle aliasing)
+                    export_name = imp.original_name if hasattr(imp, 'original_name') and imp.original_name else imp.name
+                    
+                    # Create dependency relationship
+                    from_symbol = f"{imp.file_path}:__file__"  # File-level dependency
+                    to_symbol = f"{resolved_path}:{export_name}"
+                    self.dependency_graph.add_dependency(from_symbol, to_symbol)
+        
+        # Build internal dependencies within files
+        for file_analysis in self.file_cache.values():
+            # Track which symbols use which other symbols within the file
+            for symbol in file_analysis.symbols:
+                symbol_key = f"{symbol.file_path}:{symbol.name}"
+                
+                # This is simplified - ideally we'd parse actual usage
+                for other_symbol in file_analysis.symbols:
+                    if other_symbol.name != symbol.name and other_symbol.name in file_analysis.used_symbols:
+                        other_key = f"{other_symbol.file_path}:{other_symbol.name}"
+                        self.dependency_graph.add_dependency(symbol_key, other_key)
     
-    def _check_unused_exports(self, results: CheckResults) -> None:
-        """Check for exports that are not imported elsewhere."""
-        # Build export map from analyzed files
+    def _build_reexport_chains(self) -> Dict[str, Set[str]]:
+        """Build mapping from original exports to all their re-export locations.
+        
+        Returns a dict mapping original symbol keys to sets of re-export symbol keys.
+        """
+        from collections import defaultdict
+        
+        reexport_chains = defaultdict(set)
+        
+        for file_analysis in self.file_cache.values():
+            for export in file_analysis.exports:
+                if export.is_reexport and export.from_path:
+                    # Resolve the source file
+                    source_path = self._resolve_import_path(export.from_path, export.file_path)
+                    if source_path:
+                        # Handle original name vs alias in re-export
+                        # For now, assume same name (most common case)
+                        original_key = f"{source_path}:{export.name}"
+                        reexport_key = f"{export.file_path}:{export.name}"
+                        reexport_chains[original_key].add(reexport_key)
+        
+        return reexport_chains
+    
+    def _mark_dead_symbols(self) -> None:
+        """Mark symbols as dead without reporting them yet, considering re-export chains."""
+        # Build export map from all analyzed files (excluding re-exports for dead detection)
         all_exports = {}
         for file_analysis in self.file_cache.values():
             for export in file_analysis.exports:
                 key = f"{export.file_path}:{export.name}"
                 all_exports[key] = export
         
-        # Build import map from ALL files (including test files)
-        imported_exports = set()
+        # Build re-export chains
+        reexport_chains = self._build_reexport_chains()
         
-        # First, add imports from already analyzed files
+        # Build import usage map from ALL files (including outside target)
+        imported_symbols = set()
         for file_analysis in self.file_cache.values():
             for imp in file_analysis.imports:
                 resolved_path = self._resolve_import_path(imp.from_path, imp.file_path)
                 if resolved_path:
-                    key = f"{resolved_path}:{imp.name}"
-                    imported_exports.add(key)
+                    # Handle aliasing
+                    export_name = imp.original_name if hasattr(imp, 'original_name') and imp.original_name else imp.name
+                    
+                    key = f"{resolved_path}:{export_name}"
+                    imported_symbols.add(key)
                     
                     # Handle default imports
                     if imp.import_type == 'default':
                         default_key = f"{resolved_path}:default"
-                        imported_exports.add(default_key)
-        
-        # Now analyze test files for their imports (but don't cache them)
-        all_files = self._find_all_typescript_files()
-        test_files = [f for f in all_files if self._is_test_file(f) and not self._is_exception(f)]
-        
-        for test_file in test_files:
-            try:
-                with open(test_file, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                
-                # Extract imports from test files
-                test_imports = self._extract_imports(content, test_file)
-                for imp in test_imports:
-                    resolved_path = self._resolve_import_path(imp.from_path, imp.file_path)
-                    if resolved_path:
-                        key = f"{resolved_path}:{imp.name}"
-                        imported_exports.add(key)
-                        
-                        # Handle default imports
-                        if imp.import_type == 'default':
-                            default_key = f"{resolved_path}:default"
-                            imported_exports.add(default_key)
-            except Exception:
-                # Skip files that can't be read
-                continue
-        
-        # Find exports that are not imported elsewhere
-        for key, export in all_exports.items():
-            if key not in imported_exports and not export.is_reexport:
-                # Skip certain patterns that are commonly intentionally unused
-                if export.name in ['default'] and 'page' in str(export.file_path):
-                    continue  # Next.js page components
-                if export.name.endswith('Props') or export.name.endswith('Config'):
-                    continue  # Type definitions
-                
-                # Check if this export is used internally
-                file_analysis = self.file_cache[export.file_path]
-                is_used_internally = export.name in file_analysis.used_symbols
-                relative_path = str(export.file_path.relative_to(self.target_path))
-                
-                if is_used_internally:
-                    # Used internally but not imported elsewhere - warning to remove export
-                    issue = DeadCodeIssue.create_warning(
-                        message=f"Unused export '{export.name}' (used internally)",
-                        issue_type=DeadCodeType.UNUSED_EXPORT,
-                        file_path=relative_path,
-                        line_number=export.line_number,
-                        symbol_name=export.name,
-                        recommendation=f"Remove export from '{export.name}' since it's only used internally, or confirm it's needed for external consumption"
-                    )
-                    results.add_issue(issue)
-                else:
-                    # Not used internally either - error (completely unused export)
-                    issue = DeadCodeIssue.create_error(
-                        message=f"Unused export '{export.name}' (not used anywhere)",
-                        issue_type=DeadCodeType.UNUSED_EXPORT,
-                        file_path=relative_path,
-                        line_number=export.line_number,
-                        symbol_name=export.name,
-                        recommendation=f"Remove unused export '{export.name}' - it's not used anywhere"
-                    )
-                    results.add_issue(issue)
-    
-    def _check_unused_imports(self, results: CheckResults) -> None:
-        """Check for unused imports within files."""
-        for file_analysis in self.file_cache.values():
-            for imp in file_analysis.imports:
-                if imp.name not in file_analysis.used_symbols:
-                    # Check if it's a type-only import (often intentionally unused)
-                    if imp.import_type == 'type':
-                        continue
+                        imported_symbols.add(default_key)
                     
-                    relative_path = str(imp.file_path.relative_to(self.target_path))
-                    issue = DeadCodeIssue.create_warning(
-                        message=f"Unused import '{imp.name}'",
-                        issue_type=DeadCodeType.UNUSED_IMPORT,
-                        file_path=relative_path,
-                        line_number=imp.line_number,
-                        symbol_name=imp.name,
-                        recommendation=f"Remove unused import '{imp.name}' to clean up the file"
-                    )
-                    results.add_issue(issue)
+        
+        # Mark exports as dead, considering re-export chains
+        for symbol_key, export in all_exports.items():
+            if export.is_reexport:
+                continue  # Skip re-exports, we'll check originals
+            
+            # Check if this symbol is used directly
+            is_used = symbol_key in imported_symbols
+            
+            # If not used directly, check if any of its re-exports are used
+            if not is_used:
+                for reexport_key in reexport_chains.get(symbol_key, set()):
+                    if reexport_key in imported_symbols:
+                        is_used = True
+                        break
+            
+            # Mark as dead if not used anywhere
+            if not is_used:
+                self.dependency_graph.mark_as_dead(symbol_key)
+        
+        # Mark unused local symbols as dead
+        for file_analysis in self.file_cache.values():
+            for symbol in file_analysis.symbols:
+                if symbol.name not in file_analysis.used_symbols:
+                    if not symbol.name.startswith('_') and symbol.symbol_type not in ['interface', 'type']:
+                        symbol_key = f"{symbol.file_path}:{symbol.name}"
+                        self.dependency_graph.mark_as_dead(symbol_key)
     
-    def _check_unused_local_symbols(self, results: CheckResults) -> None:
+    def _check_unused_exports(self, results: CheckResults, dead_files: set) -> None:
+        """Report unused exports that aren't in dead files."""
+        for file_analysis in self.file_cache.values():
+            # Only report on files in target path
+            if not str(file_analysis.path).startswith(str(self.target_path)):
+                continue
+            
+            # Skip if file is already reported as dead
+            if file_analysis.path in dead_files:
+                continue
+            
+            # Skip files that match exceptions for reporting
+            if self._is_exception(file_analysis.path):
+                continue
+            
+            for export in file_analysis.exports:
+                symbol_key = f"{file_analysis.path}:{export.name}"
+                
+                # Only report if marked as dead and not used internally
+                if symbol_key in self.dependency_graph.dead_symbols:
+                    # Skip certain patterns that are commonly intentionally unused
+                    if export.name in ['default'] and 'page' in str(export.file_path):
+                        continue  # Next.js page components
+                    
+                    # Check if this export is used internally
+                    is_used_internally = export.name in file_analysis.used_symbols
+                    
+                    # Only report as error if not used anywhere (internally or externally)
+                    if not is_used_internally:
+                        try:
+                            relative_path = str(export.file_path.relative_to(self.src_path))
+                        except ValueError:
+                            relative_path = str(export.file_path)
+                        
+                        issue = DeadCodeIssue.create_error(
+                            message=f"Unused export '{export.name}'",
+                            issue_type=DeadCodeType.UNUSED_EXPORT,
+                            file_path=relative_path,
+                            line_number=export.line_number,
+                            symbol_name=export.name,
+                            recommendation=f"Remove unused export"
+                        )
+                        results.add_issue(issue)
+    
+    def _check_unused_imports(self, results: CheckResults, dead_files: set) -> None:
+        """Check for unused imports within files."""
+        # Don't check unused imports - they're not critical errors
+        # Unused imports are typically handled by linters/formatters
+        pass
+    
+    def _check_unused_local_symbols(self, results: CheckResults, dead_files: set) -> None:
         """Check for unused local symbols within files."""
         for file_analysis in self.file_cache.values():
+            # Only check files in target path
+            if not str(file_analysis.path).startswith(str(self.target_path)):
+                continue
+            
+            # Skip if file is already reported as dead
+            if file_analysis.path in dead_files:
+                continue
+            
+            # Skip files that match exceptions
+            if self._is_exception(file_analysis.path):
+                continue
+            
             for symbol in file_analysis.symbols:
                 # Check if symbol is not used anywhere in the file
                 if symbol.name not in file_analysis.used_symbols:
@@ -594,9 +838,16 @@ class DeadCodeChecker:
                     if symbol.symbol_type in ['interface', 'type']:  # Types are often defined but not used locally
                         continue
                     
-                    relative_path = str(symbol.file_path.relative_to(self.target_path))
+                    # Mark as dead
+                    symbol_key = f"{symbol.file_path}:{symbol.name}"
+                    self.dependency_graph.mark_as_dead(symbol_key)
                     
-                    # Not exported and not used internally - error (truly dead code)
+                    try:
+                        relative_path = str(symbol.file_path.relative_to(self.src_path))
+                    except ValueError:
+                        relative_path = str(symbol.file_path)
+                    
+                    # Only report non-exported unused symbols as errors
                     if not symbol.is_exported:
                         issue = DeadCodeIssue.create_error(
                             message=f"Unused {symbol.symbol_type} '{symbol.name}'",
@@ -604,26 +855,208 @@ class DeadCodeChecker:
                             file_path=relative_path,
                             line_number=symbol.line_number,
                             symbol_name=symbol.name,
-                            recommendation=f"Remove unused {symbol.symbol_type} '{symbol.name}' or prefix with '_' if intentionally unused"
+                            recommendation=f"Remove unused {symbol.symbol_type} '{symbol.name}'"
                         )
                         results.add_issue(issue)
-                    # Exported symbols that are unused internally are handled in _check_unused_exports
+    
+    def _check_transitive_dead_code(self, results: CheckResults, dead_files: set) -> None:
+        """Check for code that's only used by other dead code."""
+        self.dependency_graph.find_transitive_dead_code()
+        
+        # Report transitively dead symbols
+        for symbol_key in self.dependency_graph.transitively_dead:
+            parts = symbol_key.split(':', 1)
+            if len(parts) != 2:
+                continue
+            
+            file_path = Path(parts[0])
+            symbol_name = parts[1]
+            
+            # Only report on files in target path
+            if not str(file_path).startswith(str(self.target_path)):
+                continue
+            
+            # Skip if file is already reported as dead
+            if file_path in dead_files:
+                continue
+            
+            # Skip files that match exceptions
+            if self._is_exception(file_path):
+                continue
+            
+            # Find the actual symbol details
+            if file_path in self.file_cache:
+                file_analysis = self.file_cache[file_path]
+                
+                # Find in exports
+                for export in file_analysis.exports:
+                    if export.name == symbol_name:
+                        chain_count = self.dependency_graph.count_dead_chain(symbol_key)
+                        
+                        try:
+                            relative_path = str(file_path.relative_to(self.src_path))
+                        except ValueError:
+                            relative_path = str(file_path)
+                        
+                        issue = DeadCodeIssue.create_error(
+                            message=f"Transitively unused export '{symbol_name}' ({chain_count} symbols in chain)",
+                            issue_type=DeadCodeType.UNUSED_EXPORT,
+                            file_path=relative_path,
+                            line_number=export.line_number,
+                            symbol_name=symbol_name,
+                            recommendation=f"Remove unused export"
+                        )
+                        results.add_issue(issue)
+                        break
+    
+    def _detect_dead_files(self, results: CheckResults) -> List[Path]:
+        """Detect files that contain only dead code."""
+        dead_files = []
+        
+        for file_path, file_analysis in self.file_cache.items():
+            # Only check files in target path
+            if not str(file_path).startswith(str(self.target_path)):
+                continue
+            
+            # Skip test files and exceptions
+            if self._is_test_file(file_path) or self._is_exception(file_path):
+                continue
+            
+            # Check if all exports are dead
+            if not file_analysis.exports:
+                continue  # No exports, not a dead file candidate
+            
+            all_exports_dead = True
+            for export in file_analysis.exports:
+                symbol_key = f"{file_path}:{export.name}"
+                if symbol_key not in self.dependency_graph.dead_symbols and \
+                   symbol_key not in self.dependency_graph.transitively_dead:
+                    all_exports_dead = False
+                    break
+            
+            if all_exports_dead:
+                dead_files.append(file_path)
+                
+                # Count total symbols in file
+                total_symbols = len(file_analysis.exports) + len([s for s in file_analysis.symbols if not s.is_exported])
+                
+                try:
+                    relative_path = str(file_path.relative_to(self.src_path))
+                except ValueError:
+                    relative_path = str(file_path)
+                
+                issue = DeadCodeIssue.create_error(
+                    message=f"Dead file - all exports unused ({total_symbols} total symbols)",
+                    issue_type=DeadCodeType.UNUSED_EXPORT,
+                    file_path=relative_path,
+                    line_number=1,
+                    symbol_name="__file__",
+                    recommendation=f"Remove unused file"
+                )
+                results.add_issue(issue)
+        
+        return dead_files
+    
+    def _detect_dead_folders(self, results: CheckResults, dead_files: List[Path]) -> Set[Path]:
+        """Detect folders where all or most files are dead code."""
+        from collections import defaultdict
+        
+        # Group dead files by their parent directory
+        dead_files_by_folder = defaultdict(list)
+        all_files_by_folder = defaultdict(list)
+        
+        # Track dead files by folder
+        for file_path in dead_files:
+            if file_path in self.file_cache:
+                parent_dir = file_path.parent
+                dead_files_by_folder[parent_dir].append(file_path)
+        
+        # Track all target files by folder for comparison
+        target_files = self._find_target_files()
+        for file_path in target_files:
+            if not self._is_test_file(file_path):
+                parent_dir = file_path.parent
+                all_files_by_folder[parent_dir].append(file_path)
+        
+        dead_folders = set()
+        
+        # Check each folder to see if it should be reported as dead
+        for folder_path, folder_dead_files in dead_files_by_folder.items():
+            folder_all_files = all_files_by_folder[folder_path]
+            
+            # Skip if folder has too few files
+            if len(folder_all_files) < 2:
+                continue
+            
+            dead_count = len(folder_dead_files)
+            total_count = len(folder_all_files)
+            dead_ratio = dead_count / total_count
+            
+            # Only report folder if ALL files are dead (100%)
+            should_report_folder = (dead_ratio >= 1.0)
+            
+            if should_report_folder:
+                dead_folders.add(folder_path)
+                
+                try:
+                    relative_folder_path = str(folder_path.relative_to(self.src_path))
+                except ValueError:
+                    relative_folder_path = str(folder_path)
+                
+                # Remove individual file issues for this folder
+                issues_to_remove = []
+                all_issues = results.get_all_issues()
+                for issue in all_issues:
+                    if issue.file_path and issue.symbol_name == "__file__":
+                        try:
+                            issue_file_path = self.src_path / issue.file_path
+                            if issue_file_path.parent == folder_path:
+                                issues_to_remove.append(issue)
+                        except:
+                            pass
+                
+                # Remove from both errors and warnings lists
+                for issue in issues_to_remove:
+                    if issue in results.errors:
+                        results.errors.remove(issue)
+                    if issue in results.warnings:
+                        results.warnings.remove(issue)
+                
+                # Create folder-level issue
+                message = f"Dead folder - all {total_count} files unused"
+                recommendation = f"Remove unused folder"
+                
+                issue = DeadCodeIssue.create_error(
+                    message=message,
+                    issue_type=DeadCodeType.UNUSED_EXPORT,
+                    file_path=relative_folder_path + "/",
+                    line_number=1,
+                    symbol_name="__folder__",
+                    recommendation=recommendation
+                )
+                results.add_issue(issue)
+        
+        return dead_folders
     
     def run_all_checks(self) -> CheckResults:
         """Run all dead code checks and return results."""
         start_time = time.time()
         results = CheckResults(target_path=str(self.target_path))
         
-        # Find and analyze all TypeScript files
-        ts_files = self._find_typescript_files()
-        results.files_analyzed = len(ts_files)
+        # Find ALL files in src for analysis
+        all_src_files = self._find_all_src_files()
         
-        # Analyze files in parallel
+        # Find target files to check
+        target_files = self._find_target_files()
+        results.files_analyzed = len(target_files)
+        
+        print(f"Analyzing {len(all_src_files)} files in src/, checking {len(target_files)} in {self.target_path}")
+        
+        # Analyze ALL files in parallel (for import resolution)
         with ThreadPoolExecutor(max_workers=4) as executor:
             future_to_file = {
                 executor.submit(self._analyze_file, file_path): file_path
-                for file_path in ts_files
-                if not self._is_exception(file_path)
+                for file_path in all_src_files
             }
             
             for future in as_completed(future_to_file):
@@ -631,10 +1064,24 @@ class DeadCodeChecker:
                 analysis = future.result()
                 self.file_cache[file_path] = analysis
         
-        # Run dead code checks
-        self._check_unused_exports(results)
-        self._check_unused_imports(results)
-        self._check_unused_local_symbols(results)
+        # Build dependency graph
+        self._build_dependency_graph()
+        
+        # Run dead code checks - mark dead symbols first
+        self._mark_dead_symbols()
+        
+        # Then detect dead files
+        dead_files = self._detect_dead_files(results)
+        dead_files_set = set(dead_files)
+        
+        # Then detect dead folders (this may remove some individual file issues)
+        dead_folders = self._detect_dead_folders(results, dead_files)
+        
+        # Then check other issues, but skip symbols in dead files
+        self._check_unused_exports(results, dead_files_set)
+        self._check_unused_imports(results, dead_files_set)
+        self._check_unused_local_symbols(results, dead_files_set)
+        self._check_transitive_dead_code(results, dead_files_set)
         
         results.execution_time = time.time() - start_time
         return results

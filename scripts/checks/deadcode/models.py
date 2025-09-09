@@ -32,6 +32,7 @@ class Export:
     line_number: int
     export_type: str  # 'default', 'named', 'type', 'interface'
     is_reexport: bool = False
+    from_path: Optional[str] = None  # Source path for re-exports
 
 
 @dataclass
@@ -42,6 +43,7 @@ class Import:
     file_path: Path
     line_number: int
     import_type: str  # 'default', 'named', 'type', 'namespace'
+    original_name: Optional[str] = None  # For aliased imports (import { X as Y })
 
 
 @dataclass
@@ -152,12 +154,35 @@ class CheckResults:
         """Get all issues (errors + warnings)."""
         return self.errors + self.warnings
     
+    def get_issues_by_category(self) -> Dict[str, List[DeadCodeIssue]]:
+        """Get issues categorized by folders, files, and symbols."""
+        categories = {
+            "dead_folders": [],
+            "dead_files": [], 
+            "dead_symbols": []
+        }
+        
+        for issue in self.get_all_issues():
+            if issue.symbol_name == "__folder__":
+                categories["dead_folders"].append(issue)
+            elif issue.symbol_name == "__file__":
+                categories["dead_files"].append(issue)
+            else:
+                categories["dead_symbols"].append(issue)
+        
+        return categories
+    
     def get_summary_by_type(self) -> Dict[str, int]:
-        """Get count of issues by dead code type."""
+        """Get count of issues by dead code type (folders, files, symbols)."""
         summary = {}
         for issue in self.get_all_issues():
-            issue_type = issue.issue_type.value
-            summary[issue_type] = summary.get(issue_type, 0) + 1
+            if issue.symbol_name == "__folder__":
+                category = "dead_folders"
+            elif issue.symbol_name == "__file__":
+                category = "dead_files"
+            else:
+                category = "dead_symbols"
+            summary[category] = summary.get(category, 0) + 1
         return summary
     
     def get_summary_by_file(self) -> Dict[str, int]:
@@ -221,10 +246,8 @@ class CheckResults:
             "files_analyzed": self.files_analyzed,
             "summary": {
                 "total_errors": len(self.errors),
-                "total_warnings": len(self.warnings),
                 "by_type": self.get_summary_by_type(),
-                "by_file": self.get_summary_by_file(),
-                "by_recommendation": self.get_summary_by_recommendation()
+                "by_file": self.get_summary_by_file()
             },
             "issues": [issue.to_dict() for issue in all_issues]
         }

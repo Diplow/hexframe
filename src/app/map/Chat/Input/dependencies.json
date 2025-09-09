@@ -1,8 +1,8 @@
 {
-  "$schema": "~/schemas/dependencies.schema.json",
+  "$schema": "../../../../../schemas/dependencies.schema.json",
   "allowed": [
-    "~/app/map",
-    "~/lib/auth/index"
+    "~/lib/auth",
+    "~/lib/debug/debug-logger"
   ],
   "exceptions": {}
 }

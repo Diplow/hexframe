@@ -1,6 +1,8 @@
 {
-  "$schema": "~/schemas/dependencies.schema.json",
+  "$schema": "../../../../../../schemas/dependencies.schema.json",
   "allowed": [
-    "~/app/map/Chat/Timeline/Widgets/AIResponseWidget"
+    "~/app/map/Chat/Timeline/Widgets/AIResponseWidget",
+    "~/lib/debug/debug-logger",
+    "~/lib/domains/agentic"
   ]
 }

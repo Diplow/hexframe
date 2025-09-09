@@ -10,7 +10,7 @@ import {
   type MapItemWithId,
   MapItemType,
 } from "~/lib/domains/mapping/_objects";
-import { type Coord } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { type Coord } from "~/lib/domains/mapping/utils";
 
 export class MapItemCreationHelpers {
   constructor(

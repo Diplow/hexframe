@@ -45,7 +45,7 @@ class DomainRuleChecker:
         return errors
     
     def check_domain_import_restrictions(self) -> List[ArchError]:
-        """Check that domain services are only imported by API/server code."""
+        """Check domain service import restrictions with refined rules."""
         errors = []
         # print("Checking domain import restrictions...")
         
@@ -61,7 +61,10 @@ class DomainRuleChecker:
         
         # Check each service file for improper imports
         for service_file in service_files:
-            errors.extend(self._check_service_import_violations(service_file))
+            errors.extend(self._check_refined_service_import_violations(service_file))
+        
+        # Check cross-domain imports (no domain should import other domain services/non-utils)
+        errors.extend(self._check_cross_domain_violations())
         
         return errors
     
@@ -122,11 +125,12 @@ class DomainRuleChecker:
         
         return errors
     
-    def _check_service_import_violations(self, service_file: Path) -> List[ArchError]:
-        """Check if a service is improperly imported by non-API code."""
+    def _check_refined_service_import_violations(self, service_file: Path) -> List[ArchError]:
+        """Check service imports against refined domain rules."""
         errors = []
         
-        # Create the exact import path for this service file
+        # Extract domain name and import path for this service file
+        domain_name = service_file.parts[-3]  # e.g., 'iam' from 'lib/domains/iam/services/...'
         service_import_path = f"~/{service_file.relative_to(Path('src'))}"
         service_import_path = service_import_path.replace(".ts", "")
         
@@ -138,7 +142,7 @@ class DomainRuleChecker:
             if ts_file == service_file:
                 continue
             
-            # Check if it's an API/server file (allowed)
+            # Skip API/server files (always allowed)
             file_str = str(ts_file)
             if "/api/" in file_str or "/server/" in file_str:
                 continue
@@ -147,29 +151,112 @@ class DomainRuleChecker:
             if not content:
                 continue
             
-            # Check if this file specifically imports THIS service file
-            # Look for exact import path matches
+            # Check if this file imports this service
             import_patterns = [
                 f"from '{service_import_path}'",
                 f"from \"{service_import_path}\"",
                 # Also check if importing from the services index that reexports this service
-                f"from '~/lib/domains/{service_file.parts[-3]}/services'",
-                f"from \"~/lib/domains/{service_file.parts[-3]}/services\""
+                f"from '~/lib/domains/{domain_name}/services'",
+                f"from \"~/lib/domains/{domain_name}/services\""
             ]
             
             service_imported = any(pattern in content for pattern in import_patterns)
             
             if service_imported:
-                service_name = service_file.stem
-                recommendation = f"Move service import from {ts_file.relative_to(self.path_helper.target_path)} to API/server code, or refactor service logic to a utility module"
-                errors.append(ArchError.create_error(
-                    message=(f"❌ Service {service_name} imported by non-API file:\n"
-                           f"  🔸 {ts_file.relative_to(self.path_helper.target_path)}\n"
-                           f"     → Services can only be imported by API/server code"),
-                    error_type=ErrorType.DOMAIN_IMPORT,
-                    subsystem=str(service_file.parent),
-                    file_path=str(ts_file.relative_to(self.path_helper.target_path)),
-                    recommendation=recommendation
-                ))
+                # Apply refined rules based on importing file location
+                file_path = ts_file.relative_to(self.path_helper.target_path)
+                file_path_str = str(file_path)
+                
+                # Rule 1: {domain}/index.ts can import same domain services - ALLOWED
+                if file_path_str == f"lib/domains/{domain_name}/index.ts":
+                    continue
+                
+                # Rule 2: {domain}/services/* can import same domain services - ALLOWED  
+                if f"lib/domains/{domain_name}/services" in file_path_str:
+                    continue
+                
+                # Rule 3 & 4: Everything else in the domain CANNOT import services - ERROR
+                if f"lib/domains/{domain_name}/" in file_path_str:
+                    service_name = service_file.stem
+                    recommendation = f"Remove service import from {file_path} - only domain index.ts and services/* can import domain services"
+                    errors.append(ArchError.create_error(
+                        message=(f"❌ Service {service_name} imported by restricted file:\n"
+                               f"  🔸 {file_path}\n"
+                               f"     → Only domain index.ts and services/* can import domain services"),
+                        error_type=ErrorType.DOMAIN_IMPORT,
+                        subsystem=str(service_file.parent),
+                        file_path=str(file_path),
+                        recommendation=recommendation
+                    ))
+                else:
+                    # Outside domain structure - should go through API
+                    service_name = service_file.stem
+                    recommendation = f"Move service import from {file_path} to API/server code, or use domain public interface"
+                    errors.append(ArchError.create_error(
+                        message=(f"❌ Service {service_name} imported by non-domain file:\n"
+                               f"  🔸 {file_path}\n"
+                               f"     → Services should only be used through API/server layer"),
+                        error_type=ErrorType.DOMAIN_IMPORT,
+                        subsystem=str(service_file.parent),
+                        file_path=str(file_path),
+                        recommendation=recommendation
+                    ))
+        
+        return errors
+    
+    def _check_cross_domain_violations(self) -> List[ArchError]:
+        """Check that domains don't import from other domains (except utils)."""
+        errors = []
+        
+        domains_path = self.path_helper.target_path / "lib" / "domains"
+        if not domains_path.exists():
+            return errors
+        
+        # Get all domain directories
+        domain_dirs = [d for d in domains_path.iterdir() if d.is_dir()]
+        
+        for domain_dir in domain_dirs:
+            domain_name = domain_dir.name
+            
+            # Find all TypeScript files in this domain
+            for ts_file in domain_dir.rglob("*.ts"):
+                content = self.file_cache.get_file_info(ts_file).content
+                if not content:
+                    continue
+                
+                # Check for imports from other domains
+                for other_domain_dir in domain_dirs:
+                    if other_domain_dir == domain_dir:
+                        continue  # Skip same domain
+                    
+                    other_domain_name = other_domain_dir.name
+                    
+                    # Look for imports from other domains (but allow utils)
+                    forbidden_patterns = [
+                        f"from '~/lib/domains/{other_domain_name}/services",
+                        f"from \"~/lib/domains/{other_domain_name}/services",
+                        f"from '~/lib/domains/{other_domain_name}/infrastructure",
+                        f"from \"~/lib/domains/{other_domain_name}/infrastructure",
+                        f"from '~/lib/domains/{other_domain_name}/_",
+                        f"from \"~/lib/domains/{other_domain_name}/_",
+                        f"from '~/lib/domains/{other_domain_name}/index",
+                        f"from \"~/lib/domains/{other_domain_name}/index",
+                    ]
+                    
+                    for pattern in forbidden_patterns:
+                        if pattern in content:
+                            file_path = ts_file.relative_to(self.path_helper.target_path)
+                            recommendation = f"Remove cross-domain import from {file_path} - domains should only import other domain utils, not services/infrastructure"
+                            errors.append(ArchError.create_error(
+                                message=(f"❌ Cross-domain import violation:\n"
+                                       f"  🔸 {file_path}\n"
+                                       f"     → Domain '{domain_name}' importing from domain '{other_domain_name}'\n"
+                                       f"     → Use API orchestration instead of direct domain-to-domain calls"),
+                                error_type=ErrorType.DOMAIN_IMPORT,
+                                subsystem=str(ts_file.parent),
+                                file_path=str(file_path),
+                                recommendation=recommendation
+                            ))
+                            break  # Only report first violation per file
         
         return errors

@@ -3,7 +3,7 @@ import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   createNavigationHandler,
   createNavigationHandlerForTesting,
-} from "../navigation-handler";
+} from "~/app/map/Cache/Handlers/navigation-handler";
 import { cacheActions } from "~/app/map/Cache/State/actions";
 import { initialCacheState } from "~/app/map/Cache/State/reducer";
 import type { NavigationHandlerConfig } from "~/app/map/Cache/Handlers/navigation-handler";

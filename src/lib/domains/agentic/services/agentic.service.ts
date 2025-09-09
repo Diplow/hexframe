@@ -10,7 +10,7 @@ import type {
   StreamChunk,
   ModelInfo,
   LLMMessage
-} from '../types'
+} from '~/lib/domains/agentic/types'
 import type { ChatMessage } from '~/app/map'
 // import type { Intent, ClassificationContext } from '../intent-classification/intent.types'
 import type { PromptTemplateName } from '~/lib/domains/agentic/prompts/prompts.constants'

@@ -1,24 +1,24 @@
 import { describe, beforeEach, it } from "vitest";
-import { type Coord, Direction } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { type Coord, Direction } from "~/lib/domains/mapping/utils";
 import {
   type TestEnvironment,
   _cleanupDatabase,
   _createTestEnvironment,
   _createTestCoordinates,
   _createUniqueTestParams,
-} from "./helpers/_test-utilities";
+} from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import {
   _setupItemForMovement,
   _setupTwoItemsForSwap,
   _setupParentChildHierarchy,
-} from "./helpers/movement/_movement-setup-helpers";
+} from "~/lib/domains/mapping/services/__tests__/helpers/movement/_movement-setup-helpers";
 import {
   _validateItemMovementToEmptyCell,
   _validateItemSwapping,
   _validateParentChildMovement,
   _validateUserItemMoveRestriction,
   _validateCrossSpaceMovementError,
-} from "./helpers/movement/_movement-validation-helpers";
+} from "~/lib/domains/mapping/services/__tests__/helpers/movement/_movement-validation-helpers";
 
 describe("MappingService - Item Movement [Integration - DB]", () => {
   let testEnv: TestEnvironment;

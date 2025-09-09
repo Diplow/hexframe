@@ -3,7 +3,7 @@ import {
   type GenericAttributes,
   type GenericRelatedLists,
   type GenericRelatedItems,
-} from "./generic-objects";
+} from "~/lib/domains/utils/generic-objects";
 
 export interface GenericRepository<
   A extends GenericAttributes,

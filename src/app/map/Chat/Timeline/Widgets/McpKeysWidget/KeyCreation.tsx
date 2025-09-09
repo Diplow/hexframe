@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { CreateKeyData, CreateKeyResult } from './useMcpKeys';
+import type { CreateKeyData, CreateKeyResult } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/useMcpKeys';
 
 interface KeyCreationProps {
   onCreate: (data: CreateKeyData) => Promise<CreateKeyResult>;

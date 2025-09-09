@@ -1,6 +1,6 @@
 import type { MapItemWithId } from "~/lib/domains/mapping/_objects";
 import { MapItemType } from "~/lib/domains/mapping/_objects";
-import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { CoordSystem } from "~/lib/domains/mapping/utils";
 
 export const mapItemDomainToContractAdapter = (
   aggregate: MapItemWithId,

@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   createSyncEngine,
   createSyncEngineForTesting,
-} from "../sync-engine";
+} from "~/app/map/Cache/Sync/sync-engine";
 import { initialCacheState } from "~/app/map/Cache/State/reducer";
 import type { CacheState } from "~/app/map/Cache/State/types";
 import type { DataOperations } from "~/app/map/Cache/Handlers/types";
@@ -10,7 +10,7 @@ import type {
   SyncConfig,
   SyncEvent,
   SyncEventHandler,
-} from "../types";
+} from "~/app/map/Cache/Sync/types";
 
 // Mock console.warn to avoid noise in tests
 const mockConsoleWarn = vi.fn();

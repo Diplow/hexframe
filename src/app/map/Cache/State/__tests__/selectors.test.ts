@@ -20,7 +20,7 @@ import {
   selectItemParent,
   selectItemChildren,
   staticSelectors,
-} from "../selectors";
+} from "~/app/map/Cache/State/selectors";
 import { initialCacheState } from "~/app/map/Cache/State/reducer";
 import type { CacheState } from "~/app/map/Cache/State/types";
 import type { TileData } from "~/app/map/types/tile-data";

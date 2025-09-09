@@ -107,7 +107,7 @@ export type {
   Widget,
   ChatUIState,
   ChatCacheAction
-} from '../_state';
+} from '~/app/map/Chat/_state';
 
 // Commonly needed map types (to avoid reaching up the hierarchy)
 export type { TileData, TileState } from '~/app/map/types';
@@ -122,4 +122,4 @@ export type {
   MapTileUpdatedEvent,
   MapTileDeletedEvent,
   ChatMessageEvent
-} from '../../types';
+} from '~/app/map/types';

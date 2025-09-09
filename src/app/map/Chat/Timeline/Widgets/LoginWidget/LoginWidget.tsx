@@ -28,8 +28,8 @@ export function LoginWidget({ message }: LoginWidgetProps) {
   } = useLoginForm();
 
   return (
-    <div className="w-full max-w-sm mx-auto">
-      <div className="bg-secondary-50 dark:bg-secondary-900/20 rounded-lg p-4 border border-secondary-200 dark:border-secondary-800 relative">
+    <div className="w-full">
+      <div className="bg-neutral-50 dark:bg-neutral-800/30 rounded-lg p-4 border-transparent relative">
         <FormHeader
           mode={mode}
           message={message}

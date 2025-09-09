@@ -21,7 +21,7 @@ export {
   DynamicEmptyTile,  // Dynamic empty tiles (used by Frame)
   DynamicBaseTileLayout, // Dynamic base tile layout (used by Frame and tiles)
   getColorFromItem   // Utility for color extraction
-} from './Tile'
+} from '~/app/map/Canvas/Tile'
 
 // Tile types for external consumers
 export type { 
@@ -29,7 +29,7 @@ export type {
   TileColor,
   BaseTileLayoutProps,
   DynamicBaseTileLayoutProps
-} from './Tile'
+} from '~/app/map/Canvas/Tile'
 
 // Canvas contexts and hooks (used by tiles and frame)
 export { 
@@ -37,11 +37,15 @@ export {
   useCanvasTheme,
   useLegacyTileActionsContext,
   CanvasThemeContext
-} from './_shared/contexts'
+} from '~/app/map/Canvas/_shared/contexts'
 export type { 
   LegacyTileActionsContextValue,
   ThemeContextValue
-} from './_shared/contexts'
+} from '~/app/map/Canvas/_shared/contexts'
+
+// Tile Actions Context and Provider (used by Map components)
+export { TileActionsProvider, useTileActions } from '~/app/map/Canvas/TileActionsContext'
+export type { TileActionsContextValue } from '~/app/map/Canvas/TileActionsContext'
 
 // NOTE: Cache reexports removed to fix architecture violations.
 // Canvas subsystems should import directly from ../Cache as needed.

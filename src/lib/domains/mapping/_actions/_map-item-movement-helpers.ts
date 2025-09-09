@@ -7,7 +7,7 @@ import {
   type Coord,
   CoordSystem,
   type Direction,
-} from "~/lib/domains/mapping/utils/hex-coordinates";
+} from "~/lib/domains/mapping/utils";
 import { MAPPING_ERRORS } from "~/lib/domains/mapping/types/errors";
 
 export class MapItemMovementHelpers {

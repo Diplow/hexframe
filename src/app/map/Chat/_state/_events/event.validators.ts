@@ -14,7 +14,7 @@ import {
   mapDeleteRequestedEventSchema,
   mapCreateRequestedEventSchema,
   safeValidateEvent,
-} from '../../../types';
+} from '~/app/map/types';
 
 /**
  * Validates and transforms a map event into a chat event

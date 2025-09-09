@@ -2,13 +2,13 @@ import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   createMutationHandler,
   createMutationHandlerForCache,
-} from "../mutation-handler";
+} from "~/app/map/Cache/Handlers/mutation-handler";
 import { cacheActions } from "~/app/map/Cache/State/actions";
 import { initialCacheState } from "~/app/map/Cache/State/reducer";
 import type {
   MutationHandlerConfig,
   MutationHandlerServices,
-} from "../mutation-handler";
+} from "~/app/map/Cache/Handlers/mutation-handler";
 import type { CacheState } from "~/app/map/Cache/State/types";
 import type { DataOperations } from "~/app/map/Cache/Handlers/types";
 import { createMockEventBus, expectEventEmitted } from "~/test-utils/event-bus";

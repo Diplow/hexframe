@@ -4,10 +4,8 @@
     "~/app/map/Services/types"
   ],
   "allowed": [
-    "~/app/map",
-    "~/app/map/types/events",
-    "~/server/api/types/contracts", 
-    "~/app/types"
+    "~/lib/debug/debug-logger",
+    "~/server/api/types/contracts"
   ],
   "subsystems": [
     "./EventBus"

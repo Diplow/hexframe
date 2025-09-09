@@ -1,11 +1,11 @@
 {
   "$schema": "../../../../../schemas/dependencies.schema.json",
-  "allowedChildren": [
-    "~/app/map/Chat/Timeline/MarkdownRenderer"
-  ],
+  "allowedChildren": [],
   "allowed": [
-    "~/app/map/Chat",
-    "~/app/map/Services"
+    "~/app/map/Services",
+    "~/lib/auth",
+    "~/lib/debug/debug-logger",
+    "~/lib/domains/agentic"
   ],
   "subsystems": [
     "./AIResponseWidget",

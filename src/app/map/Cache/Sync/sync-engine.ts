@@ -7,7 +7,7 @@ import type {
   SyncOperations,
   SyncEvent,
   SyncEventHandler,
-} from "./types";
+} from "~/app/map/Cache/Sync/types";
 
 // Default sync configuration
 const DEFAULT_SYNC_CONFIG: SyncConfig = {

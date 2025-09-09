@@ -19,6 +19,7 @@ class ErrorType(Enum):
     REEXPORT_BOUNDARY = "reexport_boundary"
     DEPENDENCY_FORMAT = "dependency_format"
     REDUNDANCY = "redundancy"
+    NONEXISTENT_DEPENDENCY = "nonexistent_dependency"
     FILE_CONFLICT = "file_conflict"
     DOMAIN_STRUCTURE = "domain_structure"
     DOMAIN_IMPORT = "domain_import"
@@ -189,11 +190,46 @@ class CheckResults:
     
     def _categorize_recommendation(self, recommendation: str) -> str:
         """Categorize recommendation into types for summary."""
-        if "Add" in recommendation and "dependencies.json" in recommendation:
+        # Handle service import violations
+        if "Move service import" in recommendation and "API/server code" in recommendation:
+            return "Move service to API layer"
+        elif "Remove service import" in recommendation and "only domain index.ts and services/*" in recommendation:
+            return "Fix domain service import"
+        elif "Remove cross-domain import" in recommendation:
+            return "Remove cross-domain import"
+        
+        # Handle file creation patterns (with new WARNING/ERROR prefixes)
+        elif "Create missing files" in recommendation or "ERROR: Create missing files" in recommendation:
+            return "Create missing subsystem files"
+        elif ("Create" in recommendation and "README.md file" in recommendation) or ("WARNING: Create" in recommendation and "README.md file" in recommendation) or ("ERROR: Create" in recommendation and "README.md file" in recommendation):
+            return "Create README documentation"
+        elif "Create or update" in recommendation and "index.ts to reexport" in recommendation:
+            return "Create subsystem index"
+        
+        # Handle import fixes
+        elif "Change import from" in recommendation and "via index.ts" in recommendation:
+            return "Use subsystem interface"
+        elif "Change import from" in recommendation and "use utils index.ts" in recommendation:
+            return "Use utils interface"
+        
+        # Handle dependency management
+        elif "Add" in recommendation and "dependencies.json" in recommendation:
             if "'allowed'" in recommendation:
                 return "Add to allowed dependencies"
             elif "'allowedChildren'" in recommendation:
                 return "Add to allowedChildren"
+        elif "Remove" in recommendation and "redundant" in recommendation:
+            return "Remove redundant dependency"
+        elif "Remove" in recommendation and "dependencies.json" in recommendation:
+            return "Remove forbidden dependency"
+        
+        # Handle structural issues
+        elif "Move file contents" in recommendation:
+            return "Resolve file/folder conflict"
+        elif "reexport" in recommendation.lower():
+            return "Fix reexport boundary"
+        
+        # Legacy fallbacks (for backwards compatibility)
         elif "missing:" in recommendation:
             if "dependencies.json" in recommendation:
                 return "Create dependencies.json"
@@ -201,12 +237,6 @@ class CheckResults:
                 return "Create README.md"
             elif "ARCHITECTURE.md" in recommendation:
                 return "Create ARCHITECTURE.md"
-        elif "Remove" in recommendation:
-            return "Remove redundant dependency"
-        elif "Move file contents" in recommendation:
-            return "Resolve file/folder conflict"
-        elif "reexport" in recommendation.lower():
-            return "Fix reexport boundary"
         elif "index.ts" in recommendation:
             return "Use subsystem interface"
         

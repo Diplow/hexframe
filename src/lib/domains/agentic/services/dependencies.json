@@ -6,10 +6,8 @@
     "~/lib/domains/agentic/_objects",
     "~/lib/domains/agentic/_repositories",
     "~/lib/domains/agentic/infrastructure", 
-    "~/lib/domains/agentic/prompts/prompts.constants",
     "~/lib/domains/agentic/repositories",
     "~/lib/domains/agentic/types",
-    "~/lib/domains/mapping/utils",
     "~/server/db"
   ],
   "exceptions": {}

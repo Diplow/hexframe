@@ -52,7 +52,7 @@ class ComplexityRuleChecker:
                     missing = self._get_missing_subsystem_files(directory)
                     
                     if missing:
-                        recommendation = f"Create missing files in {directory}: {', '.join(missing)}"
+                        recommendation = f"ERROR: Create {directory}/README.md file" if missing == ["README.md"] else f"ERROR: Create missing files in {directory}: {', '.join(missing)}"
                         error = ArchError.create_error(
                             message=f"❌ {directory} ({lines} lines) missing: {' '.join(missing)}",
                             error_type=ErrorType.COMPLEXITY,
@@ -68,7 +68,7 @@ class ComplexityRuleChecker:
                             message=f"⚠️  {directory} ({lines} lines) - missing README.md",
                             error_type=ErrorType.COMPLEXITY,
                             subsystem=str(directory),
-                            recommendation=f"Create {directory}/README.md file"
+                            recommendation=f"WARNING: Create {directory}/README.md file"
                         )
                         errors.append(warning)
         
@@ -87,7 +87,7 @@ class ComplexityRuleChecker:
             missing = self._get_missing_subsystem_files(subsystem.path)
             
             if missing:
-                recommendation = f"Create missing files in {subsystem.path}: {', '.join(missing)}"
+                recommendation = f"ERROR: Create {subsystem.path}/README.md file" if missing == ["README.md"] else f"ERROR: Create missing files in {subsystem.path}: {', '.join(missing)}"
                 error = ArchError.create_error(
                     message=(f"❌ Subsystem {subsystem.path} ({subsystem.total_lines} lines) "
                            f"missing: {' '.join(missing)}"),

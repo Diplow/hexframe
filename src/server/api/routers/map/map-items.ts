@@ -12,7 +12,7 @@ import {
   itemCreationSchema,
   itemUpdateSchema,
   itemMovementSchema,
-} from "./map-schemas";
+} from "~/server/api/routers/map/map-schemas";
 import { _createSuccessResponse, _getUserId } from "~/server/api/routers/map/_map-auth-helpers";
 import { TRPCError } from "@trpc/server";
 

@@ -12,7 +12,7 @@ export {
   useMapCache,
   type MapCacheHook,
   type CacheState
-} from './Cache';
+} from '~/app/map/Cache';
 
 // Chat subsystem
 export type { ChatMessage, ChatWidget } from '~/app/map/Chat';
@@ -35,8 +35,8 @@ export {
   type EventListener,
   type EventBusService,
   type PreFetchedMapData
-} from './Services';
+} from '~/app/map/Services';
 
 // Types subsystem
-export type { TileData, TileState, URLInfo, URLSearchParams } from './types';
-export { adapt, getColor } from './types';
+export type { TileData, TileState, URLInfo, URLSearchParams } from '~/app/map/types';
+export { adapt, getColor } from '~/app/map/types';

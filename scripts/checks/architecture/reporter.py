@@ -21,7 +21,7 @@ class ArchitectureReporter:
         self.complexity_threshold = 1000
         self.doc_threshold = 500
     
-    def report_results(self, results: CheckResults) -> bool:
+    def report_results(self, results: CheckResults, show_errors: bool = False, format_type: str = "console") -> bool:
         """Report results to both JSON file and console. Returns True if no errors."""
         # Ensure output directory exists
         self.output_file.parent.mkdir(exist_ok=True)
@@ -29,8 +29,11 @@ class ArchitectureReporter:
         # Write detailed JSON report
         self._write_json_report(results)
         
-        # Display console summary
-        self._display_console_summary(results)
+        # Display results based on format
+        if format_type == "json":
+            self._display_json_output(results)
+        else:
+            self._display_console_summary(results, show_errors=show_errors)
         
         return not results.has_errors()
     
@@ -42,7 +45,7 @@ class ArchitectureReporter:
         with open(self.output_file, 'w') as f:
             json.dump(report_data, f, indent=2, default=str)
     
-    def _display_console_summary(self, results: CheckResults) -> None:
+    def _display_console_summary(self, results: CheckResults, show_errors: bool = False) -> None:
         """Display summary information on console."""
         # print(f"⏱️  Completed in {results.execution_time:.2f} seconds")
         print()
@@ -201,3 +204,9 @@ class ArchitectureReporter:
                 summary_parts.append(f"  • {subsystem}: {count}")
         
         return "\n".join(summary_parts)
+    
+    def _display_json_output(self, results: CheckResults) -> None:
+        """Display results in JSON format."""
+        report_data = results.to_dict()
+        report_data["timestamp"] = datetime.now().isoformat()
+        print(json.dumps(report_data, indent=2, default=str))

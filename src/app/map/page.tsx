@@ -2,7 +2,7 @@
 
 import { MapResolverProvider } from '~/app/map/MapResolver';
 import { MapCacheProvider } from '~/app/map/Cache';
-import { EventBusProvider, EventBus } from './';
+import { EventBusProvider, EventBus } from '~/app/map/Services';
 const eventBus = new EventBus();
 import { MapLoadingUI } from '~/app/map/_components/MapLoadingUI';
 import { MapUI } from '~/app/map/_components/MapUI';

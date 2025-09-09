@@ -1,203 +1,61 @@
 # Dead Code Checker
 
-Detects unused exports, imports, functions, and variables in TypeScript/JavaScript codebases using AST parsing for accuracy.
+## Why Remove Dead Code?
+
+Dead code increases bundle size, maintenance burden, and cognitive load. It can hide bugs, mislead developers about actual dependencies, and slow down refactoring efforts.
+
+## How Dead Code is Identified
+
+This script uses regex-based AST parsing to detect:
+
+1. **Unused Exports** - Exported symbols never imported elsewhere
+2. **Unused Local Symbols** - Functions/variables defined but never used 
+3. **Dead Files** - Files where all exports are unused
+4. **Dead Folders** - Directories where all files are dead
+5. **Transitive Dead Code** - Code only used by other dead code
+
+The checker analyzes all files in `src/` to build a complete dependency graph, then reports issues only for the target path.
 
 ## Usage
 
-### Command Line
 ```bash
-# Check entire src directory
-pnpm check:dead-code
-
-# Check specific path
-pnpm check:dead-code src/app/map
-
-# Direct execution
-python3 scripts/checks/deadcode/main.py [path]
-```
-
-### Help
-```bash
+pnpm check:dead-code [path]           # Check specific path
 python3 scripts/checks/deadcode/main.py --help
 ```
 
-## Output
+Output: Console summary + `test-results/dead-code-check.json`
 
-The checker generates two types of output:
-
-1. **JSON Report** (`test-results/dead-code-check.json`) - Detailed machine-readable results
-2. **Console Summary** - Human-readable summary with statistics and recommendations
-
-### Console Output Example
-```
-🕵️  Checking for dead code in src...
-⏱️  Completed in 2.34 seconds
-
-📊 Dead Code Analysis Summary:
-==================================================================
-• Total errors: 5
-• Total warnings: 12
-• Files analyzed: 234
-
-🔍 By issue type:
-  📤 Unused Export: 8
-  📥 Unused Import: 7
-  💀 Unused Symbol: 2
-
-📁 Most problematic files:
-  • src/utils/helpers.ts: 3 issues
-  • src/components/Button.tsx: 2 issues
-
-🎯 Top actionable recommendations:
-  • (5×) Remove unused import 'React' to clean up the file
-  • (3×) Remove unused export 'formatDate' or confirm it's needed for external consumption
-
-📋 Detailed results:
-----------------------------------------------------------------------
-Full report: test-results/dead-code-check.json
-
-🤖 AI-friendly filtering commands:
-  # Get all errors: jq '.issues[] | select(.severity == "error")' test-results/dead-code-check.json
-  # Get all warnings: jq '.issues[] | select(.severity == "warning")' test-results/dead-code-check.json
-  # Get by type: jq '.issues[] | select(.type == "unused_export")' test-results/dead-code-check.json
-  # Get by file: jq '.issues[] | select(.file | contains("FILENAME"))' test-results/dead-code-check.json
-  # Get summary: jq '.summary' test-results/dead-code-check.json
-```
-
-## Issue Types
-
-### 1. Unused Export (`unused_export`)
-- **Severity**: Warning
-- **Description**: Exported symbols that are never imported elsewhere
-- **Example**: `export const unusedHelper = () => {}`
-
-### 2. Unused Import (`unused_import`)
-- **Severity**: Warning  
-- **Description**: Imported symbols that are never used in the file
-- **Example**: `import { unused } from './utils'`
-
-### 3. Unused Symbol (`unused_symbol`)
-- **Severity**: Error
-- **Description**: Local functions, variables, classes that are defined but never used
-- **Example**: `const unusedVariable = 42`
-
-## Configuration
-
-### Exception Patterns
-Create a `.dead-code-ignore` file in the project root to exclude files/patterns:
-
-```
-# Comment lines start with #
-src/env.mjs
-**/__tests__/**
-**/*.test.ts
-**/*.test.tsx
-**/*.spec.ts
-**/*.spec.tsx
-**/*.stories.ts
-**/*.stories.tsx
-**/types.ts
-**/index.ts
-```
-
-### Default Exceptions
-If no `.dead-code-ignore` file exists, these patterns are excluded by default:
-- Environment configuration files (`src/env.mjs`)
-- Test files (`**/*.test.*`, `**/*.spec.*`, `**/__tests__/**`)
-- Storybook files (`**/*.stories.*`)
-- Type definition files (`**/types.ts`)
-- Index files (`**/index.ts`)
-
-## JSON Output Format
-
-The JSON report includes:
-
-```json
-{
-  "timestamp": "2024-01-15T10:30:45.123Z",
-  "target_path": "src",
-  "execution_time": 2.34,
-  "files_analyzed": 234,
-  "summary": {
-    "total_errors": 5,
-    "total_warnings": 12,
-    "by_type": {
-      "unused_export": 8,
-      "unused_import": 7,
-      "unused_symbol": 2
-    },
-    "by_file": {
-      "src/utils/helpers.ts": 3,
-      "src/components/Button.tsx": 2
-    },
-    "by_recommendation": {
-      "Remove unused import": 7,
-      "Remove unused export": 5
-    }
-  },
-  "issues": [
-    {
-      "type": "unused_import",
-      "severity": "warning",
-      "message": "Unused import 'React'",
-      "file": "src/components/Button.tsx",
-      "line": 1,
-      "recommendation": "Remove unused import 'React' to clean up the file",
-      "symbol_name": "React"
-    }
-  ]
-}
-```
-
-## AI-Friendly Filtering
-
-Use `jq` to filter the JSON output for specific needs:
+## AI-Friendly Commands
 
 ```bash
-# Get all errors only
-jq '.issues[] | select(.severity == "error")' test-results/dead-code-check.json
+# Get all issues
+jq '.issues[]' test-results/dead-code-check.json
 
-# Get all unused exports
+# Get by type  
 jq '.issues[] | select(.type == "unused_export")' test-results/dead-code-check.json
 
-# Get issues in specific file
-jq '.issues[] | select(.file | contains("Button"))' test-results/dead-code-check.json
+# Get file locations
+jq -r '.issues[] | "\(.file_path):\(.line_number) \(.message)"' test-results/dead-code-check.json
 
-# Get file:line format for easy navigation
-jq -r '.issues[] | "\(.file):\(.line) \(.type): \(.message)"' test-results/dead-code-check.json
-
-# Get summary statistics
+# Get summary stats
 jq '.summary' test-results/dead-code-check.json
 ```
 
-## Integration
+## Important: False Positives
 
-### CI/CD
-The checker exits with:
-- **Code 0**: No errors (warnings are allowed)
-- **Code 1**: Errors found
+**Always review before removing code.** Dead code detection can have false positives:
+- Dynamic imports or reflection patterns
+- Framework conventions (Next.js pages)
+- Build-time or test-only usage
+- Type definitions used only for constraints
 
-### Package Scripts
-```json
-{
-  "scripts": {
-    "check:dead-code": "python3 scripts/check-dead-code.py",
-    "check:quality": "pnpm check:dead-code && pnpm check:architecture"
-  }
-}
+**Best Practice:** Make dead code removal a dedicated commit to isolate changes and enable easy reversal if issues arise.
+
+## Configuration
+
+Create `.dead-code-ignore` to exclude patterns:
 ```
-
-## Limitations
-
-- Uses regex-based parsing (not full AST) for performance
-- May miss complex usage patterns
-- Type-only imports are treated specially (often intentionally unused)
-- Some framework patterns (Next.js pages) have built-in exceptions
-
-## Development
-
-The checker is organized into modules:
-- `models.py` - Data structures and types
-- `checker.py` - Core detection logic  
-- `reporter.py` - Output formatting and JSON generation
-- `main.py` - CLI entry point
+src/env.mjs
+**/*.test.*
+**/*.stories.*
+```

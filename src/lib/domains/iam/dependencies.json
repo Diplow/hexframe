@@ -1,11 +1,10 @@
 {
-  "$schema": "~/schemas/dependencies.schema.json",
+  "$schema": "../../../../schemas/dependencies.schema.json",
   "allowed": [
     "next/cache",
     "zod",
     "~/lib",
-    "~/lib/domains/mapping/services",
-    "~/lib/domains/mapping/infrastructure",
+    "~/lib/domains/mapping",
     "~/server/api/services/user-mapping.service",
     "~/server/auth",
     "~/server/db"

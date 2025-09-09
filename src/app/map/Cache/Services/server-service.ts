@@ -4,12 +4,12 @@ import { CoordSystem } from "~/lib/domains/mapping/utils";
 import type {
   ServerService,
   ServiceConfig,
-} from "./types";
+} from "~/app/map/Cache/Services/types";
 import {
   NetworkError as NetworkErrorClass,
   TimeoutError as TimeoutErrorClass,
   ServiceError as ServiceErrorClass,
-} from "./types";
+} from "~/app/map/Cache/Services/types";
 
 // Default configuration for server service
 const DEFAULT_CONFIG: Required<ServiceConfig> = {

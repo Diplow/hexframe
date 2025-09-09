@@ -6,7 +6,7 @@ const { mapItems, baseItems } = schemaImport;
 import type {
   MapItemWithId,
 } from "~/lib/domains/mapping/_objects/map-item";
-import type { Direction } from "~/lib/domains/mapping/utils/hex-coordinates";
+import type { Direction } from "~/lib/domains/mapping/utils";
 import type { DbMapItemWithBase } from "~/lib/domains/mapping/infrastructure/map-item/types";
 import { mapJoinedDbToDomain, pathToString } from "~/lib/domains/mapping/infrastructure/map-item/mappers";
 

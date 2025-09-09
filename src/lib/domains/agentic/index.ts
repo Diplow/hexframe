@@ -27,28 +27,28 @@ export type {
   StreamChunk,
   ModelInfo,
   LLMError,
-} from './types/llm.types';
+} from '~/lib/domains/agentic/types/llm.types';
 
 export type {
   TileContextItem as ContextItem,
   CanvasContextOptions as ContextBuildOptions,
   ContextComposition as SerializedContext,
-} from './types/context.types';
+} from '~/lib/domains/agentic/types/context.types';
 
 export type {
   GenerateResponseInput as GenerateRequest,
   GenerateResponseOutput as GenerateResponse,
   ListModelsOutput as StreamGenerateRequest,
-} from './types/contracts';
+} from '~/lib/domains/agentic/types/contracts';
 
 export type {
   CompositionConfig,
-} from './types';
+} from '~/lib/domains/agentic/types';
 
 export type {
   QueuedJobResponse,
   JobResult,
-} from './types/job.types';
+} from '~/lib/domains/agentic/types/job.types';
 
 // Infrastructure (for setup)
 export { inngest, inngestFunctions } from '~/lib/domains/agentic/infrastructure';

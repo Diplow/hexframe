@@ -1,13 +1,15 @@
 import type { Widget, TileSelectedPayload, AuthRequiredPayload, ErrorOccurredPayload } from '~/app/map/Chat/_state';
 import type { TileData } from '~/app/map/types';
-import { PreviewWidget } from '~/app/map/Chat/Timeline/Widgets/PreviewWidget';
-import { CreationWidget } from '~/app/map/Chat/Timeline/Widgets/CreationWidget';
-import { LoginWidget } from '~/app/map/Chat/Timeline/Widgets/LoginWidget';
-import { ConfirmDeleteWidget } from '~/app/map/Chat/Timeline/Widgets/ConfirmDeleteWidget';
-import { LoadingWidget } from '~/app/map/Chat/Timeline/Widgets/LoadingWidget';
-import { ErrorWidget } from '~/app/map/Chat/Timeline/Widgets/ErrorWidget';
-import { AIResponseWidget } from '~/app/map/Chat/Timeline/Widgets/AIResponseWidget';
-import { McpKeysWidget } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/McpKeysWidget';
+import { 
+  PreviewWidget,
+  CreationWidget,
+  LoginWidget,
+  ConfirmDeleteWidget,
+  LoadingWidget,
+  ErrorWidget,
+  AIResponseWidget,
+  McpKeysWidget
+} from '~/app/map/Chat/Timeline/Widgets';
 import type { AIResponseWidgetData } from '~/app/map/Chat/types';
 
 function safeStringify(value: unknown, space = 0): string | undefined {

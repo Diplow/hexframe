@@ -12,6 +12,7 @@ from typing import List, Set
 from ..models import ArchError, ErrorType, SubsystemInfo
 from ..utils.file_utils import find_typescript_files
 from ..utils.path_utils import PathHelper
+from ..utils.import_utils import find_redundant_ancestor_declarations
 
 
 class SubsystemRuleChecker:
@@ -161,6 +162,95 @@ class SubsystemRuleChecker:
         
         return errors
     
+    def check_ancestor_redundancy(self, subsystems: List[SubsystemInfo]) -> List[ArchError]:
+        """Check for explicitly declared ancestors that should be auto-inherited."""
+        errors = []
+        
+        for subsystem in subsystems:
+            redundant_ancestors = find_redundant_ancestor_declarations(subsystem, self.file_cache)
+            
+            for ancestor_path in redundant_ancestors:
+                error = ArchError.create_error(
+                    message=(f"❌ Redundant ancestor declaration in {subsystem.name}:\n"
+                           f"  🔸 '{ancestor_path}' is automatically inherited from parent subsystem\n"
+                           f"     → Remove '{ancestor_path}' from {subsystem.path}/dependencies.json 'allowed' array\n"
+                           f"     → Child subsystems automatically inherit access to ancestor subsystems"),
+                    error_type=ErrorType.REDUNDANCY,
+                    subsystem=str(subsystem.path),
+                    recommendation=f"Remove '{ancestor_path}' from {subsystem.path}/dependencies.json 'allowed' array (automatically inherited)"
+                )
+                errors.append(error)
+        
+        return errors
+    
+    def check_domain_utils_redundancy(self, subsystems: List[SubsystemInfo]) -> List[ArchError]:
+        """Check for explicitly declared domain utils that should be implicitly allowed."""
+        errors = []
+        
+        for subsystem in subsystems:
+            allowed_deps = subsystem.dependencies.get("allowed", [])
+            
+            for dep in allowed_deps:
+                # Check if it's a domain utils import that's explicitly declared
+                import re
+                utils_pattern = r"~/lib/domains/[^/]+/utils(?:/.*)?$"
+                if re.match(utils_pattern, dep):
+                    error = ArchError.create_error(
+                        message=(f"❌ Redundant domain utils declaration in {subsystem.name}:\n"
+                               f"  🔸 '{dep}' is implicitly allowed for all subsystems\n"
+                               f"     → Remove '{dep}' from {subsystem.path}/dependencies.json 'allowed' array\n"
+                               f"     → Domain utils are automatically accessible without explicit permission"),
+                        error_type=ErrorType.REDUNDANCY,
+                        subsystem=str(subsystem.path),
+                        recommendation=f"Remove '{dep}' from {subsystem.path}/dependencies.json 'allowed' array (domain utils are implicitly allowed)"
+                    )
+                    errors.append(error)
+        
+        return errors
+    
+    def check_nonexistent_dependencies(self, subsystems: List[SubsystemInfo]) -> List[ArchError]:
+        """Check for dependencies pointing to non-existent folders."""
+        errors = []
+        
+        for subsystem in subsystems:
+            deps = subsystem.dependencies
+            
+            # Check allowed array for non-existent paths
+            allowed = deps.get("allowed", [])
+            for dep in allowed:
+                if self._is_filesystem_dependency(dep):
+                    resolved_path = self._resolve_dependency_path(dep)
+                    if resolved_path and not self._path_exists(resolved_path):
+                        error = ArchError.create_error(
+                            message=(f"❌ Non-existent dependency in {subsystem.name}:\n"
+                                   f"  🔸 '{dep}' points to non-existent path: {resolved_path}\n"
+                                   f"     → Remove '{dep}' from {subsystem.path}/dependencies.json 'allowed' array\n"
+                                   f"     → Or create the missing directory/file"),
+                            error_type=ErrorType.NONEXISTENT_DEPENDENCY,
+                            subsystem=str(subsystem.path),
+                            recommendation=f"Remove '{dep}' from {subsystem.path}/dependencies.json 'allowed' array (path does not exist)"
+                        )
+                        errors.append(error)
+            
+            # Check allowedChildren array for non-existent paths
+            allowed_children = deps.get("allowedChildren", [])
+            for dep in allowed_children:
+                if self._is_filesystem_dependency(dep):
+                    resolved_path = self._resolve_dependency_path(dep)
+                    if resolved_path and not self._path_exists(resolved_path):
+                        error = ArchError.create_error(
+                            message=(f"❌ Non-existent allowedChildren in {subsystem.name}:\n"
+                                   f"  🔸 '{dep}' points to non-existent path: {resolved_path}\n"
+                                   f"     → Remove '{dep}' from {subsystem.path}/dependencies.json 'allowedChildren' array\n"
+                                   f"     → Or create the missing directory/file"),
+                            error_type=ErrorType.NONEXISTENT_DEPENDENCY,
+                            subsystem=str(subsystem.path),
+                            recommendation=f"Remove '{dep}' from {subsystem.path}/dependencies.json 'allowedChildren' array (path does not exist)"
+                        )
+                        errors.append(error)
+        
+        return errors
+    
     def check_file_folder_conflicts(self) -> List[ArchError]:
         """Check for file/folder naming conflicts."""
         errors = []
@@ -232,3 +322,61 @@ class SubsystemRuleChecker:
             return base_path / child_suffix
         else:
             return Path(other_dep) / dep[len(other_dep) + 1:]
+    
+    def _is_filesystem_dependency(self, dep: str) -> bool:
+        """Check if dependency is a filesystem path (not an npm package)."""
+        # Filesystem dependencies start with ~/ or are relative paths
+        # npm packages don't start with these patterns
+        return dep.startswith("~/") or dep.startswith("./") or dep.startswith("../")
+    
+    def _resolve_dependency_path(self, dep: str) -> Path:
+        """Resolve dependency path to actual filesystem path."""
+        if dep.startswith("~/"):
+            # ~/ means src/ in our context
+            return Path("src") / dep[2:]
+        elif dep.startswith("./"):
+            # Relative to current directory (should be rare)
+            return Path(dep)
+        elif dep.startswith("../"):
+            # Relative parent (should be rare)
+            return Path(dep)
+        else:
+            # Shouldn't reach here for filesystem dependencies
+            return None
+    
+    def _path_exists(self, path: Path) -> bool:
+        """Check if path exists as directory or as file with common extensions."""
+        if path.exists():
+            return True
+        
+        # If directory doesn't exist, check for files with common TypeScript/JavaScript extensions
+        possible_files = []
+        
+        # Only add extensions if the path doesn't already have a recognized extension
+        has_extension = any(str(path).endswith(ext) for ext in ['.ts', '.tsx', '.js', '.jsx', '.service'])
+        
+        if not has_extension:
+            possible_files.extend([
+                path.with_suffix('.ts'),
+                path.with_suffix('.tsx'), 
+                path.with_suffix('.js'),
+                path.with_suffix('.jsx')
+            ])
+        else:
+            # For paths that already have extensions like .service, try adding .ts
+            possible_files.extend([
+                Path(str(path) + '.ts'),
+                Path(str(path) + '.tsx'),
+                Path(str(path) + '.js'),
+                Path(str(path) + '.jsx')
+            ])
+        
+        # Always check for index files in the directory
+        possible_files.extend([
+            path / 'index.ts',
+            path / 'index.tsx',
+            path / 'index.js',
+            path / 'index.jsx'
+        ])
+        
+        return any(file_path.exists() for file_path in possible_files)

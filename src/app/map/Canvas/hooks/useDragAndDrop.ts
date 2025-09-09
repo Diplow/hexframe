@@ -11,12 +11,12 @@ import {
   handleDropEvent,
   createDragState,
   updateDropTarget,
-} from "./_coordinators";
+} from "~/app/map/Canvas/hooks/_coordinators";
 import type {
   DragState,
   DragHandlers,
   DropOperation,
-} from "./types";
+} from "~/app/map/Canvas/hooks/types";
 
 const initialDragState: DragState = {
   isDragging: false,

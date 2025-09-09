@@ -14,7 +14,7 @@ import {
   getItemByCoordsHandler,
   addItemHandler,
   updateItemHandler,
-} from "./services/map-items";
+} from "~/app/services/mcp/services/map-items";
 // Context wrapper no longer needed - context is in tool descriptions
 
 // Create MCP server instance

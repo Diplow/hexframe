@@ -15,20 +15,20 @@ export {
   type MapItemAttrs,
   type BaseItemAttrs,
   MapItemType,
-} from '../_objects';
+} from '~/lib/domains/mapping/_objects';
 
 // Repository interfaces only (for typing, not implementation)
 export type {
   MapItemRepository,
   MapItemIdr,
   BaseItemRepository,
-} from '../_repositories';
+} from '~/lib/domains/mapping/_repositories';
 
 // Domain types (client-safe)
 export type {
   MapContract,
   MapItemContract,
-} from '../types/contracts';
+} from '~/lib/domains/mapping/types/contracts';
 
 export type {
   CreateMapInput,
@@ -37,11 +37,11 @@ export type {
   MoveItemInput,
   SwapItemsInput,
   DatabaseTransaction,
-} from '../types';
+} from '~/lib/domains/mapping/types';
 
 export {
   mapItemDomainToContractAdapter,
-} from '../types/contracts';
+} from '~/lib/domains/mapping/types/contracts';
 
 // Domain errors (client-safe)
 export {
@@ -50,7 +50,7 @@ export {
   InvalidCoordinatesError,
   InvalidMoveError,
   PermissionDeniedError,
-} from '../types/errors';
+} from '~/lib/domains/mapping/types/errors';
 
 // Utilities (client-safe)
 export {
@@ -61,7 +61,7 @@ export {
   isValidCoord,
   coordToString,
   stringToCoord,
-} from '../utils/hex-coordinates';
+} from './hex-coordinates';
 
 // Note: GenericAggregate and GenericRepository are imported directly from '../../utils'
 // to avoid circular dependencies since _objects imports from this file

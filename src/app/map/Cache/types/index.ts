@@ -26,7 +26,7 @@ export type {
   MapNavigationEvent,
   MapExpansionChangedEvent,
   MapImportCompletedEvent
-} from '../../types';
+} from '~/app/map/types';
 
 // Event validation schemas for cache operations
 export {
@@ -37,7 +37,7 @@ export {
   mapTilesSwappedEventSchema,
   validateEvent,
   safeValidateEvent
-} from '../../types';
+} from '~/app/map/types';
 
 // Cache-specific types (moved from types.ts)
 import type { ReactNode, Dispatch } from "react";
@@ -48,7 +48,7 @@ import type {
   MutationOperations,
   NavigationOperations,
   LoadResult,
-} from "../Handlers/types";
+} from "~/app/map/Cache/Handlers/types";
 import type { ServerService, StorageService, ServiceConfig } from "~/app/map/Cache/Services/types";
 import type { SyncOperations, SyncResult, SyncStatus } from "~/app/map/Cache/Sync/types";
 import type { EventBusService } from '~/app/map';

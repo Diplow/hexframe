@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { KeyList } from './KeyList';
-import { KeyCreation } from './KeyCreation';
-import { useMcpKeys, type CreateKeyResult } from './useMcpKeys';
+import { KeyList } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/KeyList';
+import { KeyCreation } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/KeyCreation';
+import { useMcpKeys, type CreateKeyResult } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/useMcpKeys';
 
 interface McpKeysWidgetProps {
   onClose?: () => void;

@@ -1,7 +1,7 @@
 import { BaseTileLayout } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
 import type { TileScale } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
 import type { TileData } from "~/app/map/Canvas/types";
-import { getColorFromItem } from "..";
+import { getColorFromItem } from "~/app/map/Canvas/Tile";
 import { cn } from "~/lib/utils";
 import { getTextColorForDepth } from "~/app/map/Canvas/types";
 

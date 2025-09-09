@@ -9,7 +9,7 @@ import { BaseTileLayout } from "~/app/map/Canvas";
 import {
   HIERARCHY_TILE_BASE_SIZE,
   HIERARCHY_TILE_SCALE,
-} from "../constants";
+} from "~/app/map/constants";
 import { getTextColorForDepth } from "~/app/map/types/theme-colors";
 import { useUnifiedAuth } from "~/contexts/UnifiedAuthContext";
 import { api } from "~/commons/trpc/react";

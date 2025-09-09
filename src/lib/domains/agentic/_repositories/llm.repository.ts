@@ -3,7 +3,7 @@ import type {
   LLMResponse, 
   StreamChunk, 
   ModelInfo 
-} from '../types/llm.types'
+} from '~/lib/domains/agentic/types/llm.types'
 
 export interface LLMRepository {
   generateResponse(params: LLMGenerationParams): Promise<LLMResponse>

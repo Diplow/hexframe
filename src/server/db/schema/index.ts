@@ -11,7 +11,7 @@ export {
   usersRelations,
   accountsRelations,
   sessionsRelations,
-} from "./_relations";
+} from "~/server/db/schema/_relations";
 
 // Auth tables for better-auth
 export * from "~/server/db/schema/_tables/auth/users";

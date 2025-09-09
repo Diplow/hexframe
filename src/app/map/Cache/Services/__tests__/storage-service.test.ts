@@ -9,7 +9,7 @@ import {
   createSSRStorageOperations,
   createMockStorageOperations,
   STORAGE_KEYS,
-} from "../storage-service";
+} from "~/app/map/Cache/Services/storage-service";
 import type { StorageOperations } from "~/app/map/Cache/Services/storage-service";
 
 // Mock console.warn to avoid noise in tests

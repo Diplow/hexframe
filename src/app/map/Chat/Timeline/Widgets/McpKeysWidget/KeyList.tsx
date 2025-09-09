@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { McpKey, CreateKeyResult } from './useMcpKeys';
+import type { McpKey, CreateKeyResult } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/useMcpKeys';
 
 interface KeyListProps {
   keys: McpKey[];

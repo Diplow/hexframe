@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   createDataHandler,
   createDataHandlerWithMockableService,
-} from "../data-handler";
+} from "~/app/map/Cache/Handlers/data-handler";
 import { cacheActions } from "~/app/map/Cache/State/actions";
 import { initialCacheState } from "~/app/map/Cache/State/reducer";
 import type { DataHandlerConfig, DataHandlerServices } from "~/app/map/Cache/Handlers/data-handler";

@@ -23,7 +23,7 @@ export type {
   ChatMessageEvent,
   ChatWidgetEvent,
   AuthStateChangedEvent
-} from '../../types';
+} from '~/app/map/types';
 
 // Event validation schemas for Services
 export {
@@ -35,7 +35,7 @@ export {
   mapTileDeletedEventSchema,
   chatMessageSentEventSchema,
   chatMessageReceivedEventSchema
-} from '../../types';
+} from '~/app/map/types';
 
 // Core data types that Services might need
 export type { TileData, TileState } from '~/app/map/types';

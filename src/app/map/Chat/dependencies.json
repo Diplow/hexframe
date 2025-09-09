@@ -1,15 +1,17 @@
 {
   "$schema": "../../../../schemas/dependencies.schema.json",
   "allowedChildren": [
-    "~/app/map/Cache",
-    "~/app/map/types",
-    "~/app/types"
+    "~/app/map/Cache"
   ],
   "allowed": [
     "remark-gfm",
     "~/app",
     "~/app/map/Services",
-    "~/components/ThemeToggle"
+    "~/components/ThemeToggle",
+    "~/contexts/UnifiedAuthContext",
+    "~/lib/auth",
+    "~/lib/debug/debug-logger",
+    "~/lib/domains/agentic"
   ],
   "subsystems": [
     "./Input",

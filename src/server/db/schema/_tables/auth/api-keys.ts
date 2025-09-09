@@ -5,7 +5,7 @@ import {
   boolean,
   integer,
 } from "drizzle-orm/pg-core";
-import { users } from "./users";
+import { users } from "~/server/db/schema/_tables/auth/users";
 
 // Better-auth API key schema
 export const apiKeys = pgTable("apikey", {

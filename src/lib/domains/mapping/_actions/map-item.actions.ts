@@ -8,7 +8,7 @@ import {
   type MapItemWithId,
   MapItemType,
 } from "~/lib/domains/mapping/_objects";
-import type { Coord } from "~/lib/domains/mapping/utils/hex-coordinates";
+import type { Coord } from "~/lib/domains/mapping/utils";
 import type { MapItemIdr } from "~/lib/domains/mapping/_repositories/map-item";
 import { MapItemCreationHelpers } from "~/lib/domains/mapping/_actions/_map-item-creation-helpers";
 import { MapItemQueryHelpers } from "~/lib/domains/mapping/_actions/_map-item-query-helpers";

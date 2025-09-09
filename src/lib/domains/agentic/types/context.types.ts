@@ -1,4 +1,4 @@
-import type { Direction } from '~/lib/domains/mapping/utils/hex-coordinates'
+import type { Direction } from '~/lib/domains/mapping/utils'
 
 export interface ContextMetadata {
   computedAt: Date

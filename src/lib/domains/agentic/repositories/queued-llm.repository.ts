@@ -4,7 +4,7 @@ import type {
   LLMResponse, 
   StreamChunk, 
   ModelInfo 
-} from '../types/llm.types'
+} from '~/lib/domains/agentic/types/llm.types'
 import type { Inngest } from 'inngest'
 import { loggers } from '~/lib/debug/debug-logger'
 import { nanoid } from 'nanoid'

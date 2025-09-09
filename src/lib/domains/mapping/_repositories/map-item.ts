@@ -5,7 +5,7 @@ import {
   type MapItemWithId,
 } from "~/lib/domains/mapping/_objects";
 import { type GenericRepository } from "~/lib/domains/utils";
-import { type Coord } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { type Coord } from "~/lib/domains/mapping/utils";
 
 export type MapItemIdr =
   | { id: number }

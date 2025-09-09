@@ -12,6 +12,7 @@ export { ConfirmDeleteWidget } from '~/app/map/Chat/Timeline/Widgets/ConfirmDele
 export { ErrorWidget } from '~/app/map/Chat/Timeline/Widgets/ErrorWidget';
 export { LoadingWidget } from '~/app/map/Chat/Timeline/Widgets/LoadingWidget';
 export { AIResponseWidget } from '~/app/map/Chat/Timeline/Widgets/AIResponseWidget';
+export { McpKeysWidget } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/McpKeysWidget';
 
 // Widget Infrastructure
 export { Portal } from '~/app/map/Chat/Timeline/Widgets/Portal';

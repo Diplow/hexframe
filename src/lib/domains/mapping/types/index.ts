@@ -5,12 +5,12 @@ export {
   type MapItemRelatedItems,
   type MapItemRelatedLists,
   type MapItemWithId,
-} from "../_objects";
+} from "~/lib/domains/mapping/_objects";
 
 export {
   type MapContract as MapMappingContract,
   type MapItemContract as MapItemMappingContract,
-} from "./contracts";
+} from "~/lib/domains/mapping/types/contracts";
 
 export type { DatabaseTransaction } from "~/lib/domains/mapping/types/transaction";
 
