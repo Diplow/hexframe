@@ -5,12 +5,26 @@ const config = {
   parserOptions: {
     project: true,
   },
-  plugins: ["@typescript-eslint", "drizzle"],
+  plugins: ["@typescript-eslint", "drizzle", "import"],
   extends: [
     "next/core-web-vitals",
     "plugin:@typescript-eslint/recommended-type-checked",
     "plugin:@typescript-eslint/stylistic-type-checked",
   ],
+  settings: {
+    "import/resolver": {
+      typescript: {
+        alwaysTryTypes: true,
+        project: "./tsconfig.json"
+      },
+      alias: {
+        map: [
+          ["~", "./src"]
+        ],
+        extensions: [".js", ".jsx", ".ts", ".tsx"]
+      }
+    }
+  },
   overrides: [
     {
       files: ["src/lib/debug/**/*.ts"],
@@ -88,6 +102,18 @@ const config = {
       {
         selector: "Literal[value=/\\b(text|bg|border|ring|fill)-(slate|gray|zinc|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\\d{2,3}\\b/]",
         message: "Use semantic colors from the design system instead of direct Tailwind colors. Replace with primary, secondary, success, link, destructive, or neutral."
+      }
+    ],
+    // Use no-restricted-imports to forbid relative imports but allow ~ imports
+    "no-restricted-imports": [
+      "error",
+      {
+        patterns: [
+          {
+            group: ["../*", "./*"],
+            message: "Relative imports are not allowed. Use absolute imports with '~/' prefix instead."
+          }
+        ]
       }
     ]
   },
