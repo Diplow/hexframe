@@ -8,14 +8,22 @@ Handles import parsing and dependency resolution.
 import re
 from pathlib import Path
 from typing import List, Set
+import sys
+import os
 
 from ..models import SubsystemInfo
 
+# Import shared TypeScript parser
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+from shared.typescript_parser import TypeScriptParser
+
+# Create a shared parser instance
+_parser = TypeScriptParser()
+
 
 def extract_imports(content: str) -> List[str]:
-    """Extract import paths from TypeScript content."""
-    import_pattern = r'from\s+["\']([^"\']+)["\']'
-    return re.findall(import_pattern, content)
+    """Extract import paths from TypeScript content using shared parser."""
+    return _parser.extract_import_paths(content)
 
 
 def resolve_inheritance_chain(subsystem: SubsystemInfo, file_cache) -> List[str]:

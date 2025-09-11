@@ -15,8 +15,13 @@ from collections import defaultdict, deque
 
 from .models import (
     CheckResults, DeadCodeIssue, DeadCodeType, Severity,
-    Export, Import, Symbol, FileAnalysis
+    FileAnalysis
 )
+
+# Import shared TypeScript parser
+import sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+from shared.typescript_parser import TypeScriptParser, Import, Export, Symbol
 
 
 class DependencyGraph:
@@ -133,6 +138,7 @@ class DeadCodeChecker:
         self.import_map: Dict[str, List[Import]] = defaultdict(list)
         self.exceptions: Set[str] = set()
         self.dependency_graph = DependencyGraph()
+        self.parser = TypeScriptParser()
         
         self._load_exceptions()
     
@@ -367,6 +373,69 @@ class DeadCodeChecker:
     def _extract_imports(self, content: str, file_path: Path) -> List[Import]:
         """Extract import statements from file content."""
         imports = []
+        
+        # First handle multi-line imports using regex on full content
+        # Multi-line named imports: import { ... }
+        multi_import_pattern = r'import\s*\{\s*((?:[^{}]|{[^}]*})*?)\s*\}\s*from\s*["\']([^"\']+)["\']'
+        for match in re.finditer(multi_import_pattern, content, re.MULTILINE | re.DOTALL):
+            imports_str = match.group(1)
+            from_path = match.group(2)
+            
+            # Find line number of the import statement
+            content_before = content[:match.start()]
+            line_number = content_before.count('\n') + 1
+            
+            # Parse individual imports
+            for import_name in imports_str.split(','):
+                import_name = import_name.strip()
+                if not import_name:
+                    continue
+                    
+                # Handle 'as' aliases: foo as bar
+                original_name = import_name
+                if ' as ' in import_name:
+                    original_name = import_name.split(' as ')[0].strip()
+                    import_name = import_name.split(' as ')[-1].strip()
+                
+                imports.append(Import(
+                    name=import_name,
+                    from_path=from_path,
+                    file_path=file_path,
+                    line_number=line_number,
+                    import_type='named',
+                    original_name=original_name if ' as ' in import_name else None
+                ))
+        
+        # Multi-line type imports: import type { ... }
+        multi_type_pattern = r'import\s+type\s*\{\s*((?:[^{}]|{[^}]*})*?)\s*\}\s*from\s*["\']([^"\']+)["\']'
+        for match in re.finditer(multi_type_pattern, content, re.MULTILINE | re.DOTALL):
+            imports_str = match.group(1)
+            from_path = match.group(2)
+            
+            # Find line number
+            content_before = content[:match.start()]
+            line_number = content_before.count('\n') + 1
+            
+            for import_name in imports_str.split(','):
+                import_name = import_name.strip()
+                if not import_name:
+                    continue
+                    
+                original_name = import_name
+                if ' as ' in import_name:
+                    original_name = import_name.split(' as ')[0].strip()
+                    import_name = import_name.split(' as ')[-1].strip()
+                
+                imports.append(Import(
+                    name=import_name,
+                    from_path=from_path,
+                    file_path=file_path,
+                    line_number=line_number,
+                    import_type='type',
+                    original_name=original_name if ' as ' in import_name else None
+                ))
+        
+        # Now process line by line for other import patterns
         lines = content.split('\n')
         
         for i, line in enumerate(lines, 1):
@@ -375,6 +444,16 @@ class DeadCodeChecker:
             # Skip comments and empty lines
             if not line or line.startswith('//') or line.startswith('/*'):
                 continue
+            
+            # Skip lines that are part of multi-line imports (already processed)
+            # But don't skip direct imports like "import foo from 'bar'"
+            if 'import' in line and ('{' in line or '}' in line):
+                # Check if this is a single-line import pattern
+                is_single_line_import = line.startswith('import') and line.endswith("';")
+                
+                # Skip only if it's truly part of a multi-line import block
+                if not is_single_line_import:
+                    continue
             
             # Default import: import foo from 'bar'
             default_match = re.match(r'import\s+(\w+)\s+from\s+["\']([^"\']+)["\']', line)
@@ -391,19 +470,22 @@ class DeadCodeChecker:
                 ))
                 continue
             
-            # Named imports: import { foo, bar } from 'baz'
-            named_match = re.match(r'import\s*\{\s*([^}]+)\s*\}\s*from\s*["\']([^"\']+)["\']', line)
-            if named_match:
-                imports_str = named_match.group(1)
-                from_path = named_match.group(2)
+            # Single-line named imports: import { foo, bar } from 'baz' on one line
+            single_named_match = re.match(r'^import\s*\{\s*([^}]+)\s*\}\s*from\s*["\']([^"\']+)["\']$', line)
+            if single_named_match:
+                imports_str = single_named_match.group(1)
+                from_path = single_named_match.group(2)
                 
                 for import_name in imports_str.split(','):
                     import_name = import_name.strip()
+                    if not import_name:
+                        continue
+                        
                     # Handle 'as' aliases: foo as bar
                     original_name = import_name
                     if ' as ' in import_name:
                         original_name = import_name.split(' as ')[0].strip()
-                        import_name = import_name.split(' as ')[1].strip()
+                        import_name = import_name.split(' as ')[-1].strip()
                     
                     imports.append(Import(
                         name=import_name,
@@ -415,14 +497,17 @@ class DeadCodeChecker:
                     ))
                 continue
             
-            # Type imports: import type { ... } from '...'
-            type_match = re.match(r'import\s+type\s*\{\s*([^}]+)\s*\}\s*from\s*["\']([^"\']+)["\']', line)
-            if type_match:
-                imports_str = type_match.group(1)
-                from_path = type_match.group(2)
+            # Single-line type imports: import type { ... } from '...' on one line
+            single_type_match = re.match(r'^import\s+type\s*\{\s*([^}]+)\s*\}\s*from\s*["\']([^"\']+)["\']$', line)
+            if single_type_match:
+                imports_str = single_type_match.group(1)
+                from_path = single_type_match.group(2)
                 
                 for import_name in imports_str.split(','):
                     import_name = import_name.strip()
+                    if not import_name:
+                        continue
+                        
                     original_name = import_name
                     if ' as ' in import_name:
                         original_name = import_name.split(' as ')[0].strip()
@@ -581,15 +666,15 @@ class DeadCodeChecker:
         return used_symbols
     
     def _analyze_file(self, file_path: Path) -> FileAnalysis:
-        """Analyze a single TypeScript file."""
+        """Analyze a single TypeScript file using shared parser."""
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
             
-            exports = self._extract_exports(content, file_path)
-            imports = self._extract_imports(content, file_path)
-            symbols = self._extract_symbols(content, file_path)
-            used_symbols = self._find_symbol_usage(content)
+            exports = self.parser.extract_exports(content, file_path)
+            imports = self.parser.extract_imports(content, file_path)
+            symbols = self.parser.extract_symbols(content, file_path)
+            used_symbols = self.parser.find_symbol_usage(content)
             
             analysis = FileAnalysis(
                 path=file_path,

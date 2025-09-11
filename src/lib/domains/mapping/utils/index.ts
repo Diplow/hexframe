@@ -61,7 +61,7 @@ export {
   isValidCoord,
   coordToString,
   stringToCoord,
-} from './hex-coordinates';
+} from '~/lib/domains/mapping/utils/hex-coordinates';
 
 // Note: GenericAggregate and GenericRepository are imported directly from '../../utils'
 // to avoid circular dependencies since _objects imports from this file
