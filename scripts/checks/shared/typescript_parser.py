@@ -524,6 +524,10 @@ class TypeScriptParser:
         functions = []
         lines = content.split('\n')
         
+        # Track context to avoid counting interface properties as functions
+        in_interface_block = False
+        brace_level = 0
+        
         i = 0
         while i < len(lines):
             line = lines[i].strip()
@@ -533,25 +537,63 @@ class TypeScriptParser:
                 i += 1
                 continue
             
+            # Track if we're inside an interface block
+            if re.match(r'(?:export\s+)?interface\s+\w+', line):
+                in_interface_block = True
+                brace_level = 0
+            
+            # Track brace levels to know when we exit interface
+            if in_interface_block:
+                brace_level += line.count('{')
+                brace_level -= line.count('}')
+                if brace_level <= 0:
+                    in_interface_block = False
+            
+            # Skip lines inside interface blocks (they're type definitions, not functions)
+            if in_interface_block:
+                i += 1
+                continue
+            
             function_match = None
-            for pattern in self.function_patterns:
+            matched_pattern_idx = None
+            for idx, pattern in enumerate(self.function_patterns):
                 match = re.search(pattern, line)
                 if match:
                     func_name = match.group(1)
                     # Skip if it's a control flow keyword
                     if func_name.lower() not in self.excluded_keywords:
                         function_match = match
+                        matched_pattern_idx = idx
                         break
             
             if function_match:
                 func_name = function_match.group(1)
                 args_str = function_match.group(2) if len(function_match.groups()) > 1 else ""
                 
+                # Skip object properties and interface method signatures
+                # Pattern 2 (r'(\w+)\s*:\s*(?:async\s*)?\(([^)]*)\)\s*=>') matches:
+                # - Interface method signatures (which we want to skip)
+                # - Object property functions (which we want to skip if they're just property definitions)
+                if matched_pattern_idx == 2:  # object method arrow functions pattern
+                    # Check if this is just a property definition (ends with semicolon or is part of type definition)
+                    if line.endswith(';') or line.endswith(',') or '=>' not in line:
+                        i += 1
+                        continue
+                    
+                    # Check if this is an object property in a return statement or object literal
+                    # These are not standalone functions
+                    if ':' in line and not line.strip().startswith('const ') and not line.strip().startswith('let '):
+                        # Look for context - if we're in an object literal, skip this
+                        context_lines = '\n'.join(lines[max(0, i-5):i+1])
+                        if 'return {' in context_lines or re.search(r'=\s*\{[^}]*$', context_lines, re.MULTILINE):
+                            i += 1
+                            continue
+                
                 # Count arguments
                 arg_count = self._count_arguments(args_str)
                 
                 # Find function boundaries and count lines
-                line_start, line_end = self._find_function_boundaries(lines, i)
+                line_start, line_end = self._find_function_boundaries(lines, i, matched_pattern_idx)
                 line_count = line_end - line_start + 1
                 
                 functions.append(FunctionInfo(
@@ -648,11 +690,39 @@ class TypeScriptParser:
         
         return violations
 
-    def _find_function_boundaries(self, lines: List[str], start_line_idx: int) -> tuple[int, int]:
+    def _find_function_boundaries(self, lines: List[str], start_line_idx: int, pattern_idx: int = None) -> tuple[int, int]:
         """Find the start and end line numbers of a function."""
         line_start = start_line_idx + 1  # Convert to 1-indexed
         
-        # Simple approach: look for opening brace and count braces
+        # Handle arrow functions differently
+        if pattern_idx == 1:  # const foo = () => pattern
+            # For arrow functions, look for the end of the statement
+            paren_count = 0
+            brace_count = 0
+            found_arrow = False
+            
+            for i in range(start_line_idx, len(lines)):
+                line = lines[i]
+                
+                if '=>' in line:
+                    found_arrow = True
+                
+                if found_arrow:
+                    # If it's an arrow function with braces
+                    if '{' in line:
+                        brace_count += line.count('{')
+                        brace_count -= line.count('}')
+                        
+                        if brace_count == 0:
+                            return line_start, i + 1
+                    
+                    # If it's a single-expression arrow function (no braces)
+                    elif brace_count == 0 and (line.rstrip().endswith(';') or line.rstrip().endswith(',') or i == len(lines) - 1):
+                        return line_start, i + 1
+            
+            return line_start, line_start
+        
+        # For regular functions and methods
         brace_count = 0
         found_opening = False
         
@@ -669,5 +739,5 @@ class TypeScriptParser:
                 if brace_count == 0:
                     return line_start, i + 1  # Convert to 1-indexed
         
-        # If we can't find the end, estimate based on indentation or return start line
+        # If we can't find the end, return just the start line
         return line_start, line_start
