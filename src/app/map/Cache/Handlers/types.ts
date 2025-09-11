@@ -1,4 +1,4 @@
-import type { CacheAction, CacheState } from "~/app/map/Cache/State/types";
+import type { CacheAction, CacheState } from "~/app/map/Cache/State";
 
 // Common handler dependencies
 export interface HandlerConfig {

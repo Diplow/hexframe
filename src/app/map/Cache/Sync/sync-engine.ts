@@ -1,5 +1,5 @@
-import type { CacheAction, CacheState } from "~/app/map/Cache/State/types";
-import type { DataOperations } from "~/app/map/Cache/Handlers/types";
+import type { CacheAction, CacheState } from "~/app/map/Cache/State";
+import type { DataOperations } from "~/app/map/Cache/Handlers";
 import type {
   SyncConfig,
   SyncStatus,

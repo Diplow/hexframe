@@ -1,9 +1,9 @@
 import { useMemo, useCallback, useRef } from "react";
 import type { Dispatch } from "react";
-import type { CacheState, CacheAction } from "~/app/map/Cache/State/types";
-import type { DataOperations } from "~/app/map/Cache/Handlers/types";
+import type { CacheState, CacheAction } from "~/app/map/Cache/State";
+import type { DataOperations } from "~/app/map/Cache/Handlers";
+import { createDataHandlerWithServerService } from "~/app/map/Cache/Handlers";
 import type { ServerService } from "~/app/map/Cache/Services/types";
-import { createDataHandlerWithServerService } from "~/app/map/Cache/Handlers/data-handler";
 
 /**
  * Creates wrapped data operations that always use current state

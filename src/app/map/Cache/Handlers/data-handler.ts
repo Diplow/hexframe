@@ -1,7 +1,7 @@
 import { type api } from "~/commons/trpc/react";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
-import type { CacheAction, CacheState } from "~/app/map/Cache/State/types";
-import { cacheActions } from "~/app/map/Cache/State/actions";
+import type { CacheAction, CacheState } from "~/app/map/Cache/State";
+import { cacheActions } from "~/app/map/Cache/State";
 import {
   createServerService,
   type useServerService,

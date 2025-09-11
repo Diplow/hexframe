@@ -1,6 +1,6 @@
 import { useContext, useMemo, useCallback } from "react";
 import { MapCacheContext } from "~/app/map/Cache/provider";
-import { cacheSelectors } from "~/app/map/Cache/State/selectors";
+import { cacheSelectors } from "~/app/map/Cache/State";
 import type { MapCacheHook } from "~/app/map/Cache/types";
 import type { TileData } from "~/app/map/types/tile-data";
 import * as hierarchyService from "~/app/map/Cache/Services/hierarchy-service";

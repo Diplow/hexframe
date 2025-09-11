@@ -1,0 +1,7 @@
+{
+  "$schema": "../../../../schemas/dependencies.schema.json",
+  "allowed": [
+    "~/app/map/Cache/State",
+    "~/server/api/types/contracts"
+  ]
+}

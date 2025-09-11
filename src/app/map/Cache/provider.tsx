@@ -10,14 +10,14 @@ import React, {
 } from "react";
 
 // Core infrastructure
-import { cacheReducer, initialCacheState } from "~/app/map/Cache/State/reducer";
+import { cacheReducer, initialCacheState } from "~/app/map/Cache/State";
 
 // Services
 import { useServerService } from "~/app/map/Cache/Services/server-service";
 import { useStorageService } from "~/app/map/Cache/Services/storage-service";
 
 // Handlers
-import { useNavigationHandler } from "~/app/map/Cache/Handlers/navigation-handler";
+import { useNavigationHandler } from "~/app/map/Cache/Handlers";
 
 // Sync engine
 import { useSyncEngine } from "~/app/map/Cache/Sync/sync-engine";
@@ -27,7 +27,7 @@ import { useDataOperationsWrapper } from "~/app/map/Cache/_coordinators/data-ope
 import { useMutationOperations } from "~/app/map/Cache/_coordinators/use-mutation-operations";
 import { useCacheContextBuilder } from "~/app/map/Cache/_builders/context-builder";
 import { useCacheLifecycle } from "~/app/map/Cache/_lifecycle/provider-lifecycle";
-import { cacheActions } from "~/app/map/Cache/State/actions";
+import { cacheActions } from "~/app/map/Cache/State";
 
 
 // Types

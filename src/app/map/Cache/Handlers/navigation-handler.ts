@@ -1,6 +1,6 @@
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import type { CacheAction, CacheState } from "~/app/map/Cache/State/types";
-import { cacheActions } from "~/app/map/Cache/State/actions";
+import type { CacheAction, CacheState } from "~/app/map/Cache/State";
+import { cacheActions } from "~/app/map/Cache/State";
 import type { DataOperations, NavigationOperations } from "~/app/map/Cache/Handlers/types";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 import type { ServerService } from "~/app/map/Cache/Services/types";

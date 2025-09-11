@@ -1,9 +1,9 @@
 import type { Dispatch } from "react";
-import type { CacheAction } from "~/app/map/Cache/State/types";
+import type { CacheAction } from "~/app/map/Cache/State";
+import { cacheActions } from "~/app/map/Cache/State";
 import type { ServerService } from "~/app/map/Cache/Services/types";
 import type { TileData } from "~/app/map/types";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
-import { cacheActions } from "~/app/map/Cache/State/actions";
 import { getColor } from "~/app/map/types";
 
 export interface AncestorCheckResult {
