@@ -1,7 +1,7 @@
 import type { CacheState } from "~/app/map/Cache/State/types";
 import type { TileData } from "~/app/map/types";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
-import { createMemoizedSelector } from "./items";
+import { createMemoizedSelector } from "~/app/map/Cache/State/selectors/items";
 
 // Coordinate and hierarchy selectors
 export const selectItemParent = (

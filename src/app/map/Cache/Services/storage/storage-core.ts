@@ -1,5 +1,5 @@
 import type { StorageService, ServiceConfig } from "~/app/map/Cache/Services/types";
-import type { StorageOperations } from "./storage-operations";
+import type { StorageOperations } from "~/app/map/Cache/Services/storage/storage-operations";
 
 // Storage metadata for version control and debugging
 const CURRENT_STORAGE_VERSION = "1.0.0";

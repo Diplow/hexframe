@@ -1,10 +1,10 @@
 import type { StorageService, ServiceConfig } from "~/app/map/Cache/Services/types";
-import { createStorageService } from "./storage-core";
+import { createStorageService } from "~/app/map/Cache/Services/storage/storage-core";
 import { 
   createBrowserStorageOperations,
   createSSRStorageOperations,
   createMockStorageOperations
-} from "./storage-operations";
+} from "~/app/map/Cache/Services/storage/storage-operations";
 
 /**
  * Create storage service for browser environments

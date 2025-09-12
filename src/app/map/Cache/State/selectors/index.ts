@@ -1,12 +1,12 @@
 // Re-export all selectors from organized modules
-export * from './basic';
-export * from './items';
-export * from './regions';
-export * from './navigation';
-export { cacheSelectors, staticSelectors } from './composite';
+export * from '~/app/map/Cache/State/selectors/basic';
+export * from '~/app/map/Cache/State/selectors/items';
+export * from '~/app/map/Cache/State/selectors/regions';
+export * from '~/app/map/Cache/State/selectors/navigation';
+export { cacheSelectors, staticSelectors } from '~/app/map/Cache/State/selectors/composite';
 
 // Create default selectors instance for backward compatibility  
-import { cacheSelectors } from './composite';
+import { cacheSelectors } from '~/app/map/Cache/State/selectors/composite';
 
 // Import the initial state type to avoid circular dependencies
 const createDefaultSelectors = () => {

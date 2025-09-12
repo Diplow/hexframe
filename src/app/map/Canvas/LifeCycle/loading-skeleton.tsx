@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { cn } from "../../../../lib/utils";
-import { BaseFrame } from "../Tile";
-import type { TileData, URLInfo } from "../types";
-import { CoordSystem } from "../../../../lib/domains/mapping/utils";
+import { cn } from "~/lib/utils";
+import { BaseFrame } from "~/app/map/Canvas/Tile";
+import type { TileData, URLInfo } from "~/app/map/Canvas/types";
+import { CoordSystem } from "~/lib/domains/mapping/utils";
 
 interface MapLoadingSkeletonProps {
   className?: string;

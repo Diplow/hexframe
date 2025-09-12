@@ -67,7 +67,7 @@ export function createDataHandler(config: DataHandlerConfig) {
         maxDepth,
       });
 
-      dispatch(cacheActions.loadRegion(items as any, centerCoordId, maxDepth));
+      dispatch(cacheActions.loadRegion(items as Parameters<typeof cacheActions.loadRegion>[0], centerCoordId, maxDepth));
 
       return { success: true, itemsLoaded: items.length };
     } catch (error) {
@@ -95,7 +95,7 @@ export function createDataHandler(config: DataHandlerConfig) {
         maxDepth,
       });
 
-      dispatch(cacheActions.loadItemChildren(items as any, parentCoordId, maxDepth));
+      dispatch(cacheActions.loadItemChildren(items as Parameters<typeof cacheActions.loadItemChildren>[0], parentCoordId, maxDepth));
 
       return { success: true, itemsLoaded: items.length };
     } catch (error) {

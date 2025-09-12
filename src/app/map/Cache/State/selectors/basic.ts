@@ -1,6 +1,4 @@
-import type { CacheState, RegionMetadata } from "~/app/map/Cache/State/types";
-import type { TileData } from "~/app/map/types";
-import { CoordSystem } from "~/lib/domains/mapping/utils";
+import type { CacheState } from "~/app/map/Cache/State/types";
 
 // Basic state accessors - simple, direct property access
 export const selectAllItems = (state: CacheState) => state.itemsById;

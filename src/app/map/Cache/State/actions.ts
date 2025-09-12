@@ -1,7 +1,7 @@
 import type { MapItemAPIContract } from "~/server/api/types/contracts";
 import type { TileData } from "~/app/map/types";
-import type { CacheAction, LoadRegionPayload, LoadItemChildrenPayload, UpdateCacheConfigPayload } from "./types";
-import { ACTION_TYPES } from "./types";
+import type { CacheAction, LoadRegionPayload, LoadItemChildrenPayload, UpdateCacheConfigPayload } from "~/app/map/Cache/State/types";
+import { ACTION_TYPES } from "~/app/map/Cache/State/types";
 
 // ============================================================================
 // BASIC ACTION CREATORS - pure functions that return action objects  

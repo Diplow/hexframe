@@ -123,6 +123,7 @@ See: `company/MISSION.md` - Top section for full thesis
 - **Rule of 6**: Max 6 items per level (folders, functions, arguments)
 - **Single Level of Abstraction**: Consistent abstraction at each level
 - **Systems That Live**: Unused systems are failed systems
+- **Import Pattern**: Always use absolute imports with `~/` prefix, never relative imports
 - See: `CLAUDE.md` in project root for coding standards
 
 ## Development Commands
@@ -176,4 +177,5 @@ Use `pnpm check:deadcode [path]` to identify unused exports, files, and transiti
 ## Important Notes
 - Always use `pnpm` (not npm or yarn)
 - Tests use Vitest (not Jest)
-- never use pnpm dev to check something is working. just run pnpm check:lint typecheck check:quality test
+- Never use pnpm dev to check something is working. just run pnpm check:lint typecheck check:quality test
+- **Import Rules**: Always use absolute imports with `~/` prefix instead of relative imports (`./` or `../`). This is enforced by ESLint `no-restricted-imports` rule for better maintainability and consistency.

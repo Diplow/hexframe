@@ -12,28 +12,32 @@ import { loggers } from '~/lib/debug/debug-logger';
 import { CommandAutocomplete } from '~/app/map/Chat/Input/_components/CommandAutocomplete';
 import { getAllCommands } from '~/app/map/Chat/Input/_commands';
 import { useMapCache } from '~/app/map/Cache';
+import type { ChatEvent, ExecuteCommandPayload } from '~/app/map/Chat/_state/_events/event.types';
 
 /**
  * Custom hook for processing command events
  */
-function useEventProcessor(events: any[], executeCommand: (command: string) => Promise<string>) {
+function useEventProcessor(events: ChatEvent[], executeCommand: (command: string) => Promise<string>) {
   const lastProcessedCommandRef = useRef<string | null>(null);
   
   useEffect(() => {
     if (!events || !Array.isArray(events)) return;
     
-    const unprocessedEvents = events.filter(e => 
+    const unprocessedEvents = events.filter((e): e is ChatEvent & { type: 'execute_command' } => 
       e.type === 'execute_command' && 
       e.timestamp.getTime() > (lastProcessedCommandRef.current ? new Date(lastProcessedCommandRef.current).getTime() : 0)
-    ) as Array<{ type: 'execute_command'; payload: { command: string }; timestamp: Date }>;
+    );
     
     if (unprocessedEvents.length > 0) {
       const latestEvent = unprocessedEvents[unprocessedEvents.length - 1];
       if (!latestEvent) return;
       
-      const command = latestEvent.payload.command;
+      const payload = latestEvent.payload as ExecuteCommandPayload;
+      const command = payload.command;
       lastProcessedCommandRef.current = latestEvent.timestamp.toISOString();
-      void executeCommand(command);
+      executeCommand(command).catch((error) => {
+        console.error('Failed to execute command:', error);
+      });
     }
   }, [events, executeCommand]);
 }
@@ -89,61 +93,6 @@ function useAutocompleteLogic(setMessage: (msg: string) => void, center: string 
   };
 }
 
-/**
- * Custom hook for keyboard handling with autocomplete
- */
-function useKeyboardHandling(
-  showAutocomplete: boolean,
-  suggestions: any[],
-  selectedSuggestionIndex: number,
-  setSelectedSuggestionIndex: (fn: (prev: number) => number) => void,
-  selectSuggestion: (cmd: string) => void,
-  handleSend: () => void,
-  textareaHandleKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => string | null,
-  setMessage: (msg: string) => void
-) {
-  return useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (showAutocomplete && suggestions.length > 0) {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setSelectedSuggestionIndex(prev => prev < suggestions.length - 1 ? prev + 1 : 0);
-        return;
-      }
-      
-      if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setSelectedSuggestionIndex(prev => prev > 0 ? prev - 1 : suggestions.length - 1);
-        return;
-      }
-      
-      if (e.key === 'Tab' || e.key === 'Enter') {
-        e.preventDefault();
-        const selectedSuggestion = suggestions[selectedSuggestionIndex];
-        if (selectedSuggestion) {
-          selectSuggestion(selectedSuggestion.command);
-        }
-        return;
-      }
-      
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        setMessage('');
-        return;
-      }
-    }
-    
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-      return;
-    }
-
-    const historyMessage = textareaHandleKeyDown(e);
-    if (historyMessage !== null) {
-      setMessage(historyMessage);
-    }
-  }, [showAutocomplete, suggestions, selectedSuggestionIndex, setSelectedSuggestionIndex, selectSuggestion, handleSend, textareaHandleKeyDown, setMessage]);
-}
 
 export function Input() {
   const [message, setMessage] = useState('');
@@ -208,7 +157,9 @@ export function Input() {
     addToHistory(trimmed);
     
     if (isCommand(trimmed)) {
-      executeCommand(trimmed);
+      executeCommand(trimmed).catch((error) => {
+        console.error('Failed to execute command:', error);
+      });
     } else {
       sendMessage(trimmed);
     }
@@ -240,7 +191,10 @@ export function Input() {
       if (e.key === 'Tab' || e.key === 'Enter') {
         if (selectedSuggestionIndex < suggestions.length) {
           e.preventDefault();
-          selectSuggestion(suggestions[selectedSuggestionIndex]?.command ?? '');
+          const selectedSuggestion = suggestions[selectedSuggestionIndex];
+          if (selectedSuggestion) {
+            selectSuggestion(selectedSuggestion.command);
+          }
           return;
         }
       }

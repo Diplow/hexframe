@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useChatState } from '~/app/map/Chat';
 import { useMapCache } from '~/app/map/Cache';
 import { debugLogger } from '~/lib/debug/debug-logger';
@@ -19,13 +19,13 @@ function toBase64(s: string): string {
 
 export function useCommandHandling() {
   const chatState = useChatState();
-  const { navigateToItem, center } = useMapCache();
+  const { center } = useMapCache();
   const eventBus = useEventBus();
 
   const commands = getAllCommands(center);
   
   // Add special commands that require closure access
-  const extendedCommands = {
+  const extendedCommands = useMemo(() => ({
     ...commands,
     '/clear': {
       description: 'Clear message timeline',
@@ -50,7 +50,7 @@ export function useCommandHandling() {
         }
       }
     }
-  };
+  }), [commands, center]);
   
   const findCommand = useCallback((path: string): Command | null => {
     return (extendedCommands as Record<string, Command>)[path] ?? null;

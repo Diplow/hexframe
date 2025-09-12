@@ -256,8 +256,8 @@ export function validateAndTransformMapEvent(mapEvent: AppEvent): ChatEvent | nu
   };
 
   // Try different transformer functions based on event type
-  return _transformTileEvents(validEvent, baseEvent) ||
-         _transformSystemEvents(validEvent, baseEvent) ||
+  return _transformTileEvents(validEvent, baseEvent) ??
+         _transformSystemEvents(validEvent, baseEvent) ??
          _transformOperationEvents(validEvent, baseEvent);
 }
 

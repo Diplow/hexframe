@@ -70,9 +70,15 @@ export const createBrowserStorageOperations = (): StorageOperations => ({
 // SSR-safe storage operations (no-op implementation)
 export const createSSRStorageOperations = (): StorageOperations => ({
   getItem: async () => null,
-  setItem: async () => {},
-  removeItem: async () => {},
-  clear: async () => {},
+  setItem: async () => {
+    // No-op for SSR environments
+  },
+  removeItem: async () => {
+    // No-op for SSR environments
+  },
+  clear: async () => {
+    // No-op for SSR environments
+  },
   getAllKeys: async () => [],
 });
 

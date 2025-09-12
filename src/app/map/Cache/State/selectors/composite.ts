@@ -1,5 +1,5 @@
 import type { CacheState } from "~/app/map/Cache/State/types";
-import { selectRegionItems, selectIsRegionLoaded } from "./regions";
+import { selectRegionItems, selectIsRegionLoaded } from "~/app/map/Cache/State/selectors/regions";
 
 // Simplified selectors factory 
 export function cacheSelectors(state: CacheState) {
@@ -20,4 +20,4 @@ export function cacheSelectors(state: CacheState) {
 }
 
 // Re-export static selectors from regions.ts
-export { staticSelectors } from './regions';
+export { staticSelectors } from '~/app/map/Cache/State/selectors/regions';

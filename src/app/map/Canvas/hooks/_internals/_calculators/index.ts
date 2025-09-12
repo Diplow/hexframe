@@ -1,1 +1,1 @@
-export { getValidDropTargets, isValidDropTarget, getDropOperationType } from "./drop-targets";
+export { getValidDropTargets, isValidDropTarget, getDropOperationType } from "~/app/map/Canvas/hooks/_internals/_calculators/drop-targets";

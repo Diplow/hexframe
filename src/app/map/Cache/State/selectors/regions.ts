@@ -1,6 +1,5 @@
 import type { CacheState } from "~/app/map/Cache/State/types";
 import type { TileData } from "~/app/map/types";
-import { createMemoizedSelector } from "./items";
 
 // Region validation selectors
 export const selectIsRegionLoaded = (
