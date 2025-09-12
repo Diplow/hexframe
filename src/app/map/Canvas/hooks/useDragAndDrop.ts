@@ -1,10 +1,10 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import type { DragEvent } from "react";
 import { useUnifiedAuth } from "~/contexts/UnifiedAuthContext";
 import { useMapCache } from '~/app/map/Cache';
 import { useEventBus } from '~/app/map';
 import { canDragTile } from "~/app/map/Canvas/hooks/_internals/_validators";
-import { isValidDropTarget, getDropOperationType } from "~/app/map/Canvas/hooks/_internals/_calculators";
+import { isValidDropTarget } from "~/app/map/Canvas/hooks/_internals/_calculators";
 import {
   setupDragStart,
   setupDragOver,
@@ -47,28 +47,7 @@ export function useDragAndDrop(): UseDragAndDropReturn {
   const { getItem, moveItemOptimistic } = useMapCache();
   const [dragState, setDragState] = useState<DragState>(initialDragState);
 
-  const validationCallbacks = _createValidationCallbacks(getItem, dragState, mappingUserId);
-  const eventHandlers = _createEventHandlers(
-    validationCallbacks, 
-    dragState, 
-    setDragState, 
-    getItem, 
-    moveItemOptimistic, 
-    eventBus
-  );
-  const stateQueries = _createStateQueries(dragState);
-  const dragHandlers = _createDragHandlers(eventHandlers);
-  
-  return _createHookReturnValue(dragHandlers, validationCallbacks, stateQueries, dragState);
-}
-
-// Internal helper functions for drag and drop logic
-
-function _createValidationCallbacks(
-  getItem: ReturnType<typeof useMapCache>['getItem'],
-  dragState: DragState,
-  mappingUserId: number | null | undefined
-) {
+  // Validation callbacks (moved from helper function)
   const checkCanDrag = useCallback((coordId: string): boolean => {
     const tile = getItem(coordId);
     return canDragTile(tile, mappingUserId ?? null);
@@ -78,149 +57,128 @@ function _createValidationCallbacks(
     return isValidDropTarget(targetCoordId, dragState.draggedTileId, getItem, mappingUserId ?? null);
   }, [dragState.draggedTileId, getItem, mappingUserId]);
 
-  return { checkCanDrag, checkDropTarget };
-}
+  const validationCallbacks = useMemo(() => ({ checkCanDrag, checkDropTarget }), [checkCanDrag, checkDropTarget]);
 
-function _createEventHandlers(
-  validationCallbacks: ReturnType<typeof _createValidationCallbacks>,
-  dragState: DragState,
-  setDragState: React.Dispatch<React.SetStateAction<DragState>>,
-  getItem: ReturnType<typeof useMapCache>['getItem'],
-  moveItemOptimistic: ReturnType<typeof useMapCache>['moveItemOptimistic'],
-  eventBus: ReturnType<typeof useEventBus>
-) {
+  // Event handlers (moved from helper function)
   const handleDragStart = useCallback((coordId: string, event: DragEvent<HTMLDivElement>) => {
     if (!validationCallbacks.checkCanDrag(coordId)) {
       event.preventDefault();
       return;
     }
-    
-    setupDragStart(event, coordId);
-    const tile = getItem(coordId);
-    if (tile) {
-      setDragState(createDragState(coordId, tile, event));
+
+    const tileData = getItem(coordId);
+    if (!tileData) {
+      event.preventDefault();
+      return;
     }
-  }, [validationCallbacks.checkCanDrag, getItem, setDragState]);
+
+    setupDragStart(event, coordId);
+    const newDragState = createDragState(coordId, tileData, event);
+    setDragState(newDragState);
+  }, [validationCallbacks, getItem]);
 
   const handleDragOver = useCallback((targetCoordId: string, event: DragEvent<HTMLDivElement>) => {
-    const isValid = validationCallbacks.checkDropTarget(targetCoordId);
-    setupDragOver(event, isValid);
-    
-    if (isValid) {
-      const operation: DropOperation = getDropOperationType(targetCoordId, getItem);
-      setDragState(prev => ({
-        ...updateDropTarget(prev, targetCoordId),
-        dropOperation: operation
-      }));
+    if (!dragState.isDragging) return;
+    if (!validationCallbacks.checkDropTarget(targetCoordId)) {
+      event.dataTransfer.dropEffect = 'none';
+      return;
     }
-  }, [validationCallbacks.checkDropTarget, getItem, setDragState]);
+
+    setupDragOver(event, true);
+    setDragState(prev => updateDropTarget(prev, targetCoordId));
+  }, [dragState, validationCallbacks]);
 
   const handleDragLeave = useCallback(() => {
-    setDragState(prev => ({
-      ...updateDropTarget(prev, null),
-      dropOperation: null
-    }));
-  }, [setDragState]);
+    setDragState(prev => updateDropTarget(prev, null));
+  }, []);
 
   const handleDrop = useCallback((targetCoordId: string, event: DragEvent<HTMLDivElement>) => {
-    _processDropOperation(
-      event,
-      targetCoordId,
-      dragState,
-      validationCallbacks.checkDropTarget,
-      getItem,
-      moveItemOptimistic,
-      eventBus,
-      setDragState
-    );
-  }, [dragState, validationCallbacks.checkDropTarget, getItem, moveItemOptimistic, eventBus, setDragState]);
+    event.preventDefault();
+    
+    if (!dragState.isDragging || !dragState.draggedTileId) return;
+    if (!validationCallbacks.checkDropTarget(targetCoordId)) return;
+
+    handleDropEvent(event);
+    
+    // Perform the move operation
+    const sourceCoordId = dragState.draggedTileId;
+    if (sourceCoordId) {
+      void (async () => {
+        try {
+          await moveItemOptimistic(sourceCoordId, targetCoordId);
+        } catch (error) {
+          // Emit error event
+          eventBus.emit({
+            type: 'error.occurred',
+            source: 'map_cache',
+            payload: {
+              error: error instanceof Error ? error.message : 'Failed to complete operation',
+              context: {
+                operation: 'move',
+                sourceCoordId,
+                targetCoordId
+              },
+              retryable: true
+            },
+            timestamp: new Date(),
+          });
+        }
+      })();
+    }
+
+    setDragState(initialDragState);
+  }, [dragState, validationCallbacks, moveItemOptimistic, eventBus]);
 
   const handleDragEnd = useCallback(() => {
     setDragState(initialDragState);
-  }, [setDragState]);
+  }, []);
 
-  return { handleDragStart, handleDragOver, handleDragLeave, handleDrop, handleDragEnd };
+  const eventHandlers = {
+    handleDragStart,
+    handleDragOver,
+    handleDragLeave,
+    handleDrop,
+    handleDragEnd
+  };
+
+  const stateQueries = _createStateQueries(dragState);
+  const dragHandlers = _createDragHandlers(eventHandlers);
+  
+  return _createHookReturnValue(dragHandlers, validationCallbacks, stateQueries, dragState);
 }
 
-function _processDropOperation(
-  event: DragEvent<HTMLDivElement>,
-  targetCoordId: string,
-  dragState: DragState,
-  checkDropTarget: (id: string) => boolean,
-  getItem: ReturnType<typeof useMapCache>['getItem'],
-  moveItemOptimistic: ReturnType<typeof useMapCache>['moveItemOptimistic'],
-  eventBus: ReturnType<typeof useEventBus>,
-  setDragState: React.Dispatch<React.SetStateAction<DragState>>
-) {
-  handleDropEvent(event);
-  
-  if (!dragState.draggedTileData || !checkDropTarget(targetCoordId)) {
-    return;
-  }
-  
-  const sourceCoordId = dragState.draggedTileId;
-  if (!sourceCoordId) return;
-  
-  const sourceItem = getItem(sourceCoordId);
-  const targetItem = getItem(targetCoordId);
-  
-  if (!sourceItem) return;
-  
-  void (async () => {
-    try {
-      await moveItemOptimistic(sourceCoordId, targetCoordId);
-    } catch (error) {
-      _handleDropError(error, sourceItem, targetItem, eventBus);
-    }
-  })();
-  
-  setDragState(initialDragState);
-}
+// Internal helper functions for drag and drop logic
 
-function _handleDropError(
-  error: unknown,
-  sourceItem: any,
-  targetItem: any,
-  eventBus: ReturnType<typeof useEventBus>
-) {
-  console.error('Failed to move/swap tiles:', error);
-  
-  eventBus.emit({
-    type: 'error.occurred',
-    source: 'map_cache',
-    payload: {
-      error: error instanceof Error ? error.message : 'Failed to complete operation',
-      context: {
-        operation: targetItem ? 'swap' : 'move',
-        sourceItem: sourceItem.data.name,
-        targetItem: targetItem?.data.name
-      },
-      retryable: true
-    },
-    timestamp: new Date(),
-  });
-}
+// _processDropOperation function removed as it was unused
+
+// _handleDropError function removed as it was unused
 
 function _createStateQueries(dragState: DragState) {
-  const isDraggingTile = useCallback((id: string): boolean => {
+  const isDraggingTile = (id: string): boolean => {
     return dragState.isDragging && dragState.draggedTileId === id;
-  }, [dragState.isDragging, dragState.draggedTileId]);
+  };
 
-  const isDropTarget = useCallback((id: string): boolean => {
+  const isDropTarget = (id: string): boolean => {
     return dragState.dropTargetId === id;
-  }, [dragState.dropTargetId]);
+  };
 
-  const getDropOperation = useCallback((id: string): DropOperation | null => {
+  const getDropOperation = (id: string): DropOperation | null => {
     if (dragState.dropTargetId === id) {
       return dragState.dropOperation;
     }
     return null;
-  }, [dragState.dropTargetId, dragState.dropOperation]);
+  };
 
   return { isDraggingTile, isDropTarget, getDropOperation };
 }
 
-function _createDragHandlers(eventHandlers: ReturnType<typeof _createEventHandlers>): DragHandlers {
+function _createDragHandlers(eventHandlers: {
+  handleDragStart: (coordId: string, event: DragEvent<HTMLDivElement>) => void;
+  handleDragOver: (targetCoordId: string, event: DragEvent<HTMLDivElement>) => void;
+  handleDragLeave: () => void;
+  handleDrop: (targetCoordId: string, event: DragEvent<HTMLDivElement>) => void;
+  handleDragEnd: () => void;
+}): DragHandlers {
   return {
     onDragStart: eventHandlers.handleDragStart,
     onDragOver: eventHandlers.handleDragOver,
@@ -232,7 +190,10 @@ function _createDragHandlers(eventHandlers: ReturnType<typeof _createEventHandle
 
 function _createHookReturnValue(
   dragHandlers: DragHandlers,
-  validationCallbacks: ReturnType<typeof _createValidationCallbacks>,
+  validationCallbacks: {
+    checkCanDrag: (id: string) => boolean;
+    checkDropTarget: (id: string) => boolean;
+  },
   stateQueries: ReturnType<typeof _createStateQueries>,
   dragState: DragState
 ): UseDragAndDropReturn {

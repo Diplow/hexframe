@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { CoordSystem } from '~/lib/domains/mapping/utils';
-import { getAllCommands, type Command } from '~/app/map/Chat/Input/_commands';
+import { getAllCommands } from '~/app/map/Chat/Input/_commands';
 
 // UTF-8 safe base64 encoder
 function toBase64(s: string): string {

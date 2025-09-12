@@ -1,4 +1,4 @@
-import { ServiceError as ServiceErrorClass } from "../types";
+import { ServiceError as ServiceErrorClass } from "~/app/map/Cache/Services/types";
 
 // Create mutation stubs that throw errors to guide users to proper mutation patterns
 export const createMutationStubs = () => ({

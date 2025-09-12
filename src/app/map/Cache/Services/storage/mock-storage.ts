@@ -1,4 +1,4 @@
-import type { StorageOperations } from "./storage-operations";
+import type { StorageOperations } from "~/app/map/Cache/Services/storage/storage-operations";
 
 // Mock storage operations for testing
 export const createMockStorageOperations = (

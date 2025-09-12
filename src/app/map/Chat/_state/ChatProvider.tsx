@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, type ReactNode } from 'react';
-import { useChatStateInternal } from './useChatState';
+import { useChatStateInternal } from '~/app/map/Chat/_state/useChatState';
 import type { ChatEvent } from '~/app/map/Chat/_state/_events/event.types';
 
 // Define the shape of the chat context

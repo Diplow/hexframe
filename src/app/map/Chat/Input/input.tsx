@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Send } from 'lucide-react';
-import { Button } from '~/components/ui/button';
+// import { Send } from 'lucide-react';
+// import { Button } from '~/components/ui/button';
 import { useChatState } from '~/app/map/Chat/_state';
 import { useCommandHandling } from '~/app/map/Chat/Input/_hooks/useCommandHandling';
 import { useInputHistory } from '~/app/map/Chat/Input/_hooks/useInputHistory';
@@ -61,7 +61,7 @@ export function Input() {
   const {
     showAutocomplete,
     selectedSuggestionIndex,
-    setSelectedSuggestionIndex,
+    setSelectedSuggestionIndex: _setSelectedSuggestionIndex, // eslint-disable-line @typescript-eslint/no-unused-vars
     closeAutocomplete,
     selectSuggestion,
     handleMessageChange: autocompleteHandleMessageChange,

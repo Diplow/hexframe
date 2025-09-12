@@ -1,4 +1,4 @@
-import type { StorageOperations } from "./storage-operations";
+import type { StorageOperations } from "~/app/map/Cache/Services/storage/storage-operations";
 
 // SSR-safe storage operations (no-op implementation)
 export const createSSRStorageOperations = (): StorageOperations => ({

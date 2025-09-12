@@ -1,4 +1,4 @@
-import type { SyncConfig } from "./types";
+import type { SyncConfig } from "~/app/map/Cache/Sync/types";
 
 // Advanced online checking (optional)
 export const checkOnlineStatus = async (syncConfig: SyncConfig): Promise<boolean> => {

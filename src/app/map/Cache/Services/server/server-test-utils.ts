@@ -1,7 +1,7 @@
-import type { ServiceConfig, ServerService } from "../types";
-import { ServiceError as ServiceErrorClass } from "../types";
-import { api } from "~/commons/trpc/react";
-import { createServerService } from "./server-service";
+import type { ServiceConfig, ServerService } from "~/app/map/Cache/Services/types";
+import { ServiceError as ServiceErrorClass } from "~/app/map/Cache/Services/types";
+import type { api } from "~/commons/trpc/react";
+import { createServerService } from "~/app/map/Cache/Services/server/server-service";
 
 // Factory function for easier dependency injection
 export function createServerServiceFactory(

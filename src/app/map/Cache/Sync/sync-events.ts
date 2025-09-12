@@ -1,4 +1,4 @@
-import type { SyncConfig, SyncStatus, SyncEvent, SyncEventHandler } from "./types";
+import type { SyncConfig, SyncStatus, SyncEvent, SyncEventHandler } from "~/app/map/Cache/Sync/types";
 
 export interface EventManager {
   emitEvent: (event: SyncEvent) => void;

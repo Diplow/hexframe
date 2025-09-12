@@ -1,8 +1,8 @@
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 import type { api } from "~/commons/trpc/react";
-import { withRetry } from "./server-retry-utils";
-import type { ServiceConfig } from "../types";
-import { withErrorTransform } from "./server-operations";
+import { withRetry } from "~/app/map/Cache/Services/server/server-retry-utils";
+import type { ServiceConfig } from "~/app/map/Cache/Services/types";
+import { withErrorTransform } from "~/app/map/Cache/Services/server/server-operations";
 
 // Create query operations for the server service
 export const createQueryOperations = (

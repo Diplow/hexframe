@@ -1,12 +1,12 @@
-import type { ServerService, ServiceConfig } from "../types";
+import type { ServerService, ServiceConfig } from "~/app/map/Cache/Services/types";
 import {
   NetworkError as NetworkErrorClass,
   TimeoutError as TimeoutErrorClass,
   ServiceError as ServiceErrorClass,
-} from "../types";
+} from "~/app/map/Cache/Services/types";
 import type { api } from "~/commons/trpc/react";
-import { createQueryOperations } from "./server-query-operations";
-import { createMutationStubs } from "./server-mutation-stubs";
+import { createQueryOperations } from "~/app/map/Cache/Services/server/server-query-operations";
+import { createMutationStubs } from "~/app/map/Cache/Services/server/server-mutation-stubs";
 
 // Wrapper for tRPC errors to ServiceError types
 export const withErrorTransform = async <T>(

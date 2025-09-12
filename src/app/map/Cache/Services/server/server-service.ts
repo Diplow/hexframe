@@ -4,8 +4,8 @@ import type {
   ServerService,
   ServiceConfig,
 } from "~/app/map/Cache/Services/types";
-import { DEFAULT_CONFIG } from "./server-retry-utils";
-import { createServerOperations } from "./server-operations";
+import { DEFAULT_CONFIG } from "~/app/map/Cache/Services/server/server-retry-utils";
+import { createServerOperations } from "~/app/map/Cache/Services/server/server-operations";
 
 /**
  * Pure server service factory function - easy to test with direct mocking
@@ -53,7 +53,7 @@ export function useServerService(config: ServiceConfig = {}): ServerService {
 }
 
 // Re-export testing utilities
-export { createServerServiceFactory, createMockServerService } from "./server-test-utils";
+export { createServerServiceFactory, createMockServerService } from "~/app/map/Cache/Services/server/server-test-utils";
 
 
 // Legacy compatibility (deprecated)

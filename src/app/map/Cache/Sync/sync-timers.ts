@@ -1,4 +1,4 @@
-import type { SyncConfig, SyncStatus } from "./types";
+import type { SyncConfig, SyncStatus } from "~/app/map/Cache/Sync/types";
 
 export interface TimerManager {
   scheduleNextSync: () => void;
