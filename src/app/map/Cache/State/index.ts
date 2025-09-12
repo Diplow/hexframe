@@ -34,15 +34,10 @@ export { cacheReducer, initialCacheState } from "~/app/map/Cache/State/reducer";
 
 // Selectors
 export {
-  selectItem,
-  selectHasItem,
-  selectItemsByIds,
   selectIsRegionLoaded,
   selectRegionHasDepth,
   selectShouldLoadRegion,
   selectRegionItems,
   selectRegionItemsOptimized,
-  selectIsItemExpanded,
-  selectExpandedItems,
   cacheSelectors,
 } from "~/app/map/Cache/State/selectors";

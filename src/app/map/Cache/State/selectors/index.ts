@@ -1,5 +1,4 @@
 // Re-export all selectors from organized modules
-export * from '~/app/map/Cache/State/selectors/items';
 export * from '~/app/map/Cache/State/selectors/regions';
 export { cacheSelectors, staticSelectors } from '~/app/map/Cache/State/selectors/composite';
 
