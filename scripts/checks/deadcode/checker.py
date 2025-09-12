@@ -143,8 +143,8 @@ class DeadCodeChecker:
         self._load_exceptions()
     
     def _load_exceptions(self) -> None:
-        """Load dead code exceptions from .dead-code-ignore file."""
-        ignore_file = Path(".dead-code-ignore")
+        """Load dead code exceptions from .deadcode-ignore file."""
+        ignore_file = Path(".deadcode-ignore")
         if ignore_file.exists():
             with open(ignore_file) as f:
                 for line in f:

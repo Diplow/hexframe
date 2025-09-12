@@ -53,7 +53,7 @@ jq '.summary' test-results/dead-code-check.json
 
 ## Configuration
 
-Create `.dead-code-ignore` to exclude patterns:
+Create `.deadcode-ignore` to exclude patterns:
 ```
 src/env.mjs
 **/*.test.*
