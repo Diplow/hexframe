@@ -1,11 +1,11 @@
-import type { Widget } from '~/app/map/Chat/_state/types';
+import type { Widget } from '~/app/map/Chat/_state';
 import type { TileData } from '~/app/map/types';
 import type { ReactNode } from 'react';
 import { useMapCache } from '~/app/map/Cache';
 import { useEventBus } from '~/app/map/Services';
 import { useChatState } from '~/app/map/Chat/_state';
-import { createCreationHandlers } from '~/app/map/Chat/Timeline/_handlers/creation-handlers';
-import { createPreviewHandlers } from '~/app/map/Chat/Timeline/_handlers/preview-handlers';
+import { createCreationHandlers } from '~/app/map/Chat/Timeline/_utils/creation-handlers';
+import { createPreviewHandlers } from '~/app/map/Chat/Timeline/_utils/preview-handlers';
 import { focusChatInput } from '~/app/map/Chat/Timeline/_utils/focus-helpers';
 import { 
   renderPreviewWidget,
@@ -17,7 +17,7 @@ import {
   renderAIResponseWidget,
   renderMcpKeysWidget,
   type WidgetHandlers
-} from '~/app/map/Chat/Timeline/_renderers/widget-renderers';
+} from '~/app/map/Chat/Timeline/_components/_renderers/widget-renderers';
 
 interface WidgetManagerProps {
   widgets: Widget[];

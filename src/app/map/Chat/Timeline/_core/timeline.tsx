@@ -2,8 +2,8 @@
 
 import type { Widget, Message } from '~/app/map/Chat/_state';
 import { useChatSettings } from '~/app/map/Chat/_settings/useChatSettings';
-import { useAuthStateCoordinator } from '~/app/map/Chat/Timeline/_hooks/useAuthStateCoordinator';
-import { UnifiedTimeline } from '~/app/map/Chat/Timeline/UnifiedTimeline';
+import { useAuthStateCoordinator } from '~/app/map/Chat/Timeline/_components/_hooks/useAuthStateCoordinator';
+import { UnifiedTimeline } from '~/app/map/Chat/Timeline/_core/UnifiedTimeline';
 import { useEffect } from 'react';
 import { loggers } from '~/lib/debug/debug-logger';
 

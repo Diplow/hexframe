@@ -18,7 +18,7 @@ export {
 export type { ChatMessage, ChatWidget } from '~/app/map/Chat';
 
 // Canvas subsystem  
-export { ErrorTile, BaseTileLayout } from '~/app/map/Canvas';
+export { BaseTileLayout } from '~/app/map/Canvas';
 
 // Services subsystem
 export {

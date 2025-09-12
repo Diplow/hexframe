@@ -2,10 +2,10 @@ import { useUnifiedAuth } from '~/contexts/UnifiedAuthContext';
 import type { Message } from '~/app/map/Chat/_state';
 import { useEffect } from 'react';
 import { loggers } from '~/lib/debug/debug-logger';
-import { TimestampRenderer } from '~/app/map/Chat/Timeline/TimestampRenderer';
-import { useUserClickHandler } from '~/app/map/Chat/Timeline/UserClickHandler';
-import { MarkdownRenderer } from '~/app/map/Chat/Timeline/MarkdownRenderer';
-import { CopyButton } from '~/app/map/Chat/Timeline/CopyButton';
+import { TimestampRenderer } from '~/app/map/Chat/Timeline/_components/TimestampRenderer';
+import { useUserClickHandler } from '~/app/map/Chat/Timeline/_utils/UserClickHandler';
+import { MarkdownRenderer } from '~/app/map/Chat/Timeline/_components/MarkdownRenderer';
+import { CopyButton } from '~/app/map/Chat/Timeline/_components/CopyButton';
 
 interface MessageActorRendererProps {
   message: Message;

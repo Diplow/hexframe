@@ -1,8 +1,8 @@
-// Re-export the public useChatState hook from ChatProvider
-export { useChatState, ChatProvider } from '~/app/map/Chat/_state/ChatProvider';
+// Re-export the public useChatState hook from useChatState (now includes ChatProvider)
+export { useChatState, ChatProvider } from '~/app/map/Chat/_state/useChatState';
 
 // Also export as default for backward compatibility
-export { useChatState as default } from '~/app/map/Chat/_state/ChatProvider';
+export { useChatState as default } from '~/app/map/Chat/_state/useChatState';
 
 // Re-export types for Timeline and other Chat subsystems
 export type {

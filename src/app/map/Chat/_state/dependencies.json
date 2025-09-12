@@ -1,0 +1,9 @@
+{
+  "allowed": [
+    "~/app/map/Chat/_state",
+    "react",
+    "~/app/map/types",
+    "~/app/map/Services",
+    "~/app/map/Chat/_settings/chat-settings"
+  ]
+}

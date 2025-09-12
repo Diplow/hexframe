@@ -1,6 +1,6 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { CommandButtonRenderer } from '~/app/map/Chat/Timeline/CommandButtonRenderer';
+import { CommandButtonRenderer } from '~/app/map/Chat/Timeline/_components/CommandButtonRenderer';
 
 interface MarkdownRendererProps {
   content: string;

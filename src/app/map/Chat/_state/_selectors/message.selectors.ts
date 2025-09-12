@@ -2,6 +2,149 @@ import type { ChatEvent, Message, Widget, OperationStartedPayload, OperationComp
 import { chatSettings } from '~/app/map/Chat';
 
 /**
+ * Handle basic message events
+ */
+function _handleBasicMessageEvents(event: ChatEvent, messages: Message[]) {
+  switch (event.type) {
+    case 'user_message': {
+      const payload = event.payload as UserMessagePayload;
+      messages.push({
+        id: event.id,
+        content: payload.text,
+        actor: event.actor,
+        timestamp: event.timestamp,
+      });
+      break;
+    }
+
+    case 'system_message': {
+      const payload = event.payload as SystemMessagePayload;
+      messages.push({
+        id: event.id,
+        content: payload.message,
+        actor: event.actor,
+        timestamp: event.timestamp,
+      });
+      break;
+    }
+
+    case 'message': {
+      const payload = event.payload as { content?: string; text?: string; actor: string };
+      const messageContent = payload.content ?? payload.text ?? '';
+      messages.push({
+        id: event.id,
+        content: messageContent,
+        actor: event.actor,
+        timestamp: event.timestamp,
+      });
+      break;
+    }
+  }
+}
+
+/**
+ * Handle operation completion events for messages
+ */
+function _handleOperationMessages(event: ChatEvent, messages: Message[], settings: any) {
+  if (event.type === 'operation_completed') {
+    const payload = event.payload as OperationCompletedPayload;
+    if (payload.result === 'success') {
+      const shouldShow = (
+        (payload.operation === 'update' && settings.messages.tile.edit) ||
+        (payload.operation === 'create' && settings.messages.tile.create) ||
+        (payload.operation === 'delete' && settings.messages.tile.delete) ||
+        (payload.operation === 'move' && settings.messages.tile.move) ||
+        (payload.operation === 'swap' && settings.messages.tile.swap) ||
+        (!['update', 'create', 'delete', 'move', 'swap'].includes(payload.operation))
+      );
+      
+      if (shouldShow) {
+        let content = payload.message;
+        
+        if (payload.tileId) {
+          if (payload.operation === 'create') {
+            const regex = /Created tile "(.+)"/;
+            const match = regex.exec(payload.message);
+            if (match?.[1]) {
+              const tileName = match[1];
+              const truncatedName = tileName.length > 25 ? tileName.slice(0, 25) + '...' : tileName;
+              const navigationLink = `[**${truncatedName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
+              content = `Created tile ${navigationLink}`;
+            }
+          } else if (payload.operation === 'delete') {
+            const regex = /Deleted tile "(.+)"/;
+            const match = regex.exec(payload.message);
+            if (match?.[1]) {
+              const tileName = match[1];
+              const truncatedName = tileName.length > 25 ? tileName.slice(0, 25) + '...' : tileName;
+              const navigationLink = `[**${truncatedName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
+              content = `Deleted tile ${navigationLink}`;
+            }
+          } else if (payload.operation === 'move') {
+            const regex = /Moved "(.+)"/;
+            const match = regex.exec(payload.message);
+            if (match?.[1]) {
+              const tileName = match[1];
+              const truncatedName = tileName.length > 25 ? tileName.slice(0, 25) + '...' : tileName;
+              const navigationLink = `[**${truncatedName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
+              content = `Moved ${navigationLink}`;
+            }
+          } else if (payload.operation === 'update') {
+            const regex = /Updated tile "(.+)"/;
+            const match = regex.exec(payload.message);
+            if (match?.[1]) {
+              const tileName = match[1];
+              const truncatedName = tileName.length > 25 ? tileName.slice(0, 25) + '...' : tileName;
+              const navigationLink = `[**${truncatedName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
+              content = `Updated tile ${navigationLink}`;
+            }
+          }
+        }
+        
+        if (payload.operation === 'swap') {
+          const regex = /Swapped "(.+)" with "(.+)"/;
+          const match = regex.exec(payload.message);
+          if (match?.[1] && match?.[2]) {
+            const tile1Name = match[1];
+            const tile2Name = match[2];
+            const truncated1 = tile1Name.length > 25 ? tile1Name.slice(0, 25) + '...' : tile1Name;
+            const truncated2 = tile2Name.length > 25 ? tile2Name.slice(0, 25) + '...' : tile2Name;
+            content = `Swapped **${truncated1}** with **${truncated2}**`;
+          }
+        }
+        
+        messages.push({
+          id: event.id,
+          content,
+          actor: 'system',
+          timestamp: event.timestamp,
+        });
+      }
+    }
+  }
+}
+
+/**
+ * Handle navigation events for messages
+ */
+function _handleNavigationMessages(event: ChatEvent, messages: Message[]) {
+  if (event.type === 'navigation') {
+    const payload = event.payload as NavigationPayload;
+    const fromText = payload.fromTileName ? `from "${payload.fromTileName}" ` : '';
+    const truncatedTileName = payload.toTileName.length > 25 
+      ? payload.toTileName.slice(0, 25) + '...' 
+      : payload.toTileName;
+    const navigationLink = `[${truncatedTileName}](command:navigate:${payload.toTileId}:${encodeURIComponent(payload.toTileName)})`;
+    messages.push({
+      id: event.id,
+      content: `📍 Navigated ${fromText}to **${navigationLink}**`,
+      actor: 'system',
+      timestamp: event.timestamp,
+    });
+  }
+}
+
+/**
  * Derive visible messages from events
  * Messages are derived from events that represent communication
  */
@@ -10,159 +153,20 @@ export function deriveVisibleMessages(events: ChatEvent[]): Message[] {
   const settings = chatSettings.getSettings();
 
   for (const event of events) {
-    switch (event.type) {
-      case 'user_message': {
-        const payload = event.payload as UserMessagePayload;
-        messages.push({
-          id: event.id,
-          content: payload.text,
-          actor: event.actor,
-          timestamp: event.timestamp,
-        });
-        break;
-      }
-
-      case 'system_message': {
-        const payload = event.payload as SystemMessagePayload;
-        messages.push({
-          id: event.id,
-          content: payload.message,
-          actor: event.actor,
-          timestamp: event.timestamp,
-        });
-        break;
-      }
-
-      case 'operation_completed': {
-        const payload = event.payload as OperationCompletedPayload;
-        if (payload.result === 'success') {
-          // Check settings to see if we should show this operation
-          const shouldShow = (
-            (payload.operation === 'update' && settings.messages.tile.edit) ||
-            (payload.operation === 'create' && settings.messages.tile.create) ||
-            (payload.operation === 'delete' && settings.messages.tile.delete) ||
-            (payload.operation === 'move' && settings.messages.tile.move) ||
-            (payload.operation === 'swap' && settings.messages.tile.swap) ||
-            (!['update', 'create', 'delete', 'move', 'swap'].includes(payload.operation)) // Show other operations
-          );
-          
-          if (shouldShow) {
-            let content = payload.message;
-            
-            // Special formatting for operations with clickable tile names
-            if (payload.tileId) {
-              if (payload.operation === 'create') {
-                // Extract tile name from message "Created tile "name""
-                const regex = /Created tile "(.+)"/;
-                const match = regex.exec(payload.message);
-                if (match?.[1]) {
-                  const tileName = match[1];
-                  const truncatedName = tileName.length > 25 ? tileName.slice(0, 25) + '...' : tileName;
-                  const navigationLink = `[**${truncatedName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
-                  content = `Created tile ${navigationLink}`;
-                }
-              } else if (payload.operation === 'delete') {
-                // Extract tile name from message "Deleted tile "name""
-                const regex = /Deleted tile "(.+)"/;
-                const match = regex.exec(payload.message);
-                if (match?.[1]) {
-                  const tileName = match[1];
-                  const truncatedName = tileName.length > 25 ? tileName.slice(0, 25) + '...' : tileName;
-                  const navigationLink = `[**${truncatedName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
-                  content = `Deleted tile ${navigationLink}`;
-                }
-              } else if (payload.operation === 'move') {
-                // Extract tile name from message "Moved "name""
-                const regex = /Moved "(.+)"/;
-                const match = regex.exec(payload.message);
-                if (match?.[1]) {
-                  const tileName = match[1];
-                  const truncatedName = tileName.length > 25 ? tileName.slice(0, 25) + '...' : tileName;
-                  const navigationLink = `[**${truncatedName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
-                  content = `Moved ${navigationLink}`;
-                }
-              } else if (payload.operation === 'update') {
-                // Extract tile name from message "Updated tile "name""
-                const regex = /Updated tile "(.+)"/;
-                const match = regex.exec(payload.message);
-                if (match?.[1]) {
-                  const tileName = match[1];
-                  const truncatedName = tileName.length > 25 ? tileName.slice(0, 25) + '...' : tileName;
-                  const navigationLink = `[**${truncatedName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
-                  content = `Updated tile ${navigationLink}`;
-                }
-              }
-              // Note: swap operations involve two tiles, handled separately below
-            }
-            
-            // Special handling for swap operations (two tiles)
-            if (payload.operation === 'swap') {
-              // Extract both tile names from message 'Swapped "name1" with "name2"'
-              const regex = /Swapped "(.+)" with "(.+)"/;
-              const match = regex.exec(payload.message);
-              if (match?.[1] && match?.[2]) {
-                // For swap, we don't have specific tileIds for each, so just make the text bold
-                const tile1Name = match[1];
-                const tile2Name = match[2];
-                const truncated1 = tile1Name.length > 25 ? tile1Name.slice(0, 25) + '...' : tile1Name;
-                const truncated2 = tile2Name.length > 25 ? tile2Name.slice(0, 25) + '...' : tile2Name;
-                content = `Swapped **${truncated1}** with **${truncated2}**`;
-              }
-            }
-            
-            messages.push({
-              id: event.id,
-              content,
-              actor: 'system',
-              timestamp: event.timestamp,
-            });
-          }
-        }
-        break;
-      }
-
-      case 'message': {
-        // Handle both content and text properties for backward compatibility
-        const payload = event.payload as { content?: string; text?: string; actor: string };
-        const messageContent = payload.content ?? payload.text ?? '';
-        messages.push({
-          id: event.id,
-          content: messageContent,
-          actor: event.actor,
-          timestamp: event.timestamp,
-        });
-        break;
-      }
-
-      case 'navigation': {
-        const payload = event.payload as NavigationPayload;
-        const fromText = payload.fromTileName ? `from "${payload.fromTileName}" ` : '';
-        const truncatedTileName = payload.toTileName.length > 25 
-          ? payload.toTileName.slice(0, 25) + '...' 
-          : payload.toTileName;
-        const navigationLink = `[${truncatedTileName}](command:navigate:${payload.toTileId}:${encodeURIComponent(payload.toTileName)})`;
-        messages.push({
-          id: event.id,
-          content: `📍 Navigated ${fromText}to **${navigationLink}**`,
-          actor: 'system',
-          timestamp: event.timestamp,
-        });
-        break;
-      }
-
-
-      // Other event types don't produce messages
-      default: {
-        // Show debug messages for chat events if debug is enabled
-        if (settings.messages.debug) {
-          messages.push({
-            id: `debug-${event.id}`,
-            content: `[DEBUG] Chat Event: **${event.type}** | Actor: ${event.actor} | Data: \`${JSON.stringify(event.payload)}\``,
-            actor: 'system',
-            timestamp: event.timestamp,
-          });
-        }
-      }
+    // Try different message handlers
+    _handleBasicMessageEvents(event, messages);
+    _handleOperationMessages(event, messages, settings);
+    _handleNavigationMessages(event, messages);
+    
+    // Handle debug messages if enabled (for events not handled by other handlers)
+    if (settings.messages.debug && 
+        !['user_message', 'system_message', 'message', 'operation_completed', 'navigation'].includes(event.type)) {
+      messages.push({
+        id: `debug-${event.id}`,
+        content: `[DEBUG] Chat Event: **${event.type}** | Actor: ${event.actor} | Data: \`${JSON.stringify(event.payload)}\``,
+        actor: 'system',
+        timestamp: event.timestamp,
+      });
     }
   }
 
@@ -170,24 +174,64 @@ export function deriveVisibleMessages(events: ChatEvent[]): Message[] {
 }
 
 /**
- * Derive active widgets from events
- * Widgets are derived from events that require user interaction
+ * Handle operation completion events for widget states
  */
-export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
-  const debugEnabled = chatSettings.getSettings().messages.debug === true;
-  if (debugEnabled) {
-    console.log('[message.selectors.deriveActiveWidgets] Processing', events.length, 'events');
+function _handleOperationCompleted(
+  event: ChatEvent,
+  widgetStates: Map<string, 'active' | 'completed'>,
+  activeOperations: Set<string>
+) {
+  const payload = event.payload as OperationCompletedPayload;
+  
+  if (payload.tileId) {
+    // Close preview widget for this tile if operation was delete
+    if (payload.operation === 'delete') {
+      const previewId = `preview-${payload.tileId}`;
+      widgetStates.set(previewId, 'completed');
+    }
   }
-  const widgets: Widget[] = [];
+  
+  // For delete operations, we need to find and close ALL delete widgets
+  // since we can't reliably match by tileId in the operation ID
+  if (payload.operation === 'delete') {
+    // Find all delete widgets and mark them as completed
+    for (const [widgetId, state] of widgetStates) {
+      if (widgetId.startsWith('delete-') && state === 'active') {
+        widgetStates.set(widgetId, 'completed');
+      }
+    }
+  }
+  
+  // Original logic for other operations
+  for (const opId of activeOperations) {
+    if (opId.includes(payload.tileId ?? '')) {
+      activeOperations.delete(opId);
+      // Close creation widgets for create operations
+      if (payload.operation === 'create') {
+        const eventId = opId.replace('op-', '');
+        const creationWidgetId = `creation-${eventId}`;
+        widgetStates.set(creationWidgetId, 'completed');
+      }
+    }
+  }
+}
+
+/**
+ * Process events to determine widget states
+ */
+function _processWidgetStates(events: ChatEvent[]): {
+  widgetStates: Map<string, 'active' | 'completed'>;
+  activeOperations: Set<string>;
+} {
   const activeOperations = new Set<string>();
   const widgetStates = new Map<string, 'active' | 'completed'>();
+  const debugEnabled = chatSettings.getSettings().messages.debug === true;
 
   // Process events in order to determine widget states
   for (const event of events) {
     switch (event.type) {
       case 'tile_selected': {
         const payload = event.payload as TileSelectedPayload;
-        // Add preview widget
         const widgetId = `preview-${payload.tileId}`;
         widgetStates.set(widgetId, 'active');
         break;
@@ -198,13 +242,11 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
         const operationId = `op-${event.id}`;
         activeOperations.add(operationId);
         
-        // Add creation widget for create operations
         if (payload.operation === 'create') {
           const widgetId = `creation-${event.id}`;
           widgetStates.set(widgetId, 'active');
         }
         
-        // Add delete widget for delete operations
         if (payload.operation === 'delete') {
           const widgetId = `delete-${event.id}`;
           widgetStates.set(widgetId, 'active');
@@ -213,51 +255,16 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
       }
 
       case 'operation_completed': {
-        // Remove any active operation widgets for this tile
-        const payload = event.payload as OperationCompletedPayload;
-        
-        if (payload.tileId) {
-          // Close preview widget for this tile if operation was delete
-          if (payload.operation === 'delete') {
-            const previewId = `preview-${payload.tileId}`;
-            widgetStates.set(previewId, 'completed');
-          }
-        }
-        
-        // For delete operations, we need to find and close ALL delete widgets
-        // since we can't reliably match by tileId in the operation ID
-        if (payload.operation === 'delete') {
-          // Find all delete widgets and mark them as completed
-          for (const [widgetId, state] of widgetStates) {
-            if (widgetId.startsWith('delete-') && state === 'active') {
-              widgetStates.set(widgetId, 'completed');
-            }
-          }
-        }
-        
-        // Original logic for other operations
-        for (const opId of activeOperations) {
-          if (opId.includes(payload.tileId ?? '')) {
-            activeOperations.delete(opId);
-            // Close creation widgets for create operations
-            if (payload.operation === 'create') {
-              const eventId = opId.replace('op-', '');
-              const creationWidgetId = `creation-${eventId}`;
-              widgetStates.set(creationWidgetId, 'completed');
-            }
-          }
-        }
+        _handleOperationCompleted(event, widgetStates, activeOperations);
         break;
       }
 
       case 'auth_required': {
-        // Add login widget
         widgetStates.set('login-widget', 'active');
         break;
       }
 
       case 'error_occurred': {
-        // Add error widget
         const widgetId = `error-${event.id}`;
         widgetStates.set(widgetId, 'active');
         break;
@@ -269,7 +276,6 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
           console.log('[message.selectors.deriveActiveWidgets] widget_created event found:', payload);
         }
         if (payload.widget) {
-          // Add the widget directly - it's already fully formed
           widgetStates.set(payload.widget.id, 'active');
           if (debugEnabled) {
             console.log('[message.selectors.deriveActiveWidgets] Widget state set to active:', payload.widget.id);
@@ -280,19 +286,27 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
 
       case 'widget_resolved': {
         const payload = event.payload as { widgetId: string; action: string };
-        // Mark widget as completed
         widgetStates.set(payload.widgetId, 'completed');
         break;
       }
 
       case 'widget_closed': {
         const payload = event.payload as { widgetId: string };
-        // Mark widget as completed (removes it from active widgets)
         widgetStates.set(payload.widgetId, 'completed');
         break;
       }
     }
   }
+
+  return { widgetStates, activeOperations };
+}
+
+/**
+ * Convert widget states to widget objects
+ */
+function _createWidgetsFromStates(events: ChatEvent[], widgetStates: Map<string, 'active' | 'completed'>): Widget[] {
+  const widgets: Widget[] = [];
+  const debugEnabled = chatSettings.getSettings().messages.debug === true;
 
   // Convert active widget states to widget objects
   for (const event of events) {
@@ -384,6 +398,25 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
     }
   }
 
+  return widgets;
+}
+
+/**
+ * Derive active widgets from events
+ * Widgets are derived from events that require user interaction
+ */
+export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
+  const debugEnabled = chatSettings.getSettings().messages.debug === true;
+  if (debugEnabled) {
+    console.log('[message.selectors.deriveActiveWidgets] Processing', events.length, 'events');
+  }
+
+  // Process events to determine widget states
+  const { widgetStates } = _processWidgetStates(events);
+  
+  // Convert active widget states to widget objects
+  const widgets = _createWidgetsFromStates(events, widgetStates);
+
   // Return only the most recent widget of each type (except AI responses which should all persist)
   const latestWidgets = new Map<string, Widget>();
   
@@ -413,3 +446,4 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
   
   return result;
 }
+
