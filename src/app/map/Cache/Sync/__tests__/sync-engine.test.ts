@@ -5,7 +5,7 @@ import {
 } from "~/app/map/Cache/Sync/sync-engine";
 import { initialCacheState } from "~/app/map/Cache/State/reducer";
 import type { CacheState } from "~/app/map/Cache/State/types";
-import type { DataOperations } from "~/app/map/Cache/Handlers/types";
+import type { DataOperations } from "~/app/map/Cache/types/handlers";
 import type {
   SyncConfig,
   SyncEvent,

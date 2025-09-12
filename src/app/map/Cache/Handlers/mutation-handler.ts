@@ -1,6 +1,6 @@
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
-import type { DataOperations } from "~/app/map/Cache/Handlers/types";
+import type { DataOperations } from "~/app/map/Cache/types/handlers";
 import type { EventBusService } from '~/app/map';
 import { MapItemType } from "~/lib/domains/mapping/utils";
 

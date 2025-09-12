@@ -1,7 +1,7 @@
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
-import type { DataOperations, NavigationOperations } from "~/app/map/Cache/Handlers/types";
+import type { DataOperations, NavigationOperations } from "~/app/map/Cache/types/handlers";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 import type { ServerService } from "~/app/map/Cache/Services/types";
 import { checkAncestors, loadAncestorsForItem } from "~/app/map/Cache/Handlers/ancestor-loader";

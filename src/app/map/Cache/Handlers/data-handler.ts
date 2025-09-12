@@ -6,7 +6,7 @@ import {
   createServerService,
   type useServerService,
 } from "~/app/map/Cache/Services/server-service";
-import type { LoadResult } from "~/app/map/Cache/Handlers/types";
+import type { LoadResult } from "~/app/map/Cache/types/handlers";
 import { loggers } from "~/lib/debug/debug-logger";
 
 export interface DataHandlerServices {

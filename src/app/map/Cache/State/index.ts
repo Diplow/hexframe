@@ -24,14 +24,10 @@ export {
   invalidateRegion,
   invalidateAll,
   updateCacheConfig,
+  removeItem,
+  updateItems,
   cacheActions,
-  createLoadRegionAction,
-  createLoadItemChildrenAction,
-  createSetCenterAction,
-  createOptimisticUpdateActions,
-  createErrorHandlingActions,
-  createBatchActions,
-} from "~/app/map/Cache/State/actions";
+} from "~/app/map/Cache/State/types";
 
 // Reducer and initial state
 export { cacheReducer, initialCacheState } from "~/app/map/Cache/State/reducer";

@@ -44,6 +44,26 @@ const { getItemById, getVisibleItems, isLoading } = cacheSelectors(state);
 const item = getItemById('coord-id');
 ```
 
+## Architectural Principles
+
+### Pure State Management
+- **Immutable Updates**: All state changes create new objects, never mutate existing state
+- **Predictable Transitions**: Actions clearly describe what happened, reducers describe how state changes
+- **Type Safety**: Full TypeScript coverage prevents runtime state errors
+- **Single Source of Truth**: All cache state flows through this central reducer
+
+### Redux-Style Pattern
+```typescript
+// Action -> Reducer -> New State -> Selectors -> Derived Data
+dispatch(loadRegion(params)) -> reducer -> newState -> selectors(newState) -> viewData
+```
+
+### Performance Optimizations
+- Memoized selectors prevent unnecessary recalculations
+- Normalized state shape minimizes update impact
+- Batch updates where possible to reduce re-renders
+- Selector efficiency with stable references
+
 ## Testing
 
 Comprehensive test coverage for:

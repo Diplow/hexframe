@@ -6,7 +6,7 @@ export type {
   MutationOperations,
   NavigationOperations,
   LoadResult
-} from '~/app/map/Cache/Handlers/types';
+} from '~/app/map/Cache/types/handlers';
 
 // Data Handler
 export { createDataHandler, createDataHandlerWithServerService } from '~/app/map/Cache/Handlers/data-handler';

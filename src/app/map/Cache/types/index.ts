@@ -28,6 +28,16 @@ export type {
   MapImportCompletedEvent
 } from '~/app/map/types';
 
+// Handler types for Cache subsystem operations
+export type {
+  DataOperations,
+  MutationOperations, 
+  NavigationOperations,
+  LoadResult,
+  HandlerConfig,
+  HandlerServices
+} from '~/app/map/Cache/types/handlers';
+
 // Event validation schemas for cache operations
 export {
   mapTileCreatedEventSchema,
@@ -48,7 +58,7 @@ import type {
   MutationOperations,
   NavigationOperations,
   LoadResult,
-} from "~/app/map/Cache/Handlers/types";
+} from '~/app/map/Cache/types/handlers';
 import type { ServerService, StorageService, ServiceConfig } from "~/app/map/Cache/Services/types";
 import type { SyncOperations, SyncResult, SyncStatus } from "~/app/map/Cache/Sync/types";
 import type { EventBusService } from '~/app/map';

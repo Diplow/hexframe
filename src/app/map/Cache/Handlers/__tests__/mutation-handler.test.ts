@@ -10,7 +10,7 @@ import type {
   MutationHandlerServices,
 } from "~/app/map/Cache/Handlers/mutation-handler";
 import type { CacheState } from "~/app/map/Cache/State/types";
-import type { DataOperations } from "~/app/map/Cache/Handlers/types";
+import type { DataOperations } from "~/app/map/Cache/types/handlers";
 import { createMockEventBus, expectEventEmitted } from "~/test-utils/event-bus";
 
 describe("Mutation Handler", () => {

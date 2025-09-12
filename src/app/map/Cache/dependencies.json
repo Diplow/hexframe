@@ -3,7 +3,8 @@
   "allowed": [
     "vitest",
     "~/lib/debug/debug-logger",
-    "~/server/api/types/contracts"
+    "~/server/api/types/contracts",
+    "~/app/map/Cache/State"
   ],
   "exceptions": {
     "~/lib/domains/mapping/types/MapItemType": "Needed for specific type import while avoiding full types folder"

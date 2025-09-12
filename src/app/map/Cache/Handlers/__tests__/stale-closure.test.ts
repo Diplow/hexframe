@@ -4,7 +4,7 @@ import { cacheActions } from "~/app/map/Cache/State/actions";
 import { cacheReducer, initialCacheState } from "~/app/map/Cache/State/reducer";
 import type { NavigationHandlerConfig } from "~/app/map/Cache/Handlers/navigation-handler";
 import type { CacheState, CacheAction } from "~/app/map/Cache/State/types";
-import type { DataOperations } from "~/app/map/Cache/Handlers/types";
+import type { DataOperations } from "~/app/map/Cache/types/handlers";
 
 describe("Stale State Closure Bug", () => {
   test("navigation handler should use current maxDepth config not stale value", async () => {

@@ -97,3 +97,100 @@ export type CacheAction =
       type: typeof ACTION_TYPES.UPDATE_ITEMS; 
       payload: Record<string, TileData | undefined>;
     };
+
+// ============================================================================
+// ACTION CREATORS - pure functions that return action objects  
+// ============================================================================
+
+export const loadRegion = (
+  items: MapItemAPIContract[],
+  centerCoordId: string,
+  maxDepth: number,
+): CacheAction => ({
+  type: ACTION_TYPES.LOAD_REGION,
+  payload: {
+    items,
+    centerCoordId,
+    maxDepth,
+  },
+});
+
+export const loadItemChildren = (
+  parentCoordId: string,
+  children: TileData[],
+): CacheAction => ({
+  type: ACTION_TYPES.LOAD_ITEM_CHILDREN,
+  payload: {
+    parentCoordId,
+    children,
+  },
+});
+
+export const setCenter = (centerCoordId: string | null): CacheAction => ({
+  type: ACTION_TYPES.SET_CENTER,
+  payload: centerCoordId,
+});
+
+export const setExpandedItems = (expandedItemIds: string[]): CacheAction => ({
+  type: ACTION_TYPES.SET_EXPANDED_ITEMS,
+  payload: expandedItemIds,
+});
+
+export const toggleItemExpansion = (itemId: string): CacheAction => ({
+  type: ACTION_TYPES.TOGGLE_ITEM_EXPANSION,
+  payload: itemId,
+});
+
+export const setLoading = (loading: boolean): CacheAction => ({
+  type: ACTION_TYPES.SET_LOADING,
+  payload: loading,
+});
+
+export const setError = (error: Error | null): CacheAction => ({
+  type: ACTION_TYPES.SET_ERROR,
+  payload: error,
+});
+
+export const invalidateRegion = (regionKey: string): CacheAction => ({
+  type: ACTION_TYPES.INVALIDATE_REGION,
+  payload: regionKey,
+});
+
+export const invalidateAll = (): CacheAction => ({
+  type: ACTION_TYPES.INVALIDATE_ALL,
+});
+
+export const removeItem = (coordId: string): CacheAction => ({
+  type: ACTION_TYPES.REMOVE_ITEM,
+  payload: coordId,
+});
+
+export const updateCacheConfig = (
+  config: UpdateCacheConfigPayload,
+): CacheAction => ({
+  type: ACTION_TYPES.UPDATE_CACHE_CONFIG,
+  payload: config,
+});
+
+export const updateItems = (
+  items: Record<string, TileData | undefined>,
+): CacheAction => ({
+  type: ACTION_TYPES.UPDATE_ITEMS,
+  payload: items,
+});
+
+// Grouped action creators for better organization
+export const cacheActions = {
+  loadRegion,
+  loadItemChildren,
+  setCenter,
+  setExpandedItems,
+  toggleItemExpansion,
+  setLoading,
+  setError,
+  invalidateRegion,
+  invalidateAll,
+  updateCacheConfig,
+  removeItem,
+  updateItems,
+};
