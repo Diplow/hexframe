@@ -16,11 +16,12 @@ from ..utils.path_utils import PathHelper
 class ComplexityRuleChecker:
     """Checker for complexity-based documentation requirements."""
     
-    def __init__(self, path_helper: PathHelper, file_cache=None,
+    def __init__(self, path_helper: PathHelper, file_cache=None, exception_handler=None,
                  complexity_threshold: int = 1000, 
                  doc_threshold: int = 500):
         self.path_helper = path_helper
         self.file_cache = file_cache
+        self.exception_handler = exception_handler
         self.complexity_threshold = complexity_threshold
         self.doc_threshold = doc_threshold
     
@@ -47,29 +48,59 @@ class ComplexityRuleChecker:
             
             # Only apply architecture requirements if directory is NOT a rule exception
             if not self.path_helper.is_rule_exception(directory):
-                if lines > self.complexity_threshold:
+                # Check for custom thresholds from exception files
+                custom_thresholds = self._get_custom_thresholds(directory)
+                complexity_threshold = custom_thresholds.get("complexity", self.complexity_threshold)
+                doc_threshold = custom_thresholds.get("doc", self.doc_threshold)
+                exception_info = custom_thresholds.get("exception_info")
+                
+                if lines > complexity_threshold:
                     # Complex folder needs full subsystem structure
                     missing = self._get_missing_subsystem_files(directory)
                     
                     if missing:
+                        threshold_msg = f" (custom threshold {complexity_threshold})" if exception_info else ""
                         recommendation = f"ERROR: Create {directory}/README.md file" if missing == ["README.md"] else f"ERROR: Create missing files in {directory}: {', '.join(missing)}"
+                        
                         error = ArchError.create_error(
-                            message=f"❌ {directory} ({lines} lines) missing: {' '.join(missing)}",
+                            message=f"❌ {directory} ({lines} lines){threshold_msg} missing: {' '.join(missing)}",
                             error_type=ErrorType.COMPLEXITY,
                             subsystem=str(directory),
                             recommendation=recommendation
                         )
+                        
+                        # Add exception info for reporting
+                        if exception_info:
+                            error.metadata = {
+                                "custom_threshold": complexity_threshold,
+                                "default_threshold": self.complexity_threshold,
+                                "exception_source": exception_info.get("exception_source"),
+                                "justification": exception_info.get("justification")
+                            }
+                        
                         errors.append(error)
                 
-                elif lines > self.doc_threshold:
+                elif lines > doc_threshold:
                     # Medium complexity needs README
                     if not (directory / "README.md").exists():
+                        threshold_msg = f" (custom threshold {doc_threshold})" if exception_info else ""
+                        
                         warning = ArchError.create_warning(
-                            message=f"⚠️  {directory} ({lines} lines) - missing README.md",
+                            message=f"⚠️  {directory} ({lines} lines){threshold_msg} - missing README.md",
                             error_type=ErrorType.COMPLEXITY,
                             subsystem=str(directory),
                             recommendation=f"WARNING: Create {directory}/README.md file"
                         )
+                        
+                        # Add exception info for reporting
+                        if exception_info:
+                            warning.metadata = {
+                                "custom_threshold": doc_threshold,
+                                "default_threshold": self.doc_threshold,
+                                "exception_source": exception_info.get("exception_source"),
+                                "justification": exception_info.get("justification")
+                            }
+                        
                         errors.append(warning)
         
         return errors
@@ -80,21 +111,38 @@ class ComplexityRuleChecker:
         # print("Checking subsystems for completeness...")
         
         for subsystem in subsystems:
+            # Check for custom thresholds from exception files
+            custom_thresholds = self._get_custom_thresholds(subsystem.path)
+            complexity_threshold = custom_thresholds.get("complexity", self.complexity_threshold)
+            exception_info = custom_thresholds.get("exception_info")
+            
             # Only require documentation for complex subsystems (over threshold)
-            if subsystem.total_lines <= self.complexity_threshold:
+            if subsystem.total_lines <= complexity_threshold:
                 continue
                 
             missing = self._get_missing_subsystem_files(subsystem.path)
             
             if missing:
+                threshold_msg = f" (custom threshold {complexity_threshold})" if exception_info else ""
                 recommendation = f"ERROR: Create {subsystem.path}/README.md file" if missing == ["README.md"] else f"ERROR: Create missing files in {subsystem.path}: {', '.join(missing)}"
+                
                 error = ArchError.create_error(
-                    message=(f"❌ Subsystem {subsystem.path} ({subsystem.total_lines} lines) "
+                    message=(f"❌ Subsystem {subsystem.path} ({subsystem.total_lines} lines){threshold_msg} "
                            f"missing: {' '.join(missing)}"),
                     error_type=ErrorType.SUBSYSTEM_STRUCTURE,
                     subsystem=str(subsystem.path),
                     recommendation=recommendation
                 )
+                
+                # Add exception info for reporting
+                if exception_info:
+                    error.metadata = {
+                        "custom_threshold": complexity_threshold,
+                        "default_threshold": self.complexity_threshold,
+                        "exception_source": exception_info.get("exception_source"),
+                        "justification": exception_info.get("justification")
+                    }
+                
                 errors.append(error)
         
         return errors
@@ -134,3 +182,29 @@ class ComplexityRuleChecker:
             missing.append("ARCHITECTURE.md")
         
         return missing
+    
+    def _get_custom_thresholds(self, directory: Path) -> dict:
+        """Get custom thresholds for a directory from exception files."""
+        if not self.exception_handler:
+            return {}
+        
+        exception = self.exception_handler.get_custom_threshold(directory)
+        if not exception:
+            return {}
+        
+        # For now, use the custom threshold for both complexity and doc thresholds
+        # Could be extended to support separate thresholds
+        custom_threshold = exception.threshold
+        
+        # Scale the doc threshold proportionally
+        doc_ratio = self.doc_threshold / self.complexity_threshold
+        custom_doc_threshold = int(custom_threshold * doc_ratio)
+        
+        return {
+            "complexity": custom_threshold,
+            "doc": custom_doc_threshold,
+            "exception_info": {
+                "exception_source": str(exception.source_file.relative_to(self.exception_handler.project_root)),
+                "justification": exception.justification
+            }
+        }

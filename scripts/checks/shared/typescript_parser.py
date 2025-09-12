@@ -690,6 +690,19 @@ class TypeScriptParser:
         
         return violations
 
+    def extract_function_names_from_content(self, content: str) -> Set[str]:
+        """Extract function names from content for validation purposes."""
+        function_names = set()
+        
+        for pattern in self.function_patterns:
+            matches = re.finditer(pattern, content, re.MULTILINE)
+            for match in matches:
+                func_name = match.group(1)
+                if func_name.lower() not in self.excluded_keywords:
+                    function_names.add(func_name)
+        
+        return function_names
+
     def _find_function_boundaries(self, lines: List[str], start_line_idx: int, pattern_idx: int = None) -> tuple[int, int]:
         """Find the start and end line numbers of a function."""
         line_start = start_line_idx + 1  # Convert to 1-indexed

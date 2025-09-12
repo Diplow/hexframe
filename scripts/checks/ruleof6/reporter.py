@@ -46,6 +46,12 @@ class RuleOf6Reporter:
         total_errors = len(results.errors)
         total_warnings = len(results.warnings)
         
+        # Show exception info if available
+        if "exceptions" in results.rules_applied:
+            exception_info = results.rules_applied["exceptions"]
+            if exception_info["total_exceptions"] > 0:
+                print(f"🎯 Loaded {exception_info['total_exceptions']} custom thresholds from {len(exception_info['exception_files_loaded'])} files")
+        
         if total_errors > 0 or total_warnings > 0:
             print(f"📐 Rule of 6: {total_errors} errors, {total_warnings} warnings")
             print()
@@ -132,11 +138,23 @@ class RuleOf6Reporter:
                     count = violation.context.get('key_count', 0)
                     count_info = f" ({count} keys)"
                 
-                print(f"{i:2}. {severity_icon} {violation.message}{count_info}")
+                # Add exception indicator if this violation uses custom threshold
+                exception_indicator = ""
+                if violation.exception_source:
+                    exception_indicator = " 🎯"
+                
+                print(f"{i:2}. {severity_icon} {violation.message}{count_info}{exception_indicator}")
                 if violation.file_path and violation.line_number:
                     print(f"     {violation.file_path}:{violation.line_number}")
                 elif violation.file_path:
                     print(f"     {violation.file_path}")
+                
+                # Show custom threshold info if available
+                if violation.exception_source:
+                    custom_info = f"Custom threshold ({violation.custom_threshold})"
+                    if violation.default_threshold:
+                        custom_info += f" vs default ({violation.default_threshold})"
+                    print(f"     {custom_info}")
             
             if len(sorted_violations) > 10:
                 remaining = len(sorted_violations) - 10

@@ -75,7 +75,7 @@ def is_test_file(file_path: Path) -> bool:
 
 
 def count_typescript_lines(directory: Path) -> int:
-    """Count TypeScript lines in directory, respecting subsystem boundaries."""
+    """Count TypeScript lines in directory, respecting subsystem boundaries and excluding documentation files."""
     if not directory.exists():
         return 0
         
@@ -83,11 +83,11 @@ def count_typescript_lines(directory: Path) -> int:
     
     # Count direct files in this directory
     for file in directory.glob("*.ts"):
-        if not is_test_file(file):
+        if not is_test_file(file) and not is_documentation_file(file):
             total += get_file_lines(file)
     
     for file in directory.glob("*.tsx"):
-        if not is_test_file(file):
+        if not is_test_file(file) and not is_documentation_file(file):
             total += get_file_lines(file)
     
     # Count subdirectories if they're not subsystems
@@ -99,6 +99,12 @@ def count_typescript_lines(directory: Path) -> int:
                 total += count_typescript_lines(subdir)
     
     return total
+
+
+def is_documentation_file(file_path: Path) -> bool:
+    """Check if file is a documentation/metadata file that shouldn't count toward complexity."""
+    name = file_path.name.lower()
+    return name in ["readme.md", "architecture.md", "dependencies.json"]
 
 
 def find_typescript_files(directory: Path) -> list[Path]:

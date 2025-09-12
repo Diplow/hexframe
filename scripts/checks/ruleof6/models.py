@@ -84,6 +84,9 @@ class RuleOf6Violation:
     line_number: Optional[int] = None
     recommendation: Optional[str] = None
     context: Optional[Dict] = None
+    exception_source: Optional[str] = None
+    custom_threshold: Optional[int] = None
+    default_threshold: Optional[int] = None
     
     @classmethod
     def create_error(
@@ -93,7 +96,10 @@ class RuleOf6Violation:
         file_path: Optional[str] = None,
         line_number: Optional[int] = None,
         recommendation: Optional[str] = None,
-        context: Optional[Dict] = None
+        context: Optional[Dict] = None,
+        exception_source: Optional[str] = None,
+        custom_threshold: Optional[int] = None,
+        default_threshold: Optional[int] = None
     ) -> "RuleOf6Violation":
         """Create a violation with ERROR severity."""
         return cls(
@@ -103,7 +109,10 @@ class RuleOf6Violation:
             file_path=file_path,
             line_number=line_number,
             recommendation=recommendation,
-            context=context
+            context=context,
+            exception_source=exception_source,
+            custom_threshold=custom_threshold,
+            default_threshold=default_threshold
         )
     
     @classmethod
@@ -114,7 +123,10 @@ class RuleOf6Violation:
         file_path: Optional[str] = None,
         line_number: Optional[int] = None,
         recommendation: Optional[str] = None,
-        context: Optional[Dict] = None
+        context: Optional[Dict] = None,
+        exception_source: Optional[str] = None,
+        custom_threshold: Optional[int] = None,
+        default_threshold: Optional[int] = None
     ) -> "RuleOf6Violation":
         """Create a violation with WARNING severity."""
         return cls(
@@ -124,12 +136,15 @@ class RuleOf6Violation:
             file_path=file_path,
             line_number=line_number,
             recommendation=recommendation,
-            context=context
+            context=context,
+            exception_source=exception_source,
+            custom_threshold=custom_threshold,
+            default_threshold=default_threshold
         )
     
     def to_dict(self) -> Dict:
         """Convert violation to dictionary for JSON serialization."""
-        return {
+        result = {
             "type": self.violation_type.value,
             "severity": self.severity.value,
             "message": self.message,
@@ -138,6 +153,16 @@ class RuleOf6Violation:
             "recommendation": self.recommendation,
             "context": self.context
         }
+        
+        # Add exception metadata if available
+        if self.exception_source is not None:
+            result["exception_source"] = self.exception_source
+        if self.custom_threshold is not None:
+            result["custom_threshold"] = self.custom_threshold
+        if self.default_threshold is not None:
+            result["default_threshold"] = self.default_threshold
+            
+        return result
 
 
 @dataclass

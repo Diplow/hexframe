@@ -61,6 +61,7 @@ class ArchError:
     file_path: Optional[str] = None
     line_number: Optional[int] = None
     recommendation: Optional[str] = None
+    metadata: Optional[Dict] = field(default_factory=dict)
     
     @classmethod
     def create_error(
@@ -106,7 +107,7 @@ class ArchError:
     
     def to_dict(self) -> Dict:
         """Convert error to dictionary for JSON serialization."""
-        return {
+        result = {
             "type": self.error_type.value,
             "severity": self.severity.value,
             "message": self.message,
@@ -115,6 +116,12 @@ class ArchError:
             "line": self.line_number,
             "recommendation": self.recommendation
         }
+        
+        # Add metadata if present
+        if self.metadata:
+            result.update(self.metadata)
+        
+        return result
 
 
 @dataclass

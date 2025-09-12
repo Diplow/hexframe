@@ -11,7 +11,7 @@ from typing import List
 
 from .models import CheckResults, SubsystemInfo, FileInfo
 from .rules import ComplexityRuleChecker, SubsystemRuleChecker, ImportRuleChecker, DomainRuleChecker
-from .utils import FileCache, PathHelper
+from .utils import FileCache, PathHelper, ExceptionHandler
 from .utils.file_utils import find_typescript_files
 
 
@@ -22,8 +22,14 @@ class ArchitectureChecker:
         self.path_helper = PathHelper(target_path)
         self.file_cache = FileCache()
         
+        # Initialize exception handler with project root
+        project_root = Path(target_path).resolve()
+        while project_root.parent != project_root and not (project_root / ".git").exists():
+            project_root = project_root.parent
+        self.exception_handler = ExceptionHandler(project_root)
+        
         # Initialize rule checkers
-        self.complexity_checker = ComplexityRuleChecker(self.path_helper, self.file_cache)
+        self.complexity_checker = ComplexityRuleChecker(self.path_helper, self.file_cache, self.exception_handler)
         self.subsystem_checker = SubsystemRuleChecker(self.path_helper, self.file_cache)
         self.import_checker = ImportRuleChecker(self.path_helper, self.file_cache)
         self.domain_checker = DomainRuleChecker(self.path_helper, self.file_cache)

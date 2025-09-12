@@ -34,6 +34,8 @@ The Rule of 6 is not about arbitrary limits—it's about **cognitive load manage
 | **Function Arguments** | 3 args | Error | Maximum function parameters |
 | **Object Parameters** | 6 keys | Warning | Maximum keys in object parameters |
 
+**Note**: All thresholds can be customized using `.ruleof6-exceptions` files (see [Exception Handling](#exception-handling) below).
+
 ## Usage
 
 ### Command Line
@@ -106,6 +108,8 @@ Detailed machine-readable report saved to `test-results/rule-of-6-check.json`:
 
 The JSON report supports detailed analysis through `jq` filtering:
 
+### Basic Filtering
+
 ```bash
 # Get all errors
 jq '.violations[] | select(.severity == "error")' test-results/rule-of-6-check.json
@@ -121,12 +125,35 @@ jq '.violations[] | select(.file | contains("components"))' test-results/rule-of
 
 # Count violations by type
 jq -r '.violations[].type' test-results/rule-of-6-check.json | sort | uniq -c
+```
 
+### Exception-Aware Filtering
+
+```bash
+# Get violations using custom thresholds (exceptions)
+jq '.violations[] | select(.exception_source != null)' test-results/rule-of-6-check.json
+
+# Get violations using default thresholds only
+jq '.violations[] | select(.exception_source == null)' test-results/rule-of-6-check.json
+
+# Show exception summary
+jq '.rules_applied.exceptions' test-results/rule-of-6-check.json
+
+# Compare custom vs default thresholds
+jq '.violations[] | select(.custom_threshold != null) | {file: .file, function: .context.function_name, custom: .custom_threshold, default: .default_threshold}' test-results/rule-of-6-check.json
+```
+
+### Advanced Analysis
+
+```bash
 # Get top directories with most items
 jq '.violations[] | select(.type == "directory_items") | {path: .file, count: .context.item_count}' test-results/rule-of-6-check.json | sort_by(.count) | reverse
 
-# Get functions with most lines
-jq '.violations[] | select(.type == "function_lines") | {function: .context.function_name, file: .file, lines: .context.line_count}' test-results/rule-of-6-check.json | sort_by(.lines) | reverse
+# Get functions with most lines (including custom threshold info)
+jq '.violations[] | select(.type == "function_lines") | {function: .context.function_name, file: .file, lines: .context.line_count, custom_threshold: .custom_threshold}' test-results/rule-of-6-check.json | sort_by(.lines) | reverse
+
+# Find functions exceeding custom thresholds
+jq '.violations[] | select(.type == "function_lines" and .custom_threshold != null) | {function: .context.function_name, file: .file, actual: .context.line_count, limit: .custom_threshold, justification: .exception_source}' test-results/rule-of-6-check.json
 ```
 
 ## Rules Applied
@@ -142,10 +169,126 @@ The checker enforces the following thresholds:
 | **function_args** | 3 arguments | Error | Maximum function parameters |
 | **object_keys** | 6 keys | Warning | Maximum keys in object parameters |
 
+## Exception Handling
+
+### Custom Thresholds via `.ruleof6-exceptions` Files
+
+The Rule of 6 checker supports custom thresholds for cases where meaningful refactoring isn't possible without creating artificial abstractions. This allows you to **document complexity explicitly** rather than hide it behind poor abstractions.
+
+#### Exception File Format
+
+Create `.ruleof6-exceptions` files with this format:
+
+```
+# Function-specific exceptions with custom thresholds
+src/math/hex-calculations.ts:calculatePoints: 150  # Mathematical algorithm
+src/legacy/parser.ts:parseComplexFormat: 200     # Legacy format parser  
+src/api/routes.ts:createRoute: 5                 # Framework requirement (args)
+
+# Directory-specific exceptions  
+src/components/forms: 12  # Cohesive form component library
+src/utils/math: 8         # Mathematical utility collection
+
+# Justification comments are required for good practice
+# TODO: Refactor calculatePoints when we upgrade the math library
+```
+
+#### Exception Types Supported
+
+**Function complexity exceptions** (line count):
+```
+<file-path>:<function-name>: <line-threshold>  # justification
+```
+
+**Directory exceptions** (item count):
+```
+<directory-path>: <item-threshold>  # justification
+```
+
+#### File Location Strategy
+
+- Exception files are discovered by walking up from the target directory to the project root
+- More specific (closer) exception files take precedence
+- Multiple exception files can be used at different directory levels
+
+#### Validation Requirements
+
+The checker **validates all exception rules**:
+
+- ✅ **Files must exist**: Exception references non-existent files will cause errors
+- ✅ **Functions must exist**: Function-specific exceptions are validated against actual code
+- ✅ **Directories must exist**: Directory paths are verified
+- ✅ **Justification recommended**: Warnings for missing justification comments
+
+**Example validation error**:
+```
+Exception validation failed:
+Exception references non-existent function 'calculateHexPoints' in src/math/calculations.ts
+```
+
+#### Console Output Enhancement
+
+Violations using custom thresholds are clearly marked:
+
+```
+📐 Rule of 6: 2 errors, 1 warnings
+🎯 Loaded 5 custom thresholds from 2 files
+
+📏 Too Many Lines in Functions
+=============================
+ 1. ❌ Function 'calculatePoints' has 180 lines (custom limit 150) 🎯
+     src/math/calculations.ts:42
+     Custom threshold (150) vs default (100)
+```
+
+#### JSON Report Enhancement
+
+Custom threshold information is included in JSON reports:
+
+```json
+{
+  "violations": [
+    {
+      "type": "function_lines",
+      "severity": "error", 
+      "message": "Function exceeds custom threshold (180 lines, limit 150)",
+      "file": "src/math/calculations.ts",
+      "exception_source": ".ruleof6-exceptions",
+      "custom_threshold": 150,
+      "default_threshold": 100,
+      "actual_count": 180
+    }
+  ],
+  "rules_applied": {
+    "exceptions": {
+      "exception_files_loaded": [".ruleof6-exceptions"],
+      "directory_exceptions": 2,
+      "function_exceptions": 3,
+      "total_exceptions": 5
+    }
+  }
+}
+```
+
+#### Exception Philosophy
+
+**Use exceptions for**:
+- Mathematical algorithms that require sequential logic
+- Framework-imposed patterns (e.g., route handlers with many parameters)
+- Legacy code with planned refactoring timelines
+- Cohesive domain collections (e.g., form components that belong together)
+
+**Don't use exceptions for**:
+- Avoiding refactoring that would improve code quality
+- Creating artificial permission to write complex code
+- Hiding complexity that could be meaningfully abstracted
+
+**Principle**: Better to explicitly acknowledge complexity with clear reasoning than create meaningless abstractions that reduce code clarity.
+
 ## Configuration
 
-### Exception Patterns
-Customize ignored patterns in `.rule-of-6-ignore`:
+### Legacy Exception Patterns (Ignored Files)
+Customize completely ignored patterns in `.rule-of-6-ignore`:
 
 ```
 # Test directories (often have many test files)
@@ -159,6 +302,8 @@ src/server/db/schema/**
 # Generated code
 **/generated/**
 ```
+
+**Note**: `.rule-of-6-ignore` completely skips files, while `.ruleof6-exceptions` allows custom thresholds with validation.
 
 ## The CRITICAL Distinction: Meaningful vs. Meaningless Abstractions
 

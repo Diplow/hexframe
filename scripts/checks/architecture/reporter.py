@@ -54,6 +54,14 @@ class ArchitectureReporter:
         total_errors = len(results.errors)
         total_warnings = len(results.warnings)
         
+        # Check for custom thresholds usage
+        custom_threshold_count = sum(1 for issue in results.get_all_issues() 
+                                   if issue.metadata and 'custom_threshold' in issue.metadata)
+        
+        if custom_threshold_count > 0:
+            print(f"🔧 Using custom thresholds from .architecture-exceptions for {custom_threshold_count} issue(s)")
+            print()
+        
         if total_errors > 0 or total_warnings > 0:
             print("📊 Summary:")
             print("=" * 72)

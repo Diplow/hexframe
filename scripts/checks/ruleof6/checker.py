@@ -11,8 +11,9 @@ from typing import List
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from models import CheckResults, ViolationType, RuleOf6Violation, FileAnalysis
-from scanner import ExceptionManager, DirectoryScanner, FileScanner
+from scanner import LegacyIgnoreManager, DirectoryScanner, FileScanner
 from parser import TypeScriptParser
+from exceptions import CustomThresholdManager
 
 
 class RuleOf6Checker:
@@ -21,7 +22,7 @@ class RuleOf6Checker:
     def __init__(self, target_path: str = "src"):
         self.target_path = Path(target_path)
         
-        # Rule thresholds
+        # Rule thresholds (defaults)
         self.max_directory_items = 6
         self.max_functions_per_file = 6
         self.max_function_lines = 50
@@ -30,10 +31,22 @@ class RuleOf6Checker:
         self.max_function_lines_error = 100  # Hard limit for errors
         
         # Initialize components
-        self.exception_manager = ExceptionManager()
-        self.directory_scanner = DirectoryScanner(self.exception_manager)
-        self.file_scanner = FileScanner(self.exception_manager)
+        self.ignore_manager = LegacyIgnoreManager()
+        
+        # Determine project root more reliably
+        project_root = self._find_project_root(self.target_path)
+        self.threshold_manager = CustomThresholdManager(project_root)
+        
+        self.directory_scanner = DirectoryScanner(self.ignore_manager)
+        self.file_scanner = FileScanner(self.ignore_manager)
         self.parser = TypeScriptParser()
+        
+        # Load custom thresholds
+        try:
+            self.threshold_manager.load_exceptions(self.target_path)
+        except ValueError as e:
+            print(f"Warning: Exception validation failed: {e}")
+            # Continue with default thresholds
     
     def run_all_checks(self) -> CheckResults:
         """Run all Rule of 6 checks and return results."""
@@ -57,30 +70,81 @@ class RuleOf6Checker:
             "object_keys": self.max_object_keys
         }
         
+        # Add exception summary if any exceptions were loaded
+        if self.threshold_manager.has_exceptions():
+            exception_summary = self.threshold_manager.get_exception_summary()
+            results.rules_applied["exceptions"] = exception_summary
+        
         return results
     
-    def _check_directory_rule(self, results: CheckResults) -> None:
-        """Check that directories have max 6 items."""
-        violating_dirs = self.directory_scanner.find_violating_directories(
-            self.target_path, self.max_directory_items
-        )
+    def _find_project_root(self, target_path: Path) -> Path:
+        """Find project root by looking for common markers."""
+        current = target_path.resolve()
         
-        for dir_info in violating_dirs:
-            relative_path = str(dir_info.path.relative_to(self.target_path) if dir_info.path != self.target_path else '.')
-            items_display = dir_info.get_item_list_display()
+        # Look for common project root indicators
+        root_markers = {
+            'package.json', 'pnpm-lock.yaml', 'yarn.lock', '.git',
+            'pyproject.toml', 'Cargo.toml', 'composer.json'
+        }
+        
+        max_depth = 10
+        depth = 0
+        
+        while depth < max_depth:
+            # Check if any root markers exist in current directory
+            if any((current / marker).exists() for marker in root_markers):
+                return current
             
-            violation = RuleOf6Violation.create_error(
-                message=f"Directory '{relative_path}' has {dir_info.item_count} items (max {self.max_directory_items})",
-                violation_type=ViolationType.DIRECTORY_ITEMS,
-                file_path=str(dir_info.path),
-                recommendation="Group related items into subdirectories with meaningful names. Avoid creating empty subdirectories just to meet the rule.",
-                context={
-                    "item_count": dir_info.item_count,
-                    "items": dir_info.items,
-                    "items_display": items_display
-                }
-            )
-            results.add_violation(violation)
+            # Stop if we've reached filesystem root
+            if current == current.parent:
+                break
+                
+            current = current.parent
+            depth += 1
+        
+        # Fallback: use current working directory
+        return Path.cwd()
+    
+    def _check_directory_rule(self, results: CheckResults) -> None:
+        """Check that directories have max 6 items (with custom threshold support)."""
+        # First get all directories (we'll filter with custom thresholds)
+        all_dirs = []
+        for directory in self.target_path.rglob("*"):
+            if directory.is_dir() and not self.ignore_manager.is_exception(directory):
+                dir_info = self.directory_scanner.scan_directory(directory)
+                all_dirs.append(dir_info)
+        
+        # Check each directory with appropriate threshold
+        for dir_info in all_dirs:
+            # Check for custom threshold first
+            custom_rule = self.threshold_manager.get_directory_exception(dir_info.path)
+            threshold = custom_rule.threshold if custom_rule else self.max_directory_items
+            
+            if dir_info.item_count > threshold:
+                relative_path = str(dir_info.path.relative_to(self.target_path) if dir_info.path != self.target_path else '.')
+                items_display = dir_info.get_item_list_display()
+                
+                # Create message with custom threshold info
+                if custom_rule:
+                    message = f"Directory '{relative_path}' has {dir_info.item_count} items (custom limit {threshold})"
+                else:
+                    message = f"Directory '{relative_path}' has {dir_info.item_count} items (max {threshold})"
+                
+                violation = RuleOf6Violation.create_error(
+                    message=message,
+                    violation_type=ViolationType.DIRECTORY_ITEMS,
+                    file_path=str(dir_info.path),
+                    recommendation="Group related items into subdirectories with meaningful names. Avoid creating empty subdirectories just to meet the rule.",
+                    context={
+                        "item_count": dir_info.item_count,
+                        "items": dir_info.items,
+                        "items_display": items_display
+                    },
+                    exception_source=custom_rule.source_file if custom_rule else None,
+                    custom_threshold=custom_rule.threshold if custom_rule else None,
+                    default_threshold=self.max_directory_items
+                )
+                results.add_violation(violation)
     
     def _check_file_function_rules(self, results: CheckResults) -> None:
         """Check file function count and individual function rules."""        
@@ -146,41 +210,74 @@ class RuleOf6Checker:
             self._check_function_arguments(func, relative_path, results)
     
     def _check_function_lines(self, func, relative_path: str, results: CheckResults) -> None:
-        """Check function line count."""
-        if func.line_count > self.max_function_lines:
-            if func.line_count < self.max_function_lines_error:
-                # Warning for functions between 50-100 lines
-                violation = RuleOf6Violation.create_warning(
-                    message=f"Function '{func.name}' has {func.line_count} lines (recommended max {self.max_function_lines})",
-                    violation_type=ViolationType.FUNCTION_LINES,
-                    file_path=relative_path,
-                    line_number=func.line_start,
-                    recommendation="Break down into max 6 smaller functions at the same abstraction level. Focus on single responsibility and meaningful function names.",
-                    context={
-                        "function_name": func.name,
-                        "line_count": func.line_count,
-                        "line_range": f"{func.line_start}-{func.line_end}"
-                    }
-                )
-            else:
-                # Error for functions 100+ lines
+        """Check function line count with custom threshold support."""
+        # Check for custom threshold
+        custom_rule = self.threshold_manager.get_function_exception(relative_path, func.name)
+        
+        if custom_rule:
+            # Use custom threshold
+            if func.line_count > custom_rule.threshold:
                 violation = RuleOf6Violation.create_error(
-                    message=f"Function '{func.name}' has {func.line_count} lines (enforced max {self.max_function_lines_error})",
+                    message=f"Function '{func.name}' has {func.line_count} lines (custom limit {custom_rule.threshold})",
                     violation_type=ViolationType.FUNCTION_LINES,
                     file_path=relative_path,
                     line_number=func.line_start,
-                    recommendation="Immediately refactor into max 6 function calls at the same abstraction level. Avoid creating meaningless wrapper functions.",
+                    recommendation=f"Refactor to stay within custom threshold. Justification: {custom_rule.justification}",
                     context={
                         "function_name": func.name,
                         "line_count": func.line_count,
                         "line_range": f"{func.line_start}-{func.line_end}"
-                    }
+                    },
+                    exception_source=custom_rule.source_file,
+                    custom_threshold=custom_rule.threshold,
+                    default_threshold=self.max_function_lines_error
                 )
-            
-            results.add_violation(violation)
+                results.add_violation(violation)
+        else:
+            # Use default thresholds
+            if func.line_count > self.max_function_lines:
+                if func.line_count < self.max_function_lines_error:
+                    # Warning for functions between 50-100 lines
+                    violation = RuleOf6Violation.create_warning(
+                        message=f"Function '{func.name}' has {func.line_count} lines (recommended max {self.max_function_lines})",
+                        violation_type=ViolationType.FUNCTION_LINES,
+                        file_path=relative_path,
+                        line_number=func.line_start,
+                        recommendation="Break down into max 6 smaller functions at the same abstraction level. Focus on single responsibility and meaningful function names.",
+                        context={
+                            "function_name": func.name,
+                            "line_count": func.line_count,
+                            "line_range": f"{func.line_start}-{func.line_end}"
+                        },
+                        default_threshold=self.max_function_lines
+                    )
+                else:
+                    # Error for functions 100+ lines
+                    violation = RuleOf6Violation.create_error(
+                        message=f"Function '{func.name}' has {func.line_count} lines (enforced max {self.max_function_lines_error})",
+                        violation_type=ViolationType.FUNCTION_LINES,
+                        file_path=relative_path,
+                        line_number=func.line_start,
+                        recommendation="Immediately refactor into max 6 function calls at the same abstraction level. Avoid creating meaningless wrapper functions.",
+                        context={
+                            "function_name": func.name,
+                            "line_count": func.line_count,
+                            "line_range": f"{func.line_start}-{func.line_end}"
+                        },
+                        default_threshold=self.max_function_lines_error
+                    )
+                
+                results.add_violation(violation)
     
     def _check_function_arguments(self, func, relative_path: str, results: CheckResults) -> None:
-        """Check function argument count."""
+        """Check function argument count with custom threshold support."""
+        # Check for custom threshold for arguments
+        custom_rule = self.threshold_manager.get_function_exception(relative_path, func.name)
+        
+        # For function arguments, we check if there's a custom rule that affects argument count
+        # The custom rule threshold is used for line count, but we can extend this logic
+        # For now, use default argument checking (can be enhanced later if needed)
+        
         if func.arg_count > self.max_function_args:
             violation = RuleOf6Violation.create_error(
                 message=f"Function '{func.name}' has {func.arg_count} arguments (max {self.max_function_args})",
@@ -191,7 +288,8 @@ class RuleOf6Checker:
                 context={
                     "function_name": func.name,
                     "arg_count": func.arg_count
-                }
+                },
+                default_threshold=self.max_function_args
             )
             results.add_violation(violation)
     

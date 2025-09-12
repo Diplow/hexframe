@@ -11,8 +11,8 @@ from typing import List, Set, Optional
 from models import DirectoryInfo, FileAnalysis
 
 
-class ExceptionManager:
-    """Manages exceptions for Rule of 6 checking."""
+class LegacyIgnoreManager:
+    """Manages legacy .rule-of-6-ignore patterns (separate from custom thresholds)."""
     
     def __init__(self, exceptions_file: str = ".rule-of-6-ignore"):
         self.exceptions: Set[str] = set()
@@ -71,8 +71,8 @@ class ExceptionManager:
 class DirectoryScanner:
     """Scans directories for Rule of 6 violations."""
     
-    def __init__(self, exception_manager: ExceptionManager):
-        self.exception_manager = exception_manager
+    def __init__(self, ignore_manager: LegacyIgnoreManager):
+        self.ignore_manager = ignore_manager
     
     def scan_directory(self, directory: Path) -> DirectoryInfo:
         """Scan a directory and return its info, counting only .ts/.tsx files and subdirectories."""
@@ -111,7 +111,7 @@ class DirectoryScanner:
             if not directory.is_dir():
                 continue
                 
-            if self.exception_manager.is_exception(directory):
+            if self.ignore_manager.is_exception(directory):
                 continue
             
             dir_info = self.scan_directory(directory)
@@ -125,8 +125,8 @@ class DirectoryScanner:
 class FileScanner:
     """Scans TypeScript files for basic analysis."""
     
-    def __init__(self, exception_manager: ExceptionManager):
-        self.exception_manager = exception_manager
+    def __init__(self, ignore_manager: LegacyIgnoreManager):
+        self.ignore_manager = ignore_manager
     
     def is_test_file(self, file_path: Path) -> bool:
         """Check if file is a test file."""
@@ -137,7 +137,7 @@ class FileScanner:
     
     def scan_file(self, file_path: Path) -> Optional[FileAnalysis]:
         """Scan a TypeScript file and return basic analysis."""
-        if self.exception_manager.is_exception(file_path):
+        if self.ignore_manager.is_exception(file_path):
             return None
         
         if self.is_test_file(file_path):
@@ -169,7 +169,7 @@ class FileScanner:
         # Filter out exceptions and test files
         filtered_files = []
         for file_path in ts_files:
-            if not self.exception_manager.is_exception(file_path) and not self.is_test_file(file_path):
+            if not self.ignore_manager.is_exception(file_path) and not self.is_test_file(file_path):
                 filtered_files.append(file_path)
         
         return filtered_files
