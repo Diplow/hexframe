@@ -1,6 +1,6 @@
-import { toggleCommands } from './toggle-commands';
-import { infoCommands } from './info-commands';
-import { helpCommands } from './help-commands';
+import { toggleCommands } from '~/app/map/Chat/Input/_commands/settings/toggle-commands';
+import { infoCommands } from '~/app/map/Chat/Input/_commands/settings/info-commands';
+import { helpCommands } from '~/app/map/Chat/Input/_commands/settings/help-commands';
 
 export const settingsCommands = {
   ...helpCommands,

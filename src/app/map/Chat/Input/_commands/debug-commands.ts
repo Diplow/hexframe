@@ -1,2 +1,2 @@
 // Re-export debug commands from reorganized structure
-export { debugCommands } from './debug';
+export { debugCommands } from '~/app/map/Chat/Input/_commands/debug';

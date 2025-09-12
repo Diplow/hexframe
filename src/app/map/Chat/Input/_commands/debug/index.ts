@@ -1,4 +1,4 @@
-import { createDebugCommandAction } from './debug-formatters';
+import { createDebugCommandAction } from '~/app/map/Chat/Input/_commands/debug/debug-formatters';
 
 interface Command {
   description: string;

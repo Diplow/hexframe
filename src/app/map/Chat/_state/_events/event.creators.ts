@@ -96,11 +96,11 @@ export function createOperationStartedEvent(
 }
 
 // Event transformer helper functions
-function _transformTileSelectedEvent(baseEvent: any, payload: any) {
+function _transformTileSelectedEvent(baseEvent: Omit<ChatEvent, 'type' | 'payload'>, payload: unknown): ChatEvent {
   const typedPayload = payload as { tileId: string; tileData: { title: string; description?: string; content?: string; coordId: string }; openInEditMode?: boolean }
   return {
     ...baseEvent,
-    type: 'tile_selected',
+    type: 'tile_selected' as const,
     payload: {
       tileId: typedPayload.tileId,
       tileData: typedPayload.tileData,
@@ -109,11 +109,11 @@ function _transformTileSelectedEvent(baseEvent: any, payload: any) {
   }
 }
 
-function _transformTileCreatedEvent(baseEvent: any, payload: any) {
+function _transformTileCreatedEvent(baseEvent: Omit<ChatEvent, 'type' | 'payload'>, payload: unknown): ChatEvent {
   const typedPayload = payload as { tileId: string; tileName: string }
   return {
     ...baseEvent,
-    type: 'operation_completed',
+    type: 'operation_completed' as const,
     payload: {
       operation: 'create',
       tileId: typedPayload.tileId,
@@ -123,11 +123,11 @@ function _transformTileCreatedEvent(baseEvent: any, payload: any) {
   }
 }
 
-function _transformTileUpdatedEvent(baseEvent: any, payload: any) {
+function _transformTileUpdatedEvent(baseEvent: Omit<ChatEvent, 'type' | 'payload'>, payload: unknown): ChatEvent {
   const typedPayload = payload as { tileId: string; tileName: string }
   return {
     ...baseEvent,
-    type: 'operation_completed',
+    type: 'operation_completed' as const,
     payload: {
       operation: 'update',
       tileId: typedPayload.tileId,
@@ -137,11 +137,11 @@ function _transformTileUpdatedEvent(baseEvent: any, payload: any) {
   }
 }
 
-function _transformTileDeletedEvent(baseEvent: any, payload: any) {
+function _transformTileDeletedEvent(baseEvent: Omit<ChatEvent, 'type' | 'payload'>, payload: unknown): ChatEvent {
   const typedPayload = payload as { tileId: string; tileName: string }
   return {
     ...baseEvent,
-    type: 'operation_completed',
+    type: 'operation_completed' as const,
     payload: {
       operation: 'delete',
       tileId: typedPayload.tileId,
@@ -151,11 +151,11 @@ function _transformTileDeletedEvent(baseEvent: any, payload: any) {
   }
 }
 
-function _transformTilesSwappedEvent(baseEvent: any, payload: any) {
+function _transformTilesSwappedEvent(baseEvent: Omit<ChatEvent, 'type' | 'payload'>, payload: unknown): ChatEvent {
   const typedPayload = payload as { tile1Name: string; tile2Name: string }
   return {
     ...baseEvent,
-    type: 'operation_completed',
+    type: 'operation_completed' as const,
     payload: {
       operation: 'swap',
       result: 'success',
@@ -164,11 +164,11 @@ function _transformTilesSwappedEvent(baseEvent: any, payload: any) {
   }
 }
 
-function _transformTileMovedEvent(baseEvent: any, payload: any) {
+function _transformTileMovedEvent(baseEvent: Omit<ChatEvent, 'type' | 'payload'>, payload: unknown): ChatEvent {
   const typedPayload = payload as { tileId: string; tileName: string }
   return {
     ...baseEvent,
-    type: 'operation_completed',
+    type: 'operation_completed' as const,
     payload: {
       operation: 'move',
       tileId: typedPayload.tileId,
@@ -178,11 +178,11 @@ function _transformTileMovedEvent(baseEvent: any, payload: any) {
   }
 }
 
-function _transformNavigationEvent(baseEvent: any, payload: any) {
+function _transformNavigationEvent(baseEvent: Omit<ChatEvent, 'type' | 'payload'>, payload: unknown): ChatEvent {
   const typedPayload = payload as { fromCenterId?: string; toCenterId: string; toCenterName: string }
   return {
     ...baseEvent,
-    type: 'navigation',
+    type: 'navigation' as const,
     payload: {
       fromTileId: typedPayload.fromCenterId,
       toTileId: typedPayload.toCenterId,
@@ -191,30 +191,30 @@ function _transformNavigationEvent(baseEvent: any, payload: any) {
   }
 }
 
-function _transformAuthRequiredEvent(baseEvent: any, payload: any) {
+function _transformAuthRequiredEvent(baseEvent: Omit<ChatEvent, 'type' | 'payload'>, payload: unknown): ChatEvent {
   const typedPayload = payload as { reason: string }
   return {
     ...baseEvent,
-    type: 'auth_required',
+    type: 'auth_required' as const,
     payload: {
       reason: typedPayload.reason,
     } as AuthRequiredPayload,
   }
 }
 
-function _transformAuthLogoutEvent(baseEvent: any) {
+function _transformAuthLogoutEvent(baseEvent: Omit<ChatEvent, 'type' | 'payload'>): ChatEvent {
   return {
     ...baseEvent,
-    type: 'clear_chat',
+    type: 'clear_chat' as const,
     payload: {},
   }
 }
 
-function _transformErrorOccurredEvent(baseEvent: any, payload: any) {
+function _transformErrorOccurredEvent(baseEvent: Omit<ChatEvent, 'type' | 'payload'>, payload: unknown): ChatEvent {
   const typedPayload = payload as { error: string; context?: unknown }
   return {
     ...baseEvent,
-    type: 'error_occurred',
+    type: 'error_occurred' as const,
     payload: {
       error: typedPayload.error,
       context: typedPayload.context,

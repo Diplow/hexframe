@@ -4,6 +4,8 @@ import { useChatState, type ChatMessage, type Message } from '~/app/map/Chat'
 import { MapCacheContext } from '~/app/map/Cache'
 import type { CompositionConfig } from '~/lib/domains/agentic'
 import { loggers } from '~/lib/debug/debug-logger'
+import type { useChatOperations } from '~/app/map/Chat/_state/_operations'
+import type { TileData } from '~/app/map/types'
 
 // Type for the tRPC response that might include jobId for queued responses
 interface GenerateResponseResult {
@@ -35,7 +37,7 @@ export function useAIChat(options: UseAIChatOptions = {}) {
   // Extract cache data directly from context if available
   const cache = useMemo(() => {
     return context?.state ? {
-      items: context.state.itemsById,
+      itemsById: context.state.itemsById,
       center: context.state.currentCenter
     } : null
   }, [context])
@@ -104,7 +106,7 @@ export function useAIChat(options: UseAIChatOptions = {}) {
 // Helper functions extracted from useAIChat
 function _handleSuccessResponse(
   response: GenerateResponseResult, 
-  chatState: any, 
+  chatState: ReturnType<typeof useChatOperations>, 
   setIsGenerating: (value: boolean) => void
 ) {
   // Check if response is queued based on finishReason
@@ -131,13 +133,14 @@ function _handleSuccessResponse(
 }
 
 function _handleErrorResponse(
-  error: any, 
-  chatState: any, 
+  error: unknown, 
+  chatState: ReturnType<typeof useChatOperations>, 
   setIsGenerating: (value: boolean) => void
 ) {
   console.error('[useAIChat] Mutation error:', error)
-  chatState.showSystemMessage(`AI Error: ${error.message}`, 'error')
-  loggers.agentic.error('AI generation failed', { error: error.message })
+  const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+  chatState.showSystemMessage(`AI Error: ${errorMessage}`, 'error')
+  loggers.agentic.error('AI generation failed', { error: errorMessage })
   setIsGenerating(false)
 }
 
@@ -165,27 +168,9 @@ function _prepareMessagesForAI(messages: Message[], newMessage: string): ChatMes
   return chatMessages
 }
 
-function _transformCacheState(cache: any) {
+function _transformCacheState(cache: { itemsById: Record<string, TileData>; center: string | null }) {
   return {
-    itemsById: Object.fromEntries(
-      Object.entries(cache.items).map(([id, item]: [string, any]) => [
-        id,
-        {
-          metadata: {
-            coordId: item.metadata.coordId,
-            coordinates: item.metadata.coordinates,
-            parentId: item.metadata.parentId ?? undefined,
-            depth: item.metadata.depth
-          },
-          data: {
-            name: item.data.name ?? '',
-            description: item.data.description ?? '',
-            url: item.data.url ?? '',
-            color: item.data.color ?? ''
-          }
-        }
-      ])
-    ),
+    itemsById: cache.itemsById,
     currentCenter: cache.center ?? ''
   }
 }

@@ -47,22 +47,7 @@ export function useDragAndDrop(): UseDragAndDropReturn {
   const { getItem, moveItemOptimistic } = useMapCache();
   const [dragState, setDragState] = useState<DragState>(initialDragState);
   
-  const validationCallbacks = _createValidationCallbacks(getItem, mappingUserId, dragState);
-  const eventHandlers = _createEventHandlers(getItem, moveItemOptimistic, eventBus, dragState, validationCallbacks, setDragState);
-  const stateQueries = _createStateQueries(dragState);
-  const dragHandlers = _createDragHandlers(eventHandlers);
-  
-  return _createHookReturnValue(dragHandlers, validationCallbacks, stateQueries, dragState);
-}
-
-// Internal helper functions for drag and drop logic
-
-function _createValidationCallbacks(
-  getItem: ReturnType<typeof useMapCache>['getItem'],
-  mappingUserId: number | null | undefined,
-  dragState: DragState
-) {
-  
+  // Move hooks to the main hook function
   const checkCanDrag = useCallback((coordId: string): boolean => {
     const tile = getItem(coordId);
     return canDragTile(tile, mappingUserId ?? null);
@@ -72,18 +57,9 @@ function _createValidationCallbacks(
     return isValidDropTarget(targetCoordId, dragState.draggedTileId, getItem, mappingUserId ?? null);
   }, [dragState.draggedTileId, getItem, mappingUserId]);
 
-  return useMemo(() => ({ checkCanDrag, checkDropTarget }), [checkCanDrag, checkDropTarget]);
-}
-
-function _createEventHandlers(
-  getItem: ReturnType<typeof useMapCache>['getItem'],
-  moveItemOptimistic: ReturnType<typeof useMapCache>['moveItemOptimistic'],
-  eventBus: ReturnType<typeof useEventBus>,
-  dragState: DragState,
-  validationCallbacks: ReturnType<typeof _createValidationCallbacks>,
-  setDragState: React.Dispatch<React.SetStateAction<DragState>>
-) {
-
+  const validationCallbacks = useMemo(() => ({ checkCanDrag, checkDropTarget }), [checkCanDrag, checkDropTarget]);
+  
+  // Move all event handlers to main hook to avoid rules of hooks violations
   const handleDragStart = useCallback((coordId: string, event: DragEvent<HTMLDivElement>) => {
     if (!validationCallbacks.checkCanDrag(coordId)) {
       event.preventDefault();
@@ -124,14 +100,25 @@ function _createEventHandlers(
     setDragState(initialDragState);
   }, [setDragState]);
 
-  return { handleDragStart, handleDragOver, handleDragLeave, handleDrop, handleDragEnd };
+  const eventHandlers = { handleDragStart, handleDragOver, handleDragLeave, handleDrop, handleDragEnd };
+  const stateQueries = _createStateQueries(dragState);
+  const dragHandlers = _createDragHandlers(eventHandlers);
+  
+  return _createHookReturnValue(dragHandlers, validationCallbacks, stateQueries, dragState);
 }
+
+// Internal helper functions for drag and drop logic
+
+
 
 function _executeDropOperation(
   targetCoordId: string,
   event: DragEvent<HTMLDivElement>,
   dragState: DragState,
-  validationCallbacks: ReturnType<typeof _createValidationCallbacks>,
+  validationCallbacks: {
+    checkCanDrag: (id: string) => boolean;
+    checkDropTarget: (id: string) => boolean;
+  },
   moveItemOptimistic: ReturnType<typeof useMapCache>['moveItemOptimistic'],
   eventBus: ReturnType<typeof useEventBus>,
   setDragState: React.Dispatch<React.SetStateAction<DragState>>

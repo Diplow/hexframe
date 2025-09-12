@@ -1,5 +1,5 @@
 import { debugLogger } from '~/lib/debug/debug-logger';
-import { toBase64 } from './debug-utils';
+import { toBase64 } from '~/app/map/Chat/Input/_commands/debug/debug-utils';
 
 export function createDebugCommandAction(mode: 'full' | 'succinct', limit: number) {
   return () => {
