@@ -50,14 +50,16 @@ function getDropHandlers(
 export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
   const [isHovered, setIsHovered] = useState(false);
   const { isDarkMode } = useCanvasTheme();
+  const tileActions = useContext(LegacyTileActionsContext);
   
-  // Setup tile state and logging (moved from helper function)
-  const defaultStroke = getDefaultStroke(props.scale ?? 1, false);
-  const canEdit = props.parentItem?.ownerId && props.currentUserId 
-    ? props.currentUserId.toString() === props.parentItem.ownerId.toString() 
-    : false;
-
-  // Log empty tile render
+  const tileState = _setupTileState(props);
+  const interactionHandlers = useTileInteraction({
+    coordId: props.coordId,
+    type: 'empty',
+    canEdit: tileState.canEdit,
+    onCreate: () => _handleTileCreation(props),
+  });
+  
   useEffect(() => {
     loggers.render.canvas('DynamicEmptyTile render', {
       coordId: props.coordId,
@@ -65,31 +67,40 @@ export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
       hasParent: !!props.parentItem,
       parentId: props.parentItem?.id,
       interactive: props.interactive ?? true,
-      canEdit,
+      canEdit: tileState.canEdit,
     });
   });
+  const dropConfig = _setupDropConfiguration(props, tileActions);
+  const tileLayout = _createTileLayout(props, isDarkMode, interactionHandlers, dropConfig, isHovered, tileState);
+  
+  return _renderEmptyTile(props, dropConfig.dropProps, isHovered, setIsHovered, tileLayout);
+}
 
-  // Setup interaction handlers (moved from helper function)
-  const interactionHandlers = useTileInteraction({
+// Internal helper functions for empty tile functionality
+
+function _setupTileState(props: DynamicEmptyTileProps) {
+  const defaultStroke = getDefaultStroke(props.scale ?? 1, false);
+  const canEdit = props.parentItem?.ownerId && props.currentUserId 
+    ? props.currentUserId.toString() === props.parentItem.ownerId.toString() 
+    : false;
+
+  return { defaultStroke, canEdit };
+}
+
+function _handleTileCreation(props: DynamicEmptyTileProps) {
+  const childCoords = CoordSystem.parseId(props.coordId);
+  const parentCoords = CoordSystem.getParentCoord(childCoords);
+  const parentCoordId = parentCoords ? CoordSystem.createId(parentCoords) : undefined;
+  
+  props.onCreateRequested?.({
     coordId: props.coordId,
-    type: 'empty',
-    canEdit,
-    onCreate: () => {
-      const childCoords = CoordSystem.parseId(props.coordId);
-      const parentCoords = CoordSystem.getParentCoord(childCoords);
-      const parentCoordId = parentCoords ? CoordSystem.createId(parentCoords) : undefined;
-      
-      props.onCreateRequested?.({
-        coordId: props.coordId,
-        parentName: props.parentItem?.name,
-        parentId: props.parentItem?.id,
-        parentCoordId,
-      });
-    },
+    parentName: props.parentItem?.name,
+    parentId: props.parentItem?.id,
+    parentCoordId,
   });
+}
 
-  // Setup drop configuration (moved from helper function)
-  const tileActions = useContext(LegacyTileActionsContext);
+function _setupDropConfiguration(props: DynamicEmptyTileProps, tileActions: React.ContextType<typeof LegacyTileActionsContext>) {
   const isValidDropTarget = tileActions?.isValidDropTarget(props.coordId) === true;
   const isDropTargetActive = tileActions?.isDropTarget(props.coordId) === true;
   const dropOperation = tileActions?.getDropOperation(props.coordId) ?? null;
@@ -98,14 +109,8 @@ export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
   const previewColor = getColor(targetCoords);
   const dropProps = getDropHandlers(props.coordId, isValidDropTarget, tileActions);
 
-  const dropConfig = { isValidDropTarget, isDropTargetActive, dropOperation, previewColor, dropProps };
-  const tileState = { defaultStroke, canEdit };
-  const tileLayout = _createTileLayout(props, isDarkMode, interactionHandlers, dropConfig, isHovered, tileState);
-  
-  return _renderEmptyTile(props, dropConfig.dropProps, isHovered, setIsHovered, tileLayout);
+  return { isValidDropTarget, isDropTargetActive, dropOperation, previewColor, dropProps };
 }
-
-// Internal helper functions for empty tile functionality
 
 function _createTileLayout(
   props: DynamicEmptyTileProps,

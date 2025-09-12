@@ -1,9 +1,9 @@
 import { useChatState } from '~/app/map/Chat';
 import { useMapCache } from '~/app/map/Cache';
-import { useCommandHandlers } from '~/app/map/Chat/Input/_hooks/useCommandHandlers';
-import { useSpecialCommands } from '~/app/map/Chat/Input/_hooks/useSpecialCommands';
-import { useCommandExecution } from '~/app/map/Chat/Input/_hooks/useCommandExecution';
-import { useCommandSuggestions } from '~/app/map/Chat/Input/_hooks/useCommandSuggestions';
+import { useCommandHandlers } from '~/app/map/Chat/Input/_hooks/commands/useCommandHandlers';
+import { useSpecialCommands } from '~/app/map/Chat/Input/_hooks/commands/useSpecialCommands';
+import { useCommandExecution } from '~/app/map/Chat/Input/_hooks/commands/useCommandExecution';
+import { useCommandSuggestions } from '~/app/map/Chat/Input/_hooks/commands/useCommandSuggestions';
 
 export function useCommandHandling() {
   const chatState = useChatState();

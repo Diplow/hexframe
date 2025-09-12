@@ -68,4 +68,4 @@ export function useChatStateInternal(initialEvents: ChatEvent[] = []) {
 }
 
 // Re-export from separate provider file
-export { ChatProvider, useChatState } from '~/app/map/Chat/_state/ChatProvider';
+export { ChatProvider, useChatState } from '~/app/map/Chat/_state/core/ChatProvider';

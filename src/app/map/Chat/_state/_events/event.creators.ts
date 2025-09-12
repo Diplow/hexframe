@@ -14,135 +14,28 @@ export function createChatEventFromMapEvent(mapEvent: AppEvent): ChatEvent | nul
   };
 
   switch (mapEvent.type) {
-    case 'map.tile_selected': {
-      const payload = mapEvent.payload as { tileId: string; tileData: { title: string; description?: string; content?: string; coordId: string }; openInEditMode?: boolean };
-      return {
-        ...baseEvent,
-        type: 'tile_selected',
-        payload: {
-          tileId: payload.tileId,
-          tileData: payload.tileData,
-          openInEditMode: payload.openInEditMode,
-        } as TileSelectedPayload,
-      };
-    }
-
-    case 'map.tile_created': {
-      const payload = mapEvent.payload as { tileId: string; tileName: string };
-      return {
-        ...baseEvent,
-        type: 'operation_completed',
-        payload: {
-          operation: 'create',
-          tileId: payload.tileId,
-          result: 'success',
-          message: `Created "${payload.tileName}"`,
-        } as OperationCompletedPayload,
-      };
-    }
-
-    case 'map.tile_updated': {
-      const payload = mapEvent.payload as { tileId: string; tileName: string };
-      return {
-        ...baseEvent,
-        type: 'operation_completed',
-        payload: {
-          operation: 'update',
-          tileId: payload.tileId,
-          result: 'success',
-          message: `Updated "${payload.tileName}"`,
-        } as OperationCompletedPayload,
-      };
-    }
-
-    case 'map.tile_deleted': {
-      const payload = mapEvent.payload as { tileId: string; tileName: string };
-      return {
-        ...baseEvent,
-        type: 'operation_completed',
-        payload: {
-          operation: 'delete',
-          tileId: payload.tileId,
-          result: 'success',
-          message: `Deleted "${payload.tileName}"`,
-        } as OperationCompletedPayload,
-      };
-    }
-
-    case 'map.tiles_swapped': {
-      const payload = mapEvent.payload as { tile1Name: string; tile2Name: string };
-      return {
-        ...baseEvent,
-        type: 'operation_completed',
-        payload: {
-          operation: 'swap',
-          result: 'success',
-          message: `Swapped "${payload.tile1Name}" with "${payload.tile2Name}"`,
-        } as OperationCompletedPayload,
-      };
-    }
-
-    case 'map.tile_moved': {
-      const payload = mapEvent.payload as { tileId: string; tileName: string };
-      return {
-        ...baseEvent,
-        type: 'operation_completed',
-        payload: {
-          operation: 'move',
-          tileId: payload.tileId,
-          result: 'success',
-          message: `Moved "${payload.tileName}"`,
-        } as OperationCompletedPayload,
-      };
-    }
-
-    case 'map.navigation': {
-      const payload = mapEvent.payload as { fromCenterId?: string; toCenterId: string; toCenterName: string };
-      return {
-        ...baseEvent,
-        type: 'navigation',
-        payload: {
-          fromTileId: payload.fromCenterId,
-          toTileId: payload.toCenterId,
-          toTileName: payload.toCenterName,
-        } as NavigationPayload,
-      };
-    }
-
-    case 'auth.required': {
-      const payload = mapEvent.payload as { reason: string };
-      return {
-        ...baseEvent,
-        type: 'auth_required',
-        payload: {
-          reason: payload.reason,
-        } as AuthRequiredPayload,
-      };
-    }
-
-    case 'auth.logout': {
-      return {
-        ...baseEvent,
-        type: 'clear_chat',
-        payload: {},
-      };
-    }
-
-    case 'error.occurred': {
-      const payload = mapEvent.payload as { error: string; context?: unknown };
-      return {
-        ...baseEvent,
-        type: 'error_occurred',
-        payload: {
-          error: payload.error,
-          context: payload.context,
-        } as ErrorOccurredPayload,
-      };
-    }
-
+    case 'map.tile_selected':
+      return _transformTileSelectedEvent(baseEvent, mapEvent.payload)
+    case 'map.tile_created':
+      return _transformTileCreatedEvent(baseEvent, mapEvent.payload)
+    case 'map.tile_updated':
+      return _transformTileUpdatedEvent(baseEvent, mapEvent.payload)
+    case 'map.tile_deleted':
+      return _transformTileDeletedEvent(baseEvent, mapEvent.payload)
+    case 'map.tiles_swapped':
+      return _transformTilesSwappedEvent(baseEvent, mapEvent.payload)
+    case 'map.tile_moved':
+      return _transformTileMovedEvent(baseEvent, mapEvent.payload)
+    case 'map.navigation':
+      return _transformNavigationEvent(baseEvent, mapEvent.payload)
+    case 'auth.required':
+      return _transformAuthRequiredEvent(baseEvent, mapEvent.payload)
+    case 'auth.logout':
+      return _transformAuthLogoutEvent(baseEvent)
+    case 'error.occurred':
+      return _transformErrorOccurredEvent(baseEvent, mapEvent.payload)
     default:
-      // Don't create chat events for unrecognized map events
-      return null;
+      return null
   }
 }
 
@@ -200,4 +93,131 @@ export function createOperationStartedEvent(
     timestamp: new Date(),
     actor: 'system',
   };
+}
+
+// Event transformer helper functions
+function _transformTileSelectedEvent(baseEvent: any, payload: any) {
+  const typedPayload = payload as { tileId: string; tileData: { title: string; description?: string; content?: string; coordId: string }; openInEditMode?: boolean }
+  return {
+    ...baseEvent,
+    type: 'tile_selected',
+    payload: {
+      tileId: typedPayload.tileId,
+      tileData: typedPayload.tileData,
+      openInEditMode: typedPayload.openInEditMode,
+    } as TileSelectedPayload,
+  }
+}
+
+function _transformTileCreatedEvent(baseEvent: any, payload: any) {
+  const typedPayload = payload as { tileId: string; tileName: string }
+  return {
+    ...baseEvent,
+    type: 'operation_completed',
+    payload: {
+      operation: 'create',
+      tileId: typedPayload.tileId,
+      result: 'success',
+      message: `Created "${typedPayload.tileName}"`,
+    } as OperationCompletedPayload,
+  }
+}
+
+function _transformTileUpdatedEvent(baseEvent: any, payload: any) {
+  const typedPayload = payload as { tileId: string; tileName: string }
+  return {
+    ...baseEvent,
+    type: 'operation_completed',
+    payload: {
+      operation: 'update',
+      tileId: typedPayload.tileId,
+      result: 'success',
+      message: `Updated "${typedPayload.tileName}"`,
+    } as OperationCompletedPayload,
+  }
+}
+
+function _transformTileDeletedEvent(baseEvent: any, payload: any) {
+  const typedPayload = payload as { tileId: string; tileName: string }
+  return {
+    ...baseEvent,
+    type: 'operation_completed',
+    payload: {
+      operation: 'delete',
+      tileId: typedPayload.tileId,
+      result: 'success',
+      message: `Deleted "${typedPayload.tileName}"`,
+    } as OperationCompletedPayload,
+  }
+}
+
+function _transformTilesSwappedEvent(baseEvent: any, payload: any) {
+  const typedPayload = payload as { tile1Name: string; tile2Name: string }
+  return {
+    ...baseEvent,
+    type: 'operation_completed',
+    payload: {
+      operation: 'swap',
+      result: 'success',
+      message: `Swapped "${typedPayload.tile1Name}" with "${typedPayload.tile2Name}"`,
+    } as OperationCompletedPayload,
+  }
+}
+
+function _transformTileMovedEvent(baseEvent: any, payload: any) {
+  const typedPayload = payload as { tileId: string; tileName: string }
+  return {
+    ...baseEvent,
+    type: 'operation_completed',
+    payload: {
+      operation: 'move',
+      tileId: typedPayload.tileId,
+      result: 'success',
+      message: `Moved "${typedPayload.tileName}"`,
+    } as OperationCompletedPayload,
+  }
+}
+
+function _transformNavigationEvent(baseEvent: any, payload: any) {
+  const typedPayload = payload as { fromCenterId?: string; toCenterId: string; toCenterName: string }
+  return {
+    ...baseEvent,
+    type: 'navigation',
+    payload: {
+      fromTileId: typedPayload.fromCenterId,
+      toTileId: typedPayload.toCenterId,
+      toTileName: typedPayload.toCenterName,
+    } as NavigationPayload,
+  }
+}
+
+function _transformAuthRequiredEvent(baseEvent: any, payload: any) {
+  const typedPayload = payload as { reason: string }
+  return {
+    ...baseEvent,
+    type: 'auth_required',
+    payload: {
+      reason: typedPayload.reason,
+    } as AuthRequiredPayload,
+  }
+}
+
+function _transformAuthLogoutEvent(baseEvent: any) {
+  return {
+    ...baseEvent,
+    type: 'clear_chat',
+    payload: {},
+  }
+}
+
+function _transformErrorOccurredEvent(baseEvent: any, payload: any) {
+  const typedPayload = payload as { error: string; context?: unknown }
+  return {
+    ...baseEvent,
+    type: 'error_occurred',
+    payload: {
+      error: typedPayload.error,
+      context: typedPayload.context,
+    } as ErrorOccurredPayload,
+  }
 }
