@@ -13,8 +13,8 @@ import React, {
 import { cacheReducer, initialCacheState } from "~/app/map/Cache/State";
 
 // Services
-import { useServerService } from "~/app/map/Cache/Services/server-service";
-import { useStorageService } from "~/app/map/Cache/Services/storage-service";
+import { useServerService } from "~/app/map/Cache/Services/server/server-service";
+import { createStorageService, createBrowserStorageOperations } from "~/app/map/Cache/Services/storage-service";
 
 // Handlers
 import { useNavigationHandler } from "~/app/map/Cache/Handlers";
@@ -95,7 +95,10 @@ export function MapCacheProvider({
 
   // Initialize services
   const serverService = useServerService(serverConfig);
-  const storageService = useStorageService(storageConfig);
+  const storageService = useMemo(
+    () => createStorageService(createBrowserStorageOperations(), storageConfig),
+    [storageConfig]
+  );
   
   // Initialize operations
   const dataOperations = useDataOperationsWrapper(dispatch, state, serverService);

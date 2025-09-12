@@ -2,7 +2,7 @@ import { useMemo, useRef, useCallback } from "react";
 import type { Dispatch } from "react";
 import { api } from "~/commons/trpc/react";
 import type { CacheState, CacheAction } from "~/app/map/Cache/State";
-import type { MutationOperations, DataOperations } from "~/app/map/Cache/Handlers";
+import type { MutationOperations, DataOperations } from "~/app/map/Cache/types/handlers";
 import type { StorageService } from "~/app/map/Cache/Services/types";
 import { MutationCoordinator } from "~/app/map/Cache/_coordinators/mutation-coordinator";
 import type { Coord } from "~/lib/domains/mapping/utils";

@@ -1,13 +1,5 @@
 // Public API for Handlers subsystem
 
-// Types - All handler operation interfaces
-export type {
-  DataOperations,
-  MutationOperations,
-  NavigationOperations,
-  LoadResult
-} from '~/app/map/Cache/types/handlers';
-
 // Data Handler
 export { createDataHandler, createDataHandlerWithServerService } from '~/app/map/Cache/Handlers/data-handler';
 export type { DataHandlerServices } from '~/app/map/Cache/Handlers/data-handler';

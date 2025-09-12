@@ -1,7 +1,7 @@
 import { useMemo, useCallback, useRef } from "react";
 import type { Dispatch } from "react";
 import type { CacheState, CacheAction } from "~/app/map/Cache/State";
-import type { DataOperations } from "~/app/map/Cache/Handlers";
+import type { DataOperations } from "~/app/map/Cache/types/handlers";
 import { createDataHandlerWithServerService } from "~/app/map/Cache/Handlers";
 import type { ServerService } from "~/app/map/Cache/Services/types";
 

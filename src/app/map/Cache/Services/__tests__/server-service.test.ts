@@ -3,7 +3,7 @@ import {
   createServerService,
   createServerServiceFactory,
   createMockServerService,
-} from "~/app/map/Cache/Services/server-service";
+} from "~/app/map/Cache/Services/server/server-service";
 import { ServiceError, NetworkError, TimeoutError } from "~/app/map/Cache/Services/types";
 import type { ServiceConfig } from "~/app/map/Cache/Services/types";
 

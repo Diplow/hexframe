@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback } from "react";
 import type { Dispatch } from "react";
 import type { CacheState, CacheAction } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
-import type { DataOperations } from "~/app/map/Cache/Handlers";
+import type { DataOperations } from "~/app/map/Cache/types/handlers";
 import { checkAncestors, loadAncestorsForItem } from "~/app/map/Cache/Handlers";
 import type { SyncOperations } from "~/app/map/Cache/Sync/types";
 import type { ServerService } from "~/app/map/Cache/Services/types";

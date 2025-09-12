@@ -34,14 +34,6 @@ export { cacheReducer, initialCacheState } from "~/app/map/Cache/State/reducer";
 
 // Selectors
 export {
-  selectAllItems,
-  selectCurrentCenter,
-  selectExpandedItemIds,
-  selectIsLoading,
-  selectError,
-  selectLastUpdated,
-  selectCacheConfig,
-  selectRegionMetadata,
   selectItem,
   selectHasItem,
   selectItemsByIds,
@@ -50,11 +42,7 @@ export {
   selectShouldLoadRegion,
   selectRegionItems,
   selectRegionItemsOptimized,
-  selectMaxLoadedDepth,
-  selectCacheValidation,
   selectIsItemExpanded,
   selectExpandedItems,
-  selectItemParent,
-  selectItemChildren,
   cacheSelectors,
 } from "~/app/map/Cache/State/selectors";
