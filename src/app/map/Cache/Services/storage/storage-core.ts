@@ -95,11 +95,54 @@ export function createStorageService(
     }
   };
 
+  const saveCacheData = async (cacheData: unknown): Promise<void> => {
+    return save('cache-data', cacheData);
+  };
+
+  const loadCacheData = async (): Promise<unknown> => {
+    return load('cache-data');
+  };
+
+  const saveUserPreferences = async (preferences: unknown): Promise<void> => {
+    return save('user-preferences', preferences);
+  };
+
+  const loadUserPreferences = async (): Promise<unknown> => {
+    return load('user-preferences');
+  };
+
+  const saveExpandedItems = async (expandedItems: string[]): Promise<void> => {
+    return save('expanded-items', expandedItems);
+  };
+
+  const loadExpandedItems = async (): Promise<string[]> => {
+    const items = await load<string[]>('expanded-items');
+    return items ?? [];
+  };
+
+  const isAvailable = async (): Promise<boolean> => {
+    try {
+      const testKey = 'test-availability';
+      await storageOperations.setItem(testKey, 'test');
+      await storageOperations.removeItem(testKey);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   return {
     save,
     load,
     remove,
     clear,
     getAllKeys,
+    saveCacheData,
+    loadCacheData,
+    saveUserPreferences,
+    loadUserPreferences,
+    saveExpandedItems,
+    loadExpandedItems,
+    isAvailable,
   };
 }

@@ -1,7 +1,7 @@
 import { type api } from "~/commons/trpc/react";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
-import { cacheActions } from "~/app/map/Cache/State";
+import { cacheActions } from "~/app/map/Cache/State/actions";
 import {
   createServerService,
   type useServerService,
@@ -67,7 +67,7 @@ export function createDataHandler(config: DataHandlerConfig) {
         maxDepth,
       });
 
-      dispatch(cacheActions.loadRegion(items as Parameters<typeof cacheActions.loadRegion>[0], centerCoordId, maxDepth));
+      dispatch(cacheActions.loadRegion(items as any, centerCoordId, maxDepth));
 
       return { success: true, itemsLoaded: items.length };
     } catch (error) {
@@ -95,7 +95,7 @@ export function createDataHandler(config: DataHandlerConfig) {
         maxDepth,
       });
 
-      dispatch(cacheActions.loadItemChildren(items as Parameters<typeof cacheActions.loadItemChildren>[0], parentCoordId, maxDepth));
+      dispatch(cacheActions.loadItemChildren(items as any, parentCoordId, maxDepth));
 
       return { success: true, itemsLoaded: items.length };
     } catch (error) {

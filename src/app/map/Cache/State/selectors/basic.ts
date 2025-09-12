@@ -28,6 +28,7 @@ export const selectCacheValidation = (state: CacheState) => ({
   hasItems: Object.keys(state.itemsById).length > 0,
   isLoading: state.isLoading,
   hasError: state.error !== null,
+  isStale: Date.now() - state.lastUpdated > state.cacheConfig.maxAge,
   lastUpdated: state.lastUpdated,
   config: state.cacheConfig,
 });

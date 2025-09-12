@@ -27,7 +27,7 @@ export {
   removeItem,
   updateItems,
   cacheActions,
-} from "~/app/map/Cache/State/types";
+} from "~/app/map/Cache/State/actions";
 
 // Reducer and initial state
 export { cacheReducer, initialCacheState } from "~/app/map/Cache/State/reducer";

@@ -99,6 +99,7 @@ describe("MutationCoordinator Event Emissions", () => {
       load: vi.fn().mockResolvedValue(null),
       remove: vi.fn().mockResolvedValue(undefined),
       clear: vi.fn().mockResolvedValue(undefined),
+      getAllKeys: vi.fn().mockResolvedValue([]),
       saveCacheData: vi.fn().mockResolvedValue(undefined),
       loadCacheData: vi.fn().mockResolvedValue(null),
       saveUserPreferences: vi.fn().mockResolvedValue(undefined),

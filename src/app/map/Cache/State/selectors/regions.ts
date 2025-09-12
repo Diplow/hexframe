@@ -41,6 +41,14 @@ const regionItemsCache = new Map<
   { items: TileData[]; checksum: string }
 >();
 
+export const selectRegionItems = (
+  state: CacheState,
+  centerCoordId: string,
+  maxDepth: number,
+): TileData[] => {
+  return selectRegionItemsOptimized(state, centerCoordId, maxDepth);
+};
+
 export const selectRegionItemsOptimized = (
   state: CacheState,
   centerCoordId: string,
@@ -107,4 +115,8 @@ export const staticSelectors = {
   // Essential item operations  
   hasItem: (state: CacheState, coordId: string) => !!state.itemsById[coordId],
   getItem: (state: CacheState, coordId: string) => state.itemsById[coordId] ?? null,
+  
+  // Region operations
+  regionItems: (state: CacheState, centerCoordId: string, maxDepth = 2) => 
+    selectRegionItems(state, centerCoordId, maxDepth),
 };

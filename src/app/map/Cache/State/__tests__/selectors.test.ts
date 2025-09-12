@@ -253,55 +253,43 @@ describe("Cache Selectors", () => {
 
   describe("Region Items Selector", () => {
     test("selectRegionItems returns correct hierarchy", () => {
-      const result = selectRegionItems({
-        state: mockState,
-        centerCoordId: "1,2",
-        maxDepth: 2,
-      });
+      const result = selectRegionItems(mockState, "1,2", 2);
 
       expect(result).toHaveLength(4);
       expect(
-        result.find((item) => item.metadata.coordId === "1,2"),
+        result.find((item: TileData) => item.metadata.coordId === "1,2"),
       ).toBeDefined();
       expect(
-        result.find((item) => item.metadata.coordId === "1,2:1"),
+        result.find((item: TileData) => item.metadata.coordId === "1,2:1"),
       ).toBeDefined();
       expect(
-        result.find((item) => item.metadata.coordId === "1,2:2"),
+        result.find((item: TileData) => item.metadata.coordId === "1,2:2"),
       ).toBeDefined();
       expect(
-        result.find((item) => item.metadata.coordId === "1,2:1,3"),
+        result.find((item: TileData) => item.metadata.coordId === "1,2:1,3"),
       ).toBeDefined();
     });
 
     test("selectRegionItems respects maxDepth", () => {
-      const result = selectRegionItems({
-        state: mockState,
-        centerCoordId: "1,2",
-        maxDepth: 1,
-      });
+      const result = selectRegionItems(mockState, "1,2", 1);
 
       expect(result).toHaveLength(3);
       expect(
-        result.find((item) => item.metadata.coordId === "1,2"),
+        result.find((item: TileData) => item.metadata.coordId === "1,2"),
       ).toBeDefined();
       expect(
-        result.find((item) => item.metadata.coordId === "1,2:1"),
+        result.find((item: TileData) => item.metadata.coordId === "1,2:1"),
       ).toBeDefined();
       expect(
-        result.find((item) => item.metadata.coordId === "1,2:2"),
+        result.find((item: TileData) => item.metadata.coordId === "1,2:2"),
       ).toBeDefined();
       expect(
-        result.find((item) => item.metadata.coordId === "1,2:1,3"),
+        result.find((item: TileData) => item.metadata.coordId === "1,2:1,3"),
       ).toBeUndefined();
     });
 
     test("selectRegionItems returns empty for missing center", () => {
-      const result = selectRegionItems({
-        state: mockState,
-        centerCoordId: "missing",
-        maxDepth: 2,
-      });
+      const result = selectRegionItems(mockState, "missing", 2);
 
       expect(result).toEqual([]);
     });
@@ -338,10 +326,10 @@ describe("Cache Selectors", () => {
       const result = selectItemChildren(mockState, "1,2");
       expect(result).toHaveLength(2);
       expect(
-        result.find((item) => item.metadata.coordId === "1,2:1"),
+        result.find((item: TileData) => item.metadata.coordId === "1,2:1"),
       ).toBeDefined();
       expect(
-        result.find((item) => item.metadata.coordId === "1,2:2"),
+        result.find((item: TileData) => item.metadata.coordId === "1,2:2"),
       ).toBeDefined();
     });
 
@@ -457,17 +445,9 @@ describe("Cache Selectors", () => {
   describe("Performance and Memoization", () => {
     test("memoized selectors cache results correctly", () => {
       // Test multiple calls with same parameters
-      const result1 = selectRegionItems({
-        state: mockState,
-        centerCoordId: "1,2",
-        maxDepth: 2,
-      });
+      const result1 = selectRegionItems(mockState, "1,2", 2);
 
-      const result2 = selectRegionItems({
-        state: mockState,
-        centerCoordId: "1,2",
-        maxDepth: 2,
-      });
+      const result2 = selectRegionItems(mockState, "1,2", 2);
 
       // Results should be identical (memoized) - use toStrictEqual for deep comparison
       expect(result1).toStrictEqual(result2);
@@ -511,11 +491,7 @@ describe("Cache Selectors", () => {
       };
 
       expect(() =>
-        selectRegionItems({
-          state: stateWithBadCoords,
-          centerCoordId: "bad-coord",
-          maxDepth: 1,
-        }),
+        selectRegionItems(stateWithBadCoords, "bad-coord", 1),
       ).not.toThrow();
     });
 

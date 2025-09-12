@@ -1,4 +1,5 @@
 import type { CacheState } from "~/app/map/Cache/State/types";
+import { selectRegionItems, selectIsRegionLoaded } from "./regions";
 
 // Simplified selectors factory 
 export function cacheSelectors(state: CacheState) {
@@ -11,6 +12,10 @@ export function cacheSelectors(state: CacheState) {
     // Item accessors
     hasItem: (coordId: string) => !!state.itemsById[coordId],
     getItem: (coordId: string) => state.itemsById[coordId] ?? null,
+    
+    // Region accessors
+    getRegionItems: (centerCoordId: string, maxDepth = 2) => selectRegionItems(state, centerCoordId, maxDepth),
+    isRegionLoaded: (centerCoordId: string, maxAge?: number) => selectIsRegionLoaded(state, centerCoordId, maxAge),
   };
 }
 
