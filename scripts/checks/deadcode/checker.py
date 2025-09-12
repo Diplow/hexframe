@@ -749,13 +749,22 @@ class DeadCodeChecker:
             for imp in file_analysis.imports:
                 resolved_path = self._resolve_import_path(imp.from_path, imp.file_path)
                 if resolved_path and resolved_path in self.file_cache:
-                    # Find the actual export name (handle aliasing)
-                    export_name = imp.original_name if hasattr(imp, 'original_name') and imp.original_name else imp.name
-                    
-                    # Create dependency relationship
-                    from_symbol = f"{imp.file_path}:__file__"  # File-level dependency
-                    to_symbol = f"{resolved_path}:{export_name}"
-                    self.dependency_graph.add_dependency(from_symbol, to_symbol)
+                    # Handle different import types
+                    if imp.import_type == 'namespace':
+                        # For namespace imports (import * as foo), mark all exports as potentially used
+                        resolved_analysis = self.file_cache[resolved_path]
+                        for export in resolved_analysis.exports:
+                            from_symbol = f"{imp.file_path}:__file__"
+                            to_symbol = f"{resolved_path}:{export.name}"
+                            self.dependency_graph.add_dependency(from_symbol, to_symbol)
+                    else:
+                        # Find the actual export name (handle aliasing)
+                        export_name = imp.original_name if hasattr(imp, 'original_name') and imp.original_name else imp.name
+                        
+                        # Create dependency relationship
+                        from_symbol = f"{imp.file_path}:__file__"  # File-level dependency
+                        to_symbol = f"{resolved_path}:{export_name}"
+                        self.dependency_graph.add_dependency(from_symbol, to_symbol)
         
         # Build internal dependencies within files
         for file_analysis in self.file_cache.values():
@@ -810,16 +819,43 @@ class DeadCodeChecker:
             for imp in file_analysis.imports:
                 resolved_path = self._resolve_import_path(imp.from_path, imp.file_path)
                 if resolved_path:
-                    # Handle aliasing
-                    export_name = imp.original_name if hasattr(imp, 'original_name') and imp.original_name else imp.name
-                    
-                    key = f"{resolved_path}:{export_name}"
-                    imported_symbols.add(key)
-                    
-                    # Handle default imports
-                    if imp.import_type == 'default':
-                        default_key = f"{resolved_path}:default"
-                        imported_symbols.add(default_key)
+                    if imp.import_type == 'namespace':
+                        # For namespace imports, mark all exports from that file as used
+                        if resolved_path in self.file_cache:
+                            resolved_analysis = self.file_cache[resolved_path]
+                            for export in resolved_analysis.exports:
+                                if export.is_reexport and export.from_path:
+                                    # Add the original source
+                                    source_path = self._resolve_import_path(export.from_path, resolved_path)
+                                    if source_path:
+                                        source_key = f"{source_path}:{export.name}"
+                                        imported_symbols.add(source_key)
+                                else:
+                                    # Regular export
+                                    key = f"{resolved_path}:{export.name}"
+                                    imported_symbols.add(key)
+                    else:
+                        # Handle aliasing
+                        export_name = imp.original_name if hasattr(imp, 'original_name') and imp.original_name else imp.name
+                        
+                        key = f"{resolved_path}:{export_name}"
+                        imported_symbols.add(key)
+                        
+                        # Check if this is a re-export and add the source
+                        if resolved_path in self.file_cache:
+                            resolved_analysis = self.file_cache[resolved_path]
+                            for export in resolved_analysis.exports:
+                                if export.name == export_name and export.is_reexport and export.from_path:
+                                    source_path = self._resolve_import_path(export.from_path, resolved_path)
+                                    if source_path:
+                                        source_key = f"{source_path}:{export.name}"
+                                        imported_symbols.add(source_key)
+                                    break
+                        
+                        # Handle default imports
+                        if imp.import_type == 'default':
+                            default_key = f"{resolved_path}:default"
+                            imported_symbols.add(default_key)
                     
         
         # Mark exports as dead, considering re-export chains
@@ -976,6 +1012,10 @@ class DeadCodeChecker:
                 # Find in exports
                 for export in file_analysis.exports:
                     if export.name == symbol_name:
+                        # Skip reporting re-exports as transitively dead
+                        if export.is_reexport:
+                            continue
+                            
                         chain_count = self.dependency_graph.count_dead_chain(symbol_key)
                         
                         try:
