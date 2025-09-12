@@ -109,6 +109,13 @@ class RuleOf6Checker:
         """Check that directories have max 6 items (with custom threshold support)."""
         # First get all directories (we'll filter with custom thresholds)
         all_dirs = []
+        
+        # Check the target directory itself first
+        if not self.ignore_manager.is_exception(self.target_path):
+            dir_info = self.directory_scanner.scan_directory(self.target_path)
+            all_dirs.append(dir_info)
+        
+        # Then check all subdirectories
         for directory in self.target_path.rglob("*"):
             if directory.is_dir() and not self.ignore_manager.is_exception(directory):
                 dir_info = self.directory_scanner.scan_directory(directory)
