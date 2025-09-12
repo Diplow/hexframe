@@ -6,14 +6,14 @@
  */
 
 // Most commonly needed map types
-export type { TileData, TileState } from '~/app/map/types';
-export { adapt, getColor } from '~/app/map/types';
+export type { TileData, TileState } from '../../types';
+export { adapt, getColor } from '../../types';
 
 // URL and navigation types
-export type { URLInfo, URLSearchParams } from '~/app/map/types';
+export type { URLInfo, URLSearchParams } from '../../types';
 
 // Theme and styling types
-export { directionToClassAbbr, getSemanticColorClass, getTextColorForDepth } from '~/app/map/types';
+export { directionToClassAbbr, getSemanticColorClass, getTextColorForDepth } from '../../types';
 
 // Event types for Canvas-Chat communication
 export type { 
@@ -25,7 +25,7 @@ export type {
   MapTileDeletedEvent,
   MapTileMovedEvent,
   MapTilesSwappedEvent
-} from '~/app/map/types';
+} from '../../types';
 
 // Constants used by Tile subsystem
-export { DEFAULT_MAP_COLORS } from '~/app/map/constants';
+export { DEFAULT_MAP_COLORS } from '../../constants';

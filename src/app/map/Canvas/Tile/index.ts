@@ -5,14 +5,14 @@
  */
 
 // Base tile components for static rendering
-export { BaseFrame } from '~/app/map/Canvas/Tile/Base/BaseFrame'
-export { BaseTileLayout } from '~/app/map/Canvas/Tile/Base/BaseTileLayout'
-export { BaseItemTile } from '~/app/map/Canvas/Tile/Base/BaseItemTile'
-export { BaseEmptyTile } from '~/app/map/Canvas/Tile/Base/BaseEmptyTile'
+export { BaseFrame } from './Base/BaseFrame'
+export { BaseTileLayout } from './Base/BaseTileLayout'
+export { BaseItemTile } from './Base/_components/BaseItemTile'
+export { BaseEmptyTile } from './Base/_components/BaseEmptyTile'
 
 // Dynamic base tile component (used by Canvas parent)
-export { DynamicBaseTileLayout } from '~/app/map/Canvas/Tile/Base/index'
-export type { DynamicBaseTileLayoutProps } from '~/app/map/Canvas/Tile/Base/index'
+export { DynamicBaseTileLayout } from './Base/index'
+export type { DynamicBaseTileLayoutProps } from './Base/index'
 
 // Base component types
 export type { 
@@ -21,20 +21,20 @@ export type {
   TileColor,
   TileStroke,
   TileCursor
-} from '~/app/map/Canvas/Tile/Base/BaseTileLayout'
-export type { BaseFrameProps } from '~/app/map/Canvas/Tile/Base/BaseFrame'
-export type { BaseItemTileProps } from '~/app/map/Canvas/Tile/Base/BaseItemTile'  
-export type { BaseEmptyTileProps } from '~/app/map/Canvas/Tile/Base/BaseEmptyTile'
+} from './Base/BaseTileLayout'
+export type { BaseFrameProps } from './Base/BaseFrame'
+export type { BaseItemTileProps } from './Base/_components/BaseItemTile'  
+export type { BaseEmptyTileProps } from './Base/_components/BaseEmptyTile'
 
 // Dynamic tile components
-export { DynamicItemTile } from '~/app/map/Canvas/Tile/Item/item'
-export { DynamicEmptyTile } from '~/app/map/Canvas/Tile/Empty/empty'
+export { DynamicItemTile } from './Item/item'
+export { DynamicEmptyTile } from './Empty/empty'
 
 // Specialized tile components (used by external systems)
-export { default as ErrorTile } from '~/app/map/Canvas/Tile/Error/error'
+// ErrorTile removed - was unused dead code
 
 // Tile utilities (frequently needed by external systems and internal subsystems)  
-export { getColorFromItem } from '~/app/map/Canvas/Tile/Item/_utils/color'
+export { getColorFromItem } from './Item/_internals/utils/color'
 
 // NOTE: MapCache reexports removed - Tile components now use callbacks
 // Canvas should import MapCache directly and pass handlers as props

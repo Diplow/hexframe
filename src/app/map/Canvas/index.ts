@@ -16,7 +16,7 @@ export { MapLoadingSkeleton } from '~/app/map/Canvas/LifeCycle/loading-skeleton'
 // Tile components - re-exported from Canvas/Tile subsystem
 export { 
   BaseTileLayout,    // Core hexagonal tile layout (used by Hierarchy)
-  ErrorTile,         // Error state tiles (used by Home)  
+  // ErrorTile removed - was unused dead code
   DynamicItemTile,   // Dynamic item tiles (used by Frame)
   DynamicEmptyTile,  // Dynamic empty tiles (used by Frame)
   DynamicBaseTileLayout, // Dynamic base tile layout (used by Frame and tiles)

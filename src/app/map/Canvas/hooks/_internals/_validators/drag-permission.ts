@@ -1,5 +1,5 @@
 import type { TileData } from "~/app/map/Canvas/types";
-import { CoordSystem } from "~/lib/domains/mapping/utils";
+import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 
 export function canDragTile(
   tile: TileData | null | undefined,

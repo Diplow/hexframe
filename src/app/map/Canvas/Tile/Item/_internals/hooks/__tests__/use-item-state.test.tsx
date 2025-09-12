@@ -2,7 +2,7 @@ import '~/test/setup'; // Import test setup FIRST
 import { describe, it, expect, vi } from "vitest";
 import { renderHook } from "@testing-library/react";
 import React from "react";
-import { useItemState } from "~/app/map/Canvas/Tile/Item/_hooks/use-item-state";
+import { useItemState } from "~/app/map/Canvas/Tile/Item/_internals/hooks/use-item-state";
 import type { TileData } from "~/app/map/types/tile-data";
 import { LegacyTileActionsContext } from "~/app/map/Canvas";
 

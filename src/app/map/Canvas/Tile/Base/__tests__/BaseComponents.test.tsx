@@ -1,8 +1,8 @@
 import '~/test/setup'; // Import test setup FIRST for DOM
 import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
-import { BaseItemTile } from "~/app/map/Canvas/Tile/Base/BaseItemTile";
-import { BaseEmptyTile } from "~/app/map/Canvas/Tile/Base/BaseEmptyTile";
+import { BaseItemTile } from "~/app/map/Canvas/Tile/Base/_components/BaseItemTile";
+import { BaseEmptyTile } from "~/app/map/Canvas/Tile/Base/_components/BaseEmptyTile";
 import type { TileData } from "~/app/map/types/tile-data";
 import { createTestSetup } from '~/test-utils/providers';
 

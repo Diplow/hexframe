@@ -4,4 +4,4 @@ export {
   handleDropEvent,
   createDragState,
   updateDropTarget,
-} from "~/app/map/Canvas/hooks/_coordinators/drag-events";
+} from "./drag-events";

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Send } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { useChatState } from '~/app/map/Chat/_state';
@@ -10,14 +10,146 @@ import { useTextareaController } from '~/app/map/Chat/Input/_hooks/useTextareaCo
 import { useChatInputService } from '~/app/map/Chat/Input/_services/chatInputService';
 import { loggers } from '~/lib/debug/debug-logger';
 import { CommandAutocomplete } from '~/app/map/Chat/Input/_components/CommandAutocomplete';
+import { getAllCommands } from '~/app/map/Chat/Input/_commands';
+import { useMapCache } from '~/app/map/Cache';
+
+/**
+ * Custom hook for processing command events
+ */
+function useEventProcessor(events: any[], executeCommand: (command: string) => Promise<string>) {
+  const lastProcessedCommandRef = useRef<string | null>(null);
+  
+  useEffect(() => {
+    if (!events || !Array.isArray(events)) return;
+    
+    const unprocessedEvents = events.filter(e => 
+      e.type === 'execute_command' && 
+      e.timestamp.getTime() > (lastProcessedCommandRef.current ? new Date(lastProcessedCommandRef.current).getTime() : 0)
+    ) as Array<{ type: 'execute_command'; payload: { command: string }; timestamp: Date }>;
+    
+    if (unprocessedEvents.length > 0) {
+      const latestEvent = unprocessedEvents[unprocessedEvents.length - 1];
+      if (!latestEvent) return;
+      
+      const command = latestEvent.payload.command;
+      lastProcessedCommandRef.current = latestEvent.timestamp.toISOString();
+      void executeCommand(command);
+    }
+  }, [events, executeCommand]);
+}
+
+/**
+ * Custom hook for autocomplete logic
+ */
+function useAutocompleteLogic(setMessage: (msg: string) => void, center: string | null) {
+  const [showAutocomplete, setShowAutocomplete] = useState(false);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
+  
+  const closeAutocomplete = useCallback(() => {
+    setShowAutocomplete(false);
+    setSelectedSuggestionIndex(0);
+  }, []);
+  
+  const selectSuggestion = useCallback((command: string) => {
+    const allCommands = getAllCommands(center);
+    const commandKeys = Object.keys(allCommands);
+    const hasSubcommands = commandKeys.some(cmd => 
+      cmd.startsWith(command + '/') && cmd !== command
+    );
+    
+    if (hasSubcommands) {
+      const newMessage = command + '/';
+      setMessage(newMessage);
+      setSelectedSuggestionIndex(0);
+    } else {
+      setMessage(command);
+      closeAutocomplete();
+    }
+  }, [setMessage, center, closeAutocomplete]);
+  
+  const handleMessageChange = useCallback((message: string, newMessage: string) => {
+    setMessage(newMessage);
+    
+    if ((message === '' && newMessage === '/') || 
+        (newMessage.startsWith('/') && newMessage.endsWith('/') && newMessage !== '/')) {
+      setShowAutocomplete(true);
+      setSelectedSuggestionIndex(0);
+    } else if (!newMessage.startsWith('/')) {
+      closeAutocomplete();
+    }
+  }, [setMessage, closeAutocomplete]);
+  
+  return {
+    showAutocomplete,
+    selectedSuggestionIndex,
+    setSelectedSuggestionIndex,
+    closeAutocomplete,
+    selectSuggestion,
+    handleMessageChange
+  };
+}
+
+/**
+ * Custom hook for keyboard handling with autocomplete
+ */
+function useKeyboardHandling(
+  showAutocomplete: boolean,
+  suggestions: any[],
+  selectedSuggestionIndex: number,
+  setSelectedSuggestionIndex: (fn: (prev: number) => number) => void,
+  selectSuggestion: (cmd: string) => void,
+  handleSend: () => void,
+  textareaHandleKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => string | null,
+  setMessage: (msg: string) => void
+) {
+  return useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (showAutocomplete && suggestions.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => prev < suggestions.length - 1 ? prev + 1 : 0);
+        return;
+      }
+      
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedSuggestionIndex(prev => prev > 0 ? prev - 1 : suggestions.length - 1);
+        return;
+      }
+      
+      if (e.key === 'Tab' || e.key === 'Enter') {
+        e.preventDefault();
+        const selectedSuggestion = suggestions[selectedSuggestionIndex];
+        if (selectedSuggestion) {
+          selectSuggestion(selectedSuggestion.command);
+        }
+        return;
+      }
+      
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setMessage('');
+        return;
+      }
+    }
+    
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+      return;
+    }
+
+    const historyMessage = textareaHandleKeyDown(e);
+    if (historyMessage !== null) {
+      setMessage(historyMessage);
+    }
+  }, [showAutocomplete, suggestions, selectedSuggestionIndex, setSelectedSuggestionIndex, selectSuggestion, handleSend, textareaHandleKeyDown, setMessage]);
+}
 
 export function Input() {
   const [message, setMessage] = useState('');
-  const [showAutocomplete, setShowAutocomplete] = useState(false);
-  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
-  const lastProcessedCommandRef = useRef<string | null>(null);
   const chatState = useChatState();
   const events = chatState.events;
+  const { center } = useMapCache();
   
   // Debug logging for Input component renders
   useEffect(() => {
@@ -34,56 +166,27 @@ export function Input() {
     });
   });
   
-  const { executeCommand, executeCommandFromPayload, getCommandSuggestions, getAllCommands } = useCommandHandling();
+  const { executeCommand, getCommandSuggestions } = useCommandHandling();
   const { addToHistory, navigateHistory } = useInputHistory();
   const { sendMessage, isCommand, validateMessage } = useChatInputService();
+  
+  // Use extracted hooks
+  useEventProcessor(events, executeCommand);
+  
+  const {
+    showAutocomplete,
+    selectedSuggestionIndex,
+    setSelectedSuggestionIndex,
+    closeAutocomplete,
+    selectSuggestion,
+    handleMessageChange: autocompleteHandleMessageChange
+  } = useAutocompleteLogic(setMessage, center);
   
   // Get command suggestions only when autocomplete is showing
   const suggestions = showAutocomplete ? getCommandSuggestions(message) : [];
 
-  const closeAutocomplete = () => {
-    setShowAutocomplete(false);
-    setSelectedSuggestionIndex(0);
-  };
-
-  const selectSuggestion = (command: string) => {
-    // Check if this command has subcommands
-    const allCommands = getAllCommands();
-    const hasSubcommands = allCommands.some(cmd => 
-      cmd.startsWith(command + '/') && cmd !== command
-    );
-    
-    if (hasSubcommands) {
-      // If it has subcommands, add a trailing slash and keep autocomplete open
-      const newMessage = command + '/';
-      setMessage(newMessage);
-      // Don't close autocomplete - it will update with new suggestions
-    } else {
-      // If no subcommands, close autocomplete
-      setMessage(command);
-      closeAutocomplete();
-    }
-    
-    textareaRef.current?.focus();
-  };
-
   const handleMessageChange = (newMessage: string) => {
-    setMessage(newMessage);
-    
-    // Open autocomplete when user types "/" in empty input OR adds "/" to a command
-    if ((message === '' && newMessage === '/') || 
-        (newMessage.startsWith('/') && newMessage.endsWith('/') && newMessage !== '/')) {
-      setShowAutocomplete(true);
-      setSelectedSuggestionIndex(0);
-    }
-    // Close autocomplete when message no longer starts with "/"
-    else if (!newMessage.startsWith('/')) {
-      setShowAutocomplete(false);
-    }
-    // Keep autocomplete open if it's already open and message still starts with "/"
-    else if (showAutocomplete && newMessage.startsWith('/')) {
-      // Autocomplete will update automatically due to suggestions changing
-    }
+    autocompleteHandleMessageChange(message, newMessage);
   };
   
   const { textareaRef, handleKeyDown, resetTextareaHeight } = useTextareaController({
@@ -155,23 +258,6 @@ export function Input() {
     }
   }
   
-  useEffect(() => {
-    if (!events || !Array.isArray(events)) return;
-    
-    const unprocessedEvents = events.filter(e => 
-      e.type === 'execute_command' && 
-      e.timestamp.getTime() > (lastProcessedCommandRef.current ? new Date(lastProcessedCommandRef.current).getTime() : 0)
-    ) as Array<{ type: 'execute_command'; payload: { command: string }; timestamp: Date }>;
-    
-    if (unprocessedEvents.length > 0) {
-      const latestEvent = unprocessedEvents[unprocessedEvents.length - 1];
-      if (!latestEvent) return;
-      
-      const payload = latestEvent.payload;
-      lastProcessedCommandRef.current = latestEvent.timestamp.toISOString();
-      void executeCommandFromPayload(payload);
-    }
-  }, [events, executeCommandFromPayload]);
   
 
   return (

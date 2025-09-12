@@ -1,6 +1,6 @@
-import { CoordSystem } from "~/lib/domains/mapping/utils";
+import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
 import type { TileData } from "~/app/map/Canvas/types";
-import { canSwapTiles } from "~/app/map/Canvas/hooks/_validators";
+import { canSwapTiles } from "~/app/map/Canvas/hooks/_internals/_validators";
 
 /**
  * @deprecated This function is no longer needed with universal drop targets.
