@@ -104,7 +104,10 @@ export const DynamicBaseTileLayout = ({
           preserveAspectRatio="xMidYMid meet"
         >
           <defs>
-            {renderTileGradient({ coordId, isExpanded, isShallow: _shallow, hasPath, lastDirection, isDarkMode, scale })}
+            {renderTileGradient({ 
+              tileProps: { coordId, isExpanded, isShallow: _shallow, hasPath },
+              styleProps: { lastDirection, isDarkMode, scale }
+            })}
           </defs>
           <path
             d={svgPath}

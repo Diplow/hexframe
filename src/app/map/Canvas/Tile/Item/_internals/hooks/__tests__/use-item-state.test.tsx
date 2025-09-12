@@ -29,13 +29,19 @@ vi.mock("../../_validators", () => ({
   },
 }));
 
-vi.mock("../../_coordinators", () => ({
+vi.mock("~/app/map/Canvas/Tile/Item/_internals/coordinators/drag-coordination", () => ({
   createDragProps: (_coordId: string, _actions: unknown, isDraggable: boolean, _isBeingDragged: boolean) => ({
     draggable: isDraggable,
     onDragStart: vi.fn(),
     onDragEnd: vi.fn(),
   }),
+}));
+
+vi.mock("~/app/map/Canvas/Tile/Item/_internals/coordinators/drop-coordination", () => ({
   createDropProps: (_coordId: string, _actions: unknown, _isValidDropTarget: boolean) => ({}),
+}));
+
+vi.mock("~/app/map/Canvas/Tile/Item/_internals/coordinators/swap-preview", () => ({
   getSwapPreviewColor: () => "transparent",
 }));
 

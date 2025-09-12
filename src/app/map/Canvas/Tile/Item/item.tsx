@@ -66,8 +66,12 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
       <div 
         className={`group relative hover:z-10 select-none ${state.interaction.isBeingDragged ? 'dragging' : ''}`} 
         data-testid={state.testId}
-        {...state.dragProps}
-        {...state.dropProps}>
+        draggable={state.dragProps.draggable}
+        onDragStart={state.dragProps.onDragStart}
+        onDragEnd={state.dragProps.onDragEnd}
+        onDragOver={state.dropProps.onDragOver}
+        onDragLeave={state.dropProps.onDragLeave}
+        onDrop={state.dropProps.onDrop}>
         <ItemTileContent
           {...props}
           scale={scale}

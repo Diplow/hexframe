@@ -6,7 +6,9 @@ import { LegacyTileActionsContext } from "~/app/map/Canvas";
 import { useItemInteraction } from "~/app/map/Canvas/Tile/Item/_internals/hooks/use-item-interaction";
 import { generateTileTestId } from "~/app/map/Canvas/Tile/Item/_internals/utils";
 import { canEditTile } from "~/app/map/Canvas/Tile/Item/_internals/validators";
-import { createDragProps, createDropProps, getSwapPreviewColor } from "~/app/map/Canvas/Tile/Item/_internals/coordinators";
+import { createDragProps } from "~/app/map/Canvas/Tile/Item/_internals/coordinators/drag-coordination";
+import { createDropProps } from "~/app/map/Canvas/Tile/Item/_internals/coordinators/drop-coordination";
+import { getSwapPreviewColor } from "~/app/map/Canvas/Tile/Item/_internals/coordinators/swap-preview";
 import { testLogger } from "~/lib/test-logger";
 
 interface ItemStateProps {

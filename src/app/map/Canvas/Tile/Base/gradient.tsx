@@ -46,15 +46,21 @@ export const getGradientPosition = (direction: Direction) => {
 
 // Render gradient definitions for dynamic tiles
 export const renderTileGradient = (params: {
-  coordId: string;
-  isExpanded: boolean;
-  isShallow: boolean;
-  hasPath: boolean;
-  lastDirection: Direction | null;
-  isDarkMode: boolean;
-  scale: TileScale;
+  tileProps: {
+    coordId: string;
+    isExpanded: boolean;
+    isShallow: boolean;
+    hasPath: boolean;
+  };
+  styleProps: {
+    lastDirection: Direction | null;
+    isDarkMode: boolean;
+    scale: TileScale;
+  };
 }): ReactNode => {
-  const { coordId, isExpanded, isShallow, hasPath, lastDirection, isDarkMode, scale } = params;
+  const { tileProps, styleProps } = params;
+  const { coordId, isExpanded, isShallow, hasPath } = tileProps;
+  const { lastDirection, isDarkMode, scale } = styleProps;
   const lightColor = isDarkMode ? "0,0,0" : "255,255,255";
   const darkColor = isDarkMode ? "255,255,255" : "0,0,0";
   const opacityMultiplier = getOpacityMultiplier(scale);
