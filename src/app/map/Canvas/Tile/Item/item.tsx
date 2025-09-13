@@ -1,6 +1,7 @@
 "use client";
 
 import type { TileData } from "~/app/map/types/tile-data";
+import type { URLInfo } from "~/app/map/types/url-info";
 import type { TileScale } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
 import { useItemState } from "~/app/map/Canvas/Tile/Item/_internals/hooks";
 import { ItemTileContent } from "~/app/map/Canvas/Tile/Item/_components/item-tile-content";
