@@ -121,7 +121,7 @@ export class QueuedLLMRepository implements ILLMRepository {
         createdAt: new Date(),
         updatedAt: new Date()
       })
-      console.log(`[QueuedLLMRepository] Pending job record created in database`)
+      console.log('[QueuedLLMRepository] Pending job record created in database')
     } catch (error) {
       console.error(`[QueuedLLMRepository] Failed to create job record:`, error)
       loggers.agentic.error('Failed to create pending job record', { jobId, userId: this.userId, error })
