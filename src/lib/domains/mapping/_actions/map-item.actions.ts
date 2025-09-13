@@ -2,10 +2,10 @@ import type {
   BaseItemRepository,
   MapItemRepository,
 } from "~/lib/domains/mapping/_repositories";
-import {
-  type BaseItemAttrs,
-  type BaseItemWithId,
-  type MapItemWithId,
+import type {
+  BaseItemAttrs,
+  BaseItemWithId,
+  MapItemWithId,
   MapItemType,
 } from "~/lib/domains/mapping/_objects";
 import type { Coord } from "~/lib/domains/mapping/utils";

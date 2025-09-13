@@ -30,7 +30,7 @@ export function DebugLogsWidget({ title, content, onClose }: DebugLogsWidgetProp
 
         {/* Content */}
         <div className="prose prose-sm dark:prose-invert max-w-none">
-          <div dangerouslySetInnerHTML={{ __html: content.replace(/```\n([\s\S]*?)\n```/g, '<pre class="bg-neutral-100 dark:bg-neutral-700 p-3 rounded text-sm overflow-x-auto"><code>$1</code></pre>').replace(/\{\{COPY_BUTTON:([^}]+)\}\}/g, '<button class="mt-2 px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600" onclick="navigator.clipboard.writeText(atob(\'$1\'))">Copy Logs</button>') }} />
+          <div dangerouslySetInnerHTML={{ __html: content.replace(/```\n([\s\S]*?)\n```/g, '<pre class="bg-neutral-100 dark:bg-neutral-700 p-3 rounded text-sm overflow-x-auto"><code>$1</code></pre>').replace(/\{\{COPY_BUTTON:([^}]+)\}\}/g, '<button class="mt-2 px-3 py-1 text-xs bg-primary text-white rounded hover:bg-primary/80" onclick="navigator.clipboard.writeText(atob(\'$1\'))">Copy Logs</button>') }} />
         </div>
       </div>
     </div>

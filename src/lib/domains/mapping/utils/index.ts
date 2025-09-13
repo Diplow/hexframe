@@ -13,4 +13,4 @@ export {
   isValidCoord,
   coordToString,
   stringToCoord,
-} from './hex-coordinates';
+} from '~/lib/domains/mapping/utils/hex-coordinates';

@@ -7,8 +7,8 @@ import {
 } from "~/lib/domains/mapping/_objects";
 import type { Coord } from "~/lib/domains/mapping/utils";
 import type { MapItemIdr } from "~/lib/domains/mapping/_repositories/map-item";
-import { MapItemMovementHelpers } from "~/lib/domains/mapping/_actions/_map-item-movement-helpers";
-import { MapItemQueryHelpers } from "~/lib/domains/mapping/_actions/_map-item-query-helpers";
+import type { MapItemMovementHelpers } from "~/lib/domains/mapping/_actions/_map-item-movement-helpers";
+import type { MapItemQueryHelpers } from "~/lib/domains/mapping/_actions/_map-item-query-helpers";
 
 export class MapItemActionHelpers {
   public static async getItemAndDescendants(
