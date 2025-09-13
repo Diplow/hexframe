@@ -16,7 +16,7 @@ export function useCommandHandling() {
   const handlers = useCommandHandlers(chatState);
   
   // Get command execution functionality
-  const { findCommand, executeCommand } = useCommandExecution(extendedCommands, handlers);
+  const { findCommand, executeCommand } = useCommandExecution(extendedCommands, { ...handlers, chatState });
   
   // Get command suggestion functionality  
   const { getCommandSuggestions } = useCommandSuggestions(extendedCommands);

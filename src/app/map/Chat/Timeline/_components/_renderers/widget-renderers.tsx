@@ -8,7 +8,8 @@ import {
   LoadingWidget,
   ErrorWidget,
   AIResponseWidget,
-  McpKeysWidget
+  McpKeysWidget,
+  DebugLogsWidget
 } from '~/app/map/Chat/Timeline/Widgets';
 import type { AIResponseWidgetData } from '~/app/map/Chat/types';
 
@@ -137,6 +138,18 @@ export function renderMcpKeysWidget(widget: Widget, handlers: WidgetHandlers) {
   const { handleCancel = () => { /* noop */ } } = handlers;
   return (
     <McpKeysWidget
+      onClose={handleCancel}
+    />
+  );
+}
+
+export function renderDebugLogsWidget(widget: Widget, handlers: WidgetHandlers) {
+  const { handleCancel = () => { /* noop */ } } = handlers;
+  const data = widget.data as { title: string; content: string };
+  return (
+    <DebugLogsWidget
+      title={data.title}
+      content={data.content}
       onClose={handleCancel}
     />
   );

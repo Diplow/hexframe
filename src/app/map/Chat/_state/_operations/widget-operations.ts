@@ -37,6 +37,22 @@ export function createWidgetOperations(dispatch: (event: ChatEvent) => void) {
         actor: 'system' as const
       });
     },
+    showDebugLogsWidget(title: string, content: string) {
+      const widget = {
+        id: `debug-logs-${Date.now()}`,
+        type: 'debug-logs' as const,
+        data: { title, content },
+        priority: 'info' as const,
+        timestamp: new Date()
+      }
+      dispatch({
+        type: 'widget_created' as const,
+        payload: { widget },
+        id: `chat-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        timestamp: new Date(),
+        actor: 'system' as const
+      });
+    },
     closeWidget(widgetId: string) {
       dispatch({
         type: 'widget_closed',

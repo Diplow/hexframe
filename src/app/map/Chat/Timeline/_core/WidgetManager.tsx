@@ -16,6 +16,7 @@ import {
   renderDeleteWidget,
   renderAIResponseWidget,
   renderMcpKeysWidget,
+  renderDebugLogsWidget,
   type WidgetHandlers
 } from '~/app/map/Chat/Timeline/_components/_renderers/widget-renderers';
 
@@ -48,6 +49,13 @@ export function WidgetManager({ widgets, focusChatInput: focusChatInputProp }: W
       case 'creation':
         return createCreationHandlers(widget, deps);
       case 'mcp-keys':
+        return {
+          handleCancel: () => {
+            chatState.closeWidget(widget.id);
+            focusChatInputFn();
+          }
+        };
+      case 'debug-logs':
         return {
           handleCancel: () => {
             chatState.closeWidget(widget.id);
@@ -93,6 +101,8 @@ function _renderWidget(
       return renderAIResponseWidget(widget);
     case 'mcp-keys':
       return renderMcpKeysWidget(widget, createWidgetHandlers(widget));
+    case 'debug-logs':
+      return renderDebugLogsWidget(widget, createWidgetHandlers(widget));
     default:
       return null;
   }

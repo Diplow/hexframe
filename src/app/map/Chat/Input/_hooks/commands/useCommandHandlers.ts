@@ -57,22 +57,13 @@ export function useCommandHandlers(chatState: {
     chatState.showSystemMessage('Message timeline cleared.', 'info');
   }, [chatState]);
 
-  const handleMcpCommand = useCallback((commandPath: string) => {
-    eventBus.emit({
-      type: 'widget.create' as const,
-      payload: {
-        widget: {
-          id: `mcp-keys-${Date.now()}`,
-          type: 'mcp-keys',
-          data: { action: commandPath },
-          priority: 'action' as const,
-          timestamp: new Date(),
-        }
-      },
-      source: 'chat_cache' as const,
-      timestamp: new Date()
-    });
-  }, [eventBus]);
+  const handleMcpCommand = useCallback((_commandPath: string) => {
+    if (chatState && 'showMcpKeysWidget' in chatState) {
+      (chatState.showMcpKeysWidget as () => void)();
+    } else {
+      console.error('chatState.showMcpKeysWidget not available');
+    }
+  }, [chatState]);
 
   return {
     handleLogout,
