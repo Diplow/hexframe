@@ -47,10 +47,14 @@ class ArchitectureChecker:
         # Single pass: find all subsystems and cache file info
         self.subsystems = self._find_all_subsystems()
         
+        # Find all index files for standalone checks
+        self.index_files = self._find_all_index_files()
+        
         # Run all checks in logical order
         self._run_complexity_checks(results)
         self._run_subsystem_checks(results)
         self._run_import_checks(results)
+        self._run_standalone_index_checks(results)
         self._run_domain_checks(results)
         
         results.execution_time = time.time() - start_time
@@ -84,6 +88,17 @@ class ArchitectureChecker:
             subsystems.append(subsystem)
         
         return subsystems
+    
+    def _find_all_index_files(self) -> List[Path]:
+        """Find all index.ts and index.tsx files in target path."""
+        index_files = []
+        
+        for pattern in ["**/index.ts", "**/index.tsx"]:
+            for index_file in self.path_helper.target_path.glob(pattern):
+                if not self._is_test_file(index_file):
+                    index_files.append(index_file)
+        
+        return index_files
     
     def _find_subsystem_files(self, subsystem_dir: Path) -> List[FileInfo]:
         """Find and cache all TypeScript files in a subsystem."""
@@ -174,6 +189,12 @@ class ArchitectureChecker:
         
         # Check domain utils import patterns
         errors = self.import_checker.check_domain_utils_import_patterns(self.subsystems)
+        for error in errors:
+            results.add_error(error)
+    
+    def _run_standalone_index_checks(self, results: CheckResults) -> None:
+        """Run checks on standalone index.ts files (not part of formal subsystems)."""
+        errors = self.import_checker.check_standalone_index_reexports(self.index_files)
         for error in errors:
             results.add_error(error)
     

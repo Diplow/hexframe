@@ -29,10 +29,14 @@ Examples:
   pnpm check:ruleof6 src/components                       # Check specific path
 
 Rule of 6 Principles:
-  • Max 6 items per directory
+  • Max 6 domain folders + 6 domain files per directory (generic infrastructure excluded)
   • Max 6 functions per file
   • Max 50 lines per function (warning), 100+ lines (error)
   • Max 3 arguments per function (or 1 object with max 6 keys)
+  
+Excluded from count (generic infrastructure):
+  • Generic folders: docs/, types/, utils/, components/, hooks/, __tests__/, etc.
+  • Generic files: README.md, index.ts, page.tsx, *.config.*, *.test.*, etc.
 
 IMPORTANT: Avoid creating meaningless abstractions to satisfy the rules.
 Focus on logical groupings, clear responsibilities, and semantic meaning.

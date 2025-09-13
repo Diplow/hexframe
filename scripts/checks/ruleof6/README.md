@@ -27,7 +27,9 @@ The Rule of 6 is not about arbitrary limits—it's about **cognitive load manage
 
 | Rule | Threshold | Severity | Description |
 |------|-----------|----------|-------------|
-| **Directory Items** | 6 items | Error | Maximum files/folders per directory |
+| **Domain Folders** | 6 folders | Error | Maximum domain folders per directory (generic excluded) |
+| **Domain Files** | 6 files | Error | Maximum domain files per directory (generic excluded) |
+| **Directory Items** | 6 items | Error | Maximum files/folders per directory (legacy rule) |
 | **Functions per File** | 6 functions | Error | Maximum function definitions per file |
 | **Function Lines** | 50 lines | Warning | Recommended maximum lines per function |
 | **Function Lines** | 100 lines | Error | Hard limit for function length |
@@ -35,6 +37,59 @@ The Rule of 6 is not about arbitrary limits—it's about **cognitive load manage
 | **Object Parameters** | 6 keys | Warning | Maximum keys in object parameters |
 
 **Note**: All thresholds can be customized using `.ruleof6-exceptions` files (see [Exception Handling](#exception-handling) below).
+
+### Generic Infrastructure (Excluded from Domain Counting)
+
+The new domain-aware Rule of 6 excludes common infrastructure patterns from the count, allowing you to focus on meaningful domain abstractions:
+
+#### Generic Folders (Always Allowed):
+- `docs/`, `doc/` - Documentation
+- `types/` - Type definitions  
+- `utils/` - Utilities
+- `components/` - UI components
+- `hooks/` - React hooks
+- `__tests__/`, `tests/` - Testing
+- `fixtures/` - Test fixtures
+- `mocks/` - Mock data/functions
+- `stories/` - Storybook files
+
+#### Generic Files (Always Allowed):
+- `dependencies.json` - Subsystem dependencies
+- `README.md` - Documentation
+- `index.ts`, `index.tsx` - Re-exports
+- `page.tsx` - Next.js pages
+- `layout.tsx` - Next.js layouts
+- `loading.tsx` - Next.js loading components
+- `error.tsx` - Next.js error boundaries
+- `not-found.tsx` - Next.js 404 pages
+- `*.config.js/ts` - Configuration files
+- `*.stories.tsx/ts` - Storybook files
+- `*.test.tsx/ts` - Test files
+- `*.spec.tsx/ts` - Test files
+
+#### Example Valid Structure:
+```
+src/app/map/Canvas/
+├── docs/                    # ← Generic (excluded)
+├── types/                   # ← Generic (excluded)
+├── utils/                   # ← Generic (excluded)
+├── components/              # ← Generic (excluded)
+├── hooks/                   # ← Generic (excluded)
+├── dependencies.json        # ← Generic (excluded)
+├── README.md               # ← Generic (excluded)
+├── index.ts                # ← Generic (excluded)
+├── Tile/                   # ← Domain folder (1/6)
+├── LifeCycle/              # ← Domain folder (2/6)
+├── Interaction/            # ← Domain folder (3/6)
+├── canvas.tsx              # ← Domain file (1/6)
+├── frame.tsx               # ← Domain file (2/6)
+└── context.tsx             # ← Domain file (3/6)
+```
+
+This structure is **valid** because:
+- Domain folders: 3 (≤ 6) ✅
+- Domain files: 3 (≤ 6) ✅
+- Generic infrastructure is excluded from count
 
 ## Usage
 
@@ -90,14 +145,21 @@ Detailed machine-readable report saved to `test-results/rule-of-6-check.json`:
   },
   "violations": [
     {
-      "type": "directory_items",
+      "type": "directory_domain_folders",
       "severity": "error",
-      "message": "Directory 'components' has 8 items (max 6)",
+      "message": "Directory 'components' has 8 domain folders (max 6)",
       "file": "src/components",
-      "recommendation": "Group related items into subdirectories...",
+      "recommendation": "Group related domain folders into subdirectories...",
       "context": {
-        "item_count": 8,
-        "items": ["Button.tsx", "Input.tsx", "..."]
+        "domain_folder_count": 8,
+        "domain_file_count": 3,
+        "total_items": 15,
+        "domain_folders": ["Button", "Input", "Form", "..."],
+        "domain_files": ["theme.ts", "constants.ts", "helpers.ts"],
+        "excluded_generic_folders": ["docs", "types", "utils", "hooks"],
+        "excluded_generic_files": ["README.md", "index.ts"],
+        "domain_items": "Button, Input, Form, Modal, Dropdown, ...",
+        "generic_items_excluded": "docs, types, utils, hooks, README.md, index.ts"
       }
     }
   ]
@@ -117,8 +179,10 @@ jq '.violations[] | select(.severity == "error")' test-results/rule-of-6-check.j
 # Get summary statistics
 jq '.summary' test-results/rule-of-6-check.json
 
-# Get violations by type
+# Get violations by type  
 jq '.violations[] | select(.type == "function_lines")' test-results/rule-of-6-check.json
+jq '.violations[] | select(.type == "directory_domain_folders")' test-results/rule-of-6-check.json
+jq '.violations[] | select(.type == "directory_domain_files")' test-results/rule-of-6-check.json
 
 # Get violations by path pattern
 jq '.violations[] | select(.file | contains("components"))' test-results/rule-of-6-check.json
@@ -154,6 +218,12 @@ jq '.violations[] | select(.type == "function_lines") | {function: .context.func
 
 # Find functions exceeding custom thresholds
 jq '.violations[] | select(.type == "function_lines" and .custom_threshold != null) | {function: .context.function_name, file: .file, actual: .context.line_count, limit: .custom_threshold, justification: .exception_source}' test-results/rule-of-6-check.json
+
+# Analyze domain vs generic item distribution
+jq '.violations[] | select(.type == "directory_domain_folders" or .type == "directory_domain_files") | {path: .file, domain_folders: .context.domain_folder_count, domain_files: .context.domain_file_count, generic_folders: (.context.excluded_generic_folders | length), generic_files: (.context.excluded_generic_files | length), total: .context.total_items}' test-results/rule-of-6-check.json
+
+# Find directories with high generic-to-domain ratios (might indicate over-abstraction)
+jq '.violations[] | select(.type == "directory_domain_folders" or .type == "directory_domain_files") | {path: .file, domain_count: (.context.domain_folder_count + .context.domain_file_count), generic_count: ((.context.excluded_generic_folders | length) + (.context.excluded_generic_files | length)), ratio: ((((.context.excluded_generic_folders | length) + (.context.excluded_generic_files | length)) | tonumber) / ((.context.domain_folder_count + .context.domain_file_count) | tonumber))} | select(.ratio > 1)' test-results/rule-of-6-check.json
 ```
 
 ## Rules Applied
@@ -162,7 +232,9 @@ The checker enforces the following thresholds:
 
 | Rule | Threshold | Type | Description |
 |------|-----------|------|-------------|
-| **directory_items** | 6 items | Error | Maximum files/folders per directory |
+| **domain_folders** | 6 folders | Error | Maximum domain folders per directory (generic excluded) |
+| **domain_files** | 6 files | Error | Maximum domain files per directory (generic excluded) |
+| **directory_items** | 6 items | Error | Maximum files/folders per directory (legacy rule) |
 | **functions_per_file** | 6 functions | Error | Maximum function definitions per file |
 | **function_lines_warning** | 50 lines | Warning | Recommended maximum lines per function |
 | **function_lines_error** | 100 lines | Error | Hard limit for function length |

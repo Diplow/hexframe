@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import List
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from models import CheckResults, ViolationType, RuleOf6Violation, FileAnalysis
+from models import CheckResults, ViolationType, RuleOf6Violation, FileAnalysis, DomainDirectoryInfo
 from scanner import LegacyIgnoreManager, DirectoryScanner, FileScanner
 from parser import TypeScriptParser
 from exceptions import CustomThresholdManager
@@ -23,7 +23,9 @@ class RuleOf6Checker:
         self.target_path = Path(target_path)
         
         # Rule thresholds (defaults)
-        self.max_directory_items = 6
+        self.max_directory_items = 6  # Legacy rule (backwards compatibility)
+        self.max_domain_folders = 6   # New rule: max domain folders per directory
+        self.max_domain_files = 6     # New rule: max domain files per directory
         self.max_functions_per_file = 6
         self.max_function_lines = 50
         self.max_function_args = 3
@@ -54,7 +56,7 @@ class RuleOf6Checker:
         results = CheckResults(target_path=str(self.target_path))
         
         # Run all checks
-        self._check_directory_rule(results)
+        self._check_domain_directory_rule(results)
         self._check_file_function_rules(results)
         self._check_object_parameter_rule(results)
         
@@ -62,7 +64,9 @@ class RuleOf6Checker:
         
         # Track which rules were applied
         results.rules_applied = {
-            "directory_items": self.max_directory_items,
+            "directory_items": self.max_directory_items,  # Legacy rule
+            "domain_folders": self.max_domain_folders,    # New rules
+            "domain_files": self.max_domain_files,
             "functions_per_file": self.max_functions_per_file,
             "function_lines_warning": self.max_function_lines,
             "function_lines_error": self.max_function_lines_error,
@@ -150,6 +154,58 @@ class RuleOf6Checker:
                     exception_source=custom_rule.source_file if custom_rule else None,
                     custom_threshold=custom_rule.threshold if custom_rule else None,
                     default_threshold=self.max_directory_items
+                )
+                results.add_violation(violation)
+    
+    def _check_domain_directory_rule(self, results: CheckResults) -> None:
+        """Check that directories have max 6 domain folders and 6 domain files (new rule)."""
+        # Find all directories with domain violations
+        domain_violating_dirs = self.directory_scanner.find_domain_violating_directories(
+            self.target_path, self.max_domain_folders, self.max_domain_files
+        )
+        
+        for dir_info in domain_violating_dirs:
+            relative_path = str(dir_info.path.relative_to(self.target_path) if dir_info.path != self.target_path else '.')
+            
+            # Check for violations in domain folders
+            if dir_info.domain_folder_count > self.max_domain_folders:
+                violation = RuleOf6Violation.create_error(
+                    message=f"Directory '{relative_path}' has {dir_info.domain_folder_count} domain folders (max {self.max_domain_folders})",
+                    violation_type=ViolationType.DIRECTORY_DOMAIN_FOLDERS,
+                    file_path=str(dir_info.path),
+                    recommendation="Group related domain folders into subdirectories with meaningful names. Focus on meaningful abstractions rather than arbitrary limits.",
+                    context={
+                        "domain_folder_count": dir_info.domain_folder_count,
+                        "domain_file_count": dir_info.domain_file_count,
+                        "total_items": dir_info.total_item_count,
+                        "domain_folders": dir_info.domain_folders,
+                        "domain_files": dir_info.domain_files,
+                        "excluded_generic_folders": dir_info.generic_folders,
+                        "excluded_generic_files": dir_info.generic_files,
+                        "domain_items": dir_info.get_domain_items_display(),
+                        "generic_items_excluded": dir_info.get_generic_items_display()
+                    }
+                )
+                results.add_violation(violation)
+            
+            # Check for violations in domain files
+            if dir_info.domain_file_count > self.max_domain_files:
+                violation = RuleOf6Violation.create_error(
+                    message=f"Directory '{relative_path}' has {dir_info.domain_file_count} domain files (max {self.max_domain_files})",
+                    violation_type=ViolationType.DIRECTORY_DOMAIN_FILES,
+                    file_path=str(dir_info.path),
+                    recommendation="Split domain files into subdirectories or extract related functionality into separate modules. Focus on meaningful abstractions rather than arbitrary limits.",
+                    context={
+                        "domain_folder_count": dir_info.domain_folder_count,
+                        "domain_file_count": dir_info.domain_file_count,
+                        "total_items": dir_info.total_item_count,
+                        "domain_folders": dir_info.domain_folders,
+                        "domain_files": dir_info.domain_files,
+                        "excluded_generic_folders": dir_info.generic_folders,
+                        "excluded_generic_files": dir_info.generic_files,
+                        "domain_items": dir_info.get_domain_items_display(),
+                        "generic_items_excluded": dir_info.get_generic_items_display()
+                    }
                 )
                 results.add_violation(violation)
     

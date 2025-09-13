@@ -14,6 +14,8 @@ from enum import Enum
 class ViolationType(Enum):
     """Types of Rule of 6 violations."""
     DIRECTORY_ITEMS = "directory_items"
+    DIRECTORY_DOMAIN_FOLDERS = "directory_domain_folders"
+    DIRECTORY_DOMAIN_FILES = "directory_domain_files"
     FILE_FUNCTIONS = "file_functions"
     FUNCTION_LINES = "function_lines"
     FUNCTION_ARGS = "function_args"
@@ -56,6 +58,45 @@ class DirectoryInfo:
         if len(self.items) <= max_items:
             return ", ".join(self.items)
         return ", ".join(self.items[:max_items]) + "..."
+
+
+@dataclass
+class DomainDirectoryInfo:
+    """Information about a directory with domain/generic item separation."""
+    path: Path
+    domain_folder_count: int
+    domain_file_count: int
+    generic_folder_count: int
+    generic_file_count: int
+    domain_folders: List[str] = field(default_factory=list)
+    domain_files: List[str] = field(default_factory=list)
+    generic_folders: List[str] = field(default_factory=list)
+    generic_files: List[str] = field(default_factory=list)
+    
+    @property
+    def total_item_count(self) -> int:
+        """Get total count of all items (domain + generic)."""
+        return (self.domain_folder_count + self.domain_file_count + 
+                self.generic_folder_count + self.generic_file_count)
+    
+    @property
+    def domain_item_count(self) -> int:
+        """Get total count of domain items only."""
+        return self.domain_folder_count + self.domain_file_count
+    
+    def get_domain_items_display(self, max_items: int = 8) -> str:
+        """Get a display string for domain items."""
+        domain_items = self.domain_folders + self.domain_files
+        if len(domain_items) <= max_items:
+            return ", ".join(domain_items)
+        return ", ".join(domain_items[:max_items]) + "..."
+    
+    def get_generic_items_display(self, max_items: int = 8) -> str:
+        """Get a display string for generic items."""
+        generic_items = self.generic_folders + self.generic_files
+        if len(generic_items) <= max_items:
+            return ", ".join(generic_items)
+        return ", ".join(generic_items[:max_items]) + "..."
 
 
 @dataclass

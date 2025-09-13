@@ -233,6 +233,8 @@ class CheckResults:
         # Handle structural issues
         elif "Move file contents" in recommendation:
             return "Resolve file/folder conflict"
+        elif "Either move implementation to this directory or import directly from original location" in recommendation:
+            return "Fix upward reexport"
         elif "reexport" in recommendation.lower():
             return "Fix reexport boundary"
         

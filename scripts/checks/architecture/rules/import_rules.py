@@ -195,6 +195,42 @@ class ImportRuleChecker:
         
         return errors
     
+    def check_standalone_index_reexports(self, index_files: List[Path]) -> List[ArchError]:
+        """Check upward reexports in all index.ts files, not just those in formal subsystems."""
+        errors = []
+        
+        for index_file in index_files:
+            # Skip if this index file is already part of a formal subsystem
+            if self._is_index_in_formal_subsystem(index_file):
+                continue
+            
+            # Create a minimal subsystem-like info for this index file
+            pseudo_subsystem = self._create_pseudo_subsystem(index_file)
+            
+            # Check for upward reexport violations
+            violations = self._find_standalone_index_violations(pseudo_subsystem)
+            
+            if violations:
+                errors.append(ArchError.create_error(
+                    message=f"❌ Invalid upward reexports in {index_file.relative_to(Path('src'))}:",
+                    error_type=ErrorType.REEXPORT_BOUNDARY,
+                    subsystem=str(index_file.parent),
+                    recommendation=f"Fix upward reexports in {index_file.relative_to(Path('src'))} - index files should not reexport from parent directories"
+                ))
+                
+                for v in violations:
+                    errors.append(ArchError.create_error(
+                        message=(f"  🔸 Line {v['line']}: {v['full_statement']}\n"
+                               f"     → {v['reason']}"),
+                        error_type=ErrorType.REEXPORT_BOUNDARY,
+                        subsystem=str(index_file.parent),
+                        file_path=str(index_file),
+                        line_number=v['line'],
+                        recommendation="Either move implementation to this directory or import directly from original location"
+                    ))
+        
+        return errors
+    
     def _find_import_boundary_violations(self, subsystem: SubsystemInfo) -> List[dict]:
         """Find violations where external files import directly into subsystem."""
         violations = []
@@ -282,6 +318,15 @@ class ImportRuleChecker:
     def _check_reexport_violation(self, subsystem: SubsystemInfo, import_path: str, 
                                  full_statement: str, line_num: int) -> dict:
         """Check if a single reexport violates rules."""
+        
+        # NEW RULE: index.ts files cannot reexport from parent/higher directories
+        if self._is_upward_reexport(subsystem, import_path):
+            return {
+                'line': line_num,
+                'import': import_path,
+                'full_statement': full_statement,
+                'reason': 'index.ts files cannot reexport from parent directories - either move implementation here or import directly from original location'
+            }
         
         # Special rule: Domain index.ts files should NOT reexport from utils
         # Utils should be imported directly, not through domain index
@@ -395,6 +440,48 @@ class ImportRuleChecker:
         # All other imports (services, infrastructure, etc.) must go through the domain's index.ts
         return False
     
+    def _is_upward_reexport(self, subsystem: SubsystemInfo, import_path: str) -> bool:
+        """Check if this reexport goes to a higher-level directory (parent or ancestor sibling)."""
+        # Handle relative upward paths like '../types' or '../../../lib'
+        if import_path.startswith('../'):
+            return True
+        
+        # Handle absolute paths that point to higher-level directories
+        if import_path.startswith('~/'):
+            # Get the subsystem's path relative to src
+            subsystem_rel_path = subsystem.path.relative_to(Path('src'))
+            # Convert to absolute import pattern
+            subsystem_abs_path = f"~/{subsystem_rel_path}"
+            
+            # If the import path is identical to subsystem path, it's not upward (self-import)
+            if import_path == subsystem_abs_path:
+                return False
+            
+            # If the import starts with subsystem path + '/', it's a child (downward) - allowed
+            if import_path.startswith(f"{subsystem_abs_path}/"):
+                return False
+            
+            # Otherwise, check if it's at the same level or higher level
+            import_parts = import_path.split('/')
+            subsystem_parts = subsystem_abs_path.split('/')
+            
+            # Find common prefix length
+            common_length = 0
+            for i in range(min(len(import_parts), len(subsystem_parts))):
+                if import_parts[i] == subsystem_parts[i]:
+                    common_length += 1
+                else:
+                    break
+            
+            # If import has fewer or equal parts than subsystem, and shares a common prefix,
+            # it's pointing to a higher level directory
+            if len(import_parts) <= len(subsystem_parts) and common_length > 0:
+                # Ensure we don't flag completely unrelated paths
+                if common_length >= 2:  # At least '~' and one more level in common
+                    return True
+        
+        return False
+    
     def _is_domain_index(self, subsystem: SubsystemInfo) -> bool:
         """Check if this subsystem represents a domain's main index.ts file."""
         # Domain paths look like: src/lib/domains/DOMAIN_NAME
@@ -403,3 +490,61 @@ class ImportRuleChecker:
                 path_parts[-3] == 'lib' and 
                 path_parts[-2] == 'domains' and 
                 (subsystem.path / 'index.ts').exists())
+    
+    def _is_index_in_formal_subsystem(self, index_file: Path) -> bool:
+        """Check if this index file belongs to a formal subsystem (has dependencies.json)."""
+        deps_file = index_file.parent / 'dependencies.json'
+        return deps_file.exists()
+    
+    def _create_pseudo_subsystem(self, index_file: Path) -> SubsystemInfo:
+        """Create a minimal SubsystemInfo for standalone index files."""
+        from ..models import FileInfo
+        
+        # Get file info for the index file
+        file_info = self.file_cache.get_file_info(index_file)
+        
+        return SubsystemInfo(
+            path=index_file.parent,
+            name=index_file.parent.name,
+            dependencies={},  # Empty dependencies
+            files=[file_info],
+            total_lines=file_info.lines,
+            parent_path=index_file.parent.parent
+        )
+    
+    def _find_standalone_index_violations(self, pseudo_subsystem: SubsystemInfo) -> List[dict]:
+        """Find reexport violations in a standalone index file."""
+        index_file = pseudo_subsystem.path / "index.ts"
+        if not index_file.exists():
+            index_file = pseudo_subsystem.path / "index.tsx"
+            if not index_file.exists():
+                return []
+        
+        content = self.file_cache.get_file_info(index_file).content
+        if not content:
+            return []
+        
+        # Find all reexport statements using same patterns as formal subsystems
+        reexport_pattern = r'export\s+\{[^}]*\}\s+from\s+["\']([^"\']+)["\']'
+        reexport_type_pattern = r'export\s+type\s+\{[^}]*\}\s+from\s+["\']([^"\']+)["\']'
+        reexport_star_pattern = r'export\s+\*\s+from\s+["\']([^"\']+)["\']'
+        
+        violations = []
+        
+        for pattern in [reexport_pattern, reexport_type_pattern, reexport_star_pattern]:
+            matches = re.finditer(pattern, content, re.MULTILINE)
+            
+            for match in matches:
+                import_path = match.group(1)
+                line_num = content[:match.start()].count('\n') + 1
+                
+                # Only check for upward reexports (our specific rule)
+                if self._is_upward_reexport(pseudo_subsystem, import_path):
+                    violations.append({
+                        'line': line_num,
+                        'import': import_path,
+                        'full_statement': match.group(0),
+                        'reason': 'index.ts files cannot reexport from parent directories - either move implementation here or import directly from original location'
+                    })
+        
+        return violations

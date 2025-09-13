@@ -26,12 +26,31 @@ Then read `[folder]/CONTEXT.md` to understand:
 - Files to modify and their interdependencies
 - Architectural context for making refactoring decisions
 
+### Understanding Domain-Aware Rule of 6
+
+**New Behavior**: The Rule of 6 now separates domain items from generic infrastructure:
+
+**Generic Infrastructure (Excluded from Count)**:
+- **Folders**: docs/, types/, utils/, components/, hooks/, __tests__/, tests/, fixtures/, mocks/, stories/
+- **Files**: README.md, index.ts/tsx, page.tsx, layout.tsx, loading.tsx, error.tsx, not-found.tsx, *.config.*, *.test.*, *.spec.*, *.stories.*, dependencies.json
+
+**Domain Items (Count Toward Rule of 6)**:
+- Business logic folders and files
+- Feature-specific modules
+- Domain-specific abstractions
+
+**Example**: A directory with 15 total items might only have 4 domain items (within limits) if the other 11 are generic infrastructure.
+
+**Impact on Refactoring**: Focus refactoring efforts on organizing domain items meaningfully rather than moving generic infrastructure files around.
+
 ### 2. Execute Rule of 6 Fixes
 
 Work through violations in **impact and safety order**:
 
 #### A. Directory Items (First - Organizational)
-**Group related items into meaningful subdirectories based on domain responsibility, not arbitrary criteria.**
+**Group related domain items into meaningful subdirectories based on domain responsibility, not arbitrary criteria.**
+
+**Note**: Generic infrastructure (docs/, types/, utils/, hooks/, README.md, index.ts, *.test.*, etc.) is automatically excluded from the Rule of 6 count. Focus on organizing domain-specific folders and files that represent meaningful business abstractions.
 
 #### B. Functions per File (Second - Extract Cohesive Modules)
 **Move related functions to focused modules based on domain responsibility or shared purpose, not arbitrary technical patterns.**
@@ -61,7 +80,7 @@ pnpm check:lint [folder]
 pnpm typecheck
 pnpm check:deadcode [folder]     # Refactoring may create dead code
 pnpm check:architecture [folder]  # Refactoring may affect boundaries
-pnpm check:rule-of-6 [folder]     # Should show improvement
+pnpm check:ruleof6 [folder]      # Should show improvement (note: updated command name)
 ```
 
 ### 5. Git Commit
@@ -72,10 +91,12 @@ Create a single focused commit:
 git add [modified-files]
 git commit -m "refactor: fix Rule of 6 violations in [folder-name]
 
-- Organize [count] directory items into meaningful groups
+- Organize [count] domain folders/files into meaningful groups
 - Extract [count] functions into focused modules  
 - Refactor [count] functions with parameter objects
 - Split [count] large functions with clear responsibilities
+
+Note: Generic infrastructure (docs/, utils/, *.test.*) excluded from count
 
 🤖 Generated with Claude Code"
 ```
@@ -83,7 +104,7 @@ git commit -m "refactor: fix Rule of 6 violations in [folder-name]
 ## Refactoring Decision Framework
 
 ### For Directory Organization
-Group by natural domain boundaries (business domain, UI patterns, technical role) rather than arbitrary splits.
+**Focus on domain items only** - generic infrastructure is automatically excluded. Group domain items by natural business boundaries (business domain, feature areas, domain concepts) rather than arbitrary splits. Don't create subdirectories just to move generic files like README.md or index.ts.
 
 ### For Function Extraction  
 Extract only when function has multiple clear responsibilities or mixes abstraction levels. Keep intact for sequential implementation details at consistent abstraction level.
