@@ -311,6 +311,24 @@ class TypeScriptParser:
                     from_path=from_path
                 ))
         
+        # Wildcard exports: export * from '...'
+        wildcard_pattern = r'export\s*\*\s*from\s*["\']([^"\']+)["\']'
+        for match in re.finditer(wildcard_pattern, content, re.MULTILINE):
+            from_path = match.group(1)
+            
+            # Find line number
+            content_before = content[:match.start()]
+            line_number = content_before.count('\n') + 1
+            
+            exports.append(Export(
+                name='*',  # Special marker for wildcard exports
+                file_path=file_path,
+                line_number=line_number,
+                export_type='wildcard',
+                is_reexport=True,
+                from_path=from_path
+            ))
+        
         # Now process line by line for other export patterns
         lines = content.split('\n')
         
@@ -473,7 +491,7 @@ class TypeScriptParser:
                 ))
                 continue
             
-            # Class declarations
+            # Class declarations (including implements clauses)
             class_match = re.match(r'(?:export\s+)?class\s+(\w+)', line)
             if class_match:
                 name = class_match.group(1)
@@ -518,6 +536,37 @@ class TypeScriptParser:
                 ))
         
         return symbols
+
+    def extract_interface_implementations(self, content: str, file_path: Path) -> dict[str, list[str]]:
+        """Extract interface implementations (class implements Interface)."""
+        implementations = {}
+        lines = content.split('\n')
+        
+        for i, line in enumerate(lines, 1):
+            line = line.strip()
+            
+            # Skip comments and empty lines
+            if not line or line.startswith('//') or line.startswith('/*'):
+                continue
+            
+            # Look for class declarations with implements
+            class_implements_match = re.match(r'(?:export\s+)?class\s+(\w+).*?\bimplements\s+([^{]+)', line)
+            if class_implements_match:
+                class_name = class_implements_match.group(1)
+                implements_str = class_implements_match.group(2).strip()
+                
+                # Parse implemented interfaces (can be comma-separated)
+                interfaces = [iface.strip() for iface in implements_str.split(',')]
+                
+                for interface in interfaces:
+                    # Clean up interface name (remove generic parameters)
+                    interface = re.sub(r'<.*>', '', interface).strip()
+                    if interface:
+                        if interface not in implementations:
+                            implementations[interface] = []
+                        implementations[interface].append(class_name)
+        
+        return implementations
 
     def extract_functions(self, content: str, file_path: Path) -> List[FunctionInfo]:
         """Extract function information for Rule of 6 checking."""

@@ -179,6 +179,10 @@ class DeadCodeChecker:
             ".test.", ".spec.", "__tests__/", ".stories."
         ])
     
+    def _is_barrel_file(self, file_path: Path) -> bool:
+        """Check if file is a barrel/index file."""
+        return file_path.name in ['index.ts', 'index.tsx', 'index.js', 'index.jsx']
+    
     def _find_all_src_files(self) -> List[Path]:
         """Find all TypeScript files in src directory."""
         files = []
@@ -675,6 +679,7 @@ class DeadCodeChecker:
             imports = self.parser.extract_imports(content, file_path)
             symbols = self.parser.extract_symbols(content, file_path)
             used_symbols = self.parser.find_symbol_usage(content)
+            interface_implementations = self.parser.extract_interface_implementations(content, file_path)
             
             analysis = FileAnalysis(
                 path=file_path,
@@ -682,6 +687,7 @@ class DeadCodeChecker:
                 imports=imports,
                 symbols=symbols,
                 used_symbols=used_symbols,
+                interface_implementations=interface_implementations,
                 content=content,
                 lines=len(content.split('\n'))
             )
@@ -792,12 +798,33 @@ class DeadCodeChecker:
                 if export.is_reexport and export.from_path:
                     # Resolve the source file
                     source_path = self._resolve_import_path(export.from_path, export.file_path)
-                    if source_path:
-                        # Handle original name vs alias in re-export
-                        # For now, assume same name (most common case)
-                        original_key = f"{source_path}:{export.name}"
-                        reexport_key = f"{export.file_path}:{export.name}"
-                        reexport_chains[original_key].add(reexport_key)
+                    if source_path and source_path in self.file_cache:
+                        
+                        if export.export_type == 'wildcard':
+                            # Handle wildcard exports: export * from './file'
+                            # Mark ALL exports from the source file as re-exported
+                            source_analysis = self.file_cache[source_path]
+                            for source_export in source_analysis.exports:
+                                if source_export.is_reexport:
+                                    # Handle transitive re-exports: if A re-exports from B, and C re-exports * from A,
+                                    # then C should also re-export from B
+                                    if source_export.from_path:
+                                        # Resolve the original source
+                                        original_source_path = self._resolve_import_path(source_export.from_path, source_path)
+                                        if original_source_path and original_source_path in self.file_cache:
+                                            original_key = f"{original_source_path}:{source_export.name}"
+                                            reexport_key = f"{export.file_path}:{source_export.name}"
+                                            reexport_chains[original_key].add(reexport_key)
+                                else:
+                                    # Direct export from this file
+                                    original_key = f"{source_path}:{source_export.name}"
+                                    reexport_key = f"{export.file_path}:{source_export.name}"
+                                    reexport_chains[original_key].add(reexport_key)
+                        else:
+                            # Handle named re-exports: export { foo } from './file'
+                            original_key = f"{source_path}:{export.name}"
+                            reexport_key = f"{export.file_path}:{export.name}"
+                            reexport_chains[original_key].add(reexport_key)
         
         return reexport_chains
     
@@ -872,6 +899,26 @@ class DeadCodeChecker:
                     if reexport_key in imported_symbols:
                         is_used = True
                         break
+            
+            # Special handling for interfaces: check if they have implementations
+            if not is_used and export.export_type in ['interface', 'type']:
+                # Check if this interface has implementations across all files
+                has_implementations = False
+                for file_analysis in self.file_cache.values():
+                    if export.name in file_analysis.interface_implementations:
+                        has_implementations = True
+                        break
+                
+                # If interface has implementations, mark it as used
+                if has_implementations:
+                    is_used = True
+            
+            # Special handling for barrel exports: consider them externally visible
+            if not is_used and self._is_barrel_file(export.file_path):
+                # Barrel exports are considered as potentially externally used
+                # Only flag them as dead if they're definitely internal-only
+                # For now, we'll be more lenient with barrel exports
+                is_used = True
             
             # Mark as dead if not used anywhere
             if not is_used:

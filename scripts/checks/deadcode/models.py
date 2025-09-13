@@ -64,6 +64,7 @@ class FileAnalysis:
     imports: List[Import] = field(default_factory=list) 
     symbols: List[Symbol] = field(default_factory=list)
     used_symbols: Set[str] = field(default_factory=set)
+    interface_implementations: Dict[str, List[str]] = field(default_factory=dict)  # interface -> list of implementing classes
     content: str = ""
     lines: int = 0
 
