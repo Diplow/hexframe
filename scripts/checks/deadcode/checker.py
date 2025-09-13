@@ -761,34 +761,42 @@ class DeadCodeChecker:
             return FileAnalysis(path=file_path)
     
     def _resolve_import_path(self, import_path: str, from_file: Path) -> Optional[Path]:
-        """Resolve relative import path to absolute file path."""
+        """Resolve relative import path to file path consistent with cache storage."""
         if import_path.startswith('.'):
             # Relative import
             base_dir = from_file.parent
             resolved_path = (base_dir / import_path).resolve()
-            
+
             # Try different extensions
             for ext in ['.ts', '.tsx', '.js', '.jsx']:
                 candidate = resolved_path.parent / f"{resolved_path.name}{ext}"
                 if candidate.exists():
-                    return candidate
-            
+                    # Convert back to relative path consistent with cache storage
+                    try:
+                        return candidate.relative_to(Path.cwd())
+                    except ValueError:
+                        return candidate
+
             # Try index files
             for ext in ['index.ts', 'index.tsx', 'index.js', 'index.jsx']:
                 candidate = resolved_path / ext
                 if candidate.exists():
-                    return candidate
-        
+                    # Convert back to relative path consistent with cache storage
+                    try:
+                        return candidate.relative_to(Path.cwd())
+                    except ValueError:
+                        return candidate
+
         elif import_path.startswith('~/'):
             # Absolute import from src
             relative_path = import_path[2:]
-            
+
             # Try direct file
             for ext in ['.ts', '.tsx', '.js', '.jsx', '']:
                 candidate = self.src_path / f"{relative_path}{ext}" if ext else self.src_path / relative_path
                 if candidate.exists() and candidate.is_file():
                     return candidate
-            
+
             # Try index files
             base_path = self.src_path / relative_path
             if base_path.is_dir():
@@ -796,7 +804,7 @@ class DeadCodeChecker:
                     candidate = base_path / ext
                     if candidate.exists():
                         return candidate
-        
+
         return None
     
     def _build_dependency_graph(self) -> None:
@@ -968,6 +976,26 @@ class DeadCodeChecker:
                 if resolved_path:
                     if imp.import_type == 'namespace':
                         # For namespace imports, mark all exports from that file as used
+                        if resolved_path in self.file_cache:
+                            resolved_analysis = self.file_cache[resolved_path]
+                            for export in resolved_analysis.exports:
+                                if export.is_reexport and export.from_path:
+                                    # Add the original source
+                                    source_path = self._resolve_import_path(export.from_path, resolved_path)
+                                    if source_path:
+                                        # Use the original name from the source, not the aliased name
+                                        source_name = export.original_name if export.original_name else export.name
+                                        normalized_source_path = self._normalize_path(source_path, project_root)
+                                        source_key = f"{normalized_source_path}:{source_name}"
+                                        imported_symbols.add(source_key)
+                                else:
+                                    # Regular export - normalize path
+                                    normalized_path = self._normalize_path(resolved_path, project_root)
+                                    key = f"{normalized_path}:{export.name}"
+                                    imported_symbols.add(key)
+                    elif imp.import_type == 'dynamic':
+                        # For dynamic imports (import('path')), mark all exports from that file as used
+                        # Similar to namespace imports, since dynamic imports can access all exports
                         if resolved_path in self.file_cache:
                             resolved_analysis = self.file_cache[resolved_path]
                             for export in resolved_analysis.exports:

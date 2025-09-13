@@ -101,19 +101,25 @@ class TypeScriptParser:
                 import_name = import_name.strip()
                 if not import_name:
                     continue
-                    
+
+                # Handle inline type imports: type Foo
+                import_type = 'named'
+                if import_name.startswith('type '):
+                    import_type = 'type'
+                    import_name = import_name[5:].strip()  # Remove 'type ' prefix
+
                 # Handle 'as' aliases: foo as bar
                 original_name = import_name
                 if ' as ' in import_name:
                     original_name = import_name.split(' as ')[0].strip()
                     import_name = import_name.split(' as ')[-1].strip()
-                
+
                 imports.append(Import(
                     name=import_name,
                     from_path=from_path,
                     file_path=file_path,
                     line_number=line_number,
-                    import_type='named',
+                    import_type=import_type,
                     original_name=original_name if ' as ' in import_name else None
                 ))
         
@@ -190,19 +196,25 @@ class TypeScriptParser:
                     import_name = import_name.strip()
                     if not import_name:
                         continue
-                        
+
+                    # Handle inline type imports: type Foo
+                    import_type = 'named'
+                    if import_name.startswith('type '):
+                        import_type = 'type'
+                        import_name = import_name[5:].strip()  # Remove 'type ' prefix
+
                     # Handle 'as' aliases: foo as bar
                     original_name = import_name
                     if ' as ' in import_name:
                         original_name = import_name.split(' as ')[0].strip()
                         import_name = import_name.split(' as ')[-1].strip()
-                    
+
                     imports.append(Import(
                         name=import_name,
                         from_path=from_path,
                         file_path=file_path,
                         line_number=i,
-                        import_type='named',
+                        import_type=import_type,
                         original_name=original_name if ' as ' in import_name else None
                     ))
                 continue
@@ -246,7 +258,27 @@ class TypeScriptParser:
                     line_number=i,
                     import_type='namespace'
                 ))
-        
+
+        # Handle dynamic imports: import('path') and await import('path')
+        # These are common in modern TypeScript for lazy loading
+        dynamic_import_pattern = r'(?:await\s+)?import\s*\(\s*["\']([^"\']+)["\']\s*\)'
+        for match in re.finditer(dynamic_import_pattern, content, re.MULTILINE):
+            from_path = match.group(1)
+
+            # Find line number
+            content_before = content[:match.start()]
+            line_number = content_before.count('\n') + 1
+
+            # For dynamic imports, we'll mark it as a namespace import since
+            # the entire module is being imported dynamically
+            imports.append(Import(
+                name='*',  # Dynamic imports import the whole module
+                from_path=from_path,
+                file_path=file_path,
+                line_number=line_number,
+                import_type='dynamic'
+            ))
+
         return imports
 
     def extract_exports(self, content: str, file_path: Path) -> List[Export]:
