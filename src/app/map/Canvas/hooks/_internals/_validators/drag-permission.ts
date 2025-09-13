@@ -1,4 +1,4 @@
-import type { TileData } from "~/app/map/Canvas/types";
+import type { TileData } from "~/app/map/types";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 
 export function canDragTile(

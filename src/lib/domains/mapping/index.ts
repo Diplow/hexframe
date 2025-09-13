@@ -10,6 +10,9 @@
 // Re-export all client-safe exports
 export * from '~/lib/domains/mapping/types';
 
+// Domain objects
+export * from '~/lib/domains/mapping/_objects';
+
 // Domain services (server-only)
 export { 
   MappingService,

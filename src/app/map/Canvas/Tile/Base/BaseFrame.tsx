@@ -5,7 +5,7 @@ import { DynamicEmptyTile } from "~/app/map/Canvas/Tile/Empty/empty";
 import { DynamicItemTile } from "~/app/map/Canvas/Tile/Item/item";
 import { BaseEmptyTile } from "~/app/map/Canvas/Tile/Base/_components/BaseEmptyTile";
 import { BaseItemTile } from "~/app/map/Canvas/Tile/Base/_components/BaseItemTile";
-import type { TileData, URLInfo } from "~/app/map/Canvas/types";
+import type { TileData, URLInfo } from "~/app/map/types";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 
 export interface BaseFrameProps {

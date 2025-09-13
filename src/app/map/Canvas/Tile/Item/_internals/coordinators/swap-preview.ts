@@ -1,7 +1,7 @@
-import type { TileData } from "~/app/map/Canvas/types";
+import type { TileData } from "~/app/map/types";
 import type { TileColor } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
-import { getColor as calculateColor } from "~/app/map/Canvas/types";
+import { getColor as calculateColor } from "~/app/map/types";
 
 /**
  * Calculates the preview color for a tile during a swap operation

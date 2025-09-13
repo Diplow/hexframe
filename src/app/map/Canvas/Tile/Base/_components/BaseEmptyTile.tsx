@@ -1,7 +1,7 @@
 import { BaseTileLayout } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
 import type { TileScale, TileColor } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
-import { getColor } from "~/app/map/Canvas/types";
+import { getColor } from "~/app/map/types";
 
 export interface BaseEmptyTileProps {
   coordId: string;

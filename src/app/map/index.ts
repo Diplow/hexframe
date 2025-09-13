@@ -31,11 +31,11 @@ export {
   savePreFetchedData,
   loadPreFetchedData,
   clearPreFetchedData,
-  type AppEvent,
-  type EventListener,
-  type EventBusService,
   type PreFetchedMapData
 } from '~/app/map/Services';
+
+// Import missing types directly from their source
+export type { AppEvent, EventListener, EventBusService } from '~/app/map/types';
 
 // Types subsystem
 export type { TileData, TileState, URLInfo, URLSearchParams } from '~/app/map/types';

@@ -3,8 +3,9 @@
   "allowed": [
     "~/app/map/Cache/Handlers",
     "~/app/map/Cache/State",
-    "~/app/map/Cache/Services", 
+    "~/app/map/Cache/Services",
     "~/commons/trpc/react",
-    "~/lib/debug/debug-logger"
+    "~/lib/debug/debug-logger",
+    "~/lib/domains/mapping/interface.client"
   ]
 }

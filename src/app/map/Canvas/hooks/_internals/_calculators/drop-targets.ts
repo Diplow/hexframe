@@ -1,5 +1,5 @@
 import { CoordSystem } from "~/lib/domains/mapping/utils";
-import type { TileData } from "~/app/map/Canvas/types";
+import type { TileData } from "~/app/map/types";
 import { canSwapTiles } from "~/app/map/Canvas/hooks/_internals/_validators";
 
 /**

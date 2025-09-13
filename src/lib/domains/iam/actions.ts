@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { IAMService } from '~/lib/domains/iam/services';
+import { IAMService } from '~/lib/domains/iam';
 import { BetterAuthUserRepository } from '~/lib/domains/iam/infrastructure';
 import { auth } from '~/server/auth';
 import { db } from '~/server/db';

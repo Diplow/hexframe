@@ -1,11 +1,9 @@
 {
   "$schema": "../../../../schemas/dependencies.schema.json",
-  "allowedChildren": [
-    "~/app/map/Services/types"
-  ],
   "allowed": [
     "~/lib/debug/debug-logger",
-    "~/server/api/types/contracts"
+    "~/server/api/types/contracts",
+    "~/app/map/types"
   ],
   "subsystems": [
     "./EventBus"

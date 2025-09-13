@@ -15,7 +15,8 @@
   ],
   "subsystems": [
     "./infrastructure",
-    "./services"
+    "./services",
+    "./_actions"
   ],
   "exceptions": {}
 }

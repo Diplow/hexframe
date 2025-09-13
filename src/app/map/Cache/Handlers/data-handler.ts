@@ -34,6 +34,74 @@ export interface DataHandlerConfig {
   getState: () => CacheState;
 }
 
+// Helper function to fetch and dispatch items
+interface FetchAndDispatchOptions {
+  centerCoordId: string;
+  maxDepth: number;
+  actionType: 'loadRegion' | 'loadItemChildren';
+  showLoading: boolean;
+  silentFail?: boolean;
+}
+
+async function _fetchAndDispatchItems(
+  services: DataHandlerServices,
+  dispatch: React.Dispatch<CacheAction>,
+  options: FetchAndDispatchOptions
+): Promise<LoadResult> {
+  const { centerCoordId, maxDepth, actionType, showLoading, silentFail } = options;
+
+  if (showLoading) {
+    dispatch(cacheActions.setLoading(true));
+  }
+
+  try {
+    const items = await services.server.fetchItemsForCoordinate({ centerCoordId, maxDepth });
+
+    if (actionType === 'loadRegion') {
+      dispatch(cacheActions.loadRegion(
+        items as Parameters<typeof cacheActions.loadRegion>[0],
+        centerCoordId,
+        maxDepth
+      ));
+    } else {
+      dispatch(cacheActions.loadItemChildren(
+        items as Parameters<typeof cacheActions.loadItemChildren>[0],
+        centerCoordId,
+        maxDepth
+      ));
+    }
+
+    return { success: true, itemsLoaded: items.length };
+  } catch (error) {
+    const errorObj = error as Error;
+
+    if (silentFail) {
+      console.warn(`${actionType} failed:`, error);
+    } else {
+      dispatch(cacheActions.setError(errorObj));
+    }
+
+    return { success: false, error: errorObj, itemsLoaded: 0 };
+  } finally {
+    if (showLoading) {
+      dispatch(cacheActions.setLoading(false));
+    }
+  }
+}
+
+function _shouldLoadRegion(
+  regionKey: string,
+  maxDepth: number,
+  getState: () => CacheState
+): boolean {
+  const regionMetadata = getState().regionMetadata[regionKey];
+  return (
+    !regionMetadata ||
+    isStale(regionMetadata.loadedAt, getState().cacheConfig.maxAge) ||
+    regionMetadata.maxDepth < maxDepth
+  );
+}
+
 export function createDataHandler(config: DataHandlerConfig) {
   const { dispatch, services, getState } = config;
 
@@ -41,102 +109,48 @@ export function createDataHandler(config: DataHandlerConfig) {
     centerCoordId: string,
     maxDepth = getState().cacheConfig.maxDepth,
   ): Promise<LoadResult> => {
-    loggers.mapCache.handlers(`DataHandler.loadRegion called`, {
-      centerCoordId,
-      maxDepth
-    });
-    const regionKey = centerCoordId;
+    loggers.mapCache.handlers(`DataHandler.loadRegion called`, { centerCoordId, maxDepth });
 
-    // Check if we need to load
-    const regionMetadata = getState().regionMetadata[regionKey];
-    const shouldLoad =
-      !regionMetadata ||
-      isStale(regionMetadata.loadedAt, getState().cacheConfig.maxAge) ||
-      regionMetadata.maxDepth < maxDepth;
-
-    if (!shouldLoad) {
+    if (!_shouldLoadRegion(centerCoordId, maxDepth, getState)) {
       return { success: true, itemsLoaded: 0 };
     }
 
-    dispatch(cacheActions.setLoading(true));
-
-    try {
-      // Load items relative to the specific coordinate, not from root
-      const items = await services.server.fetchItemsForCoordinate({
-        centerCoordId,
-        maxDepth,
-      });
-
-      dispatch(cacheActions.loadRegion(items as Parameters<typeof cacheActions.loadRegion>[0], centerCoordId, maxDepth));
-
-      return { success: true, itemsLoaded: items.length };
-    } catch (error) {
-      dispatch(cacheActions.setError(error as Error));
-      return { success: false, error: error as Error, itemsLoaded: 0 };
-    } finally {
-      dispatch(cacheActions.setLoading(false));
-    }
+    return _fetchAndDispatchItems(services, dispatch, {
+      centerCoordId,
+      maxDepth,
+      actionType: 'loadRegion',
+      showLoading: true,
+    });
   };
 
   const loadItemChildren = async (
     parentCoordId: string,
     maxDepth = 2,
   ): Promise<LoadResult> => {
-    loggers.mapCache.handlers(`DataHandler.loadItemChildren called`, {
-      parentCoordId,
-      maxDepth
+    loggers.mapCache.handlers(`DataHandler.loadItemChildren called`, { parentCoordId, maxDepth });
+
+    return _fetchAndDispatchItems(services, dispatch, {
+      centerCoordId: parentCoordId,
+      maxDepth,
+      actionType: 'loadItemChildren',
+      showLoading: true,
     });
-    dispatch(cacheActions.setLoading(true));
-
-    try {
-      // Load children relative to the specific parent coordinate
-      const items = await services.server.fetchItemsForCoordinate({
-        centerCoordId: parentCoordId,
-        maxDepth,
-      });
-
-      dispatch(cacheActions.loadItemChildren(items as Parameters<typeof cacheActions.loadItemChildren>[0], parentCoordId, maxDepth));
-
-      return { success: true, itemsLoaded: items.length };
-    } catch (error) {
-      dispatch(cacheActions.setError(error as Error));
-      return { success: false, error: error as Error, itemsLoaded: 0 };
-    } finally {
-      dispatch(cacheActions.setLoading(false));
-    }
   };
 
   const prefetchRegion = async (centerCoordId: string): Promise<LoadResult> => {
-    loggers.mapCache.handlers(`DataHandler.prefetchRegion called`, {
-      centerCoordId
+    loggers.mapCache.handlers(`DataHandler.prefetchRegion called`, { centerCoordId });
+
+    return _fetchAndDispatchItems(services, dispatch, {
+      centerCoordId,
+      maxDepth: getState().cacheConfig.maxDepth,
+      actionType: 'loadRegion',
+      showLoading: false,
+      silentFail: true,
     });
-    // Prefetch without showing loading state
-    try {
-      const items = await services.server.fetchItemsForCoordinate({
-        centerCoordId,
-        maxDepth: getState().cacheConfig.maxDepth,
-      });
-
-      dispatch(
-        cacheActions.loadRegion(
-          items as Parameters<typeof cacheActions.loadRegion>[0],
-          centerCoordId,
-          getState().cacheConfig.maxDepth,
-        ),
-      );
-
-      return { success: true, itemsLoaded: items.length };
-    } catch (error) {
-      // Silently fail for prefetch operations
-      console.warn("Prefetch failed:", error);
-      return { success: false, error: error as Error, itemsLoaded: 0 };
-    }
   };
 
   const invalidateRegion = (regionKey: string) => {
-    loggers.mapCache.handlers(`DataHandler.invalidateRegion called`, {
-      regionKey
-    });
+    loggers.mapCache.handlers(`DataHandler.invalidateRegion called`, { regionKey });
     dispatch(cacheActions.invalidateRegion(regionKey));
   };
 

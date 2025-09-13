@@ -4,7 +4,7 @@
     "drizzle-orm",
     "postgres",
     "~/env",
-    "~/lib/domains/mapping"
+    "~/lib/domains/mapping",
   ],
   "subsystems": [
     "./schema"

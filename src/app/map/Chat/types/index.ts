@@ -98,28 +98,5 @@ export interface ChatContextValue {
   dispatch: (action: ChatAction) => void;
 }
 
-// Chat event types from _state
-export type {
-  ChatEvent,
-  ChatEventType,
-  ChatEventActor,
-  Message,
-  Widget,
-  ChatUIState,
-  ChatCacheAction
-} from '~/app/map/Chat/_state';
-
-// Commonly needed map types (to avoid reaching up the hierarchy)
-export type { TileData, TileState } from '~/app/map/types';
-export type { URLInfo, URLSearchParams } from '~/app/map/types';
-
-// Event types needed for cross-system communication
-export type { 
-  AppEvent, 
-  EventSource, 
-  EventListener,
-  MapTileCreatedEvent,
-  MapTileUpdatedEvent,
-  MapTileDeletedEvent,
-  ChatMessageEvent
-} from '~/app/map/types';
+// Local Chat-specific types defined in this file only
+// External consumers must import from ~/app/map/Chat/_state directly
