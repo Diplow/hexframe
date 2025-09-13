@@ -22,9 +22,9 @@
     "~/lib/auth",
     "~/lib/debug/debug-logger",
     "~/lib/domains/agentic",
-    "~/lib/domains/mapping/interface.client",
     "~/lib/test-logger",
-    "~/server/api/types/contracts"
+    "~/server/api",
+    "~/lib/domains/mapping"
   ],
   "subsystems": [
     "./Cache",

@@ -2,7 +2,7 @@
   "$schema": "../../../../schemas/dependencies.schema.json",
   "allowed": [
     "~/lib/debug/debug-logger",
-    "~/server/api/types/contracts",
+    "~/server/api",
     "~/app/map/types"
   ],
   "subsystems": [

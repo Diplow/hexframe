@@ -5,7 +5,7 @@
     "zod",
     "~/lib",
     "~/lib/domains/mapping",
-    "~/server/api/services/user-mapping.service",
+    "~/server/api",
     "~/server/auth",
     "~/server/db"
   ],

@@ -2,7 +2,7 @@
   "$schema": "../../../../../../schemas/dependencies.schema.json",
   "allowed": [
     "drizzle-orm",
-    "~/server/api/services/user-mapping.service",
+    "~/server/api",
     "~/server/auth",
     "~/server/db"
   ],

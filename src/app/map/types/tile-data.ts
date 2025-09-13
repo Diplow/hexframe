@@ -1,4 +1,4 @@
-import type { MapItemAPIContract } from "~/server/api/types/contracts";
+import type { MapItemAPIContract } from "~/server/api";
 import {
   CoordSystem,
   type Coord,

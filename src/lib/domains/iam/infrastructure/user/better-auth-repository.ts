@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { schema } from "~/server/db";
 const { users } = schema;
-import { UserMappingService } from "~/server/api/services/user-mapping.service";
+import { UserMappingService } from "~/server/api";
 import { User, type UserRepository, type CreateUserInput, type AuthenticateUserInput, type AuthenticationResult } from "~/lib/domains/iam";
 import type { auth as authInstance } from "~/server/auth";
 

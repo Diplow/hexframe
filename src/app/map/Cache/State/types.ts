@@ -1,5 +1,5 @@
 import type { TileData } from "~/app/map/types";
-import type { MapItemAPIContract } from "~/server/api/types/contracts";
+import type { MapItemAPIContract } from "~/server/api";
 
 // Region metadata interface for hierarchical loading
 export interface RegionMetadata {

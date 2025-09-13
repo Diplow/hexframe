@@ -8,7 +8,7 @@ import { checkAncestors, loadAncestorsForItem } from "~/app/map/Cache/Handlers/a
 import type { EventBusService } from '~/app/map';
 import { adapt, type TileData } from "~/app/map/types";
 import { loggers } from "~/lib/debug/debug-logger";
-import { type MapItemType } from "~/lib/domains/mapping/interface.client";
+import { type MapItemType } from "~/lib/domains/mapping";
 
 export interface NavigationHandlerConfig {
   dispatch: React.Dispatch<CacheAction>;

@@ -4,8 +4,8 @@
     "vitest",
     "~/commons/trpc/react",
     "~/lib/debug/debug-logger",
-    "~/lib/domains/mapping/interface.client",
-    "~/server/api/types/contracts",
+    "~/server/api",
+    "~/lib/domains/mapping",
     "~/app/map/Cache/State"
   ],
   "subsystems": [

@@ -8,7 +8,7 @@
 export { createContext, createCallerFactory } from '~/server/api/trpc';
 
 // Root router combining all sub-routers
-export { appRouter } from '~/server/api/root';
+export { appRouter, createCaller } from '~/server/api/root';
 
 // API types and contracts
 export type { AppRouter } from '~/server/api/root';
