@@ -141,105 +141,153 @@ function _processWidgetStates(events: ChatEvent[]): {
 }
 
 /**
- * Convert widget states to widget objects
+ * Create preview widget from tile selection event
+ */
+function _createPreviewWidget(event: ChatEvent, widgetStates: Map<string, 'active' | 'completed'>): Widget | null {
+  const payload = event.payload as TileSelectedPayload;
+  if (payload && typeof payload === 'object' && 'tileId' in payload && typeof payload.tileId === 'string') {
+    const widgetId = `preview-${payload.tileId}`;
+    if (widgetStates.get(widgetId) === 'active') {
+      return {
+        id: widgetId,
+        type: 'preview',
+        data: payload,
+        priority: 'action',
+        timestamp: event.timestamp,
+      };
+    }
+  }
+  return null;
+}
+
+/**
+ * Create login widget from auth required event
+ */
+function _createLoginWidget(event: ChatEvent, widgetStates: Map<string, 'active' | 'completed'>): Widget | null {
+  if (widgetStates.get('login-widget') === 'active') {
+    const payload = event.payload as AuthRequiredPayload;
+    if (payload && typeof payload === 'object') {
+      return {
+        id: 'login-widget',
+        type: 'login' as const,
+        data: payload,
+        priority: 'critical' as const,
+        timestamp: event.timestamp,
+      };
+    }
+  }
+  return null;
+}
+
+/**
+ * Create error widget from error occurred event
+ */
+function _createErrorWidget(event: ChatEvent, widgetStates: Map<string, 'active' | 'completed'>): Widget | null {
+  const widgetId = `error-${event.id}`;
+  if (widgetStates.get(widgetId) === 'active') {
+    const payload = event.payload as ErrorOccurredPayload;
+    if (payload && typeof payload === 'object') {
+      return {
+        id: widgetId,
+        type: 'error',
+        data: payload,
+        priority: 'critical',
+        timestamp: event.timestamp,
+      };
+    }
+  }
+  return null;
+}
+
+/**
+ * Create operation widgets from operation started event
+ */
+function _createOperationWidgets(event: ChatEvent, widgetStates: Map<string, 'active' | 'completed'>): Widget[] {
+  const widgets: Widget[] = [];
+  const payload = event.payload as OperationStartedPayload;
+  
+  if (payload && typeof payload === 'object' && 'operation' in payload) {
+    if (payload.operation === 'create') {
+      const widgetId = `creation-${event.id}`;
+      if (widgetStates.get(widgetId) === 'active') {
+        widgets.push({
+          id: widgetId,
+          type: 'creation',
+          data: payload.data,
+          priority: 'action',
+          timestamp: event.timestamp,
+        });
+      }
+    }
+
+    if (payload.operation === 'delete') {
+      const widgetId = `delete-${event.id}`;
+      if (widgetStates.get(widgetId) === 'active') {
+        widgets.push({
+          id: widgetId,
+          type: 'delete',
+          data: payload.data,
+          priority: 'action',
+          timestamp: event.timestamp,
+        });
+      }
+    }
+  }
+  
+  return widgets;
+}
+
+/**
+ * Create widget from widget created event
+ */
+function _createDirectWidget(event: ChatEvent, widgetStates: Map<string, 'active' | 'completed'>, debugEnabled: boolean): Widget | null {
+  const payload = event.payload as { widget: Widget };
+  if (payload && typeof payload === 'object' && 'widget' in payload && payload.widget && typeof payload.widget === 'object' && 'id' in payload.widget && widgetStates.get(payload.widget.id) === 'active') {
+    if (debugEnabled) {
+      console.log('[message.selectors.deriveActiveWidgets] Adding widget_created widget to array:', payload.widget);
+    }
+    return payload.widget;
+  }
+  return null;
+}
+
+/**
+ * Convert widget states to widget objects using focused widget creators
  */
 function _createWidgetsFromStates(events: ChatEvent[], widgetStates: Map<string, 'active' | 'completed'>): Widget[] {
   const widgets: Widget[] = [];
   const debugEnabled = chatSettings.getSettings().messages.debug === true;
 
-  // Convert active widget states to widget objects
+  // Convert active widget states to widget objects using focused creators
   for (const event of events) {
     switch (event.type) {
       case 'tile_selected': {
-        const payload = event.payload as TileSelectedPayload;
-        if (payload && typeof payload === 'object' && 'tileId' in payload && typeof payload.tileId === 'string') {
-          const widgetId = `preview-${payload.tileId}`;
-          if (widgetStates.get(widgetId) === 'active') {
-            widgets.push({
-              id: widgetId,
-              type: 'preview',
-              data: payload,
-              priority: 'action',
-              timestamp: event.timestamp,
-            });
-          }
-        }
+        const widget = _createPreviewWidget(event, widgetStates);
+        if (widget) widgets.push(widget);
         break;
       }
 
       case 'auth_required': {
-        if (widgetStates.get('login-widget') === 'active') {
-          const payload = event.payload as AuthRequiredPayload;
-          if (payload && typeof payload === 'object') {
-            widgets.push({
-              id: 'login-widget',
-              type: 'login' as const,
-              data: payload,
-              priority: 'critical' as const,
-              timestamp: event.timestamp,
-            });
-          }
-        }
+        const widget = _createLoginWidget(event, widgetStates);
+        if (widget) widgets.push(widget);
         break;
       }
 
       case 'error_occurred': {
-        const widgetId = `error-${event.id}`;
-        if (widgetStates.get(widgetId) === 'active') {
-          const payload = event.payload as ErrorOccurredPayload;
-          if (payload && typeof payload === 'object') {
-            widgets.push({
-              id: widgetId,
-              type: 'error',
-              data: payload,
-              priority: 'critical',
-              timestamp: event.timestamp,
-            });
-          }
-        }
+        const widget = _createErrorWidget(event, widgetStates);
+        if (widget) widgets.push(widget);
         break;
       }
 
       case 'operation_started': {
-        const payload = event.payload as OperationStartedPayload;
-        if (payload && typeof payload === 'object' && 'operation' in payload) {
-          if (payload.operation === 'create') {
-            const widgetId = `creation-${event.id}`;
-            if (widgetStates.get(widgetId) === 'active') {
-              widgets.push({
-                id: widgetId,
-                type: 'creation',
-                data: payload.data,
-                priority: 'action',
-                timestamp: event.timestamp,
-              });
-            }
-          }
-
-          if (payload.operation === 'delete') {
-            const widgetId = `delete-${event.id}`;
-            if (widgetStates.get(widgetId) === 'active') {
-              widgets.push({
-                id: widgetId,
-                type: 'delete',
-                data: payload.data,
-                priority: 'action',
-                timestamp: event.timestamp,
-              });
-            }
-          }
-        }
+        const operationWidgets = _createOperationWidgets(event, widgetStates);
+        widgets.push(...operationWidgets);
         break;
       }
 
       case 'widget_created': {
-        const payload = event.payload as { widget: Widget };
-        if (payload && typeof payload === 'object' && 'widget' in payload && payload.widget && typeof payload.widget === 'object' && 'id' in payload.widget && widgetStates.get(payload.widget.id) === 'active') {
-          if (debugEnabled) {
-            console.log('[message.selectors.deriveActiveWidgets] Adding widget_created widget to array:', payload.widget);
-          }
-          widgets.push(payload.widget);
-        }
+        const widget = _createDirectWidget(event, widgetStates, debugEnabled);
+        if (widget) widgets.push(widget);
         break;
       }
     }

@@ -17,110 +17,152 @@ import {
 } from '~/app/map/types';
 
 /**
- * Transform map tile events to chat events
+ * Transform tile selection events to chat events
+ */
+function _transformTileSelectedEvent(validEvent: AppEvent, baseEvent: Partial<ChatEvent>): ChatEvent {
+  const payload = mapTileSelectedEventSchema.parse(validEvent).payload;
+  return {
+    ...baseEvent,
+    type: 'tile_selected',
+    payload: {
+      tileId: payload.tileId,
+      tileData: {
+        title: payload.tileData.title,
+        description: payload.tileData.description,
+        content: payload.tileData.content,
+        coordId: payload.tileData.coordId,
+      },
+      openInEditMode: payload.openInEditMode,
+    },
+  } as ChatEvent;
+}
+
+/**
+ * Transform tile creation events to chat operation completed events
+ */
+function _transformTileCreatedEvent(validEvent: AppEvent, baseEvent: Partial<ChatEvent>): ChatEvent {
+  const payload = mapTileCreatedEventSchema.parse(validEvent).payload;
+  return {
+    ...baseEvent,
+    type: 'operation_completed',
+    payload: {
+      operation: 'create',
+      result: 'success',
+      tileId: payload.tileId,
+      message: `Created tile "${payload.tileName}"`,
+    },
+  } as ChatEvent;
+}
+
+/**
+ * Transform tile update events to chat operation completed events
+ */
+function _transformTileUpdatedEvent(validEvent: AppEvent, baseEvent: Partial<ChatEvent>): ChatEvent {
+  const payload = mapTileUpdatedEventSchema.parse(validEvent).payload;
+  return {
+    ...baseEvent,
+    type: 'operation_completed',
+    payload: {
+      operation: 'update',
+      result: 'success',
+      tileId: payload.tileId,
+      message: `Updated tile "${payload.tileName}"`,
+    },
+  } as ChatEvent;
+}
+
+/**
+ * Transform tile deletion events to chat operation completed events
+ */
+function _transformTileDeletedEvent(validEvent: AppEvent, baseEvent: Partial<ChatEvent>): ChatEvent {
+  const payload = mapTileDeletedEventSchema.parse(validEvent).payload;
+  return {
+    ...baseEvent,
+    type: 'operation_completed',
+    payload: {
+      operation: 'delete',
+      result: 'success',
+      tileId: payload.tileId,
+      message: `Deleted tile "${payload.tileName}"`,
+    },
+  } as ChatEvent;
+}
+
+/**
+ * Transform tile swap events to chat operation completed events
+ */
+function _transformTilesSwappedEvent(validEvent: AppEvent, baseEvent: Partial<ChatEvent>): ChatEvent {
+  const payload = mapTilesSwappedEventSchema.parse(validEvent).payload;
+  return {
+    ...baseEvent,
+    type: 'operation_completed',
+    payload: {
+      operation: 'swap',
+      result: 'success',
+      message: `Swapped "${payload.tile1Name}" with "${payload.tile2Name}"`,
+    },
+  } as ChatEvent;
+}
+
+/**
+ * Transform tile move events to chat operation completed events
+ */
+function _transformTileMovedEvent(validEvent: AppEvent, baseEvent: Partial<ChatEvent>): ChatEvent {
+  const payload = mapTileMovedEventSchema.parse(validEvent).payload;
+  return {
+    ...baseEvent,
+    type: 'operation_completed',
+    payload: {
+      operation: 'move',
+      result: 'success',
+      tileId: payload.tileId,
+      message: `Moved "${payload.tileName}"`,
+    },
+  } as ChatEvent;
+}
+
+/**
+ * Transform navigation events to chat navigation events
+ */
+function _transformNavigationEvent(validEvent: AppEvent, baseEvent: Partial<ChatEvent>): ChatEvent {
+  const payload = mapNavigationEventSchema.parse(validEvent).payload;
+  return {
+    ...baseEvent,
+    type: 'navigation',
+    payload: {
+      toTileId: payload.toCenterId,
+      toTileName: payload.toCenterName,
+      fromTileName: payload.fromCenterId,
+    },
+  } as ChatEvent;
+}
+
+/**
+ * Transform map tile events to chat events using focused event transformers
  */
 function _transformTileEvents(validEvent: AppEvent, baseEvent: Partial<ChatEvent>): ChatEvent | null {
   switch (validEvent.type) {
-    case 'map.tile_selected': {
-      const payload = mapTileSelectedEventSchema.parse(validEvent).payload;
-      return {
-        ...baseEvent,
-        type: 'tile_selected',
-        payload: {
-          tileId: payload.tileId,
-          tileData: {
-            title: payload.tileData.title,
-            description: payload.tileData.description,
-            content: payload.tileData.content,
-            coordId: payload.tileData.coordId,
-          },
-          openInEditMode: payload.openInEditMode,
-        },
-      } as ChatEvent;
-    }
-
-    case 'map.tile_created': {
-      const payload = mapTileCreatedEventSchema.parse(validEvent).payload;
-      return {
-        ...baseEvent,
-        type: 'operation_completed',
-        payload: {
-          operation: 'create',
-          result: 'success',
-          tileId: payload.tileId,
-          message: `Created tile "${payload.tileName}"`,
-        },
-      } as ChatEvent;
-    }
-
-    case 'map.tile_updated': {
-      const payload = mapTileUpdatedEventSchema.parse(validEvent).payload;
-      return {
-        ...baseEvent,
-        type: 'operation_completed',
-        payload: {
-          operation: 'update',
-          result: 'success',
-          tileId: payload.tileId,
-          message: `Updated tile "${payload.tileName}"`,
-        },
-      } as ChatEvent;
-    }
-
-    case 'map.tile_deleted': {
-      const payload = mapTileDeletedEventSchema.parse(validEvent).payload;
-      return {
-        ...baseEvent,
-        type: 'operation_completed',
-        payload: {
-          operation: 'delete',
-          result: 'success',
-          tileId: payload.tileId,
-          message: `Deleted tile "${payload.tileName}"`,
-        },
-      } as ChatEvent;
-    }
-
-    case 'map.tiles_swapped': {
-      const payload = mapTilesSwappedEventSchema.parse(validEvent).payload;
-      return {
-        ...baseEvent,
-        type: 'operation_completed',
-        payload: {
-          operation: 'swap',
-          result: 'success',
-          message: `Swapped "${payload.tile1Name}" with "${payload.tile2Name}"`,
-        },
-      } as ChatEvent;
-    }
-
-    case 'map.tile_moved': {
-      const payload = mapTileMovedEventSchema.parse(validEvent).payload;
-      return {
-        ...baseEvent,
-        type: 'operation_completed',
-        payload: {
-          operation: 'move',
-          result: 'success',
-          tileId: payload.tileId,
-          message: `Moved "${payload.tileName}"`,
-        },
-      } as ChatEvent;
-    }
-
-    case 'map.navigation': {
-      const payload = mapNavigationEventSchema.parse(validEvent).payload;
-      return {
-        ...baseEvent,
-        type: 'navigation',
-        payload: {
-          toTileId: payload.toCenterId,
-          toTileName: payload.toCenterName,
-          fromTileName: payload.fromCenterId,
-        },
-      } as ChatEvent;
-    }
-
+    case 'map.tile_selected':
+      return _transformTileSelectedEvent(validEvent, baseEvent);
+    
+    case 'map.tile_created':
+      return _transformTileCreatedEvent(validEvent, baseEvent);
+    
+    case 'map.tile_updated':
+      return _transformTileUpdatedEvent(validEvent, baseEvent);
+    
+    case 'map.tile_deleted':
+      return _transformTileDeletedEvent(validEvent, baseEvent);
+    
+    case 'map.tiles_swapped':
+      return _transformTilesSwappedEvent(validEvent, baseEvent);
+    
+    case 'map.tile_moved':
+      return _transformTileMovedEvent(validEvent, baseEvent);
+    
+    case 'map.navigation':
+      return _transformNavigationEvent(validEvent, baseEvent);
+    
     default:
       return null;
   }
