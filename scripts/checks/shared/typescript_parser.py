@@ -272,7 +272,9 @@ class TypeScriptParser:
                     continue
                     
                 # Handle 'as' aliases: foo as bar
+                original_name = None
                 if ' as ' in export_name:
+                    original_name = export_name.split(' as ')[0].strip()
                     export_name = export_name.split(' as ')[-1].strip()
                 
                 exports.append(Export(
@@ -281,7 +283,8 @@ class TypeScriptParser:
                     line_number=line_number,
                     export_type='named',
                     is_reexport=is_reexport,
-                    from_path=from_path
+                    from_path=from_path,
+                    original_name=original_name
                 ))
         
         # Multi-line type exports: export type { ... }
@@ -300,7 +303,9 @@ class TypeScriptParser:
                 if not export_name:
                     continue
                     
+                original_name = None
                 if ' as ' in export_name:
+                    original_name = export_name.split(' as ')[0].strip()
                     export_name = export_name.split(' as ')[-1].strip()
                 
                 exports.append(Export(
@@ -309,7 +314,8 @@ class TypeScriptParser:
                     line_number=line_number,
                     export_type='type',
                     is_reexport=is_reexport,
-                    from_path=from_path
+                    from_path=from_path,
+                    original_name=original_name
                 ))
         
         # Wildcard exports: export * from '...'
@@ -365,7 +371,9 @@ class TypeScriptParser:
                         continue
                         
                     # Handle 'as' aliases: foo as bar
+                    original_name = None
                     if ' as ' in export_name:
+                        original_name = export_name.split(' as ')[0].strip()
                         export_name = export_name.split(' as ')[-1].strip()
                     
                     exports.append(Export(
@@ -374,7 +382,8 @@ class TypeScriptParser:
                         line_number=i,
                         export_type='named',
                         is_reexport=is_reexport,
-                        from_path=from_path
+                        from_path=from_path,
+                        original_name=original_name
                     ))
                 continue
             
@@ -420,7 +429,9 @@ class TypeScriptParser:
                     if not export_name:
                         continue
                         
+                    original_name = None
                     if ' as ' in export_name:
+                        original_name = export_name.split(' as ')[0].strip()
                         export_name = export_name.split(' as ')[-1].strip()
                     
                     exports.append(Export(
@@ -429,7 +440,8 @@ class TypeScriptParser:
                         line_number=i,
                         export_type='type',
                         is_reexport=is_reexport,
-                        from_path=from_path
+                        from_path=from_path,
+                        original_name=original_name
                     ))
         
         return exports

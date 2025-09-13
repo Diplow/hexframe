@@ -821,8 +821,10 @@ class DeadCodeChecker:
                                     reexport_key = f"{export.file_path}:{source_export.name}"
                                     reexport_chains[original_key].add(reexport_key)
                         else:
-                            # Handle named re-exports: export { foo } from './file'
-                            original_key = f"{source_path}:{export.name}"
+                            # Handle named re-exports: export { foo } from './file' or export { foo as bar }
+                            # For aliased exports, we need to map from the original name to the alias
+                            source_name = export.original_name if export.original_name else export.name
+                            original_key = f"{source_path}:{source_name}"
                             reexport_key = f"{export.file_path}:{export.name}"
                             reexport_chains[original_key].add(reexport_key)
         
@@ -855,7 +857,9 @@ class DeadCodeChecker:
                                     # Add the original source
                                     source_path = self._resolve_import_path(export.from_path, resolved_path)
                                     if source_path:
-                                        source_key = f"{source_path}:{export.name}"
+                                        # Use the original name from the source, not the aliased name
+                                        source_name = export.original_name if export.original_name else export.name
+                                        source_key = f"{source_path}:{source_name}"
                                         imported_symbols.add(source_key)
                                 else:
                                     # Regular export
@@ -875,7 +879,9 @@ class DeadCodeChecker:
                                 if export.name == export_name and export.is_reexport and export.from_path:
                                     source_path = self._resolve_import_path(export.from_path, resolved_path)
                                     if source_path:
-                                        source_key = f"{source_path}:{export.name}"
+                                        # Use the original name from the source, not the aliased name
+                                        source_name = export.original_name if export.original_name else export.name
+                                        source_key = f"{source_path}:{source_name}"
                                         imported_symbols.add(source_key)
                                     break
                         
