@@ -3,8 +3,8 @@
 Main entry point for ESLint checking with structured output.
 
 Usage:
-    python3 scripts/checks/lint/main.py [options] [path]
-    pnpm check:lint [options] [path]
+    python3 scripts/checks/lint/main.py [options]
+    pnpm check:lint [options]
 
 Options:
     --verbose       Show detailed file-by-file breakdown
@@ -54,8 +54,8 @@ def create_argument_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  %(prog)s                                # Check all source files
-  %(prog)s --verbose src/app/map         # Check specific directory
+  %(prog)s                                # Check entire project
+  %(prog)s --verbose                     # Check with detailed output
   %(prog)s --errors-only                 # Show only errors
   %(prog)s --by-rule                     # Group by rule
   %(prog)s --rule no-restricted-imports  # Filter specific rule
@@ -63,12 +63,6 @@ Examples:
         """
     )
     
-    parser.add_argument(
-        'path',
-        nargs='?',
-        default='src',
-        help='Path to lint (default: src)'
-    )
     
     parser.add_argument(
         '--verbose',
@@ -133,8 +127,8 @@ def main():
             reporter.display_execution_error(message)
         sys.exit(1)
     
-    # Run ESLint
-    success, eslint_data, error_message = runner.run_with_json_output(args.path)
+    # Run ESLint on entire project
+    success, eslint_data, error_message = runner.run_with_json_output()
     
     if not success:
         if not args.json_only:

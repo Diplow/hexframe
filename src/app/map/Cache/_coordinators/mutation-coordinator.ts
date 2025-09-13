@@ -8,7 +8,7 @@ import type { StorageService } from "~/app/map/Cache/Services/types";
 import type { TileData } from "~/app/map/types";
 import { OptimisticChangeTracker } from "~/app/map/Cache/_coordinators/optimistic-tracker";
 import type { EventBusService } from '~/app/map';
-import { MapItemType } from "~/lib/domains/mapping/utils";
+import { MapItemType } from "~/lib/domains/mapping/interface.client";
 
 export interface MutationCoordinatorConfig {
   dispatch: Dispatch<CacheAction>;

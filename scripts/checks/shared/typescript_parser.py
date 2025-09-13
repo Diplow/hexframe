@@ -677,24 +677,48 @@ class TypeScriptParser:
         return re.findall(import_pattern, content)
 
     def find_symbol_usage(self, content: str) -> Set[str]:
-        """Find all symbol usage in file content."""
+        """Find all symbol usage in file content with enhanced detection."""
         used_symbols = set()
-        
-        # Find all identifiers (simplified approach)
+
+        # Find all identifiers (basic approach)
         identifiers = re.findall(r'\b[a-zA-Z_$][a-zA-Z0-9_$]*\b', content)
-        
+
+        # JSX component usage: <ComponentName> or <ComponentName />
+        jsx_components = re.findall(r'<\s*([A-Z][a-zA-Z0-9_]*)', content)
+
+        # Method/property access: obj.method(), obj.property
+        method_calls = re.findall(r'\.([a-zA-Z_$][a-zA-Z0-9_$]*)', content)
+
+        # Object method chains: ObjectName.method()
+        object_methods = re.findall(r'([A-Z][a-zA-Z0-9_$]*)\.', content)
+
+        # Dynamic imports: import("./file") or await import("./file")
+        dynamic_imports = re.findall(r'import\s*\(\s*["\']([^"\']+)["\']', content)
+
+        # Schema/config object property references: schema.tableName
+        schema_refs = re.findall(r'schema\.([a-zA-Z_$][a-zA-Z0-9_$]*)', content)
+
+        # Combine all symbol usage
+        all_symbols = set(identifiers + jsx_components + method_calls + object_methods + schema_refs)
+
+        # Also track dynamic import files for later processing
+        for import_path in dynamic_imports:
+            # This will be handled separately in import resolution
+            pass
+
         # Filter out keywords and common tokens
         keywords = {
             'import', 'export', 'from', 'const', 'let', 'var', 'function', 'class',
             'interface', 'type', 'if', 'else', 'for', 'while', 'return', 'true',
             'false', 'null', 'undefined', 'string', 'number', 'boolean', 'object',
-            'async', 'await', 'new', 'this', 'super', 'extends', 'implements'
+            'async', 'await', 'new', 'this', 'super', 'extends', 'implements',
+            'default', 'case', 'switch', 'try', 'catch', 'finally', 'throw'
         }
-        
-        for identifier in identifiers:
+
+        for identifier in all_symbols:
             if identifier not in keywords:
                 used_symbols.add(identifier)
-        
+
         return used_symbols
 
     def _count_arguments(self, args_str: str) -> int:

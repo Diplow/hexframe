@@ -188,13 +188,76 @@ class DeadCodeChecker:
         files = []
         for pattern in ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]:
             files.extend(self.src_path.glob(pattern))
-        
+
         # Filter out node_modules
         return [
-            f for f in files 
+            f for f in files
             if "node_modules" not in str(f)
         ]
-    
+
+    def _find_all_project_files(self) -> List[Path]:
+        """Find all relevant files in project for usage analysis."""
+        files = []
+
+        # Include all src files
+        files.extend(self._find_all_src_files())
+
+        # Include build scripts directory
+        scripts_path = Path("scripts")
+        if scripts_path.exists():
+            for pattern in ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]:
+                script_files = scripts_path.glob(pattern)
+                files.extend([
+                    f for f in script_files
+                    if "node_modules" not in str(f)
+                ])
+
+        # Include configuration files that might import from src
+        root_path = Path(".")
+        config_patterns = [
+            "*.config.ts", "*.config.js", "*.config.mjs",
+            "next.config.js", "vite.config.ts", "vitest.config.ts"
+        ]
+        for pattern in config_patterns:
+            config_files = root_path.glob(pattern)
+            files.extend(config_files)
+
+        return files
+
+    def _analyze_package_json_usage(self) -> Set[str]:
+        """Extract file usage from package.json scripts."""
+        used_files = set()
+        package_json = Path("package.json")
+
+        if package_json.exists():
+            try:
+                import json
+                with open(package_json) as f:
+                    data = json.load(f)
+
+                # Check scripts section for TypeScript file references
+                scripts = data.get("scripts", {})
+                for script_content in scripts.values():
+                    # Find tsx/ts file references in scripts
+                    ts_file_patterns = [
+                        r'tsx?\s+([^\s]+\.tsx?)',  # tsx src/file.ts
+                        r'["\']([^"\']*\.tsx?)["\']',  # "src/file.ts"
+                        r'([a-zA-Z0-9/_.-]+\.tsx?)'  # direct file references
+                    ]
+
+                    for pattern in ts_file_patterns:
+                        matches = re.findall(pattern, script_content)
+                        for file_path in matches:
+                            # Convert to Path and normalize
+                            normalized_path = str(Path(file_path))
+                            if normalized_path.startswith('src/'):
+                                used_files.add(normalized_path)
+
+            except (json.JSONDecodeError, OSError, ImportError):
+                pass
+
+        return used_files
+
     def _find_target_files(self) -> List[Path]:
         """Find files in the target path to check for dead code."""
         files = []
@@ -829,19 +892,74 @@ class DeadCodeChecker:
                             reexport_chains[original_key].add(reexport_key)
         
         return reexport_chains
-    
+
+    def _normalize_path(self, file_path: Path, project_root: Path) -> str:
+        """Normalize file path to be relative to project root."""
+        try:
+            # Ensure both paths are resolved (absolute)
+            resolved_file = file_path.resolve()
+            resolved_root = project_root.resolve()
+
+            # Try to make relative
+            relative_path = resolved_file.relative_to(resolved_root)
+            return str(relative_path)
+        except ValueError:
+            # If relative conversion fails, use the string representation
+            return str(file_path)
+
+    def _trace_reexport_usage(self, file_path: Path, symbol_name: str, imported_symbols: set, visited: set = None, project_root: Path = None) -> None:
+        """Recursively trace re-export chains to mark original sources as used."""
+        if visited is None:
+            visited = set()
+
+        # Prevent infinite recursion
+        key = f"{file_path}:{symbol_name}"
+        if key in visited:
+            return
+        visited.add(key)
+
+
+        if file_path not in self.file_cache:
+            return
+
+        file_analysis = self.file_cache[file_path]
+        for export in file_analysis.exports:
+            if export.name == symbol_name:
+                if export.is_reexport and export.from_path:
+                    # This is a re-export, trace to the original source
+                    source_path = self._resolve_import_path(export.from_path, file_path)
+                    if source_path:
+                        # Mark original source as used - normalize path
+                        source_name = export.original_name if export.original_name else export.name
+                        if project_root is None:
+                            project_root = Path(".").resolve()
+                        normalized_source_path = self._normalize_path(source_path, project_root)
+                        source_key = f"{normalized_source_path}:{source_name}"
+                        imported_symbols.add(source_key)
+
+                        # Continue tracing recursively
+                        self._trace_reexport_usage(source_path, source_name, imported_symbols, visited, project_root)
+                break
+
     def _mark_dead_symbols(self) -> None:
         """Mark symbols as dead without reporting them yet, considering re-export chains."""
+
         # Build export map from all analyzed files (excluding re-exports for dead detection)
         all_exports = {}
+        project_root = Path(".").resolve()
         for file_analysis in self.file_cache.values():
             for export in file_analysis.exports:
-                key = f"{export.file_path}:{export.name}"
+                # Normalize path to be relative to project root
+                normalized_path = self._normalize_path(export.file_path, project_root)
+                key = f"{normalized_path}:{export.name}"
                 all_exports[key] = export
         
         # Build re-export chains
         reexport_chains = self._build_reexport_chains()
         
+        # Check package.json script usage for additional file-level usage
+        package_json_used_files = self._analyze_package_json_usage()
+
         # Build import usage map from ALL files (including outside target)
         imported_symbols = set()
         for file_analysis in self.file_cache.values():
@@ -859,49 +977,45 @@ class DeadCodeChecker:
                                     if source_path:
                                         # Use the original name from the source, not the aliased name
                                         source_name = export.original_name if export.original_name else export.name
-                                        source_key = f"{source_path}:{source_name}"
+                                        normalized_source_path = self._normalize_path(source_path, project_root)
+                                        source_key = f"{normalized_source_path}:{source_name}"
                                         imported_symbols.add(source_key)
                                 else:
-                                    # Regular export
-                                    key = f"{resolved_path}:{export.name}"
+                                    # Regular export - normalize path
+                                    normalized_path = self._normalize_path(resolved_path, project_root)
+                                    key = f"{normalized_path}:{export.name}"
                                     imported_symbols.add(key)
                     else:
                         # Handle aliasing
                         export_name = imp.original_name if hasattr(imp, 'original_name') and imp.original_name else imp.name
                         
-                        key = f"{resolved_path}:{export_name}"
+                        # Normalize path to be relative to project root for consistency
+                        normalized_path = self._normalize_path(resolved_path, project_root)
+                        key = f"{normalized_path}:{export_name}"
                         imported_symbols.add(key)
-                        
-                        # Check if this is a re-export and add the source
-                        if resolved_path in self.file_cache:
-                            resolved_analysis = self.file_cache[resolved_path]
-                            for export in resolved_analysis.exports:
-                                if export.name == export_name and export.is_reexport and export.from_path:
-                                    source_path = self._resolve_import_path(export.from_path, resolved_path)
-                                    if source_path:
-                                        # Use the original name from the source, not the aliased name
-                                        source_name = export.original_name if export.original_name else export.name
-                                        source_key = f"{source_path}:{source_name}"
-                                        imported_symbols.add(source_key)
-                                    break
+
+                        # Check if this is a re-export and add the source (recursively trace)
+                        self._trace_reexport_usage(resolved_path, export_name, imported_symbols, project_root=project_root)
                         
                         # Handle default imports
                         if imp.import_type == 'default':
-                            default_key = f"{resolved_path}:default"
+                            normalized_path = self._normalize_path(resolved_path, project_root)
+                            default_key = f"{normalized_path}:default"
                             imported_symbols.add(default_key)
-                    
-        
+
+
         # Mark exports as dead, considering re-export chains
         for symbol_key, export in all_exports.items():
             if export.is_reexport:
                 continue  # Skip re-exports, we'll check originals
-            
+
             # Check if this symbol is used directly
             is_used = symbol_key in imported_symbols
-            
+
             # If not used directly, check if any of its re-exports are used
             if not is_used:
-                for reexport_key in reexport_chains.get(symbol_key, set()):
+                reexport_keys = reexport_chains.get(symbol_key, set())
+                for reexport_key in reexport_keys:
                     if reexport_key in imported_symbols:
                         is_used = True
                         break
@@ -919,6 +1033,16 @@ class DeadCodeChecker:
                 if has_implementations:
                     is_used = True
             
+            # Check if file is used by package.json scripts
+            if not is_used:
+                try:
+                    relative_file_path = str(export.file_path.relative_to(Path(".")))
+                    is_package_used = relative_file_path in package_json_used_files
+                    if is_package_used:
+                        is_used = True
+                except ValueError:
+                    pass  # Path is not relative to current directory
+
             # Special handling for barrel exports: consider them externally visible
             if not is_used and self._is_barrel_file(export.file_path):
                 # Barrel exports are considered as potentially externally used
@@ -1221,20 +1345,20 @@ class DeadCodeChecker:
         start_time = time.time()
         results = CheckResults(target_path=str(self.target_path))
         
-        # Find ALL files in src for analysis
-        all_src_files = self._find_all_src_files()
-        
-        # Find target files to check
+        # Find ALL relevant files for usage analysis (including scripts, config)
+        all_project_files = self._find_all_project_files()
+
+        # Find target files to check for dead code
         target_files = self._find_target_files()
         results.files_analyzed = len(target_files)
-        
-        print(f"Analyzing {len(all_src_files)} files in src/, checking {len(target_files)} in {self.target_path}")
-        
-        # Analyze ALL files in parallel (for import resolution)
+
+        print(f"Analyzing {len(all_project_files)} files across project, checking {len(target_files)} in {self.target_path}")
+
+        # Analyze ALL files in parallel (for comprehensive usage detection)
         with ThreadPoolExecutor(max_workers=4) as executor:
             future_to_file = {
                 executor.submit(self._analyze_file, file_path): file_path
-                for file_path in all_src_files
+                for file_path in all_project_files
             }
             
             for future in as_completed(future_to_file):

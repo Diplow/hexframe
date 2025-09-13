@@ -16,3 +16,11 @@ export {
   type BaseItemIdr,
   type BaseItemWithId,
 } from "~/lib/domains/mapping/_objects/base-item";
+
+export {
+  MapItemValidation,
+} from "~/lib/domains/mapping/_objects/map-item-validation";
+
+export {
+  MapItemNeighborValidation,
+} from "~/lib/domains/mapping/_objects/map-item-neighbor-validation";

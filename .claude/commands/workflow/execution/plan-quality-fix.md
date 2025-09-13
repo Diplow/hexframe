@@ -26,7 +26,7 @@ Execute the following cycle up to 10 iterations or until all quality checks pass
 Ensure basic code standards before proceeding:
 
 ```bash
-pnpm check:lint [folder] && pnpm typecheck
+pnpm check:lint && pnpm typecheck
 ```
 
 If these fail, stop and report the issues.
@@ -82,7 +82,7 @@ If all checks pass, declare victory and exit.
 - [Note any interdependencies between changes]
 
 ### Verification Steps
-1. `pnpm check:lint [folder]` - Must pass
+1. `pnpm check:lint` - Must pass
 2. `pnpm typecheck` - Must pass  
 3. `pnpm check:[target-type] [folder]` - Must show improvement
 ```

@@ -1,11 +1,7 @@
-export {
-  type MapItem as MapItemMappingDomainType,
-  MapItemType,
-  type MapItemAttrs,
-  type MapItemRelatedItems,
-  type MapItemRelatedLists,
-  type MapItemWithId,
-} from "~/lib/domains/mapping/_objects";
+// Types are now exported directly from their original locations
+// For MapItem types, import from: ~/lib/domains/mapping/_objects
+// For contracts, use: ~/lib/domains/mapping/types/contracts
+// For client-safe API, use: ~/lib/domains/mapping/interface.client
 
 export {
   type MapContract as MapMappingContract,

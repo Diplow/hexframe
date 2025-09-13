@@ -9,5 +9,3 @@ export interface StorageOperations {
 
 // Re-export implementations
 export { createBrowserStorageOperations } from "~/app/map/Cache/Services/storage/browser-storage";
-export { createSSRStorageOperations } from "~/app/map/Cache/Services/storage/ssr-storage";
-export { createMockStorageOperations } from "~/app/map/Cache/Services/storage/mock-storage";

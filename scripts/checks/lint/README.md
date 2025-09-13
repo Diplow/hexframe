@@ -16,18 +16,20 @@ A Python-based ESLint wrapper that provides structured analysis and reporting of
 ### Basic Usage
 
 ```bash
-# Check all source files
+# Check entire project (always recommended)
 python3 scripts/checks/lint/main.py
 
-# Or use npm script (when added to package.json)
+# Or use npm script
 pnpm check:lint
 ```
+
+> **Why Entire Project?** Linting requires full project context to properly validate cross-file dependencies, import/export relationships, and maintain consistent code style across the codebase. Partial linting can miss critical issues.
 
 ### Options
 
 ```bash
-# Check specific directory with verbose output
-python3 scripts/checks/lint/main.py --verbose src/app/map
+# Show verbose output
+python3 scripts/checks/lint/main.py --verbose
 
 # Show only errors (no warnings)
 python3 scripts/checks/lint/main.py --errors-only
@@ -47,7 +49,7 @@ python3 scripts/checks/lint/main.py --output custom-lint-report.json
 
 ### Command Line Options
 
-- `path` - Path to lint (default: `src`)
+- No path argument needed - always lints entire project for complete context
 - `--verbose` - Show detailed file-by-file breakdown
 - `--json-only` - Output only JSON, no console output
 - `--by-rule` - Group console output by rule instead of by file

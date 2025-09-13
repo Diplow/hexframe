@@ -9,7 +9,7 @@ Execute Rule of 6 fixes planned by `plan-quality-fix`, reducing cognitive load t
 ## Prerequisites
 
 - CONTEXT.md exists in the target folder with Rule of 6 analysis
-- `pnpm check:lint [folder] && pnpm typecheck && pnpm check:deadcode [folder] && pnpm check:architecture [folder]` passes
+- `pnpm check:lint && pnpm typecheck && pnpm check:deadcode [folder] && pnpm check:architecture [folder]` passes
 - Git working directory is clean
 
 ## Process
@@ -61,22 +61,29 @@ Work through violations in **impact and safety order**:
 #### D. Function Arguments (Last - Parameter Objects)  
 **Group related parameters into cohesive objects when they represent the same domain concept and would naturally be passed together.**
 
-### 3. Incremental Verification
+### 3. ✅ ESSENTIAL: Incremental Verification
 
-After each major refactoring:
+**💡 VALIDATE AFTER EACH FILE MOVE OR MAJOR EXTRACTION**
+
+After each major refactoring (especially file moves or function extractions):
 
 ```bash
-pnpm check:lint [folder] && pnpm typecheck && pnpm check:deadcode [folder] && pnpm check:architecture [folder]
+pnpm typecheck  # Quick check for broken imports first
 ```
 
-Fix any issues immediately before proceeding.
+If typecheck passes, run full validation:
+```bash
+pnpm check:lint && pnpm typecheck && pnpm check:deadcode [folder] && pnpm check:architecture [folder]
+```
+
+**Why this works**: TypeScript immediately catches broken import paths from file moves, making issues easy to spot and fix before they accumulate.
 
 ### 4. Final Validation
 
 Run full verification suite:
 
 ```bash
-pnpm check:lint [folder]
+pnpm check:lint
 pnpm typecheck
 pnpm check:deadcode [folder]     # Refactoring may create dead code
 pnpm check:architecture [folder]  # Refactoring may affect boundaries

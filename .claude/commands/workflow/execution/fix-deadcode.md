@@ -9,7 +9,7 @@ Execute the dead code removal plan created by `plan-quality-fix`, ensuring all c
 ## Prerequisites
 
 - CONTEXT.md exists in the target folder with dead code analysis
-- `pnpm check:lint [folder] && pnpm typecheck` passes
+- `pnpm check:lint && pnpm typecheck` passes
 - Git working directory is clean
 
 ## Process
@@ -41,12 +41,37 @@ Work through the target violations systematically:
 - Double-check they're not part of public APIs
 - Verify removal won't break external consumers
 
-### 3. Incremental Verification
+**✅ DELETING ENTIRE FILES (requires immediate validation)**:
+- **Run `pnpm typecheck` immediately after each file deletion**
+- Use TypeScript errors as your guide to find and fix broken imports
+- Delete one file at a time, validate, fix imports, then proceed
+- TypeScript will show you exactly which import statements to clean up
 
-After each file modification:
+### 3. ✅ ESSENTIAL: Incremental Verification
+
+**💡 ALWAYS VALIDATE WITH TYPECHECK AFTER FILE CHANGES**
+
+After **EVERY** file deletion or major export removal:
 
 ```bash
-pnpm check:lint [folder] && pnpm typecheck
+pnpm typecheck
+```
+
+**Why this works**: TypeScript immediately shows you which imports need updating when files are deleted. This turns potential errors into clear, actionable guidance.
+
+**Example workflow**:
+```
+✅ Delete file: mock-storage.ts
+✅ Run: pnpm typecheck
+📍 TypeScript shows: Cannot find module '~/storage/mock-storage'
+📍 Location: storage-operations.ts:13  
+✅ Fix: Remove the import line from storage-operations.ts
+✅ Verify: pnpm typecheck passes
+```
+
+Then run full checks:
+```bash
+pnpm check:lint && pnpm typecheck
 ```
 
 Fix any issues immediately before proceeding to next file.
@@ -56,7 +81,7 @@ Fix any issues immediately before proceeding to next file.
 Run full verification suite:
 
 ```bash
-pnpm check:lint [folder]
+pnpm check:lint
 pnpm typecheck  
 pnpm check:dead-code [folder]  # Should show improvement
 ```
@@ -127,7 +152,7 @@ If verification fails after changes:
 ## Success Criteria
 
 - All target violations from CONTEXT.md are addressed
-- `pnpm check:lint [folder] && pnpm typecheck` passes
+- `pnpm check:lint && pnpm typecheck` passes
 - `pnpm check:dead-code [folder]` shows measurable improvement
 - Single clean commit with descriptive message
 - No functionality broken (focus on truly unused code)

@@ -9,11 +9,11 @@ import type {
   MapItemType,
 } from "~/lib/domains/mapping/_objects";
 import type { Coord } from "~/lib/domains/mapping/utils";
-import type { MapItemIdr } from "~/lib/domains/mapping/utils";
+import type { MapItemIdr } from "~/lib/domains/mapping/_repositories";
 import { MapItemCreationHelpers } from "~/lib/domains/mapping/_actions/_map-item-creation-helpers";
 import { MapItemQueryHelpers } from "~/lib/domains/mapping/_actions/_map-item-query-helpers";
 import { MapItemMovementHelpers } from "~/lib/domains/mapping/_actions/_map-item-movement-helpers";
-import type { DatabaseTransaction } from "~/lib/domains/mapping/utils";
+import type { DatabaseTransaction } from "~/lib/domains/mapping/types";
 import { MoveOrchestrator } from "~/lib/domains/mapping/_actions/map-item-actions/move-orchestrator";
 import { ValidationStrategy } from "~/lib/domains/mapping/_actions/map-item-actions/validation-strategy";
 
@@ -22,7 +22,6 @@ export class MapItemActions {
   private readonly baseItems: BaseItemRepository;
   private readonly creationHelpers: MapItemCreationHelpers;
   private readonly queryHelpers: MapItemQueryHelpers;
-  private readonly movementHelpers: MapItemMovementHelpers;
   private readonly moveOrchestrator: MoveOrchestrator;
   private readonly validationStrategy: ValidationStrategy;
 
@@ -37,10 +36,6 @@ export class MapItemActions {
       repositories.baseItem,
     );
     this.queryHelpers = new MapItemQueryHelpers(
-      repositories.mapItem,
-      repositories.baseItem,
-    );
-    this.movementHelpers = new MapItemMovementHelpers(
       repositories.mapItem,
       repositories.baseItem,
     );

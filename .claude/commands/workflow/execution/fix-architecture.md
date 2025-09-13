@@ -9,7 +9,7 @@ Execute the architecture fixes planned by `plan-quality-fix`, ensuring proper su
 ## Prerequisites
 
 - CONTEXT.md exists in the target folder with architecture analysis
-- `pnpm check:lint [folder] && pnpm typecheck && pnpm check:deadcode [folder]` passes
+- `pnpm check:lint && pnpm typecheck && pnpm check:deadcode [folder]` passes
 - Git working directory is clean
 
 ## Process
@@ -74,7 +74,7 @@ Work through violations in this **architectural priority order**:
 After each major change:
 
 ```bash
-pnpm check:lint [folder] && pnpm typecheck && pnpm check:deadcode [folder]
+pnpm check:lint && pnpm typecheck && pnpm check:deadcode [folder]
 ```
 
 Fix any issues immediately before proceeding.
@@ -84,7 +84,7 @@ Fix any issues immediately before proceeding.
 Run full verification suite:
 
 ```bash
-pnpm check:lint [folder]
+pnpm check:lint
 pnpm typecheck
 pnpm check:deadcode [folder]
 pnpm check:architecture [folder]  # Should show improvement
@@ -118,7 +118,7 @@ If verification fails after changes:
 ## Success Criteria
 
 - All target violations from CONTEXT.md are addressed
-- `pnpm check:lint [folder] && pnpm typecheck && pnpm check:deadcode [folder]` passes
+- `pnpm check:lint && pnpm typecheck && pnpm check:deadcode [folder]` passes
 - `pnpm check:architecture [folder]` shows measurable improvement
 - Single clean commit with descriptive message
 - No functionality broken, only architectural structure improved

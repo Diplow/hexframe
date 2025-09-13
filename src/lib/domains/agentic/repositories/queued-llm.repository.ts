@@ -8,6 +8,8 @@ import type {
 import type { Inngest } from 'inngest'
 import { loggers } from '~/lib/debug/debug-logger'
 import { nanoid } from 'nanoid'
+import { db, schema } from '~/server/db'
+const { llmJobResults } = schema
 
 // Models that are fast enough to run directly (< 5s typical response time)
 const QUICK_MODELS = [
@@ -107,7 +109,25 @@ export class QueuedLLMRepository implements ILLMRepository {
 
     const jobId = `llm-${nanoid()}`
     console.log(`[QueuedLLMRepository] Creating job with ID: ${jobId}`)
-    
+
+    // Create pending job record immediately in database
+    try {
+      await db.insert(llmJobResults).values({
+        id: jobId,
+        jobId,
+        userId: this.userId,
+        status: 'pending',
+        request: params,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      console.log(`[QueuedLLMRepository] Pending job record created in database`)
+    } catch (error) {
+      console.error(`[QueuedLLMRepository] Failed to create job record:`, error)
+      loggers.agentic.error('Failed to create pending job record', { jobId, userId: this.userId, error })
+      throw new Error(`Failed to queue job: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+
     // Send to Inngest queue
     await this.inngestClient.send({
       name: "llm/generate.request",
@@ -119,7 +139,7 @@ export class QueuedLLMRepository implements ILLMRepository {
         timestamp: new Date().toISOString()
       }
     })
-    
+
     console.log(`[QueuedLLMRepository] Job ${jobId} sent to Inngest`)
 
     // Return a pending response with job ID
@@ -152,7 +172,25 @@ export class QueuedLLMRepository implements ILLMRepository {
       // For slow models, even streaming might timeout during initial thinking
       // So we queue it and stream from the job result later
       const jobId = `llm-stream-${nanoid()}`
-      
+
+      // Create pending job record immediately in database
+      try {
+        await db.insert(llmJobResults).values({
+          id: jobId,
+          jobId,
+          userId: this.userId,
+          status: 'pending',
+          request: params,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        console.log(`[QueuedLLMRepository] Pending streaming job record created in database`)
+      } catch (error) {
+        console.error(`[QueuedLLMRepository] Failed to create streaming job record:`, error)
+        loggers.agentic.error('Failed to create pending streaming job record', { jobId, userId: this.userId, error })
+        throw new Error(`Failed to queue streaming job: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      }
+
       await this.inngestClient.send({
         name: "llm/stream.request",
         data: {

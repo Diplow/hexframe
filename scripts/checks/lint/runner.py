@@ -21,12 +21,11 @@ class ESLintRunner:
         """Initialize the runner with project root path."""
         self.project_root = project_root or Path(__file__).parent.parent.parent.parent
         
-    def run_eslint(self, target_path: str = "src", format_type: str = "json") -> Tuple[bool, str, str]:
+    def run_eslint(self, format_type: str = "json") -> Tuple[bool, str, str]:
         """
-        Run ESLint on the target path.
+        Run ESLint on the entire project.
         
         Args:
-            target_path: Path to lint (default: "src")
             format_type: Output format ("json", "compact", etc.)
             
         Returns:
@@ -42,11 +41,8 @@ class ESLintRunner:
             with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as temp_file:
                 temp_path = temp_file.name
                 
-            # Build ESLint command with output file
+            # Build ESLint command with output file - always run on entire project
             cmd = ["pnpm", "lint", f"--format={format_type}", "--output-file", temp_path]
-            # Only add target_path if it's not the default "src"
-            if target_path and target_path != "src":
-                cmd.append(target_path)
                 
             try:
                 # Run ESLint
@@ -79,10 +75,8 @@ class ESLintRunner:
                     os.unlink(temp_path)
                 raise e
         else:
-            # For non-JSON formats, use regular approach
+            # For non-JSON formats, use regular approach - always run on entire project
             cmd = ["pnpm", "lint", f"--format={format_type}"]
-            if target_path and target_path != "src":
-                cmd.append(target_path)
             
             try:
                 # Run ESLint (for non-JSON formats)
@@ -106,17 +100,14 @@ class ESLintRunner:
             except FileNotFoundError:
                 return False, "", "ESLint command not found. Make sure pnpm and dependencies are installed."
     
-    def run_with_json_output(self, target_path: str = "src") -> Tuple[bool, Optional[List[Dict]], str]:
+    def run_with_json_output(self) -> Tuple[bool, Optional[List[Dict]], str]:
         """
-        Run ESLint and return parsed JSON output.
+        Run ESLint on entire project and return parsed JSON output.
         
-        Args:
-            target_path: Path to lint
-            
         Returns:
             Tuple of (success: bool, parsed_json: Optional[List[Dict]], error_message: str)
         """
-        success, stdout, stderr = self.run_eslint(target_path, "json")
+        success, stdout, stderr = self.run_eslint("json")
         
         # Check for environment validation errors that prevent ESLint from running
         if stderr and "Invalid environment variables" in stderr:
