@@ -33,6 +33,7 @@ class Export:
     export_type: str  # 'default', 'named', 'const', 'function', 'class', 'interface', 'type'
     is_reexport: bool = False
     from_path: Optional[str] = None
+    original_name: Optional[str] = None  # For aliased exports like "export { foo as bar }"
 
 
 @dataclass
