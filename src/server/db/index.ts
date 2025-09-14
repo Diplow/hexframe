@@ -28,8 +28,8 @@ let _db: ReturnType<typeof drizzle<typeof schema>> | null = null;
 const getDatabase = () => {
   if (_db) return _db;
   
-  // Only initialize on server side
-  if (typeof window !== 'undefined') {
+  // Only initialize on server side (allow tests)
+  if (typeof window !== 'undefined' && !process.env.VITEST) {
     throw new Error('Database should only be accessed on the server side');
   }
   

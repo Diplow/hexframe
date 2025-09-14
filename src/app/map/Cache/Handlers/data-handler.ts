@@ -57,7 +57,7 @@ async function _fetchAndDispatchItems(
   try {
     const items = await services.server.fetchItemsForCoordinate({ centerCoordId, maxDepth });
 
-    if (actionType === 'loadRegion') {
+    if (actionType === 'loadRegion' || actionType === 'Prefetch') {
       dispatch(cacheActions.loadRegion(
         items as Parameters<typeof cacheActions.loadRegion>[0],
         centerCoordId,
@@ -143,7 +143,7 @@ export function createDataHandler(config: DataHandlerConfig) {
     return _fetchAndDispatchItems(services, dispatch, {
       centerCoordId,
       maxDepth: getState().cacheConfig.maxDepth,
-      actionType: 'loadRegion',
+      actionType: 'Prefetch',
       showLoading: false,
       silentFail: true,
     });

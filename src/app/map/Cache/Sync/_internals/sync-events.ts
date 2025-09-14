@@ -40,7 +40,7 @@ export function createSyncEventManager(
     window.removeEventListener("online", onOnlineStatusChange);
     window.removeEventListener("offline", onOnlineStatusChange);
 
-    if (visibilityHandler) {
+    if (visibilityHandler && document.removeEventListener) {
       document.removeEventListener("visibilitychange", visibilityHandler);
       visibilityHandler = null;
     }
