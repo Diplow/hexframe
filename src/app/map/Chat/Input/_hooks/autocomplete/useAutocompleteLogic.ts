@@ -74,13 +74,13 @@ function _handleAutocompleteEscape(
  * Create autocomplete selection logic
  */
 function _createSuggestionSelector(setMessage: (msg: string) => void, center: string | null, closeAutocomplete: () => void) {
-  return useCallback((command: string) => {
+  return (command: string) => {
     const allCommands = getAllCommands(center);
     const commandKeys = Object.keys(allCommands);
-    const hasSubcommands = commandKeys.some(cmd => 
+    const hasSubcommands = commandKeys.some(cmd =>
       cmd.startsWith(command + '/') && cmd !== command
     );
-    
+
     if (hasSubcommands) {
       const newMessage = command + '/';
       setMessage(newMessage);
@@ -88,24 +88,24 @@ function _createSuggestionSelector(setMessage: (msg: string) => void, center: st
       setMessage(command);
       closeAutocomplete();
     }
-  }, [setMessage, center, closeAutocomplete]);
+  };
 }
 
 /**
  * Create message change handler for autocomplete triggering
  */
 function _createMessageChangeHandler(setMessage: (msg: string) => void, setShowAutocomplete: (show: boolean) => void, setSelectedIndex: (index: number) => void, closeAutocomplete: () => void) {
-  return useCallback((message: string, newMessage: string) => {
+  return (message: string, newMessage: string) => {
     setMessage(newMessage);
-    
-    if ((message === '' && newMessage === '/') || 
+
+    if ((message === '' && newMessage === '/') ||
         (newMessage.startsWith('/') && newMessage.endsWith('/') && newMessage !== '/')) {
       setShowAutocomplete(true);
       setSelectedIndex(0);
     } else if (!newMessage.startsWith('/')) {
       closeAutocomplete();
     }
-  }, [setMessage, setShowAutocomplete, setSelectedIndex, closeAutocomplete]);
+  };
 }
 
 /**
