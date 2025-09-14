@@ -200,8 +200,30 @@ export async function loadItemFromServer(
 
   const loadedCoordId = loadedItem.coordinates;
 
-  // Add the loaded item to cache using loadRegion action
-  dispatch(cacheActions.loadRegion([{...loadedItem, itemType: loadedItem.itemType as MapItemType}], loadedCoordId, 0));
+  // Fetch the full region with children using fetchItemsForCoordinate
+  // This replaces the need for background prefetching since we load everything immediately
+  try {
+    const fullRegionItems = await serverService.fetchItemsForCoordinate({
+      centerCoordId: loadedCoordId,
+      maxDepth: 2
+    });
+
+    // Load the full region with proper depth
+    dispatch(cacheActions.loadRegion(fullRegionItems as Parameters<typeof cacheActions.loadRegion>[0], loadedCoordId, 2));
+
+    loggers.mapCache.handlers(`✅ Loaded full region with ${fullRegionItems.length} items`, {
+      centerCoordId: loadedCoordId,
+      itemCount: fullRegionItems.length
+    });
+  } catch (error) {
+    // Fallback to just the root item if region fetch fails
+    dispatch(cacheActions.loadRegion([{...loadedItem, itemType: loadedItem.itemType as MapItemType}], loadedCoordId, 0));
+
+    loggers.mapCache.handlers(`⚠️ Failed to load full region, loaded root item only`, {
+      centerCoordId: loadedCoordId,
+      error
+    });
+  }
 
   // Convert the loaded item to the proper TileData format
   const adaptedItem = adapt({...loadedItem, itemType: loadedItem.itemType as MapItemType});

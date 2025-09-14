@@ -38,7 +38,7 @@ export interface DataHandlerConfig {
 interface FetchAndDispatchOptions {
   centerCoordId: string;
   maxDepth: number;
-  actionType: 'loadRegion' | 'loadItemChildren';
+  actionType: 'loadRegion' | 'loadItemChildren' | 'Prefetch';
   showLoading: boolean;
   silentFail?: boolean;
 }
