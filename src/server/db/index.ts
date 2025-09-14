@@ -22,30 +22,55 @@ const getDatabaseUrl = () => {
   return env.DATABASE_URL;
 };
 
-// Create a PostgreSQL client
-const connectionString = getDatabaseUrl();
-if (!connectionString) {
-  throw new Error("Database connection string is not set");
-}
+// Lazy initialization to prevent client-side execution
+let _db: ReturnType<typeof drizzle<typeof schema>> | null = null;
 
-// Configuration optimized for Neon in serverless environments
-const isProduction = process.env.NODE_ENV === "production";
-const client = postgres(connectionString, {
-  // Neon-recommended settings for serverless
-  max: isProduction ? 1 : 10, // Single connection in production
-  idle_timeout: isProduction ? 20 : undefined, // Close idle connections quickly
-  connect_timeout: 10, // Fast timeout for serverless
+const getDatabase = () => {
+  if (_db) return _db;
   
-  // Disable prepared statements for serverless environments
-  // This is recommended by Neon for better connection pooling
-  prepare: !isProduction,
+  // Only initialize on server side
+  if (typeof window !== 'undefined') {
+    throw new Error('Database should only be accessed on the server side');
+  }
   
-  // SSL is required for Neon in production
-  ssl: isProduction ? 'require' : false,
-});
+  const connectionString = getDatabaseUrl();
+  if (!connectionString) {
+    throw new Error("Database connection string is not set");
+  }
 
-// Create a Drizzle ORM instance with the schema
-export const db = drizzle(client, { schema });
+  // Configuration optimized for Neon in serverless environments
+  const isProduction = process.env.NODE_ENV === "production";
+  const client = postgres(connectionString, {
+    // Neon-recommended settings for serverless
+    max: isProduction ? 1 : 10, // Single connection in production
+    idle_timeout: isProduction ? 20 : undefined, // Close idle connections quickly
+    connect_timeout: 10, // Fast timeout for serverless
+    
+    // Disable prepared statements for serverless environments
+    // This is recommended by Neon for better connection pooling
+    prepare: !isProduction,
+    
+    // SSL is required for Neon in production
+    ssl: isProduction ? 'require' : false,
+  });
+
+  _db = drizzle(client, { schema });
+  return _db;
+};
+
+// Create a getter function that only initializes when accessed
+const createDatabaseProxy = () => {
+  type DatabaseType = ReturnType<typeof drizzle<typeof schema>>;
+  return new Proxy({} as DatabaseType, {
+    get(_, prop: keyof DatabaseType) {
+      const database = getDatabase();
+      return database[prop];
+    }
+  });
+};
+
+// Export the database proxy
+export const db = createDatabaseProxy();
 
 // Export the schema for type references
 export { schema };
