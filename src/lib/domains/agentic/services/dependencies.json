@@ -3,7 +3,6 @@
   "allowed": [
     "tiktoken",
     "~/app/map",
-    "~/lib/domains/agentic/_objects",
     "~/lib/domains/agentic/infrastructure",
     "~/lib/domains/agentic/repositories",
     "~/lib/domains/agentic/types",
