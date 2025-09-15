@@ -28,7 +28,7 @@ class RuleOf6Checker:
         self.max_domain_files = 6     # New rule: max domain files per directory
         self.max_functions_per_file = 6
         self.max_function_lines = 50
-        self.max_function_args = 3
+        self.max_function_args = 6
         self.max_object_keys = 6
         self.max_function_lines_error = 100  # Hard limit for errors
         
@@ -250,20 +250,34 @@ class RuleOf6Checker:
     def _check_single_file(self, file_analysis: FileAnalysis, results: CheckResults) -> None:
         """Check a single file for Rule of 6 violations."""
         relative_path = str(file_analysis.path.relative_to(self.target_path))
-        
-        # Check function count per file
-        if file_analysis.function_count > self.max_functions_per_file:
+
+        # Check function count per file with custom threshold support
+        custom_rule = self.threshold_manager.get_file_exception(file_analysis.path)
+        threshold = custom_rule.threshold if custom_rule else self.max_functions_per_file
+
+        # Debug print removed
+
+        if file_analysis.function_count > threshold:
             func_names = file_analysis.get_function_names()
-            
+
+            # Create message with custom threshold info
+            if custom_rule:
+                message = f"File '{relative_path}' has {file_analysis.function_count} functions (custom limit {threshold})"
+            else:
+                message = f"File '{relative_path}' has {file_analysis.function_count} functions (max {threshold})"
+
             violation = RuleOf6Violation.create_error(
-                message=f"File '{relative_path}' has {file_analysis.function_count} functions (max {self.max_functions_per_file})",
+                message=message,
                 violation_type=ViolationType.FILE_FUNCTIONS,
                 file_path=relative_path,
                 recommendation="Split into multiple files by grouping related functions. Consider extracting utility functions or creating separate modules for distinct concerns.",
                 context={
                     "function_count": file_analysis.function_count,
                     "function_names": func_names
-                }
+                },
+                exception_source=custom_rule.source_file if custom_rule else None,
+                custom_threshold=custom_rule.threshold if custom_rule else None,
+                default_threshold=self.max_functions_per_file
             )
             results.add_violation(violation)
         

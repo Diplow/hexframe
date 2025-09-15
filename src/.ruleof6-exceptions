@@ -1,0 +1,16 @@
+# Rule of 6 Exceptions
+# Format: file_path:function_name:threshold # justification (for function exceptions)
+# or: file_path:threshold # justification (for directory/file exceptions)
+
+# Function line count exceptions
+server/email.ts:sendEmail:150 # Complex email sending with multiple providers, templating, and error handling
+
+# File function count exceptions (too many functions errors)
+test/setup.ts:25 # Test setup file requires many utility functions for comprehensive test environment
+app/map/Chat/_state/_events/event.validators.ts:15 # Event validation requires one validator per event type for type safety
+commons/trpc/react.tsx:12 # tRPC client setup requires multiple React hooks and providers
+app/map/Chat/_state/_selectors/widget-selectors.ts:12 # Widget state management requires multiple selector functions for performance
+app/map/Chat/_state/_events/tile-event-transformers.ts:10 # Event transformation requires one transformer per event type
+
+# Function argument exceptions
+app/map/Chat/_state/_selectors/widget-selectors.ts:_createDirectWidget:8 # Widget creation requires comprehensive configuration parameters
