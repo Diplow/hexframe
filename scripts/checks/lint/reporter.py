@@ -53,7 +53,10 @@ class LintReporter:
         report_data = results.to_dict()
         report_data["timestamp"] = datetime.now().isoformat()
         report_data["tool"] = "eslint"
-        
+
+        # Ensure parent directory exists
+        self.output_file.parent.mkdir(parents=True, exist_ok=True)
+
         with open(self.output_file, 'w') as f:
             json.dump(report_data, f, indent=2, default=str)
     
