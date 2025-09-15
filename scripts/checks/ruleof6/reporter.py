@@ -76,7 +76,9 @@ class RuleOf6Reporter:
         
         # Define type order and display names
         type_order = [
-            (ViolationType.DIRECTORY_ITEMS, "📁 Too Many Files in Folders"),
+            (ViolationType.DIRECTORY_DOMAIN_FOLDERS, "📁 Too Many Folders in Directories"),
+            (ViolationType.DIRECTORY_DOMAIN_FILES, "📄 Too Many Files in Directories"),
+            (ViolationType.DIRECTORY_ITEMS, "📁 Too Many Items in Directories"),
             (ViolationType.FUNCTION_LINES, "📏 Too Many Lines in Functions"),
             (ViolationType.FILE_FUNCTIONS, "🔧 Too Many Functions in Files"),
             (ViolationType.FUNCTION_ARGS, "🔢 Too Many Function Arguments"),
@@ -91,9 +93,17 @@ class RuleOf6Reporter:
             violations = by_type[violation_type]
             
             # Sort violations based on type
-            if violation_type == ViolationType.DIRECTORY_ITEMS:
-                sorted_violations = sorted(violations, 
-                    key=lambda v: v.context.get('item_count', 0) if v.context else 0, 
+            if violation_type == ViolationType.DIRECTORY_DOMAIN_FOLDERS:
+                sorted_violations = sorted(violations,
+                    key=lambda v: v.context.get('domain_folder_count', 0) if v.context else 0,
+                    reverse=True)
+            elif violation_type == ViolationType.DIRECTORY_DOMAIN_FILES:
+                sorted_violations = sorted(violations,
+                    key=lambda v: v.context.get('domain_file_count', 0) if v.context else 0,
+                    reverse=True)
+            elif violation_type == ViolationType.DIRECTORY_ITEMS:
+                sorted_violations = sorted(violations,
+                    key=lambda v: v.context.get('item_count', 0) if v.context else 0,
                     reverse=True)
             elif violation_type == ViolationType.FILE_FUNCTIONS:
                 sorted_violations = sorted(violations,
@@ -122,7 +132,13 @@ class RuleOf6Reporter:
                 
                 # Format with count information
                 count_info = ""
-                if violation_type == ViolationType.DIRECTORY_ITEMS and violation.context:
+                if violation_type == ViolationType.DIRECTORY_DOMAIN_FOLDERS and violation.context:
+                    count = violation.context.get('domain_folder_count', 0)
+                    count_info = f" ({count} folders)"
+                elif violation_type == ViolationType.DIRECTORY_DOMAIN_FILES and violation.context:
+                    count = violation.context.get('domain_file_count', 0)
+                    count_info = f" ({count} files)"
+                elif violation_type == ViolationType.DIRECTORY_ITEMS and violation.context:
                     count = violation.context.get('item_count', 0)
                     count_info = f" ({count} items)"
                 elif violation_type == ViolationType.FILE_FUNCTIONS and violation.context:

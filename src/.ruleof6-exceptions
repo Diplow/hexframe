@@ -14,3 +14,7 @@ app/map/Chat/_state/_events/tile-event-transformers.ts:10 # Event transformation
 
 # Function argument exceptions
 app/map/Chat/_state/_selectors/widget-selectors.ts:_createDirectWidget:8 # Widget creation requires comprehensive configuration parameters
+
+# Directory exceptions (domain folder/file limits)
+.:8 # Root source directory requires multiple top-level domains: app, lib, server, styles, commons, test-utils, test, contexts
+src/lib/youtube/transcripts:10 # YouTube transcript storage organized by channel - each channel needs its own folder for transcript organization
