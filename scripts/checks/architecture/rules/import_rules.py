@@ -167,7 +167,7 @@ class ImportRuleChecker:
         """Check that domain utils imports go through index.ts, not specific files."""
         errors = []
         # print("Checking domain utils import patterns...")
-        
+
         for subsystem in subsystems:
             for file_info in subsystem.files:
                 for import_path in file_info.imports:
@@ -175,12 +175,29 @@ class ImportRuleChecker:
                     import re
                     specific_utils_pattern = r"~/lib/domains/[^/]+/utils/[^/]+$"
                     if re.match(specific_utils_pattern, import_path) and not import_path.endswith("/index"):
+                        # Skip if this is a utils/index.ts file importing from its own utils files
+                        # This allows utils/index.ts to aggregate exports from its own files
+                        if file_info.path.name == "index.ts" and file_info.path.parent.name == "utils":
+                            # Check if the import is from the same domain
+                            domain_match = re.match(r"~/lib/domains/([^/]+)/utils/.*", import_path)
+                            if domain_match:
+                                import_domain = domain_match.group(1)
+                                # Get the domain of the current file
+                                file_path_parts = file_info.path.parts
+                                if "domains" in file_path_parts:
+                                    domains_index = file_path_parts.index("domains")
+                                    if domains_index + 1 < len(file_path_parts):
+                                        current_domain = file_path_parts[domains_index + 1]
+                                        # If importing from same domain, allow it
+                                        if import_domain == current_domain:
+                                            continue
+
                         # Extract domain and suggest proper import
                         domain_match = re.match(r"~/lib/domains/([^/]+)/utils/.*", import_path)
                         if domain_match:
                             domain_name = domain_match.group(1)
                             proper_import = f"~/lib/domains/{domain_name}/utils"
-                            
+
                             error = ArchError.create_error(
                                 message=(f"❌ Direct utils file import in {subsystem.name}:\n"
                                        f"  🔸 {file_info.path.relative_to(subsystem.path)}\n"
