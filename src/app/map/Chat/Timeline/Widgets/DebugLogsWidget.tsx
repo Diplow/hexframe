@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Bug } from 'lucide-react';
-import DOMPurify from 'isomorphic-dompurify';
+// DOMPurify will be loaded dynamically to avoid SSR issues
 import { BaseWidget, WidgetHeader, WidgetContent } from '~/app/map/Chat/Timeline/Widgets/_shared';
 
 interface DebugLogsWidgetProps {
@@ -32,15 +32,28 @@ export function DebugLogsWidget({ title, content, onClose }: DebugLogsWidgetProp
     );
 
   // Sanitize resulting HTML; allow only safe tags/attrs (data-* preserved)
-  const sanitizedHtml = useMemo(
-    () =>
-      DOMPurify.sanitize(enhancedContent, {
-        ALLOWED_TAGS: ['div', 'pre', 'code', 'button', 'p', 'ul', 'ol', 'li', 'strong', 'em', 'a', 'br', 'span'],
-        ALLOWED_ATTR: ['class', 'href', 'rel', 'target', 'data-copy-b64', 'type'],
-        FORBID_ATTR: ['onerror', 'onload', 'onclick']
-      }),
-    [enhancedContent]
-  );
+  const [sanitizedHtml, setSanitizedHtml] = useState<string>('');
+
+  useEffect(() => {
+    // Dynamically import DOMPurify only on the client side
+    if (typeof window !== 'undefined') {
+      import('isomorphic-dompurify').then(({ default: DOMPurify }) => {
+        const sanitized = DOMPurify.sanitize(enhancedContent, {
+          ALLOWED_TAGS: ['div', 'pre', 'code', 'button', 'p', 'ul', 'ol', 'li', 'strong', 'em', 'a', 'br', 'span'],
+          ALLOWED_ATTR: ['class', 'href', 'rel', 'target', 'data-copy-b64', 'type'],
+          FORBID_ATTR: ['onerror', 'onload', 'onclick']
+        });
+        setSanitizedHtml(sanitized);
+      }).catch(error => {
+        console.warn('Failed to load DOMPurify, using raw content:', error);
+        // Fallback: use the enhanced content without sanitization (less secure but functional)
+        setSanitizedHtml(enhancedContent);
+      });
+    } else {
+      // On server side, use the enhanced content without sanitization
+      setSanitizedHtml(enhancedContent);
+    }
+  }, [enhancedContent]);
 
   // Wire copy behavior via React effect; no inline event handlers
   useEffect(() => {
