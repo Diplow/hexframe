@@ -10,7 +10,6 @@ export { LoginWidget } from '~/app/map/Chat/Timeline/Widgets/LoginWidget/login-w
 // Form Components
 export { FormActions } from '~/app/map/Chat/Timeline/Widgets/LoginWidget/FormActions';
 export { FormFields } from '~/app/map/Chat/Timeline/Widgets/LoginWidget/FormFields';
-export { FormHeader } from '~/app/map/Chat/Timeline/Widgets/LoginWidget/FormHeader';
 export { StatusMessages } from '~/app/map/Chat/Timeline/Widgets/LoginWidget/StatusMessages';
 
 // Form State Management

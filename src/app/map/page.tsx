@@ -1,5 +1,8 @@
 "use client";
 
+// Force dynamic rendering - this page should not be statically generated
+export const dynamic = 'force-dynamic';
+
 import { MapResolverProvider } from '~/app/map/MapResolver';
 import { MapCacheProvider } from '~/app/map/Cache';
 import { EventBusProvider, EventBus } from '~/app/map/Services';

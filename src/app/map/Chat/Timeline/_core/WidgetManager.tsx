@@ -62,6 +62,13 @@ export function WidgetManager({ widgets, focusChatInput: focusChatInputProp }: W
             focusChatInputFn();
           }
         };
+      case 'login':
+        return {
+          handleCancel: () => {
+            chatState.closeWidget(widget.id);
+            focusChatInputFn();
+          }
+        };
       default:
         return {};
     }
@@ -88,7 +95,7 @@ function _renderWidget(
     case 'preview':
       return renderPreviewWidget(widget, createWidgetHandlers(widget), getItem);
     case 'login':
-      return renderLoginWidget(widget);
+      return renderLoginWidget(widget, createWidgetHandlers(widget));
     case 'error':
       return renderErrorWidget(widget);
     case 'creation':

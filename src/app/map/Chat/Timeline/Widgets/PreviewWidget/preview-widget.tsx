@@ -1,9 +1,9 @@
 'use client';
 
-import { cn } from '~/lib/utils';
 import { PreviewHeader } from '~/app/map/Chat/Timeline/Widgets/PreviewWidget/PreviewHeader';
 import { ContentDisplay } from '~/app/map/Chat/Timeline/Widgets/PreviewWidget/ContentDisplay';
 import { usePreviewState } from '~/app/map/Chat/Timeline/Widgets/PreviewWidget/usePreviewState';
+import { BaseWidget } from '~/app/map/Chat/Timeline/Widgets/_shared';
 
 interface PreviewWidgetProps {
   tileId: string;
@@ -11,6 +11,7 @@ interface PreviewWidgetProps {
   content: string;
   forceExpanded?: boolean;
   openInEditMode?: boolean;
+  tileColor?: string;
   onEdit?: () => void;
   onDelete?: () => void;
   onSave?: (title: string, content: string) => void;
@@ -23,6 +24,7 @@ export function PreviewWidget({
   content,
   forceExpanded,
   openInEditMode,
+  tileColor,
   onEdit,
   onDelete,
   onSave,
@@ -85,13 +87,9 @@ export function PreviewWidget({
   };
 
   return (
-    <div 
-      data-testid="preview-widget" 
-      className={cn(
-        "flex flex-col flex-1 w-full my-2 bg-neutral-400/20 dark:bg-neutral-600/20",
-        "rounded-lg shadow-md",
-        "overflow-hidden relative"
-      )}
+    <BaseWidget
+      testId="preview-widget"
+      className="flex-1 w-full"
     >
       <PreviewHeader
         title={title}
@@ -99,6 +97,7 @@ export function PreviewWidget({
         isEditing={isEditing}
         editTitle={editTitle}
         hasContent={!!content}
+        tileColor={tileColor}
         onToggleExpansion={() => setIsExpanded(!isExpanded)}
         onTitleChange={setEditTitle}
         onTitleKeyDown={_handleTitleKeyDown}
@@ -108,7 +107,7 @@ export function PreviewWidget({
         onSave={_handleSave}
         onCancel={_handleCancel}
       />
-      
+
       <ContentDisplay
         content={content}
         editContent={editContent}
@@ -117,6 +116,6 @@ export function PreviewWidget({
         onContentChange={setEditContent}
         onContentKeyDown={_handleContentKeyDown}
       />
-    </div>
+    </BaseWidget>
   );
 }

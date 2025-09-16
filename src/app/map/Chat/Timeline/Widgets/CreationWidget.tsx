@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { Check, X } from 'lucide-react';
-import { cn } from '~/lib/utils';
 import { Button } from '~/components/ui/button';
 import { CoordSystem } from '~/lib/domains/mapping/utils';
 import { useMapCache } from '~/app/map/Cache';
+import { BaseWidget, WidgetHeader, WidgetContent, WidgetActions } from '~/app/map/Chat/Timeline/Widgets/_shared';
 
 interface CreationWidgetProps {
   coordId: string;
@@ -79,17 +79,10 @@ export function CreationWidget({ coordId, parentName, parentCoordId, onSave, onC
   };
 
   return (
-    <div 
-      data-testid="creation-widget" 
-      className={cn(
-        "flex flex-col flex-1 w-full bg-neutral-100 dark:bg-neutral-700",
-        "rounded-lg shadow-md",
-        "overflow-hidden relative"
-      )}
-    >
-      <div className="p-4 border-b border-neutral-200 dark:border-neutral-800">
-        <div className="flex items-center gap-2">
-          <h3 className="text-sm font-semibold flex-1">
+    <BaseWidget testId="creation-widget" className="w-full">
+      <WidgetHeader
+        title={
+          <span>
             Create {getDirection()} child of{' '}
             {parentName && parentCoordId ? (
               <button
@@ -105,10 +98,10 @@ export function CreationWidget({ coordId, parentName, parentCoordId, onSave, onC
             ) : (
               <span className="text-muted-foreground">parent</span>
             )}
-          </h3>
-          
-          {/* Actions */}
-          <div className="flex items-center gap-1 flex-shrink-0">
+          </span>
+        }
+        actions={
+          <WidgetActions>
             <Button
               variant="ghost"
               size="sm"
@@ -117,7 +110,7 @@ export function CreationWidget({ coordId, parentName, parentCoordId, onSave, onC
               onClick={handleSave}
               disabled={!name.trim()}
             >
-              <Check className="h-4 w-4 text-[color:var(--success-color-600)]" />
+              <Check className="h-4 w-4 text-success" />
             </Button>
             <Button
               variant="ghost"
@@ -126,13 +119,13 @@ export function CreationWidget({ coordId, parentName, parentCoordId, onSave, onC
               aria-label="Cancel"
               onClick={handleCancel}
             >
-              <X className="h-4 w-4 text-[color:var(--destructive-color-600)]" />
+              <X className="h-4 w-4 text-destructive" />
             </Button>
-          </div>
-        </div>
-      </div>
-      
-      <div className="p-4 space-y-4">
+          </WidgetActions>
+        }
+      />
+
+      <WidgetContent>
         <div>
           <label className="text-xs text-muted-foreground mb-1 block">
             Name *
@@ -142,12 +135,12 @@ export function CreationWidget({ coordId, parentName, parentCoordId, onSave, onC
             value={name}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={handleNameKeyDown}
-            className="w-full text-sm font-semibold bg-neutral-100 dark:bg-neutral-600 px-2 py-1 rounded border border-neutral-300 dark:border-neutral-500 focus:outline-none focus:ring-2 focus:ring-primary"
+            className="w-full text-sm font-semibold bg-background px-3 py-2 rounded-md border border-input focus:outline-none focus:ring-2 focus:ring-ring"
             placeholder="Enter tile name..."
             data-autofocus="true"
           />
         </div>
-        
+
         <div>
           <label className="text-xs text-muted-foreground mb-1 block">
             Description
@@ -156,17 +149,17 @@ export function CreationWidget({ coordId, parentName, parentCoordId, onSave, onC
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             onKeyDown={handleDescriptionKeyDown}
-            className="w-full min-h-[80px] p-2 text-sm bg-neutral-100 dark:bg-neutral-600 border border-neutral-300 dark:border-neutral-500 rounded focus:outline-none focus:ring-2 focus:ring-primary resize-y"
+            className="w-full min-h-[80px] p-3 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring resize-y"
             placeholder="Enter description... (optional)"
           />
         </div>
-        
-        <div className="text-xs text-muted-foreground">
-          <p>Press <kbd className="px-1 py-0.5 bg-neutral-200 dark:bg-neutral-600 rounded text-xs">Enter</kbd> in name field to move to description</p>
-          <p>Press <kbd className="px-1 py-0.5 bg-neutral-200 dark:bg-neutral-600 rounded text-xs">Ctrl+Enter</kbd> to save</p>
-          <p>Press <kbd className="px-1 py-0.5 bg-neutral-200 dark:bg-neutral-600 rounded text-xs">Esc</kbd> to cancel</p>
+
+        <div className="text-xs text-muted-foreground space-y-1">
+          <p>Press <kbd className="px-2 py-1 bg-muted rounded text-xs">Enter</kbd> in name field to move to description</p>
+          <p>Press <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl+Enter</kbd> to save</p>
+          <p>Press <kbd className="px-2 py-1 bg-muted rounded text-xs">Esc</kbd> to cancel</p>
         </div>
-      </div>
-    </div>
+      </WidgetContent>
+    </BaseWidget>
   );
 }

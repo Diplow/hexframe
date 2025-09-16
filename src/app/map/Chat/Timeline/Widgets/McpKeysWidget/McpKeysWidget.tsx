@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { Key } from 'lucide-react';
 import { KeyList } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/KeyList';
 import { KeyCreation } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/KeyCreation';
 import { useMcpKeys, type CreateKeyResult } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/useMcpKeys';
+import { BaseWidget, WidgetHeader, WidgetContent } from '~/app/map/Chat/Timeline/Widgets/_shared';
 
 interface McpKeysWidgetProps {
   onClose?: () => void;
@@ -12,6 +14,7 @@ interface McpKeysWidgetProps {
 export function McpKeysWidget({ onClose }: McpKeysWidgetProps) {
   const [view, setView] = useState<'list' | 'create'>('list');
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<CreateKeyResult | null>(null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const {
     keys,
     isLoading,
@@ -27,31 +30,20 @@ export function McpKeysWidget({ onClose }: McpKeysWidgetProps) {
   };
 
   return (
-    <div className="w-full">
-      <div className="bg-neutral-50 dark:bg-neutral-800/30 rounded-lg p-4 border-transparent relative">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">
-            MCP API Keys
-          </h3>
-          {onClose && (
-            <button
-              onClick={onClose}
-              className="p-1 text-secondary-400 hover:text-secondary-600 dark:hover:text-secondary-300"
-              aria-label="Close"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          )}
-        </div>
+    <BaseWidget className="w-full">
+      <WidgetHeader
+        icon={<Key className="h-5 w-5 text-primary" />}
+        title="MCP API Keys"
+        onClose={onClose}
+        collapsible={true}
+        isCollapsed={isCollapsed}
+        onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+      />
 
-
-        {/* Content */}
+      <WidgetContent isCollapsed={isCollapsed}>
         {view === 'list' && (
-          <KeyList 
-            keys={keys} 
+          <KeyList
+            keys={keys}
             isLoading={isLoading}
             onRevoke={revokeKey}
             onRefresh={refreshKeys}
@@ -68,8 +60,7 @@ export function McpKeysWidget({ onClose }: McpKeysWidgetProps) {
             onCreate={createKey}
           />
         )}
-
-      </div>
-    </div>
+      </WidgetContent>
+    </BaseWidget>
   );
 }

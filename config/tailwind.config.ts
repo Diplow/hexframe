@@ -307,6 +307,15 @@ export default {
     // Custom neutral background classes
     "bg-neutral-400/20",
     "dark:bg-neutral-600/20",
+    // Widget background classes
+    "bg-neutral-200/50",
+    "dark:bg-neutral-700/50",
+    "bg-neutral-200/40",
+    "dark:bg-neutral-600/40",
+    "bg-primary/8",
+    "dark:bg-primary/12",
+    "bg-destructive/8",
+    "dark:bg-destructive/12",
     // Prose typography fixes for dark mode
     "prose-headings:text-foreground",
     "dark:prose-headings:text-foreground",

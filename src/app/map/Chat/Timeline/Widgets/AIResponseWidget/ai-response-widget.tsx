@@ -4,6 +4,7 @@ import { loggers } from '~/lib/debug/debug-logger'
 import type { JobResult } from '~/lib/domains/agentic'
 import { Loader2, CheckCircle, XCircle, Clock, Cpu } from 'lucide-react'
 import { MarkdownRenderer } from '~/app/map/Chat/Timeline/_components/MarkdownRenderer'
+import { BaseWidget, WidgetHeader, WidgetContent } from '~/app/map/Chat/Timeline/Widgets/_shared'
 
 interface AIResponseWidgetProps {
   jobId?: string
@@ -126,50 +127,40 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
   // Direct response (no job)
   if (status === 'direct') {
     return (
-      <div className="w-full p-4 rounded-lg bg-primary/5 dark:bg-primary/10">
-        <div className="text-sm">
-          <div className="flex items-center gap-1 mb-1">
-            <span className="font-medium">
-              <span className="font-bold text-primary">HexFrame</span>
-            </span>
-            <span className="text-muted-foreground">-</span>
-            <span className="text-xs text-muted-foreground">
-              {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
-            </span>
-          </div>
+      <BaseWidget variant="primary" className="w-full">
+        <WidgetHeader
+          title="HexFrame"
+          subtitle={new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+        />
+        <WidgetContent>
           <div className="prose dark:prose-invert max-w-none">
-            <MarkdownRenderer 
-              content={response || 'Processing...'} 
+            <MarkdownRenderer
+              content={response || 'Processing...'}
               isSystemMessage={false}
             />
           </div>
           {model && (
-            <div className="mt-2 text-xs text-muted-foreground">
+            <div className="text-xs text-muted-foreground">
               Model: {model}
             </div>
           )}
-        </div>
-      </div>
+        </WidgetContent>
+      </BaseWidget>
     )
   }
 
   // Pending state (queued) - using muted colors
   if (status === 'pending') {
     return (
-      <div className="w-full p-4 rounded-lg bg-primary/5 dark:bg-primary/10">
-        <div className="text-sm">
-          <div className="flex items-center gap-1 mb-1">
-            <span className="font-medium">
-              <span className="font-bold text-primary">HexFrame</span>
-            </span>
-            <span className="text-muted-foreground">-</span>
-            <span className="text-xs text-muted-foreground">
-              {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
-            </span>
-          </div>
-          <div className="flex items-center gap-3 mt-2">
-            <Clock className="w-5 h-5 text-muted-foreground animate-pulse" />
-            <div className="flex-1">
+      <BaseWidget variant="primary" className="w-full">
+        <WidgetHeader
+          icon={<Clock className="w-5 h-5 text-muted-foreground animate-pulse" />}
+          title="HexFrame"
+          subtitle={new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+        />
+        <WidgetContent>
+          <div className="flex items-center justify-between">
+            <div>
               <div className="font-medium text-foreground">
                 Request Queued
               </div>
@@ -186,135 +177,109 @@ export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWi
               {elapsedTime}s
             </div>
           </div>
-        </div>
-      </div>
+        </WidgetContent>
+      </BaseWidget>
     )
   }
 
   // Processing state (thinking) - using primary colors
   if (status === 'processing') {
     return (
-      <div className="w-full p-4 rounded-lg bg-primary/5 dark:bg-primary/10">
-        <div className="text-sm">
-          <div className="flex items-center gap-1 mb-1">
-            <span className="font-medium">
-              <span className="font-bold text-primary">HexFrame</span>
-            </span>
-            <span className="text-muted-foreground">-</span>
-            <span className="text-xs text-muted-foreground">
-              {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
-            </span>
-          </div>
-          <div className="flex items-center gap-3 mt-2">
-            <Cpu className="w-5 h-5 text-primary dark:text-primary-light animate-spin" />
+      <BaseWidget variant="primary" className="w-full">
+        <WidgetHeader
+          icon={<Cpu className="w-5 h-5 text-primary animate-spin" />}
+          title="HexFrame"
+          subtitle={new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+        />
+        <WidgetContent>
+          <div className="flex items-center justify-between">
             <div className="flex-1">
-              <div className="font-medium text-primary-dark dark:text-primary-light">
+              <div className="font-medium text-primary">
                 Processing with AI
               </div>
-              <div className="text-sm text-primary dark:text-primary-light/80">
+              <div className="text-sm text-muted-foreground">
                 {model ?? 'AI model'} is thinking...
               </div>
               <div className="mt-2">
-                <div className="h-1.5 bg-primary/20 dark:bg-primary/30 rounded-full overflow-hidden">
-                  <div className="h-full bg-primary dark:bg-primary-light animate-progress" />
+                <div className="h-1.5 bg-primary/20 rounded-full overflow-hidden">
+                  <div className="h-full bg-primary animate-progress" />
                 </div>
               </div>
             </div>
-            <div className="text-sm text-primary dark:text-primary-light">
+            <div className="text-sm text-primary">
               {elapsedTime}s
             </div>
           </div>
-        </div>
-      </div>
+        </WidgetContent>
+      </BaseWidget>
     )
   }
 
   // Completed state (success) - keeps the message visible
   if (status === 'completed') {
     return (
-      <div className="w-full p-4 rounded-lg bg-primary/5 dark:bg-primary/10">
-        <div className="text-sm">
-          <div className="flex items-center gap-1 mb-1">
-            <span className="font-medium">
-              <span className="font-bold text-primary">HexFrame</span>
-            </span>
-            <span className="text-muted-foreground">-</span>
-            <span className="text-xs text-muted-foreground">
-              {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
-            </span>
-          </div>
+      <BaseWidget variant="success" className="w-full">
+        <WidgetHeader
+          icon={<CheckCircle className="w-5 h-5 text-success" />}
+          title="HexFrame"
+          subtitle={new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+        />
+        <WidgetContent>
           <div className="prose dark:prose-invert max-w-none">
-            <MarkdownRenderer 
-              content={response || 'No response content'} 
+            <MarkdownRenderer
+              content={response || 'No response content'}
               isSystemMessage={false}
             />
           </div>
-          <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <CheckCircle className="w-3 h-3 text-success" />
-              <span>Completed</span>
-            </div>
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <span>Completed</span>
             {model && <span>Model: {model}</span>}
             {elapsedTime > 0 && <span>Time: {elapsedTime}s</span>}
           </div>
-        </div>
-      </div>
+        </WidgetContent>
+      </BaseWidget>
     )
   }
 
   // Failed state (error) - using destructive colors
   if (status === 'failed') {
     return (
-      <div className="w-full p-4 rounded-lg bg-primary/5 dark:bg-primary/10">
-        <div className="text-sm">
-          <div className="flex items-center gap-1 mb-1">
-            <span className="font-medium">
-              <span className="font-bold text-primary">HexFrame</span>
-            </span>
-            <span className="text-muted-foreground">-</span>
-            <span className="text-xs text-muted-foreground">
-              {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
-            </span>
-          </div>
-          <div className="flex items-center gap-3 mt-2">
-            <XCircle className="w-5 h-5 text-destructive dark:text-destructive-light" />
-            <div className="flex-1">
-              <div className="font-medium text-destructive-dark dark:text-destructive-light">
-                Request Failed
-              </div>
-              <div className="text-sm text-destructive dark:text-destructive-light/80">
-                {error ?? 'An error occurred while processing your request'}
-              </div>
-              {jobId && (
-                <div className="text-xs text-destructive dark:text-destructive-light mt-1">
-                  Job ID: {jobId}
-                </div>
-              )}
+      <BaseWidget variant="destructive" className="w-full">
+        <WidgetHeader
+          icon={<XCircle className="w-5 h-5 text-destructive" />}
+          title="HexFrame"
+          subtitle={new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+        />
+        <WidgetContent>
+          <div>
+            <div className="font-medium text-destructive">
+              Request Failed
             </div>
+            <div className="text-sm text-muted-foreground">
+              {error ?? 'An error occurred while processing your request'}
+            </div>
+            {jobId && (
+              <div className="text-xs text-muted-foreground mt-1">
+                Job ID: {jobId}
+              </div>
+            )}
           </div>
-        </div>
-      </div>
+        </WidgetContent>
+      </BaseWidget>
     )
   }
 
   // Loading initial state
   return (
-    <div className="w-full p-4 rounded-lg bg-muted/30">
-      <div className="text-sm">
-        <div className="flex items-center gap-1 mb-1">
-          <span className="font-medium">
-            <span className="font-bold text-primary-light">HexFrame</span>
-          </span>
-          <span className="text-muted-foreground">-</span>
-          <span className="text-xs text-muted-foreground">
-            {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-          <span className="text-muted-foreground">Loading...</span>
-        </div>
-      </div>
-    </div>
+    <BaseWidget className="w-full">
+      <WidgetHeader
+        icon={<Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />}
+        title="HexFrame"
+        subtitle={new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+      />
+      <WidgetContent>
+        <span className="text-muted-foreground">Loading...</span>
+      </WidgetContent>
+    </BaseWidget>
   )
 }
