@@ -73,12 +73,16 @@ class TypeScriptParser:
             'instanceof', 'in', 'new', 'delete', 'void', 'yield', 'await'
         }
         
-        # Function declaration patterns
+        # Function declaration patterns - more precise to avoid false positives
         self.function_patterns = [
-            r'(?:export\s+)?(?:async\s+)?function\s+(\w+)\s*\(([^)]*)\)',  # function declarations
-            r'(?:export\s+)?const\s+(\w+)\s*=\s*(?:async\s*)?\(([^)]*)\)\s*=>',  # arrow functions
-            r'(\w+)\s*:\s*(?:async\s*)?\(([^)]*)\)\s*=>',  # object method arrow functions
-            r'(?:public\s+|private\s+|protected\s+)?(?:static\s+)?(?:async\s+)?(\w+)\s*\(([^)]*)\)\s*\{',  # class methods
+            # Function declarations: export function name() or function name()
+            r'^\s*(?:export\s+)?(?:async\s+)?function\s+(\w+)\s*\(',
+            # Arrow functions: const name = () => or export const name = () =>
+            r'^\s*(?:export\s+)?const\s+(\w+)\s*=\s*(?:async\s*)?\(',
+            # Object method arrow functions: methodName: () => (at start of line or after {)
+            r'^\s*(\w+)\s*:\s*(?:async\s*)?\(',
+            # Class methods: public/private/static methodName()
+            r'^\s*(?:public\s+|private\s+|protected\s+)?(?:static\s+)?(?:async\s+)?(\w+)\s*\(',
         ]
 
     def extract_imports(self, content: str, file_path: Path) -> List[Import]:
@@ -662,26 +666,28 @@ class TypeScriptParser:
             
             if function_match:
                 func_name = function_match.group(1)
-                args_str = function_match.group(2) if len(function_match.groups()) > 1 else ""
-                
-                # Skip object properties and interface method signatures
-                # Pattern 2 (r'(\w+)\s*:\s*(?:async\s*)?\(([^)]*)\)\s*=>') matches:
-                # - Interface method signatures (which we want to skip)
-                # - Object property functions (which we want to skip if they're just property definitions)
-                if matched_pattern_idx == 2:  # object method arrow functions pattern
-                    # Check if this is just a property definition (ends with semicolon or is part of type definition)
-                    if line.endswith(';') or line.endswith(',') or '=>' not in line:
+                # Extract arguments by finding the complete parameter list from the opening parenthesis
+                args_str = self._extract_function_parameters(lines, i, function_match.start(1) if hasattr(function_match, 'start') else 0)
+
+                # Skip obvious function calls (not declarations)
+                # Pattern 1: function declarations should have 'function' keyword
+                # Pattern 2: const assignments should have '=' and either '=>' or 'function'
+                # Pattern 3: object methods should have ':' and '=>'
+                if matched_pattern_idx == 1:  # const name = () => pattern
+                    # Ensure this is actually a function assignment, not a function call
+                    if '=' not in line or ('=' in line and '=>' not in line and 'function' not in line):
                         i += 1
                         continue
-                    
-                    # Check if this is an object property in a return statement or object literal
-                    # These are not standalone functions
-                    if ':' in line and not line.strip().startswith('const ') and not line.strip().startswith('let '):
-                        # Look for context - if we're in an object literal, skip this
-                        context_lines = '\n'.join(lines[max(0, i-5):i+1])
-                        if 'return {' in context_lines or re.search(r'=\s*\{[^}]*$', context_lines, re.MULTILINE):
-                            i += 1
-                            continue
+                elif matched_pattern_idx == 2:  # object method pattern
+                    # Skip if this doesn't have '=>' (likely a method call, not declaration)
+                    if '=>' not in line:
+                        i += 1
+                        continue
+                elif matched_pattern_idx == 3:  # class method pattern
+                    # Skip if this line doesn't have '{' (likely a method call, not declaration)
+                    if '{' not in line:
+                        i += 1
+                        continue
                 
                 # Count arguments
                 arg_count = self._count_arguments(args_str)
@@ -821,54 +827,142 @@ class TypeScriptParser:
         
         return function_names
 
+    def _extract_function_parameters(self, lines: List[str], start_line_idx: int, name_start_pos: int = 0) -> str:
+        """Extract function parameters from opening parenthesis to closing parenthesis."""
+        # Find the opening parenthesis
+        start_line = lines[start_line_idx]
+        paren_pos = start_line.find('(', name_start_pos)
+        if paren_pos == -1:
+            return ""
+
+        # Start collecting parameters from the opening parenthesis
+        paren_count = 0
+        params = ""
+
+        for i in range(start_line_idx, len(lines)):
+            line = lines[i]
+
+            # Start from the opening parenthesis position on the first line
+            start_pos = paren_pos if i == start_line_idx else 0
+            line_part = line[start_pos:]
+
+            for char in line_part:
+                if char == '(':
+                    paren_count += 1
+                elif char == ')':
+                    paren_count -= 1
+                    if paren_count == 0:
+                        # Found the closing parenthesis, return the collected parameters
+                        return params.strip()
+
+                # Only collect characters inside the parentheses (not the parentheses themselves)
+                if paren_count > 0 and char != '(':
+                    params += char
+
+            # Add newline if we're continuing to the next line
+            if paren_count > 0 and i < len(lines) - 1:
+                params += '\n'
+
+        return params.strip()
+
+    def _count_braces_outside_strings(self, line: str) -> int:
+        """Count { and } braces while ignoring those inside string literals."""
+        brace_count = 0
+        in_single_quote = False
+        in_double_quote = False
+        in_template_literal = False
+        i = 0
+
+        while i < len(line):
+            char = line[i]
+
+            # Handle escape sequences
+            if char == '\\' and i + 1 < len(line):
+                i += 2  # Skip the escaped character
+                continue
+
+            # Handle string delimiters
+            if char == "'" and not in_double_quote and not in_template_literal:
+                in_single_quote = not in_single_quote
+            elif char == '"' and not in_single_quote and not in_template_literal:
+                in_double_quote = not in_double_quote
+            elif char == '`' and not in_single_quote and not in_double_quote:
+                in_template_literal = not in_template_literal
+
+            # Count braces only if we're not inside any string
+            elif not in_single_quote and not in_double_quote and not in_template_literal:
+                if char == '{':
+                    brace_count += 1
+                elif char == '}':
+                    brace_count -= 1
+
+            i += 1
+
+        return brace_count
+
     def _find_function_boundaries(self, lines: List[str], start_line_idx: int, pattern_idx: int = None) -> tuple[int, int]:
         """Find the start and end line numbers of a function."""
         line_start = start_line_idx + 1  # Convert to 1-indexed
-        
+
         # Handle arrow functions differently
         if pattern_idx == 1:  # const foo = () => pattern
             # For arrow functions, look for the end of the statement
-            paren_count = 0
             brace_count = 0
             found_arrow = False
-            
+            arrow_has_braces = False
+
             for i in range(start_line_idx, len(lines)):
                 line = lines[i]
-                
+
                 if '=>' in line:
                     found_arrow = True
-                
-                if found_arrow:
-                    # If it's an arrow function with braces
+                    # Check if this arrow function uses braces
                     if '{' in line:
+                        arrow_has_braces = True
+
+                if found_arrow:
+                    if arrow_has_braces:
+                        # Count braces for multi-line arrow functions
                         brace_count += line.count('{')
                         brace_count -= line.count('}')
-                        
-                        if brace_count == 0:
+
+                        if brace_count == 0 and i > start_line_idx:  # Make sure we've moved past the start
                             return line_start, i + 1
-                    
-                    # If it's a single-expression arrow function (no braces)
-                    elif brace_count == 0 and (line.rstrip().endswith(';') or line.rstrip().endswith(',') or i == len(lines) - 1):
-                        return line_start, i + 1
-            
+                    else:
+                        # Single-expression arrow function (no braces)
+                        if (line.rstrip().endswith(';') or
+                            line.rstrip().endswith(',') or
+                            i == len(lines) - 1 or
+                            # Check if next line starts a new statement
+                            (i + 1 < len(lines) and lines[i + 1].strip() and
+                             not lines[i + 1].strip().startswith('.') and
+                             not lines[i + 1].strip().startswith(')'))):
+                            return line_start, i + 1
+
             return line_start, line_start
-        
+
         # For regular functions and methods
         brace_count = 0
         found_opening = False
-        
+
         for i in range(start_line_idx, len(lines)):
             line = lines[i]
-            
-            if not found_opening and '{' in line:
+
+            # Skip comments and empty lines when looking for braces
+            if line.strip().startswith('//') or line.strip().startswith('/*') or not line.strip():
+                continue
+
+            # Count braces while ignoring those inside strings
+            line_brace_count = self._count_braces_outside_strings(line)
+            brace_count += line_brace_count
+
+            # Mark that we found the opening brace
+            if not found_opening and line_brace_count > 0:
                 found_opening = True
-            
-            if found_opening:
-                brace_count += line.count('{')
-                brace_count -= line.count('}')
-                
-                if brace_count == 0:
-                    return line_start, i + 1  # Convert to 1-indexed
-        
+
+            # If we've found an opening brace and the count is back to 0, we're done
+            if found_opening and brace_count == 0:
+                return line_start, i + 1  # Convert to 1-indexed
+
         # If we can't find the end, return just the start line
         return line_start, line_start

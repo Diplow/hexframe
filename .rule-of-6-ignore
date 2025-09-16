@@ -67,6 +67,4 @@ src/server/db/migrations/**
 **/deprecated/**
 
 # Specific Hexframe exceptions based on current structure
-src/app/map/Chat/Timeline/Widgets/**
-src/app/map/Chat/Timeline/**
 src/app/map/Services/**
