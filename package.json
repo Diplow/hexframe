@@ -117,7 +117,7 @@
     "drizzle-kit": "^0.24.0",
     "esbuild": "^0.25.7",
     "eslint": "^9.35.0",
-    "eslint-config-next": "^15.3.3",
+    "eslint-config-next": "^15.5.3",
     "eslint-import-resolver-alias": "^1.1.2",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-drizzle": "^0.2.3",
