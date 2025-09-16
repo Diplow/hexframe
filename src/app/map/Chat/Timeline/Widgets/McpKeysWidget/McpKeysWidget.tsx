@@ -14,6 +14,7 @@ interface McpKeysWidgetProps {
 export function McpKeysWidget({ onClose }: McpKeysWidgetProps) {
   const [view, setView] = useState<'list' | 'create'>('list');
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<CreateKeyResult | null>(null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const {
     keys,
     isLoading,
@@ -34,9 +35,12 @@ export function McpKeysWidget({ onClose }: McpKeysWidgetProps) {
         icon={<Key className="h-5 w-5 text-primary" />}
         title="MCP API Keys"
         onClose={onClose}
+        collapsible={true}
+        isCollapsed={isCollapsed}
+        onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
       />
 
-      <WidgetContent>
+      <WidgetContent isCollapsed={isCollapsed}>
         {view === 'list' && (
           <KeyList
             keys={keys}

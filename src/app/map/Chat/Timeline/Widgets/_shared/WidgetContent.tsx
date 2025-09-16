@@ -7,6 +7,7 @@ interface WidgetContentProps {
   className?: string;
   padding?: 'none' | 'sm' | 'md' | 'lg';
   actions?: React.ReactNode;
+  isCollapsed?: boolean;
 }
 
 const paddingStyles = {
@@ -21,7 +22,12 @@ export function WidgetContent({
   className,
   padding = 'md',
   actions,
+  isCollapsed = false,
 }: WidgetContentProps) {
+  if (isCollapsed) {
+    return null;
+  }
+
   return (
     <div className={cn('flex-1', paddingStyles[padding], className)}>
       <div className="space-y-4">

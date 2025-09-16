@@ -87,7 +87,7 @@ export function PreviewWidget({
   return (
     <BaseWidget
       testId="preview-widget"
-      className="flex-1 w-full my-2"
+      className="flex-1 w-full"
     >
       <PreviewHeader
         title={title}

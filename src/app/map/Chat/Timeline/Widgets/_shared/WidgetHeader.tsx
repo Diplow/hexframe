@@ -1,8 +1,9 @@
 'use client';
 
-import { X } from 'lucide-react';
+import { X, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { cn } from '~/lib/utils';
+import { HexagonIcon } from '~/app/map/Chat/Timeline/Widgets/_shared/HexagonIcon';
 
 interface WidgetHeaderProps {
   icon?: React.ReactNode;
@@ -11,6 +12,9 @@ interface WidgetHeaderProps {
   onClose?: () => void;
   actions?: React.ReactNode;
   className?: string;
+  collapsible?: boolean;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 export function WidgetHeader({
@@ -20,12 +24,29 @@ export function WidgetHeader({
   onClose,
   actions,
   className,
+  collapsible = false,
+  isCollapsed = false,
+  onToggleCollapse,
 }: WidgetHeaderProps) {
-  return (
-    <div className={cn('flex items-center gap-3 p-3 border-b border-border', className)}>
-      {icon && (
+  const headerContent = (
+    <>
+      {collapsible && (
+        <div className="flex-shrink-0">
+          {isCollapsed ? (
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          )}
+        </div>
+      )}
+
+      {icon ? (
         <div className="flex-shrink-0">
           {icon}
+        </div>
+      ) : (
+        <div className="flex-shrink-0">
+          <HexagonIcon className="h-4 w-4 text-muted-foreground" />
         </div>
       )}
 
@@ -57,6 +78,26 @@ export function WidgetHeader({
           <X className="h-4 w-4" />
         </Button>
       )}
+    </>
+  );
+
+  if (collapsible && onToggleCollapse) {
+    return (
+      <button
+        onClick={onToggleCollapse}
+        className={cn(
+          'flex items-center gap-3 p-3 border-b border-border w-full text-left hover:bg-muted/50 transition-colors',
+          className
+        )}
+      >
+        {headerContent}
+      </button>
+    );
+  }
+
+  return (
+    <div className={cn('flex items-center gap-3 p-3 border-b border-border', className)}>
+      {headerContent}
     </div>
   );
 }

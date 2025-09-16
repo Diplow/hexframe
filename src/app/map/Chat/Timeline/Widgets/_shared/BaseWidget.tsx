@@ -7,14 +7,21 @@ interface BaseWidgetProps {
   variant?: 'default' | 'primary' | 'destructive' | 'success' | 'info';
   className?: string;
   testId?: string;
+  spacing?: 'default' | 'compact' | 'loose';
 }
 
 const variantStyles = {
-  default: 'bg-card border-border',
-  primary: 'bg-primary/5 border-primary/20 dark:bg-primary/10',
-  destructive: 'bg-destructive/5 border-destructive/20 dark:bg-destructive/10',
-  success: 'bg-success/5 border-success/20 dark:bg-success/10',
-  info: 'bg-secondary/5 border-secondary/20 dark:bg-secondary/10',
+  default: 'bg-card border-transparent',
+  primary: 'bg-primary/5 border-transparent dark:bg-primary/10',
+  destructive: 'bg-destructive/5 border-transparent dark:bg-destructive/10',
+  success: 'bg-success/5 border-transparent dark:bg-success/10',
+  info: 'bg-secondary/5 border-transparent dark:bg-secondary/10',
+};
+
+const spacingStyles = {
+  default: 'my-2',
+  compact: 'my-1',
+  loose: 'my-4',
 };
 
 export function BaseWidget({
@@ -22,6 +29,7 @@ export function BaseWidget({
   variant = 'default',
   className,
   testId,
+  spacing = 'default',
 }: BaseWidgetProps) {
   return (
     <div
@@ -29,6 +37,7 @@ export function BaseWidget({
       className={cn(
         'flex flex-col w-full rounded-lg border shadow-sm overflow-hidden',
         variantStyles[variant],
+        spacingStyles[spacing],
         className
       )}
     >

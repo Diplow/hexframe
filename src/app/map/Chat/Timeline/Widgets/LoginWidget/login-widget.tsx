@@ -1,17 +1,19 @@
 'use client';
 
-import { FormHeader } from '~/app/map/Chat/Timeline/Widgets/LoginWidget/FormHeader';
+import { useState } from 'react';
+import { User } from 'lucide-react';
 import { FormFields } from '~/app/map/Chat/Timeline/Widgets/LoginWidget/FormFields';
 import { StatusMessages } from '~/app/map/Chat/Timeline/Widgets/LoginWidget/StatusMessages';
 import { FormActions } from '~/app/map/Chat/Timeline/Widgets/LoginWidget/FormActions';
 import { useLoginForm } from '~/app/map/Chat/Timeline/Widgets/LoginWidget/useLoginForm';
-import { BaseWidget, WidgetContent } from '~/app/map/Chat/Timeline/Widgets/_shared';
+import { BaseWidget, WidgetHeader, WidgetContent } from '~/app/map/Chat/Timeline/Widgets/_shared';
 
 interface LoginWidgetProps {
   message?: string;
 }
 
 export function LoginWidget({ message }: LoginWidgetProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const {
     mode,
     setMode,
@@ -29,16 +31,29 @@ export function LoginWidget({ message }: LoginWidgetProps) {
   } = useLoginForm();
 
   return (
-    <BaseWidget variant="info" className="w-full max-w-sm mx-auto">
-      <WidgetContent>
-        <FormHeader
-          mode={mode}
-          message={message}
-          isLoading={isLoading}
-          onModeToggle={() => setMode(mode === 'login' ? 'register' : 'login')}
-        />
+    <BaseWidget className="w-full">
+      <WidgetHeader
+        icon={<User className="h-5 w-5 text-primary" />}
+        title={mode === 'login' ? 'Sign In' : 'Create Account'}
+        subtitle={message}
+        collapsible={true}
+        isCollapsed={isCollapsed}
+        onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+      />
 
-        <form onSubmit={handleSubmit} className="space-y-3">
+      <WidgetContent isCollapsed={isCollapsed}>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex items-center justify-between mb-4">
+            <button
+              type="button"
+              onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
+              className="text-sm text-primary hover:underline"
+              disabled={isLoading}
+            >
+              {mode === 'login' ? 'Need an account? Sign up' : 'Have an account? Sign in'}
+            </button>
+          </div>
+
           <FormFields
             mode={mode}
             values={{ username, email, password }}
@@ -52,11 +67,13 @@ export function LoginWidget({ message }: LoginWidgetProps) {
 
           <StatusMessages error={error} success={success} />
 
-          <FormActions
-            mode={mode}
-            isLoading={isLoading}
-            onCancel={handleCancel}
-          />
+          <div className="flex justify-end">
+            <FormActions
+              mode={mode}
+              isLoading={isLoading}
+              onCancel={handleCancel}
+            />
+          </div>
         </form>
       </WidgetContent>
     </BaseWidget>
