@@ -1,17 +1,20 @@
 'use client';
 
 import { BaseTileLayout } from '~/app/map/Canvas';
+import type { TileCursor } from '~/app/map/Canvas/Tile';
 
 interface TilePreviewProps {
   tileColor?: string;
   size?: number;
   className?: string;
+  cursor?: TileCursor;
 }
 
 export function TilePreview({
   tileColor,
   size = 10,
-  className
+  className,
+  cursor = "cursor-pointer"
 }: TilePreviewProps) {
   return (
     <div className={className}>
@@ -21,7 +24,7 @@ export function TilePreview({
         color={tileColor}
         stroke={{ color: "transparent" as const, width: 0 }}
         baseHexSize={size}
-        cursor="cursor-pointer"
+        cursor={cursor}
       />
     </div>
   );

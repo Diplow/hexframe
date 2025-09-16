@@ -43,7 +43,7 @@ export function PreviewHeader({
   const isTogglable = hasContent && !isEditing;
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if ((e.key === 'Enter' || e.key === ' ') && isTogglable) {
+    if ((e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') && isTogglable) {
       e.preventDefault();
       onToggleExpansion();
     }
@@ -61,6 +61,7 @@ export function PreviewHeader({
       role={isTogglable ? "button" : undefined}
       tabIndex={isTogglable ? 0 : -1}
       aria-expanded={isTogglable ? isExpanded : undefined}
+      aria-controls={isTogglable ? "preview-content" : undefined}
       aria-disabled={!isTogglable}
       onClick={() => isTogglable && onToggleExpansion()}
       onKeyDown={handleKeyDown}
@@ -70,6 +71,7 @@ export function PreviewHeader({
         tileColor={tileColor}
         size={10}
         className="flex-shrink-0"
+        cursor={isTogglable ? "cursor-pointer" : undefined}
       />
 
       {/* Title or edit input */}

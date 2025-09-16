@@ -1,10 +1,6 @@
 import { debugLogger } from '~/lib/debug/debug-logger';
-import { toBase64 } from '~/app/map/Chat/Input/_commands/debug/debug-utils';
-
-interface Command {
-  description: string;
-  action?: () => string;
-}
+import { toBase64, stripTimestamp } from '~/app/map/Chat/Input/_commands/debug/debug-utils';
+import type { Command } from '~/app/map/Chat/Input/_commands';
 
 export const debugCommands: Record<string, Command> = {
   '/debug': {
@@ -17,10 +13,7 @@ export const debugCommands: Record<string, Command> = {
       }
 
       // Remove timestamps from individual log lines since we'll show timestamp in the header
-      const cleanLogs = logs.map(log => {
-        // Remove timestamp pattern like "2:55:56 PM [DEBUG]..."
-        return log.replace(/^\d{1,2}:\d{2}:\d{2}\s+[AP]M\s+/, '');
-      });
+      const cleanLogs = logs.map(stripTimestamp);
 
       const logContent = cleanLogs.join('\n');
 

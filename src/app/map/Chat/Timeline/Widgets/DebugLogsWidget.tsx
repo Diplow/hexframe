@@ -1,9 +1,10 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Bug, Copy, X } from 'lucide-react';
 import { BaseWidget, WidgetHeader, WidgetContent } from '~/app/map/Chat/Timeline/Widgets/_shared';
 import { debugLogger } from '~/lib/debug/debug-logger';
+import { stripTimestamp } from '~/app/map/Chat/Input/_commands/debug/debug-utils';
 
 interface DebugLogsWidgetProps {
   title: string;
@@ -19,6 +20,7 @@ interface Filter {
 
 export function DebugLogsWidget({ title, content, onClose }: DebugLogsWidgetProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [logVersion, setLogVersion] = useState(0); // Force re-render when logs change
   const [mode, setMode] = useState<'full' | 'succinct'>('full');
   const [showAll, setShowAll] = useState(false);
   const [filters, setFilters] = useState<Filter[]>([]);
@@ -26,6 +28,15 @@ export function DebugLogsWidget({ title, content, onClose }: DebugLogsWidgetProp
 
   // Check if this is an interactive debug widget (has INTERACTIVE_CONTROLS)
   const isInteractive = content.includes('{{INTERACTIVE_CONTROLS:');
+
+  // Subscribe to log updates - CRITICAL: Keep this callback minimal to avoid infinite loops
+  useEffect(() => {
+    const unsubscribe = debugLogger.subscribe(() => {
+      // Only increment version, no other operations that could trigger logging
+      setLogVersion(v => v + 1);
+    });
+    return unsubscribe;
+  }, []);
 
   // Generate current logs based on state
   const getCurrentLogs = useCallback(() => {
@@ -35,9 +46,7 @@ export function DebugLogsWidget({ title, content, onClose }: DebugLogsWidgetProp
     }
 
     // Remove timestamps from individual log lines
-    let cleanLogs = logs.map(log => {
-      return log.replace(/^\d{1,2}:\d{2}:\d{2}\s+[AP]M\s+/, '');
-    });
+    let cleanLogs = logs.map(stripTimestamp);
 
 
     // Apply custom filters
@@ -58,14 +67,18 @@ export function DebugLogsWidget({ title, content, onClose }: DebugLogsWidgetProp
     });
 
     return cleanLogs.join('\n');
-  }, [mode, showAll, filters]);
+    // logVersion is intentionally included to trigger re-renders when logs change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, showAll, filters, logVersion]);
 
-  // Handle copy to clipboard
+  // Handle copy to clipboard - avoid logging copy operations to prevent infinite loops
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(getCurrentLogs());
+      // Intentionally not logging copy success to avoid infinite loops
     } catch (e) {
-      console.error('Copy failed', e);
+      // Using console.error instead of debugLogger to avoid loops
+      console.error('DebugLogsWidget copy failed:', e);
     }
   };
 
@@ -177,6 +190,7 @@ export function DebugLogsWidget({ title, content, onClose }: DebugLogsWidgetProp
               <button
                 type="button"
                 onClick={handleCopy}
+                aria-label="Copy current logs to clipboard"
                 className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
               >
                 <Copy className="h-4 w-4" />
