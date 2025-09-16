@@ -5,6 +5,7 @@ import { FormFields } from '~/app/map/Chat/Timeline/Widgets/LoginWidget/FormFiel
 import { StatusMessages } from '~/app/map/Chat/Timeline/Widgets/LoginWidget/StatusMessages';
 import { FormActions } from '~/app/map/Chat/Timeline/Widgets/LoginWidget/FormActions';
 import { useLoginForm } from '~/app/map/Chat/Timeline/Widgets/LoginWidget/useLoginForm';
+import { BaseWidget, WidgetContent } from '~/app/map/Chat/Timeline/Widgets/_shared';
 
 interface LoginWidgetProps {
   message?: string;
@@ -28,8 +29,8 @@ export function LoginWidget({ message }: LoginWidgetProps) {
   } = useLoginForm();
 
   return (
-    <div className="w-full max-w-sm mx-auto">
-      <div className="bg-secondary-50 dark:bg-secondary-900/20 rounded-lg p-4 border border-secondary-200 dark:border-secondary-800 relative">
+    <BaseWidget variant="info" className="w-full max-w-sm mx-auto">
+      <WidgetContent>
         <FormHeader
           mode={mode}
           message={message}
@@ -57,7 +58,7 @@ export function LoginWidget({ message }: LoginWidgetProps) {
             onCancel={handleCancel}
           />
         </form>
-      </div>
-    </div>
+      </WidgetContent>
+    </BaseWidget>
   );
 }
