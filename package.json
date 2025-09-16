@@ -29,6 +29,7 @@
     "check:lint:verbose": "python3 scripts/checks/lint/main.py --verbose",
     "check:lint:errors": "python3 scripts/checks/lint/main.py --errors-only",
     "check:quality": "pnpm check:deadcode && pnpm check:architecture && pnpm check:ruleof6 && pnpm check:lint",
+    "test:checkers": "python3 scripts/checks/run-tests.py",
     "lint:all": "pnpm check:lint && pnpm check:quality",
     "check:architecture:fix": "node scripts/fix-dependencies.cjs",
     "preview": "next build && next start",
