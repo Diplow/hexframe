@@ -1,7 +1,7 @@
 import { inngest } from '~/lib/domains/agentic/infrastructure'
 import { OpenRouterRepository, type LLMGenerationParams } from '~/lib/domains/agentic'
-import { db } from '~/server/db'
-import { llmJobResults } from '~/server/db/schema'
+import { db, schema } from '~/server/db'
+const { llmJobResults } = schema
 import { eq, sql } from 'drizzle-orm'
 import { loggers } from '~/lib/debug/debug-logger'
 import { env } from '~/env'
@@ -42,7 +42,9 @@ export const generateLLMResponse = inngest.createFunction(
     // Step 1: Update job status to processing
     await step.run('update-status-processing', async () => {
       loggers.agentic('Processing LLM job', { jobId, userId, model: params.model })
-      
+
+      // Update existing record from 'pending' to 'processing'
+      // The record should already exist from when it was queued
       await db.insert(llmJobResults).values({
         id: jobId,
         jobId,

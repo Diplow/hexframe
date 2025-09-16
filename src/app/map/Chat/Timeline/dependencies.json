@@ -1,12 +1,14 @@
 {
   "$schema": "../../../../../schemas/dependencies.schema.json",
   "allowedChildren": [
-    "~/app/map/Chat/_state/types",
     "~/app/map/Chat/types"
   ],
   "allowed": [
     "remark-gfm",
-    "~/app/map"
+    "~/contexts/UnifiedAuthContext",
+    "~/lib/auth",
+    "~/lib/debug/debug-logger",
+    "~/lib/domains/agentic"
   ],
   "subsystems": [
     "./Widgets"

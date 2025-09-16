@@ -1,5 +1,5 @@
 import type { TileData } from "~/app/map/types";
-import type { MapItemAPIContract } from "~/server/api/types/contracts";
+import type { MapItemAPIContract } from "~/server/api";
 
 // Region metadata interface for hierarchical loading
 export interface RegionMetadata {
@@ -81,7 +81,7 @@ export type CacheAction =
       type: typeof ACTION_TYPES.LOAD_ITEM_CHILDREN;
       payload: LoadItemChildrenPayload;
     }
-  | { type: typeof ACTION_TYPES.SET_CENTER; payload: string }
+  | { type: typeof ACTION_TYPES.SET_CENTER; payload: string | null }
   | { type: typeof ACTION_TYPES.SET_EXPANDED_ITEMS; payload: string[] }
   | { type: typeof ACTION_TYPES.TOGGLE_ITEM_EXPANSION; payload: string }
   | { type: typeof ACTION_TYPES.SET_LOADING; payload: boolean }
@@ -97,3 +97,5 @@ export type CacheAction =
       type: typeof ACTION_TYPES.UPDATE_ITEMS; 
       payload: Record<string, TileData | undefined>;
     };
+
+// Action creators moved to actions.ts for better separation of concerns

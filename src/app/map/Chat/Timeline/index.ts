@@ -5,7 +5,7 @@
  */
 
 // Main Timeline Component
-export { Messages as Timeline } from '~/app/map/Chat/Timeline/timeline';
+export { Messages as Timeline } from '~/app/map/Chat/Timeline/_core/timeline';
 
 /**
  * Chat Timeline Subsystem Public Interface

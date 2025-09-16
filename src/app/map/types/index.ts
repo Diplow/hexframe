@@ -34,7 +34,7 @@ export type {
   SpecificAppEvent,
   EventListener,
   EventBusService
-} from './events';
+} from '~/app/map/types/events';
 
 // Event validation schemas
 export {
@@ -61,4 +61,4 @@ export {
   appEventSchema,
   validateEvent,
   safeValidateEvent
-} from './event-schemas';
+} from '~/app/map/types/event-schemas';

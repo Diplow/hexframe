@@ -1,5 +1,5 @@
 import type { MapItemWithId } from "~/lib/domains/mapping/_objects";
-import type { Coord } from "~/lib/domains/mapping/utils/hex-coordinates";
+import type { Coord } from "~/lib/domains/mapping/utils";
 import type { MapItemRepository, BaseItemRepository } from "~/lib/domains/mapping/_repositories";
 import type { MapItemQueryHelpers } from "~/lib/domains/mapping/_actions/_map-item-query-helpers";
 import type { MapItemMovementHelpers } from "~/lib/domains/mapping/_actions/_map-item-movement-helpers";

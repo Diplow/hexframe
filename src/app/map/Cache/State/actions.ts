@@ -1,14 +1,11 @@
-import type {
-  CacheAction,
-  LoadRegionPayload,
-  LoadItemChildrenPayload,
-  UpdateCacheConfigPayload,
-} from "./types";
-import { ACTION_TYPES } from "~/app/map/Cache/State/types";
-import type { MapItemAPIContract } from "~/server/api/types/contracts";
+import type { MapItemAPIContract } from "~/server/api";
 import type { TileData } from "~/app/map/types";
+import type { CacheAction, LoadRegionPayload, LoadItemChildrenPayload, UpdateCacheConfigPayload } from "~/app/map/Cache/State/types";
+import { ACTION_TYPES } from "~/app/map/Cache/State/types";
 
-// Action creators - pure functions that return action objects
+// ============================================================================
+// BASIC ACTION CREATORS - pure functions that return action objects  
+// ============================================================================
 
 export const loadRegion = (
   items: MapItemAPIContract[],
@@ -36,14 +33,14 @@ export const loadItemChildren = (
   },
 });
 
-export const setCenter = (centerCoordId: string): CacheAction => ({
+export const setCenter = (centerCoordId: string | null): CacheAction => ({
   type: ACTION_TYPES.SET_CENTER,
   payload: centerCoordId,
 });
 
-export const setExpandedItems = (itemIds: string[]): CacheAction => ({
+export const setExpandedItems = (expandedItemIds: string[]): CacheAction => ({
   type: ACTION_TYPES.SET_EXPANDED_ITEMS,
-  payload: itemIds,
+  payload: expandedItemIds,
 });
 
 export const toggleItemExpansion = (itemId: string): CacheAction => ({
@@ -51,9 +48,9 @@ export const toggleItemExpansion = (itemId: string): CacheAction => ({
   payload: itemId,
 });
 
-export const setLoading = (isLoading: boolean): CacheAction => ({
+export const setLoading = (loading: boolean): CacheAction => ({
   type: ACTION_TYPES.SET_LOADING,
-  payload: isLoading,
+  payload: loading,
 });
 
 export const setError = (error: Error | null): CacheAction => ({
@@ -70,6 +67,11 @@ export const invalidateAll = (): CacheAction => ({
   type: ACTION_TYPES.INVALIDATE_ALL,
 });
 
+export const removeItem = (coordId: string): CacheAction => ({
+  type: ACTION_TYPES.REMOVE_ITEM,
+  payload: coordId,
+});
+
 export const updateCacheConfig = (
   config: UpdateCacheConfigPayload,
 ): CacheAction => ({
@@ -77,17 +79,76 @@ export const updateCacheConfig = (
   payload: config,
 });
 
-export const removeItem = (coordId: string): CacheAction => ({
-  type: ACTION_TYPES.REMOVE_ITEM,
-  payload: coordId,
-});
-
-export const updateItems = (items: Record<string, TileData | undefined>): CacheAction => ({
+export const updateItems = (
+  items: Record<string, TileData | undefined>,
+): CacheAction => ({
   type: ACTION_TYPES.UPDATE_ITEMS,
   payload: items,
 });
 
-// Grouped action creators for better organization
+// ============================================================================
+// VALIDATED ACTION CREATORS - with runtime validation
+// ============================================================================
+
+export const createLoadRegionAction = (payload: LoadRegionPayload): CacheAction => {
+  if (!payload.centerCoordId || payload.centerCoordId.trim() === '' || payload.maxDepth < 0) {
+    throw new Error("Invalid payload for LOAD_REGION action");
+  }
+  return {
+    type: ACTION_TYPES.LOAD_REGION,
+    payload,
+  };
+};
+
+export const createLoadItemChildrenAction = (payload: LoadItemChildrenPayload): CacheAction => {
+  if (!payload.parentCoordId || payload.parentCoordId.trim() === '') {
+    throw new Error("Invalid payload for LOAD_ITEM_CHILDREN action");
+  }
+  return {
+    type: ACTION_TYPES.LOAD_ITEM_CHILDREN,
+    payload,
+  };
+};
+
+export const createSetCenterAction = (centerCoordId: string): CacheAction => {
+  if (!centerCoordId || centerCoordId.trim() === '') {
+    throw new Error("Invalid centerCoordId for SET_CENTER action");
+  }
+  return {
+    type: ACTION_TYPES.SET_CENTER,
+    payload: centerCoordId,
+  };
+};
+
+// ============================================================================
+// HELPER ACTION CREATORS - combine multiple actions
+// ============================================================================
+
+export const createOptimisticUpdateActions = (
+  centerCoordId: string,
+  item: MapItemAPIContract,
+): CacheAction[] => {
+  return [
+    loadRegion([item], centerCoordId, 1),
+    setLoading(false),
+  ];
+};
+
+export const createErrorHandlingActions = (error: Error): CacheAction[] => {
+  return [
+    setError(error),
+    setLoading(false),
+  ];
+};
+
+export const createBatchActions = (...actions: (CacheAction | null | undefined)[]): CacheAction[] => {
+  return actions.filter((action): action is CacheAction => action != null);
+};
+
+// ============================================================================
+// GROUPED ACTION CREATORS - for better organization
+// ============================================================================
+
 export const cacheActions = {
   loadRegion,
   loadItemChildren,
@@ -101,53 +162,4 @@ export const cacheActions = {
   updateCacheConfig,
   removeItem,
   updateItems,
-};
-
-// Type-safe action creators with payload validation
-export const createLoadRegionAction = (
-  payload: LoadRegionPayload,
-): CacheAction => {
-  if (!payload.centerCoordId || payload.maxDepth < 0) {
-    throw new Error("Invalid payload for LOAD_REGION action");
-  }
-  return loadRegion(payload.items, payload.centerCoordId, payload.maxDepth);
-};
-
-export const createLoadItemChildrenAction = (
-  payload: LoadItemChildrenPayload,
-): CacheAction => {
-  if (!payload.parentCoordId || payload.maxDepth < 0) {
-    throw new Error("Invalid payload for LOAD_ITEM_CHILDREN action");
-  }
-  return loadItemChildren(
-    payload.items,
-    payload.parentCoordId,
-    payload.maxDepth,
-  );
-};
-
-export const createSetCenterAction = (centerCoordId: string): CacheAction => {
-  if (!centerCoordId || centerCoordId.trim() === "") {
-    throw new Error("Invalid centerCoordId for SET_CENTER action");
-  }
-  return setCenter(centerCoordId);
-};
-
-// Helper functions for complex action creation
-export const createOptimisticUpdateActions = (
-  targetCoordId: string,
-  tempItem: MapItemAPIContract,
-): CacheAction[] => {
-  return [loadRegion([tempItem], targetCoordId, 1), setLoading(false)];
-};
-
-export const createErrorHandlingActions = (error: Error): CacheAction[] => {
-  return [setError(error), setLoading(false)];
-};
-
-// Batch action creator for atomic operations
-export const createBatchActions = (
-  ...actions: CacheAction[]
-): CacheAction[] => {
-  return actions.filter((action) => action !== null && action !== undefined);
 };

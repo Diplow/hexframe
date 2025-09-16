@@ -4,10 +4,10 @@ import { MappingService } from "~/lib/domains/mapping/services";
 import type {
   MapItemRepository,
   BaseItemRepository,
-} from "../../../_repositories";
+} from "~/lib/domains/mapping/_repositories";
 import { db } from "~/server/db";
 import { mapItems, baseItems } from "~/server/db/schema";
-import { type Coord, Direction } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { type Coord, Direction } from "~/lib/domains/mapping/utils";
 import { sql } from "drizzle-orm";
 
 export interface TestRepositories {

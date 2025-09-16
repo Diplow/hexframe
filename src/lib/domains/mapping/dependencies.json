@@ -3,23 +3,21 @@
   "allowed": [
     "drizzle-orm",
     "zod",
-    "~/lib/domains/_objects",
-    "~/lib/domains/_repositories", 
     "~/lib/domains/mapping/_actions",
     "~/lib/domains/mapping/_objects",
     "~/lib/domains/mapping/_repositories",
     "~/lib/domains/mapping/infrastructure",
     "~/lib/domains/mapping/services",
     "~/lib/domains/mapping/types",
-    "~/lib/domains/mapping/utils",
-    "~/lib/domains/types",
     "~/lib/domains/utils",
     "~/lib/utils",
     "~/server/db"
   ],
   "subsystems": [
     "./infrastructure",
-    "./services"
+    "./services",
+    "./_actions",
+    "./utils"
   ],
   "exceptions": {}
 }

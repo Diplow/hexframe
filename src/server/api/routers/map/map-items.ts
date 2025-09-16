@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   createTRPCRouter,
   publicProcedure,
-  protectedProcedure,
+  dualAuthProcedure,
   mappingServiceMiddleware,
 } from "~/server/api/trpc";
 import { contractToApiAdapters } from "~/server/api/types/contracts";
@@ -12,7 +12,7 @@ import {
   itemCreationSchema,
   itemUpdateSchema,
   itemMovementSchema,
-} from "./map-schemas";
+} from "~/server/api/routers/map/map-schemas";
 import { _createSuccessResponse, _getUserId } from "~/server/api/routers/map/_map-auth-helpers";
 import { TRPCError } from "@trpc/server";
 
@@ -57,7 +57,7 @@ export const mapItemsRouter = createTRPCRouter({
     }),
 
   // Add item to map
-  addItem: protectedProcedure
+  addItem: dualAuthProcedure
     .use(mappingServiceMiddleware)
     .input(itemCreationSchema)
     .mutation(async ({ ctx, input }) => {
@@ -109,7 +109,7 @@ export const mapItemsRouter = createTRPCRouter({
     }),
 
   // Remove item
-  removeItem: protectedProcedure
+  removeItem: dualAuthProcedure
     .use(mappingServiceMiddleware)
     .input(z.object({ coords: hexCoordSchema }))
     .mutation(async ({ ctx, input }) => {
@@ -135,7 +135,7 @@ export const mapItemsRouter = createTRPCRouter({
     }),
 
   // Update item
-  updateItem: protectedProcedure
+  updateItem: dualAuthProcedure
     .use(mappingServiceMiddleware)
     .input(itemUpdateSchema)
     .mutation(async ({ ctx, input }) => {
@@ -164,7 +164,7 @@ export const mapItemsRouter = createTRPCRouter({
     }),
 
   // Move map item
-  moveMapItem: protectedProcedure
+  moveMapItem: dualAuthProcedure
     .use(mappingServiceMiddleware)
     .input(itemMovementSchema)
     .mutation(async ({ ctx, input }) => {

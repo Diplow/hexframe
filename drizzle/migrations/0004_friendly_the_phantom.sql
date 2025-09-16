@@ -1,0 +1,1 @@
+DROP TABLE "mcp_api_keys";

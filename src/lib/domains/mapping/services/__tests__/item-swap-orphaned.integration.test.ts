@@ -7,7 +7,7 @@ import { DbBaseItemRepository } from "~/lib/domains/mapping/infrastructure/base-
 import { ItemQueryService } from "~/lib/domains/mapping/services/_item-query.service";
 import { MapItemActions } from "~/lib/domains/mapping/_actions/map-item.actions";
 import { MapItemType } from "~/lib/domains/mapping/_objects";
-import { type Direction } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { type Direction } from "~/lib/domains/mapping/utils";
 
 describe("Item Swap with Orphaned Temp Item - Integration Test", () => {
   let mapItemRepo: DbMapItemRepository;

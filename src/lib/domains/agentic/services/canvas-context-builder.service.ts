@@ -2,7 +2,7 @@ import type {
   CanvasContext, 
   CanvasContextOptions, 
   CanvasContextStrategy 
-} from '../types'
+} from '~/lib/domains/agentic/types'
 import type { ICanvasStrategy } from '~/lib/domains/agentic/services/canvas-strategies/strategy.interface'
 
 export class CanvasContextBuilder {

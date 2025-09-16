@@ -1,5 +1,5 @@
 import { describe, beforeEach, it, expect } from "vitest";
-import { type Coord, Direction } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { type Coord, Direction } from "~/lib/domains/mapping/utils";
 import {
   type TestEnvironment,
   _cleanupDatabase,
@@ -7,7 +7,7 @@ import {
   _setupBasicMap,
   _createTestCoordinates,
   _createUniqueTestParams,
-} from "./helpers/_test-utilities";
+} from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 
 describe("MappingService - Item Relationships [Integration - DB]", () => {
   let testEnv: TestEnvironment;

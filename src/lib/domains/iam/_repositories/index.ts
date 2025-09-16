@@ -3,4 +3,4 @@ export type {
   CreateUserInput,
   AuthenticateUserInput,
   AuthenticationResult,
-} from "./user.repository";
+} from "~/lib/domains/iam/_repositories/user.repository";

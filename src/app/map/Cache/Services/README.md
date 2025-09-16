@@ -186,7 +186,7 @@ async function createItemAction(formData: FormData) {
 
 ```tsx
 // app/api/items/route.ts
-import { createStaticServerService } from "~/app/map/Cache/Services/server-service";
+import { createStaticServerService } from "~/app/map/Cache/Services/server/server-service";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

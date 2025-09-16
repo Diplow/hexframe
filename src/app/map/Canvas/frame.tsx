@@ -18,7 +18,7 @@ import type { TileScale } from "~/app/map/Canvas/Tile";
 import type { TileData } from "~/app/map/types/tile-data";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 import type { URLInfo } from "~/app/map/types/url-info";
-import { useCanvasTheme } from ".";
+import { useCanvasTheme } from "~/app/map/Canvas";
 import { useEffect } from "react";
 import { loggers } from "~/lib/debug/debug-logger";
 

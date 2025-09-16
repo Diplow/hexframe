@@ -7,7 +7,7 @@
 
 // Event Bus - Core system communication
 export { EventBus, EventBusProvider, EventBusContext, useEventBus } from '~/app/map/Services/EventBus';
-export type { AppEvent, EventListener, EventBusService } from './types';
+// Services must import parent types directly - no reexports from parent directories
 
 // Prefetch Service - Data loading and caching
 export { 
@@ -17,25 +17,6 @@ export {
   loadPreFetchedData,
   clearPreFetchedData,
   type PreFetchedMapData
-} from './PreFetch/pre-fetch-service';
+} from '~/app/map/Services/PreFetch/pre-fetch-service';
 
-// Service-level types - Reexported for child subsystems
-export type {
-  EventSource,
-  SpecificAppEvent,
-  MapTileCreatedEvent,
-  MapTileUpdatedEvent,
-  MapTileDeletedEvent,
-  MapTilesSwappedEvent,
-  MapTileMovedEvent,
-  MapNavigationEvent,
-  MapExpansionChangedEvent,
-  MapImportCompletedEvent,
-  ChatMessageEvent,
-  ChatWidgetEvent,
-  AuthStateChangedEvent,
-  TileData,
-  TileState,
-  URLInfo,
-  URLSearchParams
-} from './types';
+// External consumers must import types directly from ~/app/map/types - no reexports

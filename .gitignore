@@ -8,6 +8,9 @@
 # testing
 /coverage
 /test-results/
+
+# Quality fix context files (temporary working files)
+**/CONTEXT.md
 /playwright-report/
 /playwright/.cache/
 /tests/e2e/fixtures/.test-data.json
@@ -53,6 +56,12 @@ scripts/*-production.sh
 
 # typescript
 *.tsbuildinfo
+
+# python
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
 
 # dist
 /dist

@@ -3,7 +3,6 @@
   "allowed": [
     "inngest",
     "~/lib/debug/debug-logger",
-    "~/lib/domains/agentic",
     "~/env",
     "~/server/db"
   ],

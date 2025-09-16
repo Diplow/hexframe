@@ -1,0 +1,27 @@
+# Dead Code Checker Exceptions
+# Framework convention files that are auto-imported by Next.js
+
+# Next.js middleware - auto-imported by framework
+src/middleware.ts
+
+# Next.js root layout - auto-imported by App Router
+src/app/layout.tsx
+
+# Next.js API routes - auto-imported by framework conventions
+src/app/**/route.ts
+src/app/services/api/trpc/[trpc]/route.ts
+
+# Next.js pages - auto-imported by framework conventions
+src/app/**/page.tsx
+
+# Next.js global error boundary - auto-imported by framework
+src/app/**/error.tsx
+
+# Next.js not-found pages - auto-imported by framework
+src/app/**/not-found.tsx
+
+# Next.js loading UI - auto-imported by framework
+src/app/**/loading.tsx
+
+# Database schema - imported by ORM and migrations
+src/server/db/schema/**

@@ -5,7 +5,7 @@ import type {
   CanvasContext,
   ChatContext,
   SerializationFormat
-} from '../types'
+} from '~/lib/domains/agentic/types'
 import type { CanvasContextBuilder } from '~/lib/domains/agentic/services/canvas-context-builder.service'
 import type { ChatContextBuilder } from '~/lib/domains/agentic/services/chat-context-builder.service'
 import type { TokenizerService } from '~/lib/domains/agentic/services/tokenizer.service'

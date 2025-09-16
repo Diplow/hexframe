@@ -2,17 +2,18 @@ import type {
   BaseItemRepository,
   MapItemRepository,
 } from "~/lib/domains/mapping/_repositories";
-import {
-  type BaseItemAttrs,
-  type BaseItemWithId,
-  type MapItemWithId,
+import type {
+  BaseItemAttrs,
+  BaseItemWithId,
+  MapItemWithId,
   MapItemType,
 } from "~/lib/domains/mapping/_objects";
-import type { Coord } from "~/lib/domains/mapping/utils/hex-coordinates";
+import type { Coord } from "~/lib/domains/mapping/utils";
 import type { MapItemIdr } from "~/lib/domains/mapping/_repositories/map-item";
 import { MapItemCreationHelpers } from "~/lib/domains/mapping/_actions/_map-item-creation-helpers";
 import { MapItemQueryHelpers } from "~/lib/domains/mapping/_actions/_map-item-query-helpers";
 import { MapItemMovementHelpers } from "~/lib/domains/mapping/_actions/_map-item-movement-helpers";
+import { MapItemActionHelpers } from "~/lib/domains/mapping/_actions/map-item-action-helpers";
 import type { DatabaseTransaction } from "~/lib/domains/mapping/types/transaction";
 
 export class MapItemActions {
@@ -72,8 +73,12 @@ export class MapItemActions {
   }
 
   public async removeItem({ idr }: { idr: MapItemIdr }) {
-    const { item, descendants } = await this._getItemAndDescendants(idr);
-    await this._removeDescendantsAndItem(descendants, item.id);
+    const { item, descendants } = await MapItemActionHelpers.getItemAndDescendants(
+      idr,
+      this.mapItems,
+      (parentId) => this.getDescendants(parentId)
+    );
+    await MapItemActionHelpers.removeDescendantsAndItem(descendants, item.id, this.mapItems);
   }
 
   public async getMapItem({
@@ -106,8 +111,8 @@ export class MapItemActions {
     const movementHelpers = new MapItemMovementHelpers(mapItems, baseItems);
     
     const sourceItem = await queryHelpers.getMapItem({ coords: oldCoords });
-    this._validateUserItemMove(sourceItem, newCoords);
-    this._validateUserSpaceMove(sourceItem, newCoords);
+    MapItemActionHelpers.validateUserItemMove(sourceItem, newCoords);
+    MapItemActionHelpers.validateUserSpaceMove(sourceItem, newCoords);
 
     const { sourceParent, targetParent } =
       await movementHelpers.validateCoordsForMove(
@@ -122,7 +127,7 @@ export class MapItemActions {
       .catch(() => null);
       
       
-    const tempCoordsHoldingTarget = await this._handleTargetItemDisplacement(
+    const tempCoordsHoldingTarget = await MapItemActionHelpers.handleTargetItemDisplacement(
       targetItem,
       sourceParent,
       oldCoords,
@@ -205,98 +210,4 @@ export class MapItemActions {
   public async getAncestors(itemId: number): Promise<MapItemWithId[]> {
     return await this.queryHelpers.getAncestors(itemId);
   }
-
-  private async _getItemAndDescendants(idr: MapItemIdr) {
-    let item: MapItemWithId | null = null;
-
-    if ("id" in idr) {
-      item = await this.mapItems.getOne(idr.id);
-    } else if (idr.attrs?.coords) {
-      item = await this.mapItems.getOneByIdr({ idr });
-    } else {
-      throw new Error("Invalid identifier for removeItem");
-    }
-
-    if (!item) {
-      throw new Error(
-        `MapItem not found with provided identifier: ${JSON.stringify(idr)}`,
-      );
-    }
-
-    const descendants = await this.getDescendants(item.id);
-    return { item, descendants };
-  }
-
-  private async _removeDescendantsAndItem(
-    descendants: MapItemWithId[],
-    itemId: number,
-  ) {
-    for (const descendant of descendants.reverse()) {
-      await this.mapItems.remove(descendant.id);
-    }
-    await this.mapItems.remove(itemId);
-  }
-
-  private _validateUserItemMove(item: MapItemWithId, newCoords: Coord) {
-    if (item.attrs.itemType === MapItemType.USER && newCoords.path.length > 0) {
-      throw new Error(
-        "USER (root) items cannot be moved to become child items.",
-      );
-    }
-  }
-
-  private _validateUserSpaceMove(item: MapItemWithId, newCoords: Coord) {
-    if (
-      item.attrs.itemType === MapItemType.USER &&
-      (item.attrs.coords.userId !== newCoords.userId ||
-        item.attrs.coords.groupId !== newCoords.groupId)
-    ) {
-      throw new Error(
-        "USER (root) items cannot change their userId or groupId through a move operation.",
-      );
-    }
-
-    if (
-      item.attrs.coords.userId !== newCoords.userId ||
-      item.attrs.coords.groupId !== newCoords.groupId
-    ) {
-      throw new Error("Cannot move item to a different userId/groupId space.");
-    }
-  }
-
-
-  private async _handleTargetItemDisplacement(
-    targetItem: MapItemWithId | null,
-    sourceParent: MapItemWithId | null,
-    oldCoords: Coord,
-    movementHelpers: MapItemMovementHelpers,
-    queryHelpers: MapItemQueryHelpers,
-  ) {
-    if (!targetItem) return null;
-
-    if (
-      targetItem.attrs.itemType === MapItemType.USER &&
-      oldCoords.path.length > 0
-    ) {
-      throw new Error("Cannot displace a USER (root) item with a child item.");
-    }
-
-    // Step 1: Move target item to temporary position
-    try {
-      const tempCoords = await movementHelpers.moveItemToTemporaryLocation(
-        targetItem,
-        sourceParent,
-        (item, coords, parent) =>
-          movementHelpers.move(item, coords, parent, (parentId) =>
-            queryHelpers.getDescendants(parentId),
-          ),
-      );
-      return tempCoords;
-    } catch (error) {
-      console.error(`[MOVE STEP 1] Failed to move target item ${targetItem.id} to temporary position:`, error);
-      throw error;
-    }
-  }
-
-
 }

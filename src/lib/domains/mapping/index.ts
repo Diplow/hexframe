@@ -9,7 +9,9 @@
 
 // Re-export all client-safe exports
 export * from '~/lib/domains/mapping/types';
-export * from '~/lib/domains/mapping/utils';
+
+// Domain objects
+export * from '~/lib/domains/mapping/_objects';
 
 // Domain services (server-only)
 export { 
@@ -19,11 +21,11 @@ export {
   ItemCrudService,
   ItemQueryService,
   MappingUtils,
-} from './services';
+} from '~/lib/domains/mapping/services';
 
 // Infrastructure (server-only - contains database connections)
 export {
   DbMapItemRepository,
   DbBaseItemRepository,
   TransactionManager,
-} from './infrastructure';
+} from '~/lib/domains/mapping/infrastructure';

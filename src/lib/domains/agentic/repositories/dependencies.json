@@ -3,7 +3,8 @@
   "allowed": [
     "~/lib/debug/debug-logger",
     "~/lib/domains/agentic/types",
-    "~/lib/domains/agentic/infrastructure/inngest"
+    "~/lib/domains/agentic/infrastructure/inngest",
+    "~/server/db"
   ],
   "exceptions": {}
 }

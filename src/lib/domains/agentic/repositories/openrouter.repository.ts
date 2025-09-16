@@ -5,7 +5,7 @@ import type {
   StreamChunk, 
   ModelInfo,
   LLMError 
-} from '../types/llm.types'
+} from '~/lib/domains/agentic/types/llm.types'
 import { loggers } from '~/lib/debug/debug-logger'
 
 interface OpenRouterCompletionResponse {

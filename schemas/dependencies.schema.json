@@ -21,7 +21,7 @@
     },
     "allowedChildren": {
       "type": "array",
-      "description": "Dependencies that cascade to all child subsystems. Use for common framework deps like React, Next.js.",
+      "description": "Dependencies that cascade to all child subsystems, hiding them from child dependency declarations. Use sparingly - explicit dependencies in each subsystem are usually better for clarity. Only use for truly ubiquitous dependencies where listing them in every subsystem adds noise without value.",
       "items": {
         "type": "string"
       },
@@ -44,14 +44,13 @@
     },
     "exceptions": {
       "type": "object",
-      "description": "Document WHY specific dependencies are needed (for human understanding)",
+      "description": "Document dependencies that violate architectural principles but are temporarily accepted. Each exception should explain why this dependency exists and what the long-term solution should be. Normal, well-architected dependencies should NOT be listed here.",
       "additionalProperties": {
         "type": "string"
       },
       "examples": [{
-        "~/server/db": "Repository layer needs database access",
-        "~/lib/domains/shared": "Common types and utilities",
-        "@trpc/server": "API endpoint definitions"
+        "~/lib/domains/iam": "TEMPORARY: IAM domain should not depend on mapping domain. Long-term: API layer should compose both domains instead of direct domain-to-domain coupling.",
+        "~/legacy/old-utils": "TECHNICAL DEBT: Remove once migration to new utilities is complete in Q2 2024"
       }]
     }
   },

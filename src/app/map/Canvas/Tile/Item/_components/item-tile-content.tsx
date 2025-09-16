@@ -1,6 +1,7 @@
 "use client";
 
-import type { TileData, URLInfo } from "~/app/map/Canvas/types";
+import type { TileData } from "~/app/map/types/tile-data";
+import type { URLInfo } from "~/app/map/types/url-info";
 import { DynamicBaseTileLayout } from "~/app/map/Canvas/Tile/Base";
 import type { TileScale, TileColor } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
 import { DynamicTileContent } from "~/app/map/Canvas/Tile/Item/content";

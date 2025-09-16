@@ -4,10 +4,10 @@ import {
 } from "~/lib/domains/utils/generic-objects";
 import {
   type Coord,
-  type Direction,
-} from "~/lib/domains/mapping/utils/hex-coordinates";
+} from "~/lib/domains/mapping/utils";
 import type { BaseItemWithId } from "~/lib/domains/mapping/_objects/base-item";
 import { MAPPING_ERRORS } from "~/lib/domains/mapping/types/errors";
+import { MapItemValidation } from "~/lib/domains/mapping/_objects/map-item-validation";
 
 export enum MapItemType {
   USER = "user",
@@ -121,76 +121,12 @@ export class MapItem extends GenericAggregate<
   }
 
   public static validate(item: MapItem) {
-    MapItem.validateCoords(item); // Keep general coord validation
-    MapItem.validateParentChildRelationship(item); // New validation method
-  }
-
-  public static validateCoords(_item: MapItem) {
-    // The old row/col checks are removed as Coord changed.
-    // Path length validation might still be relevant depending on requirements.
-    // e.g. if (item.attrs.coords.path.length > MAX_DEPTH) ...
-    // For now, no specific universal validation on coords beyond its structure.
-  }
-
-  public static validateParentChildRelationship(item: MapItem) {
-    if (item.attrs.itemType === MapItemType.USER) {
-      if (item.attrs.parentId !== null || item.parent !== null) {
-        throw new Error(MAPPING_ERRORS.USER_ITEM_CANNOT_HAVE_PARENT);
-      }
-    } else {
-      // For BASE type items (children)
-      if (item.attrs.parentId === null && item.parent === null) {
-        throw new Error(MAPPING_ERRORS.BASE_ITEM_MUST_HAVE_PARENT);
-      }
-      if (item.parent) {
-        // If parent object is available, check its coords
-        if (
-          item.attrs.coords.userId !== item.parent.attrs.coords.userId ||
-          item.attrs.coords.groupId !== item.parent.attrs.coords.groupId
-        ) {
-          throw new Error(MAPPING_ERRORS.CHILD_COORDS_MUST_MATCH_PARENT);
-        }
-        const parentDepth = item.parent.attrs.coords.path.length;
-        const itemDepth = item.attrs.coords.path.length;
-        if (itemDepth !== parentDepth + 1) {
-          throw new Error(MAPPING_ERRORS.INVALID_PARENT_LEVEL);
-        }
-      }
-    }
-
-    if (
-      item.attrs.parentId === null &&
-      item.attrs.itemType !== MapItemType.USER
-    ) {
-      throw new Error(MAPPING_ERRORS.NULL_PARENT_MUST_BE_USER_TYPE);
-    }
+    MapItemValidation.validateCoords(item);
+    MapItemValidation.validateParentChildRelationship(item);
   }
 
   public static validateNeighbors(item: MapItem) {
-    MapItem.validateNeighborsCount(item);
-    MapItem.validateNeighborDirections(item);
-  }
-
-  private static validateNeighborsCount(item: MapItem) {
-    const neighbors = item.neighbors;
-    if (neighbors.length > 6) {
-      throw new Error(MAPPING_ERRORS.INVALID_NEIGHBORS_COUNT);
-    }
-  }
-
-  private static validateNeighborDirections(item: MapItem) {
-    MapItem.checkNeighborsDepth(item);
-    MapItem.checkNeighborsPath(item);
-    const occupiedDirections = new Set<Direction>();
-    for (const neighbor of item.neighbors) {
-      const direction = neighbor.attrs.coords.path[
-        neighbor.attrs.coords.path.length - 1
-      ]!;
-      if (occupiedDirections.has(direction)) {
-        throw new Error(MAPPING_ERRORS.INVALID_NEIGHBOR_DIRECTION);
-      }
-      occupiedDirections.add(direction);
-    }
+    MapItemValidation.validateNeighbors(item);
   }
 
   public static isCenter(item: MapItem): boolean {
@@ -199,43 +135,6 @@ export class MapItem extends GenericAggregate<
     return (
       item.attrs.itemType === MapItemType.USER && item.attrs.parentId === null
     );
-  }
-
-  private static checkNeighborsDepth(item: MapItem) {
-    const neighbors = item.neighbors;
-    for (const neighbor of neighbors) {
-      const parentDepth = item.attrs.coords.path.length;
-      const itemDepth = neighbor.attrs.coords.path.length;
-      if (itemDepth !== parentDepth + 1) {
-        throw new Error(MAPPING_ERRORS.INVALID_PARENT_LEVEL);
-      }
-    }
-  }
-
-  private static checkNeighborsPath(item: MapItem) {
-    const neighbors = item.neighbors;
-    const itemPath = item.attrs.coords.path;
-    const itemUserId = item.attrs.coords.userId;
-    const itemGroupId = item.attrs.coords.groupId;
-
-    for (const neighbor of neighbors) {
-      const neighborPath = neighbor.attrs.coords.path;
-      const neighborUserId = neighbor.attrs.coords.userId;
-      const neighborGroupId = neighbor.attrs.coords.groupId;
-
-      if (neighborUserId !== itemUserId || neighborGroupId !== itemGroupId) {
-        throw new Error(MAPPING_ERRORS.CHILD_COORDS_MUST_MATCH_PARENT);
-      }
-
-      // A neighbor's path should be exactly one element longer than the item's path
-      // and should contain the item's path as a prefix
-      if (
-        neighborPath.length !== itemPath.length + 1 ||
-        !itemPath.every((dir, i) => dir === neighborPath[i])
-      ) {
-        throw new Error(MAPPING_ERRORS.INVALID_NEIGHBOR_PATH);
-      }
-    }
   }
 }
 

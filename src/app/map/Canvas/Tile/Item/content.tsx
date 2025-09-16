@@ -1,7 +1,7 @@
 "use client";
 
 import type { TileScale } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
-import { getTextColorForDepth } from "~/app/map/Canvas/types";
+import { getTextColorForDepth } from "~/app/map/types";
 import { cn } from "~/lib/utils";
 
 export interface DynamicTileContentProps {

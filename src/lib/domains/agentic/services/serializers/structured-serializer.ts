@@ -2,8 +2,8 @@ import type {
   ComposedContext, 
   CanvasContext, 
   ChatContext 
-} from '../../types'
-import { Direction } from '~/lib/domains/mapping/utils/hex-coordinates'
+} from '~/lib/domains/agentic/types'
+import { Direction } from '~/lib/domains/mapping/utils'
 
 export class StructuredContextSerializer {
   serialize(context: ComposedContext, includeMetadata = false): string {

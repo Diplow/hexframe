@@ -588,6 +588,11 @@ export default {
           light: "rgb(var(--color-success-light-rgb) / <alpha-value>)",
           dark: "rgb(var(--color-success-dark-rgb) / <alpha-value>)",
         },
+        info: {
+          DEFAULT: "rgb(var(--color-link-rgb) / <alpha-value>)",
+          light: "rgb(var(--color-link-light-rgb) / <alpha-value>)",
+          dark: "rgb(var(--color-link-dark-rgb) / <alpha-value>)",
+        },
         // Override secondary to use semantic color
         secondary: {
           DEFAULT: "rgb(var(--color-secondary-rgb) / <alpha-value>)",

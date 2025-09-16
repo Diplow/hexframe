@@ -7,8 +7,8 @@ import { EventBus as EventBusImpl } from '~/app/map'
 import type { CacheState } from '~/app/map'
 import type { ChatMessage } from '~/app/map'
 import { env } from '~/env'
-import { db } from '~/server/db'
-import { llmJobResults } from '~/server/db/schema'
+import { db, schema } from '~/server/db'
+const { llmJobResults } = schema
 import { eq } from 'drizzle-orm'
 
 // Message schema matching the Chat component

@@ -16,14 +16,14 @@ export type {
   CreateUserInput,
   AuthenticateUserInput,
   AuthenticationResult,
-} from './_repositories';
+} from '~/lib/domains/iam/_repositories';
 
 // Domain types
 export type {
   LoginInput,
   RegisterInput,
   UserContract,
-} from './types';
+} from '~/lib/domains/iam/types';
 
 // Domain errors
 export {
@@ -31,7 +31,7 @@ export {
   InvalidCredentialsError,
   UserNotFoundError,
   WeakPasswordError,
-} from './types';
+} from '~/lib/domains/iam/types';
 
 // Server actions (for Next.js forms)
 export { loginAction, registerAction } from '~/lib/domains/iam/actions';

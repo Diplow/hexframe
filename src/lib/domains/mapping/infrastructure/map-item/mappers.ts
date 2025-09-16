@@ -8,7 +8,7 @@ import {
   BaseItem,
   type BaseItemWithId,
 } from "~/lib/domains/mapping/_objects/base-item";
-import type { Direction } from "~/lib/domains/mapping/utils/hex-coordinates";
+import type { Direction } from "~/lib/domains/mapping/utils";
 import type { DbMapItemWithBase } from "~/lib/domains/mapping/infrastructure/map-item/types";
 
 export function mapJoinedDbToDomain(

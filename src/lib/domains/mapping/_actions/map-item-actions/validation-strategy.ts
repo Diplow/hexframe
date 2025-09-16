@@ -1,5 +1,5 @@
 import type { MapItemWithId } from "~/lib/domains/mapping/_objects";
-import type { Coord } from "~/lib/domains/mapping/utils/hex-coordinates";
+import type { Coord } from "~/lib/domains/mapping/utils";
 import { MapItemType } from "~/lib/domains/mapping/_objects";
 
 export class ValidationStrategy {

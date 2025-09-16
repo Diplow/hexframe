@@ -1,7 +1,7 @@
 {
   "$schema": "../../../../../schemas/dependencies.schema.json",
   "allowed": [
-    "~/app",
-    "~/app/map/Canvas"
+    "~/lib/debug/debug-logger",
+    "~/lib/test-logger"
   ]
 }

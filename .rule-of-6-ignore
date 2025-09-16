@@ -1,0 +1,72 @@
+# Rule of 6 - Ignore Patterns
+#
+# This file contains patterns for directories and files that should be ignored
+# by Rule of 6 validation. Use glob-like patterns. Lines starting with # are comments.
+
+# Build and system directories
+node_modules/**
+.next/**
+.git/**
+dist/**
+build/**
+**/__pycache__/**
+
+# Test directories (often have many test files)
+**/__tests__/**
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+
+# Storybook files (often have many stories)
+**/*.stories.ts
+**/*.stories.tsx
+**/.storybook/**
+
+# Database schema directories (often have many table definitions)
+src/server/db/schema/**
+src/server/db/migrations/**
+**/migrations/**
+
+# Type definition directories (often have many type files)
+**/types/**
+**/@types/**
+
+# Configuration directories
+**/config/**
+
+# Generated code directories
+**/generated/**
+**/auto-generated/**
+
+# Development tools and scripts
+**/scripts/**
+**/tools/**
+**/dev-tools/**
+
+# Vendor/third-party directories
+**/vendor/**
+**/third-party/**
+**/lib/external/**
+
+# Asset directories (often have many asset files)
+**/assets/**
+**/static/**
+**/public/**
+
+# Documentation directories
+**/docs/**
+**/documentation/**
+
+# Component library directories (UI components often numerous)
+**/components/ui/**
+**/ui-components/**
+
+# Legacy code directories (may not follow current standards)
+**/legacy/**
+**/deprecated/**
+
+# Specific Hexframe exceptions based on current structure
+src/app/map/Chat/Timeline/Widgets/**
+src/app/map/Chat/Timeline/**
+src/app/map/Services/**

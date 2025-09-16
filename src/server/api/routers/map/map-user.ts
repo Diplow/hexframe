@@ -11,13 +11,13 @@ import {
   userMapCreationSchema,
   userMapUpdateSchema,
   userMapIdentifierSchema,
-} from "./map-schemas";
+} from "~/server/api/routers/map/map-schemas";
 import {
   _getUserId,
   _getUserName,
   _createSuccessResponse,
   _createErrorResponse,
-} from "./_map-auth-helpers";
+} from "~/server/api/routers/map/_map-auth-helpers";
 
 export const mapUserRouter = createTRPCRouter({
   // Get all root items (user's "maps") for the current user

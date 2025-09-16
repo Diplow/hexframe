@@ -17,10 +17,11 @@ src/test
 src/generated
 src/**/*.generated.ts
 
-# Root directories - these are containers, not subsystems
+# Root directories - these are containers, not subsystems  
+# NOTE: These should only skip the root directories themselves, not their children
+# The architecture script will be modified to only match exact paths for these
 src
-src/app
-src/lib
+src/lib  
 src/server
 
 # Small subsystems under 500 lines (will get warnings but not errors)

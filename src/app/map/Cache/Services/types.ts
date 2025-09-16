@@ -74,6 +74,7 @@ export interface StorageService {
   load: (key: string) => Promise<unknown>;
   remove: (key: string) => Promise<void>;
   clear: () => Promise<void>;
+  getAllKeys: () => Promise<string[]>;
 
   // Cache-specific operations for future enhancement
   saveCacheData: (cacheData: unknown) => Promise<void>;

@@ -1,2 +1,1 @@
 export { verificationAwareRateLimit, verificationAwareAuthLimit } from '~/server/api/middleware/rate-limit';
-export { createQueryDepthMiddleware, queryDepthLimits } from '~/server/api/middleware/query-depth';

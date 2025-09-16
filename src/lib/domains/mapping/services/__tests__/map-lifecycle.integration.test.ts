@@ -5,7 +5,7 @@ import {
   _createTestEnvironment,
   _setupBasicMap,
   _createUniqueTestParams,
-} from "./helpers/_test-utilities";
+} from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import {
   _createAndValidateMap,
   _validateMapInRepository,
@@ -15,7 +15,7 @@ import {
   _updateAndValidateMapInfo,
   _validateUpdatedMapInRepository,
   _validateMapRemoval,
-} from "./helpers/_map-lifecycle-helpers";
+} from "~/lib/domains/mapping/services/__tests__/helpers/_map-lifecycle-helpers";
 
 describe("MappingService - Map Lifecycle [Integration - DB]", () => {
   let testEnv: TestEnvironment;

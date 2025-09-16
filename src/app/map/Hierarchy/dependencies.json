@@ -1,13 +1,10 @@
 {
-  "$schema": "~/schemas/dependencies.schema.json",
+  "$schema": "../../../../schemas/dependencies.schema.json",
   "allowed": [
     "~/app/map/Cache",
     "~/app/map/Canvas",
-    "~/app/map/constants", 
-    "~/app/map/types/tile-data",
-    "~/app/map/types/url-info",
-    "~/app/map/types/theme-colors",
-    "~/components/ui/logo"
+    "~/contexts/UnifiedAuthContext",
+    "~/lib/debug/debug-logger"
   ],
   "exceptions": {}
 }

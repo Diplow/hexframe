@@ -1,0 +1,16 @@
+{
+  "internal": [
+    "~/lib/domains/mapping/_objects",
+    "~/lib/domains/mapping/_repositories",
+    "~/lib/domains/mapping/types",
+    "~/lib/domains/mapping/utils",
+    "~/lib/domains/mapping/services",
+    "~/lib/domains/mapping/infrastructure"
+  ],
+  "external": [
+    "vitest"
+  ],
+  "description": "Action handlers subsystem that orchestrates domain operations through helper classes and transaction management. Depends on core domain objects, repositories, and infrastructure for executing business operations.",
+  "complexity_score": 1391,
+  "last_updated": "2025-09-13"
+}

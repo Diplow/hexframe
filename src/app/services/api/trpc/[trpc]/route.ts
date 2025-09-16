@@ -5,8 +5,8 @@ import {
 import { type NextRequest } from "next/server";
 
 import { env } from "~/env";
-import { appRouter } from "~/server/api/root";
-import { createContext as apiCreateContext } from "~/server/api/trpc";
+import { appRouter } from "~/server/api";
+import { createContext as apiCreateContext } from "~/server/api";
 
 /**
  * This function is passed to `fetchRequestHandler`.

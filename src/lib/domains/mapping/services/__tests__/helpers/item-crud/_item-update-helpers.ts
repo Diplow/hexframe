@@ -1,6 +1,6 @@
 import { expect } from "vitest";
-import { Direction } from "~/lib/domains/mapping/utils/hex-coordinates";
-import type { Coord } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { Direction } from "~/lib/domains/mapping/utils";
+import type { Coord } from "~/lib/domains/mapping/utils";
 import type { TestEnvironment } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { _setupBasicMap, _createTestCoordinates } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 

@@ -7,7 +7,7 @@ import {
   InvalidCredentialsError,
   UserNotFoundError,
   WeakPasswordError,
-} from "../../types/errors";
+} from "~/lib/domains/iam/types/errors";
 
 // Mock repository implementation
 const createMockUserRepository = (): UserRepository => ({

@@ -1,22 +1,22 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import type { DragEvent } from "react";
 import { useUnifiedAuth } from "~/contexts/UnifiedAuthContext";
 import { useMapCache } from '~/app/map/Cache';
 import { useEventBus } from '~/app/map';
-import { canDragTile } from "~/app/map/Canvas/hooks/_validators";
-import { isValidDropTarget, getDropOperationType } from "~/app/map/Canvas/hooks/_calculators";
+import { canDragTile } from "~/app/map/Canvas/hooks/_internals/_validators";
+import { isValidDropTarget } from "~/app/map/Canvas/hooks/_internals/_calculators";
 import {
   setupDragStart,
   setupDragOver,
   handleDropEvent,
   createDragState,
   updateDropTarget,
-} from "./_coordinators";
+} from "~/app/map/Canvas/hooks/_internals/_coordinators";
 import type {
   DragState,
   DragHandlers,
   DropOperation,
-} from "./types";
+} from "~/app/map/Canvas/hooks/types";
 
 const initialDragState: DragState = {
   isDragging: false,
@@ -46,7 +46,8 @@ export function useDragAndDrop(): UseDragAndDropReturn {
   const eventBus = useEventBus();
   const { getItem, moveItemOptimistic } = useMapCache();
   const [dragState, setDragState] = useState<DragState>(initialDragState);
-
+  
+  // Move hooks to the main hook function
   const checkCanDrag = useCallback((coordId: string): boolean => {
     const tile = getItem(coordId);
     return canDragTile(tile, mappingUserId ?? null);
@@ -56,76 +57,94 @@ export function useDragAndDrop(): UseDragAndDropReturn {
     return isValidDropTarget(targetCoordId, dragState.draggedTileId, getItem, mappingUserId ?? null);
   }, [dragState.draggedTileId, getItem, mappingUserId]);
 
+  const validationCallbacks = useMemo(() => ({ checkCanDrag, checkDropTarget }), [checkCanDrag, checkDropTarget]);
+  
+  // Move all event handlers to main hook to avoid rules of hooks violations
   const handleDragStart = useCallback((coordId: string, event: DragEvent<HTMLDivElement>) => {
-    if (!checkCanDrag(coordId)) {
+    if (!validationCallbacks.checkCanDrag(coordId)) {
       event.preventDefault();
       return;
     }
-    
-    setupDragStart(event, coordId);
-    const tile = getItem(coordId);
-    if (tile) {
-      setDragState(createDragState(coordId, tile, event));
+
+    const tileData = getItem(coordId);
+    if (!tileData) {
+      event.preventDefault();
+      return;
     }
-  }, [checkCanDrag, getItem]);
+
+    setupDragStart(event, coordId);
+    const newDragState = createDragState(coordId, tileData, event);
+    setDragState(newDragState);
+  }, [validationCallbacks, getItem, setDragState]);
 
   const handleDragOver = useCallback((targetCoordId: string, event: DragEvent<HTMLDivElement>) => {
-    const isValid = checkDropTarget(targetCoordId);
-    setupDragOver(event, isValid);
-    
-    if (isValid) {
-      const operation: DropOperation = getDropOperationType(targetCoordId, getItem);
-      setDragState(prev => ({
-        ...updateDropTarget(prev, targetCoordId),
-        dropOperation: operation
-      }));
+    if (!dragState.isDragging) return;
+    if (!validationCallbacks.checkDropTarget(targetCoordId)) {
+      event.dataTransfer.dropEffect = 'none';
+      return;
     }
-  }, [checkDropTarget, getItem]);
+
+    setupDragOver(event, true);
+    setDragState(prev => updateDropTarget(prev, targetCoordId));
+  }, [dragState, validationCallbacks, setDragState]);
 
   const handleDragLeave = useCallback(() => {
-    setDragState(prev => ({
-      ...updateDropTarget(prev, null),
-      dropOperation: null
-    }));
-  }, []);
+    setDragState(prev => updateDropTarget(prev, null));
+  }, [setDragState]);
 
   const handleDrop = useCallback((targetCoordId: string, event: DragEvent<HTMLDivElement>) => {
-    handleDropEvent(event);
-    
-    if (!dragState.draggedTileData || !checkDropTarget(targetCoordId)) {
-      return;
-    }
-    
-    // Get the source coordinates from the dragged tile
-    const sourceCoordId = dragState.draggedTileId;
-    if (!sourceCoordId) {
-      return;
-    }
-    
-    const sourceItem = getItem(sourceCoordId);
-    const targetItem = getItem(targetCoordId);
-    
-    if (!sourceItem) return;
-    
-    // Perform the move/swap operation
+    _executeDropOperation(targetCoordId, event, dragState, validationCallbacks, moveItemOptimistic, eventBus, setDragState);
+  }, [dragState, validationCallbacks, moveItemOptimistic, eventBus, setDragState]);
+
+  const handleDragEnd = useCallback(() => {
+    setDragState(initialDragState);
+  }, [setDragState]);
+
+  const eventHandlers = { handleDragStart, handleDragOver, handleDragLeave, handleDrop, handleDragEnd };
+  const stateQueries = _createStateQueries(dragState);
+  const dragHandlers = _createDragHandlers(eventHandlers);
+  
+  return _createHookReturnValue(dragHandlers, validationCallbacks, stateQueries, dragState);
+}
+
+// Internal helper functions for drag and drop logic
+
+
+
+function _executeDropOperation(
+  targetCoordId: string,
+  event: DragEvent<HTMLDivElement>,
+  dragState: DragState,
+  validationCallbacks: {
+    checkCanDrag: (id: string) => boolean;
+    checkDropTarget: (id: string) => boolean;
+  },
+  moveItemOptimistic: ReturnType<typeof useMapCache>['moveItemOptimistic'],
+  eventBus: ReturnType<typeof useEventBus>,
+  setDragState: React.Dispatch<React.SetStateAction<DragState>>
+) {
+  event.preventDefault();
+  
+  if (!dragState.isDragging || !dragState.draggedTileId) return;
+  if (!validationCallbacks.checkDropTarget(targetCoordId)) return;
+
+  handleDropEvent(event);
+  
+  const sourceCoordId = dragState.draggedTileId;
+  if (sourceCoordId) {
     void (async () => {
       try {
-        // Use moveItemOptimistic from mapCache
-        // This will trigger the mutation coordinator which emits the appropriate events
         await moveItemOptimistic(sourceCoordId, targetCoordId);
       } catch (error) {
-        console.error('Failed to move/swap tiles:', error);
-        
-        // Emit error event for Chat to display
         eventBus.emit({
           type: 'error.occurred',
           source: 'map_cache',
           payload: {
             error: error instanceof Error ? error.message : 'Failed to complete operation',
             context: {
-              operation: targetItem ? 'swap' : 'move',
-              sourceItem: sourceItem.data.name,
-              targetItem: targetItem?.data.name
+              operation: 'move',
+              sourceCoordId,
+              targetCoordId
             },
             retryable: true
           },
@@ -133,45 +152,62 @@ export function useDragAndDrop(): UseDragAndDropReturn {
         });
       }
     })();
-    
-    // Reset drag state
-    setDragState(initialDragState);
-  }, [dragState.draggedTileData, dragState.draggedTileId, checkDropTarget, getItem, moveItemOptimistic, eventBus]);
+  }
 
-  const handleDragEnd = useCallback(() => {
-    setDragState(initialDragState);
-  }, []);
+  setDragState(initialDragState);
+}
 
-  const dragHandlers: DragHandlers = {
-    onDragStart: handleDragStart,
-    onDragOver: handleDragOver,
-    onDragLeave: handleDragLeave,
-    onDrop: handleDrop,
-    onDragEnd: handleDragEnd,
+function _createStateQueries(dragState: DragState) {
+  const isDraggingTile = (id: string): boolean => {
+    return dragState.isDragging && dragState.draggedTileId === id;
   };
 
-  const isDraggingTile = useCallback((id: string): boolean => {
-    return dragState.isDragging && dragState.draggedTileId === id;
-  }, [dragState.isDragging, dragState.draggedTileId]);
-
-  const isDropTarget = useCallback((id: string): boolean => {
+  const isDropTarget = (id: string): boolean => {
     return dragState.dropTargetId === id;
-  }, [dragState.dropTargetId]);
+  };
 
-  const getDropOperation = useCallback((id: string): DropOperation | null => {
+  const getDropOperation = (id: string): DropOperation | null => {
     if (dragState.dropTargetId === id) {
       return dragState.dropOperation;
     }
     return null;
-  }, [dragState.dropTargetId, dragState.dropOperation]);
+  };
 
+  return { isDraggingTile, isDropTarget, getDropOperation };
+}
+
+function _createDragHandlers(eventHandlers: {
+  handleDragStart: (coordId: string, event: DragEvent<HTMLDivElement>) => void;
+  handleDragOver: (targetCoordId: string, event: DragEvent<HTMLDivElement>) => void;
+  handleDragLeave: () => void;
+  handleDrop: (targetCoordId: string, event: DragEvent<HTMLDivElement>) => void;
+  handleDragEnd: () => void;
+}): DragHandlers {
+  return {
+    onDragStart: eventHandlers.handleDragStart,
+    onDragOver: eventHandlers.handleDragOver,
+    onDragLeave: eventHandlers.handleDragLeave,
+    onDrop: eventHandlers.handleDrop,
+    onDragEnd: eventHandlers.handleDragEnd,
+  };
+}
+
+function _createHookReturnValue(
+  dragHandlers: DragHandlers,
+  validationCallbacks: {
+    checkCanDrag: (id: string) => boolean;
+    checkDropTarget: (id: string) => boolean;
+  },
+  stateQueries: ReturnType<typeof _createStateQueries>,
+  dragState: DragState
+): UseDragAndDropReturn {
   return {
     dragHandlers,
-    canDragTile: checkCanDrag,
-    isValidDropTarget: checkDropTarget,
-    isDraggingTile,
-    isDropTarget,
+    canDragTile: validationCallbacks.checkCanDrag,
+    isValidDropTarget: validationCallbacks.checkDropTarget,
+    isDraggingTile: stateQueries.isDraggingTile,
+    isDropTarget: stateQueries.isDropTarget,
     isDragging: dragState.isDragging,
-    getDropOperation,
+    getDropOperation: stateQueries.getDropOperation,
   };
 }

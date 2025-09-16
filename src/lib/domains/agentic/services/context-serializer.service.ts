@@ -1,7 +1,7 @@
 import type { 
   ComposedContext,
   SerializationFormat 
-} from '../types'
+} from '~/lib/domains/agentic/types'
 import { StructuredContextSerializer } from '~/lib/domains/agentic/services/serializers/structured-serializer'
 import { XMLContextSerializer } from '~/lib/domains/agentic/services/serializers/xml-serializer'
 import { MinimalContextSerializer } from '~/lib/domains/agentic/services/serializers/minimal-serializer'

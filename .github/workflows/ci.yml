@@ -61,9 +61,9 @@ jobs:
           path: node_modules
           key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
 
-  # Linting job (runs in parallel)
-  lint:
-    name: Lint
+  # ESLint job
+  eslint:
+    name: ESLint
     needs: setup
     runs-on: ubuntu-latest
     steps:
@@ -87,42 +87,101 @@ jobs:
           path: node_modules
           key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
 
-      - name: Run all lint checks
-        run: |
-          # Run all lint commands, continue even if one fails
-          set +e
-          EXIT_CODE=0
-          
-          echo "Running ESLint..."
-          pnpm lint
-          if [ $? -ne 0 ]; then
-            echo "❌ ESLint check failed"
-            EXIT_CODE=1
-          else
-            echo "✅ ESLint check passed"
-          fi
-          
-          echo ""
-          echo "Running color validation..."
-          pnpm lint:colors
-          if [ $? -ne 0 ]; then
-            echo "❌ Color validation failed"
-            EXIT_CODE=1
-          else
-            echo "✅ Color validation passed"
-          fi
-          
-          echo ""
-          echo "Running architecture validation..."
-          pnpm check:architecture
-          if [ $? -ne 0 ]; then
-            echo "❌ Architecture validation failed"
-            EXIT_CODE=1
-          else
-            echo "✅ Architecture validation passed"
-          fi
-          
-          exit $EXIT_CODE
+      - name: Run ESLint
+        run: pnpm check:lint
+        env:
+          SKIP_ENV_VALIDATION: true
+
+  # Dead code detection job
+  deadcode:
+    name: Dead Code Check
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - name: Run dead code check
+        run: pnpm check:deadcode
+        env:
+          SKIP_ENV_VALIDATION: true
+
+  # Architecture validation job
+  architecture:
+    name: Architecture Check
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - name: Run architecture validation
+        run: pnpm check:architecture
+        env:
+          SKIP_ENV_VALIDATION: true
+
+  # Rule of 6 validation job
+  ruleof6:
+    name: Rule of 6 Check
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - name: Run Rule of 6 validation
+        run: pnpm check:ruleof6
         env:
           SKIP_ENV_VALIDATION: true
 
@@ -328,13 +387,16 @@ jobs:
   # Final check that all parallel jobs succeeded
   ci-status:
     name: CI Status Check
-    needs: [lint, typecheck, test-phase1, test-phase2, build]
+    needs: [eslint, deadcode, architecture, ruleof6, typecheck, test-phase1, test-phase2, build]
     runs-on: ubuntu-latest
     if: always()
     steps:
       - name: Check all job statuses
         run: |
-          if [[ "${{ needs.lint.result }}" != "success" || \
+          if [[ "${{ needs.eslint.result }}" != "success" || \
+                "${{ needs.deadcode.result }}" != "success" || \
+                "${{ needs.architecture.result }}" != "success" || \
+                "${{ needs.ruleof6.result }}" != "success" || \
                 "${{ needs.typecheck.result }}" != "success" || \
                 "${{ needs.test-phase1.result }}" != "success" || \
                 "${{ needs.test-phase2.result }}" != "success" || \
