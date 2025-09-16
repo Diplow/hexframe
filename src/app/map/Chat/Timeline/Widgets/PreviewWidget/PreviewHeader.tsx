@@ -40,16 +40,30 @@ export function PreviewHeader({
 }: PreviewHeaderProps) {
   // Only show border when content is expanded - matches other widgets
   const borderClass = isExpanded ? 'border-b border-neutral-200 dark:border-neutral-800' : '';
+  const isTogglable = hasContent && !isEditing;
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if ((e.key === 'Enter' || e.key === ' ') && isTogglable) {
+      e.preventDefault();
+      onToggleExpansion();
+    }
+  };
 
   return (
     <div
       className={cn(
-        "flex items-center gap-3 p-3",
-        "cursor-pointer hover:bg-muted/50 active:bg-muted/70 transition-colors",
-        "focus:outline-none focus:bg-muted/50",
+        "flex items-center gap-3 p-3 transition-colors",
+        isTogglable && "cursor-pointer hover:bg-muted/50 active:bg-muted/70 focus:bg-muted/50",
+        !isTogglable && "cursor-default",
+        "focus:outline-none",
         borderClass
       )}
-      onClick={() => hasContent && !isEditing && onToggleExpansion()}
+      role={isTogglable ? "button" : undefined}
+      tabIndex={isTogglable ? 0 : -1}
+      aria-expanded={isTogglable ? isExpanded : undefined}
+      aria-disabled={!isTogglable}
+      onClick={() => isTogglable && onToggleExpansion()}
+      onKeyDown={handleKeyDown}
     >
       {/* Tile preview on the left */}
       <div className="flex-shrink-0">
