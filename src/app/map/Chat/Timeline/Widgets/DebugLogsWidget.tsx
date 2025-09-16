@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Bug, Copy, X } from 'lucide-react';
 import { BaseWidget, WidgetHeader, WidgetContent } from '~/app/map/Chat/Timeline/Widgets/_shared';
 import { debugLogger } from '~/lib/debug/debug-logger';
-import { stripTimestamp } from '~/app/map/Chat/Input/_commands/debug/debug-utils';
+import { stripTimestamp } from '~/app/map/Chat/Input';
 
 interface DebugLogsWidgetProps {
   title: string;

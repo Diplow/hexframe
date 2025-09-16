@@ -1,7 +1,6 @@
 'use client';
 
-import { BaseTileLayout } from '~/app/map/Canvas';
-import type { TileCursor } from '~/app/map/Canvas/Tile';
+import { BaseTileLayout, type TileCursor } from '~/app/map/Canvas';
 
 interface TilePreviewProps {
   tileColor?: string;
