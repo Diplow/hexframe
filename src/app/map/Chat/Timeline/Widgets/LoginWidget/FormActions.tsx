@@ -16,10 +16,10 @@ export function FormActions({ mode, isLoading, onCancel }: FormActionsProps) {
         onClick={onCancel}
         disabled={isLoading}
         aria-disabled={isLoading}
-        className="px-4 py-2 text-sm font-medium text-secondary-700 dark:text-secondary-300
-                 bg-background dark:bg-neutral-700 border border-secondary-300 dark:border-secondary-600
+        className="px-4 py-2 text-sm font-medium text-secondary dark:text-secondary-foreground
+                 bg-background dark:bg-neutral-700 border border-border
                  rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-600
-                 focus:outline-none focus:ring-2 focus:ring-secondary-500
+                 focus:outline-none focus:ring-2 focus:ring-secondary
                  disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         Cancel

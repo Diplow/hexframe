@@ -1,22 +1,23 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { cn } from '~/lib/utils';
 
 interface WidgetActionProps {
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
   align?: 'left' | 'center' | 'right' | 'between';
   size?: 'sm' | 'md' | 'lg';
 }
 
-const alignmentStyles = {
+const alignmentStyles: Record<'left' | 'center' | 'right' | 'between', string> = {
   left: 'justify-start',
   center: 'justify-center',
   right: 'justify-end',
   between: 'justify-between',
 };
 
-const sizeStyles = {
+const sizeStyles: Record<'sm' | 'md' | 'lg', string> = {
   sm: 'gap-1',
   md: 'gap-2',
   lg: 'gap-3',

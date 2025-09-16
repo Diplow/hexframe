@@ -57,6 +57,7 @@ export function PreviewHeader({
           coordId="preview-0,0"
           scale={1}
           color={tileColor}
+          stroke={{ color: "transparent" as const, width: 0 }}
           baseHexSize={10}
           cursor="cursor-pointer"
         />
