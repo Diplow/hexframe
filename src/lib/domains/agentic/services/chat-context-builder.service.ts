@@ -2,7 +2,7 @@ import type {
   ChatContext, 
   ChatContextOptions, 
   ChatContextStrategy 
-} from '../types'
+} from '~/lib/domains/agentic/types'
 import type { IChatStrategy } from '~/lib/domains/agentic/services/chat-strategies/strategy.interface'
 import type { ChatMessage } from '~/app/map'
 

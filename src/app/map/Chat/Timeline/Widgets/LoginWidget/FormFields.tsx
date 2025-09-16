@@ -40,8 +40,14 @@ export function FormFields({
               name="username"
               value={username}
               onChange={(e) => onUsernameChange(e.target.value)}
-              className="w-full pl-8 pr-3 py-2 text-sm border border-secondary-300 dark:border-secondary-700 rounded-md 
-                       bg-white dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-secondary-500"
+              className="w-full pl-8 pr-3 py-2 text-sm border border-secondary-300 dark:border-secondary-600 rounded-md 
+                       bg-background dark:bg-neutral-800 text-secondary-900 dark:text-secondary-100 placeholder-secondary-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+            style={{
+              WebkitBoxShadow: 'inset 0 0 0 1000px var(--background)',
+              boxShadow: 'inset 0 0 0 1000px var(--background)',
+              WebkitTextFillColor: 'var(--foreground)',
+              color: 'var(--foreground)',
+            }}
               placeholder="johndoe"
               autoComplete="username"
               autoCapitalize="none"
@@ -67,8 +73,14 @@ export function FormFields({
             inputMode="email"
             value={email}
             onChange={(e) => onEmailChange(e.target.value)}
-            className="w-full pl-8 pr-3 py-2 text-sm border border-secondary-300 dark:border-secondary-700 rounded-md 
-                     bg-white dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-secondary-500"
+            className="w-full pl-8 pr-3 py-2 text-sm border border-secondary-300 dark:border-secondary-600 rounded-md 
+                     bg-background dark:bg-neutral-800 text-secondary-900 dark:text-secondary-100 placeholder-secondary-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+            style={{
+              WebkitBoxShadow: 'inset 0 0 0 1000px var(--background)',
+              boxShadow: 'inset 0 0 0 1000px var(--background)',
+              WebkitTextFillColor: 'var(--foreground)',
+              color: 'var(--foreground)',
+            }}
             placeholder="you@example.com"
             autoComplete="email"
             autoCapitalize="none"
@@ -92,8 +104,14 @@ export function FormFields({
             name="password"
             value={password}
             onChange={(e) => onPasswordChange(e.target.value)}
-            className="w-full pl-8 pr-3 py-2 text-sm border border-secondary-300 dark:border-secondary-700 rounded-md 
-                     bg-white dark:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-secondary-500"
+            className="w-full pl-8 pr-3 py-2 text-sm border border-secondary-300 dark:border-secondary-600 rounded-md 
+                     bg-background dark:bg-neutral-800 text-secondary-900 dark:text-secondary-100 placeholder-secondary-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
+            style={{
+              WebkitBoxShadow: 'inset 0 0 0 1000px var(--background)',
+              boxShadow: 'inset 0 0 0 1000px var(--background)',
+              WebkitTextFillColor: 'var(--foreground)',
+              color: 'var(--foreground)',
+            }}
             placeholder="••••••••"
             autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
             autoCapitalize="none"

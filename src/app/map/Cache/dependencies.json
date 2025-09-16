@@ -2,10 +2,14 @@
   "$schema": "../../../../schemas/dependencies.schema.json",
   "allowed": [
     "vitest",
-    "~/app/map",
-    "~/app/types",
-    "~/server/api/types/contracts",
-    "~/test-utils/event-bus"
+    "~/commons/trpc/react",
+    "~/lib/debug/debug-logger",
+    "~/server/api",
+    "~/lib/domains/mapping",
+    "~/app/map/Cache/State"
+  ],
+  "subsystems": [
+    "./Handlers"
   ],
   "exceptions": {
     "~/lib/domains/mapping/types/MapItemType": "Needed for specific type import while avoiding full types folder"

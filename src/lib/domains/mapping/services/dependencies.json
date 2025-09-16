@@ -7,7 +7,6 @@
     "~/lib/domains/mapping/_repositories", 
     "~/lib/domains/mapping/infrastructure",
     "~/lib/domains/mapping/types",
-    "~/lib/domains/mapping/utils",
     "~/server/db"
   ],
   "exceptions": {}

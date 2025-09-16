@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, type MockedFunction } from "vites
 import { createNavigationHandler } from "~/app/map/Cache/Handlers/navigation-handler";
 import type { CacheState, CacheAction } from "~/app/map/Cache/State/types";
 import { ACTION_TYPES } from "~/app/map/Cache/State/types";
-import type { DataOperations } from "~/app/map/Cache/Handlers/types";
+import type { DataOperations } from "~/app/map/Cache/types/handlers";
 import type { TileData } from "~/app/map/types/tile-data";
 import { initialCacheState } from "~/app/map/Cache/State/reducer";
 import { CoordSystem } from "~/lib/domains/mapping/utils";

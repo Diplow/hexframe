@@ -238,6 +238,119 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
   });
 });
 
+/**
+ * MCP API Key authenticated procedure
+ * 
+ * This procedure authenticates requests using API keys from the x-api-key header.
+ * Used by the MCP server to authenticate write operations.
+ */
+export const mcpAuthProcedure = t.procedure.use(async ({ ctx, next }) => {
+  const apiKey = Array.isArray(ctx.headers["x-api-key"]) 
+    ? ctx.headers["x-api-key"][0] 
+    : ctx.headers["x-api-key"];
+  
+  if (!apiKey) {
+    throw new TRPCError({ 
+      code: "UNAUTHORIZED",
+      message: "API key required" 
+    });
+  }
+
+  try {
+    // Use better-auth's API key validation
+    const result = await auth.api.verifyApiKey({ 
+      body: { key: apiKey } 
+    });
+    
+    if (!result.valid) {
+      throw new TRPCError({ 
+        code: "UNAUTHORIZED",
+        message: "Invalid API key" 
+      });
+    }
+
+    // Create a mock user context from the API key
+    const user = { id: result.key?.userId ?? "" };
+    
+    return next({
+      ctx: {
+        ...ctx,
+        user,
+        session: null, // API key auth doesn't have sessions
+        apiKeyAuth: true, // Flag to indicate this is API key auth
+      },
+    });
+  } catch (error) {
+    console.error("API key validation error:", error);
+    throw new TRPCError({ 
+      code: "UNAUTHORIZED",
+      message: "API key validation failed" 
+    });
+  }
+});
+
+/**
+ * Dual Authentication Procedure
+ * 
+ * Supports both traditional session auth and MCP API key auth.
+ * Tries session auth first, falls back to API key auth.
+ */
+export const dualAuthProcedure = t.procedure.use(async ({ ctx, next }) => {
+  // First try traditional session auth
+  if (ctx.session && ctx.user) {
+    return next({
+      ctx: {
+        ...ctx,
+        session: { ...ctx.session },
+        user: { ...ctx.user },
+        apiKeyAuth: false,
+      },
+    });
+  }
+
+  // Fall back to API key auth
+  const apiKey = Array.isArray(ctx.headers["x-api-key"]) 
+    ? ctx.headers["x-api-key"][0] 
+    : ctx.headers["x-api-key"];
+  
+  if (!apiKey) {
+    throw new TRPCError({ 
+      code: "UNAUTHORIZED",
+      message: "Authentication required - provide session or API key" 
+    });
+  }
+
+  try {
+    const result = await auth.api.verifyApiKey({ 
+      body: { key: apiKey } 
+    });
+    
+    if (!result.valid) {
+      throw new TRPCError({ 
+        code: "UNAUTHORIZED",
+        message: "Invalid API key" 
+      });
+    }
+
+    const user = { id: result.key?.userId ?? "" };
+    
+    return next({
+      ctx: {
+        ...ctx,
+        user,
+        session: null,
+        apiKeyAuth: true,
+      },
+    });
+  } catch (error) {
+    console.error("Authentication error:", error);
+    throw new TRPCError({ 
+      code: "UNAUTHORIZED",
+      message: "Authentication failed" 
+    });
+  }
+});
+
 // Service middlewares
 export const mappingServiceMiddleware = t.middleware(async ({ ctx, next }) => {
   const repositories = {

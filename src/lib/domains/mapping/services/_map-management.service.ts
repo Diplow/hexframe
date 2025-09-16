@@ -4,7 +4,7 @@ import type {
 } from "~/lib/domains/mapping/_repositories";
 import { MapItemActions } from "~/lib/domains/mapping/_actions";
 import { adapt } from "~/lib/domains/mapping/types/contracts";
-import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { CoordSystem } from "~/lib/domains/mapping/utils";
 import { MapItemType } from "~/lib/domains/mapping/_objects";
 import type { MapContract } from "~/lib/domains/mapping/types/contracts";
 import { MappingUtils } from "~/lib/domains/mapping/services";

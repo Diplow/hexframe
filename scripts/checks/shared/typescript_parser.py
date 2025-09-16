@@ -1,0 +1,874 @@
+#!/usr/bin/env python3
+"""
+Shared TypeScript/JavaScript parsing utilities.
+
+This module provides comprehensive parsing of TypeScript and JavaScript files,
+extracting imports, exports, functions, and other symbols for use by various
+code analysis tools.
+"""
+
+import re
+from pathlib import Path
+from typing import List, Set, Optional, NamedTuple
+from dataclasses import dataclass
+
+
+@dataclass
+class Import:
+    """Represents an import statement."""
+    name: str
+    from_path: str
+    file_path: Path
+    line_number: int
+    import_type: str  # 'default', 'named', 'namespace', 'type'
+    original_name: Optional[str] = None  # For aliased imports
+
+
+@dataclass 
+class Export:
+    """Represents an export statement."""
+    name: str
+    file_path: Path
+    line_number: int
+    export_type: str  # 'default', 'named', 'const', 'function', 'class', 'interface', 'type'
+    is_reexport: bool = False
+    from_path: Optional[str] = None
+    original_name: Optional[str] = None  # For aliased exports like "export { foo as bar }"
+
+
+@dataclass
+class Symbol:
+    """Represents a local symbol (function, variable, etc.)."""
+    name: str
+    file_path: Path
+    line_number: int
+    symbol_type: str  # 'function', 'const', 'let', 'var', 'class', 'interface', 'type'
+    is_exported: bool = False
+
+
+@dataclass
+class FunctionInfo:
+    """Represents function information for Rule of 6 checking."""
+    name: str
+    line_start: int
+    line_end: int
+    line_count: int
+    arg_count: int
+    file_path: Path
+
+
+class TypeScriptParser:
+    """
+    Comprehensive TypeScript/JavaScript parser for code analysis.
+    
+    Extracts imports, exports, functions, and symbols from TypeScript files
+    with proper handling of multi-line statements and various syntax patterns.
+    """
+    
+    def __init__(self):
+        # Keywords to exclude from function detection
+        self.excluded_keywords = {
+            'if', 'else', 'for', 'while', 'switch', 'case', 'default', 'try', 'catch', 
+            'finally', 'with', 'return', 'throw', 'break', 'continue', 'do', 'typeof',
+            'instanceof', 'in', 'new', 'delete', 'void', 'yield', 'await'
+        }
+        
+        # Function declaration patterns
+        self.function_patterns = [
+            r'(?:export\s+)?(?:async\s+)?function\s+(\w+)\s*\(([^)]*)\)',  # function declarations
+            r'(?:export\s+)?const\s+(\w+)\s*=\s*(?:async\s*)?\(([^)]*)\)\s*=>',  # arrow functions
+            r'(\w+)\s*:\s*(?:async\s*)?\(([^)]*)\)\s*=>',  # object method arrow functions
+            r'(?:public\s+|private\s+|protected\s+)?(?:static\s+)?(?:async\s+)?(\w+)\s*\(([^)]*)\)\s*\{',  # class methods
+        ]
+
+    def extract_imports(self, content: str, file_path: Path) -> List[Import]:
+        """Extract import statements from file content with multi-line support."""
+        imports = []
+        
+        # First handle multi-line imports using regex on full content
+        # Multi-line named imports: import { ... }
+        multi_import_pattern = r'import\s*\{\s*((?:[^{}]|{[^}]*})*?)\s*\}\s*from\s*["\']([^"\']+)["\']'
+        for match in re.finditer(multi_import_pattern, content, re.MULTILINE | re.DOTALL):
+            imports_str = match.group(1)
+            from_path = match.group(2)
+            
+            # Find line number of the import statement
+            content_before = content[:match.start()]
+            line_number = content_before.count('\n') + 1
+            
+            # Parse individual imports
+            for import_name in imports_str.split(','):
+                import_name = import_name.strip()
+                if not import_name:
+                    continue
+
+                # Handle inline type imports: type Foo
+                import_type = 'named'
+                if import_name.startswith('type '):
+                    import_type = 'type'
+                    import_name = import_name[5:].strip()  # Remove 'type ' prefix
+
+                # Handle 'as' aliases: foo as bar
+                original_name = import_name
+                if ' as ' in import_name:
+                    original_name = import_name.split(' as ')[0].strip()
+                    import_name = import_name.split(' as ')[-1].strip()
+
+                imports.append(Import(
+                    name=import_name,
+                    from_path=from_path,
+                    file_path=file_path,
+                    line_number=line_number,
+                    import_type=import_type,
+                    original_name=original_name if ' as ' in import_name else None
+                ))
+        
+        # Multi-line type imports: import type { ... }
+        multi_type_pattern = r'import\s+type\s*\{\s*((?:[^{}]|{[^}]*})*?)\s*\}\s*from\s*["\']([^"\']+)["\']'
+        for match in re.finditer(multi_type_pattern, content, re.MULTILINE | re.DOTALL):
+            imports_str = match.group(1)
+            from_path = match.group(2)
+            
+            # Find line number
+            content_before = content[:match.start()]
+            line_number = content_before.count('\n') + 1
+            
+            for import_name in imports_str.split(','):
+                import_name = import_name.strip()
+                if not import_name:
+                    continue
+                    
+                original_name = import_name
+                if ' as ' in import_name:
+                    original_name = import_name.split(' as ')[0].strip()
+                    import_name = import_name.split(' as ')[-1].strip()
+                
+                imports.append(Import(
+                    name=import_name,
+                    from_path=from_path,
+                    file_path=file_path,
+                    line_number=line_number,
+                    import_type='type',
+                    original_name=original_name if ' as ' in import_name else None
+                ))
+        
+        # Now process line by line for other import patterns
+        lines = content.split('\n')
+        
+        for i, line in enumerate(lines, 1):
+            line = line.strip()
+            
+            # Skip comments and empty lines
+            if not line or line.startswith('//') or line.startswith('/*'):
+                continue
+            
+            # Skip lines that are part of multi-line imports (already processed)
+            if 'import' in line and ('{' in line or '}' in line):
+                # Check if this is a single-line import pattern
+                is_single_line_import = line.startswith('import') and line.endswith("';")
+                
+                # Skip only if it's truly part of a multi-line import block
+                if not is_single_line_import:
+                    continue
+            
+            # Default import: import foo from 'bar'
+            default_match = re.match(r'import\s+(\w+)\s+from\s+["\']([^"\']+)["\']', line)
+            if default_match and '{' not in line:
+                name = default_match.group(1)
+                from_path = default_match.group(2)
+                
+                imports.append(Import(
+                    name=name,
+                    from_path=from_path,
+                    file_path=file_path,
+                    line_number=i,
+                    import_type='default'
+                ))
+                continue
+            
+            # Single-line named imports: import { foo, bar } from 'baz' on one line
+            single_named_match = re.match(r'^import\s*\{\s*([^}]+)\s*\}\s*from\s*["\']([^"\']+)["\']$', line)
+            if single_named_match:
+                imports_str = single_named_match.group(1)
+                from_path = single_named_match.group(2)
+                
+                for import_name in imports_str.split(','):
+                    import_name = import_name.strip()
+                    if not import_name:
+                        continue
+
+                    # Handle inline type imports: type Foo
+                    import_type = 'named'
+                    if import_name.startswith('type '):
+                        import_type = 'type'
+                        import_name = import_name[5:].strip()  # Remove 'type ' prefix
+
+                    # Handle 'as' aliases: foo as bar
+                    original_name = import_name
+                    if ' as ' in import_name:
+                        original_name = import_name.split(' as ')[0].strip()
+                        import_name = import_name.split(' as ')[-1].strip()
+
+                    imports.append(Import(
+                        name=import_name,
+                        from_path=from_path,
+                        file_path=file_path,
+                        line_number=i,
+                        import_type=import_type,
+                        original_name=original_name if ' as ' in import_name else None
+                    ))
+                continue
+            
+            # Single-line type imports: import type { ... } from '...' on one line
+            single_type_match = re.match(r'^import\s+type\s*\{\s*([^}]+)\s*\}\s*from\s*["\']([^"\']+)["\']$', line)
+            if single_type_match:
+                imports_str = single_type_match.group(1)
+                from_path = single_type_match.group(2)
+                
+                for import_name in imports_str.split(','):
+                    import_name = import_name.strip()
+                    if not import_name:
+                        continue
+                        
+                    original_name = import_name
+                    if ' as ' in import_name:
+                        original_name = import_name.split(' as ')[0].strip()
+                        import_name = import_name.split(' as ')[-1].strip()
+                    
+                    imports.append(Import(
+                        name=import_name,
+                        from_path=from_path,
+                        file_path=file_path,
+                        line_number=i,
+                        import_type='type',
+                        original_name=original_name if ' as ' in import_name else None
+                    ))
+                continue
+            
+            # Namespace import: import * as foo from 'bar'
+            namespace_match = re.match(r'import\s*\*\s*as\s+(\w+)\s+from\s+["\']([^"\']+)["\']', line)
+            if namespace_match:
+                name = namespace_match.group(1)
+                from_path = namespace_match.group(2)
+                
+                imports.append(Import(
+                    name=name,
+                    from_path=from_path,
+                    file_path=file_path,
+                    line_number=i,
+                    import_type='namespace'
+                ))
+
+        # Handle dynamic imports: import('path') and await import('path')
+        # These are common in modern TypeScript for lazy loading
+        dynamic_import_pattern = r'(?:await\s+)?import\s*\(\s*["\']([^"\']+)["\']\s*\)'
+        for match in re.finditer(dynamic_import_pattern, content, re.MULTILINE):
+            from_path = match.group(1)
+
+            # Find line number
+            content_before = content[:match.start()]
+            line_number = content_before.count('\n') + 1
+
+            # For dynamic imports, we'll mark it as a namespace import since
+            # the entire module is being imported dynamically
+            imports.append(Import(
+                name='*',  # Dynamic imports import the whole module
+                from_path=from_path,
+                file_path=file_path,
+                line_number=line_number,
+                import_type='dynamic'
+            ))
+
+        return imports
+
+    def extract_exports(self, content: str, file_path: Path) -> List[Export]:
+        """Extract export statements from file content with multi-line support."""
+        exports = []
+        
+        # First handle multi-line exports using regex on full content
+        # Multi-line named exports: export { ... }
+        multi_export_pattern = r'export\s*\{\s*((?:[^{}]|{[^}]*})*?)\s*\}(?:\s*from\s*["\']([^"\']+)["\'])?'
+        for match in re.finditer(multi_export_pattern, content, re.MULTILINE | re.DOTALL):
+            exports_str = match.group(1)
+            from_path = match.group(2)
+            is_reexport = from_path is not None
+            
+            # Find line number of the export statement
+            content_before = content[:match.start()]
+            line_number = content_before.count('\n') + 1
+            
+            # Parse individual exports
+            for export_name in exports_str.split(','):
+                export_name = export_name.strip()
+                if not export_name:
+                    continue
+                    
+                # Handle 'as' aliases: foo as bar
+                original_name = None
+                if ' as ' in export_name:
+                    original_name = export_name.split(' as ')[0].strip()
+                    export_name = export_name.split(' as ')[-1].strip()
+                
+                exports.append(Export(
+                    name=export_name,
+                    file_path=file_path,
+                    line_number=line_number,
+                    export_type='named',
+                    is_reexport=is_reexport,
+                    from_path=from_path,
+                    original_name=original_name
+                ))
+        
+        # Multi-line type exports: export type { ... }
+        multi_type_pattern = r'export\s+type\s*\{\s*((?:[^{}]|{[^}]*})*?)\s*\}(?:\s*from\s*["\']([^"\']+)["\'])?'
+        for match in re.finditer(multi_type_pattern, content, re.MULTILINE | re.DOTALL):
+            exports_str = match.group(1)
+            from_path = match.group(2)
+            is_reexport = from_path is not None
+            
+            # Find line number
+            content_before = content[:match.start()]
+            line_number = content_before.count('\n') + 1
+            
+            for export_name in exports_str.split(','):
+                export_name = export_name.strip()
+                if not export_name:
+                    continue
+                    
+                original_name = None
+                if ' as ' in export_name:
+                    original_name = export_name.split(' as ')[0].strip()
+                    export_name = export_name.split(' as ')[-1].strip()
+                
+                exports.append(Export(
+                    name=export_name,
+                    file_path=file_path,
+                    line_number=line_number,
+                    export_type='type',
+                    is_reexport=is_reexport,
+                    from_path=from_path,
+                    original_name=original_name
+                ))
+        
+        # Wildcard exports: export * from '...'
+        wildcard_pattern = r'export\s*\*\s*from\s*["\']([^"\']+)["\']'
+        for match in re.finditer(wildcard_pattern, content, re.MULTILINE):
+            from_path = match.group(1)
+            
+            # Find line number
+            content_before = content[:match.start()]
+            line_number = content_before.count('\n') + 1
+            
+            exports.append(Export(
+                name='*',  # Special marker for wildcard exports
+                file_path=file_path,
+                line_number=line_number,
+                export_type='wildcard',
+                is_reexport=True,
+                from_path=from_path
+            ))
+        
+        # Now process line by line for other export patterns
+        lines = content.split('\n')
+        
+        for i, line in enumerate(lines, 1):
+            line = line.strip()
+            
+            # Skip comments and empty lines
+            if not line or line.startswith('//') or line.startswith('/*'):
+                continue
+            
+            # Skip lines that are part of multi-line exports (already processed)
+            # But don't skip direct exports like "export function Toaster() {"
+            if 'export' in line and ('{' in line or '}' in line):
+                # Check if this is a direct export pattern
+                is_direct_export = bool(re.match(r'export\s+(const|function|class|interface|type)\s+\w+', line))
+                is_single_line_export = line.startswith('export') and line.endswith('}')
+                
+                # Skip only if it's truly part of a multi-line export block
+                if not (is_direct_export or is_single_line_export):
+                    continue
+            
+            # Single-line named exports: export { foo, bar } on one line
+            single_named_match = re.match(r'^export\s*\{\s*([^}]+)\s*\}(?:\s*from\s*["\']([^"\']+)["\'])?$', line)
+            if single_named_match:
+                exports_str = single_named_match.group(1)
+                from_path = single_named_match.group(2)
+                is_reexport = from_path is not None
+                
+                # Parse individual exports
+                for export_name in exports_str.split(','):
+                    export_name = export_name.strip()
+                    if not export_name:
+                        continue
+                        
+                    # Handle 'as' aliases: foo as bar
+                    original_name = None
+                    if ' as ' in export_name:
+                        original_name = export_name.split(' as ')[0].strip()
+                        export_name = export_name.split(' as ')[-1].strip()
+                    
+                    exports.append(Export(
+                        name=export_name,
+                        file_path=file_path,
+                        line_number=i,
+                        export_type='named',
+                        is_reexport=is_reexport,
+                        from_path=from_path,
+                        original_name=original_name
+                    ))
+                continue
+            
+            # Default export
+            if re.match(r'export\s+default\b', line):
+                # Try to extract name from default export
+                name_match = re.search(r'export\s+default\s+(function\s+)?(\w+)', line)
+                name = name_match.group(2) if name_match else 'default'
+                
+                exports.append(Export(
+                    name=name,
+                    file_path=file_path,
+                    line_number=i,
+                    export_type='default',
+                    from_path=None
+                ))
+                continue
+            
+            # Direct exports: export const/function/class/interface/type
+            direct_export_match = re.match(r'export\s+(const|function|class|interface|type)\s+(\w+)', line)
+            if direct_export_match:
+                export_type = direct_export_match.group(1)
+                name = direct_export_match.group(2)
+                
+                exports.append(Export(
+                    name=name,
+                    file_path=file_path,
+                    line_number=i,
+                    export_type=export_type,
+                    from_path=None
+                ))
+                continue
+            
+            # Single-line type exports: export type { ... } on one line
+            single_type_match = re.match(r'^export\s+type\s*\{\s*([^}]+)\s*\}(?:\s*from\s*["\']([^"\']+)["\'])?$', line)
+            if single_type_match:
+                exports_str = single_type_match.group(1)
+                from_path = single_type_match.group(2)
+                is_reexport = from_path is not None
+                
+                for export_name in exports_str.split(','):
+                    export_name = export_name.strip()
+                    if not export_name:
+                        continue
+                        
+                    original_name = None
+                    if ' as ' in export_name:
+                        original_name = export_name.split(' as ')[0].strip()
+                        export_name = export_name.split(' as ')[-1].strip()
+                    
+                    exports.append(Export(
+                        name=export_name,
+                        file_path=file_path,
+                        line_number=i,
+                        export_type='type',
+                        is_reexport=is_reexport,
+                        from_path=from_path,
+                        original_name=original_name
+                    ))
+        
+        return exports
+
+    def extract_symbols(self, content: str, file_path: Path) -> List[Symbol]:
+        """Extract local symbols (functions, variables, etc.) from file content."""
+        symbols = []
+        lines = content.split('\n')
+        
+        for i, line in enumerate(lines, 1):
+            line = line.strip()
+            
+            # Skip comments and empty lines
+            if not line or line.startswith('//') or line.startswith('/*'):
+                continue
+            
+            # Function declarations
+            func_match = re.match(r'(?:export\s+)?(?:async\s+)?function\s+(\w+)', line)
+            if func_match:
+                name = func_match.group(1)
+                is_exported = 'export' in line
+                
+                symbols.append(Symbol(
+                    name=name,
+                    file_path=file_path,
+                    line_number=i,
+                    symbol_type='function',
+                    is_exported=is_exported
+                ))
+                continue
+            
+            # Arrow function assignments
+            arrow_match = re.match(r'(?:export\s+)?const\s+(\w+)\s*=\s*(?:async\s+)?\(.*\)\s*=>', line)
+            if arrow_match:
+                name = arrow_match.group(1)
+                is_exported = line.startswith('export')
+                
+                symbols.append(Symbol(
+                    name=name,
+                    file_path=file_path,
+                    line_number=i,
+                    symbol_type='function',
+                    is_exported=is_exported
+                ))
+                continue
+            
+            # Const/let/var declarations
+            var_match = re.match(r'(?:export\s+)?(const|let|var)\s+(\w+)', line)
+            if var_match:
+                var_type = var_match.group(1)
+                name = var_match.group(2)
+                is_exported = line.startswith('export')
+                
+                symbols.append(Symbol(
+                    name=name,
+                    file_path=file_path,
+                    line_number=i,
+                    symbol_type=var_type,
+                    is_exported=is_exported
+                ))
+                continue
+            
+            # Class declarations (including implements clauses)
+            class_match = re.match(r'(?:export\s+)?class\s+(\w+)', line)
+            if class_match:
+                name = class_match.group(1)
+                is_exported = line.startswith('export')
+                
+                symbols.append(Symbol(
+                    name=name,
+                    file_path=file_path,
+                    line_number=i,
+                    symbol_type='class',
+                    is_exported=is_exported
+                ))
+                continue
+            
+            # Interface declarations
+            interface_match = re.match(r'(?:export\s+)?interface\s+(\w+)', line)
+            if interface_match:
+                name = interface_match.group(1)
+                is_exported = line.startswith('export')
+                
+                symbols.append(Symbol(
+                    name=name,
+                    file_path=file_path,
+                    line_number=i,
+                    symbol_type='interface',
+                    is_exported=is_exported
+                ))
+                continue
+            
+            # Type declarations
+            type_match = re.match(r'(?:export\s+)?type\s+(\w+)', line)
+            if type_match:
+                name = type_match.group(1)
+                is_exported = line.startswith('export')
+                
+                symbols.append(Symbol(
+                    name=name,
+                    file_path=file_path,
+                    line_number=i,
+                    symbol_type='type',
+                    is_exported=is_exported
+                ))
+        
+        return symbols
+
+    def extract_interface_implementations(self, content: str, file_path: Path) -> dict[str, list[str]]:
+        """Extract interface implementations (class implements Interface)."""
+        implementations = {}
+        lines = content.split('\n')
+        
+        for i, line in enumerate(lines, 1):
+            line = line.strip()
+            
+            # Skip comments and empty lines
+            if not line or line.startswith('//') or line.startswith('/*'):
+                continue
+            
+            # Look for class declarations with implements
+            class_implements_match = re.match(r'(?:export\s+)?class\s+(\w+).*?\bimplements\s+([^{]+)', line)
+            if class_implements_match:
+                class_name = class_implements_match.group(1)
+                implements_str = class_implements_match.group(2).strip()
+                
+                # Parse implemented interfaces (can be comma-separated)
+                interfaces = [iface.strip() for iface in implements_str.split(',')]
+                
+                for interface in interfaces:
+                    # Clean up interface name (remove generic parameters)
+                    interface = re.sub(r'<.*>', '', interface).strip()
+                    if interface:
+                        if interface not in implementations:
+                            implementations[interface] = []
+                        implementations[interface].append(class_name)
+        
+        return implementations
+
+    def extract_functions(self, content: str, file_path: Path) -> List[FunctionInfo]:
+        """Extract function information for Rule of 6 checking."""
+        functions = []
+        lines = content.split('\n')
+        
+        # Track context to avoid counting interface properties as functions
+        in_interface_block = False
+        brace_level = 0
+        
+        i = 0
+        while i < len(lines):
+            line = lines[i].strip()
+            
+            # Skip comments and empty lines
+            if not line or line.startswith('//') or line.startswith('/*'):
+                i += 1
+                continue
+            
+            # Track if we're inside an interface block
+            if re.match(r'(?:export\s+)?interface\s+\w+', line):
+                in_interface_block = True
+                brace_level = 0
+            
+            # Track brace levels to know when we exit interface
+            if in_interface_block:
+                brace_level += line.count('{')
+                brace_level -= line.count('}')
+                if brace_level <= 0:
+                    in_interface_block = False
+            
+            # Skip lines inside interface blocks (they're type definitions, not functions)
+            if in_interface_block:
+                i += 1
+                continue
+            
+            function_match = None
+            matched_pattern_idx = None
+            for idx, pattern in enumerate(self.function_patterns):
+                match = re.search(pattern, line)
+                if match:
+                    func_name = match.group(1)
+                    # Skip if it's a control flow keyword
+                    if func_name.lower() not in self.excluded_keywords:
+                        function_match = match
+                        matched_pattern_idx = idx
+                        break
+            
+            if function_match:
+                func_name = function_match.group(1)
+                args_str = function_match.group(2) if len(function_match.groups()) > 1 else ""
+                
+                # Skip object properties and interface method signatures
+                # Pattern 2 (r'(\w+)\s*:\s*(?:async\s*)?\(([^)]*)\)\s*=>') matches:
+                # - Interface method signatures (which we want to skip)
+                # - Object property functions (which we want to skip if they're just property definitions)
+                if matched_pattern_idx == 2:  # object method arrow functions pattern
+                    # Check if this is just a property definition (ends with semicolon or is part of type definition)
+                    if line.endswith(';') or line.endswith(',') or '=>' not in line:
+                        i += 1
+                        continue
+                    
+                    # Check if this is an object property in a return statement or object literal
+                    # These are not standalone functions
+                    if ':' in line and not line.strip().startswith('const ') and not line.strip().startswith('let '):
+                        # Look for context - if we're in an object literal, skip this
+                        context_lines = '\n'.join(lines[max(0, i-5):i+1])
+                        if 'return {' in context_lines or re.search(r'=\s*\{[^}]*$', context_lines, re.MULTILINE):
+                            i += 1
+                            continue
+                
+                # Count arguments
+                arg_count = self._count_arguments(args_str)
+                
+                # Find function boundaries and count lines
+                line_start, line_end = self._find_function_boundaries(lines, i, matched_pattern_idx)
+                line_count = line_end - line_start + 1
+                
+                functions.append(FunctionInfo(
+                    name=func_name,
+                    line_start=line_start,
+                    line_end=line_end,
+                    line_count=line_count,
+                    arg_count=arg_count,
+                    file_path=file_path
+                ))
+            
+            i += 1
+        
+        return functions
+
+    def extract_import_paths(self, content: str) -> List[str]:
+        """Simple extraction of import paths only (for architecture checker)."""
+        import_pattern = r'from\s+["\']([^"\']+)["\']'
+        return re.findall(import_pattern, content)
+
+    def find_symbol_usage(self, content: str) -> Set[str]:
+        """Find all symbol usage in file content with enhanced detection."""
+        used_symbols = set()
+
+        # Find all identifiers (basic approach)
+        identifiers = re.findall(r'\b[a-zA-Z_$][a-zA-Z0-9_$]*\b', content)
+
+        # JSX component usage: <ComponentName> or <ComponentName />
+        jsx_components = re.findall(r'<\s*([A-Z][a-zA-Z0-9_]*)', content)
+
+        # Method/property access: obj.method(), obj.property
+        method_calls = re.findall(r'\.([a-zA-Z_$][a-zA-Z0-9_$]*)', content)
+
+        # Object method chains: ObjectName.method()
+        object_methods = re.findall(r'([A-Z][a-zA-Z0-9_$]*)\.', content)
+
+        # Dynamic imports: import("./file") or await import("./file")
+        dynamic_imports = re.findall(r'import\s*\(\s*["\']([^"\']+)["\']', content)
+
+        # Schema/config object property references: schema.tableName
+        schema_refs = re.findall(r'schema\.([a-zA-Z_$][a-zA-Z0-9_$]*)', content)
+
+        # Combine all symbol usage
+        all_symbols = set(identifiers + jsx_components + method_calls + object_methods + schema_refs)
+
+        # Also track dynamic import files for later processing
+        for import_path in dynamic_imports:
+            # This will be handled separately in import resolution
+            pass
+
+        # Filter out keywords and common tokens
+        keywords = {
+            'import', 'export', 'from', 'const', 'let', 'var', 'function', 'class',
+            'interface', 'type', 'if', 'else', 'for', 'while', 'return', 'true',
+            'false', 'null', 'undefined', 'string', 'number', 'boolean', 'object',
+            'async', 'await', 'new', 'this', 'super', 'extends', 'implements',
+            'default', 'case', 'switch', 'try', 'catch', 'finally', 'throw'
+        }
+
+        for identifier in all_symbols:
+            if identifier not in keywords:
+                used_symbols.add(identifier)
+
+        return used_symbols
+
+    def _count_arguments(self, args_str: str) -> int:
+        """Count arguments in function signature."""
+        if not args_str.strip():
+            return 0
+        
+        args = [arg.strip() for arg in args_str.split(',') if arg.strip()]
+        
+        # Filter out empty args and type annotations
+        real_args = []
+        for arg in args:
+            # Remove type annotations and default values
+            arg = re.sub(r':\s*[^=]+', '', arg)
+            arg = re.sub(r'=.*$', '', arg).strip()
+            if arg and arg != '...':
+                real_args.append(arg)
+        
+        return len(real_args)
+
+    def find_object_parameter_violations(self, content: str, file_path: Path, max_keys: int = 6) -> List[tuple[int, int, str]]:
+        """Find object parameters that violate the Rule of 6 (more than max_keys keys)."""
+        violations = []
+        lines = content.split('\n')
+        
+        for i, line in enumerate(lines, 1):
+            line_stripped = line.strip()
+            
+            # Skip comments and empty lines
+            if not line_stripped or line_stripped.startswith('//') or line_stripped.startswith('/*'):
+                continue
+            
+            # Look for object parameter patterns
+            # Pattern: function foo({ key1, key2, key3, ... }: { ... })
+            # Pattern: const foo = ({ key1, key2, key3, ... }) =>
+            # Pattern: method({ key1, key2, key3, ... })
+            
+            # Find destructured object parameters
+            destructure_matches = re.findall(r'\{\s*([^}]+)\s*\}[^=]*(?::\s*\{[^}]*\})?(?:\s*=\s*\{[^}]*\})?', line_stripped)
+            
+            for match in destructure_matches:
+                # Count the keys in the destructured object
+                keys = [key.strip().split(':')[0].strip() for key in match.split(',') if key.strip()]
+                # Filter out spread operators and empty keys
+                actual_keys = [key for key in keys if key and not key.startswith('...')]
+                
+                if len(actual_keys) > max_keys:
+                    # Create a preview of the parameters (first few keys)
+                    preview_keys = actual_keys[:3]
+                    params_preview = ', '.join(preview_keys)
+                    if len(actual_keys) > 3:
+                        params_preview += f", ... (+{len(actual_keys) - 3} more)"
+                    
+                    violations.append((i, len(actual_keys), params_preview))
+        
+        return violations
+
+    def extract_function_names_from_content(self, content: str) -> Set[str]:
+        """Extract function names from content for validation purposes."""
+        function_names = set()
+        
+        for pattern in self.function_patterns:
+            matches = re.finditer(pattern, content, re.MULTILINE)
+            for match in matches:
+                func_name = match.group(1)
+                if func_name.lower() not in self.excluded_keywords:
+                    function_names.add(func_name)
+        
+        return function_names
+
+    def _find_function_boundaries(self, lines: List[str], start_line_idx: int, pattern_idx: int = None) -> tuple[int, int]:
+        """Find the start and end line numbers of a function."""
+        line_start = start_line_idx + 1  # Convert to 1-indexed
+        
+        # Handle arrow functions differently
+        if pattern_idx == 1:  # const foo = () => pattern
+            # For arrow functions, look for the end of the statement
+            paren_count = 0
+            brace_count = 0
+            found_arrow = False
+            
+            for i in range(start_line_idx, len(lines)):
+                line = lines[i]
+                
+                if '=>' in line:
+                    found_arrow = True
+                
+                if found_arrow:
+                    # If it's an arrow function with braces
+                    if '{' in line:
+                        brace_count += line.count('{')
+                        brace_count -= line.count('}')
+                        
+                        if brace_count == 0:
+                            return line_start, i + 1
+                    
+                    # If it's a single-expression arrow function (no braces)
+                    elif brace_count == 0 and (line.rstrip().endswith(';') or line.rstrip().endswith(',') or i == len(lines) - 1):
+                        return line_start, i + 1
+            
+            return line_start, line_start
+        
+        # For regular functions and methods
+        brace_count = 0
+        found_opening = False
+        
+        for i in range(start_line_idx, len(lines)):
+            line = lines[i]
+            
+            if not found_opening and '{' in line:
+                found_opening = True
+            
+            if found_opening:
+                brace_count += line.count('{')
+                brace_count -= line.count('}')
+                
+                if brace_count == 0:
+                    return line_start, i + 1  # Convert to 1-indexed
+        
+        # If we can't find the end, return just the start line
+        return line_start, line_start

@@ -5,8 +5,8 @@ import { headers } from "next/headers";
 import { cache } from "react";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { createCaller, type AppRouter } from "~/server/api/root";
-import { createContext as apiCreateContext } from "~/server/api/trpc";
+import { createCaller, type AppRouter } from "~/server/api";
+import { createContext as apiCreateContext } from "~/server/api";
 import { createQueryClient } from "~/commons/trpc/query-client";
 
 /**

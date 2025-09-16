@@ -1,0 +1,1 @@
+export { canDragTile, canSwapTiles } from "~/app/map/Canvas/hooks/_internals/_validators/drag-permission";

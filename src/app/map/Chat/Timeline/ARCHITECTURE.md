@@ -11,24 +11,23 @@ Messages/
 ├── dependencies.json             # Allowed imports
 ├── index.tsx                     # Main Messages container
 ├── UnifiedTimeline.tsx           # Unified timeline component
-├── MessageTimeline.tsx           # Message-specific timeline
-├── DaySeparator.tsx              # Day grouping component
-├── MarkdownRenderer.tsx          # Markdown content rendering
-├── MessageActorRenderer.tsx      # Actor-specific formatting
-├── TimestampRenderer.tsx         # Timestamp display
-├── CommandButtonRenderer.tsx     # Command button rendering
-├── CopyButton.tsx                # Copy functionality
-├── UserClickHandler.tsx          # User interaction handling
+├── _components/                  # All UI components and supporting code
+│   ├── DaySeparator.tsx         # Day grouping component
+│   ├── MarkdownRenderer.tsx     # Markdown content rendering
+│   ├── MessageActorRenderer.tsx # Actor-specific formatting
+│   ├── TimestampRenderer.tsx    # Timestamp display
+│   ├── CommandButtonRenderer.tsx# Command button rendering
+│   ├── CopyButton.tsx           # Copy functionality
+│   ├── _hooks/                  # Component-specific hooks
+│   │   └── useAuthStateCoordinator.ts # Auth state coordination
+│   └── _renderers/              # Specialized renderers
+│       └── widget-renderers.tsx # Widget rendering functions
 ├── WidgetManager.tsx             # Widget lifecycle in messages
-├── _handlers/                    # Message action handlers
-│   ├── creation-handlers.ts      # Creation message handlers
-│   └── preview-handlers.ts       # Preview message handlers
-├── _hooks/                       # Messages-specific hooks
-│   └── useAuthStateCoordinator.ts # Auth state coordination
-├── _renderers/                   # Specialized renderers
-│   └── widget-renderers.tsx      # Widget rendering functions
-└── _utils/                       # Message utilities
-    └── focus-helpers.ts          # Focus management utilities
+└── _utils/                       # Message utilities and handlers
+    ├── focus-helpers.ts          # Focus management utilities
+    ├── creation-handlers.ts      # Creation message handlers
+    ├── preview-handlers.ts       # Preview message handlers
+    └── UserClickHandler.tsx      # User interaction handling
 ```
 
 ## Key Patterns

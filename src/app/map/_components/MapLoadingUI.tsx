@@ -1,6 +1,6 @@
 "use client";
 
-import { ChatPanel } from "~/app/map/Chat/ChatPanel";
+import { ChatPanel } from "~/app/map/Chat";
 import { MapLoadingSkeleton } from "~/app/map/Canvas";
 
 interface MapLoadingUIProps {

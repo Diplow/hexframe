@@ -117,3 +117,196 @@ This returns the HexFrame Workflow system. Use it to understand current state an
 5. Validate daily usage for a week
 
 This plan delivers immediate value while keeping the door open for sophisticated enhancements based on real usage patterns.
+
+## MCP Authentication System
+
+### Problem
+The current MCP server's write operations (addItem, updateItem) fail because they require user authentication, but the MCP server has no way to authenticate as a specific user.
+
+### Solution: API Key Authentication
+Implement a secure API key system that allows Claude to authenticate as a specific user through the MCP server.
+
+### Architecture
+
+#### 1. Database Schema
+Create new table for MCP API keys:
+```sql
+CREATE TABLE mcp_api_keys (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id),
+  key_hash TEXT NOT NULL,  -- bcrypt hash of the key
+  name TEXT NOT NULL,       -- user-friendly name
+  created_at TIMESTAMP DEFAULT NOW(),
+  expires_at TIMESTAMP,     -- optional expiration
+  last_used_at TIMESTAMP,
+  UNIQUE(key_hash)
+);
+```
+
+#### 2. API Key Generation Flow
+1. User runs `/mcp/key/create` command in chat
+2. System prompts for password re-authentication
+3. Generate cryptographically secure API key (format: `hxf_live_XXXX`)
+4. Store bcrypt hash in database
+5. Display key ONCE with copy button
+6. User adds key to MCP config: `claude mcp add hexframe "node dist/mcp-server.js" --env HEXFRAME_API_KEY=hxf_live_XXXX`
+
+#### 3. Authentication Implementation
+
+##### MCP Server Changes
+- Add environment variable handling for `HEXFRAME_API_KEY`
+- Modify `callTrpcEndpoint` to include API key in headers
+- Create new authentication middleware for write operations
+
+##### tRPC Router Changes
+- Create new `mcpAuthProcedure` that validates API keys
+- Keep read operations public
+- Use `mcpAuthProcedure` for addItem/updateItem in MCP context
+
+#### 4. Chat Commands Structure
+```
+/mcp
+├── /mcp/key
+│   ├── /mcp/key/create - Create new API key (requires password)
+│   ├── /mcp/key/list   - List active keys (shows name, created, last used)
+│   └── /mcp/key/revoke - Revoke a key by name
+└── /mcp/status        - Check MCP server connection status
+```
+
+### Implementation Steps
+
+#### Phase 1: Database & Domain Layer
+1. Create migration for `mcp_api_keys` table
+2. Add MCP API key domain service in `/src/lib/domains/iam/services/mcp-keys.service.ts`
+3. Implement key generation, validation, and management logic
+
+#### Phase 2: tRPC API Layer
+1. Create `/src/server/api/routers/mcp/auth.ts` router with:
+   - `createKey` (protected) - requires password re-auth
+   - `listKeys` (protected) - shows user's keys
+   - `revokeKey` (protected) - soft delete key
+   - `validateKey` (public) - for MCP server to validate
+
+2. Add MCP-specific procedures in `/src/server/api/trpc.ts`:
+   - `mcpAuthProcedure` - validates API key from headers
+
+#### Phase 3: MCP Server Integration
+1. Update `/src/app/services/mcp/server.ts`:
+   - Read `HEXFRAME_API_KEY` from environment
+   - Pass key to service handlers
+
+2. Update `/src/app/services/mcp/services/map-items.ts`:
+   - Add API key to request headers in `callTrpcEndpoint`
+   - Handle authentication errors gracefully
+
+#### Phase 4: Chat Commands
+1. Update `/src/app/map/Chat/Input/_hooks/useCommandHandling.ts`:
+   - Add `/mcp` command tree
+   - Implement key creation flow with password prompt
+   - Add key management commands
+
+2. Create password prompt component for re-authentication
+
+#### Phase 5: Update Documentation
+1. Add authentication section to this document
+2. Document security best practices in CLAUDE.md
+3. Update MCP setup instructions
+
+### Security Considerations
+
+1. **Key Format**: `hxf_live_` prefix for production, `hxf_test_` for development
+2. **Key Storage**: Only store bcrypt hashes, never plain text
+3. **Key Display**: Show only once at creation, no retrieval
+4. **Rate Limiting**: Add rate limits to prevent brute force
+5. **Expiration**: Optional expiration dates for keys
+6. **Audit Trail**: Track last_used_at for security monitoring
+
+### Alternative: MCP Key Creation Tool
+
+#### Consideration: Should we allow key creation directly from MCP?
+Adding a `createApiKey` MCP tool would be convenient but raises security concerns:
+
+**Pros:**
+- Streamlined workflow - no switching between UI and MCP
+- Better developer experience
+- Fewer steps to get started
+
+**Cons:**
+- Security risk - MCP could create keys without user awareness
+- No password re-authentication possible
+- Could lead to key proliferation
+- Breaks security principle of requiring explicit user action for sensitive operations
+
+**Decision**: Start with chat commands only. If friction is high, we can add MCP creation later with additional safeguards (e.g., requiring a confirmation token from the UI).
+
+### Testing Strategy
+- Unit tests for key generation and validation
+- Manual testing with Claude Code
+- No integration or E2E tests for initial implementation
+
+### Success Criteria
+- [ ] MCP server can authenticate with API key
+- [ ] Read operations remain public
+- [ ] Write operations require valid API key
+- [ ] Chat commands work for key management
+- [ ] Keys are secure and non-retrievable
+- [ ] Documentation updated
+
+## Implementation Status: ✅ COMPLETED
+
+### What Was Built
+
+#### ✅ Phase 1: Better-Auth Integration
+- **Decision**: Used better-auth's built-in API key plugin instead of custom implementation
+- **Added**: API key plugin to `/src/server/auth.ts` with `x-api-key` header support
+- **Benefit**: Leverages battle-tested authentication with built-in rate limiting, metadata, and security features
+
+#### ✅ Phase 2: tRPC API Layer  
+- **Created**: `/src/server/api/routers/mcp/auth.ts` with better-auth API key methods:
+  - `createKey` - Generate new API keys with metadata
+  - `listKeys` - View user's MCP keys (excludes raw key values)
+  - `revokeKey` - Delete API keys safely
+  - `validateKey` - Verify keys (used by MCP server)
+- **Added**: `dualAuthProcedure` in `/src/server/api/trpc.ts` supporting both session and API key auth
+- **Updated**: Map write operations (addItem, updateItem, removeItem, moveMapItem) to use dual auth
+
+#### ✅ Phase 3: MCP Server Integration
+- **Updated**: `/src/app/services/mcp/services/map-items.ts` to read `HEXFRAME_API_KEY` from environment
+- **Added**: API key headers to write operations automatically
+- **Enhanced**: Error handling for missing API keys with clear messages
+
+#### ✅ Phase 4: Chat Commands
+- **Added**: Complete `/mcp` command tree:
+  - `/mcp/status` - Shows setup instructions and available tools
+  - `/mcp/key/create` - Guides through API key creation
+  - `/mcp/key/list` - Lists active keys (placeholder for now)
+  - `/mcp/key/revoke` - Key revocation interface (placeholder for now)
+
+### Enhanced Implementation Steps (Updated)
+1. **✅ Enhance MCP Server** - Add authentication for write operations
+2. **✅ Add API Key System** - Using better-auth plugin, tRPC routes, chat commands  
+3. **🔄 Migrate Workflow to Tiles** - Create workflow structure in Hexframe
+4. **🔄 Update CLAUDE.md** - Document new authentication flow
+5. **🔄 Validate & Iterate** - Test with real workflow usage
+
+### Next Steps
+1. **Create API keys via tRPC**: Implement actual key creation in chat commands (requires password prompt UI)
+2. **Migrate workflow content**: Move `.workflow/` files to Hexframe tiles
+3. **Test end-to-end**: Verify MCP authentication works with Claude Code
+4. **Update CLAUDE.md**: Replace file-reading with MCP tool instructions
+
+### Usage Instructions
+
+#### For Developers
+1. **Create API key**: Use `/mcp/key/create` command (UI pending) or call tRPC directly
+2. **Build MCP server**: `pnpm mcp:build` 
+3. **Configure Claude Code**:
+   ```bash
+   claude mcp add hexframe "node dist/mcp-server.js" --env HEXFRAME_API_KEY=your_key_here
+   ```
+
+#### Architecture Benefits
+- **Security**: API keys use bcrypt hashing and rate limiting via better-auth
+- **Flexibility**: `dualAuthProcedure` supports both web UI (session) and MCP (API key) access  
+- **Maintainability**: Leverages proven authentication rather than custom implementation
+- **Scalability**: Built-in metadata and permissions system for future enhancements

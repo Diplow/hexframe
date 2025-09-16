@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { cn } from "~/lib/utils";
 import { BaseFrame } from "~/app/map/Canvas/Tile";
-import type { TileData, URLInfo } from "~/app/map/Canvas/types";
+import type { TileData, URLInfo } from "~/app/map/types";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 
 interface MapLoadingSkeletonProps {

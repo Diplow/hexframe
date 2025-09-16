@@ -1,0 +1,1 @@
+export { canEditTile } from "~/app/map/Canvas/Tile/Item/_internals/validators/edit-permission";

@@ -1,7 +1,7 @@
 import {
   GenericAggregate,
   type GenericAggregateConstructorArgs,
-} from "../../utils";
+} from "~/lib/domains/utils";
 
 export interface Attrs extends Record<string, unknown> {
   title: string;

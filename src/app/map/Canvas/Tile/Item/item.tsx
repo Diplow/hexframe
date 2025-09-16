@@ -1,8 +1,9 @@
 "use client";
 
-import type { TileData, URLInfo } from "~/app/map/Canvas/types";
+import type { TileData } from "~/app/map/types/tile-data";
+import type { URLInfo } from "~/app/map/types/url-info";
 import type { TileScale } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
-import { useItemState } from "~/app/map/Canvas/Tile/Item/_hooks";
+import { useItemState } from "~/app/map/Canvas/Tile/Item/_internals/hooks";
 import { ItemTileContent } from "~/app/map/Canvas/Tile/Item/_components/item-tile-content";
 import { useEffect } from "react";
 import { loggers } from "~/lib/debug/debug-logger";
@@ -66,8 +67,12 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
       <div 
         className={`group relative hover:z-10 select-none ${state.interaction.isBeingDragged ? 'dragging' : ''}`} 
         data-testid={state.testId}
-        {...state.dragProps}
-        {...state.dropProps}>
+        draggable={state.dragProps.draggable}
+        onDragStart={state.dragProps.onDragStart}
+        onDragEnd={state.dragProps.onDragEnd}
+        onDragOver={state.dropProps.onDragOver}
+        onDragLeave={state.dropProps.onDragLeave}
+        onDrop={state.dropProps.onDrop}>
         <ItemTileContent
           {...props}
           scale={scale}

@@ -1,14 +1,13 @@
 {
-  "$schema": "~/schemas/dependencies.schema.json",
-  "allowedChildren": [
-    "~/app/types"
-  ],
+  "$schema": "../../../../schemas/dependencies.schema.json",
+  "allowedChildren": [],
   "allowed": [
     "@testing-library/react",
     "vitest",
     "~/app/map/Cache",
-    "~/app/map",
-    "~/test-utils/providers"
+    "~/contexts/UnifiedAuthContext",
+    "~/lib/debug/debug-logger",
+    "~/lib/test-logger"
   ],
   "subsystems": [
     "./Tile"

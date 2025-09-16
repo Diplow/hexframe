@@ -24,12 +24,12 @@ The `/implementation` command automates the implementation of features based on 
 1. **Create Types/Interfaces** - Define contracts so tests can import them
 2. **Write/Run Tests** - Verify tests fail with expected errors
 3. **Implement Features** - Make tests pass incrementally
-4. **Lint & Typecheck** - Run `pnpm lint` and `pnpm typecheck` regularly
+4. **Lint & Typecheck** - Run `pnpm check:lint` and `pnpm typecheck` regularly
 5. **Debug & Log** - Use debug logging when tests don't pass
 6. **Document Changes** - Update architecture docs if needed
 
 ### 4. Quality Checks
-- Run `pnpm lint` after each component
+- Run `pnpm check:lint` after each component
 - Run `pnpm typecheck` to catch type errors
 - Run relevant tests frequently for feedback
 - Check `pnpm build` when implementation is complete
@@ -56,7 +56,7 @@ Once all checks pass:
 
 ### Tools to Use
 - `pnpm test` - Run specific test files
-- `pnpm lint` - Check code style
+- `pnpm check:lint` - Check code style
 - `pnpm typecheck` - Verify types
 - `pnpm build` - Final validation
 - Debug logging - When tests won't pass
@@ -69,7 +69,7 @@ Once all checks pass:
 4. Write ChatProvider tests (verify they fail)
 5. Implement ChatProvider (make tests pass)
 6. Commit: "feat: implement ChatProvider with tests"
-7. Run pnpm lint, fix issues
+7. Run pnpm check:lint, fix issues
 8. Continue with next component...
 9. Final: pnpm build
 10. Create PR

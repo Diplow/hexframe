@@ -7,7 +7,7 @@ import { adapt } from "~/lib/domains/mapping/types/contracts";
 import {
   type Coord,
   CoordSystem,
-} from "~/lib/domains/mapping/utils/hex-coordinates";
+} from "~/lib/domains/mapping/utils";
 import { MapItemType } from "~/lib/domains/mapping/_objects";
 import type { MapItemContract } from "~/lib/domains/mapping/types/contracts";
 import { TransactionManager } from "~/lib/domains/mapping/infrastructure";

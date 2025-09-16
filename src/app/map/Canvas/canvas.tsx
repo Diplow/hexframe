@@ -33,7 +33,7 @@ import {
   CanvasThemeContext,
   // useCanvasTheme, // Removed unused import
   // type ThemeContextValue // Removed unused import
-} from './_shared/contexts';
+} from '~/app/map/Canvas/_shared/contexts';
 
 interface DynamicMapCanvasProps {
   centerInfo: CenterInfo;

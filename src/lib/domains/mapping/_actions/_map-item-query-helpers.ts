@@ -6,7 +6,7 @@ import { type MapItemWithId } from "~/lib/domains/mapping/_objects";
 import {
   type Coord,
   CoordSystem,
-} from "~/lib/domains/mapping/utils/hex-coordinates";
+} from "~/lib/domains/mapping/utils";
 import { MAPPING_ERRORS } from "~/lib/domains/mapping/types/errors";
 
 export class MapItemQueryHelpers {

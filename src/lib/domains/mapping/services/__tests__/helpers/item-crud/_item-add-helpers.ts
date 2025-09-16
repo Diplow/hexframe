@@ -1,6 +1,6 @@
 import { expect } from "vitest";
-import { CoordSystem } from "~/lib/domains/mapping/utils/hex-coordinates";
-import type { Coord } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { CoordSystem } from "~/lib/domains/mapping/utils";
+import type { Coord } from "~/lib/domains/mapping/utils";
 import type { TestEnvironment } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { MapItemType } from "~/lib/domains/mapping/_objects/map-item";
 

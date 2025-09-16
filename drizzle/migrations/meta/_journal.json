@@ -22,6 +22,27 @@
       "when": 1754945515441,
       "tag": "0002_nasty_silver_sable",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1756985653764,
+      "tag": "0003_motionless_scorpion",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1756985934156,
+      "tag": "0004_friendly_the_phantom",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1756989322610,
+      "tag": "0005_pink_blink",
+      "breakpoints": true
     }
   ]
 }

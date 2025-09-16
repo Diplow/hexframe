@@ -6,32 +6,32 @@ import {
   _setupBasicMap,
   _createTestCoordinates,
   _createUniqueTestParams,
-} from "./helpers/_test-utilities";
+} from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import {
   _addAndValidateChildItem,
   _validateMapItemHierarchy,
   _validateMismatchedCoordinatesError,
   _validateNonChildCoordinatesError,
   _validateNonExistentParentError,
-} from "./helpers/item-crud/_item-add-helpers";
+} from "~/lib/domains/mapping/services/__tests__/helpers/item-crud/_item-add-helpers";
 import {
   _setupItemForRetrieval,
   _validateItemRetrieval,
   _validateItemNotFoundError,
-} from "./helpers/item-crud/_item-get-helpers";
+} from "~/lib/domains/mapping/services/__tests__/helpers/item-crud/_item-get-helpers";
 import {
   _setupItemForUpdate,
   _updateAndValidateItem,
   _validateUpdateNonExistentItemError,
   _partialUpdateAndValidate,
-} from "./helpers/item-crud/_item-update-helpers";
+} from "~/lib/domains/mapping/services/__tests__/helpers/item-crud/_item-update-helpers";
 import {
   _setupItemHierarchyForRemoval,
   _validateItemRemovalAndHierarchy,
   _validateRootItemRemoval,
   _validateRemoveNonExistentItemError,
-} from "./helpers/item-crud/_item-remove-helpers";
-import { Direction } from "~/lib/domains/mapping/utils/hex-coordinates";
+} from "~/lib/domains/mapping/services/__tests__/helpers/item-crud/_item-remove-helpers";
+import { Direction } from "~/lib/domains/mapping/utils";
 
 describe("MappingService - Item CRUD [Integration - DB]", () => {
   let testEnv: TestEnvironment;

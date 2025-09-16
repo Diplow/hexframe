@@ -4,8 +4,8 @@
  */
 
 import { type TileData } from '~/app/map';
-import { adapt } from '~/app/map/Services/types';
-import type { MapItemAPIContract } from '~/server/api/types/contracts';
+import { adapt } from '~/app/map/types';
+import type { MapItemAPIContract } from '~/server/api';
 import type { api } from '~/commons/trpc/react';
 
 export interface PreFetchedMapData {

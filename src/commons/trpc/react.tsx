@@ -8,7 +8,7 @@ import { observable } from "@trpc/server/observable";
 import { useState } from "react";
 import SuperJSON from "superjson";
 
-import { type AppRouter } from "~/server/api/types";
+import { type AppRouter } from "~/server/api";
 import { createQueryClient } from "~/commons/trpc/query-client";
 import { loggers } from "~/lib/debug/debug-logger";
 

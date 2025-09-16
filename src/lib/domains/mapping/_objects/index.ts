@@ -6,7 +6,7 @@ export {
   MapItemType,
   type MapItemIdr,
   type MapItemWithId,
-} from "./map-item";
+} from "~/lib/domains/mapping/_objects/map-item";
 
 export {
   BaseItem,
@@ -15,4 +15,12 @@ export {
   type RelatedLists as BaseItemRelatedLists,
   type BaseItemIdr,
   type BaseItemWithId,
-} from "./base-item";
+} from "~/lib/domains/mapping/_objects/base-item";
+
+export {
+  MapItemValidation,
+} from "~/lib/domains/mapping/_objects/map-item-validation";
+
+export {
+  MapItemNeighborValidation,
+} from "~/lib/domains/mapping/_objects/map-item-neighbor-validation";

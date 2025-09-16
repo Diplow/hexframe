@@ -1,7 +1,7 @@
 import type { CacheState, CacheAction } from "~/app/map/Cache/State/types";
 import { ACTION_TYPES } from "~/app/map/Cache/State/types";
 import type { TileData } from "~/app/map/types";
-import type { MapItemAPIContract } from "~/server/api/types/contracts";
+import type { MapItemAPIContract } from "~/server/api";
 import { adapt } from "~/app/map/types";
 
 // Initial state for the cache

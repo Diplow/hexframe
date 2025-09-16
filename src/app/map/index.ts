@@ -12,13 +12,13 @@ export {
   useMapCache,
   type MapCacheHook,
   type CacheState
-} from './Cache';
+} from '~/app/map/Cache';
 
 // Chat subsystem
 export type { ChatMessage, ChatWidget } from '~/app/map/Chat';
 
 // Canvas subsystem  
-export { ErrorTile, BaseTileLayout } from '~/app/map/Canvas';
+export { BaseTileLayout } from '~/app/map/Canvas';
 
 // Services subsystem
 export {
@@ -31,12 +31,12 @@ export {
   savePreFetchedData,
   loadPreFetchedData,
   clearPreFetchedData,
-  type AppEvent,
-  type EventListener,
-  type EventBusService,
   type PreFetchedMapData
-} from './Services';
+} from '~/app/map/Services';
+
+// Import missing types directly from their source
+export type { AppEvent, EventListener, EventBusService } from '~/app/map/types';
 
 // Types subsystem
-export type { TileData, TileState, URLInfo, URLSearchParams } from './types';
-export { adapt, getColor } from './types';
+export type { TileData, TileState, URLInfo, URLSearchParams } from '~/app/map/types';
+export { adapt, getColor } from '~/app/map/types';

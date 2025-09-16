@@ -1,11 +1,11 @@
-import { getColorFromItem } from "..";
+import { getColorFromItem } from "~/app/map/Canvas/Tile";
 import { BaseTileLayout } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
 import type { TileScale } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
 import { DynamicEmptyTile } from "~/app/map/Canvas/Tile/Empty/empty";
 import { DynamicItemTile } from "~/app/map/Canvas/Tile/Item/item";
-import { BaseEmptyTile } from "~/app/map/Canvas/Tile/Base/BaseEmptyTile";
-import { BaseItemTile } from "~/app/map/Canvas/Tile/Base/BaseItemTile";
-import type { TileData, URLInfo } from "~/app/map/Canvas/types";
+import { BaseEmptyTile } from "~/app/map/Canvas/Tile/Base/_components/BaseEmptyTile";
+import { BaseItemTile } from "~/app/map/Canvas/Tile/Base/_components/BaseItemTile";
+import type { TileData, URLInfo } from "~/app/map/types";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 
 export interface BaseFrameProps {

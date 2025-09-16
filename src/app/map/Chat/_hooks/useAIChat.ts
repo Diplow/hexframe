@@ -4,6 +4,8 @@ import { useChatState, type ChatMessage, type Message } from '~/app/map/Chat'
 import { MapCacheContext } from '~/app/map/Cache'
 import type { CompositionConfig } from '~/lib/domains/agentic'
 import { loggers } from '~/lib/debug/debug-logger'
+import type { useChatOperations } from '~/app/map/Chat/_state/_operations'
+import type { TileData } from '~/app/map/types'
 
 // Type for the tRPC response that might include jobId for queued responses
 interface GenerateResponseResult {
@@ -35,50 +37,15 @@ export function useAIChat(options: UseAIChatOptions = {}) {
   // Extract cache data directly from context if available
   const cache = useMemo(() => {
     return context?.state ? {
-      items: context.state.itemsById,
+      itemsById: context.state.itemsById,
       center: context.state.currentCenter
     } : null
   }, [context])
   
   
   const generateResponseMutation = api.agentic.generateResponse.useMutation({
-    onSuccess: (response: GenerateResponseResult) => {
-      
-      // Check if response is queued based on finishReason
-      if (response.finishReason === 'queued' && response.jobId) {
-        // Send AI Response widget for queued job
-        
-        chatState.showAIResponseWidget({
-          jobId: response.jobId,
-          model: response.model
-        })
-        
-        loggers.agentic('Request queued, widget sent', { jobId: response.jobId })
-      } else {
-        // Send AI Response widget for direct response
-        
-        chatState.showAIResponseWidget({
-          initialResponse: response.content,
-          model: response.model
-        })
-        
-        loggers.agentic('Direct AI response, widget sent', {
-          model: response.model,
-          usage: response.usage,
-          finishReason: response.finishReason
-        })
-      }
-      setIsGenerating(false)
-    },
-    onError: (error) => {
-      console.error('[useAIChat] Mutation error:', error)
-      chatState.showSystemMessage(
-        `AI Error: ${error.message}`,
-        'error'
-      )
-      loggers.agentic.error('AI generation failed', { error: error.message })
-      setIsGenerating(false)
-    }
+    onSuccess: (response: GenerateResponseResult) => _handleSuccessResponse(response, chatState, setIsGenerating),
+    onError: (error) => _handleErrorResponse(error, chatState, setIsGenerating)
   })
 
   const sendToAI = useCallback(async (message: string) => {
@@ -100,25 +67,7 @@ export function useAIChat(options: UseAIChatOptions = {}) {
       return
     }
 
-    // Get current chat messages for context
-    const messages: ChatMessage[] = chatState.messages.map((msg: Message) => ({
-      id: msg.id,
-      type: msg.actor as 'user' | 'assistant' | 'system',
-      content: msg.content,
-      metadata: {
-        timestamp: msg.timestamp
-      }
-    }))
-
-    // Add the new user message
-    messages.push({
-      id: `msg-${Date.now()}`,
-      type: 'user',
-      content: message,
-      metadata: {
-        timestamp: new Date()
-      }
-    })
+    const messages = _prepareMessagesForAI(chatState.messages, message)
 
     setIsGenerating(true)
     
@@ -130,28 +79,7 @@ export function useAIChat(options: UseAIChatOptions = {}) {
       temperature: options.temperature,
       maxTokens: options.maxTokens,
       compositionConfig: options.compositionConfig,
-      cacheState: {
-        itemsById: Object.fromEntries(
-          Object.entries(cache.items).map(([id, item]) => [
-            id,
-            {
-              metadata: {
-                coordId: item.metadata.coordId,
-                coordinates: item.metadata.coordinates,
-                parentId: item.metadata.parentId ?? undefined,
-                depth: item.metadata.depth
-              },
-              data: {
-                name: item.data.name ?? '',
-                description: item.data.description ?? '',
-                url: item.data.url ?? '',
-                color: item.data.color ?? ''
-              }
-            }
-          ])
-        ),
-        currentCenter: cache.center ?? ''
-      }
+      cacheState: _transformCacheState(cache)
     })
   }, [chatState, cache, generateResponseMutation, options])
 
@@ -172,5 +100,77 @@ export function useAIChat(options: UseAIChatOptions = {}) {
     isGenerating,
     isError: generateResponseMutation.isError,
     error: generateResponseMutation.error
+  }
+}
+
+// Helper functions extracted from useAIChat
+function _handleSuccessResponse(
+  response: GenerateResponseResult, 
+  chatState: ReturnType<typeof useChatOperations>, 
+  setIsGenerating: (value: boolean) => void
+) {
+  // Check if response is queued based on finishReason
+  if (response.finishReason === 'queued' && response.jobId) {
+    // Send AI Response widget for queued job
+    chatState.showAIResponseWidget({
+      jobId: response.jobId,
+      model: response.model
+    })
+    loggers.agentic('Request queued, widget sent', { jobId: response.jobId })
+  } else {
+    // Send AI Response widget for direct response
+    chatState.showAIResponseWidget({
+      initialResponse: response.content,
+      model: response.model
+    })
+    loggers.agentic('Direct AI response, widget sent', {
+      model: response.model,
+      usage: response.usage,
+      finishReason: response.finishReason
+    })
+  }
+  setIsGenerating(false)
+}
+
+function _handleErrorResponse(
+  error: unknown, 
+  chatState: ReturnType<typeof useChatOperations>, 
+  setIsGenerating: (value: boolean) => void
+) {
+  console.error('[useAIChat] Mutation error:', error)
+  const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+  chatState.showSystemMessage(`AI Error: ${errorMessage}`, 'error')
+  loggers.agentic.error('AI generation failed', { error: errorMessage })
+  setIsGenerating(false)
+}
+
+function _prepareMessagesForAI(messages: Message[], newMessage: string): ChatMessage[] {
+  // Get current chat messages for context
+  const chatMessages: ChatMessage[] = messages.map((msg: Message) => ({
+    id: msg.id,
+    type: msg.actor as 'user' | 'assistant' | 'system',
+    content: msg.content,
+    metadata: {
+      timestamp: msg.timestamp
+    }
+  }))
+
+  // Add the new user message
+  chatMessages.push({
+    id: `msg-${Date.now()}`,
+    type: 'user',
+    content: newMessage,
+    metadata: {
+      timestamp: new Date()
+    }
+  })
+
+  return chatMessages
+}
+
+function _transformCacheState(cache: { itemsById: Record<string, TileData>; center: string | null }) {
+  return {
+    itemsById: cache.itemsById,
+    currentCenter: cache.center ?? ''
   }
 }

@@ -2,7 +2,7 @@ import type {
   ComposedContext, 
   CanvasContext, 
   ChatContext 
-} from '../../types'
+} from '~/lib/domains/agentic/types'
 
 export class XMLContextSerializer {
   serialize(context: ComposedContext): string {

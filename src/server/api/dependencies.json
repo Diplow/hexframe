@@ -1,0 +1,21 @@
+{
+  "$schema": "../../../schemas/dependencies.schema.json",
+  "allowed": [
+    "@trpc/server",
+    "superjson",
+    "zod",
+    "~/env",
+    "~/lib/domains",
+    "~/server/auth",
+    "~/server/db",
+    "~/lib/debug/debug-logger",
+    "~/app/map"
+  ],
+  "subsystems": [
+    "./middleware",
+    "./routers",
+    "./services",
+    "./types"
+  ],
+  "exceptions": {}
+}

@@ -6,7 +6,7 @@ import {
 import {
   mapItemsListHandler,
   mapItemHandler,
-} from "../services/map-items";
+} from "~/app/services/mcp/services/map-items";
 
 // Create MCP server instance
 const server = new Server(

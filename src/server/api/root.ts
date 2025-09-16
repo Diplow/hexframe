@@ -3,6 +3,7 @@ import { mapRouter } from "~/server/api/routers/map";
 import { authRouter } from "~/server/api/routers/auth";
 import { userRouter } from "~/server/api/routers/user";
 import { agenticRouter } from "~/server/api/routers/agentic";
+import { mcpAuthRouter } from "~/server/api/routers/mcp/auth";
 /**
  * This is the primary router for your server.
  *
@@ -11,12 +12,14 @@ import { agenticRouter } from "~/server/api/routers/agentic";
  * - auth: Authentication endpoints
  * - user: User profile and settings
  * - agentic: AI/LLM integration for chat functionality
+ * - mcp: MCP API key management for external tool access
  */
 export const appRouter = createTRPCRouter({
   map: mapRouter,
   auth: authRouter,
   user: userRouter,
   agentic: agenticRouter,
+  mcp: mcpAuthRouter,
 });
 
 // export type definition of API

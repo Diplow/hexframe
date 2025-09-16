@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext } from 'react';
-import type { EventBusService } from '~/app/map/Services/types';
+import type { EventBusService } from '~/app/map/types';
 import { eventBus as defaultEventBus } from '~/app/map/Services/EventBus/event-bus';
 
 /**

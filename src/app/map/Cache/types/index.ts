@@ -5,39 +5,17 @@
  * preventing hierarchical imports like ../../types/tile-data
  */
 
-// Core tile data types
-export type { TileData, TileState } from '~/app/map/types';
-export { adapt, getColor } from '~/app/map/types';
 
-// URL types for navigation and state management
-export type { URLInfo, URLSearchParams } from '~/app/map/types';
+// Handler types for Cache subsystem operations
+export type {
+  DataOperations,
+  MutationOperations, 
+  NavigationOperations,
+  LoadResult,
+  HandlerConfig,
+  HandlerServices
+} from '~/app/map/Cache/types/handlers';
 
-// Event types for cache operations and cross-system communication
-export type { 
-  AppEvent, 
-  EventSource,
-  EventListener,
-  EventBusService,
-  MapTileCreatedEvent,
-  MapTileUpdatedEvent,
-  MapTileDeletedEvent,
-  MapTileMovedEvent,
-  MapTilesSwappedEvent,
-  MapNavigationEvent,
-  MapExpansionChangedEvent,
-  MapImportCompletedEvent
-} from '../../types';
-
-// Event validation schemas for cache operations
-export {
-  mapTileCreatedEventSchema,
-  mapTileUpdatedEventSchema,
-  mapTileDeletedEventSchema,
-  mapTileMovedEventSchema,
-  mapTilesSwappedEventSchema,
-  validateEvent,
-  safeValidateEvent
-} from '../../types';
 
 // Cache-specific types (moved from types.ts)
 import type { ReactNode, Dispatch } from "react";
@@ -48,7 +26,7 @@ import type {
   MutationOperations,
   NavigationOperations,
   LoadResult,
-} from "../Handlers/types";
+} from '~/app/map/Cache/types/handlers';
 import type { ServerService, StorageService, ServiceConfig } from "~/app/map/Cache/Services/types";
 import type { SyncOperations, SyncResult, SyncStatus } from "~/app/map/Cache/Sync/types";
 import type { EventBusService } from '~/app/map';

@@ -15,11 +15,11 @@ const __dirname = path.dirname(__filename);
 
 // Copy validation logic from ESLint rule (since we can't easily import it)
 const ALLOWED_COLOR_PATTERNS = [
-  // Semantic colors
-  /^(text|bg|border|ring|fill)-(primary|secondary|success|link|destructive|neutral)(-\d{2,3})?(\/(10|20|25|50|75))?$/,
-  /^(hover:)?(text|bg|border|ring|fill)-(primary|secondary|success|link|destructive|neutral)(-\d{2,3})?(\/(10|20|25|50|75))?$/,
-  /^(dark:)?(text|bg|border|ring|fill)-(primary|secondary|success|link|destructive|neutral)(-\d{2,3})?(\/(10|20|25|50|75))?$/,
-  /^(dark:hover:)?(text|bg|border|ring|fill)-(primary|secondary|success|link|destructive|neutral)(-\d{2,3})?(\/(10|20|25|50|75))?$/,
+  // Semantic colors with opacity modifiers (PREFERRED)
+  /^(text|bg|border|ring|fill)-(primary|secondary|success|link|destructive|neutral|info)(\/(10|20|25|50|75))?$/,
+  /^(hover:)?(text|bg|border|ring|fill)-(primary|secondary|success|link|destructive|neutral|info)(\/(10|20|25|50|75))?$/,
+  /^(dark:)?(text|bg|border|ring|fill)-(primary|secondary|success|link|destructive|neutral|info)(\/(10|20|25|50|75))?$/,
+  /^(dark:hover:)?(text|bg|border|ring|fill)-(primary|secondary|success|link|destructive|neutral|info)(\/(10|20|25|50|75))?$/,
   
   // Spatial colors
   /^(text|bg|border|ring|fill)-(nw|ne|e|se|sw|w)(-light|-dark)?$/,
@@ -66,6 +66,12 @@ const ALLOWED_COLOR_PATTERNS = [
 const DIRECT_COLOR_PATTERNS = [
   /^(text|bg|border|ring|fill|from|via|to)-(slate|gray|zinc|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}$/,
   /^(hover:|focus:|active:|dark:|group-hover:|group-focus:)*(text|bg|border|ring|fill|from|via|to)-(slate|gray|zinc|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}$/,
+];
+
+// Invalid tint usage patterns (semantic colors with tint suffixes that don't work)
+const INVALID_TINT_PATTERNS = [
+  /^(text|bg|border|ring|fill)-(primary|secondary|success|link|destructive|neutral|info)-\d{2,3}$/,
+  /^(hover:|focus:|active:|dark:|group-hover:|group-focus:)+(text|bg|border|ring|fill)-(primary|secondary|success|link|destructive|neutral|info)-\d{2,3}$/,
 ];
 
 const EXCEPTIONS = [
@@ -181,12 +187,51 @@ function getSuggestion(className) {
   return null;
 }
 
+function getOpacitySuggestion(className) {
+  // Convert tint suffixes to opacity modifiers
+  const tintToOpacity = {
+    '50': '10',
+    '100': '20',
+    '200': '25',
+    '300': '25',
+    '400': '50',
+    '500': '50',
+    '600': '75',
+    '700': '75',
+    '800': '90',
+    '900': '90',
+  };
+  
+  // Extract the tint number
+  const match = className.match(/^(.+)-(\d{2,3})$/);
+  if (match) {
+    const [, baseClass, tintNumber] = match;
+    const opacityValue = tintToOpacity[tintNumber] || '50';
+    return `${baseClass}/${opacityValue}`;
+  }
+  
+  return className.replace(/-\d{2,3}$/, '/50'); // fallback
+}
+
 function validateFile(filePath) {
   const content = fs.readFileSync(filePath, 'utf8');
   const classes = extractClassNames(content);
   const violations = [];
   
   classes.forEach(className => {
+    // Check for invalid tint usage (semantic colors with tint suffixes)
+    const isInvalidTint = INVALID_TINT_PATTERNS.some(pattern => pattern.test(className));
+    if (isInvalidTint) {
+      const suggestion = getOpacitySuggestion(className);
+      violations.push({
+        className,
+        suggestion,
+        line: findLineNumber(content, className),
+        type: 'invalid-tint'
+      });
+      return; // Don't check other patterns for this class
+    }
+    
     // Check if it's a direct color that should be avoided
     const isDirectColor = DIRECT_COLOR_PATTERNS.some(pattern => pattern.test(className));
     if (isDirectColor && !isAllowedClass(className)) {
@@ -195,6 +240,7 @@ function validateFile(filePath) {
         className,
         suggestion,
         line: findLineNumber(content, className),
+        type: 'direct-color'
       });
     }
   });
@@ -245,9 +291,12 @@ async function main() {
   
   Object.entries(fileViolations).forEach(([file, violations]) => {
     console.log(`${colors.yellow}${file}:${colors.reset}`);
-    violations.forEach(({ className, suggestion, line }) => {
+    violations.forEach(({ className, suggestion, line, type }) => {
       const lineInfo = line ? `Line ${line}` : 'Unknown line';
-      console.log(`  ${colors.gray}${lineInfo}:${colors.reset} ${colors.red}${className}${colors.reset}`);
+      const errorType = type === 'invalid-tint' ? 
+        '⚠️  Invalid tint usage (use opacity modifier instead):' : 
+        '❌ Direct color usage:';
+      console.log(`  ${colors.gray}${lineInfo}:${colors.reset} ${errorType} ${colors.red}${className}${colors.reset}`);
       if (suggestion) {
         console.log(`    ${colors.green}→ Suggestion: ${suggestion}${colors.reset}`);
       }

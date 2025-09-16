@@ -16,12 +16,12 @@ export { MapLoadingSkeleton } from '~/app/map/Canvas/LifeCycle/loading-skeleton'
 // Tile components - re-exported from Canvas/Tile subsystem
 export { 
   BaseTileLayout,    // Core hexagonal tile layout (used by Hierarchy)
-  ErrorTile,         // Error state tiles (used by Home)  
+  // ErrorTile removed - was unused dead code
   DynamicItemTile,   // Dynamic item tiles (used by Frame)
   DynamicEmptyTile,  // Dynamic empty tiles (used by Frame)
   DynamicBaseTileLayout, // Dynamic base tile layout (used by Frame and tiles)
   getColorFromItem   // Utility for color extraction
-} from './Tile'
+} from '~/app/map/Canvas/Tile'
 
 // Tile types for external consumers
 export type { 
@@ -29,7 +29,7 @@ export type {
   TileColor,
   BaseTileLayoutProps,
   DynamicBaseTileLayoutProps
-} from './Tile'
+} from '~/app/map/Canvas/Tile'
 
 // Canvas contexts and hooks (used by tiles and frame)
 export { 
@@ -37,11 +37,15 @@ export {
   useCanvasTheme,
   useLegacyTileActionsContext,
   CanvasThemeContext
-} from './_shared/contexts'
+} from '~/app/map/Canvas/_shared/contexts'
 export type { 
   LegacyTileActionsContextValue,
   ThemeContextValue
-} from './_shared/contexts'
+} from '~/app/map/Canvas/_shared/contexts'
+
+// Tile Actions Context and Provider (used by Map components)
+export { TileActionsProvider, useTileActions } from '~/app/map/Canvas/TileActionsContext'
+export type { TileActionsContextValue } from '~/app/map/Canvas/TileActionsContext'
 
 // NOTE: Cache reexports removed to fix architecture violations.
 // Canvas subsystems should import directly from ../Cache as needed.

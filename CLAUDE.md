@@ -123,17 +123,19 @@ See: `company/MISSION.md` - Top section for full thesis
 - **Rule of 6**: Max 6 items per level (folders, functions, arguments)
 - **Single Level of Abstraction**: Consistent abstraction at each level
 - **Systems That Live**: Unused systems are failed systems
+- **Import Pattern**: Always use absolute imports with `~/` prefix, never relative imports
 - See: `CLAUDE.md` in project root for coding standards
 
 ## Development Commands
 
 ### Core Development
 ```bash
-pnpm dev          # Start development server (port 3000)
-pnpm build        # Build production bundle
-pnpm lint         # Run ESLint
+pnpm check:lint         # Run ESLint
 pnpm typecheck    # TypeScript type checking
 pnpm test         # Run all tests with AI-friendly JSON output
+pnpm check:deadcode
+pnpm check:architecture
+pnpm check:ruleof6
 ```
 
 ### Testing
@@ -141,14 +143,13 @@ See `TESTING.md` for strategy and `scripts/run-tests.sh` for orchestration and J
 
 ## Code Quality
 
-After completing any task, refactor for clarity following the workflow in `.claude/commands/refactor-clarity.md`:
+### Architecture Enforcement
+Use `pnpm check:architecture` to validate architectural boundaries and coding standards. See `scripts/checks/architecture/README.md` for comprehensive documentation on rules, error types, and AI-friendly filtering commands.
 
-1. **Pre-Refactoring Analysis**: Identify concepts and get user validation BEFORE refactoring
-2. **Apply Core Principles**:
-   - The Fundamental Rule: Function names explain WHAT, arguments explain WHAT'S NEEDED, body explains HOW
-   - Rule of 6: Max 6 files/folders per directory, max 6 functions per file, max 50 lines per function (flexible for low-level code)
-   - Single Level of Abstraction: Each level (folder/file/function) maintains consistent abstraction
-3. **Execute Independently**: Complete the entire refactoring after validation
+### Dead Code Detection
+Use `pnpm check:deadcode [path]` to identify unused exports, files, and transitive dead code. See `scripts/checks/deadcode/README.md` for detection logic and AI-friendly JSON filtering commands. Always review before removing - false positives can occur with dynamic imports and framework patterns.
+
+
 
 ## Architecture Overview
 
@@ -174,11 +175,7 @@ After completing any task, refactor for clarity following the workflow in `.clau
 - localStorage for performance caching
 
 ## Important Notes
-
 - Always use `pnpm` (not npm or yarn)
 - Tests use Vitest (not Jest)
-- Follow the Rule of 6 for code organization
-- Create session documents for debugging, features, and refactoring
-- Domain concepts should have README.md documentation
-- **When switching phases/priorities**: Start fresh session, CLAUDE.md will provide context
-- never use pnpm dev to check something is working. just run pnpm lint typecheck test
+- Never use pnpm dev to check something is working. just run pnpm check:lint typecheck check:quality test
+- **Import Rules**: Always use absolute imports with `~/` prefix instead of relative imports (`./` or `../`). This is enforced by ESLint `no-restricted-imports` rule for better maintainability and consistency.

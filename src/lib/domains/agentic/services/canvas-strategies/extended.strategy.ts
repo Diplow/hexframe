@@ -2,7 +2,7 @@ import type { ICanvasStrategy } from '~/lib/domains/agentic/services/canvas-stra
 import type { CanvasContext, CanvasContextOptions, TileContextItem } from '~/lib/domains/agentic/types'
 import type { CacheState } from '~/app/map'
 import type { TileData } from '~/app/map'
-import { CoordSystem } from '~/lib/domains/mapping/utils/hex-coordinates'
+import { CoordSystem } from '~/lib/domains/mapping/utils'
 
 export class ExtendedCanvasStrategy implements ICanvasStrategy {
   constructor(private readonly getCacheState: () => CacheState) {}

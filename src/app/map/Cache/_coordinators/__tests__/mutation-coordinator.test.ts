@@ -3,7 +3,7 @@ import { MutationCoordinator } from "~/app/map/Cache/_coordinators/mutation-coor
 import { initialCacheState } from "~/app/map/Cache/State/reducer";
 import { createMockEventBus, expectEventEmitted } from "~/test-utils/event-bus";
 import type { CacheState } from "~/app/map/Cache/State/types";
-import type { DataOperations } from "~/app/map/Cache/Handlers/types";
+import type { DataOperations } from "~/app/map/Cache/types/handlers";
 import type { StorageService } from "~/app/map/Cache/Services/types";
 
 describe("MutationCoordinator Event Emissions", () => {
@@ -99,6 +99,7 @@ describe("MutationCoordinator Event Emissions", () => {
       load: vi.fn().mockResolvedValue(null),
       remove: vi.fn().mockResolvedValue(undefined),
       clear: vi.fn().mockResolvedValue(undefined),
+      getAllKeys: vi.fn().mockResolvedValue([]),
       saveCacheData: vi.fn().mockResolvedValue(undefined),
       loadCacheData: vi.fn().mockResolvedValue(null),
       saveUserPreferences: vi.fn().mockResolvedValue(undefined),

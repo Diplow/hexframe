@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { useTileActions } from "~/app/map/Canvas/TileActionsContext";
-import type { TileData } from "~/app/map/Canvas/types";
+import type { TileData } from "~/app/map/types";
 import type { TileCursor } from "~/app/map/Canvas/Tile";
 
 interface TileInteractionProps {

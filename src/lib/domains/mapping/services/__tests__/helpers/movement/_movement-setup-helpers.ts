@@ -1,9 +1,9 @@
-import { Direction } from "~/lib/domains/mapping/utils/hex-coordinates";
+import { Direction } from "~/lib/domains/mapping/utils";
 import type { TestEnvironment } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import {
   _setupBasicMap,
   _createTestCoordinates,
-} from "../_test-utilities";
+} from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 
 export async function _setupItemForMovement(
   testEnv: TestEnvironment,
