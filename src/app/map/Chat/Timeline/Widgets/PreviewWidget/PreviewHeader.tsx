@@ -3,7 +3,7 @@
 import { cn } from '~/lib/utils';
 import { ActionMenu } from '~/app/map/Chat/Timeline/Widgets/PreviewWidget/ActionMenu';
 import { EditControls } from '~/app/map/Chat/Timeline/Widgets/PreviewWidget/EditControls';
-import { BaseTileLayout } from '~/app/map/Canvas';
+import { TilePreview } from '~/app/map/Chat/Timeline/Widgets/_shared';
 
 interface PreviewHeaderProps {
   title: string;
@@ -66,16 +66,11 @@ export function PreviewHeader({
       onKeyDown={handleKeyDown}
     >
       {/* Tile preview on the left */}
-      <div className="flex-shrink-0">
-        <BaseTileLayout
-          coordId="preview-0,0"
-          scale={1}
-          color={tileColor}
-          stroke={{ color: "transparent" as const, width: 0 }}
-          baseHexSize={10}
-          cursor="cursor-pointer"
-        />
-      </div>
+      <TilePreview
+        tileColor={tileColor}
+        size={10}
+        className="flex-shrink-0"
+      />
 
       {/* Title or edit input */}
       {isEditing ? (
