@@ -3,7 +3,8 @@ import { toBase64 } from '~/app/map/Chat/Input/_commands/debug/debug-utils';
 
 export function createDebugCommandAction(mode: 'full' | 'succinct', limit: number) {
   return () => {
-    const logs = debugLogger.formatLogs(mode, limit);
+    // If limit is -1, don't pass a limit (shows all logs)
+    const logs = debugLogger.formatLogs(mode, limit === -1 ? undefined : limit);
     if (logs.length === 0) {
       return 'No debug logs available.';
     }

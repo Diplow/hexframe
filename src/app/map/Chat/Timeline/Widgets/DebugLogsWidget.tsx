@@ -89,7 +89,7 @@ export function DebugLogsWidget({ title, content, onClose }: DebugLogsWidgetProp
       />
 
       <WidgetContent isCollapsed={isCollapsed}>
-        <div ref={containerRef} className="prose prose-sm dark:prose-invert max-w-none">
+        <div ref={containerRef} className="prose prose-sm dark:prose-invert max-w-none [&_pre]:my-[0.4em]">
           <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
         </div>
       </WidgetContent>

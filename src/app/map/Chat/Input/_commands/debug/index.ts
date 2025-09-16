@@ -13,47 +13,29 @@ export const debugCommands: Record<string, Command> = {
       return `**Debug Commands ${timestamp}**
 
 Available debug log options:
-- \`/debug/full/10\` - Show last 10 full debug logs
-- \`/debug/full/25\` - Show last 25 full debug logs
-- \`/debug/full/50\` - Show last 50 full debug logs
-- \`/debug/succinct/10\` - Show last 10 succinct debug logs
-- \`/debug/succinct/25\` - Show last 25 succinct debug logs
-- \`/debug/succinct/50\` - Show last 50 succinct debug logs
+- \`/debug/full/all\` - Show all full debug logs
+- \`/debug/full/100\` - Show last 100 full debug logs
+- \`/debug/succinct/all\` - Show all succinct debug logs
+- \`/debug/succinct/100\` - Show last 100 succinct debug logs
 
 **Full logs** include complete details and stack traces.
 **Succinct logs** show condensed information for quick overview.`;
     }
   },
-  '/debug/full': {
-    description: 'Show last 50 full debug logs (use /debug/full/X for custom limit)',
-    action: createDebugCommandAction('full', 50)
+  '/debug/full/all': {
+    description: 'Show all full debug logs',
+    action: createDebugCommandAction('full', -1)
   },
-  '/debug/full/10': {
-    description: 'Show last 10 full debug logs',
-    action: createDebugCommandAction('full', 10)
+  '/debug/full/100': {
+    description: 'Show last 100 full debug logs',
+    action: createDebugCommandAction('full', 100)
   },
-  '/debug/full/25': {
-    description: 'Show last 25 full debug logs',
-    action: createDebugCommandAction('full', 25)
+  '/debug/succinct/all': {
+    description: 'Show all succinct debug logs',
+    action: createDebugCommandAction('succinct', -1)
   },
-  '/debug/full/50': {
-    description: 'Show last 50 full debug logs',
-    action: createDebugCommandAction('full', 50)
-  },
-  '/debug/succinct': {
-    description: 'Show last 50 succinct debug logs (use /debug/succinct/X for custom limit)',
-    action: createDebugCommandAction('succinct', 50)
-  },
-  '/debug/succinct/10': {
-    description: 'Show last 10 succinct debug logs',
-    action: createDebugCommandAction('succinct', 10)
-  },
-  '/debug/succinct/25': {
-    description: 'Show last 25 succinct debug logs',
-    action: createDebugCommandAction('succinct', 25)
-  },
-  '/debug/succinct/50': {
-    description: 'Show last 50 succinct debug logs',
-    action: createDebugCommandAction('succinct', 50)
+  '/debug/succinct/100': {
+    description: 'Show last 100 succinct debug logs',
+    action: createDebugCommandAction('succinct', 100)
   }
 };
