@@ -1,4 +1,5 @@
-import { createDebugCommandAction } from '~/app/map/Chat/Input/_commands/debug/debug-formatters';
+import { debugLogger } from '~/lib/debug/debug-logger';
+import { toBase64 } from '~/app/map/Chat/Input/_commands/debug/debug-utils';
 
 interface Command {
   description: string;
@@ -7,35 +8,25 @@ interface Command {
 
 export const debugCommands: Record<string, Command> = {
   '/debug': {
-    description: 'Show debug logs (use /debug/full or /debug/succinct)',
+    description: 'Show debug logs with interactive controls',
     action: () => {
-      const timestamp = new Date().toLocaleTimeString();
-      return `**Debug Commands ${timestamp}**
+      // Start with default: full mode, last 100 logs
+      const logs = debugLogger.formatLogs('full', 100);
+      if (logs.length === 0) {
+        return 'No debug logs available.';
+      }
 
-Available debug log options:
-- \`/debug/full/all\` - Show all full debug logs
-- \`/debug/full/100\` - Show last 100 full debug logs
-- \`/debug/succinct/all\` - Show all succinct debug logs
-- \`/debug/succinct/100\` - Show last 100 succinct debug logs
+      // Remove timestamps from individual log lines since we'll show timestamp in the header
+      const cleanLogs = logs.map(log => {
+        // Remove timestamp pattern like "2:55:56 PM [DEBUG]..."
+        return log.replace(/^\d{1,2}:\d{2}:\d{2}\s+[AP]M\s+/, '');
+      });
 
-**Full logs** include complete details and stack traces.
-**Succinct logs** show condensed information for quick overview.`;
+      const logContent = cleanLogs.join('\n');
+
+      return `\`\`\`\n${logContent}\n\`\`\`
+
+{{INTERACTIVE_CONTROLS:${toBase64(logContent)}}}`;
     }
-  },
-  '/debug/full/all': {
-    description: 'Show all full debug logs',
-    action: createDebugCommandAction('full', -1)
-  },
-  '/debug/full/100': {
-    description: 'Show last 100 full debug logs',
-    action: createDebugCommandAction('full', 100)
-  },
-  '/debug/succinct/all': {
-    description: 'Show all succinct debug logs',
-    action: createDebugCommandAction('succinct', -1)
-  },
-  '/debug/succinct/100': {
-    description: 'Show last 100 succinct debug logs',
-    action: createDebugCommandAction('succinct', 100)
   }
 };
