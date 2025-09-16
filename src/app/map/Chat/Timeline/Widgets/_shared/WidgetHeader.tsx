@@ -3,7 +3,7 @@
 import { X } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { cn } from '~/lib/utils';
-import { HexagonIcon } from '~/app/map/Chat/Timeline/Widgets/_shared/HexagonIcon';
+import { TilePreview } from '~/app/map/Chat/Timeline/Widgets/_shared/TilePreview';
 
 interface WidgetHeaderProps {
   icon?: React.ReactNode;
@@ -36,7 +36,7 @@ export function WidgetHeader({
         </div>
       ) : (
         <div className="flex-shrink-0">
-          <HexagonIcon className="h-4 w-4 text-muted-foreground" />
+          <TilePreview size={8} className="opacity-60" />
         </div>
       )}
 
@@ -100,7 +100,7 @@ export function WidgetHeader({
             </div>
           ) : (
             <div className="flex-shrink-0">
-              <HexagonIcon className="h-4 w-4 text-muted-foreground" />
+              <TilePreview size={8} className="opacity-60" />
             </div>
           )}
 

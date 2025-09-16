@@ -24,9 +24,10 @@ export {
 } from '~/app/map/Canvas/Tile'
 
 // Tile types for external consumers
-export type { 
+export type {
   TileScale,
   TileColor,
+  TileCursor,
   BaseTileLayoutProps,
   DynamicBaseTileLayoutProps
 } from '~/app/map/Canvas/Tile'
