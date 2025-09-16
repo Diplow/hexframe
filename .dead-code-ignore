@@ -1,6 +1,0 @@
-# Dead Code Detection - Ignore Patterns
-#
-# This file contains patterns for code that should be ignored by dead code detection.
-# Use glob-like patterns. Lines starting with # are comments.
-#
-# Temporarily cleared for refactoring - exceptions will be added back as needed
