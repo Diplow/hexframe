@@ -10,9 +10,10 @@ import { BaseWidget, WidgetHeader, WidgetContent } from '~/app/map/Chat/Timeline
 
 interface LoginWidgetProps {
   message?: string;
+  onClose?: () => void;
 }
 
-export function LoginWidget({ message }: LoginWidgetProps) {
+export function LoginWidget({ message, onClose }: LoginWidgetProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const {
     mode,
@@ -36,6 +37,7 @@ export function LoginWidget({ message }: LoginWidgetProps) {
         icon={<User className="h-5 w-5 text-primary" />}
         title={mode === 'login' ? 'Sign In' : 'Create Account'}
         subtitle={message}
+        onClose={onClose}
         collapsible={true}
         isCollapsed={isCollapsed}
         onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
@@ -71,7 +73,10 @@ export function LoginWidget({ message }: LoginWidgetProps) {
             <FormActions
               mode={mode}
               isLoading={isLoading}
-              onCancel={handleCancel}
+              onCancel={() => {
+                handleCancel();
+                onClose?.();
+              }}
             />
           </div>
         </form>

@@ -46,12 +46,15 @@ export function renderPreviewWidget(
   const tileItem = getItem(previewData.tileId);
   const currentTitle = tileItem?.data.name ?? previewData.tileData.title;
   const currentContent = tileItem?.data.description ?? previewData.tileData.content ?? '';
+  // Get color from the cached tile data (preferred) or generate from coordinates
+  const tileColor = tileItem?.data.color;
 
   return (
     <PreviewWidget
       tileId={previewData.tileId}
       title={currentTitle}
       content={currentContent}
+      tileColor={tileColor}
       openInEditMode={previewData.openInEditMode}
       onEdit={handleEdit}
       onDelete={handleDelete}
@@ -61,11 +64,13 @@ export function renderPreviewWidget(
   );
 }
 
-export function renderLoginWidget(widget: Widget) {
+export function renderLoginWidget(widget: Widget, handlers: WidgetHandlers) {
   const loginData = widget.data as AuthRequiredPayload;
+  const { handleCancel = () => { /* noop */ } } = handlers;
   return (
     <LoginWidget
       message={loginData.reason}
+      onClose={handleCancel}
     />
   );
 }

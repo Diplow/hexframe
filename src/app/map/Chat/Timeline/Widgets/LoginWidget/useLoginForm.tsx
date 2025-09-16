@@ -128,7 +128,13 @@ export function useLoginForm() {
   };
 
   const handleCancel = () => {
-    // Widget cancellation handled by chat state
+    // Clear form state
+    setEmail('');
+    setPassword('');
+    setUsername('');
+    setError('');
+    setSuccess('');
+    setMode('login');
   };
 
   return {

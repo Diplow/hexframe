@@ -11,7 +11,7 @@ interface BaseWidgetProps {
 }
 
 const variantStyles = {
-  default: 'bg-neutral-200/50 border-transparent dark:bg-neutral-700/50',
+  default: 'bg-neutral-200/50 border-transparent dark:bg-neutral-800/30',
   primary: 'bg-primary/8 border-transparent dark:bg-primary/12',
   destructive: 'bg-destructive/8 border-transparent dark:bg-destructive/12',
   success: 'bg-neutral-200/40 border-transparent dark:bg-neutral-600/40',

@@ -11,6 +11,7 @@ interface PreviewWidgetProps {
   content: string;
   forceExpanded?: boolean;
   openInEditMode?: boolean;
+  tileColor?: string;
   onEdit?: () => void;
   onDelete?: () => void;
   onSave?: (title: string, content: string) => void;
@@ -23,6 +24,7 @@ export function PreviewWidget({
   content,
   forceExpanded,
   openInEditMode,
+  tileColor,
   onEdit,
   onDelete,
   onSave,
@@ -95,6 +97,7 @@ export function PreviewWidget({
         isEditing={isEditing}
         editTitle={editTitle}
         hasContent={!!content}
+        tileColor={tileColor}
         onToggleExpansion={() => setIsExpanded(!isExpanded)}
         onTitleChange={setEditTitle}
         onTitleKeyDown={_handleTitleKeyDown}

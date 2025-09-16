@@ -71,25 +71,74 @@ export function WidgetHeader({
     </>
   );
 
+  // Only show border-b when content is expanded or when not collapsible
+  const borderClass = (!collapsible || !isCollapsed) ? 'border-b border-neutral-200 dark:border-neutral-800' : '';
+
   if (collapsible && onToggleCollapse) {
     return (
-      <button
-        onClick={onToggleCollapse}
-        className={cn(
-          'flex items-center gap-3 p-3 border-b border-border w-full text-left',
-          'hover:bg-muted/50 active:bg-muted/70 transition-colors cursor-pointer',
-          'focus:outline-none focus:bg-muted/50',
-          className
+      <div className={cn('flex items-center gap-3 p-3 w-full', borderClass, className)}>
+        <div
+          onClick={onToggleCollapse}
+          className={cn(
+            'flex items-center gap-3 flex-1 cursor-pointer',
+            'hover:bg-muted/50 active:bg-muted/70 transition-colors rounded-md p-1 -m-1',
+            'focus:outline-none focus:bg-muted/50'
+          )}
+          title={isCollapsed ? 'Expand widget' : 'Collapse widget'}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onToggleCollapse();
+            }
+          }}
+        >
+          {icon ? (
+            <div className="flex-shrink-0">
+              {icon}
+            </div>
+          ) : (
+            <div className="flex-shrink-0">
+              <HexagonIcon className="h-4 w-4 text-muted-foreground" />
+            </div>
+          )}
+
+          <div className="flex-1 min-w-0">
+            <div className="font-semibold text-sm truncate">
+              {title}
+            </div>
+            {subtitle && (
+              <div className="text-xs text-muted-foreground truncate">
+                {subtitle}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {actions && (
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {actions}
+          </div>
         )}
-        title={isCollapsed ? 'Expand widget' : 'Collapse widget'}
-      >
-        {headerContent}
-      </button>
+
+        {onClose && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0 flex-shrink-0"
+            onClick={onClose}
+            aria-label="Close widget"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
     );
   }
 
   return (
-    <div className={cn('flex items-center gap-3 p-3 border-b border-border', className)}>
+    <div className={cn('flex items-center gap-3 p-3', borderClass, className)}>
       {headerContent}
     </div>
   );
