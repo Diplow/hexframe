@@ -1,6 +1,6 @@
 'use client';
 
-import { X, ChevronDown, ChevronRight } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { cn } from '~/lib/utils';
 import { HexagonIcon } from '~/app/map/Chat/Timeline/Widgets/_shared/HexagonIcon';
@@ -30,16 +30,6 @@ export function WidgetHeader({
 }: WidgetHeaderProps) {
   const headerContent = (
     <>
-      {collapsible && (
-        <div className="flex-shrink-0">
-          {isCollapsed ? (
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-          ) : (
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-          )}
-        </div>
-      )}
-
       {icon ? (
         <div className="flex-shrink-0">
           {icon}
@@ -86,9 +76,12 @@ export function WidgetHeader({
       <button
         onClick={onToggleCollapse}
         className={cn(
-          'flex items-center gap-3 p-3 border-b border-border w-full text-left hover:bg-muted/50 transition-colors',
+          'flex items-center gap-3 p-3 border-b border-border w-full text-left',
+          'hover:bg-muted/50 active:bg-muted/70 transition-colors cursor-pointer',
+          'focus:outline-none focus:bg-muted/50',
           className
         )}
+        title={isCollapsed ? 'Expand widget' : 'Collapse widget'}
       >
         {headerContent}
       </button>
