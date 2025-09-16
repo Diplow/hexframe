@@ -11,11 +11,11 @@ interface BaseWidgetProps {
 }
 
 const variantStyles = {
-  default: 'bg-muted/30 border-transparent dark:bg-muted/20',
-  primary: 'bg-primary/10 border-transparent dark:bg-primary/15',
-  destructive: 'bg-destructive/10 border-transparent dark:bg-destructive/15',
-  success: 'bg-success/10 border-transparent dark:bg-success/15',
-  info: 'bg-secondary/10 border-transparent dark:bg-secondary/15',
+  default: 'bg-neutral-200/50 border-transparent dark:bg-neutral-700/50',
+  primary: 'bg-primary/8 border-transparent dark:bg-primary/12',
+  destructive: 'bg-destructive/8 border-transparent dark:bg-destructive/12',
+  success: 'bg-neutral-200/40 border-transparent dark:bg-neutral-600/40',
+  info: 'bg-neutral-200/40 border-transparent dark:bg-neutral-600/40',
 };
 
 const spacingStyles = {
