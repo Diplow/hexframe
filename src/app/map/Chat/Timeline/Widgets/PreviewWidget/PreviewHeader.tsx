@@ -3,7 +3,7 @@
 import { cn } from '~/lib/utils';
 import { ActionMenu } from '~/app/map/Chat/Timeline/Widgets/PreviewWidget/ActionMenu';
 import { EditControls } from '~/app/map/Chat/Timeline/Widgets/PreviewWidget/EditControls';
-import { BaseTileLayout } from '~/app/map/Canvas/Tile/Base/BaseTileLayout';
+import { BaseTileLayout } from '~/app/map/Canvas';
 
 interface PreviewHeaderProps {
   title: string;
