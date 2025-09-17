@@ -17,7 +17,6 @@ from utils.test_helpers import (
     run_checker,
     assert_checker_finds_issues
 )
-from deadcode.checker import DeadCodeChecker
 from deadcode.models import DeadCodeType
 
 
@@ -195,12 +194,9 @@ export function main() {
         with create_test_project(files) as project_path:
             results = run_checker('deadcode', project_path / 'src')
 
-            # Dynamic imports are challenging for regex-based parsing
-            # This test documents current behavior and can be updated when improving
+            # Known limitation: dynamicallyImported may be missed; at minimum, the unused export should be flagged
             dead_symbols = {issue.symbol_name for issue in results.issues}
-
-            # dynamicallyImported might be flagged as dead if dynamic imports aren't detected
-            # This is a known limitation of regex-based parsing
+            assert 'notDynamicallyImported' in dead_symbols
 
     def test_barrel_file_exports(self):
         """Test handling of barrel file re-exports."""
@@ -316,11 +312,9 @@ export function processData(data: UsedInterface): UsedType {
         with create_test_project(files) as project_path:
             results = run_checker('deadcode', project_path / 'src')
 
-            # Should find unused types/interfaces
             dead_symbols = {issue.symbol_name for issue in results.issues}
-
-            # Type checking depends on parser's ability to handle type imports
-            # This documents current behavior
+            # Ensure type-only usage isn't flagged as dead
+            assert 'UsedInterface' not in dead_symbols
 
     def test_no_false_positives_on_clean_code(self):
         """Test that clean, well-used code doesn't generate false positives."""

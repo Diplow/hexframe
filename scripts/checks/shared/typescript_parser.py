@@ -9,7 +9,7 @@ code analysis tools.
 
 import re
 from pathlib import Path
-from typing import List, Set, Optional, NamedTuple
+from typing import List, Set, Optional, NamedTuple, Tuple
 from dataclasses import dataclass
 
 
@@ -113,9 +113,9 @@ class TypeScriptParser:
                     import_name = import_name[5:].strip()  # Remove 'type ' prefix
 
                 # Handle 'as' aliases: foo as bar
-                original_name = import_name
-                if ' as ' in import_name:
-                    original_name = import_name.split(' as ')[0].strip()
+                has_alias = ' as ' in import_name
+                original_name = import_name.split(' as ')[0].strip() if has_alias else None
+                if has_alias:
                     import_name = import_name.split(' as ')[-1].strip()
 
                 imports.append(Import(
@@ -124,7 +124,7 @@ class TypeScriptParser:
                     file_path=file_path,
                     line_number=line_number,
                     import_type=import_type,
-                    original_name=original_name if ' as ' in import_name else None
+                    original_name=original_name
                 ))
         
         # Multi-line type imports: import type { ... }
@@ -142,18 +142,18 @@ class TypeScriptParser:
                 if not import_name:
                     continue
                     
-                original_name = import_name
-                if ' as ' in import_name:
-                    original_name = import_name.split(' as ')[0].strip()
+                has_alias = ' as ' in import_name
+                original_name = import_name.split(' as ')[0].strip() if has_alias else None
+                if has_alias:
                     import_name = import_name.split(' as ')[-1].strip()
-                
+
                 imports.append(Import(
                     name=import_name,
                     from_path=from_path,
                     file_path=file_path,
                     line_number=line_number,
                     import_type='type',
-                    original_name=original_name if ' as ' in import_name else None
+                    original_name=original_name
                 ))
         
         # Now process line by line for other import patterns
@@ -208,9 +208,9 @@ class TypeScriptParser:
                         import_name = import_name[5:].strip()  # Remove 'type ' prefix
 
                     # Handle 'as' aliases: foo as bar
-                    original_name = import_name
-                    if ' as ' in import_name:
-                        original_name = import_name.split(' as ')[0].strip()
+                    has_alias = ' as ' in import_name
+                    original_name = import_name.split(' as ')[0].strip() if has_alias else None
+                    if has_alias:
                         import_name = import_name.split(' as ')[-1].strip()
 
                     imports.append(Import(
@@ -219,7 +219,7 @@ class TypeScriptParser:
                         file_path=file_path,
                         line_number=i,
                         import_type=import_type,
-                        original_name=original_name if ' as ' in import_name else None
+                        original_name=original_name
                     ))
                 continue
             
@@ -234,18 +234,18 @@ class TypeScriptParser:
                     if not import_name:
                         continue
                         
-                    original_name = import_name
-                    if ' as ' in import_name:
-                        original_name = import_name.split(' as ')[0].strip()
+                    has_alias = ' as ' in import_name
+                    original_name = import_name.split(' as ')[0].strip() if has_alias else None
+                    if has_alias:
                         import_name = import_name.split(' as ')[-1].strip()
-                    
+
                     imports.append(Import(
                         name=import_name,
                         from_path=from_path,
                         file_path=file_path,
                         line_number=i,
                         import_type='type',
-                        original_name=original_name if ' as ' in import_name else None
+                        original_name=original_name
                     ))
                 continue
             
@@ -900,7 +900,7 @@ class TypeScriptParser:
 
         return brace_count
 
-    def _find_function_boundaries(self, lines: List[str], start_line_idx: int, pattern_idx: int = None) -> tuple[int, int]:
+    def _find_function_boundaries(self, lines: List[str], start_line_idx: int, pattern_idx: Optional[int] = None) -> Tuple[int, int]:
         """Find the start and end line numbers of a function."""
         line_start = start_line_idx + 1  # Convert to 1-indexed
 

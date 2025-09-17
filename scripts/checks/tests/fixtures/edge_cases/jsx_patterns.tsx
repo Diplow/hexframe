@@ -1,9 +1,9 @@
 import React, { Component, useState, useEffect } from 'react';
-import type { ReactNode, ComponentProps } from 'react';
+import type { ReactNode, ComponentProps, MouseEventHandler } from 'react';
 
 interface ButtonProps {
     children: ReactNode;
-    onClick: () => void;
+    onClick: MouseEventHandler<HTMLButtonElement>;
     variant?: 'primary' | 'secondary';
 }
 
@@ -16,7 +16,7 @@ export const Button = ({ children, onClick, variant = 'primary' }: ButtonProps) 
     </button>
 );
 
-export function ComplexComponent<T extends Record<string, any>>({
+export function ComplexComponent<T extends Record<string, unknown>>({
     items,
     renderItem,
     onItemClick
@@ -52,7 +52,7 @@ export function ComplexComponent<T extends Record<string, any>>({
 }
 
 export class ClassComponent extends Component<ComponentProps<'div'>> {
-    private timerId?: NodeJS.Timeout;
+    private timerId?: ReturnType<typeof setInterval>;
 
     componentDidMount() {
         this.timerId = setInterval(() => {
@@ -66,8 +66,9 @@ export class ClassComponent extends Component<ComponentProps<'div'>> {
         }
     }
 
-    private handleClick = (event: React.MouseEvent) => {
-        event.preventDefault();
+    private handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+        // Forward to any external onClick provided via props, then handle locally.
+        this.props.onClick?.(event);
         // Handle click
     };
 

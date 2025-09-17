@@ -296,6 +296,7 @@ enum MyEnum {
         exports = self.parser.extract_exports(content, Path("test.ts"))
         functions = self.parser.extract_functions(content, Path("test.ts"))
         symbols = self.parser.extract_symbols(content, Path("test.ts"))
+        assert all(isinstance(x, list) for x in (imports, exports, functions, symbols))
 
         # Should find exports even in complex code
         export_names = [exp.name for exp in exports]
@@ -451,7 +452,7 @@ class TestParserIntegration:
         results = run_checker('parser', complex_imports_project / 'src' / 'index.ts')
 
         imports = results['imports']
-        exports = results['exports']
+        _ = results['exports']
 
         # Should find various import types
         import_types = {imp.import_type for imp in imports}

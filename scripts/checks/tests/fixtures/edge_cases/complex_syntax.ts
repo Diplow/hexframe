@@ -1,9 +1,25 @@
+// Optional stubs for stricter compilers
+const moduleName = 'feature';
+const defaultProcessor = () => true;
+declare const productionConfig: unknown;
+declare const developmentConfig: unknown;
+declare const process: { env: { NODE_ENV?: string } };
+
+// Ambient stubs (no emit) to keep the fixture standalone
+declare function Component(opts: { selector: string; template: string }): ClassDecorator;
+declare function Input(): PropertyDecorator;
+declare function Output(): PropertyDecorator;
+declare function HostListener(eventName: string, args?: readonly string[]): MethodDecorator;
+declare class EventEmitter<T> { emit(value: T): void; }
+
 // Template literals and dynamic imports
 const dynamicImport = `import("./${moduleName}")`;
+// Real dynamic import variant (keep the string as-is if you're testing false positives):
+const dynamicModule = import(`./${moduleName}`);
 
 // Generic functions with complex constraints
 export function processItems<
-    T extends Record<string, any>,
+    T extends Record<string, unknown>,
     K extends keyof T
 >(
     items: T[],

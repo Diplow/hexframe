@@ -170,20 +170,13 @@ export function CodeDisplay() {
         export const working = 'value';
         """.strip()
 
-        # Should not crash
-        try:
-            imports = self.parser.extract_imports(malformed_content, Path("test.ts"))
-            exports = self.parser.extract_exports(malformed_content, Path("test.ts"))
-
-            # Should find at least the valid ones
-            valid_imports = [imp for imp in imports if imp.name == 'valid']
-            assert len(valid_imports) == 1
-
-            valid_exports = [exp for exp in exports if exp.name == 'working']
-            assert len(valid_exports) == 1
-
-        except Exception as e:
-            pytest.fail(f"Parser crashed on malformed input: {e}")
+        imports = self.parser.extract_imports(malformed_content, Path("test.ts"))
+        exports = self.parser.extract_exports(malformed_content, Path("test.ts"))
+        # Should find at least the valid ones
+        valid_imports = [imp for imp in imports if imp.name == 'valid']
+        assert len(valid_imports) == 1
+        valid_exports = [exp for exp in exports if exp.name == 'working']
+        assert len(valid_exports) == 1
 
     def test_nested_braces_in_imports(self):
         """
@@ -298,18 +291,13 @@ class TestErrorRecovery:
 
         large_content = '\n'.join(lines)
 
-        try:
-            imports = self.parser.extract_imports(large_content, Path("large.ts"))
-            exports = self.parser.extract_exports(large_content, Path("large.ts"))
-            functions = self.parser.extract_functions(large_content, Path("large.ts"))
-
-            # Should process all items
-            assert len(imports) == 500
-            assert len(exports) == 500
-            assert len(functions) == 500
-
-        except Exception as e:
-            pytest.fail(f"Parser failed on large file: {e}")
+        imports = self.parser.extract_imports(large_content, Path("large.ts"))
+        exports = self.parser.extract_exports(large_content, Path("large.ts"))
+        functions = self.parser.extract_functions(large_content, Path("large.ts"))
+        # Should process all items
+        assert len(imports) == 500
+        assert len(exports) == 500
+        assert len(functions) == 500
 
     def test_unicode_and_special_characters(self):
         """
@@ -327,18 +315,13 @@ export function validUnicode测试() {
 const message = '导入 { test } from "test";';
         """.strip()
 
-        try:
-            imports = self.parser.extract_imports(content, Path("test.ts"))
-            exports = self.parser.extract_exports(content, Path("test.ts"))
-            functions = self.parser.extract_functions(content, Path("test.ts"))
-
-            # Should handle Unicode gracefully
-            assert len(imports) >= 1
-            assert len(exports) >= 1
-            assert len(functions) >= 1
-
-        except Exception as e:
-            pytest.fail(f"Parser failed on Unicode content: {e}")
+        imports = self.parser.extract_imports(content, Path("test.ts"))
+        exports = self.parser.extract_exports(content, Path("test.ts"))
+        functions = self.parser.extract_functions(content, Path("test.ts"))
+        # Should handle Unicode gracefully
+        assert len(imports) >= 1
+        assert len(exports) >= 1
+        assert len(functions) >= 1
 
     def test_deeply_nested_structures(self):
         """
@@ -353,9 +336,5 @@ const message = '导入 { test } from "test";';
             nested_content += "  " * i + "},\n"
         nested_content += "};"
 
-        try:
-            exports = self.parser.extract_exports(nested_content, Path("test.ts"))
-            assert len(exports) >= 1
-
-        except Exception as e:
-            pytest.fail(f"Parser failed on deeply nested structure: {e}")
+        exports = self.parser.extract_exports(nested_content, Path("test.ts"))
+        assert len(exports) >= 1

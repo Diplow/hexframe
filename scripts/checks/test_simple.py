@@ -208,7 +208,7 @@ export const value = 'test';
         '''.strip()
 
         imports = parser.extract_imports(content1, Path("test.ts"))
-        exports = parser.extract_exports(content1, Path("test.ts"))
+        _ = parser.extract_exports(content1, Path("test.ts"))  # invoke to ensure no crash
 
         # Should find real import but not fake one in template
         real_imports = [imp for imp in imports if imp.name == 'real']
