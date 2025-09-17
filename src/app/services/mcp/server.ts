@@ -14,6 +14,7 @@ import {
   getItemByCoordsHandler,
   addItemHandler,
   updateItemHandler,
+  getCurrentUserHandler,
 } from "~/app/services/mcp/services/map-items";
 // Context wrapper no longer needed - context is in tool descriptions
 
@@ -79,6 +80,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         name: "getItemsForRootItem",
         description: `Get hierarchical tile structure for a user's Hexframe map.
 
+WORKFLOW: First use getCurrentUser to get the user's mappingId, then use that as the userId parameter here.
+
 HEXFRAME CONTEXT: You're working with a hexagonal knowledge mapping system where:
 - Tiles are hexagonal units organized hierarchically around a center
 - Coordinates: {userId: 1, groupId: 0, path: [0,1]} where path=directions from root
@@ -92,7 +95,7 @@ This tool returns nested structure with children[] arrays showing the knowledge 
           properties: {
             userId: {
               type: "number",
-              description: "The user ID to fetch map items for",
+              description: "The user ID to fetch map items for (get this from getCurrentUser.mappingId)",
             },
             groupId: {
               type: "number",
@@ -203,6 +206,22 @@ This tool returns nested structure with children[] arrays showing the knowledge 
           required: ["coords", "updates"],
         },
       },
+      {
+        name: "getCurrentUser",
+        description: `Get information about the currently authenticated user.
+
+WORKFLOW: Use this tool first to get the user's mappingId (which is their userId), then use that userId with getItemsForRootItem to access their hexagonal knowledge map.
+
+Returns user info including:
+- id: Authentication ID
+- mappingId: User ID for map operations (use this with other tools)
+- email, name, emailVerified status
+- createdAt, updatedAt timestamps`,
+        inputSchema: {
+          type: "object",
+          properties: {},
+        },
+      },
     ],
   };
 });
@@ -288,6 +307,19 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       }
 
+      case "getCurrentUser": {
+        const result = await getCurrentUserHandler();
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        };
+      }
+
       default:
         throw new Error(`Unknown tool: ${name}`);
     }
@@ -305,9 +337,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 // Start the server with stdio transport
 async function main() {
+  console.error("=== MCP SERVER STARTING ===");
+  console.error("Environment check:", {
+    API_KEY: process.env.HEXFRAME_API_KEY ? "SET" : "NOT SET",
+    NODE_ENV: process.env.NODE_ENV,
+    PWD: process.cwd()
+  });
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  
+
   // Log to stderr so it doesn't interfere with protocol messages
   console.error("Hexframe MCP Server running on stdio transport");
 }

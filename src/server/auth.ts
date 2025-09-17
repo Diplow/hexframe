@@ -19,6 +19,9 @@ export const auth = betterAuth({
       apikey: schema.apiKeys, // API key plugin table
     },
   }),
+  rateLimit: {
+    enabled: env.NODE_ENV === "production", // Disable rate limiting in development
+  },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true, // Always require email verification
@@ -56,6 +59,11 @@ export const auth = betterAuth({
     apiKey({
       apiKeyHeaders: ["x-api-key"], // MCP standard header
       enableMetadata: true, // Enable metadata for MCP key tracking
+      rateLimit: {
+        enabled: env.NODE_ENV === "production", // Disable API key rate limiting in development
+        timeWindow: 1000 * 60 * 5, // 5 minutes
+        maxRequests: 1000, // 1000 requests per 5 minutes in production
+      },
     }),
   ],
 });

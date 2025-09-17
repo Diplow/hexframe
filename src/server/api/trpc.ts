@@ -321,14 +321,14 @@ export const dualAuthProcedure = t.procedure.use(async ({ ctx, next }) => {
   }
 
   try {
-    const result = await auth.api.verifyApiKey({ 
-      body: { key: apiKey } 
+    const result = await auth.api.verifyApiKey({
+      body: { key: apiKey }
     });
-    
+
     if (!result.valid) {
-      throw new TRPCError({ 
+      throw new TRPCError({
         code: "UNAUTHORIZED",
-        message: "Invalid API key" 
+        message: "Invalid API key"
       });
     }
 
@@ -344,9 +344,9 @@ export const dualAuthProcedure = t.procedure.use(async ({ ctx, next }) => {
     });
   } catch (error) {
     console.error("Authentication error:", error);
-    throw new TRPCError({ 
+    throw new TRPCError({
       code: "UNAUTHORIZED",
-      message: "Authentication failed" 
+      message: "Authentication failed"
     });
   }
 });

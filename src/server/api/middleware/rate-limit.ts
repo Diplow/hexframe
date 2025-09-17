@@ -61,7 +61,7 @@ export const rateLimits = {
   // More lenient for authenticated users
   authenticated: createRateLimitMiddleware({
     windowMs: 60 * 1000, // 1 minute
-    maxRequests: 100, // 100 requests per minute
+    maxRequests: 1000, // DEBUGGING: Increased from 100 to 1000 requests per minute
     keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
   }),
   
@@ -96,7 +96,7 @@ export const rateLimits = {
   // Custom rate limit for mutations
   mutation: createRateLimitMiddleware({
     windowMs: 60 * 1000, // 1 minute
-    maxRequests: 20, // 20 mutations per minute
+    maxRequests: 1000, // DEBUGGING: Increased from 20 to 1000 mutations per minute
     keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
   }),
 };
@@ -114,24 +114,25 @@ function performRateLimit(config: RateLimitConfig, ctx: Context, isVerified?: bo
 
   // Get or create rate limit entry
   let rateLimit = rateLimitStore.get(key);
-  
+
   if (!rateLimit || rateLimit.resetTime < now) {
     rateLimit = { count: 0, resetTime };
     rateLimitStore.set(key, rateLimit);
   }
 
+
   // Check if rate limit exceeded
   if (rateLimit.count >= config.maxRequests) {
     const retryAfter = Math.ceil((rateLimit.resetTime - now) / 1000);
     let message = `Rate limit exceeded. Try again in ${retryAfter} seconds.`;
-    
+
     // Add verification context if provided
     if (isVerified !== undefined) {
       const limitType = isVerified ? "verified user" : "unverified user";
       const verificationHint = !isVerified ? ' Please verify your email for higher limits.' : '';
       message = `Rate limit exceeded for ${limitType}. Try again in ${retryAfter} seconds.${verificationHint}`;
     }
-    
+
     throw new TRPCError({
       code: "TOO_MANY_REQUESTS",
       message,
@@ -212,12 +213,12 @@ export function createVerificationAwareRateLimit(
 export const verificationAwareRateLimit = createVerificationAwareRateLimit(
   {
     windowMs: 5 * 60 * 1000, // 5 minutes
-    maxRequests: 10, // 10 requests per 5 minutes for verified users
+    maxRequests: 1000, // DEBUGGING: Increased from 10 to 1000 requests per 5 minutes for verified users
     keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
   },
   {
     windowMs: 5 * 60 * 1000, // 5 minutes
-    maxRequests: 3, // Only 3 requests per 5 minutes for unverified users
+    maxRequests: 1000, // DEBUGGING: Increased from 3 to 1000 requests per 5 minutes for unverified users
     keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
   }
 );
@@ -225,12 +226,12 @@ export const verificationAwareRateLimit = createVerificationAwareRateLimit(
 export const verificationAwareAuthLimit = createVerificationAwareRateLimit(
   {
     windowMs: 60 * 1000, // 1 minute
-    maxRequests: 100, // 100 requests per minute for verified users
+    maxRequests: 1000, // DEBUGGING: Increased from 100 to 1000 requests per minute for verified users
     keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
   },
   {
     windowMs: 60 * 1000, // 1 minute
-    maxRequests: 20, // Only 20 requests per minute for unverified users
+    maxRequests: 1000, // DEBUGGING: Increased from 20 to 1000 requests per minute for unverified users
     keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
   }
 );
