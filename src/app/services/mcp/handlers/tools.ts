@@ -17,38 +17,45 @@ import {
  * Helper function to convert coordinates with string values to numbers
  * MCP clients often send coords as JSON strings or with numbers as strings
  */
-function normalizeCoordinates(coords: any): { userId: number; groupId: number; path: number[] } {
+function normalizeCoordinates(coords: unknown): { userId: number; groupId: number; path: number[] } {
   if (!coords) {
     throw new Error('Coordinates are required');
   }
 
   // If coords is a string, parse it as JSON first
-  let coordsObj = coords;
+  let coordsObj: unknown = coords;
   if (typeof coords === 'string') {
     try {
       coordsObj = JSON.parse(coords);
-    } catch (error) {
+    } catch {
       throw new Error('Invalid coordinates JSON string');
     }
   }
 
+  // Type guard to ensure coordsObj has the expected structure
+  if (!coordsObj || typeof coordsObj !== 'object') {
+    throw new Error('Coordinates must be an object');
+  }
+
+  const coordsInput = coordsObj as Record<string, unknown>;
+
   return {
-    userId: typeof coordsObj.userId === 'string' ? parseInt(coordsObj.userId, 10) : coordsObj.userId,
-    groupId: typeof coordsObj.groupId === 'string' ? parseInt(coordsObj.groupId, 10) : coordsObj.groupId,
-    path: Array.isArray(coordsObj.path) ? coordsObj.path.map((p: any) =>
-      typeof p === 'string' ? parseInt(p, 10) : p
-    ) : coordsObj.path
+    userId: typeof coordsInput.userId === 'string' ? parseInt(coordsInput.userId, 10) : Number(coordsInput.userId),
+    groupId: typeof coordsInput.groupId === 'string' ? parseInt(coordsInput.groupId, 10) : Number(coordsInput.groupId),
+    path: Array.isArray(coordsInput.path) ? coordsInput.path.map((p: unknown) =>
+      typeof p === 'string' ? parseInt(p, 10) : Number(p)
+    ) : []
   };
 }
 
 /**
  * Helper function to parse JSON string parameters if needed
  */
-function parseJsonParam(param: any): any {
+function parseJsonParam(param: unknown): unknown {
   if (typeof param === 'string') {
     try {
       return JSON.parse(param);
-    } catch (error) {
+    } catch {
       throw new Error('Invalid JSON string parameter');
     }
   }

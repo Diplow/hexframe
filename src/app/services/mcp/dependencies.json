@@ -3,8 +3,8 @@
   "allowed": [
     "@modelcontextprotocol/sdk/server",
     "@modelcontextprotocol/sdk/types",
-    "@vercel/mcp-adapter",
     "~/lib/domains/mapping",
+    "~/lib/utils/request-context",
     "~/server/auth"
   ],
   "subsystems": [

@@ -15,7 +15,7 @@ const requestContext = new AsyncLocalStorage<RequestContext>();
  * Set the request context for the current async execution context
  * Should be called once at the beginning of request handling
  */
-export function setRequestContext(context: RequestContext): void {
+export function setRequestContext(_context: RequestContext): void {
   // Note: This should be called with requestContext.run() wrapper
   throw new Error("setRequestContext should not be called directly. Use runWithRequestContext instead.");
 }

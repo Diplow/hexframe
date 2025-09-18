@@ -50,7 +50,7 @@ async function validateApiKey(request: Request): Promise<{ apiKey: string; userI
 
     const userId = result.key.userId;
     return { apiKey, userId };
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -187,7 +187,7 @@ export async function POST(request: Request): Promise<Response> {
     };
     return Response.json(errorResponse);
 
-  } catch (error) {
+  } catch {
     const errorResponse: JsonRpcResponse = {
       jsonrpc: '2.0',
       id: null,
