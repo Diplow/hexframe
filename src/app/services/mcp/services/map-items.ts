@@ -69,7 +69,7 @@ async function callTrpcEndpoint<T>(
     // POST for mutations - use batch format in body with batch query parameter
     const batchData = { "0": { json: input } };
     const requestBody = JSON.stringify(batchData);
-    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] POST batch body:`, requestBody);
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] POST batch body size: ${requestBody.length} chars`);
     response = await fetch(`${baseUrl}/services/api/trpc/${endpoint}?batch=1`, {
       method: "POST",
       headers,
@@ -84,25 +84,25 @@ async function callTrpcEndpoint<T>(
   }
 
   if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Response status: ${response.status} ${response.statusText}`);
-  if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Response headers:`, Object.fromEntries(response.headers.entries()));
+  if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Response headers: content-type=${response.headers.get('content-type')}, content-length=${response.headers.get('content-length')}`);
 
   const rawResponseText = await response.text();
-  if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Raw response body:`, rawResponseText);
+  if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Raw response body size: ${rawResponseText.length} chars`);
 
   if (!response.ok) {
     if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Request failed with status ${response.status}`);
-    throw new Error(`API call failed: ${response.status} ${response.statusText} - ${rawResponseText}`);
+    throw new Error(`API call failed: ${response.status} ${response.statusText}`);
   }
 
   let data: unknown;
   try {
     data = JSON.parse(rawResponseText);
   } catch (parseError) {
-    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Failed to parse JSON:`, parseError);
-    throw new Error(`Invalid JSON response: ${rawResponseText}`);
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Failed to parse JSON: ${parseError instanceof Error ? parseError.message : 'parse error'}`);
+    throw new Error(`Invalid JSON response from server`);
   }
 
-  if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Parsed response data:`, JSON.stringify(data, null, 2));
+  if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Parsed response data shape: ${Array.isArray(data) ? `array[${data.length}]` : typeof data}`);
 
   // Both mutations and queries return batch format
   const batchData = Array.isArray(data) ? data : [data];
@@ -114,20 +114,20 @@ async function callTrpcEndpoint<T>(
   }
 
   if (item.error) {
-    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] tRPC error in response:`, item.error);
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] tRPC error in response: ${item.error?.message ?? 'unknown error'}`);
     throw new Error(item.error.message ?? "API error");
   }
 
   if (!item.result) {
-    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] No result in response item:`, item);
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] No result in response item`);
     throw new Error("Invalid API response");
   }
 
-  if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Success! Returning:`, item.result?.data.json);
+  if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Success! Returning data type: ${typeof item.result?.data.json}`);
   return item.result.data.json;
 
   } catch (error) {
-    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Exception in callTrpcEndpoint:`, error);
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Exception in callTrpcEndpoint: ${error instanceof Error ? error.message : 'unknown error'}`);
     throw error;
   }
 }
@@ -350,7 +350,7 @@ export async function addItemHandler(
       
       if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Looking for parent at coords:`, parentCoords);
       const parentItem = await getItemByCoords(parentCoords);
-      if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Parent item result:`, parentItem);
+      if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Parent item found: ${parentItem ? 'yes' : 'no'}`);
       if (!parentItem) {
         throw new Error(
           `Parent tile not found at coordinates ${CoordSystem.createId(parentCoords)}. ` +
@@ -361,7 +361,7 @@ export async function addItemHandler(
       if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Parent ID:`, parentId);
     }
 
-    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] About to call map.addItem with:`, { coords, parentId, title, descr, url });
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] About to call map.addItem with parentId: ${parentId}, title length: ${title.length}`);
     const newItem = await callTrpcEndpoint<MapItem>("map.addItem", {
       coords,
       parentId,
@@ -369,7 +369,7 @@ export async function addItemHandler(
       descr,
       url,
     }, { requireAuth: true });
-    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] map.addItem returned:`, newItem);
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] map.addItem returned item with id: ${newItem?.id}`);
 
     return newItem;
   } catch (error) {
@@ -382,10 +382,10 @@ export async function getCurrentUserHandler(): Promise<unknown> {
   try {
     if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Getting current user info`);
     const userInfo = await callTrpcEndpoint<unknown>("user.getCurrentUser", {}, { requireAuth: true });
-    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Current user info:`, userInfo);
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Current user info retrieved: ${userInfo ? 'yes' : 'no'}`);
     return userInfo;
   } catch (error) {
-    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Failed to get user info:`, error);
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Failed to get user info: ${error instanceof Error ? error.message : 'unknown error'}`);
     throw error;
   }
 }
