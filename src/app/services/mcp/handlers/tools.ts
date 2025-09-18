@@ -13,6 +13,48 @@ import {
  * Shared MCP tool definitions that can be used by both stdio and HTTP transports
  */
 
+/**
+ * Helper function to convert coordinates with string values to numbers
+ * MCP clients often send coords as JSON strings or with numbers as strings
+ */
+function normalizeCoordinates(coords: any): { userId: number; groupId: number; path: number[] } {
+  if (!coords) {
+    throw new Error('Coordinates are required');
+  }
+
+  // If coords is a string, parse it as JSON first
+  let coordsObj = coords;
+  if (typeof coords === 'string') {
+    try {
+      coordsObj = JSON.parse(coords);
+    } catch (error) {
+      throw new Error('Invalid coordinates JSON string');
+    }
+  }
+
+  return {
+    userId: typeof coordsObj.userId === 'string' ? parseInt(coordsObj.userId, 10) : coordsObj.userId,
+    groupId: typeof coordsObj.groupId === 'string' ? parseInt(coordsObj.groupId, 10) : coordsObj.groupId,
+    path: Array.isArray(coordsObj.path) ? coordsObj.path.map((p: any) =>
+      typeof p === 'string' ? parseInt(p, 10) : p
+    ) : coordsObj.path
+  };
+}
+
+/**
+ * Helper function to parse JSON string parameters if needed
+ */
+function parseJsonParam(param: any): any {
+  if (typeof param === 'string') {
+    try {
+      return JSON.parse(param);
+    } catch (error) {
+      throw new Error('Invalid JSON string parameter');
+    }
+  }
+  return param;
+}
+
 export interface McpTool {
   name: string;
   description: string;
@@ -59,13 +101,35 @@ This tool returns nested structure with children[] arrays showing the knowledge 
           maximum: 10,
         },
       },
-      required: ["userId"],
+      required: [],
     },
     handler: async (args: unknown) => {
       const argsObj = args as Record<string, unknown>;
-      const userId = argsObj?.userId as number;
-      const groupId = (argsObj?.groupId as number) ?? 0;
-      const depth = (argsObj?.depth as number) ?? 3;
+
+      // Convert string parameters to numbers (Claude Code sends strings)
+      let userId: number | undefined;
+      if (argsObj?.userId) {
+        userId = typeof argsObj.userId === 'string' ? parseInt(argsObj.userId, 10) : argsObj.userId as number;
+      }
+
+      // If no userId provided, use the authenticated user's ID
+      if (!userId && argsObj?.authInfo) {
+        const authInfo = argsObj.authInfo as { clientId?: string };
+        const parsedUserId = authInfo.clientId ? parseInt(authInfo.clientId, 10) : undefined;
+        if (parsedUserId) {
+          userId = parsedUserId;
+        }
+      }
+
+      const groupId = argsObj?.groupId ?
+        (typeof argsObj.groupId === 'string' ? parseInt(argsObj.groupId, 10) : argsObj.groupId as number) : 0;
+      const depth = argsObj?.depth ?
+        (typeof argsObj.depth === 'string' ? parseInt(argsObj.depth, 10) : argsObj.depth as number) : 3;
+
+      if (!userId) {
+        throw new Error('userId is required');
+      }
+
       return await getUserMapItemsHandler(userId, groupId, depth);
     },
   },
@@ -95,8 +159,7 @@ This tool returns nested structure with children[] arrays showing the knowledge 
     },
     handler: async (args: unknown) => {
       const argsObj = args as Record<string, unknown>;
-      const coords = argsObj?.coords as { userId: number; groupId: number; path: number[] };
-      if (!coords) throw new Error("coords parameter is required");
+      const coords = normalizeCoordinates(argsObj?.coords);
       return await getItemByCoordsHandler(coords);
     },
   },
@@ -137,18 +200,14 @@ This tool returns nested structure with children[] arrays showing the knowledge 
       required: ["coords", "title"],
     },
     handler: async (args: unknown) => {
-      interface AddItemArgs {
-        coords: { userId: number; groupId: number; path: number[] };
-        title: string;
-        descr?: string;
-        url?: string;
-      }
+      const argsObj = args as Record<string, unknown>;
+      const coords = normalizeCoordinates(argsObj?.coords);
+      const title = argsObj?.title as string;
+      const descr = argsObj?.descr as string | undefined;
+      const url = argsObj?.url as string | undefined;
 
-      const argsObj = args as AddItemArgs;
-      const { coords, title, descr, url } = argsObj;
-
-      if (!coords || !title) {
-        throw new Error("coords and title parameters are required");
+      if (!title) {
+        throw new Error("title parameter is required");
       }
 
       return await addItemHandler(coords, title, descr, url);
@@ -188,16 +247,12 @@ This tool returns nested structure with children[] arrays showing the knowledge 
       required: ["coords", "updates"],
     },
     handler: async (args: unknown) => {
-      interface UpdateItemArgs {
-        coords: { userId: number; groupId: number; path: number[] };
-        updates: { title?: string; descr?: string; url?: string };
-      }
+      const argsObj = args as Record<string, unknown>;
+      const coords = normalizeCoordinates(argsObj?.coords);
+      const updates = parseJsonParam(argsObj?.updates) as { title?: string; descr?: string; url?: string };
 
-      const argsObj = args as UpdateItemArgs;
-      const { coords, updates } = argsObj;
-
-      if (!coords || !updates) {
-        throw new Error("coords and updates parameters are required");
+      if (!updates) {
+        throw new Error("updates parameter is required");
       }
 
       return await updateItemHandler(coords, updates);
@@ -255,17 +310,8 @@ Use with extreme caution. Always verify coordinates before deletion. Consider mo
       required: ["coords"],
     },
     handler: async (args: unknown) => {
-      interface DeleteItemArgs {
-        coords: { userId: number; groupId: number; path: number[] };
-      }
-
-      const argsObj = args as DeleteItemArgs;
-      const { coords } = argsObj;
-
-      if (!coords) {
-        throw new Error("coords parameter is required");
-      }
-
+      const argsObj = args as Record<string, unknown>;
+      const coords = normalizeCoordinates(argsObj?.coords);
       return await deleteItemHandler(coords);
     },
   },
@@ -316,18 +362,9 @@ Ensure both old and new coordinates are correct. The user must own both the item
       required: ["oldCoords", "newCoords"],
     },
     handler: async (args: unknown) => {
-      interface MoveItemArgs {
-        oldCoords: { userId: number; groupId: number; path: number[] };
-        newCoords: { userId: number; groupId: number; path: number[] };
-      }
-
-      const argsObj = args as MoveItemArgs;
-      const { oldCoords, newCoords } = argsObj;
-
-      if (!oldCoords || !newCoords) {
-        throw new Error("oldCoords and newCoords parameters are required");
-      }
-
+      const argsObj = args as Record<string, unknown>;
+      const oldCoords = normalizeCoordinates(argsObj?.oldCoords);
+      const newCoords = normalizeCoordinates(argsObj?.newCoords);
       return await moveItemHandler(oldCoords, newCoords);
     },
   },

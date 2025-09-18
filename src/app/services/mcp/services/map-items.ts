@@ -1,4 +1,5 @@
 import { CoordSystem } from "~/lib/domains/mapping/utils";
+import { getApiKey } from "~/lib/utils/request-context";
 
 interface MapItem {
   id: string;
@@ -52,9 +53,9 @@ async function callTrpcEndpoint<T>(
 
   // Add API key for authenticated operations
   if (options.requireAuth) {
-    const apiKey = process.env.HEXFRAME_API_KEY;
+    const apiKey = getApiKey();
     if (!apiKey) {
-      throw new Error("HEXFRAME_API_KEY environment variable is required for authenticated operations");
+      throw new Error("API key is required for authenticated operations. Ensure request is running within authenticated context.");
     }
     // Never log API keys
     headers["x-api-key"] = apiKey;
@@ -142,9 +143,10 @@ async function getItemByCoords(coords: {
   path: number[];
 }): Promise<MapItem | null> {
   try {
+    // This is a public endpoint, so no authentication required
     return await callTrpcEndpoint<MapItem>("map.getItemByCoords", {
       coords,
-    });
+    }, { requireAuth: false });
   } catch {
     // Return null for missing items (expected behavior)
     return null;
@@ -209,15 +211,16 @@ function buildHierarchyFromFlatArray(
   return buildNode(rootCoordId, 0);
 }
 
-// Handler for map items list resource  
+// Handler for map items list resource
 export async function mapItemsListHandler(uri: URL, rootId: string) {
   try {
     // Parse rootId to get user info and use the efficient approach
     const coords = CoordSystem.parseId(rootId);
+    // This is a public endpoint, so no authentication required
     const allItems = await callTrpcEndpoint<MapItem[]>("map.getItemsForRootItem", {
       userId: coords.userId,
       groupId: coords.groupId,
-    });
+    }, { requireAuth: false });
 
     const hierarchy = buildHierarchyFromFlatArray(allItems, rootId, 3);
 
@@ -283,10 +286,11 @@ export async function getUserMapItemsHandler(
   if (process.env.DEBUG_MCP === "true") console.error("[MCP DEBUG] getUserMapItemsHandler called! userId:", userId);
   try {
     // Get ALL items for this user in a single API call
+    // This is a public endpoint, so no authentication required
     const allItems = await callTrpcEndpoint<MapItem[]>("map.getItemsForRootItem", {
       userId,
       groupId,
-    });
+    }, { requireAuth: false });
 
     if (!allItems || allItems.length === 0) {
       throw new Error(
