@@ -30,9 +30,9 @@ function getApiBaseUrl(): string {
 async function callTrpcEndpoint<T>(
   endpoint: string,
   input: unknown,
-  options: { requireAuth?: boolean } = {},
+  options: { requireAuth?: boolean; method?: "GET" | "POST" } = {},
 ): Promise<T> {
-  if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] callTrpcEndpoint: ${endpoint}`, { requireAuth: options.requireAuth });
+  if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] callTrpcEndpoint: ${endpoint}`, { requireAuth: options.requireAuth, method: options.method });
 
   try {
     const baseUrl = getApiBaseUrl();
@@ -61,11 +61,14 @@ async function callTrpcEndpoint<T>(
   }
 
   // Determine if this is a mutation (requires POST) or query (can use GET)
-  const isMutation = endpoint.includes('addItem') || endpoint.includes('updateItem') || endpoint.includes('removeItem');
+  const isMutation = endpoint.includes('addItem') || endpoint.includes('updateItem') || endpoint.includes('removeItem') || endpoint.includes('moveMapItem');
+
+  // Honor method override if provided, otherwise use mutation detection
+  const usePost = options.method === "POST" || (options.method !== "GET" && isMutation);
 
   let response: Response;
 
-  if (isMutation) {
+  if (usePost) {
     // POST for mutations - use batch format in body with batch query parameter
     const batchData = { "0": { json: input } };
     const requestBody = JSON.stringify(batchData);
