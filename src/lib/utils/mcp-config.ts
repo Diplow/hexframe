@@ -40,6 +40,9 @@ export function detectMcpEnvironment(): McpServerEnvironment {
     serverUrl = vercelUrl.startsWith('http') ? vercelUrl : `https://${vercelUrl}`;
   } else if (isLocal) {
     serverUrl = 'http://localhost:3000';
+  } else if (typeof window !== 'undefined') {
+    // Browser-only fallback: derive from current origin
+    serverUrl = window.location.origin;
   }
 
   // HTTP endpoint for MCP
