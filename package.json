@@ -136,7 +136,7 @@
     "tailwindcss": "^3.4.3",
     "tsx": "^4.20.2",
     "typescript": "^5.5.3",
-    "vite": "6.3.5",
+    "vite": "6.3.6",
     "vitest": "^3.0.7"
   },
   "ct3aMetadata": {
