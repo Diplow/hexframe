@@ -226,7 +226,10 @@ function _createOperationWidgets(event: ChatEvent, widgetStates: Map<string, 'ac
         widgets.push({
           id: widgetId,
           type: 'delete',
-          data: payload.data,
+          data: {
+            tileId: payload.tileId,
+            tileName: (payload.data as { tileName?: string })?.tileName || 'item',
+          },
           priority: 'action',
           timestamp: event.timestamp,
         });

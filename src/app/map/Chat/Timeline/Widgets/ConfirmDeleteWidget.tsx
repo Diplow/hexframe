@@ -38,7 +38,7 @@ export function ConfirmDeleteWidget({ tileId, tileName, widgetId: _widgetId, onC
   };
 
   return (
-    <BaseWidget variant="destructive" className="w-full">
+    <BaseWidget variant="default" className="w-full">
       <WidgetHeader
         icon={<AlertTriangle className="h-5 w-5 text-destructive" />}
         title="Delete Tile?"
@@ -48,7 +48,7 @@ export function ConfirmDeleteWidget({ tileId, tileName, widgetId: _widgetId, onC
       <WidgetContent>
         <div className="space-y-3">
           <p className="text-sm">
-            Delete "{tileName || 'this tile'}"? This action cannot be undone.
+            Delete &ldquo;{tileName || 'this tile'}&rdquo;? This action cannot be undone.
           </p>
 
           {tileId?.includes(':') && (tileId.split(':')[1]?.length ?? 0) > 0 && (
@@ -74,7 +74,7 @@ export function ConfirmDeleteWidget({ tileId, tileName, widgetId: _widgetId, onC
             Cancel
           </Button>
           <Button
-            onClick={handleDelete}
+            onClick={() => void handleDelete()}
             disabled={isDeleting}
             variant="destructive"
             size="sm"

@@ -113,17 +113,19 @@ export function renderLoadingWidget(widget: Widget) {
   );
 }
 
-export function renderDeleteWidget(widget: Widget) {
+export function renderDeleteWidget(widget: Widget, handlers: WidgetHandlers) {
   const deleteData = widget.data as { tileId?: string; tileName?: string; tile?: { id: string; title: string; coordId: string } };
-  
+  const { handleCancel = () => { /* noop */ } } = handlers;
+
   const tileCoordId = deleteData.tile?.coordId ?? deleteData.tileId ?? '';
   const tileName = deleteData.tileName ?? deleteData.tile?.title ?? 'item';
-  
+
   return (
     <ConfirmDeleteWidget
       tileId={tileCoordId}
       tileName={tileName}
       widgetId={widget.id}
+      onClose={handleCancel}
     />
   );
 }
