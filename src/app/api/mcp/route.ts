@@ -1,95 +1,204 @@
-import { createMcpHandler, experimental_withMcpAuth } from '@vercel/mcp-adapter';
 import { mcpTools } from '~/app/services/mcp';
 import { auth } from '~/server/auth';
+import { runWithRequestContext } from '~/lib/utils/request-context';
 
-// Create the MCP handler with all our tools
-const handler = createMcpHandler(
-  (server) => {
-    // Register all tools from our shared handler
-    mcpTools.forEach(tool => {
-      server.tool(
-        tool.name,
-        tool.description,
-        tool.inputSchema,
-        async (args: unknown) => {
-          try {
-            const result = await tool.handler(args);
-            return {
-              content: [
-                {
-                  type: 'text',
-                  text: JSON.stringify(result, null, 2),
-                },
-              ],
-            };
-          } catch (error) {
-            return {
-              content: [
-                {
-                  type: 'text',
-                  text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                },
-              ],
-            };
-          }
-        }
-      );
-    });
-  },
-  {},
-  { basePath: '/api' }
-);
+interface JsonRpcRequest {
+  jsonrpc: '2.0';
+  id: string | number | null;
+  method: string;
+  params?: {
+    name?: string;
+    arguments?: unknown;
+    [key: string]: unknown;
+  };
+}
 
-// Authentication handler using our existing better-auth API key system
-async function authHandler(request: Request, bearerToken?: string) {
+interface JsonRpcResponse {
+  jsonrpc: '2.0';
+  id: string | number | null;
+  result?: unknown;
+  error?: {
+    code: number;
+    message: string;
+    data?: unknown;
+  };
+}
+
+async function validateApiKey(request: Request): Promise<{ apiKey: string; userId: string } | null> {
   try {
-    // Try to get API key from x-api-key header first
     const apiKeyHeader = request.headers.get('x-api-key');
+    const authHeader = request.headers.get('authorization');
+
     let apiKey = apiKeyHeader;
 
-    // If no x-api-key header, try to extract from bearer token
-    if (!apiKey && bearerToken) {
-      // Bearer token might be the API key itself
-      apiKey = bearerToken;
+    // Try to extract from Bearer token if no x-api-key header
+    if (!apiKey && authHeader?.startsWith('Bearer ')) {
+      apiKey = authHeader.slice(7);
     }
 
     if (!apiKey) {
-      console.error('[MCP HTTP] No API key provided in x-api-key header or bearer token');
-      return undefined;
+      return null;
     }
 
-    // Validate API key using better-auth
     const result = await auth.api.verifyApiKey({
       body: { key: apiKey }
     });
 
     if (!result.valid || !result.key) {
-      console.error('[MCP HTTP] Invalid API key');
-      return undefined;
+      return null;
     }
 
-    // The key object should have userId information
     const userId = result.key.userId;
-    console.log('[MCP HTTP] API key validated for user:', userId);
-
-    // Set environment variable for the request so our handlers can access the key
-    process.env.HEXFRAME_API_KEY = apiKey;
-
-    // Return AuthInfo that matches the expected interface
-    return {
-      token: apiKey,
-      clientId: userId,
-      scopes: ['read', 'write'], // Basic scopes for API access
-    };
-
-  } catch (error) {
-    console.error('[MCP HTTP] Auth error:', error);
-    return undefined;
+    return { apiKey, userId };
+  } catch {
+    return null;
   }
 }
 
-// Wrap the handler with authentication
-export const POST = experimental_withMcpAuth(handler, authHandler);
+export async function POST(request: Request): Promise<Response> {
+  try {
+    // Parse JSON-RPC request
+    const body = await request.text();
+    const jsonRpcRequest = JSON.parse(body) as JsonRpcRequest;
+
+    // Validate API key
+    const authContext = await validateApiKey(request);
+    if (!authContext) {
+      const errorResponse: JsonRpcResponse = {
+        jsonrpc: '2.0',
+        id: jsonRpcRequest.id,
+        error: {
+          code: -32001,
+          message: 'Authentication failed'
+        }
+      };
+      return Response.json(errorResponse, { status: 401 });
+    }
+
+    // Handle different MCP methods
+    if (jsonRpcRequest.method === 'tools/list') {
+      const result = {
+        tools: mcpTools.map(tool => ({
+          name: tool.name,
+          description: tool.description,
+          inputSchema: tool.inputSchema
+        }))
+      };
+
+      const response: JsonRpcResponse = {
+        jsonrpc: '2.0',
+        id: jsonRpcRequest.id,
+        result
+      };
+
+      return Response.json(response);
+    }
+
+    if (jsonRpcRequest.method === 'tools/call') {
+      const toolName = jsonRpcRequest.params?.name;
+      const toolArgs = jsonRpcRequest.params?.arguments;
+
+      if (!toolName) {
+        const errorResponse: JsonRpcResponse = {
+          jsonrpc: '2.0',
+          id: jsonRpcRequest.id,
+          error: {
+            code: -32602,
+            message: 'Missing tool name'
+          }
+        };
+        return Response.json(errorResponse);
+      }
+
+      const tool = mcpTools.find(t => t.name === toolName);
+      if (!tool) {
+        const errorResponse: JsonRpcResponse = {
+          jsonrpc: '2.0',
+          id: jsonRpcRequest.id,
+          error: {
+            code: -32601,
+            message: `Unknown tool: ${toolName}`
+          }
+        };
+        return Response.json(errorResponse);
+      }
+
+      try {
+        // Run tool handler with proper context
+        const result = await runWithRequestContext(
+          authContext,
+          () => tool.handler(toolArgs)
+        );
+
+        const response: JsonRpcResponse = {
+          jsonrpc: '2.0',
+          id: jsonRpcRequest.id,
+          result: {
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify(result, null, 2)
+              }
+            ]
+          }
+        };
+
+        return Response.json(response);
+      } catch (error) {
+        const errorResponse: JsonRpcResponse = {
+          jsonrpc: '2.0',
+          id: jsonRpcRequest.id,
+          error: {
+            code: -32000,
+            message: error instanceof Error ? error.message : 'Unknown error'
+          }
+        };
+        return Response.json(errorResponse);
+      }
+    }
+
+    // Handle initialization
+    if (jsonRpcRequest.method === 'initialize') {
+      const response: JsonRpcResponse = {
+        jsonrpc: '2.0',
+        id: jsonRpcRequest.id,
+        result: {
+          protocolVersion: '2024-11-05',
+          capabilities: {
+            tools: {}
+          },
+          serverInfo: {
+            name: 'hexframe-mcp-server',
+            version: '1.0.0'
+          }
+        }
+      };
+      return Response.json(response);
+    }
+
+    // Method not supported
+    const errorResponse: JsonRpcResponse = {
+      jsonrpc: '2.0',
+      id: jsonRpcRequest.id,
+      error: {
+        code: -32601,
+        message: `Method not found: ${jsonRpcRequest.method}`
+      }
+    };
+    return Response.json(errorResponse);
+
+  } catch {
+    const errorResponse: JsonRpcResponse = {
+      jsonrpc: '2.0',
+      id: null,
+      error: {
+        code: -32700,
+        message: 'Parse error'
+      }
+    };
+    return Response.json(errorResponse, { status: 400 });
+  }
+}
 
 // Health check endpoint
 export async function GET() {
