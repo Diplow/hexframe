@@ -56,8 +56,10 @@ async function callTrpcEndpoint<T>(
 
   // Add API key for authenticated operations
   if (options.requireAuth) {
-    // Use environment variable or fallback
-    const apiKey = process.env.HEXFRAME_API_KEY || "TuMXGIfJJYGetbLmGNEvMCJKMNEjfHzGtLUzZwIDIHNXBXUsZlwMViWuHANiEBac";
+    const apiKey = process.env.HEXFRAME_API_KEY;
+    if (!apiKey) {
+      throw new Error("HEXFRAME_API_KEY environment variable is required for authenticated operations");
+    }
     console.error(`[MCP DEBUG] Using API Key: ${apiKey.substring(0, 10)}...`);
     headers["x-api-key"] = apiKey;
   }

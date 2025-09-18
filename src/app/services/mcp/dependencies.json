@@ -3,11 +3,14 @@
   "allowed": [
     "@modelcontextprotocol/sdk/server",
     "@modelcontextprotocol/sdk/types",
-    "~/lib/domains/mapping"
+    "@vercel/mcp-adapter",
+    "~/lib/domains/mapping",
+    "~/server/auth"
   ],
   "subsystems": [
     "./services",
-    "./transport"
+    "./transport",
+    "./handlers"
   ],
   "exceptions": {}
 }
