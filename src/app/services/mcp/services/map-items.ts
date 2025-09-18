@@ -19,24 +19,24 @@ interface MapItemWithHierarchy extends MapItem {
 
 // Get the base URL for API calls
 function getApiBaseUrl(): string {
-  const url = process.env.NEXT_PUBLIC_VERCEL_URL;
-  if (!url) return "http://localhost:3000";
-
-  // For localhost URLs, use http instead of https
-  if (url.includes("localhost") || url.includes("127.0.0.1")) {
-    return `http://${url}`;
-  }
-
-  return `https://${url}`;
+  const explicit = process.env.HEXFRAME_API_BASE_URL ?? process.env.BETTER_AUTH_URL ?? process.env.VERCEL_URL;
+  if (!explicit) return "http://localhost:3000";
+  const url = explicit.replace(/^https?:\/\//, "");
+  const isLocal = url.includes("localhost") || url.includes("127.0.0.1");
+  return `${isLocal ? "http" : "https"}://${url}`;
 }
 
 // Helper to call tRPC endpoints
 async function callTrpcEndpoint<T>(
   endpoint: string,
   input: unknown,
-  options: { requireAuth?: boolean } = {},
+  options: { requireAuth?: boolean; method?: "GET" | "POST" } = {},
 ): Promise<T> {
-  const baseUrl = getApiBaseUrl();
+  if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] callTrpcEndpoint: ${endpoint}`, { requireAuth: options.requireAuth, method: options.method });
+
+  try {
+    const baseUrl = getApiBaseUrl();
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Base URL: ${baseUrl}`);
 
   // tRPC batch format for GET requests
   const params = new URLSearchParams({
@@ -54,41 +54,85 @@ async function callTrpcEndpoint<T>(
   if (options.requireAuth) {
     const apiKey = process.env.HEXFRAME_API_KEY;
     if (!apiKey) {
-      throw new Error("HEXFRAME_API_KEY environment variable is required for write operations");
+      throw new Error("HEXFRAME_API_KEY environment variable is required for authenticated operations");
     }
+    // Never log API keys
     headers["x-api-key"] = apiKey;
   }
 
-  const response = await fetch(url, {
-    method: "GET",
-    headers,
-  });
+  // Determine if this is a mutation (requires POST) or query (can use GET)
+  const isMutation = endpoint.includes('addItem') || endpoint.includes('updateItem') || endpoint.includes('removeItem') || endpoint.includes('moveMapItem');
 
-  if (!response.ok) {
-    throw new Error(`API call failed: ${response.statusText}`);
+  // Honor method override if provided, otherwise use mutation detection
+  const usePost = options.method === "POST" || (options.method !== "GET" && isMutation);
+
+  let response: Response;
+
+  if (usePost) {
+    // POST for mutations - use batch format in body with batch query parameter
+    const batchData = { "0": { json: input } };
+    const requestBody = JSON.stringify(batchData);
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] POST batch body size: ${requestBody.length} chars`);
+    response = await fetch(`${baseUrl}/services/api/trpc/${endpoint}?batch=1`, {
+      method: "POST",
+      headers,
+      body: requestBody,
+    });
+  } else {
+    // GET for queries
+    response = await fetch(url, {
+      method: "GET",
+      headers,
+    });
   }
 
-  // tRPC batch response format
-  const data = (await response.json()) as Array<{
-    result?: { data: { json: T } };
-    error?: { message?: string };
-  }>;
+  if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Response status: ${response.status} ${response.statusText}`);
+  if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Response headers: content-type=${response.headers.get('content-type')}, content-length=${response.headers.get('content-length')}`);
 
-  // Get first item from batch response
-  const item = data[0];
+  const rawResponseText = await response.text();
+  if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Raw response body size: ${rawResponseText.length} chars`);
+
+  if (!response.ok) {
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Request failed with status ${response.status}`);
+    throw new Error(`API call failed: ${response.status} ${response.statusText}`);
+  }
+
+  let data: unknown;
+  try {
+    data = JSON.parse(rawResponseText);
+  } catch (parseError) {
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Failed to parse JSON: ${parseError instanceof Error ? parseError.message : 'parse error'}`);
+    throw new Error(`Invalid JSON response from server`);
+  }
+
+  if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Parsed response data shape: ${Array.isArray(data) ? `array[${data.length}]` : typeof data}`);
+
+  // Both mutations and queries return batch format
+  const batchData = Array.isArray(data) ? data : [data];
+  const item = batchData[0] as { error?: { message?: string }; result?: { data: { json: T } } };
+
   if (!item) {
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Empty batch response array`);
     throw new Error("Empty API response");
   }
 
   if (item.error) {
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] tRPC error in response: ${item.error?.message ?? 'unknown error'}`);
     throw new Error(item.error.message ?? "API error");
   }
 
   if (!item.result) {
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] No result in response item`);
     throw new Error("Invalid API response");
   }
 
+  if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Success! Returning data type: ${typeof item.result?.data.json}`);
   return item.result.data.json;
+
+  } catch (error) {
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Exception in callTrpcEndpoint: ${error instanceof Error ? error.message : 'unknown error'}`);
+    throw error;
+  }
 }
 
 // Helper to get a map item by coordinates
@@ -236,6 +280,7 @@ export async function getUserMapItemsHandler(
   groupId = 0,
   depth = 3,
 ): Promise<MapItemWithHierarchy | null> {
+  if (process.env.DEBUG_MCP === "true") console.error("[MCP DEBUG] getUserMapItemsHandler called! userId:", userId);
   try {
     // Get ALL items for this user in a single API call
     const allItems = await callTrpcEndpoint<MapItem[]>("map.getItemsForRootItem", {
@@ -293,6 +338,7 @@ export async function addItemHandler(
   descr?: string,
   url?: string,
 ): Promise<MapItem> {
+  if (process.env.DEBUG_MCP === "true") console.error("[MCP DEBUG] addItemHandler called! Title:", title);
   try {
     // For creation, we need parentId if it's not a root item
     let parentId: number | null = null;
@@ -305,7 +351,9 @@ export async function addItemHandler(
         path: coords.path.slice(0, -1)
       };
       
+      if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Looking for parent at coords:`, parentCoords);
       const parentItem = await getItemByCoords(parentCoords);
+      if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Parent item found: ${parentItem ? 'yes' : 'no'}`);
       if (!parentItem) {
         throw new Error(
           `Parent tile not found at coordinates ${CoordSystem.createId(parentCoords)}. ` +
@@ -313,18 +361,34 @@ export async function addItemHandler(
         );
       }
       parentId = parseInt(parentItem.id, 10);
+      if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Parent ID:`, parentId);
     }
 
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] About to call map.addItem with parentId: ${parentId}, title length: ${title.length}`);
     const newItem = await callTrpcEndpoint<MapItem>("map.addItem", {
       coords,
       parentId,
       title,
-      descr: descr ?? null,
-      url: url ?? null,
+      descr,
+      url,
     }, { requireAuth: true });
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] map.addItem returned item with id: ${newItem?.id}`);
 
     return newItem;
   } catch (error) {
+    throw error;
+  }
+}
+
+// Handler for getting current user info (debug tool)
+export async function getCurrentUserHandler(): Promise<unknown> {
+  try {
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Getting current user info`);
+    const userInfo = await callTrpcEndpoint<unknown>("user.getCurrentUser", {}, { requireAuth: true });
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Current user info retrieved: ${userInfo ? 'yes' : 'no'}`);
+    return userInfo;
+  } catch (error) {
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Failed to get user info: ${error instanceof Error ? error.message : 'unknown error'}`);
     throw error;
   }
 }
@@ -337,14 +401,50 @@ export async function updateItemHandler(
   try {
     const updatedItem = await callTrpcEndpoint<MapItem>("map.updateItem", {
       coords,
-      data: {
-        title: updates.title,
-        descr: updates.descr,
-        url: updates.url,
-      },
+      data: updates,
     }, { requireAuth: true });
 
     return updatedItem;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Handler for deleteItem tool
+export async function deleteItemHandler(
+  coords: { userId: number; groupId: number; path: number[] },
+): Promise<{ success: true }> {
+  try {
+    const result = await callTrpcEndpoint<{ success: true }>("map.removeItem", {
+      coords,
+    }, { requireAuth: true });
+
+    return result;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Handler for moveItem tool
+export async function moveItemHandler(
+  oldCoords: { userId: number; groupId: number; path: number[] },
+  newCoords: { userId: number; groupId: number; path: number[] },
+): Promise<{
+  modifiedItems: MapItem[];
+  movedItemId: string;
+  affectedCount: number;
+}> {
+  try {
+    const result = await callTrpcEndpoint<{
+      modifiedItems: MapItem[];
+      movedItemId: string;
+      affectedCount: number;
+    }>("map.moveMapItem", {
+      oldCoords,
+      newCoords,
+    }, { requireAuth: true });
+
+    return result;
   } catch (error) {
     throw error;
   }

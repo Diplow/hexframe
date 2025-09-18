@@ -1,9 +1,11 @@
 'use client';
 
+import { useEffect } from 'react';
 import { PreviewHeader } from '~/app/map/Chat/Timeline/Widgets/PreviewWidget/PreviewHeader';
 import { ContentDisplay } from '~/app/map/Chat/Timeline/Widgets/PreviewWidget/ContentDisplay';
 import { usePreviewState } from '~/app/map/Chat/Timeline/Widgets/PreviewWidget/usePreviewState';
 import { BaseWidget } from '~/app/map/Chat/Timeline/Widgets/_shared';
+import { useMapCache } from '~/app/map/Cache';
 
 interface PreviewWidgetProps {
   tileId: string;
@@ -30,6 +32,7 @@ export function PreviewWidget({
   onSave,
   onClose,
 }: PreviewWidgetProps) {
+  const { getItem, hasItem, isLoading } = useMapCache();
   const { expansion, editing } = usePreviewState({
     title,
     content,
@@ -39,14 +42,30 @@ export function PreviewWidget({
   });
 
   const { isExpanded, setIsExpanded } = expansion;
-  const { 
-    isEditing, 
-    setIsEditing, 
-    title: editTitle, 
+  const {
+    isEditing,
+    setIsEditing,
+    title: editTitle,
     setTitle: setEditTitle,
-    content: editContent, 
-    setContent: setEditContent 
+    content: editContent,
+    setContent: setEditContent
   } = editing;
+
+  // Auto-close widget if the previewed tile is deleted
+  useEffect(() => {
+    // Only check if cache is not loading to avoid false positives
+    if (!isLoading && onClose) {
+      const tile = getItem(tileId);
+      const tileExists = hasItem(tileId);
+
+      // Close widget if:
+      // 1. Cache has the tile's region loaded but tile doesn't exist (deleted)
+      // 2. Or we have no tile and hasItem returns false (confirmed deleted)
+      if (!tile && !tileExists) {
+        onClose();
+      }
+    }
+  }, [tileId, getItem, hasItem, isLoading, onClose]);
 
   const _handleEdit = () => {
     setIsEditing(true);

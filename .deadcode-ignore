@@ -11,6 +11,9 @@ src/app/layout.tsx
 src/app/**/route.ts
 src/app/services/api/trpc/[trpc]/route.ts
 
+# MCP API route - accessed via HTTP by external MCP clients
+src/app/api/mcp/route.ts
+
 # Next.js pages - auto-imported by framework conventions
 src/app/**/page.tsx
 

@@ -69,6 +69,13 @@ export function WidgetManager({ widgets, focusChatInput: focusChatInputProp }: W
             focusChatInputFn();
           }
         };
+      case 'delete':
+        return {
+          handleCancel: () => {
+            chatState.closeWidget(widget.id);
+            focusChatInputFn();
+          }
+        };
       default:
         return {};
     }
@@ -103,7 +110,7 @@ function _renderWidget(
     case 'loading':
       return renderLoadingWidget(widget);
     case 'delete':
-      return renderDeleteWidget(widget);
+      return renderDeleteWidget(widget, createWidgetHandlers(widget));
     case 'ai-response':
       return renderAIResponseWidget(widget);
     case 'mcp-keys':

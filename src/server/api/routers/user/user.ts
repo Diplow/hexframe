@@ -3,6 +3,7 @@ import {
   createTRPCRouter,
   publicProcedure,
   protectedProcedure,
+  dualAuthProcedure,
   iamServiceMiddleware,
   mappingServiceMiddleware,
 } from "~/server/api/trpc";
@@ -183,6 +184,28 @@ export const userRouter = createTRPCRouter({
    * Get current user profile
    */
   me: protectedProcedure
+    .use(iamServiceMiddleware)
+    .query(async ({ ctx }) => {
+      if (!ctx.user) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Not authenticated",
+        });
+      }
+      const user = await ctx.iamService.getCurrentUser(ctx.user.id);
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "User not found",
+        });
+      }
+      return ctx.iamService.userToContract(user);
+    }),
+
+  /**
+   * Get current user profile (MCP-compatible with API key auth)
+   */
+  getCurrentUser: dualAuthProcedure
     .use(iamServiceMiddleware)
     .query(async ({ ctx }) => {
       if (!ctx.user) {

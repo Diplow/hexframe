@@ -38,26 +38,31 @@ export function ConfirmDeleteWidget({ tileId, tileName, widgetId: _widgetId, onC
   };
 
   return (
-    <BaseWidget variant="destructive" className="w-full max-w-md mx-auto">
+    <BaseWidget variant="default" className="w-full">
       <WidgetHeader
         icon={<AlertTriangle className="h-5 w-5 text-destructive" />}
         title="Delete Tile?"
-        subtitle={`Delete "${tileName || 'this tile'}"? This action cannot be undone.`}
         onClose={onClose}
       />
 
       <WidgetContent>
-        {tileId?.includes(':') && (tileId.split(':')[1]?.length ?? 0) > 0 && (
-          <p className="text-sm text-muted-foreground">
-            All child tiles will also be deleted.
+        <div className="space-y-3">
+          <p className="text-sm">
+            Delete &ldquo;{tileName || 'this tile'}&rdquo;? This action cannot be undone.
           </p>
-        )}
 
-        {error && (
-          <div className="text-sm text-destructive">
-            {error}
-          </div>
-        )}
+          {tileId?.includes(':') && (tileId.split(':')[1]?.length ?? 0) > 0 && (
+            <p className="text-sm text-muted-foreground">
+              All child tiles will also be deleted.
+            </p>
+          )}
+
+          {error && (
+            <div className="text-sm text-destructive">
+              {error}
+            </div>
+          )}
+        </div>
 
         <WidgetActions align="between">
           <Button
@@ -69,7 +74,7 @@ export function ConfirmDeleteWidget({ tileId, tileName, widgetId: _widgetId, onC
             Cancel
           </Button>
           <Button
-            onClick={handleDelete}
+            onClick={() => void handleDelete()}
             disabled={isDeleting}
             variant="destructive"
             size="sm"

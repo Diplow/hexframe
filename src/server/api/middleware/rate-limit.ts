@@ -36,8 +36,77 @@ interface RateLimitConfig {
   keyGenerator?: (ctx: Context) => string; // Custom key generator
 }
 
-// In-memory store for rate limiting (use Redis in production)
-const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+interface RateLimitStore {
+  get(key: string): { count: number; resetTime: number } | undefined;
+  set(key: string, value: { count: number; resetTime: number }): void;
+  delete(key: string): void;
+  entries(): IterableIterator<[string, { count: number; resetTime: number }]>;
+}
+
+// Environment-based configuration
+const isProduction = process.env.NODE_ENV === 'production';
+const allowDebugRates = process.env.RATE_LIMIT_ALLOW_DEBUG === 'true';
+const maxRequestsOverride = process.env.RATE_LIMIT_MAX_REQUESTS ? parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) : undefined;
+
+// Helper to get safe rate limit values
+function getSafeMaxRequests(debugValue: number, safeDefault: number): number {
+  if (maxRequestsOverride && maxRequestsOverride > 0) {
+    return maxRequestsOverride;
+  }
+  return (allowDebugRates && !isProduction) ? debugValue : safeDefault;
+}
+
+// In-memory store implementation
+class InMemoryRateLimitStore implements RateLimitStore {
+  private store = new Map<string, { count: number; resetTime: number }>();
+
+  get(key: string) {
+    return this.store.get(key);
+  }
+
+  set(key: string, value: { count: number; resetTime: number }) {
+    this.store.set(key, value);
+  }
+
+  delete(key: string) {
+    this.store.delete(key);
+  }
+
+  entries() {
+    return this.store.entries();
+  }
+}
+
+// Redis store implementation (production)
+class RedisRateLimitStore implements RateLimitStore {
+  // For now, fall back to in-memory if Redis is not properly configured
+  // TODO: Implement actual Redis integration when REDIS_URL is available
+  private fallback = new InMemoryRateLimitStore();
+
+  get(key: string) {
+    return this.fallback.get(key);
+  }
+
+  set(key: string, value: { count: number; resetTime: number }) {
+    this.fallback.set(key, value);
+  }
+
+  delete(key: string) {
+    this.fallback.delete(key);
+  }
+
+  entries() {
+    return this.fallback.entries();
+  }
+}
+
+// Choose store based on environment
+const rateLimitStore: RateLimitStore = (() => {
+  if (isProduction || process.env.REDIS_URL) {
+    return new RedisRateLimitStore();
+  }
+  return new InMemoryRateLimitStore();
+})();
 
 // Clean up expired entries periodically
 setInterval(() => {
@@ -57,46 +126,46 @@ export const rateLimits = {
     windowMs: 60 * 1000, // 1 minute
     maxRequests: 30, // 30 requests per minute
   }),
-  
+
   // More lenient for authenticated users
   authenticated: createRateLimitMiddleware({
     windowMs: 60 * 1000, // 1 minute
-    maxRequests: 100, // 100 requests per minute
+    maxRequests: getSafeMaxRequests(1000, 100), // 100 requests per minute (1000 if debug enabled)
     keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
   }),
-  
+
   // Very strict for expensive operations (verified users)
   expensive: createRateLimitMiddleware({
     windowMs: 5 * 60 * 1000, // 5 minutes
     maxRequests: 10, // 10 requests per 5 minutes for verified users
     keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
   }),
-  
+
   // Extra strict for expensive operations (unverified users)
   expensiveUnverified: createRateLimitMiddleware({
     windowMs: 5 * 60 * 1000, // 5 minutes
     maxRequests: 3, // Only 3 requests per 5 minutes for unverified users
     keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
   }),
-  
+
   // Standard rate limit for verified users
   authenticatedVerified: createRateLimitMiddleware({
     windowMs: 60 * 1000, // 1 minute
     maxRequests: 100, // 100 requests per minute
     keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
   }),
-  
+
   // Stricter rate limit for unverified users
   authenticatedUnverified: createRateLimitMiddleware({
     windowMs: 60 * 1000, // 1 minute
     maxRequests: 20, // Only 20 requests per minute for unverified users
     keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
   }),
-  
+
   // Custom rate limit for mutations
   mutation: createRateLimitMiddleware({
     windowMs: 60 * 1000, // 1 minute
-    maxRequests: 20, // 20 mutations per minute
+    maxRequests: getSafeMaxRequests(1000, 20), // 20 mutations per minute (1000 if debug enabled)
     keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
   }),
 };
@@ -105,33 +174,33 @@ export const rateLimits = {
  * Helper function to perform rate limiting logic
  */
 function performRateLimit(config: RateLimitConfig, ctx: Context, isVerified?: boolean): void {
-  const key = config.keyGenerator
-    ? config.keyGenerator(ctx)
-    : getClientIp(ctx) ?? "anonymous";
+  const base = config.keyGenerator?.(ctx) ?? getClientIp(ctx);
+  const key = base?.trim() ? base : `anon:${ctx.req?.headers["user-agent"] ?? "unknown"}`;
 
   const now = Date.now();
   const resetTime = now + config.windowMs;
 
   // Get or create rate limit entry
   let rateLimit = rateLimitStore.get(key);
-  
+
   if (!rateLimit || rateLimit.resetTime < now) {
     rateLimit = { count: 0, resetTime };
     rateLimitStore.set(key, rateLimit);
   }
 
+
   // Check if rate limit exceeded
   if (rateLimit.count >= config.maxRequests) {
     const retryAfter = Math.ceil((rateLimit.resetTime - now) / 1000);
     let message = `Rate limit exceeded. Try again in ${retryAfter} seconds.`;
-    
+
     // Add verification context if provided
     if (isVerified !== undefined) {
       const limitType = isVerified ? "verified user" : "unverified user";
       const verificationHint = !isVerified ? ' Please verify your email for higher limits.' : '';
       message = `Rate limit exceeded for ${limitType}. Try again in ${retryAfter} seconds.${verificationHint}`;
     }
-    
+
     throw new TRPCError({
       code: "TOO_MANY_REQUESTS",
       message,
@@ -148,18 +217,16 @@ function performRateLimit(config: RateLimitConfig, ctx: Context, isVerified?: bo
  * Helper function to handle post-request rate limit logic
  */
 function handlePostRequest(config: RateLimitConfig, ctx: Context, success: boolean): void {
-  const key = config.keyGenerator
-    ? config.keyGenerator(ctx)
-    : getClientIp(ctx) ?? "anonymous";
+  const base = config.keyGenerator?.(ctx) ?? getClientIp(ctx);
+  const key = base?.trim() ? base : `anon:${ctx.req?.headers["user-agent"] ?? "unknown"}`;
     
   const rateLimit = rateLimitStore.get(key);
   if (!rateLimit) return;
 
-  if (config.skipSuccessfulRequests && success) {
+  if (config.skipSuccessfulRequests && !success) {
     rateLimit.count++;
-  } else if (!config.skipSuccessfulRequests && !success) {
-    rateLimit.count--;
   }
+  // Otherwise, count was applied pre-request; don't decrement on failures.
 }
 
 export function createRateLimitMiddleware(config: RateLimitConfig) {
@@ -212,12 +279,12 @@ export function createVerificationAwareRateLimit(
 export const verificationAwareRateLimit = createVerificationAwareRateLimit(
   {
     windowMs: 5 * 60 * 1000, // 5 minutes
-    maxRequests: 10, // 10 requests per 5 minutes for verified users
+    maxRequests: getSafeMaxRequests(1000, 10), // 10 requests per 5 minutes for verified users (1000 if debug enabled)
     keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
   },
   {
     windowMs: 5 * 60 * 1000, // 5 minutes
-    maxRequests: 3, // Only 3 requests per 5 minutes for unverified users
+    maxRequests: getSafeMaxRequests(1000, 3), // 3 requests per 5 minutes for unverified users (1000 if debug enabled)
     keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
   }
 );
@@ -225,12 +292,12 @@ export const verificationAwareRateLimit = createVerificationAwareRateLimit(
 export const verificationAwareAuthLimit = createVerificationAwareRateLimit(
   {
     windowMs: 60 * 1000, // 1 minute
-    maxRequests: 100, // 100 requests per minute for verified users
+    maxRequests: getSafeMaxRequests(1000, 100), // 100 requests per minute for verified users (1000 if debug enabled)
     keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
   },
   {
     windowMs: 60 * 1000, // 1 minute
-    maxRequests: 20, // Only 20 requests per minute for unverified users
+    maxRequests: getSafeMaxRequests(1000, 20), // 20 requests per minute for unverified users (1000 if debug enabled)
     keyGenerator: (ctx) => ctx.user?.id ?? "anonymous",
   }
 );

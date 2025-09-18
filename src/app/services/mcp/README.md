@@ -88,7 +88,21 @@ To use this MCP server with an LLM client:
 
 ## Setup Instructions
 
-For detailed instructions on connecting this MCP server to Claude or other AI assistants, see [MCP_SETUP.md](/MCP_SETUP.md) in the project root.
+### Automatic Configuration (Recommended)
+
+The MCP Keys widget in the Hexframe UI now generates complete Claude Desktop configurations:
+
+1. Create an API key using the MCP Keys widget in the chat interface
+2. Copy the generated configuration (automatically detects environment)
+3. Paste into your Claude Desktop MCP settings
+
+The configuration automatically detects:
+- **Production**: Uses HTTP transport to deployed Vercel instance
+- **Local Development**: Uses stdio transport to local MCP server
+
+### Manual Configuration
+
+For manual setup or advanced use cases, see [MCP_SETUP.md](/MCP_SETUP.md) in the project root.
 
 ## Future Enhancements
 
