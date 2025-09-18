@@ -23,7 +23,9 @@ export function detectMcpEnvironment(): McpServerEnvironment {
 
   // Production indicators
   const isProduction = !!(
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     (betterAuthUrl && !betterAuthUrl.includes('localhost')) ||
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     (vercelUrl && !vercelUrl.includes('localhost')) ||
     nodeEnv === 'production'
   );

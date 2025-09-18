@@ -30,8 +30,8 @@ export function McpConfigurationDisplay({ apiKey, serverName = 'hexframe' }: Mcp
       <div className="flex items-center gap-2">
         <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
           mcpConfig.environment.isProduction
-            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200'
-            : 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200'
+            ? 'bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary'
+            : 'bg-secondary/10 dark:bg-secondary/20 text-secondary dark:text-secondary'
         }`}>
           {mcpConfig.environment.isProduction ? 'Production' : 'Local Development'}
         </span>
@@ -83,16 +83,16 @@ export function McpConfigurationDisplay({ apiKey, serverName = 'hexframe' }: Mcp
 
           {/* Environment-specific notes */}
           {mcpConfig.environment.isLocal && (
-            <div className="mt-2 p-2 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded">
-              <p className="text-xs text-orange-800 dark:text-orange-200">
+            <div className="mt-2 p-2 bg-secondary/10 dark:bg-secondary/20 border border-secondary/30 dark:border-secondary/30 rounded">
+              <p className="text-xs text-secondary dark:text-secondary">
                 <strong>Note:</strong> This configuration uses stdio transport and requires your local Hexframe server to be running.
               </p>
             </div>
           )}
 
           {mcpConfig.environment.isProduction && (
-            <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded">
-              <p className="text-xs text-blue-800 dark:text-blue-200">
+            <div className="mt-2 p-2 bg-primary/10 dark:bg-primary/20 border border-primary/30 dark:border-primary/30 rounded">
+              <p className="text-xs text-primary dark:text-primary">
                 <strong>Note:</strong> This configuration uses HTTP transport and connects directly to your deployed Hexframe instance.
               </p>
             </div>

@@ -6,7 +6,7 @@
  */
 
 // Core MCP tools and execution logic
-export { mcpTools, executeTool, formatToolResponse } from './handlers/tools';
+export { mcpTools, executeTool, formatToolResponse } from '~/app/services/mcp/handlers/tools';
 
 // Map operations handlers
 export {
@@ -19,7 +19,7 @@ export {
   getCurrentUserHandler,
   mapItemsListHandler,
   mapItemHandler,
-} from './services/map-items';
+} from '~/app/services/mcp/services/map-items';
 
 // Re-export types for external use
-export type { McpTool } from './handlers/tools';
+export type { McpTool } from '~/app/services/mcp/handlers/tools';

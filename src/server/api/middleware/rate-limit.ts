@@ -156,11 +156,10 @@ function handlePostRequest(config: RateLimitConfig, ctx: Context, success: boole
   const rateLimit = rateLimitStore.get(key);
   if (!rateLimit) return;
 
-  if (config.skipSuccessfulRequests && success) {
+  if (config.skipSuccessfulRequests && !success) {
     rateLimit.count++;
-  } else if (!config.skipSuccessfulRequests && !success) {
-    rateLimit.count--;
   }
+  // Otherwise, count was applied pre-request; don't decrement on failures.
 }
 
 export function createRateLimitMiddleware(config: RateLimitConfig) {

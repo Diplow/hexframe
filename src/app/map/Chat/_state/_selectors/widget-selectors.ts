@@ -33,15 +33,20 @@ function _handleOperationCompleted(
     }
   }
 
-  // Original logic for other operations
-  for (const opId of activeOperations) {
-    if (opId.includes(payload.tileId ?? '')) {
-      activeOperations.delete(opId);
-      // Close creation widgets for create operations
-      if (payload.operation === 'create') {
-        const eventId = opId.replace('op-', '');
-        const creationWidgetId = `creation-${eventId}`;
-        widgetStates.set(creationWidgetId, 'completed');
+  // Prefer exact match by event id
+  const opIdFromEvent = `op-${event.id}`;
+  if (activeOperations.delete(opIdFromEvent)) {
+    if (payload.operation === 'create') {
+      widgetStates.set(`creation-${event.id}`, 'completed');
+    }
+  } else if (typeof payload.tileId === 'string' && payload.tileId.length > 0) {
+    // Fallback: prune any ops that embed the tileId
+    for (const opId of Array.from(activeOperations)) {
+      if (opId.includes(payload.tileId)) {
+        activeOperations.delete(opId);
+        if (payload.operation === 'create') {
+          widgetStates.set(`creation-${opId.replace('op-', '')}`, 'completed');
+        }
       }
     }
   }

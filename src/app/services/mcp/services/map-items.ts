@@ -19,15 +19,11 @@ interface MapItemWithHierarchy extends MapItem {
 
 // Get the base URL for API calls
 function getApiBaseUrl(): string {
-  const url = process.env.NEXT_PUBLIC_VERCEL_URL;
-  if (!url) return "http://localhost:3000";
-
-  // For localhost URLs, use http instead of https
-  if (url.includes("localhost") || url.includes("127.0.0.1")) {
-    return `http://${url}`;
-  }
-
-  return `https://${url}`;
+  const explicit = process.env.HEXFRAME_API_BASE_URL ?? process.env.BETTER_AUTH_URL ?? process.env.VERCEL_URL;
+  if (!explicit) return "http://localhost:3000";
+  const url = explicit.replace(/^https?:\/\//, "");
+  const isLocal = url.includes("localhost") || url.includes("127.0.0.1");
+  return `${isLocal ? "http" : "https"}://${url}`;
 }
 
 // Helper to call tRPC endpoints
@@ -36,11 +32,11 @@ async function callTrpcEndpoint<T>(
   input: unknown,
   options: { requireAuth?: boolean } = {},
 ): Promise<T> {
-  console.error(`[MCP DEBUG] callTrpcEndpoint called: ${endpoint}`, { input, requireAuth: options.requireAuth });
+  if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] callTrpcEndpoint: ${endpoint}`, { requireAuth: options.requireAuth });
 
   try {
     const baseUrl = getApiBaseUrl();
-    console.error(`[MCP DEBUG] Base URL: ${baseUrl}`);
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Base URL: ${baseUrl}`);
 
   // tRPC batch format for GET requests
   const params = new URLSearchParams({
@@ -60,7 +56,7 @@ async function callTrpcEndpoint<T>(
     if (!apiKey) {
       throw new Error("HEXFRAME_API_KEY environment variable is required for authenticated operations");
     }
-    console.error(`[MCP DEBUG] Using API Key: ${apiKey.substring(0, 10)}...`);
+    // Never log API keys
     headers["x-api-key"] = apiKey;
   }
 
@@ -73,7 +69,7 @@ async function callTrpcEndpoint<T>(
     // POST for mutations - use batch format in body with batch query parameter
     const batchData = { "0": { json: input } };
     const requestBody = JSON.stringify(batchData);
-    console.error(`[MCP DEBUG] POST batch body:`, requestBody);
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] POST batch body:`, requestBody);
     response = await fetch(`${baseUrl}/services/api/trpc/${endpoint}?batch=1`, {
       method: "POST",
       headers,
@@ -87,14 +83,14 @@ async function callTrpcEndpoint<T>(
     });
   }
 
-  console.error(`[MCP DEBUG] Response status: ${response.status} ${response.statusText}`);
-  console.error(`[MCP DEBUG] Response headers:`, Object.fromEntries(response.headers.entries()));
+  if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Response status: ${response.status} ${response.statusText}`);
+  if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Response headers:`, Object.fromEntries(response.headers.entries()));
 
   const rawResponseText = await response.text();
-  console.error(`[MCP DEBUG] Raw response body:`, rawResponseText);
+  if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Raw response body:`, rawResponseText);
 
   if (!response.ok) {
-    console.error(`[MCP DEBUG] Request failed with status ${response.status}`);
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Request failed with status ${response.status}`);
     throw new Error(`API call failed: ${response.status} ${response.statusText} - ${rawResponseText}`);
   }
 
@@ -102,36 +98,36 @@ async function callTrpcEndpoint<T>(
   try {
     data = JSON.parse(rawResponseText);
   } catch (parseError) {
-    console.error(`[MCP DEBUG] Failed to parse JSON:`, parseError);
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Failed to parse JSON:`, parseError);
     throw new Error(`Invalid JSON response: ${rawResponseText}`);
   }
 
-  console.error(`[MCP DEBUG] Parsed response data:`, JSON.stringify(data, null, 2));
+  if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Parsed response data:`, JSON.stringify(data, null, 2));
 
   // Both mutations and queries return batch format
   const batchData = Array.isArray(data) ? data : [data];
   const item = batchData[0] as { error?: { message?: string }; result?: { data: { json: T } } };
 
   if (!item) {
-    console.error(`[MCP DEBUG] Empty batch response array`);
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Empty batch response array`);
     throw new Error("Empty API response");
   }
 
   if (item.error) {
-    console.error(`[MCP DEBUG] tRPC error in response:`, item.error);
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] tRPC error in response:`, item.error);
     throw new Error(item.error.message ?? "API error");
   }
 
   if (!item.result) {
-    console.error(`[MCP DEBUG] No result in response item:`, item);
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] No result in response item:`, item);
     throw new Error("Invalid API response");
   }
 
-  console.error(`[MCP DEBUG] Success! Returning:`, item.result?.data.json);
+  if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Success! Returning:`, item.result?.data.json);
   return item.result.data.json;
 
   } catch (error) {
-    console.error(`[MCP DEBUG] Exception in callTrpcEndpoint:`, error);
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Exception in callTrpcEndpoint:`, error);
     throw error;
   }
 }
@@ -281,7 +277,7 @@ export async function getUserMapItemsHandler(
   groupId = 0,
   depth = 3,
 ): Promise<MapItemWithHierarchy | null> {
-  console.error("[MCP DEBUG] getUserMapItemsHandler called! userId:", userId);
+  if (process.env.DEBUG_MCP === "true") console.error("[MCP DEBUG] getUserMapItemsHandler called! userId:", userId);
   try {
     // Get ALL items for this user in a single API call
     const allItems = await callTrpcEndpoint<MapItem[]>("map.getItemsForRootItem", {
@@ -339,7 +335,7 @@ export async function addItemHandler(
   descr?: string,
   url?: string,
 ): Promise<MapItem> {
-  console.error("[MCP DEBUG] addItemHandler called! Title:", title);
+  if (process.env.DEBUG_MCP === "true") console.error("[MCP DEBUG] addItemHandler called! Title:", title);
   try {
     // For creation, we need parentId if it's not a root item
     let parentId: number | null = null;
@@ -352,9 +348,9 @@ export async function addItemHandler(
         path: coords.path.slice(0, -1)
       };
       
-      console.error(`[MCP DEBUG] Looking for parent at coords:`, parentCoords);
+      if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Looking for parent at coords:`, parentCoords);
       const parentItem = await getItemByCoords(parentCoords);
-      console.error(`[MCP DEBUG] Parent item result:`, parentItem);
+      if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Parent item result:`, parentItem);
       if (!parentItem) {
         throw new Error(
           `Parent tile not found at coordinates ${CoordSystem.createId(parentCoords)}. ` +
@@ -362,10 +358,10 @@ export async function addItemHandler(
         );
       }
       parentId = parseInt(parentItem.id, 10);
-      console.error(`[MCP DEBUG] Parent ID:`, parentId);
+      if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Parent ID:`, parentId);
     }
 
-    console.error(`[MCP DEBUG] About to call map.addItem with:`, { coords, parentId, title, descr, url });
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] About to call map.addItem with:`, { coords, parentId, title, descr, url });
     const newItem = await callTrpcEndpoint<MapItem>("map.addItem", {
       coords,
       parentId,
@@ -373,7 +369,7 @@ export async function addItemHandler(
       descr,
       url,
     }, { requireAuth: true });
-    console.error(`[MCP DEBUG] map.addItem returned:`, newItem);
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] map.addItem returned:`, newItem);
 
     return newItem;
   } catch (error) {
@@ -384,12 +380,12 @@ export async function addItemHandler(
 // Handler for getting current user info (debug tool)
 export async function getCurrentUserHandler(): Promise<unknown> {
   try {
-    console.error(`[MCP DEBUG] Getting current user info`);
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Getting current user info`);
     const userInfo = await callTrpcEndpoint<unknown>("user.getCurrentUser", {}, { requireAuth: true });
-    console.error(`[MCP DEBUG] Current user info:`, userInfo);
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Current user info:`, userInfo);
     return userInfo;
   } catch (error) {
-    console.error(`[MCP DEBUG] Failed to get user info:`, error);
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Failed to get user info:`, error);
     throw error;
   }
 }
