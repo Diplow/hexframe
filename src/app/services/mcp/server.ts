@@ -14,6 +14,8 @@ import {
   getItemByCoordsHandler,
   addItemHandler,
   updateItemHandler,
+  deleteItemHandler,
+  moveItemHandler,
   getCurrentUserHandler,
 } from "~/app/services/mcp/services/map-items";
 // Context wrapper no longer needed - context is in tool descriptions
@@ -222,6 +224,83 @@ Returns user info including:
           properties: {},
         },
       },
+      {
+        name: "deleteItem",
+        description: `🚨 DANGEROUS: Delete a Hexframe tile and ALL its descendants permanently.
+
+⚠️ WARNING: This operation is irreversible and will cause data loss:
+- Deletes the specified tile
+- Deletes ALL child tiles recursively (entire subtree)
+- Cannot be undone
+
+Use with extreme caution. Always verify coordinates before deletion. Consider moving tiles instead of deleting if you need to reorganize.`,
+        inputSchema: {
+          type: "object",
+          properties: {
+            coords: {
+              type: "object",
+              description: "The coordinates of the tile to delete",
+              properties: {
+                userId: { type: "number" },
+                groupId: { type: "number" },
+                path: {
+                  type: "array",
+                  items: { type: "number" },
+                  description: "Array of directions from root"
+                }
+              },
+              required: ["userId", "groupId", "path"]
+            }
+          },
+          required: ["coords"],
+        },
+      },
+      {
+        name: "moveItem",
+        description: `🔄 SENSITIVE: Move a Hexframe tile and its entire subtree to a new location.
+
+⚠️ CAUTION: This operation affects multiple tiles:
+- Moves the specified tile to new coordinates
+- Moves ALL child tiles with it (entire subtree)
+- Updates all coordinate references
+- Wrong usage might lead to data inconsistency
+
+Ensure both old and new coordinates are correct. The user must own both the item being moved and the destination parent.`,
+        inputSchema: {
+          type: "object",
+          properties: {
+            oldCoords: {
+              type: "object",
+              description: "Current coordinates of the tile to move",
+              properties: {
+                userId: { type: "number" },
+                groupId: { type: "number" },
+                path: {
+                  type: "array",
+                  items: { type: "number" },
+                  description: "Array of directions from root"
+                }
+              },
+              required: ["userId", "groupId", "path"]
+            },
+            newCoords: {
+              type: "object",
+              description: "New coordinates where to move the tile",
+              properties: {
+                userId: { type: "number" },
+                groupId: { type: "number" },
+                path: {
+                  type: "array",
+                  items: { type: "number" },
+                  description: "Array of directions from root"
+                }
+              },
+              required: ["userId", "groupId", "path"]
+            }
+          },
+          required: ["oldCoords", "newCoords"],
+        },
+      },
     ],
   };
 });
@@ -309,6 +388,45 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
       case "getCurrentUser": {
         const result = await getCurrentUserHandler();
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        };
+      }
+
+      case "deleteItem": {
+        const coords = args?.coords as { userId: number; groupId: number; path: number[] };
+
+        if (!coords) {
+          throw new Error("coords parameter is required");
+        }
+
+        const result = await deleteItemHandler(coords);
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
+        };
+      }
+
+      case "moveItem": {
+        const oldCoords = args?.oldCoords as { userId: number; groupId: number; path: number[] };
+        const newCoords = args?.newCoords as { userId: number; groupId: number; path: number[] };
+
+        if (!oldCoords || !newCoords) {
+          throw new Error("oldCoords and newCoords parameters are required");
+        }
+
+        const result = await moveItemHandler(oldCoords, newCoords);
 
         return {
           content: [

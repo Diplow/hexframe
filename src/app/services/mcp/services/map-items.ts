@@ -408,3 +408,43 @@ export async function updateItemHandler(
     throw error;
   }
 }
+
+// Handler for deleteItem tool
+export async function deleteItemHandler(
+  coords: { userId: number; groupId: number; path: number[] },
+): Promise<{ success: true }> {
+  try {
+    const result = await callTrpcEndpoint<{ success: true }>("map.removeItem", {
+      coords,
+    }, { requireAuth: true });
+
+    return result;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Handler for moveItem tool
+export async function moveItemHandler(
+  oldCoords: { userId: number; groupId: number; path: number[] },
+  newCoords: { userId: number; groupId: number; path: number[] },
+): Promise<{
+  modifiedItems: MapItem[];
+  movedItemId: string;
+  affectedCount: number;
+}> {
+  try {
+    const result = await callTrpcEndpoint<{
+      modifiedItems: MapItem[];
+      movedItemId: string;
+      affectedCount: number;
+    }>("map.moveMapItem", {
+      oldCoords,
+      newCoords,
+    }, { requireAuth: true });
+
+    return result;
+  } catch (error) {
+    throw error;
+  }
+}
