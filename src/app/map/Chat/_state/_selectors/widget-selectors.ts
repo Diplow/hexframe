@@ -228,7 +228,7 @@ function _createOperationWidgets(event: ChatEvent, widgetStates: Map<string, 'ac
           type: 'delete',
           data: {
             tileId: payload.tileId,
-            tileName: (payload.data as { tileName?: string })?.tileName || 'item',
+            tileName: (payload.data as { tileName?: string })?.tileName ?? 'item',
           },
           priority: 'action',
           timestamp: event.timestamp,

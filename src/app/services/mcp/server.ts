@@ -11,7 +11,7 @@ import {
   mapItemsListHandler,
   mapItemHandler,
 } from "~/app/services/mcp/services/map-items";
-import { mcpTools, executeTool } from "~/app/services/mcp/handlers/tools";
+import { mcpTools, executeTool } from "~/app/services/mcp";
 // Context wrapper no longer needed - context is in tool descriptions
 
 // Create MCP server instance

@@ -136,11 +136,16 @@ This tool returns nested structure with children[] arrays showing the knowledge 
       },
       required: ["coords", "title"],
     },
-    handler: async (args: any) => {
-      const coords = args?.coords as { userId: number; groupId: number; path: number[] };
-      const title = args?.title as string;
-      const descr = args?.descr as string | undefined;
-      const url = args?.url as string | undefined;
+    handler: async (args: unknown) => {
+      interface AddItemArgs {
+        coords: { userId: number; groupId: number; path: number[] };
+        title: string;
+        descr?: string;
+        url?: string;
+      }
+
+      const argsObj = args as AddItemArgs;
+      const { coords, title, descr, url } = argsObj;
 
       if (!coords || !title) {
         throw new Error("coords and title parameters are required");
@@ -182,9 +187,14 @@ This tool returns nested structure with children[] arrays showing the knowledge 
       },
       required: ["coords", "updates"],
     },
-    handler: async (args: any) => {
-      const coords = args?.coords as { userId: number; groupId: number; path: number[] };
-      const updates = args?.updates as { title?: string; descr?: string; url?: string };
+    handler: async (args: unknown) => {
+      interface UpdateItemArgs {
+        coords: { userId: number; groupId: number; path: number[] };
+        updates: { title?: string; descr?: string; url?: string };
+      }
+
+      const argsObj = args as UpdateItemArgs;
+      const { coords, updates } = argsObj;
 
       if (!coords || !updates) {
         throw new Error("coords and updates parameters are required");
@@ -244,8 +254,13 @@ Use with extreme caution. Always verify coordinates before deletion. Consider mo
       },
       required: ["coords"],
     },
-    handler: async (args: any) => {
-      const coords = args?.coords as { userId: number; groupId: number; path: number[] };
+    handler: async (args: unknown) => {
+      interface DeleteItemArgs {
+        coords: { userId: number; groupId: number; path: number[] };
+      }
+
+      const argsObj = args as DeleteItemArgs;
+      const { coords } = argsObj;
 
       if (!coords) {
         throw new Error("coords parameter is required");
@@ -300,9 +315,14 @@ Ensure both old and new coordinates are correct. The user must own both the item
       },
       required: ["oldCoords", "newCoords"],
     },
-    handler: async (args: any) => {
-      const oldCoords = args?.oldCoords as { userId: number; groupId: number; path: number[] };
-      const newCoords = args?.newCoords as { userId: number; groupId: number; path: number[] };
+    handler: async (args: unknown) => {
+      interface MoveItemArgs {
+        oldCoords: { userId: number; groupId: number; path: number[] };
+        newCoords: { userId: number; groupId: number; path: number[] };
+      }
+
+      const argsObj = args as MoveItemArgs;
+      const { oldCoords, newCoords } = argsObj;
 
       if (!oldCoords || !newCoords) {
         throw new Error("oldCoords and newCoords parameters are required");
@@ -316,7 +336,7 @@ Ensure both old and new coordinates are correct. The user must own both the item
 /**
  * Helper function to format tool response for MCP protocol
  */
-export function formatToolResponse(result: any): { content: Array<{ type: "text"; text: string }> } {
+export function formatToolResponse(result: unknown): { content: Array<{ type: "text"; text: string }> } {
   return {
     content: [
       {
@@ -330,7 +350,7 @@ export function formatToolResponse(result: any): { content: Array<{ type: "text"
 /**
  * Helper function to handle tool execution with error handling
  */
-export async function executeTool(toolName: string, args: any): Promise<{ content: Array<{ type: "text"; text: string }> }> {
+export async function executeTool(toolName: string, args: unknown): Promise<{ content: Array<{ type: "text"; text: string }> }> {
   try {
     const tool = mcpTools.find(t => t.name === toolName);
     if (!tool) {

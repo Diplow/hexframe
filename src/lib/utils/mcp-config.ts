@@ -17,8 +17,8 @@ export interface McpServerEnvironment {
  */
 export function detectMcpEnvironment(): McpServerEnvironment {
   // Check if we're in production based on various environment indicators
-  const betterAuthUrl = process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_BETTER_AUTH_URL;
-  const vercelUrl = process.env.VERCEL_URL || process.env.NEXT_PUBLIC_VERCEL_URL;
+  const betterAuthUrl = process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_BETTER_AUTH_URL;
+  const vercelUrl = process.env.VERCEL_URL ?? process.env.NEXT_PUBLIC_VERCEL_URL;
   const nodeEnv = process.env.NODE_ENV;
 
   // Production indicators
@@ -70,7 +70,7 @@ export function generateMcpConfiguration(apiKey: string, serverName = 'hexframe'
   const productionConfig = {
     mcpServers: {
       [serverName]: {
-        url: env.httpEndpoint || 'https://your-app.vercel.app/api/mcp',
+        url: env.httpEndpoint ?? 'https://your-app.vercel.app/api/mcp',
         headers: {
           'x-api-key': apiKey,
         },

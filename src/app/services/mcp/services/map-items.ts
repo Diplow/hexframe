@@ -98,7 +98,7 @@ async function callTrpcEndpoint<T>(
     throw new Error(`API call failed: ${response.status} ${response.statusText} - ${rawResponseText}`);
   }
 
-  let data;
+  let data: unknown;
   try {
     data = JSON.parse(rawResponseText);
   } catch (parseError) {
@@ -110,7 +110,7 @@ async function callTrpcEndpoint<T>(
 
   // Both mutations and queries return batch format
   const batchData = Array.isArray(data) ? data : [data];
-  const item = batchData[0];
+  const item = batchData[0] as { error?: { message?: string }; result?: { data: { json: T } } };
 
   if (!item) {
     console.error(`[MCP DEBUG] Empty batch response array`);
@@ -127,7 +127,7 @@ async function callTrpcEndpoint<T>(
     throw new Error("Invalid API response");
   }
 
-  console.error(`[MCP DEBUG] Success! Returning:`, item.result.data.json);
+  console.error(`[MCP DEBUG] Success! Returning:`, item.result?.data.json);
   return item.result.data.json;
 
   } catch (error) {
@@ -382,10 +382,10 @@ export async function addItemHandler(
 }
 
 // Handler for getting current user info (debug tool)
-export async function getCurrentUserHandler(): Promise<any> {
+export async function getCurrentUserHandler(): Promise<unknown> {
   try {
     console.error(`[MCP DEBUG] Getting current user info`);
-    const userInfo = await callTrpcEndpoint<any>("user.getCurrentUser", {}, { requireAuth: true });
+    const userInfo = await callTrpcEndpoint<unknown>("user.getCurrentUser", {}, { requireAuth: true });
     console.error(`[MCP DEBUG] Current user info:`, userInfo);
     return userInfo;
   } catch (error) {

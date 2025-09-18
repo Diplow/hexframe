@@ -1,5 +1,5 @@
 import { createMcpHandler, experimental_withMcpAuth } from '@vercel/mcp-adapter';
-import { mcpTools } from '~/app/services/mcp/handlers/tools';
+import { mcpTools } from '~/app/services/mcp';
 import { auth } from '~/server/auth';
 
 // Create the MCP handler with all our tools
@@ -11,7 +11,7 @@ const handler = createMcpHandler(
         tool.name,
         tool.description,
         tool.inputSchema,
-        async (args) => {
+        async (args: unknown) => {
           try {
             const result = await tool.handler(args);
             return {
