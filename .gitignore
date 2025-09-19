@@ -83,3 +83,4 @@ drizzle/meta/*
 TODO.md
 
 .mcp.json
+venv/lib64
