@@ -270,7 +270,7 @@ export function DynamicMapCanvas({
           </div>
           {/* Debug info for DOM-based drag */}
           {domBasedDragAndDrop.isDragging && (
-            <div className="absolute top-4 left-4 bg-white dark:bg-gray-800 p-2 rounded shadow text-sm z-50">
+            <div className="absolute top-4 left-4 bg-secondary p-2 rounded shadow text-sm z-50">
               <div>🚀 DOM-based Drag Active</div>
               <div>Geometric Detection: ON</div>
             </div>

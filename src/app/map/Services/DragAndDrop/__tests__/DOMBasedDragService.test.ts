@@ -4,6 +4,14 @@ import type { EventBusService } from '~/app/map';
 import type { TileData } from '~/app/map/types';
 import type { DragEvent } from 'react';
 
+// Mock window APIs
+Object.defineProperty(window, 'setInterval', {
+  value: vi.fn(() => 123), // Return a mock interval ID
+});
+Object.defineProperty(window, 'clearInterval', {
+  value: vi.fn(),
+});
+
 // Mock EventBus
 const mockEventBus: EventBusService = {
   emit: vi.fn(),
@@ -106,7 +114,7 @@ describe('DOMBasedDragService', () => {
           tileData,
           offset: { x: 10, y: 15 },
         },
-        timestamp: expect.any(Date),
+        timestamp: expect.any(Date) as Date,
       });
 
       expect(service.getState().isDragging).toBe(true);
@@ -127,7 +135,7 @@ describe('DOMBasedDragService', () => {
         type: 'drag.ended',
         source: 'drag_service',
         payload: null,
-        timestamp: expect.any(Date),
+        timestamp: expect.any(Date) as Date,
       });
 
       expect(service.getState().isDragging).toBe(false);
