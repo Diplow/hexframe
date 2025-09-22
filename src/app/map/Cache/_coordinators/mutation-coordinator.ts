@@ -305,6 +305,9 @@ export class MutationCoordinator {
       throw new Error("Move item mutation not configured");
     }
 
+    // Note: Validation is performed in the client-side drag service before reaching this point
+    // This ensures UI validation happens immediately and server calls only happen for valid operations
+
     return this.trackMoveOperation(sourceCoordId, targetCoordId, async () => {
       const changeId = this.tracker.generateChangeId();
       const moveParams = this._prepareMoveOperation(sourceCoordId, targetCoordId, changeId);

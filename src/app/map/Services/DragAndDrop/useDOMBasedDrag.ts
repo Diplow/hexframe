@@ -6,6 +6,7 @@ import { useUnifiedAuth } from "~/contexts/UnifiedAuthContext";
 import { useMapCache } from '~/app/map/Cache';
 import { useEventBus } from '~/app/map';
 import { DOMBasedDragService, type DragState } from "~/app/map/Services/DragAndDrop/DOMBasedDragService";
+import { validateDragOperation, canDragTile } from "~/app/map/Services/DragAndDrop/_validators/drag-validators";
 
 export interface UseDOMBasedDragReturn {
   // For draggable tiles
@@ -49,17 +50,24 @@ export function useDOMBasedDrag(): UseDOMBasedDragReturn {
   // Configure the service with validation callbacks
   useEffect(() => {
     dragService.configure({
-      validateDropTarget: (_sourceId: string, _targetId: string): boolean => {
-        // DOM service will handle validation internally based on business rules
-        // For now, allow all drops - service will filter appropriately
-        return true;
+      validateDropTarget: (sourceId: string, targetId: string): { isValid: boolean; reason?: string } => {
+        const sourceTile = getItem(sourceId);
+        const targetTile = getItem(targetId);
+
+        return validateDragOperation(
+          sourceId,
+          targetId,
+          sourceTile,
+          targetTile,
+          mappingUserId
+        );
       },
-      determineOperation: (_targetId: string): 'move' | 'swap' => {
-        // For now, we'll always use 'move' - can be enhanced later
-        return 'move';
+      determineOperation: (targetId: string): 'move' | 'swap' => {
+        const targetTile = getItem(targetId);
+        return targetTile ? 'swap' : 'move';
       }
     });
-  }, [dragService]);
+  }, [dragService, getItem, mappingUserId]);
 
   // Listen to drag service events to update React state
   useEffect(() => {
@@ -166,8 +174,8 @@ export function useDOMBasedDrag(): UseDOMBasedDragReturn {
     const checkCanDrag = (): boolean => {
       const tile = getItem(coordId);
 
-      // Basic check: user must own the tile to drag it
-      if (!tile || tile.metadata.ownerId !== mappingUserId?.toString()) {
+      // Use the validation utility that checks ownership and center tile
+      if (!canDragTile(tile, mappingUserId)) {
         return false;
       }
 

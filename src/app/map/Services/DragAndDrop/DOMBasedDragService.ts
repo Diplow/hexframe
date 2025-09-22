@@ -40,7 +40,7 @@ export class DOMBasedDragService {
   };
 
   private tileRegistry = new Map<string, TileGeometry>();
-  private validateDropTarget: ((sourceId: string, targetId: string) => boolean) | null = null;
+  private validateDropTarget: ((sourceId: string, targetId: string) => { isValid: boolean; reason?: string }) | null = null;
   private determineOperation: ((targetId: string) => 'move' | 'swap') | null = null;
   private eventBus: EventBusService;
   private mouseTracker: { x: number; y: number } = { x: 0, y: 0 };
@@ -54,7 +54,7 @@ export class DOMBasedDragService {
    * Configure validation and operation determination callbacks
    */
   configure(options: {
-    validateDropTarget: (sourceId: string, targetId: string) => boolean;
+    validateDropTarget: (sourceId: string, targetId: string) => { isValid: boolean; reason?: string };
     determineOperation: (targetId: string) => 'move' | 'swap';
   }) {
     this.validateDropTarget = options.validateDropTarget;
@@ -154,8 +154,8 @@ export class DOMBasedDragService {
     const operation = this.determineOperation?.(targetId) ?? 'move';
 
     // Validate one more time
-    const isValid = this.validateDropTarget?.(sourceId, targetId) ?? false;
-    if (!isValid) {
+    const validation = this.validateDropTarget?.(sourceId, targetId) ?? { isValid: false };
+    if (!validation.isValid) {
       this.endDrag();
       return null;
     }
@@ -302,13 +302,13 @@ export class DOMBasedDragService {
 
     // Handle entering new target
     if (currentTarget) {
-      const isValid = this.validateDropTarget?.(this.state.draggedTileId!, currentTarget) ?? false;
+      const validation = this.validateDropTarget?.(this.state.draggedTileId!, currentTarget) ?? { isValid: false };
       const operation = this.state.dropOperation!;
 
       this.eventBus.emit({
         type: 'drag.hovering',
         source: 'drag_service',
-        payload: { targetId: currentTarget, operation, isValid },
+        payload: { targetId: currentTarget, operation, isValid: validation.isValid },
         timestamp: new Date(),
       });
     }
@@ -336,8 +336,8 @@ export class DOMBasedDragService {
 
         // Additional validation through the validation callback
         if (this.state.draggedTileId && this.validateDropTarget) {
-          const isValid = this.validateDropTarget(this.state.draggedTileId, tile.coordId);
-          if (isValid) {
+          const validation = this.validateDropTarget(this.state.draggedTileId, tile.coordId);
+          if (validation.isValid) {
             return tile.coordId;
           }
         } else {

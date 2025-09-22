@@ -10,3 +10,6 @@ export type {
 } from '~/app/map/Services/DragAndDrop/DOMBasedDragService';
 
 export type { UseDOMBasedDragReturn } from '~/app/map/Services/DragAndDrop/useDOMBasedDrag';
+
+// Validation utilities
+export { validateDragOperation, canDragTile, canDropOnTile, isCenterTile } from '~/app/map/Services/DragAndDrop/_validators/drag-validators';
