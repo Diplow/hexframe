@@ -56,6 +56,7 @@ export async function callTrpcEndpoint<T>(
   const usePost = options.method === "POST" || (options.method !== "GET" && isMutation);
 
   let response: Response;
+  let rawResponseText: string;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15_000);
 
@@ -79,14 +80,21 @@ export async function callTrpcEndpoint<T>(
         signal: controller.signal,
       });
     }
+
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Response status: ${response.status} ${response.statusText}`);
+    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Response headers: content-type=${response.headers.get('content-type')}, content-length=${response.headers.get('content-length')}`);
+
+    // Read response body while still under timeout
+    rawResponseText = await response.text();
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Request timed out');
+    }
+    throw error;
   } finally {
     clearTimeout(timeout);
   }
 
-  if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Response status: ${response.status} ${response.statusText}`);
-  if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Response headers: content-type=${response.headers.get('content-type')}, content-length=${response.headers.get('content-length')}`);
-
-  const rawResponseText = await response.text();
   if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Raw response body size: ${rawResponseText.length} chars`);
 
   if (!response.ok) {

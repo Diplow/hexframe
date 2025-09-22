@@ -43,6 +43,18 @@ export function useDOMBasedDrag(): UseDOMBasedDragReturn {
     return new DOMBasedDragService(eventBus);
   }, [eventBus]);
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // End any active drag operation
+      if (dragService.getState().isDragging) {
+        dragService.endDrag();
+      }
+      // Dispose of the service to clean up listeners and intervals
+      dragService.dispose();
+    };
+  }, [dragService]);
+
   // Track internal state for React updates
   const [dragState, setDragState] = useState<DragState>(() => dragService.getState());
 

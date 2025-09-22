@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useRef, useEffect } from "react";
 import type { UseDOMBasedDragReturn } from "~/app/map/Services/DragAndDrop/useDOMBasedDrag";
 
 /**
@@ -11,20 +11,32 @@ export function useTileRegistration(
   coordId: string,
   dragService: Pick<UseDOMBasedDragReturn, 'registerTile' | 'unregisterTile'> | null
 ) {
-  const elementRef = useRef<HTMLDivElement>(null);
+  const currentElementRef = useRef<HTMLElement | null>(null);
 
-  useEffect(() => {
-    const element = elementRef.current;
+  // Stable callback ref that handles element registration/unregistration
+  const refCallback = useCallback((element: HTMLElement | null) => {
+    // Unregister previous element if it exists
+    if (currentElementRef.current && dragService) {
+      dragService.unregisterTile(coordId);
+    }
+
+    // Store the new element reference
+    currentElementRef.current = element;
+
+    // Register new element if it exists and dragService is available
     if (element && dragService) {
-      // Register this tile's geometry with the drag service
       dragService.registerTile(coordId, element);
-
-      // Cleanup on unmount
-      return () => {
-        dragService.unregisterTile(coordId);
-      };
     }
   }, [coordId, dragService]);
 
-  return elementRef;
+  // Cleanup on unmount - unregister the last element
+  useEffect(() => {
+    return () => {
+      if (currentElementRef.current && dragService) {
+        dragService.unregisterTile(coordId);
+      }
+    };
+  }, [coordId, dragService]);
+
+  return refCallback;
 }
