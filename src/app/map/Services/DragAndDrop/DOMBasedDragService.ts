@@ -90,10 +90,6 @@ export class DOMBasedDragService {
     const geometry = this.tileRegistry.get(coordId);
     if (geometry) {
       geometry.bounds = geometry.element.getBoundingClientRect();
-      console.log('📐 Updated tile bounds', {
-        coordId,
-        bounds: { x: geometry.bounds.x, y: geometry.bounds.y, width: geometry.bounds.width, height: geometry.bounds.height }
-      });
     }
   }
 
@@ -101,11 +97,6 @@ export class DOMBasedDragService {
    * Start a drag operation
    */
   startDrag(tileId: string, tileData: TileData, event: DragEvent<HTMLDivElement>) {
-    console.log('🎯 startDrag called', {
-      tileId,
-      tileName: tileData.data.name,
-      mousePosition: { x: this.mouseTracker.x, y: this.mouseTracker.y }
-    });
 
     const offset = {
       x: event.nativeEvent.offsetX,

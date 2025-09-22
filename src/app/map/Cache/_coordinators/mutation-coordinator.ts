@@ -138,27 +138,16 @@ export class MutationCoordinator {
     targetCoordId: string,
     operation: () => Promise<T>
   ): Promise<T> {
-    console.log('🔒 COORDINATOR: Checking for pending operations...', {
-      sourceCoordId,
-      targetCoordId,
-      timestamp: new Date().toISOString(),
-      currentPendingOps: Array.from(this.pendingOperations.keys()),
-      sourceHasPending: this.pendingOperations.has(sourceCoordId),
-      targetHasPending: this.pendingOperations.has(targetCoordId)
-    });
 
     // Check if either tile has pending operations
     if (this.pendingOperations.has(sourceCoordId)) {
-      console.log('❌ COORDINATOR: Source already has pending operation!', sourceCoordId);
       throw new Error(`Operation already in progress for source tile ${sourceCoordId}. Please wait for the current operation to complete.`);
     }
     if (this.pendingOperations.has(targetCoordId)) {
-      console.log('❌ COORDINATOR: Target already has pending operation!', targetCoordId);
       throw new Error(`Operation already in progress for target tile ${targetCoordId}. Please wait for the current operation to complete.`);
     }
 
     // Create unique operation promises for each tile
-    console.log('🔒 COORDINATOR: Registering operations...');
     const promise = operation();
     const operationId = `move-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -179,43 +168,28 @@ export class MutationCoordinator {
     this.pendingOperations.set(sourceCoordId, sourceOperationData);
     this.pendingOperations.set(targetCoordId, targetOperationData);
 
-    console.log('🔒 COORDINATOR: Operations registered!', {
-      operationId,
-      pendingOpsAfter: Array.from(this.pendingOperations.keys())
-    });
 
     try {
       const result = await promise;
-      console.log('✅ COORDINATOR: Operation completed successfully', { operationId });
       return result;
     } catch (error) {
-      console.log('❌ COORDINATOR: Operation failed:', { operationId, error });
       throw error;
     } finally {
       // Only clean up tiles that belong to THIS operation
-      console.log('🔓 COORDINATOR: Cleaning up pending operations...', { operationId });
 
       const sourceOp = this.pendingOperations.get(sourceCoordId);
       const targetOp = this.pendingOperations.get(targetCoordId);
 
       if (sourceOp?.operationId === operationId) {
         this.pendingOperations.delete(sourceCoordId);
-        console.log('🔓 COORDINATOR: Cleaned up source', sourceCoordId);
       } else {
-        console.log('🔓 COORDINATOR: Skipped source cleanup (different operation)', { sourceCoordId, currentOpId: sourceOp?.operationId, thisOpId: operationId });
       }
 
       if (targetOp?.operationId === operationId) {
         this.pendingOperations.delete(targetCoordId);
-        console.log('🔓 COORDINATOR: Cleaned up target', targetCoordId);
       } else {
-        console.log('🔓 COORDINATOR: Skipped target cleanup (different operation)', { targetCoordId, currentOpId: targetOp?.operationId, thisOpId: operationId });
       }
 
-      console.log('🔓 COORDINATOR: Cleanup complete!', {
-        operationId,
-        pendingOpsAfter: Array.from(this.pendingOperations.keys())
-      });
     }
   }
 

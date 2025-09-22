@@ -85,32 +85,19 @@ export function useDOMBasedDrag(): UseDOMBasedDragReturn {
 
       void (async () => {
         try {
-          console.log('🔄 DRAG OPERATION START:', {
-            sourceId,
-            targetId,
-            timestamp: new Date().toISOString(),
-            sourceHasPending: isOperationPending(sourceId),
-            targetHasPending: isOperationPending(targetId),
-            sourcePendingType: getPendingOperationType(sourceId),
-            targetPendingType: getPendingOperationType(targetId)
-          });
 
           // Check for pending operations before starting the move
           if (isOperationPending(sourceId)) {
             const pendingType = getPendingOperationType(sourceId);
-            console.log('❌ SOURCE BLOCKED:', { sourceId, pendingType });
             throw new Error(`Cannot move tile: ${pendingType} operation in progress for source tile. Please wait for current operation to complete.`);
           }
 
           if (isOperationPending(targetId)) {
             const pendingType = getPendingOperationType(targetId);
-            console.log('❌ TARGET BLOCKED:', { targetId, pendingType });
             throw new Error(`Cannot move tile: ${pendingType} operation in progress for target tile. Please wait for current operation to complete.`);
           }
 
-          console.log('✅ OPERATION ALLOWED, starting moveItemOptimistic...');
           await moveItemOptimistic(sourceId, targetId);
-          console.log('✅ OPERATION COMPLETED successfully');
         } catch (error) {
           // Extract error message from various error types (tRPC, regular Error, etc.)
           const getErrorMessage = (err: unknown): string => {
