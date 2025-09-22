@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useCallback, useMemo, useEffect } from "react";
 import type { DragEvent } from "react";
 import { useUnifiedAuth } from "~/contexts/UnifiedAuthContext";

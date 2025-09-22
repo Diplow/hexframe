@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef } from "react";
 import type { UseDOMBasedDragReturn } from "~/app/map/Services/DragAndDrop/useDOMBasedDrag";
 
