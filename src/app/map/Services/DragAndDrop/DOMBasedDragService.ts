@@ -44,11 +44,10 @@ export class DOMBasedDragService {
   private determineOperation: ((targetId: string) => 'move' | 'swap') | null = null;
   private eventBus: EventBusService;
   private mouseTracker: { x: number; y: number } = { x: 0, y: 0 };
-  private cleanupMouseTracking: (() => void) | null = null;
 
   constructor(eventBus: EventBusService) {
     this.eventBus = eventBus;
-    this.cleanupMouseTracking = this._setupGlobalMouseTracking();
+    this._setupGlobalMouseTracking();
   }
 
   /**
@@ -225,35 +224,6 @@ export class DOMBasedDragService {
       return this.state.dropOperation;
     }
     return null;
-  }
-
-  /**
-   * Dispose of the service and clean up all event listeners and intervals
-   */
-  dispose(): void {
-    // Stop any active drag operations
-    if (this.state.isDragging) {
-      this.endDrag();
-    }
-
-    // Clean up mouse tracking listeners
-    if (this.cleanupMouseTracking) {
-      this.cleanupMouseTracking();
-      this.cleanupMouseTracking = null;
-    }
-
-    // Clear tile registry
-    this.tileRegistry.clear();
-
-    // Reset state
-    this.state = {
-      isDragging: false,
-      draggedTileId: null,
-      draggedTileData: null,
-      currentHoveredTile: null,
-      dropOperation: null,
-      dragOffset: { x: 0, y: 0 },
-    };
   }
 
   // Private implementation methods

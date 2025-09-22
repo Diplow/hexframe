@@ -143,7 +143,7 @@ function _createTileLayout(
 
 function _renderEmptyTile(
   props: DynamicEmptyTileProps,
-  tileRef: ((element: HTMLElement | null) => void) | null,
+  tileRef: React.RefObject<HTMLDivElement> | null,
   isHovered: boolean,
   setIsHovered: React.Dispatch<React.SetStateAction<boolean>>,
   tileLayout: ReturnType<typeof _createTileLayout>
