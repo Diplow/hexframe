@@ -5,9 +5,9 @@ import type { TileData } from "~/app/map/types/tile-data";
 import { useItemInteraction } from "~/app/map/Canvas/Tile/Item/_internals/hooks/use-item-interaction";
 import { generateTileTestId } from "~/app/map/Canvas/Tile/Item/_internals/utils";
 import { canEditTile } from "~/app/map/Canvas/Tile/Item/_internals/validators";
-import { useTileRegistration } from "~/app/map/Services/DragAndDrop/useTileRegistration";
+import { useTileRegistration } from "~/app/map/Services";
 import { testLogger } from "~/lib/test-logger";
-import type { UseDOMBasedDragReturn } from "~/app/map/Services/DragAndDrop";
+import type { UseDOMBasedDragReturn } from "~/app/map/Services";
 
 interface ItemStateProps {
   item: TileData;

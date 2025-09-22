@@ -10,8 +10,8 @@ import { getColor } from "~/app/map/types";
 import { getDefaultStroke } from "~/app/map/Canvas/Tile/utils/stroke";
 import { useTileInteraction } from "~/app/map/Canvas";
 import { loggers } from "~/lib/debug/debug-logger";
-import { useTileRegistration } from "~/app/map/Services/DragAndDrop/useTileRegistration";
-import type { UseDOMBasedDragReturn } from "~/app/map/Services/DragAndDrop";
+import { useTileRegistration } from "~/app/map/Services";
+import type { UseDOMBasedDragReturn } from "~/app/map/Services";
 
 export interface DynamicEmptyTileProps {
   coordId: string;

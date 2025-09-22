@@ -1,0 +1,9 @@
+{
+  "$schema": "../../../../../schemas/dependencies.schema.json",
+  "allowed": [
+    "~/app/map/Cache",
+    "~/contexts/UnifiedAuthContext",
+    "react"
+  ],
+  "exceptions": {}
+}

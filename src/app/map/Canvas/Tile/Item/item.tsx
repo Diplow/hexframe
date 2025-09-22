@@ -7,7 +7,7 @@ import { useItemState } from "~/app/map/Canvas/Tile/Item/_internals/hooks";
 import { ItemTileContent } from "~/app/map/Canvas/Tile/Item/_components/item-tile-content";
 import { useEffect } from "react";
 import { loggers } from "~/lib/debug/debug-logger";
-import type { UseDOMBasedDragReturn } from "~/app/map/Services/DragAndDrop";
+import type { UseDOMBasedDragReturn } from "~/app/map/Services";
 
 export interface DynamicItemTileProps {
   item: TileData;

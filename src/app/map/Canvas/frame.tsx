@@ -21,7 +21,7 @@ import type { URLInfo } from "~/app/map/types/url-info";
 import { useCanvasTheme } from "~/app/map/Canvas";
 import { useEffect } from "react";
 import { loggers } from "~/lib/debug/debug-logger";
-import type { UseDOMBasedDragReturn } from "~/app/map/Services/DragAndDrop";
+import type { UseDOMBasedDragReturn } from "~/app/map/Services";
 
 const CHILD_INDICES = [1, 2, 3, 4, 5, 6] as const;
 

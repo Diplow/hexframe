@@ -5,6 +5,7 @@
     "@testing-library/react",
     "vitest",
     "~/app/map/Cache",
+    "~/app/map/Services",
     "~/contexts/UnifiedAuthContext",
     "~/lib/debug/debug-logger",
     "~/lib/test-logger"

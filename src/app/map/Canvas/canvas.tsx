@@ -20,7 +20,7 @@ import { useMapCache } from '~/app/map/Cache';
 import type { URLInfo } from "~/app/map/types/url-info";
 import { MapLoadingSkeleton } from "~/app/map/Canvas/LifeCycle/loading-skeleton";
 import { MapErrorBoundary } from "~/app/map/Canvas/LifeCycle/error-boundary";
-import { useDOMBasedDrag } from "~/app/map/Services/DragAndDrop";
+import { useDOMBasedDrag } from "~/app/map/Services";
 // import type { DragEvent } from "react"; // Removed unused import
 import { loggers } from "~/lib/debug/debug-logger";
 import { useEventBus } from '~/app/map';
