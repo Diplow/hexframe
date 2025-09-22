@@ -21,6 +21,7 @@ import type { URLInfo } from "~/app/map/types/url-info";
 import { useCanvasTheme } from "~/app/map/Canvas";
 import { useEffect } from "react";
 import { loggers } from "~/lib/debug/debug-logger";
+import type { UseDOMBasedDragReturn } from "~/app/map/Services/DragAndDrop";
 
 const CHILD_INDICES = [1, 2, 3, 4, 5, 6] as const;
 
@@ -43,6 +44,8 @@ export interface DynamicFrameProps {
     parentId?: string;
     parentCoordId?: string;
   }) => void;
+  // DOM-based drag service (optional)
+  domBasedDragService?: UseDOMBasedDragReturn;
 }
 
 /**
@@ -86,6 +89,7 @@ export const DynamicFrame = (props: DynamicFrameProps) => {
         isSelected={props.selectedTileId === centerItem.metadata.coordId}
         onNavigate={props.onNavigate}
         onToggleExpansion={props.onToggleExpansion}
+        domBasedDragService={props.domBasedDragService}
       />
     );
   }
@@ -118,6 +122,7 @@ export const DynamicFrame = (props: DynamicFrameProps) => {
           onNavigate={props.onNavigate}
           onToggleExpansion={props.onToggleExpansion}
           onCreateRequested={props.onCreateRequested}
+          domBasedDragService={props.domBasedDragService}
         />
       </div>
     </DynamicBaseTileLayout>
@@ -146,6 +151,7 @@ const FrameInterior = (props: {
     parentId?: string;
     parentCoordId?: string;
   }) => void;
+  domBasedDragService?: UseDOMBasedDragReturn;
 }) => {
   const { centerItem, baseHexSize = 50, childScale } = props;
   
@@ -223,6 +229,7 @@ const FrameInterior = (props: {
                 onNavigate={props.onNavigate}
                 onToggleExpansion={props.onToggleExpansion}
                 onCreateRequested={props.onCreateRequested}
+                domBasedDragService={props.domBasedDragService}
               />
             );
           })}
@@ -261,6 +268,7 @@ const FrameSlot = (props: {
     parentId?: string;
     parentCoordId?: string;
   }) => void;
+  domBasedDragService?: UseDOMBasedDragReturn;
 }) => {
   const { coordId, mapItems, slotScale, isCenter } = props;
   const item = mapItems[coordId];
@@ -302,6 +310,7 @@ const FrameSlot = (props: {
         interactive={props.interactive}
         currentUserId={props.currentUserId}
         onCreateRequested={props.onCreateRequested}
+        domBasedDragService={props.domBasedDragService}
       />
     );
   }
@@ -326,6 +335,7 @@ const FrameSlot = (props: {
         isSelected={props.selectedTileId === item.metadata.coordId}
         onNavigate={props.onNavigate}
         onToggleExpansion={props.onToggleExpansion}
+        domBasedDragService={props.domBasedDragService}
       />
     );
   }
@@ -333,7 +343,7 @@ const FrameSlot = (props: {
   // Only allow expansion if we can reduce scale further (slotScale > 1)
   if (isExpanded && slotScale > 1) {
     return (
-      <DynamicFrame 
+      <DynamicFrame
         center={coordId}
         scale={slotScale}  // Use slotScale, not the original scale
         mapItems={props.mapItems}
@@ -346,6 +356,7 @@ const FrameSlot = (props: {
         onNavigate={props.onNavigate}
         onToggleExpansion={props.onToggleExpansion}
         onCreateRequested={props.onCreateRequested}
+        domBasedDragService={props.domBasedDragService}
       />
     );
   }
@@ -364,6 +375,7 @@ const FrameSlot = (props: {
       isSelected={props.selectedTileId === item.metadata.coordId}
       onNavigate={props.onNavigate}
       onToggleExpansion={props.onToggleExpansion}
+      domBasedDragService={props.domBasedDragService}
     />
   );
 };

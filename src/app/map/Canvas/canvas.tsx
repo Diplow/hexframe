@@ -20,7 +20,7 @@ import { useMapCache } from '~/app/map/Cache';
 import type { URLInfo } from "~/app/map/types/url-info";
 import { MapLoadingSkeleton } from "~/app/map/Canvas/LifeCycle/loading-skeleton";
 import { MapErrorBoundary } from "~/app/map/Canvas/LifeCycle/error-boundary";
-import { useDragAndDrop } from "~/app/map/Canvas/hooks/useDragAndDrop";
+import { useDOMBasedDrag } from "~/app/map/Services/DragAndDrop";
 // import type { DragEvent } from "react"; // Removed unused import
 import { loggers } from "~/lib/debug/debug-logger";
 import { useEventBus } from '~/app/map';
@@ -56,6 +56,7 @@ interface DynamicMapCanvasProps {
     enableOptimisticUpdates: boolean;
     maxDepth: number;
   };
+
 }
 
 export function DynamicMapCanvas({
@@ -111,16 +112,8 @@ export function DynamicMapCanvas({
     return unsubscribe;
   }, [eventBus]);
   
-  // Initialize drag and drop functionality
-  const {
-    dragHandlers,
-    canDragTile,
-    isDraggingTile,
-    isDropTarget,
-    isValidDropTarget,
-    isDragging,
-    getDropOperation,
-  } = useDragAndDrop();
+  // Initialize DOM-based drag and drop functionality
+  const domBasedDragAndDrop = useDOMBasedDrag();
 
   useEffect(() => {
     // Initialize hydration
@@ -130,31 +123,34 @@ export function DynamicMapCanvas({
   // Removed center initialization effect - MapCacheProvider handles initial center
   // The Canvas should not override the center that was set during provider initialization
 
-  // Tile actions with drag and drop support
+  // Simplified tile actions (DOM-based drag handles its own logic)
   const tileActions = useMemo(
     () => ({
       handleTileClick: (_coordId: string, _event: MouseEvent) => {
-        // handleTileClick called
         // Default tile click behavior (can be enhanced later)
       },
       handleTileHover: (_coordId: string, _isHovering: boolean) => {
-        // handleTileHover called
         // TODO: Handle hover state
       },
       onCreateTileRequested: (_coordId: string) => {
-        // Create tile requested
         // This callback is used by empty tiles to signal create requests
       },
-      // Drag and drop functionality
-      dragHandlers,
-      canDragTile,
-      isDraggingTile,
-      isDropTarget,
-      isValidDropTarget,
-      isDragging,
-      getDropOperation,
+      // Legacy interface for backward compatibility (but not used)
+      dragHandlers: {
+        onDragStart: () => { /* No-op for backward compatibility */ },
+        onDragOver: () => { /* No-op for backward compatibility */ },
+        onDragLeave: () => { /* No-op for backward compatibility */ },
+        onDrop: () => { /* No-op for backward compatibility */ },
+        onDragEnd: () => { /* No-op for backward compatibility */ },
+      },
+      canDragTile: () => true,
+      isDraggingTile: () => false,
+      isDropTarget: () => false,
+      isValidDropTarget: () => false,
+      isDragging: false,
+      getDropOperation: () => null,
     }),
-    [dragHandlers, canDragTile, isDraggingTile, isDropTarget, isValidDropTarget, isDragging, getDropOperation],
+    [],
   );
 
   // Use dynamic center and expanded items from cache state
@@ -248,6 +244,12 @@ export function DynamicMapCanvas({
           <div
             data-canvas-id={dynamicCenterInfo.center}
             className="pointer-events-auto grid flex-grow place-items-center overflow-auto py-4"
+            // Global drop handler for DOM-based drag and drop
+            onDrop={domBasedDragAndDrop.onDrop}
+            onDragOver={(e) => {
+              // Prevent default to allow drop
+              e.preventDefault();
+            }}
           >
             <DynamicFrame
               center={dynamicCenterInfo.center}
@@ -262,8 +264,17 @@ export function DynamicMapCanvas({
               onNavigate={handleNavigate}
               onToggleExpansion={handleToggleExpansion}
               onCreateRequested={handleCreateRequested}
+              // Pass the DOM-based drag service to Frame
+              domBasedDragService={domBasedDragAndDrop}
             />
           </div>
+          {/* Debug info for DOM-based drag */}
+          {domBasedDragAndDrop.isDragging && (
+            <div className="absolute top-4 left-4 bg-white dark:bg-gray-800 p-2 rounded shadow text-sm z-50">
+              <div>🚀 DOM-based Drag Active</div>
+              <div>Geometric Detection: ON</div>
+            </div>
+          )}
         </div>
       </LegacyTileActionsContext.Provider>
     </CanvasThemeContext.Provider>

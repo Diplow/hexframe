@@ -1,15 +1,13 @@
 "use client";
 
-import { useContext, useEffect } from "react";
+import { useEffect } from "react";
 import type { TileData } from "~/app/map/types/tile-data";
-import { LegacyTileActionsContext } from "~/app/map/Canvas";
 import { useItemInteraction } from "~/app/map/Canvas/Tile/Item/_internals/hooks/use-item-interaction";
 import { generateTileTestId } from "~/app/map/Canvas/Tile/Item/_internals/utils";
 import { canEditTile } from "~/app/map/Canvas/Tile/Item/_internals/validators";
-import { createDragProps } from "~/app/map/Canvas/Tile/Item/_internals/coordinators/drag-coordination";
-import { createDropProps } from "~/app/map/Canvas/Tile/Item/_internals/coordinators/drop-coordination";
-import { getSwapPreviewColor } from "~/app/map/Canvas/Tile/Item/_internals/coordinators/swap-preview";
+import { useTileRegistration } from "~/app/map/Services/DragAndDrop/useTileRegistration";
 import { testLogger } from "~/lib/test-logger";
+import type { UseDOMBasedDragReturn } from "~/app/map/Services/DragAndDrop";
 
 interface ItemStateProps {
   item: TileData;
@@ -19,6 +17,7 @@ interface ItemStateProps {
   hasChildren: boolean;
   isCenter: boolean;
   scale: number;
+  domBasedDragService?: UseDOMBasedDragReturn;
 }
 
 /**
@@ -34,33 +33,39 @@ interface ItemStateProps {
  * @param scale - The tile scale
  * @returns Complete state and props for the item tile
  */
-export function useItemState({ 
-  item, 
-  currentUserId, 
+export function useItemState({
+  item,
+  currentUserId,
   interactive,
   allExpandedItemIds,
   hasChildren,
   isCenter,
-  scale
+  scale,
+  domBasedDragService
 }: ItemStateProps) {
-  const tileActions = useContext(LegacyTileActionsContext);
   const interaction = useItemInteraction(item.metadata.coordId);
-  
+
   const canEdit = canEditTile(currentUserId, item.metadata.ownerId);
   const testId = generateTileTestId(item.metadata.coordinates);
-  
-  // Allow dragging when user can edit the tile (owns it)
-  const isDraggableWithTool = interaction.isDraggable && canEdit;
-  
-  const dragProps = interactive 
-    ? createDragProps(item.metadata.coordId, tileActions, isDraggableWithTool, interaction.isBeingDragged)
+
+  // DOM-based drag and drop integration
+  const tileRef = useTileRegistration(item.metadata.coordId, domBasedDragService ?? null);
+
+  // Get drag props from DOM-based service if available
+  const dragProps = interactive && domBasedDragService
+    ? domBasedDragService.createDragProps(item.metadata.coordId)
     : { draggable: false };
-    
-  const dropProps = interactive 
-    ? createDropProps(item.metadata.coordId, tileActions, interaction.isValidDropTarget)
-    : {};
-    
-  const tileColor = getSwapPreviewColor(item, interaction.isDropTargetActive, interaction.dropOperation);
+
+  // No drop props needed - DOM-based service handles detection automatically
+  const dropProps = {};
+
+  // Get drag state from DOM-based service
+  const isBeingDragged = domBasedDragService ? domBasedDragService.isDraggingTile(item.metadata.coordId) : false;
+  const isDropTarget = domBasedDragService ? domBasedDragService.isHoverTarget(item.metadata.coordId) : false;
+  const dropOperation = domBasedDragService ? domBasedDragService.getDropOperation(item.metadata.coordId) : null;
+
+  // Simplified color logic for DOM-based drag
+  const tileColor = isDropTarget && dropOperation === 'move' ? 'transparent' : item.data.color;
   
   // Log tile rendering for E2E tests
   useEffect(() => {
@@ -83,5 +88,8 @@ export function useItemState({
     dragProps,
     dropProps,
     tileColor,
+    tileRef, // New: ref for DOM-based drag registration
+    isBeingDragged, // New: drag state from DOM service
+    isDropTarget, // New: drop target state from DOM service
   };
 }

@@ -7,6 +7,7 @@ import { useItemState } from "~/app/map/Canvas/Tile/Item/_internals/hooks";
 import { ItemTileContent } from "~/app/map/Canvas/Tile/Item/_components/item-tile-content";
 import { useEffect } from "react";
 import { loggers } from "~/lib/debug/debug-logger";
+import type { UseDOMBasedDragReturn } from "~/app/map/Services/DragAndDrop";
 
 export interface DynamicItemTileProps {
   item: TileData;
@@ -21,6 +22,7 @@ export interface DynamicItemTileProps {
   isSelected?: boolean;
   onNavigate?: (coordId: string) => void;
   onToggleExpansion?: (itemId: string, coordId: string) => void;
+  domBasedDragService?: UseDOMBasedDragReturn;
 }
 
 export const DynamicItemTile = (props: DynamicItemTileProps) => {
@@ -35,14 +37,15 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
     currentUserId,
   } = props;
 
-  const state = useItemState({ 
-    item, 
-    currentUserId, 
+  const state = useItemState({
+    item,
+    currentUserId,
     interactive,
     allExpandedItemIds,
     hasChildren,
     isCenter,
-    scale
+    scale,
+    domBasedDragService: props.domBasedDragService
   });
   
   // Log tile render
@@ -64,15 +67,14 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
 
   return (
     <>
-      <div 
-        className={`group relative hover:z-10 select-none ${state.interaction.isBeingDragged ? 'dragging' : ''}`} 
+      <div
+        ref={state.tileRef} // DOM-based drag registration
+        className={`group relative hover:z-10 select-none ${state.isBeingDragged ? 'dragging' : ''}`}
         data-testid={state.testId}
-        draggable={state.dragProps.draggable}
-        onDragStart={state.dragProps.onDragStart}
-        onDragEnd={state.dragProps.onDragEnd}
-        onDragOver={state.dropProps.onDragOver}
-        onDragLeave={state.dropProps.onDragLeave}
-        onDrop={state.dropProps.onDrop}>
+        style={{ opacity: state.isBeingDragged ? 0.5 : 1 }}
+        // DOM-based drag props (only applies to draggable tiles)
+        {...(state.dragProps.draggable && state.dragProps)}
+      >
         <ItemTileContent
           {...props}
           scale={scale}
@@ -81,7 +83,7 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
           interactive={interactive}
           tileColor={state.tileColor}
           testId={state.testId}
-          isBeingDragged={state.interaction.isBeingDragged}
+          isBeingDragged={state.isBeingDragged}
           canEdit={state.canEdit}
           isSelected={props.isSelected}
         />

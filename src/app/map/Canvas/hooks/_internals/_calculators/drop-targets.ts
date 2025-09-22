@@ -40,7 +40,7 @@ export function isValidDropTarget(
   
   // Check if this would be a problematic swap
   const targetTile = getItem(targetCoordId);
-  if (targetTile && !canSwapTiles(draggedTileId, targetCoordId)) {
+  if (targetTile && !canSwapTiles()) {
     // This swap would cause issues in the backend
     return false;
   }

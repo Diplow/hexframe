@@ -1,15 +1,17 @@
 "use client";
 
-import { useState, useContext, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { DynamicBaseTileLayout } from "~/app/map/Canvas/Tile/Base";
 import type { TileScale, TileColor } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
-import { LegacyTileActionsContext, useCanvasTheme } from "~/app/map/Canvas";
+import { useCanvasTheme } from "~/app/map/Canvas";
 import type { URLInfo } from "~/app/map/types";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 import { getColor } from "~/app/map/types";
 import { getDefaultStroke } from "~/app/map/Canvas/Tile/utils/stroke";
 import { useTileInteraction } from "~/app/map/Canvas";
 import { loggers } from "~/lib/debug/debug-logger";
+import { useTileRegistration } from "~/app/map/Services/DragAndDrop/useTileRegistration";
+import type { UseDOMBasedDragReturn } from "~/app/map/Services/DragAndDrop";
 
 export interface DynamicEmptyTileProps {
   coordId: string;
@@ -19,6 +21,7 @@ export interface DynamicEmptyTileProps {
   parentItem?: { id: string; name: string; ownerId?: string };
   interactive?: boolean;
   currentUserId?: number;
+  domBasedDragService?: UseDOMBasedDragReturn;
   onCreateRequested?: (payload: {
     coordId: string;
     parentName?: string;
@@ -27,31 +30,14 @@ export interface DynamicEmptyTileProps {
   }) => void;
 }
 
-function getDropHandlers(
-  coordId: string,
-  isValidDropTarget: boolean,
-  tileActions: React.ContextType<typeof LegacyTileActionsContext>
-) {
-  if (!isValidDropTarget || !tileActions) {
-    return {};
-  }
-  
-  return {
-    onDragOver: (e: React.DragEvent<HTMLDivElement>) => {
-      tileActions.dragHandlers.onDragOver(coordId, e);
-    },
-    onDragLeave: tileActions.dragHandlers.onDragLeave,
-    onDrop: (e: React.DragEvent<HTMLDivElement>) => {
-      tileActions.dragHandlers.onDrop(coordId, e);
-    },
-  };
-}
 
 export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
   const [isHovered, setIsHovered] = useState(false);
   const { isDarkMode } = useCanvasTheme();
-  const tileActions = useContext(LegacyTileActionsContext);
-  
+
+  // DOM-based drag integration
+  const tileRef = useTileRegistration(props.coordId, props.domBasedDragService ?? null);
+
   const tileState = _setupTileState(props);
   const interactionHandlers = useTileInteraction({
     coordId: props.coordId,
@@ -59,7 +45,7 @@ export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
     canEdit: tileState.canEdit,
     onCreate: () => _handleTileCreation(props),
   });
-  
+
   useEffect(() => {
     loggers.render.canvas('DynamicEmptyTile render', {
       coordId: props.coordId,
@@ -70,10 +56,15 @@ export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
       canEdit: tileState.canEdit,
     });
   });
-  const dropConfig = _setupDropConfiguration(props, tileActions);
+
+  // Get drag state from DOM-based service
+  const isDropTarget = props.domBasedDragService ? props.domBasedDragService.isHoverTarget(props.coordId) : false;
+  const dropOperation = props.domBasedDragService ? props.domBasedDragService.getDropOperation(props.coordId) : null;
+
+  const dropConfig = _setupDropConfiguration(props, isDropTarget, dropOperation);
   const tileLayout = _createTileLayout(props, isDarkMode, interactionHandlers, dropConfig, isHovered, tileState);
-  
-  return _renderEmptyTile(props, dropConfig.dropProps, isHovered, setIsHovered, tileLayout);
+
+  return _renderEmptyTile(props, tileRef, isHovered, setIsHovered, tileLayout);
 }
 
 // Internal helper functions for empty tile functionality
@@ -100,30 +91,33 @@ function _handleTileCreation(props: DynamicEmptyTileProps) {
   });
 }
 
-function _setupDropConfiguration(props: DynamicEmptyTileProps, tileActions: React.ContextType<typeof LegacyTileActionsContext>) {
-  const isValidDropTarget = tileActions?.isValidDropTarget(props.coordId) === true;
-  const isDropTargetActive = tileActions?.isDropTarget(props.coordId) === true;
-  const dropOperation = tileActions?.getDropOperation(props.coordId) ?? null;
-  
+function _setupDropConfiguration(
+  props: DynamicEmptyTileProps,
+  isDropTarget: boolean,
+  dropOperation: 'move' | 'swap' | null
+) {
   const targetCoords = CoordSystem.parseId(props.coordId);
   const previewColor = getColor(targetCoords);
-  const dropProps = getDropHandlers(props.coordId, isValidDropTarget, tileActions);
 
-  return { isValidDropTarget, isDropTargetActive, dropOperation, previewColor, dropProps };
+  return {
+    isDropTarget,
+    dropOperation,
+    previewColor
+  };
 }
 
 function _createTileLayout(
   props: DynamicEmptyTileProps,
   isDarkMode: boolean,
   interactionHandlers: ReturnType<typeof useTileInteraction>,
-  dropConfig: { isValidDropTarget: boolean; isDropTargetActive: boolean; dropOperation: string | null; previewColor: string; dropProps: ReturnType<typeof getDropHandlers> },
+  dropConfig: { isDropTarget: boolean; dropOperation: string | null; previewColor: string },
   isHovered: boolean,
   tileState: { defaultStroke: ReturnType<typeof getDefaultStroke>; canEdit: boolean }
 ) {
   const { cursor, shouldShowHoverEffects } = interactionHandlers;
 
   const tileColor = (() => {
-    if (dropConfig.isDropTargetActive && dropConfig.dropOperation === 'move') {
+    if (dropConfig.isDropTarget && dropConfig.dropOperation === 'move') {
       const [colorName, tint] = dropConfig.previewColor.split("-");
       return {
         color: colorName as TileColor["color"],
@@ -149,7 +143,7 @@ function _createTileLayout(
 
 function _renderEmptyTile(
   props: DynamicEmptyTileProps,
-  dropProps: ReturnType<typeof getDropHandlers>,
+  tileRef: React.RefObject<HTMLDivElement> | null,
   isHovered: boolean,
   setIsHovered: React.Dispatch<React.SetStateAction<boolean>>,
   tileLayout: ReturnType<typeof _createTileLayout>
@@ -157,12 +151,13 @@ function _renderEmptyTile(
   const { handleClick, handleDoubleClick, handleRightClick } = tileLayout.interactionHandlers;
 
   return (
-    <div 
-      className={`group relative hover:z-10`} 
+    <div
+      ref={tileRef} // DOM-based drag registration
+      className={`group relative hover:z-10`}
       data-testid={`empty-tile-${props.coordId}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      {...dropProps}
+      // No drop handlers needed - DOM service handles this
     >
       <div>
         <DynamicBaseTileLayout
