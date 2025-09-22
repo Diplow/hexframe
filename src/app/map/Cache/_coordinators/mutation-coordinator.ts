@@ -68,7 +68,156 @@ export interface MutationResult {
 export class MutationCoordinator {
   private tracker = new OptimisticChangeTracker();
 
+  // Track pending operations by tile coordId to prevent race conditions
+  private pendingOperations = new Map<string, {
+    type: 'create' | 'update' | 'delete' | 'move';
+    promise: Promise<unknown>;
+    startTime: number;
+    operationId?: string;
+  }>();
+
   constructor(private config: MutationCoordinatorConfig) {}
+
+  /**
+   * Check if an operation is currently pending for the given tile
+   */
+  isOperationPending(coordId: string): boolean {
+    return this.pendingOperations.has(coordId);
+  }
+
+  /**
+   * Get pending operation type for a tile, if any
+   */
+  getPendingOperationType(coordId: string): 'create' | 'update' | 'delete' | 'move' | null {
+    const operation = this.pendingOperations.get(coordId);
+    return operation?.type ?? null;
+  }
+
+  /**
+   * Get all tiles with pending operations
+   */
+  getTilesWithPendingOperations(): string[] {
+    return Array.from(this.pendingOperations.keys());
+  }
+
+  /**
+   * Register a pending operation and ensure it's cleaned up when done
+   */
+  private async trackOperation<T>(
+    coordId: string,
+    type: 'create' | 'update' | 'delete' | 'move',
+    operation: () => Promise<T>
+  ): Promise<T> {
+    // Check if operation is already pending
+    if (this.pendingOperations.has(coordId)) {
+      throw new Error(`Operation already in progress for tile ${coordId}. Please wait for the current operation to complete.`);
+    }
+
+    // Start tracking the operation
+    const promise = operation();
+    this.pendingOperations.set(coordId, {
+      type,
+      promise,
+      startTime: Date.now()
+    });
+
+    try {
+      const result = await promise;
+      return result;
+    } finally {
+      // Always clean up, even if operation fails
+      this.pendingOperations.delete(coordId);
+    }
+  }
+
+  /**
+   * Track move operations that involve multiple tiles (source and target)
+   */
+  private async trackMoveOperation<T>(
+    sourceCoordId: string,
+    targetCoordId: string,
+    operation: () => Promise<T>
+  ): Promise<T> {
+    console.log('🔒 COORDINATOR: Checking for pending operations...', {
+      sourceCoordId,
+      targetCoordId,
+      timestamp: new Date().toISOString(),
+      currentPendingOps: Array.from(this.pendingOperations.keys()),
+      sourceHasPending: this.pendingOperations.has(sourceCoordId),
+      targetHasPending: this.pendingOperations.has(targetCoordId)
+    });
+
+    // Check if either tile has pending operations
+    if (this.pendingOperations.has(sourceCoordId)) {
+      console.log('❌ COORDINATOR: Source already has pending operation!', sourceCoordId);
+      throw new Error(`Operation already in progress for source tile ${sourceCoordId}. Please wait for the current operation to complete.`);
+    }
+    if (this.pendingOperations.has(targetCoordId)) {
+      console.log('❌ COORDINATOR: Target already has pending operation!', targetCoordId);
+      throw new Error(`Operation already in progress for target tile ${targetCoordId}. Please wait for the current operation to complete.`);
+    }
+
+    // Create unique operation promises for each tile
+    console.log('🔒 COORDINATOR: Registering operations...');
+    const promise = operation();
+    const operationId = `move-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    const sourceOperationData = {
+      type: 'move' as const,
+      promise: promise,
+      startTime: Date.now(),
+      operationId
+    };
+
+    const targetOperationData = {
+      type: 'move' as const,
+      promise: promise,
+      startTime: Date.now(),
+      operationId
+    };
+
+    this.pendingOperations.set(sourceCoordId, sourceOperationData);
+    this.pendingOperations.set(targetCoordId, targetOperationData);
+
+    console.log('🔒 COORDINATOR: Operations registered!', {
+      operationId,
+      pendingOpsAfter: Array.from(this.pendingOperations.keys())
+    });
+
+    try {
+      const result = await promise;
+      console.log('✅ COORDINATOR: Operation completed successfully', { operationId });
+      return result;
+    } catch (error) {
+      console.log('❌ COORDINATOR: Operation failed:', { operationId, error });
+      throw error;
+    } finally {
+      // Only clean up tiles that belong to THIS operation
+      console.log('🔓 COORDINATOR: Cleaning up pending operations...', { operationId });
+
+      const sourceOp = this.pendingOperations.get(sourceCoordId);
+      const targetOp = this.pendingOperations.get(targetCoordId);
+
+      if (sourceOp?.operationId === operationId) {
+        this.pendingOperations.delete(sourceCoordId);
+        console.log('🔓 COORDINATOR: Cleaned up source', sourceCoordId);
+      } else {
+        console.log('🔓 COORDINATOR: Skipped source cleanup (different operation)', { sourceCoordId, currentOpId: sourceOp?.operationId, thisOpId: operationId });
+      }
+
+      if (targetOp?.operationId === operationId) {
+        this.pendingOperations.delete(targetCoordId);
+        console.log('🔓 COORDINATOR: Cleaned up target', targetCoordId);
+      } else {
+        console.log('🔓 COORDINATOR: Skipped target cleanup (different operation)', { targetCoordId, currentOpId: targetOp?.operationId, thisOpId: operationId });
+      }
+
+      console.log('🔓 COORDINATOR: Cleanup complete!', {
+        operationId,
+        pendingOpsAfter: Array.from(this.pendingOperations.keys())
+      });
+    }
+  }
 
   async createItem(coordId: string, data: {
     parentId?: number;
@@ -181,25 +330,27 @@ export class MutationCoordinator {
     if (!this.config.moveItemMutation) {
       throw new Error("Move item mutation not configured");
     }
-    
-    const changeId = this.tracker.generateChangeId();
-    const moveParams = this._prepareMoveOperation(sourceCoordId, targetCoordId, changeId);
-    
-    try {
-      // Apply optimistic changes
-      this._applyOptimisticChange(moveParams);
-      
-      // Execute server mutation
-      const result = await this._executeMoveOnServer(moveParams);
-      
-      // Finalize the operation
-      await this._finalizeMoveOperation(result, moveParams);
-      
-      return { success: true, data: result.modifiedItems[0], isSwap: moveParams.isSwap };
-    } catch (error) {
-      this._rollbackMove(moveParams.rollbackState, changeId);
-      throw error;
-    }
+
+    return this.trackMoveOperation(sourceCoordId, targetCoordId, async () => {
+      const changeId = this.tracker.generateChangeId();
+      const moveParams = this._prepareMoveOperation(sourceCoordId, targetCoordId, changeId);
+
+      try {
+        // Apply optimistic changes
+        this._applyOptimisticChange(moveParams);
+
+        // Execute server mutation
+        const result = await this._executeMoveOnServer(moveParams);
+
+        // Finalize the operation
+        await this._finalizeMoveOperation(result, moveParams);
+
+        return { success: true, data: result.modifiedItems[0], isSwap: moveParams.isSwap };
+      } catch (error) {
+        this._rollbackMove(moveParams.rollbackState, changeId);
+        throw error;
+      }
+    });
   }
 
   private _applyOptimisticSwap(

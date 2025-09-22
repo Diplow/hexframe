@@ -1,8 +1,7 @@
 'use client';
 
 import { AlertCircle, RefreshCw } from 'lucide-react';
-import { Button } from '~/components/ui/button';
-import { BaseWidget, WidgetHeader, WidgetContent, WidgetActions } from '~/app/map/Chat/Timeline/Widgets/_shared';
+import { BaseWidget, WidgetHeader, WidgetContent } from '~/app/map/Chat/Timeline/Widgets/_shared';
 
 interface ErrorWidgetProps {
   message: string;
@@ -36,42 +35,56 @@ export function ErrorWidget({ message, error, operation, retry, onDismiss }: Err
     }
   };
 
+  const fullErrorMessage = operation
+    ? `${message} while ${getOperationText()}`
+    : message;
+
   return (
-    <BaseWidget variant="destructive" className="w-full max-w-md mx-auto">
+    <BaseWidget className="w-full">
       <WidgetHeader
         icon={<AlertCircle className="h-5 w-5 text-destructive" />}
-        title={message}
-        subtitle={operation && `Failed while ${getOperationText()}`}
+        title="Error"
         onClose={onDismiss}
       />
 
       <WidgetContent>
-        {error && (
-          <p className="text-sm text-muted-foreground">
-            {error}
+        <div className="space-y-3">
+          <p className="text-sm text-foreground">
+            {fullErrorMessage}
           </p>
-        )}
 
-        <WidgetActions align="left">
+          {error && (
+            <div className="text-sm text-muted-foreground font-mono bg-muted/50 p-3 rounded-md overflow-auto max-h-32">
+              <pre className="whitespace-pre-wrap text-xs">{error}</pre>
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end gap-2">
           {retry && (
-            <Button
-              variant="outline"
-              size="sm"
+            <button
+              type="button"
               onClick={retry}
-              className="gap-1.5"
+              className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md
+                       hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary
+                       transition-colors flex items-center gap-1.5"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               Retry
-            </Button>
+            </button>
           )}
-          <Button
-            variant="ghost"
-            size="sm"
+          <button
+            type="button"
             onClick={handleDismiss}
+            className="px-4 py-2 text-sm font-medium text-secondary dark:text-secondary-foreground
+                     bg-background dark:bg-neutral-700 border border-border
+                     rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-600
+                     focus:outline-none focus:ring-2 focus:ring-secondary
+                     transition-colors"
           >
             Dismiss
-          </Button>
-        </WidgetActions>
+          </button>
+        </div>
       </WidgetContent>
     </BaseWidget>
   );

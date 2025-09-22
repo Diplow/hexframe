@@ -111,5 +111,9 @@ export function useMutationOperations(config: MutationOperationsConfig): Mutatio
     rollbackOptimisticChange: coordinator.rollbackChange.bind(coordinator),
     rollbackAllOptimistic: coordinator.rollbackAll.bind(coordinator),
     getPendingOptimisticChanges: coordinator.getPendingChanges.bind(coordinator),
+    // Operation tracking methods for preventing race conditions
+    isOperationPending: coordinator.isOperationPending.bind(coordinator),
+    getPendingOperationType: coordinator.getPendingOperationType.bind(coordinator),
+    getTilesWithPendingOperations: coordinator.getTilesWithPendingOperations.bind(coordinator),
   }), [coordinator]);
 }

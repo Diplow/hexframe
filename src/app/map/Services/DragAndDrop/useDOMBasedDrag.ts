@@ -36,7 +36,7 @@ export interface UseDOMBasedDragReturn {
 export function useDOMBasedDrag(): UseDOMBasedDragReturn {
   const { mappingUserId } = useUnifiedAuth();
   const eventBus = useEventBus();
-  const { getItem, moveItemOptimistic } = useMapCache();
+  const { getItem, moveItemOptimistic, isOperationPending, getPendingOperationType } = useMapCache();
 
   // Create service instance once and keep it stable
   const dragService = useMemo(() => {
@@ -85,17 +85,75 @@ export function useDOMBasedDrag(): UseDOMBasedDragReturn {
 
       void (async () => {
         try {
+          console.log('🔄 DRAG OPERATION START:', {
+            sourceId,
+            targetId,
+            timestamp: new Date().toISOString(),
+            sourceHasPending: isOperationPending(sourceId),
+            targetHasPending: isOperationPending(targetId),
+            sourcePendingType: getPendingOperationType(sourceId),
+            targetPendingType: getPendingOperationType(targetId)
+          });
+
+          // Check for pending operations before starting the move
+          if (isOperationPending(sourceId)) {
+            const pendingType = getPendingOperationType(sourceId);
+            console.log('❌ SOURCE BLOCKED:', { sourceId, pendingType });
+            throw new Error(`Cannot move tile: ${pendingType} operation in progress for source tile. Please wait for current operation to complete.`);
+          }
+
+          if (isOperationPending(targetId)) {
+            const pendingType = getPendingOperationType(targetId);
+            console.log('❌ TARGET BLOCKED:', { targetId, pendingType });
+            throw new Error(`Cannot move tile: ${pendingType} operation in progress for target tile. Please wait for current operation to complete.`);
+          }
+
+          console.log('✅ OPERATION ALLOWED, starting moveItemOptimistic...');
           await moveItemOptimistic(sourceId, targetId);
+          console.log('✅ OPERATION COMPLETED successfully');
         } catch (error) {
+          // Extract error message from various error types (tRPC, regular Error, etc.)
+          const getErrorMessage = (err: unknown): string => {
+            if (err instanceof Error) {
+              return err.message;
+            }
+            if (typeof err === 'string') {
+              return err;
+            }
+            if (err && typeof err === 'object' && err !== null) {
+              // Handle tRPC errors and other structured errors safely
+              const errObj = err as Record<string, unknown>;
+              if (typeof errObj.message === 'string') {
+                return errObj.message;
+              }
+              if (errObj.error && typeof errObj.error === 'object' && errObj.error !== null) {
+                const errorObj = errObj.error as Record<string, unknown>;
+                if (typeof errorObj.message === 'string') {
+                  return errorObj.message;
+                }
+              }
+              if (errObj.data && typeof errObj.data === 'object' && errObj.data !== null) {
+                const dataObj = errObj.data as Record<string, unknown>;
+                if (typeof dataObj.message === 'string') {
+                  return dataObj.message;
+                }
+              }
+            }
+            return 'Failed to complete operation';
+          };
+
+          const errorMessage = getErrorMessage(error);
+
           eventBus.emit({
             type: 'error.occurred',
             source: 'map_cache',
             payload: {
-              error: error instanceof Error ? error.message : 'Failed to complete operation',
+              error: errorMessage,
               context: {
                 operation: 'move',
                 sourceCoordId: sourceId,
-                targetCoordId: targetId
+                targetCoordId: targetId,
+                originalError: error // Include original error for debugging
               },
               retryable: true
             },
@@ -114,15 +172,24 @@ export function useDOMBasedDrag(): UseDOMBasedDragReturn {
       unsubscribeDragEnded();
       unsubscribeDragDropped();
     };
-  }, [dragService, eventBus, moveItemOptimistic]);
+  }, [dragService, eventBus, moveItemOptimistic, isOperationPending, getPendingOperationType]);
 
   // Create drag props for draggable tiles
   const createDragProps = useCallback((coordId: string) => {
     const checkCanDrag = (): boolean => {
       const tile = getItem(coordId);
-      // DOM service handles drag validation internally
+
       // Basic check: user must own the tile to drag it
-      return tile ? tile.metadata.ownerId === mappingUserId?.toString() : false;
+      if (!tile || tile.metadata.ownerId !== mappingUserId?.toString()) {
+        return false;
+      }
+
+      // Check if there's a pending operation on this tile
+      if (isOperationPending(coordId)) {
+        return false;
+      }
+
+      return true;
     };
 
     const isDraggable = checkCanDrag();
@@ -147,7 +214,7 @@ export function useDOMBasedDrag(): UseDOMBasedDragReturn {
         dragService.endDrag();
       },
     };
-  }, [dragService, getItem, mappingUserId]);
+  }, [dragService, getItem, mappingUserId, isOperationPending]);
 
   // Tile registration methods
   const registerTile = useCallback((coordId: string, element: HTMLElement) => {

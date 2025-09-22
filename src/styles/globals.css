@@ -562,3 +562,76 @@
   --tw-prose-td-borders: hsl(var(--border));
 }
 
+/* ================================
+   Operation Pending Visual Feedback
+   ================================ */
+
+.operation-pending {
+  position: relative;
+  cursor: not-allowed;
+}
+
+.operation-pending::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    45deg,
+    rgba(59, 130, 246, 0.1) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(59, 130, 246, 0.1) 50%,
+    rgba(59, 130, 246, 0.1) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 8px 8px;
+  animation: operation-pending-stripes 1s linear infinite;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.operation-pending::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  border: 2px solid rgba(59, 130, 246, 0.6);
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 2;
+}
+
+@keyframes operation-pending-stripes {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 8px 8px;
+  }
+}
+
+/* Dark mode adjustments */
+.dark .operation-pending::before {
+  background: linear-gradient(
+    45deg,
+    rgba(96, 165, 250, 0.15) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(96, 165, 250, 0.15) 50%,
+    rgba(96, 165, 250, 0.15) 75%,
+    transparent 75%,
+    transparent
+  );
+}
+
+.dark .operation-pending::after {
+  border-color: rgba(96, 165, 250, 0.7);
+}
+

@@ -42,5 +42,10 @@ export function createMutationCallbacks(mutationOperations: MutationOperations) 
     rollbackOptimisticChange: mutationOperations.rollbackOptimisticChange,
     rollbackAllOptimistic: mutationOperations.rollbackAllOptimistic,
     getPendingOptimisticChanges: mutationOperations.getPendingOptimisticChanges,
+
+    // Operation tracking methods for preventing race conditions
+    isOperationPending: mutationOperations.isOperationPending,
+    getPendingOperationType: mutationOperations.getPendingOperationType,
+    getTilesWithPendingOperations: mutationOperations.getTilesWithPendingOperations,
   };
 }

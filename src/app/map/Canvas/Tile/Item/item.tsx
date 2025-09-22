@@ -69,11 +69,14 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
     <>
       <div
         ref={state.tileRef} // DOM-based drag registration
-        className={`group relative hover:z-10 select-none ${state.isBeingDragged ? 'dragging' : ''}`}
+        className={`group relative hover:z-10 select-none ${state.isBeingDragged ? 'dragging' : ''} ${state.hasOperationPending ? 'operation-pending' : ''}`}
         data-testid={state.testId}
-        style={{ opacity: state.isBeingDragged ? 0.5 : 1 }}
+        style={{
+          opacity: state.isBeingDragged ? 0.5 : state.hasOperationPending ? 0.7 : 1,
+          pointerEvents: state.hasOperationPending ? 'none' : 'auto'
+        }}
         // DOM-based drag props (only applies to draggable tiles)
-        {...(state.dragProps.draggable && state.dragProps)}
+        {...(state.dragProps.draggable && !state.hasOperationPending && state.dragProps)}
       >
         <ItemTileContent
           {...props}
@@ -86,6 +89,8 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
           isBeingDragged={state.isBeingDragged}
           canEdit={state.canEdit}
           isSelected={props.isSelected}
+          hasOperationPending={state.hasOperationPending}
+          operationType={state.operationType}
         />
       </div>
     </>

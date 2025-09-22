@@ -23,6 +23,8 @@ interface ItemTileContentProps {
   isCenter: boolean;
   canEdit: boolean;
   isSelected?: boolean;
+  hasOperationPending?: boolean;
+  operationType?: 'create' | 'update' | 'delete' | 'move' | null;
   onNavigate?: (coordId: string) => void;
   onToggleExpansion?: (itemId: string, coordId: string) => void;
 }
