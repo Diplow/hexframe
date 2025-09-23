@@ -229,6 +229,8 @@ export function useDOMBasedDrag(): UseDOMBasedDragReturn {
 
   // Global drop handler
   const onDrop = useCallback((event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
     dragService.executeDrop(event);
   }, [dragService]);
 
