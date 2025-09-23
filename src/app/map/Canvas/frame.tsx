@@ -21,7 +21,7 @@ import type { URLInfo } from "~/app/map/types/url-info";
 import { useCanvasTheme } from "~/app/map/Canvas";
 import { useEffect } from "react";
 import { loggers } from "~/lib/debug/debug-logger";
-import type { UseDOMBasedDragReturn } from "~/app/map/Services";
+// Removed drag service import - using global service
 
 const CHILD_INDICES = [1, 2, 3, 4, 5, 6] as const;
 
@@ -44,8 +44,7 @@ export interface DynamicFrameProps {
     parentId?: string;
     parentCoordId?: string;
   }) => void;
-  // DOM-based drag service (optional)
-  domBasedDragService?: UseDOMBasedDragReturn;
+  // Drag service no longer passed as prop - using global service
 }
 
 /**
@@ -89,7 +88,7 @@ export const DynamicFrame = (props: DynamicFrameProps) => {
         isSelected={props.selectedTileId === centerItem.metadata.coordId}
         onNavigate={props.onNavigate}
         onToggleExpansion={props.onToggleExpansion}
-        domBasedDragService={props.domBasedDragService}
+        // No drag service prop needed
       />
     );
   }
@@ -122,7 +121,7 @@ export const DynamicFrame = (props: DynamicFrameProps) => {
           onNavigate={props.onNavigate}
           onToggleExpansion={props.onToggleExpansion}
           onCreateRequested={props.onCreateRequested}
-          domBasedDragService={props.domBasedDragService}
+          // No drag service prop needed
         />
       </div>
     </DynamicBaseTileLayout>
@@ -151,7 +150,7 @@ const FrameInterior = (props: {
     parentId?: string;
     parentCoordId?: string;
   }) => void;
-  domBasedDragService?: UseDOMBasedDragReturn;
+  // Drag service no longer passed as prop
 }) => {
   const { centerItem, baseHexSize = 50, childScale } = props;
   
@@ -229,7 +228,7 @@ const FrameInterior = (props: {
                 onNavigate={props.onNavigate}
                 onToggleExpansion={props.onToggleExpansion}
                 onCreateRequested={props.onCreateRequested}
-                domBasedDragService={props.domBasedDragService}
+                // No drag service prop needed
               />
             );
           })}
@@ -268,7 +267,7 @@ const FrameSlot = (props: {
     parentId?: string;
     parentCoordId?: string;
   }) => void;
-  domBasedDragService?: UseDOMBasedDragReturn;
+  // Drag service no longer passed as prop
 }) => {
   const { coordId, mapItems, slotScale, isCenter } = props;
   const item = mapItems[coordId];
@@ -310,7 +309,7 @@ const FrameSlot = (props: {
         interactive={props.interactive}
         currentUserId={props.currentUserId}
         onCreateRequested={props.onCreateRequested}
-        domBasedDragService={props.domBasedDragService}
+        // No drag service prop needed
       />
     );
   }
@@ -335,7 +334,7 @@ const FrameSlot = (props: {
         isSelected={props.selectedTileId === item.metadata.coordId}
         onNavigate={props.onNavigate}
         onToggleExpansion={props.onToggleExpansion}
-        domBasedDragService={props.domBasedDragService}
+        // No drag service prop needed
       />
     );
   }
@@ -356,7 +355,7 @@ const FrameSlot = (props: {
         onNavigate={props.onNavigate}
         onToggleExpansion={props.onToggleExpansion}
         onCreateRequested={props.onCreateRequested}
-        domBasedDragService={props.domBasedDragService}
+        // No drag service prop needed
       />
     );
   }
@@ -375,7 +374,7 @@ const FrameSlot = (props: {
       isSelected={props.selectedTileId === item.metadata.coordId}
       onNavigate={props.onNavigate}
       onToggleExpansion={props.onToggleExpansion}
-      domBasedDragService={props.domBasedDragService}
+      // No drag service prop needed
     />
   );
 };

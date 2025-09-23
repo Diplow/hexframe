@@ -178,8 +178,7 @@ class ComplexityRuleChecker:
             missing.append("dependencies.json")
         if not (directory / "README.md").exists():
             missing.append("README.md")
-        if not (directory / "ARCHITECTURE.md").exists():
-            missing.append("ARCHITECTURE.md")
+        # ARCHITECTURE.md no longer required - consolidated into README.md
         
         return missing
     

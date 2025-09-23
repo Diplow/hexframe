@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import type { DragEvent } from "react";
 import type { TileData } from "~/app/map/types/tile-data";
 import { useItemInteraction } from "~/app/map/Canvas/Tile/Item/_internals/hooks/use-item-interaction";
 import { generateTileTestId } from "~/app/map/Canvas/Tile/Item/_internals/utils";
 import { canEditTile } from "~/app/map/Canvas/Tile/Item/_internals/validators";
-import { useTileRegistration } from "~/app/map/Services";
 import { useMapCache } from "~/app/map/Cache";
 import { testLogger } from "~/lib/test-logger";
-import type { UseDOMBasedDragReturn } from "~/app/map/Services";
+import { canDragTile } from "~/app/map/Services/DragAndDrop/_validators/drag-validators";
 
 interface ItemStateProps {
   item: TileData;
@@ -18,7 +18,6 @@ interface ItemStateProps {
   hasChildren: boolean;
   isCenter: boolean;
   scale: number;
-  domBasedDragService?: UseDOMBasedDragReturn;
 }
 
 /**
@@ -42,10 +41,10 @@ export function useItemState({
   hasChildren,
   isCenter,
   scale,
-  domBasedDragService
 }: ItemStateProps) {
   const interaction = useItemInteraction(item.metadata.coordId);
-  const { isOperationPending, getPendingOperationType } = useMapCache();
+  const { isOperationPending, getPendingOperationType, startDrag } = useMapCache();
+  const tileRef = useRef<HTMLDivElement>(null);
 
   const canEdit = canEditTile(currentUserId, item.metadata.ownerId);
   const testId = generateTileTestId(item.metadata.coordinates);
@@ -54,24 +53,33 @@ export function useItemState({
   const hasOperationPending = isOperationPending(item.metadata.coordId);
   const operationType = getPendingOperationType(item.metadata.coordId);
 
-  // DOM-based drag and drop integration
-  const tileRef = useTileRegistration(item.metadata.coordId, domBasedDragService ?? null);
+  // Check if this tile can be dragged
+  const isDraggable = interactive && canDragTile(item, currentUserId) && !hasOperationPending;
 
-  // Get drag props from DOM-based service if available
-  const dragProps = interactive && domBasedDragService
-    ? domBasedDragService.createDragProps(item.metadata.coordId)
-    : { draggable: false };
+  // Create drag props with data attributes
+  const dragProps = {
+    draggable: isDraggable,
+    onDragStart: (event: DragEvent<HTMLDivElement>) => {
+      if (!isDraggable) {
+        event.preventDefault();
+        return;
+      }
+      startDrag(item.metadata.coordId, event.nativeEvent);
+    },
+  };
 
-  // No drop props needed - DOM-based service handles detection automatically
+  // Data attributes for DOM-based drag detection
+  const dataAttributes = {
+    'data-tile-id': item.metadata.coordId,
+    'data-tile-owner': currentUserId?.toString() ?? '',
+    'data-tile-has-content': 'true', // This tile has content (not empty)
+  };
+
+  // No drop props needed - global service handles detection automatically
   const dropProps = {};
 
-  // Get drag state from DOM-based service
-  const isBeingDragged = domBasedDragService ? domBasedDragService.isDraggingTile(item.metadata.coordId) : false;
-  const isDropTarget = domBasedDragService ? domBasedDragService.isHoverTarget(item.metadata.coordId) : false;
-  const dropOperation = domBasedDragService ? domBasedDragService.getDropOperation(item.metadata.coordId) : null;
-
-  // Simplified color logic for DOM-based drag
-  const tileColor = isDropTarget && dropOperation === 'move' ? 'transparent' : item.data.color;
+  // Visual state (will be handled by CSS classes applied by global service)
+  const tileColor = item.data.color;
   
   // Log tile rendering for E2E tests
   useEffect(() => {
@@ -93,11 +101,10 @@ export function useItemState({
     testId,
     dragProps,
     dropProps,
+    dataAttributes, // New: data attributes for global drag service
     tileColor,
-    tileRef, // New: ref for DOM-based drag registration
-    isBeingDragged, // New: drag state from DOM service
-    isDropTarget, // New: drop target state from DOM service
-    hasOperationPending, // New: operation pending state
+    tileRef, // Ref for the tile element
+    hasOperationPending, // Operation pending state
     operationType, // New: pending operation type
   };
 }

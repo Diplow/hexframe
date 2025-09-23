@@ -16,7 +16,6 @@ interface ItemTileContentProps {
   tileColor: TileColor | string; // Allow both old format and new semantic format
   testId: string;
   interactive: boolean;
-  isBeingDragged: boolean;
   urlInfo: URLInfo;
   allExpandedItemIds: string[];
   hasChildren: boolean;
@@ -40,7 +39,7 @@ export function ItemTileContent({
   tileColor,
   testId,
   interactive,
-  isBeingDragged: _isBeingDragged,
+  // Removed isBeingDragged - handled by CSS
   urlInfo: _urlInfo,
   allExpandedItemIds,
   hasChildren,

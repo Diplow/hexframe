@@ -8,6 +8,7 @@ import { createMutationCallbacks } from "~/app/map/Cache/_internals/mutation-cal
 import { createNavigationCallbacks } from "~/app/map/Cache/_internals/navigation-callbacks";
 import { createHierarchyCallbacks } from "~/app/map/Cache/_internals/hierarchy-callbacks";
 import { createSyncOperationsAPI } from "~/app/map/Cache/_internals/sync-operations";
+import { globalDragService } from "~/app/map/Services/DragAndDrop/GlobalDragService";
 
 /**
  * Main hook that provides clean public API for cache operations
@@ -49,6 +50,11 @@ export function useMapCache(): MapCacheHook {
     [dispatch],
   );
 
+  // Drag operations
+  const startDrag = useCallback((tileId: string, event: globalThis.DragEvent) => {
+    globalDragService.startDrag(tileId, event);
+  }, []);
+
   return _buildPublicAPI(
     state,
     dataOperations,
@@ -57,7 +63,8 @@ export function useMapCache(): MapCacheHook {
     navigationCallbacks,
     mutationCallbacks,
     syncAPI,
-    updateConfig
+    updateConfig,
+    startDrag
   );
 }
 
@@ -73,7 +80,8 @@ function _buildPublicAPI(
   navigationCallbacks: ReturnType<typeof createNavigationCallbacks>,
   mutationCallbacks: ReturnType<typeof createMutationCallbacks>,
   syncAPI: ReturnType<typeof createSyncOperationsAPI>,
-  updateConfig: (config: Partial<MapCacheHook["config"]>) => void
+  updateConfig: (config: Partial<MapCacheHook["config"]>) => void,
+  startDrag: (tileId: string, event: globalThis.DragEvent) => void
 ): MapCacheHook {
   return {
     // State queries
@@ -102,6 +110,9 @@ function _buildPublicAPI(
 
     // Mutation operations (optimistic only)
     ...mutationCallbacks,
+
+    // Drag operations
+    startDrag,
 
     // Sync operations
     sync: syncAPI,

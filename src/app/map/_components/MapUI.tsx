@@ -9,7 +9,7 @@ import { useTileSelectForChat } from "~/app/map/_hooks/use-tile-select-for-chat"
 import { useMapCache, type MapCacheHook } from '~/app/map/Cache';
 import { useRouter } from "next/navigation";
 import { useEventBus, type EventBusService } from '~/app/map';
-import { useDOMBasedDrag } from '~/app/map/Services';
+// Removed drag service import - using global service
 
 const CACHE_CONFIG = {
   maxAge: 300000,
@@ -81,8 +81,7 @@ function _renderMapContent(
   isLoading: boolean,
   centerCoordinate: string | null,
   loadingError: Error | null,
-  params: Record<string, string | undefined>,
-  dragService: ReturnType<typeof useDOMBasedDrag>
+  params: Record<string, string | undefined>
 ) {
   if (isLoading || !centerCoordinate) {
     return <MapLoadingSkeleton message="Loading map..." state="initializing" />;
@@ -125,7 +124,6 @@ function _renderMapContent(
       enableBackgroundSync={true}
       syncInterval={30000}
       cacheConfig={CACHE_CONFIG}
-      dragService={dragService}
     />
   );
 }
@@ -143,8 +141,7 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
   const router = useRouter();
   const eventBus = useEventBus();
 
-  // Create shared drag service for both Canvas and Chat Panel
-  const sharedDragService = useDOMBasedDrag();
+  // Drag service no longer needed - using global service
 
   const centerCoordinate = center;
   const loadingError = error;
@@ -170,11 +167,11 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
         <div className="flex w-full">
           <ChatPanel
             className="w-[40%] min-w-[40%] flex-shrink-0 border-r border-[color:var(--stroke-color-950)] overflow-hidden"
-            dragService={sharedDragService}
+            // No drag service prop needed
           />
 
           <div className="flex-1 pr-[130px]">
-            {_renderMapContent(isLoading, centerCoordinate, loadingError, params, sharedDragService)}
+            {_renderMapContent(isLoading, centerCoordinate, loadingError, params)}
           </div>
 
           {centerCoordinate && (

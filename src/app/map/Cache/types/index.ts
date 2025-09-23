@@ -115,6 +115,9 @@ export interface MapCacheHook {
   getPendingOperationType: (coordId: string) => 'create' | 'update' | 'delete' | 'move' | null;
   getTilesWithPendingOperations: () => string[];
 
+  // Drag and drop operations
+  startDrag: (tileId: string, event: globalThis.DragEvent) => void;
+
   // Sync operations
   sync: {
     isOnline: boolean;

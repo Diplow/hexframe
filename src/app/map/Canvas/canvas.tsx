@@ -20,8 +20,7 @@ import { useMapCache } from '~/app/map/Cache';
 import type { URLInfo } from "~/app/map/types/url-info";
 import { MapLoadingSkeleton } from "~/app/map/Canvas/LifeCycle/loading-skeleton";
 import { MapErrorBoundary } from "~/app/map/Canvas/LifeCycle/error-boundary";
-import type { UseDOMBasedDragReturn } from "~/app/map/Services";
-// import type { DragEvent } from "react"; // Removed unused import
+// Removed unused drag imports
 import { loggers } from "~/lib/debug/debug-logger";
 import { useEventBus } from '~/app/map';
 
@@ -57,8 +56,7 @@ interface DynamicMapCanvasProps {
     maxDepth: number;
   };
 
-  // Shared drag service (required)
-  dragService: UseDOMBasedDragReturn;
+  // Drag service no longer needed - handled by global service
 }
 
 export function DynamicMapCanvas({
@@ -71,7 +69,6 @@ export function DynamicMapCanvas({
   enableBackgroundSync: _enableBackgroundSync = true,
   syncInterval: _syncInterval = 30000,
   cacheConfig: _cacheConfig,
-  dragService,
 }: DynamicMapCanvasProps) {
   const {
     items,
@@ -115,8 +112,7 @@ export function DynamicMapCanvas({
     return unsubscribe;
   }, [eventBus]);
   
-  // Use the required drag service
-  const domBasedDragAndDrop = dragService;
+  // Drag service no longer passed as prop - using global service
 
   useEffect(() => {
     // Initialize hydration
@@ -247,18 +243,7 @@ export function DynamicMapCanvas({
           <div
             data-canvas-id={dynamicCenterInfo.center}
             className="pointer-events-auto grid flex-grow place-items-center overflow-auto py-4"
-            // Global drop handler for DOM-based drag and drop
-            onDrop={(e) => {
-              domBasedDragAndDrop.onDrop(e);
-            }}
-            onDragOver={(e) => {
-              // Prevent default to allow drop
-              e.preventDefault();
-            }}
-            onDragEnter={(e) => {
-            }}
-            onDragLeave={(e) => {
-            }}
+            // No drag handlers needed - global service handles everything
           >
             <DynamicFrame
               center={dynamicCenterInfo.center}
@@ -273,17 +258,10 @@ export function DynamicMapCanvas({
               onNavigate={handleNavigate}
               onToggleExpansion={handleToggleExpansion}
               onCreateRequested={handleCreateRequested}
-              // Pass the DOM-based drag service to Frame
-              domBasedDragService={domBasedDragAndDrop}
+              // No drag service prop needed - using global service
             />
           </div>
-          {/* Debug info for DOM-based drag */}
-          {domBasedDragAndDrop.isDragging && (
-            <div className="absolute top-4 left-4 bg-secondary p-2 rounded shadow text-sm z-50">
-              <div>🚀 DOM-based Drag Active</div>
-              <div>Geometric Detection: ON</div>
-            </div>
-          )}
+          {/* Drag debug UI removed - handled by global service with CSS */}
         </div>
       </LegacyTileActionsContext.Provider>
     </CanvasThemeContext.Provider>

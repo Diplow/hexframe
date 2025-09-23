@@ -7,7 +7,6 @@ import { useItemState } from "~/app/map/Canvas/Tile/Item/_internals/hooks";
 import { ItemTileContent } from "~/app/map/Canvas/Tile/Item/_components/item-tile-content";
 import { useEffect } from "react";
 import { loggers } from "~/lib/debug/debug-logger";
-import type { UseDOMBasedDragReturn } from "~/app/map/Services";
 
 export interface DynamicItemTileProps {
   item: TileData;
@@ -22,7 +21,6 @@ export interface DynamicItemTileProps {
   isSelected?: boolean;
   onNavigate?: (coordId: string) => void;
   onToggleExpansion?: (itemId: string, coordId: string) => void;
-  domBasedDragService?: UseDOMBasedDragReturn;
 }
 
 export const DynamicItemTile = (props: DynamicItemTileProps) => {
@@ -45,7 +43,6 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
     hasChildren,
     isCenter,
     scale,
-    domBasedDragService: props.domBasedDragService
   });
   
   // Log tile render
@@ -61,22 +58,24 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
       isSelected: props.isSelected,
       interactive,
       canEdit: state.canEdit,
-      isBeingDragged: state.interaction.isBeingDragged,
+      // Removed isBeingDragged as it's now handled by CSS
     });
   });
 
   return (
     <>
       <div
-        ref={state.tileRef} // DOM-based drag registration
-        className={`group relative hover:z-10 select-none ${state.isBeingDragged ? 'dragging' : ''} ${state.hasOperationPending ? 'operation-pending' : ''}`}
+        ref={state.tileRef}
+        className={`group relative hover:z-10 select-none ${state.hasOperationPending ? 'operation-pending' : ''}`}
         data-testid={state.testId}
         style={{
-          opacity: state.isBeingDragged ? 0.5 : state.hasOperationPending ? 0.7 : 1,
+          opacity: state.hasOperationPending ? 0.7 : 1,
           pointerEvents: state.hasOperationPending ? 'none' : 'auto'
         }}
-        // DOM-based drag props (only applies to draggable tiles)
-        {...(state.dragProps.draggable && !state.hasOperationPending && state.dragProps)}
+        // Data attributes for global drag service
+        {...state.dataAttributes}
+        // Drag props from the state
+        {...state.dragProps}
       >
         <ItemTileContent
           {...props}
@@ -86,7 +85,6 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
           interactive={interactive}
           tileColor={state.tileColor}
           testId={state.testId}
-          isBeingDragged={state.isBeingDragged}
           canEdit={state.canEdit}
           isSelected={props.isSelected}
           hasOperationPending={state.hasOperationPending}

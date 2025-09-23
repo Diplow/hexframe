@@ -10,8 +10,7 @@ import { getColor } from "~/app/map/types";
 import { getDefaultStroke } from "~/app/map/Canvas/Tile/utils/stroke";
 import { useTileInteraction } from "~/app/map/Canvas";
 import { loggers } from "~/lib/debug/debug-logger";
-import { useTileRegistration } from "~/app/map/Services";
-import type { UseDOMBasedDragReturn } from "~/app/map/Services";
+import { useRef } from "react";
 
 export interface DynamicEmptyTileProps {
   coordId: string;
@@ -21,7 +20,6 @@ export interface DynamicEmptyTileProps {
   parentItem?: { id: string; name: string; ownerId?: string };
   interactive?: boolean;
   currentUserId?: number;
-  domBasedDragService?: UseDOMBasedDragReturn;
   onCreateRequested?: (payload: {
     coordId: string;
     parentName?: string;
@@ -34,9 +32,7 @@ export interface DynamicEmptyTileProps {
 export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
   const [isHovered, setIsHovered] = useState(false);
   const { isDarkMode } = useCanvasTheme();
-
-  // DOM-based drag integration
-  const tileRef = useTileRegistration(props.coordId, props.domBasedDragService ?? null);
+  const tileRef = useRef<HTMLDivElement>(null);
 
   const tileState = _setupTileState(props);
   const interactionHandlers = useTileInteraction({
@@ -57,11 +53,8 @@ export function DynamicEmptyTile(props: DynamicEmptyTileProps) {
     });
   });
 
-  // Get drag state from DOM-based service
-  const isDropTarget = props.domBasedDragService ? props.domBasedDragService.isHoverTarget(props.coordId) : false;
-  const dropOperation = props.domBasedDragService ? props.domBasedDragService.getDropOperation(props.coordId) : null;
-
-  const dropConfig = _setupDropConfiguration(props, isDropTarget, dropOperation);
+  // Drop state will be handled by CSS classes from global service
+  const dropConfig = _setupDropConfiguration(props, false, null);
   const tileLayout = _createTileLayout(props, isDarkMode, interactionHandlers, dropConfig, isHovered, tileState);
 
   return _renderEmptyTile(props, tileRef, isHovered, setIsHovered, tileLayout);
@@ -152,12 +145,14 @@ function _renderEmptyTile(
 
   return (
     <div
-      ref={tileRef} // DOM-based drag registration
+      ref={tileRef}
       className={`group relative hover:z-10`}
       data-testid={`empty-tile-${props.coordId}`}
+      data-tile-id={props.coordId}
+      data-tile-owner="" // Empty tiles have no owner
+      data-tile-has-content="false" // Empty tiles have no content
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      // No drop handlers needed - DOM service handles this
     >
       <div>
         <DynamicBaseTileLayout
