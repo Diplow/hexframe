@@ -48,17 +48,12 @@ class GlobalDragService {
     validationHandler: ValidationHandler;
     currentUserId: number;
   }) {
-    console.log('🐛 GlobalDragService.initialize:', {
-      currentUserId: options.currentUserId,
-      wasInitialized: this.isInitialized
-    });
 
     if (this.isInitialized) {
       // Update handlers if already initialized
       this.dropHandler = options.dropHandler;
       this.validationHandler = options.validationHandler;
       this.currentUserId = options.currentUserId;
-      console.log('🐛 Updated handlers for already initialized service');
       return;
     }
 
@@ -68,17 +63,14 @@ class GlobalDragService {
 
     this.attachEventListeners();
     this.isInitialized = true;
-    console.log('🐛 GlobalDragService initialized and event listeners attached');
   }
 
   /**
    * Start dragging a tile - called from tile's onDragStart
    */
   startDrag(tileId: string, event: DragEvent) {
-    console.log('🐛 GlobalDragService.startDrag:', { tileId, isInitialized: this.isInitialized });
 
     if (!this.isInitialized) {
-      console.warn('🐛 Drag service not initialized yet, preventing drag');
       event.preventDefault();
       return;
     }
@@ -99,9 +91,7 @@ class GlobalDragService {
     const draggedElement = this.findTileElement(tileId);
     if (draggedElement) {
       draggedElement.setAttribute('data-being-dragged', 'true');
-      console.log('🐛 Marked dragged element:', draggedElement);
     } else {
-      console.log('🐛 Could not find dragged element for:', tileId);
     }
   }
 
@@ -109,7 +99,6 @@ class GlobalDragService {
    * End drag operation
    */
   private endDrag() {
-    console.log('🐛 GlobalDragService.endDrag: Cleaning up drag state');
 
     // Clean up CSS classes
     document.body.removeAttribute('data-drag-active');
@@ -118,7 +107,6 @@ class GlobalDragService {
       const draggedElement = this.findTileElement(this.currentDraggedTile);
       if (draggedElement) {
         draggedElement.removeAttribute('data-being-dragged');
-        console.log('🐛 Cleaned up dragged element:', this.currentDraggedTile);
       }
     }
 
@@ -130,7 +118,6 @@ class GlobalDragService {
 
     this.currentDraggedTile = null;
     this.currentDropTarget = null;
-    console.log('🐛 Drag cleanup complete');
   }
 
   /**
@@ -138,7 +125,6 @@ class GlobalDragService {
    */
   private clearAllDropTargets() {
     const allDropTargets = document.querySelectorAll('[data-drop-target="true"]');
-    console.log('🐛 Clearing', allDropTargets.length, 'drop targets');
 
     allDropTargets.forEach((element) => {
       element.removeAttribute('data-drop-target');
@@ -160,11 +146,6 @@ class GlobalDragService {
     if (!this.currentDraggedTile) return;
 
     const dropTarget = this.findDropTargetFromEvent(event);
-    console.log('🐛 DragOver:', {
-      currentDraggedTile: this.currentDraggedTile,
-      dropTarget: dropTarget?.tileId,
-      currentDropTarget: this.currentDropTarget
-    });
 
     // No change in target
     if (dropTarget?.tileId === this.currentDropTarget) {
@@ -183,7 +164,6 @@ class GlobalDragService {
     // Set new target
     if (dropTarget && dropTarget.tileId !== this.currentDraggedTile) {
       const validation = this.validateDrop(this.currentDraggedTile, dropTarget);
-      console.log('🐛 Validation result:', validation);
 
       if (validation.isValid) {
         this.currentDropTarget = dropTarget.tileId;
@@ -191,10 +171,8 @@ class GlobalDragService {
 
         dropTarget.element.setAttribute('data-drop-target', 'true');
         dropTarget.element.setAttribute('data-drop-operation', operation);
-        console.log('🐛 Set drop target:', { tileId: dropTarget.tileId, operation });
       } else {
         this.currentDropTarget = null;
-        console.log('🐛 Invalid drop target:', validation.reason);
       }
     } else {
       this.currentDropTarget = null;
@@ -203,14 +181,8 @@ class GlobalDragService {
 
   private handleDrop(event: DragEvent) {
     event.preventDefault();
-    console.log('🐛 HandleDrop:', {
-      currentDraggedTile: this.currentDraggedTile,
-      currentDropTarget: this.currentDropTarget,
-      hasDropHandler: !!this.dropHandler
-    });
 
     if (!this.currentDraggedTile || !this.currentDropTarget) {
-      console.log('🐛 Drop failed: missing tile IDs');
       this.endDrag();
       return;
     }
@@ -220,15 +192,12 @@ class GlobalDragService {
     const targetElement = this.findTileElement(targetId);
     const operation = targetElement?.getAttribute('data-drop-operation') as 'move' | 'swap' || 'move';
 
-    console.log('🐛 Executing drop:', { sourceId, targetId, operation });
 
     // Execute the drop through the handler
     if (this.dropHandler) {
       this.dropHandler({ sourceId, targetId, operation }).catch(error => {
         console.error('Drop operation failed:', error);
       });
-    } else {
-      console.log('🐛 No drop handler available');
     }
 
     this.endDrag();
@@ -250,7 +219,6 @@ class GlobalDragService {
         if (targetElement) {
           targetElement.removeAttribute('data-drop-target');
           targetElement.removeAttribute('data-drop-operation');
-          console.log('🐛 Cleared drop target on leave:', this.currentDropTarget);
         }
         this.currentDropTarget = null;
       }
@@ -342,7 +310,6 @@ class GlobalDragService {
             // This tile is highlighted but not the current target - clean it up
             element.removeAttribute('data-drop-target');
             element.removeAttribute('data-drop-operation');
-            console.log('🐛 Timer cleanup: removed stale highlight from', tileId);
           }
         });
       }

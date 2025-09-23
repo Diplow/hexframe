@@ -11,12 +11,12 @@ Like a set of modular building blocks - provides both static base tiles (like LE
 - Manages the public API contract for all tile-related components and types
 
 ## Non-Responsibilities
-- Static tile rendering implementation → See `./Base/README.md`
-- Interactive empty tile behavior → See `./Empty/README.md`
-- Interactive item tile behavior → See `./Item/README.md`
-- Tile utility functions implementation → See `./utils/README.md`
-- Drag and drop interaction logic → See parent `../README.md`
-- Data persistence and caching → See `../../Cache/README.md`
+- Static tile rendering implementation → See [Base](./Base/README.md)  
+- Interactive empty tile behavior → See [Empty](./Empty/README.md)  
+- Interactive item tile behavior → See [Item](./Item/README.md)  
+- Tile utility functions implementation → See [utils](./utils/README.md)  
+- Drag and drop interaction logic → See parent [Canvas README](../README.md)  
+- Data persistence and caching → See [Cache](../../Cache/README.md)
 
 ## Interface
 *See `index.ts` for the public API - the ONLY exports other subsystems can use*

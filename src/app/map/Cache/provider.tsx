@@ -145,11 +145,6 @@ export function MapCacheProvider({
 
   // Initialize global drag service
   useEffect(() => {
-    console.log('🐛 MapCacheProvider drag service effect:', {
-      hasUserId: !!mapContext?.userId,
-      userId: mapContext?.userId
-    });
-
     if (mapContext?.userId) {
       globalDragService.initialize({
         currentUserId: mapContext.userId,

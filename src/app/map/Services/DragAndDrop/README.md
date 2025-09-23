@@ -11,10 +11,10 @@ The DragAndDrop subsystem is like a "physical moving company" for hexagonal tile
 - Visual feedback through CSS classes during drag operations
 
 ## Non-Responsibilities
-- Tile rendering → See `../Canvas/README.md`
+- Tile rendering → See `../../Canvas/README.md`
 - Tile data management → See `../Cache/README.md`
-- Business logic for tile relationships → See `~/lib/domains/mapping/README.md`
-- Authentication checks → See `~/lib/domains/iam/README.md`
+- Business logic for tile relationships → See `lib/domains/mapping/README.md`
+- Authentication checks → See `lib/domains/iam/README.md`
 
 ## Interface
 *See `index.ts` for the public API - the ONLY exports other subsystems can use*

@@ -64,6 +64,14 @@ export function useItemState({
         event.preventDefault();
         return;
       }
+
+      // Guard against missing dataTransfer (e.g., in jsdom)
+      const dataTransfer = event.dataTransfer || event.nativeEvent?.dataTransfer;
+      if (!dataTransfer) {
+        event.preventDefault();
+        return;
+      }
+
       startDrag(item.metadata.coordId, event.nativeEvent);
     },
   };
