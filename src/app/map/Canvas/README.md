@@ -1,31 +1,24 @@
 # Canvas
 
-## Why This Exists
-Canvas provides the visual rendering layer for the hexagonal map interface, handling tile display and user interactions within the hexagonal coordinate system.
-
 ## Mental Model
-Canvas is the "screen" - it renders what Cache knows and translates user gestures into Cache updates.
+Like a digital art canvas - provides the interactive surface where hexagonal tiles are rendered and users can interact with them through clicks, drags, and visual feedback.
 
-## Core Responsibility
-This subsystem owns:
-- Hexagonal tile rendering and layout
-- User interaction handling (click, drag, hover)
-- Visual feedback for drag-and-drop operations
+## Responsibilities
+- Renders the main interactive map canvas (DynamicMapCanvas) with hexagonal tile layouts
+- Handles user interactions like clicking, dragging, and hovering on tiles
+- Provides lifecycle components for error boundaries and loading states
+- Manages tile action contexts and providers for distributing user actions
+- Orchestrates the hexagonal coordinate system and tile positioning
 
-This subsystem does NOT own:
-- Map data or state management (delegates to Cache)
-- Business logic for tile operations (delegates to Cache)
-- Chat or text input capabilities (emits events to Chat)
+## Non-Responsibilities
+- Individual tile rendering and behavior → See `./Tile/README.md`
+- Data persistence and state management → See `../Cache/README.md`
+- Chat functionality and text input → See `../Chat/README.md`
+- Business logic for map operations → See `../Cache/README.md`
+- Authentication and user management → See external contexts
 
-## Public API
-See `interface.ts` for the public API. Main capabilities:
-- `DynamicMapCanvas` - Primary interactive map component
-- `BaseFrame` - Static hexagonal layout for non-interactive contexts
-- `BaseTileLayout` - Core hexagonal tile rendering
-- `MapLoadingSkeleton` - Loading state representation
+## Interface
+*See `index.ts` for the public API - the ONLY exports other subsystems can use*
+*See `dependencies.json` for what this subsystem can import*
 
-## Dependencies
-See `dependencies.json` for allowed imports.
-
-## Architecture
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for structure details.
+Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.

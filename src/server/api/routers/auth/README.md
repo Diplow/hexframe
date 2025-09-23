@@ -1,28 +1,22 @@
 # Auth Router
 
-## Why This Exists
-This subsystem provides tRPC API endpoints for authentication operations. It handles session management and authentication state checks for the Hexframe application.
-
 ## Mental Model
-The API gateway for authentication operations, providing typed endpoints for auth state management.
+Like a security checkpoint at a building entrance - validates credentials and manages access tokens for authenticated operations.
 
-## Core Responsibility
-This subsystem owns:
-- Session retrieval endpoints
-- Authentication state checks
-- Auth cookie management
+## Responsibilities
+- Provides tRPC endpoints for authentication operations (login, logout, session retrieval)
+- Manages authentication session state through better-auth integration
+- Handles auth cookie management and forwarding
+- Validates user credentials and returns session data
 
-This subsystem does NOT own:
-- User registration/login (delegated to IAM domain actions)
-- Password management (delegated to better-auth)
-- Authorization logic (delegated to middleware)
+## Non-Responsibilities
+- User registration implementation → Delegated to client-side better-auth
+- Password storage and hashing → Handled by better-auth
+- Authorization policies → Handled by tRPC middleware
+- User profile management → See `../user/README.md`
 
-## Public API
-See `interface.ts` for the public API. Main capabilities:
-- `authRouter` - tRPC router with auth endpoints
+## Interface
+*See `index.ts` for the public API - the ONLY exports other subsystems can use*
+*See `dependencies.json` for what this subsystem can import*
 
-## Dependencies
-See `dependencies.json` for allowed imports.
-
-## Architecture
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for structure details.
+Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.

@@ -1,28 +1,23 @@
 # User Router
 
-## Why This Exists
-This subsystem provides tRPC API endpoints for user profile and account management. It handles user registration, profile updates, and user-specific operations.
-
 ## Mental Model
-The API gateway for user account operations, bridging frontend requests with the IAM domain.
+Like a hotel concierge that orchestrates different services to fulfill guest requests - coordinates IAM domain, Mapping domain, and better-auth to handle user operations.
 
-## Core Responsibility
-This subsystem owns:
-- User registration endpoint
-- Profile retrieval and updates
-- User settings management
+## Responsibilities
+- Cross-domain user registration workflow (creating user + optional default map + auto-login)
+- User login orchestration (credential validation via IAM + session creation via better-auth)
+- User profile management operations (retrieve, update current user profile)
+- User lookup operations (by ID, email, or mapping ID)
+- Session cookie forwarding for seamless authentication flow
 
-This subsystem does NOT own:
-- Authentication (delegated to auth router)
-- Session management (delegated to better-auth)
-- User data persistence (delegated to IAM domain)
+## Non-Responsibilities
+- User data persistence → See `~/lib/domains/iam/README.md`
+- Session management and authentication tokens → Delegated to better-auth
+- Map creation logic → See `~/lib/domains/mapping/README.md`
+- Input validation schemas → Handled locally with zod
 
-## Public API
-See `interface.ts` for the public API. Main capabilities:
-- `userRouter` - tRPC router with user management endpoints
+## Interface
+*See `index.ts` for the public API - the ONLY exports other subsystems can use*
+*See `dependencies.json` for what this subsystem can import*
 
-## Dependencies
-See `dependencies.json` for allowed imports.
-
-## Architecture
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for structure details.
+Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.

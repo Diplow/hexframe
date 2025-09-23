@@ -1,36 +1,29 @@
 # Mapping Domain
 
-## Why This Exists
-The Mapping domain manages the core hexagonal map system that is the heart of Hexframe. It handles all operations related to creating, organizing, and navigating through hexagonal maps where users build their living systems.
-
 ## Mental Model
-A hexagonal coordinate system where every item has exactly six neighbors, creating spatially meaningful relationships between ideas, notes, and content.
+Like a hexagonal filing cabinet where knowledge items are organized in a spatial 6-neighbor coordinate system, creating meaningful relationships between ideas through their physical proximity.
 
-## Core Responsibility
-This domain owns:
-- Hexagonal map creation and management
-- Item placement and movement within maps
-- Parent-child hierarchical relationships
-- Neighbor relationships in hexagonal space
-- Item swapping and reorganization
-- Map permissions and sharing
+## Responsibilities
+- Create and manage hexagonal maps with ROOT (USER) items at the center
+- Place and move items within hexagonal coordinate spaces using a 6-direction system
+- Maintain parent-child hierarchical relationships between map items
+- Orchestrate complex operations like item movement with automatic descendant updates
+- Provide both server-side domain services and client-safe interfaces for map operations
 
-This domain does NOT own:
-- User authentication (delegated to IAM domain)
-- AI/chat interactions (delegated to Agentic domain)
-- UI rendering logic (delegated to app layer)
-- Real-time synchronization (delegated to infrastructure)
+## Non-Responsibilities
+- User authentication and identity management → See `~/lib/domains/iam/README.md`
+- AI/chat interactions and agentic operations → See `~/lib/domains/agentic/README.md`
+- UI rendering logic and client components → See `~/app/map/README.md`
+- Complex item operation orchestration → See `./_actions/README.md`
+- Database persistence and transaction management → See `./infrastructure/README.md`
+- Domain business logic services → See `./services/README.md`
+- Hexagonal coordinate system calculations → See `./utils/README.md`
+- Domain entity definitions and behavior → See `./_objects/README.md`
+- Repository interface definitions → See `./_repositories/README.md`
+- Type definitions and contracts → See `./types/README.md`
 
-## Public API
-See `interface.ts` for the public API. Main capabilities:
-- `MappingService` - Orchestrator service for all mapping operations
-- `MapItem` - Domain entity for items on the map
-- `BaseItem` - Domain entity for base content
-- Server actions for map operations
-- Hexagonal coordinate utilities
+## Interface
+*See `index.ts` for the public API - the ONLY exports other subsystems can use*
+*See `dependencies.json` for what this subsystem can import*
 
-## Dependencies
-See `dependencies.json` for allowed imports.
-
-## Architecture
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for structure details.
+Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.

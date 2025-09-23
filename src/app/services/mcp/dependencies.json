@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../../schemas/dependencies.schema.json",
+  "$schema": "../../../../scripts/checks/architecture/dependencies.schema.json",
   "allowed": [
     "@modelcontextprotocol/sdk/server",
     "@modelcontextprotocol/sdk/types",

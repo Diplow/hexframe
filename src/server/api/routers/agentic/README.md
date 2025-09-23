@@ -1,29 +1,23 @@
 # Agentic Router
 
-## Why This Exists
-This subsystem provides tRPC API endpoints for AI-powered chat interactions within Hexframe. It handles LLM generation requests, manages queued AI jobs, and bridges the frontend chat interface with the agentic domain services.
-
 ## Mental Model
-The API gateway for all AI interactions, handling both synchronous and asynchronous LLM operations.
+Like a telephone switchboard operator - receives AI chat requests from the frontend, routes them to the appropriate AI services, manages queuing for busy periods, and delivers responses back to callers.
 
-## Core Responsibility
-This subsystem owns:
-- tRPC endpoints for AI chat generation
-- Job status polling for queued operations
-- Rate limiting for AI requests
-- Context preparation from cache state
+## Responsibilities
+- Provide tRPC API endpoints for AI chat generation (`generateResponse`, `generateStreamingResponse`)
+- Handle job status polling and real-time subscription for queued operations (`getJobStatus`, `watchJobStatus`)
+- Enforce verification-aware rate limiting for AI requests (10 req/5min verified, 3 req/5min unverified)
+- Manage AI model discovery and listing (`getAvailableModels`)
+- Bridge frontend chat interface with agentic domain services through proper context preparation
 
-This subsystem does NOT own:
-- LLM provider logic (delegated to agentic domain)
-- Authentication (delegated to tRPC middleware)
-- Chat UI state (delegated to frontend)
+## Non-Responsibilities
+- LLM provider logic and model implementations → See `~/lib/domains/agentic/README.md`
+- Authentication and session management → See `~/server/api/trpc.ts` middleware
+- Chat UI state and message rendering → See `~/app/map/README.md`
+- Database schema and persistence → See `~/server/db/README.md`
 
-## Public API
-See `interface.ts` for the public API. Main capabilities:
-- `agenticRouter` - tRPC router with AI endpoints
+## Interface
+*See `index.ts` for the public API - the ONLY exports other subsystems can use*
+*See `dependencies.json` for what this subsystem can import*
 
-## Dependencies
-See `dependencies.json` for allowed imports.
-
-## Architecture
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for structure details.
+Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.

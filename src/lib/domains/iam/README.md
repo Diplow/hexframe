@@ -1,33 +1,24 @@
 # IAM Domain
 
-## Why This Exists
-The IAM (Identity and Access Management) domain handles all authentication, authorization, and user identity concerns within Hexframe. It provides a clean abstraction over authentication providers and ensures consistent user management across the system.
-
 ## Mental Model
-The gatekeeper and identity provider for all user-related operations in Hexframe.
+Like a hotel's front desk and security system - handles guest check-ins, verifies identities, manages guest records, and provides room keys for access throughout the property.
 
-## Core Responsibility
-This domain owns:
-- User authentication (login, registration, password verification)
-- User identity management (profiles, verification status)
-- User-to-mapping ID translation for backward compatibility
-- Session management through better-auth integration
+## Responsibilities
+- User authentication (login, registration, password verification) through IAMService
+- User identity management (profiles, email verification, display names) via User entity
+- User-to-mapping ID translation for backward compatibility with legacy systems
+- Session orchestration through better-auth integration and server actions
+- Domain-specific validation and error handling for authentication flows
 
-This domain does NOT own:
-- Map/item permissions (delegated to mapping domain)
-- User content (delegated to mapping domain)
-- UI/presentation logic (delegated to app layer)
+## Non-Responsibilities
+- Map/item permissions and authorization → See `~/lib/domains/mapping/README.md`
+- User content and data storage → See `~/lib/domains/mapping/README.md`
+- UI/presentation logic → See `~/src/app/` layers
+- Authentication provider implementations → See `./infrastructure/README.md`
+- Core business services and orchestration → See `./services/README.md`
 
-## Public API
-See `interface.ts` for the public API. Main capabilities:
-- `IAMService` - Core service for authentication operations
-- `User` - Domain entity representing a user
-- `loginAction` - Server action for user login
-- `registerAction` - Server action for user registration
-- Repository interfaces and types
+## Interface
+*See `index.ts` for the public API - the ONLY exports other subsystems can use*
+*See `dependencies.json` for what this subsystem can import*
 
-## Dependencies
-See `dependencies.json` for allowed imports.
-
-## Architecture
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for structure details.
+Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.

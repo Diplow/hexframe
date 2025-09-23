@@ -1,32 +1,26 @@
 # Cache
 
-## Why This Exists
-The Cache subsystem provides centralized client-side state management for hexagonal map data. It serves as a single source of truth for all map operations including data loading, optimistic mutations, navigation coordination, and background synchronization. The cache abstracts away the complexity of coordinating between server APIs, local storage, URL state, and React components.
-
 ## Mental Model
-Think of this subsystem as a smart data layer that sits between UI components and external data sources, providing immediate responses while coordinating background operations.
+Like a smart library circulation desk that keeps track of which books are currently available, anticipates what readers will need next, and can instantly provide information while coordinating with the central catalog and storage systems.
 
-## Core Responsibility
-This subsystem owns:
-- Map item state management (cached tiles/data)
-- Optimistic update coordination and rollback
-- Navigation state synchronization with URL
-- Background data loading and prefetching
-- Event emission for cross-system communication
+## Responsibilities
+- Provides centralized client-side state management for hexagonal map data as single source of truth
+- Implements optimistic update coordination with rollback capabilities for seamless user experience
+- Manages region-based data loading, prefetching, and invalidation strategies for performance
+- Coordinates navigation state synchronization between cache state and URL parameters
+- Emits events for cross-system communication when cache operations complete
 
-This subsystem does NOT own:
-- Rendering of map components (delegated to Canvas/Tile)
-- User interaction handling (delegated to Canvas interaction modes)
-- Server-side data persistence (delegated to tRPC API routers)
+## Non-Responsibilities
+- Pure state management (reducers, actions, selectors) → See `./State/README.md`
+- Complex operation coordination and business logic → See `./Handlers/README.md`
+- External service communication (server, storage) → See `./Services/README.md`
+- Background synchronization strategies → See `./Sync/README.md`
+- Map component rendering → See `../Canvas/README.md`
+- User interaction handling → See `../Canvas/InteractionModes/README.md`
+- Server-side data persistence → See `~/server/api/routers/map/README.md`
 
-## Public API
-See `interface.ts` for the public API. Main capabilities:
-- `MapCacheProvider` - React provider for cache context
-- `useMapCache` - Hook providing all cache operations
+## Interface
+*See `index.ts` for the public API - the ONLY exports other subsystems can use*
+*See `dependencies.json` for what this subsystem can import*
 
-## Dependencies
-See `dependencies.json` for allowed imports.
-
-## Architecture
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for structure details.
-
+Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.

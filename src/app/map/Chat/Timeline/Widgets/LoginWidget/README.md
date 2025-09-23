@@ -1,35 +1,23 @@
-# LoginWidget Subsystem
-
-## Why This Exists
-The LoginWidget provides a comprehensive authentication interface within the chat system, handling both login and registration flows with form validation, status feedback, and integration with the unified auth system.
+# LoginWidget
 
 ## Mental Model
-Think of LoginWidget as a self-contained authentication portal that manages the complete user auth flow from within the chat interface, providing seamless transition between login and registration modes.
+Like a secure entrance booth at a building - provides a controlled gateway where visitors can identify themselves (login) or register for access, with clear feedback about the authentication process.
 
-## Core Responsibility
-This subsystem owns:
-- Authentication form rendering and validation
-- Login/registration mode switching
-- Form state management and submission
-- Auth status feedback and error handling
-- Integration with unified auth context
+## Responsibilities
+- Renders authentication forms with real-time validation
+- Manages switching between login and registration modes
+- Handles form submission to auth client with error handling
+- Provides status feedback (errors, success messages, loading states)
+- Integrates with event bus to emit authentication events
 
-This subsystem does NOT own:
-- Actual authentication logic (delegates to IAM domain)
-- Session management (delegates to auth client)
-- Navigation after auth (delegates to parent components)
+## Non-Responsibilities
+- Authentication business logic → See `~/lib/auth/README.md`
+- Session management and persistence → See `~/lib/auth/README.md`
+- Navigation routing after successful auth → Handled by parent components
+- Widget layout and shared UI patterns → See `../README.md`
 
-## Public API
-See `interface.ts` for the public API. Main capabilities:
-- `LoginWidget` - Main authentication widget
-- `FormActions` - Login/register action buttons
-- `FormFields` - Input field components
-- `FormHeader` - Auth form header
-- `StatusMessages` - Error/success feedback
-- `useLoginForm` - Form state management hook
+## Interface
+*See `index.ts` for the public API - the ONLY exports other subsystems can use*
+*See `dependencies.json` for what this subsystem can import*
 
-## Dependencies
-See `dependencies.json` for allowed imports.
-
-## Architecture
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for structure details.
+Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.

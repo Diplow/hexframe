@@ -7,7 +7,7 @@ import { useChatState } from '~/app/map/Chat/_state';
 import { createCreationHandlers } from '~/app/map/Chat/Timeline/_utils/creation-handlers';
 import { createPreviewHandlers } from '~/app/map/Chat/Timeline/_utils/preview-handlers';
 import { focusChatInput } from '~/app/map/Chat/Timeline/_utils/focus-helpers';
-import { 
+import {
   renderPreviewWidget,
   renderLoginWidget,
   renderErrorWidget,
@@ -76,6 +76,13 @@ export function WidgetManager({ widgets, focusChatInput: focusChatInputProp }: W
             focusChatInputFn();
           }
         };
+      case 'error':
+        return {
+          handleCancel: () => {
+            chatState.closeWidget(widget.id);
+            focusChatInputFn();
+          }
+        };
       default:
         return {};
     }
@@ -93,9 +100,9 @@ export function WidgetManager({ widgets, focusChatInput: focusChatInputProp }: W
 }
 
 function _renderWidget(
-  widget: Widget, 
-  createWidgetHandlers: (widget: Widget) => WidgetHandlers, 
-  getItem: (coordId: string) => TileData | null
+  widget: Widget,
+  createWidgetHandlers: (widget: Widget) => WidgetHandlers,
+  getItem: (coordId: string) => TileData | null,
 ): ReactNode {
   
   switch (widget.type) {
@@ -104,7 +111,7 @@ function _renderWidget(
     case 'login':
       return renderLoginWidget(widget, createWidgetHandlers(widget));
     case 'error':
-      return renderErrorWidget(widget);
+      return renderErrorWidget(widget, createWidgetHandlers(widget));
     case 'creation':
       return renderCreationWidget(widget, createWidgetHandlers(widget));
     case 'loading':

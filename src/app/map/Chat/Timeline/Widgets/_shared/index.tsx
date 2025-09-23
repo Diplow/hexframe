@@ -3,3 +3,4 @@ export { WidgetHeader } from '~/app/map/Chat/Timeline/Widgets/_shared/WidgetHead
 export { WidgetActions } from '~/app/map/Chat/Timeline/Widgets/_shared/WidgetActions';
 export { WidgetContent } from '~/app/map/Chat/Timeline/Widgets/_shared/WidgetContent';
 export { TilePreview } from '~/app/map/Chat/Timeline/Widgets/_shared/TilePreview';
+export { DraggableTilePreview } from '~/app/map/Chat/Timeline/Widgets/_shared/DraggableTilePreview';

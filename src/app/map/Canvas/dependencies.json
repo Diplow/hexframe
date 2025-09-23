@@ -1,10 +1,11 @@
 {
-  "$schema": "../../../../schemas/dependencies.schema.json",
+  "$schema": "../../../../scripts/checks/architecture/dependencies.schema.json",
   "allowedChildren": [],
   "allowed": [
     "@testing-library/react",
     "vitest",
     "~/app/map/Cache",
+    "~/app/map/Services",
     "~/contexts/UnifiedAuthContext",
     "~/lib/debug/debug-logger",
     "~/lib/test-logger"

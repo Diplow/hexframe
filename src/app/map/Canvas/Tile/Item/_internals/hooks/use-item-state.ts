@@ -1,15 +1,14 @@
 "use client";
 
-import { useContext, useEffect } from "react";
+import { useEffect, useRef } from "react";
+import type { DragEvent } from "react";
 import type { TileData } from "~/app/map/types/tile-data";
-import { LegacyTileActionsContext } from "~/app/map/Canvas";
 import { useItemInteraction } from "~/app/map/Canvas/Tile/Item/_internals/hooks/use-item-interaction";
 import { generateTileTestId } from "~/app/map/Canvas/Tile/Item/_internals/utils";
 import { canEditTile } from "~/app/map/Canvas/Tile/Item/_internals/validators";
-import { createDragProps } from "~/app/map/Canvas/Tile/Item/_internals/coordinators/drag-coordination";
-import { createDropProps } from "~/app/map/Canvas/Tile/Item/_internals/coordinators/drop-coordination";
-import { getSwapPreviewColor } from "~/app/map/Canvas/Tile/Item/_internals/coordinators/swap-preview";
+import { useMapCache } from "~/app/map/Cache";
 import { testLogger } from "~/lib/test-logger";
+import { canDragTile } from "~/app/map/Services";
 
 interface ItemStateProps {
   item: TileData;
@@ -34,33 +33,61 @@ interface ItemStateProps {
  * @param scale - The tile scale
  * @returns Complete state and props for the item tile
  */
-export function useItemState({ 
-  item, 
-  currentUserId, 
+export function useItemState({
+  item,
+  currentUserId,
   interactive,
   allExpandedItemIds,
   hasChildren,
   isCenter,
-  scale
+  scale,
 }: ItemStateProps) {
-  const tileActions = useContext(LegacyTileActionsContext);
   const interaction = useItemInteraction(item.metadata.coordId);
-  
+  const { isOperationPending, getPendingOperationType, startDrag } = useMapCache();
+  const tileRef = useRef<HTMLDivElement>(null);
+
   const canEdit = canEditTile(currentUserId, item.metadata.ownerId);
   const testId = generateTileTestId(item.metadata.coordinates);
-  
-  // Allow dragging when user can edit the tile (owns it)
-  const isDraggableWithTool = interaction.isDraggable && canEdit;
-  
-  const dragProps = interactive 
-    ? createDragProps(item.metadata.coordId, tileActions, isDraggableWithTool, interaction.isBeingDragged)
-    : { draggable: false };
-    
-  const dropProps = interactive 
-    ? createDropProps(item.metadata.coordId, tileActions, interaction.isValidDropTarget)
-    : {};
-    
-  const tileColor = getSwapPreviewColor(item, interaction.isDropTargetActive, interaction.dropOperation);
+
+  // Check if this tile has pending operations
+  const hasOperationPending = isOperationPending(item.metadata.coordId);
+  const operationType = getPendingOperationType(item.metadata.coordId);
+
+  // Check if this tile can be dragged
+  const isDraggable = interactive && canDragTile(item, currentUserId) && !hasOperationPending;
+
+  // Create drag props with data attributes
+  const dragProps = {
+    draggable: isDraggable,
+    onDragStart: (event: DragEvent<HTMLDivElement>) => {
+      if (!isDraggable) {
+        event.preventDefault();
+        return;
+      }
+
+      // Guard against missing dataTransfer (e.g., in jsdom)
+      const dataTransfer = event.dataTransfer || event.nativeEvent?.dataTransfer;
+      if (!dataTransfer) {
+        event.preventDefault();
+        return;
+      }
+
+      startDrag(item.metadata.coordId, event.nativeEvent);
+    },
+  };
+
+  // Data attributes for DOM-based drag detection
+  const dataAttributes = {
+    'data-tile-id': item.metadata.coordId,
+    'data-tile-owner': item.metadata.ownerId?.toString() ?? '',
+    'data-tile-has-content': 'true', // This tile has content (not empty)
+  };
+
+  // No drop props needed - global service handles detection automatically
+  const dropProps = {};
+
+  // Visual state (will be handled by CSS classes applied by global service)
+  const tileColor = item.data.color;
   
   // Log tile rendering for E2E tests
   useEffect(() => {
@@ -82,6 +109,10 @@ export function useItemState({
     testId,
     dragProps,
     dropProps,
+    dataAttributes, // New: data attributes for global drag service
     tileColor,
+    tileRef, // Ref for the tile element
+    hasOperationPending, // Operation pending state
+    operationType, // New: pending operation type
   };
 }

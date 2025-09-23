@@ -35,7 +35,7 @@ function ChatContent() {
   const chatState = useChatState();
   const messages = chatState.messages;
   const widgets = chatState.widgets;
-  
+
   // Enable AI chat integration
   const { isGeneratingAI } = useAIChatIntegration();
 

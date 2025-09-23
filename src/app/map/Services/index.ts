@@ -10,13 +10,26 @@ export { EventBus, EventBusProvider, EventBusContext, useEventBus } from '~/app/
 // Services must import parent types directly - no reexports from parent directories
 
 // Prefetch Service - Data loading and caching
-export { 
-  preloadUserMapData, 
+export {
+  preloadUserMapData,
   transformApiItemsToTileData,
   savePreFetchedData,
   loadPreFetchedData,
   clearPreFetchedData,
   type PreFetchedMapData
 } from '~/app/map/Services/PreFetch/pre-fetch-service';
+
+// DragAndDrop Service - Global drag and drop system
+export {
+  globalDragService,
+  validateDragOperation,
+  canDragTile,
+  canDropOnTile,
+  isCenterTile,
+  type TileDropTarget,
+  type DragOperation,
+  type DropHandler,
+  type ValidationHandler
+} from '~/app/map/Services/DragAndDrop';
 
 // External consumers must import types directly from ~/app/map/types - no reexports

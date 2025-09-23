@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../../schemas/dependencies.schema.json",
+  "$schema": "../../../../scripts/checks/architecture/dependencies.schema.json",
   "allowed": [
     "next/cache",
     "zod",

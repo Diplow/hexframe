@@ -110,6 +110,14 @@ export interface MapCacheHook {
     timestamp: number;
   }>;
 
+  // Operation tracking methods for preventing race conditions
+  isOperationPending: (coordId: string) => boolean;
+  getPendingOperationType: (coordId: string) => 'create' | 'update' | 'delete' | 'move' | null;
+  getTilesWithPendingOperations: () => string[];
+
+  // Drag and drop operations
+  startDrag: (tileId: string, event: globalThis.DragEvent) => void;
+
   // Sync operations
   sync: {
     isOnline: boolean;

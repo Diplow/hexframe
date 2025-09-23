@@ -1,18 +1,25 @@
 # Agentic Services
 
-This subsystem contains the core business logic for AI-powered agentic functionality in Hexframe.
+## Mental Model
+Like a translation bureau that takes hexagonal map context and chat history, converts them into AI-friendly formats, and orchestrates conversations with language models.
 
-## Services
+## Responsibilities
+- Orchestrate AI conversations by combining map context with chat history
+- Build and compose context from canvas (hexagonal tiles) and chat messages
+- Manage prompt templates and AI model interactions (both streaming and non-streaming)
+- Handle tokenization and optimize context size to fit model limits
+- Serialize complex domain data into AI-readable formats
 
-- **agentic.service.ts** - Main agentic service orchestrator
-- **agentic.factory.ts** - Factory for creating agentic instances
-- **context-composition.service.ts** - Composes context for AI interactions
-- **chat-context-builder.service.ts** - Builds context for chat interactions
-- **canvas-context-builder.service.ts** - Builds context for canvas interactions
-- **prompt-template.service.ts** - Manages prompt templates
-- **context-serializer.service.ts** - Serializes context data
-- **tokenizer.service.ts** - Handles tokenization for AI models
+## Non-Responsibilities
+- Canvas strategy implementations → See `./canvas-strategies/`
+- Chat strategy implementations → See `./chat-strategies/`
+- Context serialization formats → See `./serializers/`
+- Unit tests → See `./__tests__/`
+- Direct AI model communication → See `~/lib/domains/agentic/repositories`
+- Intent classification logic → See `~/lib/domains/agentic/intent-classification`
 
-## Architecture
+## Interface
+*See `index.ts` for the public API - the ONLY exports other subsystems can use*
+*See `dependencies.json` for what this subsystem can import*
 
-Services in this subsystem follow domain-driven design principles and are exposed through the index.ts file for clean boundaries.
+Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.

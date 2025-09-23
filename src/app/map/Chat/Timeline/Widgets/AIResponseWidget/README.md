@@ -1,31 +1,26 @@
-# AIResponseWidget Subsystem
-
-## Why This Exists
-The AIResponseWidget handles the display of AI job processing states and responses, providing real-time feedback for asynchronous AI operations with polling, progress indication, and error handling for a complete user experience.
+# AIResponseWidget
 
 ## Mental Model
-Think of AIResponseWidget as a smart status display that tracks AI job lifecycle from queued → processing → completed/failed, with appropriate visual feedback for each state.
+Think of the AIResponseWidget as a **real-time package tracker for AI deliveries** - it monitors AI jobs from dispatch through processing to final delivery, providing live status updates and displaying the contents when they arrive. Like tracking a package online, it shows "shipped", "in transit", "delivered", or "delivery failed" with appropriate visual feedback.
 
-## Core Responsibility
-This subsystem owns:
-- AI job status polling and state management
-- Real-time progress indication and elapsed time tracking
-- AI response content display with markdown rendering
-- Error state handling and user feedback
-- Dynamic styling injection for animations
+## Responsibilities
+- Poll AI job status in real-time using tRPC queries with exponential backoff
+- Display appropriate visual states (pending/processing/completed/failed/direct)
+- Track and show elapsed time for running jobs
+- Inject custom CSS animations for progress indicators
+- Render AI response content using markdown when completed
+- Handle error states with user-friendly messages
+- Support both async job tracking and direct response display
 
-This subsystem does NOT own:
-- AI job execution (delegates to Agentic domain)
-- Markdown rendering logic (uses Messages subsystem)
-- Job creation or queuing (delegates to calling components)
+## Non-Responsibilities
+- AI job creation or execution → See `~/lib/domains/agentic/README.md`
+- Markdown content rendering → Uses `~/app/map/Chat/Timeline/_components/MarkdownRenderer`
+- Base widget styling and layout → Uses `~/app/map/Chat/Timeline/Widgets/_shared/README.md`
+- Job queuing or scheduling → Handled by calling components
+- Authentication or authorization → Handled by API layer
 
-## Public API
-See `interface.ts` for the public API. Main capabilities:
-- `AIResponseWidget` - Main AI response display component
-- Support for both direct responses and async job tracking
+## Interface
+See `index.ts` for the public API - exports `AIResponseWidget` component only.
+See `dependencies.json` for what this subsystem can import.
 
-## Dependencies
-See `dependencies.json` for allowed imports.
-
-## Architecture
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for structure details.
+Note: This subsystem has no child components - it's a leaf node that focuses solely on AI response display and status tracking.

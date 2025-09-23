@@ -1,27 +1,22 @@
 # Inngest API Route
 
-## Why This Exists
-This subsystem provides the Next.js API route handler for Inngest queue management. It exposes endpoints for receiving events and executing background functions for async LLM operations.
-
 ## Mental Model
-The webhook endpoint that connects Inngest cloud with our background job handlers.
+Like a postal service delivery endpoint - receives job requests from Inngest cloud and routes them to the appropriate background functions for processing.
 
-## Core Responsibility
-This subsystem owns:
-- Inngest webhook endpoint configuration
-- Function registration and execution
-- Event handling for queued jobs
+## Responsibilities
+- Serve as Next.js API route handler for Inngest webhook endpoints
+- Register and expose background functions to Inngest cloud service
+- Handle HTTP requests (GET, POST, PUT) from Inngest for function execution and health checks
+- Configure security (signing key) and logging for Inngest integration
 
-This subsystem does NOT own:
-- Job logic (delegated to agentic domain functions)
-- Queue configuration (delegated to agentic infrastructure)
-- Job status persistence (delegated to database)
+## Non-Responsibilities
+- Job logic implementation → See `~/lib/domains/agentic/README.md`
+- Background function definitions → See `~/lib/domains/agentic/infrastructure/README.md`
+- Queue configuration and management → See `~/lib/domains/agentic/infrastructure/README.md`
+- Job status persistence → See database layer
 
-## Public API
-This is an API route handler - no TypeScript interface needed.
+## Interface
+*See `route.ts` for the HTTP endpoint exports (GET, POST, PUT)*
+*See `dependencies.json` for what this subsystem can import*
 
-## Dependencies
-See `dependencies.json` for allowed imports.
-
-## Architecture
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for structure details.
+Note: This is an API route handler - other subsystems don't import from this directly. The CI tool `pnpm check:architecture` enforces this boundary.

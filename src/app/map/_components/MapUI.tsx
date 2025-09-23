@@ -9,6 +9,7 @@ import { useTileSelectForChat } from "~/app/map/_hooks/use-tile-select-for-chat"
 import { useMapCache, type MapCacheHook } from '~/app/map/Cache';
 import { useRouter } from "next/navigation";
 import { useEventBus, type EventBusService } from '~/app/map';
+// Removed drag service import - using global service
 
 const CACHE_CONFIG = {
   maxAge: 300000,
@@ -140,6 +141,8 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
   const router = useRouter();
   const eventBus = useEventBus();
 
+  // Drag service no longer needed - using global service
+
   const centerCoordinate = center;
   const loadingError = error;
   const params = _createMapUIParams(centerCoordinate, expandedItems);
@@ -162,7 +165,10 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
     >
       <div className="flex h-full w-full relative">
         <div className="flex w-full">
-          <ChatPanel className="w-[40%] min-w-[40%] flex-shrink-0 border-r border-[color:var(--stroke-color-950)] overflow-hidden" />
+          <ChatPanel
+            className="w-[40%] min-w-[40%] flex-shrink-0 border-r border-[color:var(--stroke-color-950)] overflow-hidden"
+            // No drag service prop needed
+          />
 
           <div className="flex-1 pr-[130px]">
             {_renderMapContent(isLoading, centerCoordinate, loadingError, params)}

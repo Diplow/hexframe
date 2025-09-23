@@ -1,0 +1,111 @@
+/* Global Drag & Drop Visual Feedback */
+
+/* Body-level state when drag is active */
+body[data-drag-active="true"] {
+  cursor: grabbing !important;
+}
+
+/* Tile being dragged */
+[data-being-dragged="true"] {
+  opacity: 0.5;
+  transform: scale(0.95);
+  transition: opacity 150ms ease, transform 150ms ease;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+/* Valid drop targets */
+[data-drop-target="true"] {
+  animation: dropTargetPulse 0.8s ease-in-out infinite alternate;
+  position: relative;
+}
+
+[data-drop-target="true"]::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  background: rgba(59, 130, 246, 0.15);
+  /* Use hexagon clip-path to match tile shape */
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  z-index: -1;
+}
+
+/* Move operation styling */
+/* No background on the main element - only use the hexagon shape */
+
+[data-drop-operation="move"]::before {
+  background-color: rgba(34, 197, 94, 0.2);
+}
+
+/* Swap operation styling */
+/* No background on the main element - only use the hexagon shape */
+
+[data-drop-operation="swap"]::before {
+  background-color: rgba(234, 179, 8, 0.2);
+}
+
+/* Animation for drop targets */
+@keyframes dropTargetPulse {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.02);
+  }
+}
+
+/* Hover effects disabled while dragging */
+body[data-drag-active="true"] [data-tile-id]:not([data-drop-target="true"]) {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* Keep drop targets interactive */
+body[data-drag-active="true"] [data-drop-target="true"] {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+/* Debug styling for development */
+[data-tile-id] {
+  /* Subtle indication that tile is registered for drag */
+  position: relative;
+}
+
+/* Enhanced drop zone indication for empty tiles */
+[data-tile-has-content="false"][data-drop-target="true"]::after {
+  content: '+';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2rem;
+  color: rgb(34, 197, 94); /* green-500 */
+  font-weight: bold;
+  z-index: 10;
+}
+
+/* Smooth transitions for all drag-related changes */
+[data-tile-id] {
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease,
+    background-color 150ms ease;
+}
+
+/* Ensure draggable tiles have proper cursor */
+[draggable="true"] {
+  cursor: grab;
+}
+
+[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+/* Prevent text selection during drag */
+body[data-drag-active="true"] {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}

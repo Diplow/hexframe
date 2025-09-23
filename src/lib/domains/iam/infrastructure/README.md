@@ -1,28 +1,22 @@
 # IAM Infrastructure
 
-## Why This Exists
-This subsystem provides concrete implementations of repository interfaces, bridging the gap between the IAM domain's business logic and external authentication systems (like better-auth) and data persistence layers.
-
 ## Mental Model
-Infrastructure adapters that translate between domain models and external systems.
+Like a library's card catalog system that translates between how patrons ask for books and how the library actually stores and retrieves them from shelves.
 
-## Core Responsibility
-This subsystem owns:
-- Repository implementations for user data access
-- Integration with authentication providers (better-auth)
-- Translation between domain entities and external data formats
+## Responsibilities
+- Implement repository interfaces using concrete authentication providers (better-auth)
+- Translate between domain User entities and external authentication system formats
+- Bridge domain business logic with database operations and user ID mapping services
+- Handle authentication operations (signup, signin, user lookup) through external auth providers
 
-This subsystem does NOT own:
-- Business logic (delegated to services)
-- Domain entity behavior (delegated to objects)
-- Repository interfaces (owned by _repositories)
+## Non-Responsibilities
+- Business logic and domain rules → See `../services/README.md`
+- Domain entity behavior and validation → See `../_objects/README.md`
+- Repository interface definitions → See `../_repositories/README.md`
+- User-specific infrastructure implementations → See `./user/` (contains BetterAuthUserRepository)
 
-## Public API
-See `interface.ts` for the public API. Main capabilities:
-- `BetterAuthUserRepository` - Repository implementation using better-auth
+## Interface
+*See `index.ts` for the public API - the ONLY exports other subsystems can use*
+*See `dependencies.json` for what this subsystem can import*
 
-## Dependencies
-See `dependencies.json` for allowed imports.
-
-## Architecture
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for structure details.
+Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.

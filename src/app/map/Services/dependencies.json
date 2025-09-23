@@ -1,11 +1,13 @@
 {
-  "$schema": "../../../../schemas/dependencies.schema.json",
+  "$schema": "../../../../scripts/checks/architecture/dependencies.schema.json",
   "allowed": [
+    "~/contexts/UnifiedAuthContext",
     "~/lib/debug/debug-logger",
     "~/server/api",
     "~/app/map/types"
   ],
   "subsystems": [
-    "./EventBus"
+    "./EventBus",
+    "./DragAndDrop"
   ]
 }

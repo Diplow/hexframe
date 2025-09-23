@@ -111,6 +111,7 @@ export function PreviewWidget({
       className="flex-1 w-full"
     >
       <PreviewHeader
+        tileId={tileId}
         title={title}
         isExpanded={isExpanded}
         isEditing={isEditing}

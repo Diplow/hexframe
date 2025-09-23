@@ -29,6 +29,9 @@ import { useCacheContextBuilder } from "~/app/map/Cache/_builders/context-builde
 import { useCacheLifecycle } from "~/app/map/Cache/_lifecycle/provider-lifecycle";
 import { cacheActions } from "~/app/map/Cache/State";
 
+// Global drag service
+import { globalDragService } from "~/app/map/Services";
+import { validateDragOperation } from "~/app/map/Services";
 
 // Types
 import type { MapCacheContextValue, MapCacheProviderProps } from "~/app/map/Cache/types";
@@ -139,6 +142,30 @@ export function MapCacheProvider({
     serverService,
     disableSync: testingOverrides.disableSync ?? false,
   });
+
+  // Initialize global drag service
+  useEffect(() => {
+    if (mapContext?.userId) {
+      globalDragService.initialize({
+        currentUserId: mapContext.userId,
+        dropHandler: async (operation) => {
+          await mutationOperations.moveItem(operation.sourceId, operation.targetId);
+        },
+        validationHandler: (sourceId, targetId, _sourceOwned, _targetOwned) => {
+          const sourceTile = state.itemsById[sourceId] ?? null;
+          const targetTile = state.itemsById[targetId] ?? null;
+
+          return validateDragOperation(
+            sourceId,
+            targetId,
+            sourceTile,
+            targetTile,
+            mapContext.userId
+          );
+        }
+      });
+    }
+  }, [mapContext?.userId, mutationOperations, state.itemsById]);
 
   // Build context value
   const contextValue = useCacheContextBuilder({
