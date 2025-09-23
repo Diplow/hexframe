@@ -1,52 +1,25 @@
-# Map Page
-
-## Why This Exists
-The Map page is the core user interface of Hexframe, providing an interactive hexagonal map visualization where users can navigate, create, and manage their hierarchical tile systems. It orchestrates all the major subsystems (Canvas, Cache, Chat, Hierarchy) to deliver a cohesive experience for exploring and building knowledge structures.
+# Map
 
 ## Mental Model
-Think of this as the main application shell that coordinates multiple specialized subsystems into a unified hexagonal mapping experience.
+Like the main cockpit of a spacecraft - the central command center that orchestrates all navigation, communication, and operational systems to provide a unified interface for exploring the hexagonal universe.
 
-## Core Responsibility
-This page owns:
-- Page-level routing and URL parameter management
-- Subsystem orchestration and provider setup
-- User map resolution and initial data fetching
-- Layout composition of major UI components
+## Responsibilities
+- Serves as the Next.js page entry point for the `/map` route with URL parameter processing
+- Orchestrates provider hierarchy setup for EventBus, MapResolver, and Cache subsystems
+- Handles initial map resolution from URL parameters or user default maps
+- Manages page-level state transitions between loading, ready, and error states
+- Coordinates authentication state and user session integration
 
-This page does NOT own:
-- Tile rendering (delegated to Canvas)
-- Data management (delegated to Cache)
-- Chat interactions (delegated to Chat)
-- Hierarchy navigation (delegated to Hierarchy)
-- Event coordination (delegated to EventBus)
+## Non-Responsibilities
+- Tile data management and caching → See `./Cache/README.md`
+- Interactive hexagonal tile rendering → See `./Canvas/README.md`
+- Conversational AI interface and chat functionality → See `./Chat/README.md`
+- Navigation breadcrumb visualization → See `./Hierarchy/README.md`
+- Database ID to coordinate resolution → See `./MapResolver/README.md`
+- Event communication and data prefetching utilities → See `./Services/README.md`
 
-## Public API
-This is a Next.js page component - it doesn't expose a traditional API but serves as the entry point for the `/map` route.
+## Interface
+*See `index.ts` for the public API - the ONLY exports other subsystems can use*
+*See `dependencies.json` for what this subsystem can import*
 
-## Major Subsystems
-
-### Canvas
-Renders the hexagonal tile grid and handles visual interactions.
-See `Canvas/README.md` for details.
-
-### Cache
-Manages tile data, synchronization, and optimistic updates.
-See `Cache/README.md` for details.
-
-### Chat
-Provides conversational interface and AI integration.
-See `Chat/README.md` for details.
-
-### Hierarchy
-Displays parent-child navigation breadcrumbs.
-See `Hierarchy/README.md` for details.
-
-### Services
-- **EventBus**: Centralized event system for subsystem communication
-- **PreFetch**: Server-side data pre-fetching optimization
-
-## Dependencies
-See `dependencies.json` for allowed imports.
-
-## Architecture
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for structure details.
+Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.

@@ -1,33 +1,23 @@
-# Chat Messages Subsystem
-
-## Why This Exists
-The Messages subsystem handles the display and rendering of all chat content including user messages, system notifications, and embedded widgets, providing a unified timeline view with proper formatting and interaction capabilities.
+# Timeline
 
 ## Mental Model
-Think of Messages as a sophisticated rendering engine that transforms chat events and widgets into a coherent, interactive timeline with proper formatting, timestamps, and user interactions.
+Like a chronological photo album that automatically organizes mixed content - merges messages and widgets into a unified timeline sorted by timestamp, with day separators to provide clear temporal organization.
 
-## Core Responsibility
-This subsystem owns:
-- Message display and formatting (markdown, timestamps, actors)
-- Widget rendering within the message timeline
-- Day separation and chronological organization
-- Message interaction handling (copy, click actions)
-- Timeline scrolling and layout
+## Responsibilities
+- Merge messages and widgets into a unified chronological timeline sorted by timestamp
+- Group timeline items by day with visual separators for temporal organization
+- Auto-scroll timeline to show latest content as new items arrive
+- Coordinate chat settings and auth state changes for proper rendering
+- Export single Timeline component as clean public interface
 
-This subsystem does NOT own:
-- Message creation or state management (delegates to chat state)
-- Widget behavior logic (delegates to Widget subsystem)
-- Input processing (delegates to Input subsystem)
+## Non-Responsibilities
+- Specific widget rendering and behavior → See `./Widgets/README.md`
+- Message display components and formatting → Handled by _components directory
+- Core timeline rendering logic → Handled by _core directory
+- Timeline utility functions and helpers → Handled by _utils directory
 
-## Public API
-See `interface.ts` for the public API. Main capabilities:
-- `Messages` - Main messages container component
-- `UnifiedTimeline` - Timeline rendering component
-- `MessageTimeline` - Message-specific timeline
-- Various renderer components for specific content types
+## Interface
+*See `index.ts` for the public API - the ONLY exports other subsystems can use*
+*See `dependencies.json` for what this subsystem can import*
 
-## Dependencies
-See `dependencies.json` for allowed imports.
-
-## Architecture
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for structure details.
+Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.

@@ -1,29 +1,23 @@
 # Map Router
 
-## Why This Exists
-This subsystem provides tRPC API endpoints for all map-related operations in Hexframe. It handles user map management, item CRUD operations, and spatial navigation within hexagonal maps.
-
 ## Mental Model
-The API gateway for hexagonal map operations, translating frontend requests into domain service calls.
+Like a telephone switchboard operator, connecting frontend map requests to the right backend services and translating between different data formats.
 
-## Core Responsibility
-This subsystem owns:
-- User map management endpoints (create, update, delete maps)
-- Map item CRUD operations (add, update, remove, move items)
-- Spatial queries (get items by coordinates, descendants, ancestors)
-- Input validation and authorization checks
+## Responsibilities
+- Expose tRPC API endpoints for all hexagonal map operations (CRUD, navigation, queries)
+- Validate incoming request data using Zod schemas for coordinates, items, and user maps
+- Aggregate user map management and item operations into a unified router interface
+- Provide backward compatibility by exposing nested router endpoints as flat legacy endpoints
+- Transform domain service responses into API-friendly formats using contract adapters
 
-This subsystem does NOT own:
-- Business logic (delegated to mapping domain)
-- Database operations (delegated to repositories)
-- Authentication (delegated to tRPC middleware)
+## Non-Responsibilities
+- Business logic and domain rules → See `~/lib/domains/mapping/README.md`
+- Database operations and persistence → See `~/lib/domains/mapping/README.md`
+- User authentication and session management → See `~/server/api/trpc/README.md`
+- Response caching and performance optimization → See `~/server/api/services/README.md`
 
-## Public API
-See `interface.ts` for the public API. Main capabilities:
-- `mapRouter` - Main tRPC router with nested user and items routers
+## Interface
+*See `index.ts` for the public API - the ONLY exports other subsystems can use*
+*See `dependencies.json` for what this subsystem can import*
 
-## Dependencies
-See `dependencies.json` for allowed imports.
-
-## Architecture
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for structure details.
+Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.

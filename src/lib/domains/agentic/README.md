@@ -1,35 +1,24 @@
 # Agentic Domain
 
-## Why This Exists
-The Agentic domain enables AI-powered interactions within Hexframe, making systems truly alive by providing intelligent assistance, content generation, and contextual understanding of hexagonal maps.
-
 ## Mental Model
-An AI assistant that understands the spatial and hierarchical context of your hexagonal maps, providing intelligent responses based on the surrounding content.
+Like an AI assistant that understands your hexagonal maps and provides intelligent, contextually-aware responses based on the spatial relationships and content hierarchy.
 
-## Core Responsibility
-This domain owns:
-- LLM provider integration and abstraction
-- Context building from map hierarchies and chat history
-- Prompt engineering and optimization
-- Response generation and streaming
-- Security against prompt injection
-- Token management and cost optimization
+## Responsibilities
+- LLM provider integration and abstraction for various AI models
+- Context building from hexagonal map hierarchies and chat conversation history
+- Prompt engineering, optimization, and security against prompt injection attacks
+- Response generation with both streaming and batch processing capabilities
+- Token management and cost optimization for efficient AI interactions
 
-This domain does NOT own:
-- Map data storage (delegated to Mapping domain)
-- User authentication (delegated to IAM domain)
-- UI chat components (delegated to app layer)
-- Real-time event distribution (delegated to EventBus)
+## Non-Responsibilities
+- AI model infrastructure and queue processing → See `./infrastructure/README.md`
+- Domain entity types and contracts → See `./types/`
+- Static prompt templates → See `./prompts/`
+- Concrete LLM provider implementations → See `./repositories/README.md`
+- Context building strategies and orchestration → See `./services/README.md`
 
-## Public API
-See `interface.ts` for the public API. Main capabilities:
-- `AgenticService` - Main service for AI operations
-- Context building strategies for different use cases
-- LLM repository implementations
-- Security filters and validators
+## Interface
+*See `index.ts` for the public API - the ONLY exports other subsystems can use*
+*See `dependencies.json` for what this subsystem can import*
 
-## Dependencies
-See `dependencies.json` for allowed imports.
-
-## Architecture
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for structure details.
+Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.

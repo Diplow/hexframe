@@ -1,36 +1,23 @@
-# PreviewWidget Subsystem
-
-## Why This Exists
-The PreviewWidget provides a comprehensive tile viewing and editing interface within the chat system, allowing users to preview tile content, switch to edit mode, and perform tile operations like save, delete, and close with a rich, interactive experience.
+# PreviewWidget
 
 ## Mental Model
-Think of PreviewWidget as a mini tile editor that appears in the chat timeline, providing both read-only preview and full editing capabilities with proper state management and user controls.
+Like a document viewer with an edit mode toggle - you can preview a tile's content and seamlessly switch to editing it inline.
 
-## Core Responsibility
-This subsystem owns:
-- Tile content preview and display
-- Edit mode state management and UI
-- Content editing with real-time updates
-- Action menu for tile operations (edit, delete, close)
-- Edit controls for save/cancel operations
-- Preview state coordination
+## Responsibilities
+- Display tile content in a collapsible preview interface
+- Manage expansion/collapse state with smooth animations
+- Provide inline editing mode for tile title and content
+- Handle edit state management (save/cancel operations)
+- Auto-close when the previewed tile is deleted from cache
+- Support keyboard shortcuts for save (Ctrl/Cmd+Enter) and cancel (Escape)
 
-This subsystem does NOT own:
-- Actual tile data persistence (delegates to Map Cache)
-- Tile deletion logic (delegates to parent components)
-- Navigation or routing (delegates to calling components)
+## Non-Responsibilities
+- Tile data persistence → See `~/app/map/Cache/README.md`
+- Tile deletion operations → Delegated to parent components via callbacks
+- Widget rendering infrastructure → See `../README.md`
 
-## Public API
-See `interface.ts` for the public API. Main capabilities:
-- `PreviewWidget` - Main tile preview/edit widget
-- `ActionMenu` - Preview action buttons
-- `ContentDisplay` - Tile content rendering
-- `EditControls` - Save/cancel edit controls
-- `PreviewHeader` - Widget header component
-- `usePreviewState` - Preview state management hook
+## Interface
+*See `index.ts` for the public API - the ONLY exports other subsystems can use*
+*See `dependencies.json` for what this subsystem can import*
 
-## Dependencies
-See `dependencies.json` for allowed imports.
-
-## Architecture
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for structure details.
+Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.

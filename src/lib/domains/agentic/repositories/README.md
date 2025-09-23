@@ -1,32 +1,23 @@
 # Agentic Repositories
 
-## Why This Exists
-This subsystem provides concrete implementations of LLM repository interfaces, handling communication with AI providers like OpenRouter and managing queued LLM operations for scalability.
-
 ## Mental Model
-Adapters that translate between the agentic domain's needs and various LLM providers' APIs.
+Like a switchboard operator connecting the agentic domain to various AI providers, translating requests and managing the complexity of different LLM APIs.
 
-## Core Responsibility
-This subsystem owns:
-- LLM provider integrations (OpenRouter, future providers)
-- Request/response translation for AI models
-- Streaming and non-streaming generation
-- Queue management for LLM operations
-- Rate limiting and error handling
+## Responsibilities
+- Implement concrete LLM repository interfaces for different AI providers (OpenRouter, future providers)
+- Translate between domain LLM types and provider-specific API formats
+- Handle both streaming and non-streaming LLM generation requests
+- Manage async queue processing for slow LLM models to prevent request timeouts
+- Provide consistent error handling and logging across all LLM providers
 
-This subsystem does NOT own:
-- Context building logic (delegated to services)
-- Business logic (delegated to services)
-- Repository interfaces (defined in llm.repository.interface.ts)
+## Non-Responsibilities
+- Context building logic → See `~/lib/domains/agentic/services/README.md`
+- Business logic and agentic workflows → See `~/lib/domains/agentic/services/README.md`
+- LLM type definitions → See `~/lib/domains/agentic/types/README.md`
+- Queue infrastructure → See `~/lib/domains/agentic/infrastructure/inngest/README.md`
 
-## Public API
-See `interface.ts` for the public API. Main capabilities:
-- `OpenRouterRepository` - OpenRouter LLM provider implementation
-- `QueuedLLMRepository` - Queued wrapper for any LLM repository
-- `ILLMRepository` - Interface for LLM operations
+## Interface
+*See `index.ts` for the public API - the ONLY exports other subsystems can use*
+*See `dependencies.json` for what this subsystem can import*
 
-## Dependencies
-See `dependencies.json` for allowed imports.
-
-## Architecture
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for structure details.
+Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.

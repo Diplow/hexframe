@@ -1,27 +1,21 @@
 # Auth API Route
 
-## Why This Exists
-This subsystem provides the Next.js API route handler for better-auth authentication endpoints. It exposes the auth system's HTTP endpoints for login, logout, session management, and OAuth flows.
-
 ## Mental Model
-The HTTP gateway that bridges better-auth with Next.js App Router API routes.
+Like a hotel reception desk that receives all guest authentication requests and forwards them to the appropriate authentication service behind the scenes.
 
-## Core Responsibility
-This subsystem owns:
-- HTTP route handling for all auth endpoints
-- Request/response translation for better-auth
-- Cookie and session management
+## Responsibilities
+- Handle HTTP requests to all authentication endpoints via catch-all route
+- Delegate authentication logic to better-auth handler
+- Expose better-auth endpoints as Next.js API routes
+- Manage HTTP method routing (GET, POST) for auth operations
 
-This subsystem does NOT own:
-- Authentication logic (delegated to better-auth)
-- User data persistence (delegated to IAM domain)
-- Frontend auth UI (delegated to auth pages)
+## Non-Responsibilities
+- Authentication business logic → See `~/server/auth`
+- User data persistence → See `~/lib/domains/iam`
+- Frontend authentication UI → See `~/app/auth` pages
+- Session storage implementation → Handled by better-auth
 
-## Public API
-This is an API route handler - no TypeScript interface needed.
+## Interface
+*See `dependencies.json` for what this subsystem can import*
 
-## Dependencies
-See `dependencies.json` for allowed imports.
-
-## Architecture
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for structure details.
+Note: This is a Next.js API route handler, not a TypeScript module with exports. It provides HTTP endpoints at `/api/auth/*` that frontend components and OAuth providers can call. The CI tool `pnpm check:architecture` enforces dependency boundaries.

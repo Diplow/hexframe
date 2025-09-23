@@ -1,27 +1,25 @@
-# Map Services
+# Services
 
-This subsystem provides specialized services for map interactions and functionality.
+## Mental Model
+Like a utility toolkit for mechanics, providing specialized tools and systems that components can use to perform complex operations without building everything from scratch.
 
-## Services
+## Responsibilities
+- Export event communication infrastructure through EventBus for decoupled messaging
+- Provide DOM-based drag and drop functionality with validation and React integration
+- Handle data prefetching and transformation from API to map tile format
+- Offer React hooks and service classes for component integration
+- Manage complex interaction patterns that span multiple components
 
-### DragAndDrop
-- **useDOMBasedDrag**: Hook for DOM-based drag and drop functionality
-- **DOMBasedDragService**: Core service for managing drag operations
-- **useTileRegistration**: Hook for registering tiles as drag targets
+## Non-Responsibilities
+- Event Bus implementation details → See `./EventBus/README.md`
+- Drag and drop operation logic and state management → See `./DragAndDrop/README.md`
+- Prefetch caching and data transformation → See `./PreFetch/README.md`
+- Map data persistence → See `../Cache/README.md`
+- Canvas rendering and tile display → See `../Canvas/README.md`
+- User authentication and context → See `~/contexts/UnifiedAuthContext`
 
-## Usage
+## Interface
+*See `index.ts` for the public API - the ONLY exports other subsystems can use*
+*See `dependencies.json` for what this subsystem can import*
 
-Services are designed to be used throughout the map application to provide consistent behavior for user interactions.
-
-### Drag and Drop
-
-```typescript
-import { useDOMBasedDrag } from '~/app/map/Services';
-
-const dragService = useDOMBasedDrag();
-// Pass dragService to components that need drag functionality
-```
-
-## Architecture
-
-Services follow a hook-based pattern for easy integration with React components while maintaining service layer separation.
+Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.

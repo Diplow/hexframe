@@ -1,174 +1,24 @@
-# Authentication System with `better-auth`
+# Authentication Client
 
-## Overview
+## Mental Model
+Like a diplomatic passport office - provides standardized credentials and handles all entry/exit protocols for accessing the application.
 
-This document outlines the authentication architecture implemented in this project. Authentication is primarily handled by the `better-auth` library, providing a flexible and robust solution for user management, session handling, and various authentication strategies.
+## Responsibilities
+- Configure and expose the better-auth client for frontend authentication
+- Handle HTTP communication with the authentication server at `/api/auth`
+- Provide logging and debugging for authentication requests
+- Export type-safe authentication types (Session, User) for the application
+- Manage environment-specific authentication URLs (local, Vercel, custom)
 
-The main goal for implementing authentication was to allow users to own their content within the application.
+## Non-Responsibilities
+- Server-side authentication logic → See `~/server/auth.ts`
+- User interface components → See `~/app/map/Chat/Widgets/LoginWidget.tsx`
+- Authentication API routes → See `~/app/api/auth/[...all]/route.ts`
+- User session management in tRPC → See `~/server/api/trpc.ts`
+- Identity and Access Management domain logic → See `~/lib/domains/iam/README.md`
 
-## Key Library: `better-auth`
+## Interface
+*See `index.ts` for the public API - the ONLY exports other subsystems can use*
+*See `dependencies.json` for what this subsystem can import*
 
-`better-auth` was chosen for its comprehensive features, ease of integration with Next.js and tRPC, and its adapter system, particularly for Drizzle ORM. It provides both server-side and client-side utilities to manage the entire authentication lifecycle.
-
-## Architecture Decisions & Implementation
-
-The authentication system is built around `better-auth` and integrates with the existing Next.js, tRPC, and Drizzle stack.
-
-### 1. Server-Side Configuration
-
-- **Main Configuration (`src/server/auth.ts`):** This file initializes `better-auth` for the server.
-
-  - It enables Email and Password authentication.
-  - It configures the `drizzleAdapter` to connect `better-auth` with the PostgreSQL database via Drizzle ORM, mapping to our schema (e.g., `users`, `accounts`, `sessions`, `verificationTokens`).
-  - An `AUTH_SECRET` environment variable is used for securing sessions.
-  - The `basePath` for authentication API routes is set to `/api/auth`.
-
-- **API Routes (`src/app/api/auth/[...all]/route.ts`):**
-
-  - This Next.js dynamic API route exposes the `better-auth` request handlers (`GET`, `POST`). All authentication-related HTTP requests (e.g., login, logout, OAuth callbacks) are processed here. It uses the `auth` instance configured in `src/server/auth.ts`
-
-### 2. Client-Side Configuration
-
-- **Auth Client (`src/lib/auth/auth-client.ts`):**
-  - `createAuthClient` from `better-auth/client` is used to initialize the client-side module.
-  - The `baseURL` for the auth server is configured, defaulting to the application's domain but explicitly set for clarity and different environments (e.g., Vercel deployments).
-
-### 3. tRPC Integration
-
-- **tRPC Context (`src/server/api/trpc.ts`):**
-
-  - The `createContext` function for tRPC is augmented to include the user's session information.
-  - `auth.api.getSession()` (from the `better-auth` instance in `src/server/auth.ts`) is called on every request to retrieve the current session using request headers.
-  - The session data (including the `user` object) is then available in `ctx.session` and `ctx.user` within tRPC procedures.
-
-- **Protected Procedures (`src/server/api/trpc.ts`):**
-
-  - A `protectedProcedure` is defined, which checks for the presence of `ctx.session` and `ctx.user`. If a user is not authenticated, a `TRPCError` with code `UNAUTHORIZED` is thrown, effectively protecting backend procedures.
-
-- **Auth Router (`src/server/api/routers/auth.ts`):**
-  - This tRPC router provides specific endpoints related to authentication:
-    - `login`: Handles user login by calling `auth.api.signInEmail`.
-    - `logout`: Handles user logout by calling `auth.api.signOut`.
-    - `getSession`: A public procedure to retrieve the current session, primarily for client-side consumption.
-    - `register`: Currently throws a `NOT_IMPLEMENTED` error, as registration is intended to be handled client-side via `authClient.signUp.email`.
-  - A helper `convertToHeaders` is used to adapt Next.js request headers for `better-auth` API calls.
-
-### 4. Frontend State Management
-
-- **Auth Context (`src/contexts/AuthContext.tsx`):**
-  - An `AuthProvider` component wraps the application (or parts of it) to provide authentication state.
-  - It uses `authClient.useSession()` from `better-auth/client` to get the current session information (user, loading state).
-  - A `useAuth` hook is provided for easy access to the `user` object and `isLoading` state in any component.
-
-### 5. UI Components
-
-- **Login Widget (`src/app/map/Chat/Widgets/LoginWidget.tsx`):**
-
-  - A chat widget that provides both login and registration functionality.
-  - Uses server actions (`loginAction` and `registerAction`) for authentication.
-  - Integrates with the chat interface for a conversational authentication experience.
-  - After successful operations, it triggers session updates and navigation.
-
-- **Auth Tile (`src/app/map/Tile/Auth/auth.tsx`):**
-
-  - A tile component that directs users to use the chat interface for authentication.
-  - No longer contains forms directly - instead guides users to the chat widget.
-  - Displays helpful messages based on whether the user wants to login or register.
-
-- **User Navigation (`src/components/layout/UserNav.tsx` - as per plan):**
-  - This component would display user information and a logout button.
-  - Logout is handled using `authClient.signOut()`.
-  - (Note: `UserNav.tsx` does not exist yet. The `AuthTile` currently serves for login/registration, and further user navigation will be part of future UI development.)
-
-### 6. Database Integration
-
-- **Drizzle Schema (`src/server/db/schema/`):**
-  - `better-auth` requires specific tables for its operation: `users`, `accounts`, `sessions`, and `verificationTokens` (or `verification`).
-  - The `drizzleAdapter` in `src/server/auth.ts` maps `better-auth`'s expected schema names (singular) to our actual Drizzle table names (plural, e.g., `schema.users`, `schema.accounts`).
-  - Existing tables like `hexMaps` have their `ownerId` field updated to reference the `users.id` table to associate data with authenticated users.
-
-## Authentication Flow
-
-1.  **Registration:**
-
-    - The user interacts with the `LoginWidget` in the chat interface.
-    - `registerAction` server action is called, which uses the IAM domain service.
-    - The IAM service validates credentials and creates the user via `better-auth`.
-    - `better-auth` handles user creation, password hashing, and session creation.
-    - The client's session is updated automatically via cookies.
-    - After registration, the user's map is also created and the user is redirected to their map.
-
-2.  **Login:**
-
-    - The user interacts with the `LoginWidget` in the chat interface.
-    - `loginAction` server action is called, which uses the IAM domain service.
-    - The IAM service validates credentials via `better-auth`.
-    - `better-auth` verifies credentials and creates a session, setting HTTP-only cookies.
-    - The client's session is updated automatically.
-    - After login, the user is redirected to their map.
-
-3.  **Session Management:**
-
-    - `better-auth` manages sessions using cookies.
-    - On the client, `authClient.useSession()` provides reactive access to the current session state.
-    - On the server (tRPC), `auth.api.getSession()` in `createContext` makes the session available.
-
-4.  **Logout:**
-    - The user clicks a logout button.
-    - `authClient.signOut()` is called on the client-side, which requests `/api/auth/signout`.
-    - Alternatively, the `authRouter.logout` tRPC procedure calls `auth.api.signOut`.
-    - `better-auth` invalidates the session and clears cookies.
-    - The client's session is updated.
-    - (Note: Specific UI for logout button and post-logout redirection to be finalized.)
-
-## User Map Flow
-
-The application ensures every authenticated user has a workspace (map) through the following flow:
-
-### Home Page Flow (`src/app/page.tsx`)
-
-1. **Authentication Check**: 
-   - The `useAuth` hook provides the current user state
-   - Unauthenticated users see the welcome screen with login/signup options
-
-2. **Map Discovery**:
-   - Once authenticated, `getUserMap` query checks if the user has an existing map
-   - Uses the mapping domain's user ID system (converts auth user ID to mapping user ID)
-
-3. **Automatic Map Creation**:
-   - If no map exists, `createDefaultMapForCurrentUser` mutation creates one
-   - Default map is named "{userName}'s Map"
-   - Creation happens transparently without user intervention
-
-4. **Navigation**:
-   - Users are automatically redirected to `/map?center={mapId}`
-   - The map page becomes their primary workspace
-
-### State Management
-
-The flow is managed by `useUserMapFlow` hook which provides clear states:
-- `loading`: Initial auth check
-- `unauthenticated`: No user session
-- `fetching_map`: Querying for user's map
-- `creating_map`: Creating default map
-- `redirecting`: Navigating to map
-- `error`: Handle failures gracefully
-
-This ensures a smooth onboarding experience where new users automatically get a workspace without manual setup.
-
-## Key Files
-
-- **Core `better-auth` Server Config:** `src/server/auth.ts`
-- **`better-auth` Client Config:** `src/lib/auth/auth-client.ts`
-- **API Route Handler:** `src/app/api/auth/[...all]/route.ts`
-- **tRPC Auth Router:** `src/server/api/routers/auth.ts`
-- **tRPC Context Enhancer:** `src/server/api/trpc.ts` (specifically `createContext`)
-- **Frontend Auth Provider:** `src/contexts/AuthContext.tsx`
-- **UI Widget:** `src/app/map/Chat/Widgets/LoginWidget.tsx`
-- **IAM Domain:** `src/lib/domains/iam/` (services, actions, repositories)
-- **Auth UI Tile:** `src/app/map/Tile/Auth/auth.tsx`
-- **Database Schema:** `src/server/db/schema/users.ts`, `accounts.ts`, etc.
-- **User Map Flow:** `src/app/_hooks/use-user-map-flow.ts`, `src/app/page.tsx`
-- **Feature Plan:** `issues/archive/features/2025-05-16-better-auth.md`, `issues/archive/features/2025-05-18-homepage.md` (for historical context and planning)
-
-This setup provides a solid foundation for authentication, leveraging `better-auth` for core functionality while integrating smoothly with the project's tRPC and Next.js architecture.
+Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.

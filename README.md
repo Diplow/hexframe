@@ -153,7 +153,7 @@ Hexframe follows a clean, layered architecture:
 **Frontend** (Next.js 15 App Router)
 
 - Progressive enhancement with static, progressive, and dynamic components
-- See: `/src/app/map/ARCHITECTURE.md` for detailed component patterns
+- See: `/src/app/map/README.md` for detailed component patterns
 
 **Backend** (tRPC + Next.js API)
 
