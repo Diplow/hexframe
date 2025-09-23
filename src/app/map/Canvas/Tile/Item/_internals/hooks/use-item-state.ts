@@ -8,7 +8,7 @@ import { generateTileTestId } from "~/app/map/Canvas/Tile/Item/_internals/utils"
 import { canEditTile } from "~/app/map/Canvas/Tile/Item/_internals/validators";
 import { useMapCache } from "~/app/map/Cache";
 import { testLogger } from "~/lib/test-logger";
-import { canDragTile } from "~/app/map/Services/DragAndDrop/_validators/drag-validators";
+import { canDragTile } from "~/app/map/Services";
 
 interface ItemStateProps {
   item: TileData;

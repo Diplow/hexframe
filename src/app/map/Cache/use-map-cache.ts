@@ -8,7 +8,7 @@ import { createMutationCallbacks } from "~/app/map/Cache/_internals/mutation-cal
 import { createNavigationCallbacks } from "~/app/map/Cache/_internals/navigation-callbacks";
 import { createHierarchyCallbacks } from "~/app/map/Cache/_internals/hierarchy-callbacks";
 import { createSyncOperationsAPI } from "~/app/map/Cache/_internals/sync-operations";
-import { globalDragService } from "~/app/map/Services/DragAndDrop/GlobalDragService";
+import { globalDragService } from "~/app/map/Services";
 
 /**
  * Main hook that provides clean public API for cache operations

@@ -25,10 +25,19 @@ export {
   createDOMBasedDragService,
   useDOMBasedDrag,
   useTileRegistration,
+  globalDragService,
+  validateDragOperation,
+  canDragTile,
+  canDropOnTile,
+  isCenterTile,
   type DOMDragState,
   type TileGeometry,
   type DOMDragEvent,
-  type UseDOMBasedDragReturn
+  type UseDOMBasedDragReturn,
+  type TileDropTarget,
+  type DragOperation,
+  type DropHandler,
+  type ValidationHandler
 } from '~/app/map/Services/DragAndDrop';
 
 // External consumers must import types directly from ~/app/map/types - no reexports

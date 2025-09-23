@@ -30,8 +30,8 @@ import { useCacheLifecycle } from "~/app/map/Cache/_lifecycle/provider-lifecycle
 import { cacheActions } from "~/app/map/Cache/State";
 
 // Global drag service
-import { globalDragService } from "~/app/map/Services/DragAndDrop/GlobalDragService";
-import { validateDragOperation } from "~/app/map/Services/DragAndDrop/_validators/drag-validators";
+import { globalDragService } from "~/app/map/Services";
+import { validateDragOperation } from "~/app/map/Services";
 
 // Types
 import type { MapCacheContextValue, MapCacheProviderProps } from "~/app/map/Cache/types";

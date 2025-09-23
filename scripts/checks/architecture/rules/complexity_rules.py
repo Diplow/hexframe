@@ -60,7 +60,7 @@ class ComplexityRuleChecker:
                     
                     if missing:
                         threshold_msg = f" (custom threshold {complexity_threshold})" if exception_info else ""
-                        recommendation = f"ERROR: Create {directory}/README.md file" if missing == ["README.md"] else f"ERROR: Create missing files in {directory}: {', '.join(missing)}"
+                        recommendation = f"ERROR: Create {directory}/README.md file (follow guidelines in scripts/checks/architecture/README-STRUCTURE.md)" if missing == ["README.md"] else f"ERROR: Create missing files in {directory}: {', '.join(missing)} (for README.md follow guidelines in scripts/checks/architecture/README-STRUCTURE.md)"
                         
                         error = ArchError.create_error(
                             message=f"❌ {directory} ({lines} lines){threshold_msg} missing: {' '.join(missing)}",
@@ -89,7 +89,7 @@ class ComplexityRuleChecker:
                             message=f"⚠️  {directory} ({lines} lines){threshold_msg} - missing README.md",
                             error_type=ErrorType.COMPLEXITY,
                             subsystem=str(directory),
-                            recommendation=f"WARNING: Create {directory}/README.md file"
+                            recommendation=f"WARNING: Create {directory}/README.md file (follow guidelines in scripts/checks/architecture/README-STRUCTURE.md)"
                         )
                         
                         # Add exception info for reporting
@@ -124,7 +124,7 @@ class ComplexityRuleChecker:
             
             if missing:
                 threshold_msg = f" (custom threshold {complexity_threshold})" if exception_info else ""
-                recommendation = f"ERROR: Create {subsystem.path}/README.md file" if missing == ["README.md"] else f"ERROR: Create missing files in {subsystem.path}: {', '.join(missing)}"
+                recommendation = f"ERROR: Create {subsystem.path}/README.md file (follow guidelines in scripts/checks/architecture/README-STRUCTURE.md)" if missing == ["README.md"] else f"ERROR: Create missing files in {subsystem.path}: {', '.join(missing)} (for README.md follow guidelines in scripts/checks/architecture/README-STRUCTURE.md)"
                 
                 error = ArchError.create_error(
                     message=(f"❌ Subsystem {subsystem.path} ({subsystem.total_lines} lines){threshold_msg} "
