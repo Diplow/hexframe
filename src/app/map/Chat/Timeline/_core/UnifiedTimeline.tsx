@@ -4,7 +4,6 @@ import { DaySeparator } from '~/app/map/Chat/Timeline/_components/DaySeparator';
 import { MessageActorRenderer } from '~/app/map/Chat/Timeline/_components/MessageActorRenderer';
 import { WidgetManager } from '~/app/map/Chat/Timeline/_core/WidgetManager';
 import { loggers } from '~/lib/debug/debug-logger';
-import type { UseDOMBasedDragReturn } from '~/app/map/Services';
 
 interface TimelineItem {
   type: 'message' | 'widget';
@@ -14,10 +13,9 @@ interface TimelineItem {
 
 interface UnifiedTimelineProps {
   items: TimelineItem[];
-  dragService?: UseDOMBasedDragReturn;
 }
 
-export function UnifiedTimeline({ items, dragService }: UnifiedTimelineProps) {
+export function UnifiedTimeline({ items }: UnifiedTimelineProps) {
   
   const scrollRef = useRef<HTMLDivElement>(null);
   
@@ -77,7 +75,7 @@ export function UnifiedTimeline({ items, dragService }: UnifiedTimelineProps) {
               {item.type === 'message' ? (
                 <MessageActorRenderer message={item.data as Message} />
               ) : (
-                <WidgetManager widgets={[item.data as Widget]} dragService={dragService} />
+                <WidgetManager widgets={[item.data as Widget]} />
               )}
             </div>
           ))}

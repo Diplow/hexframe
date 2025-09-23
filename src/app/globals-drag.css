@@ -24,30 +24,24 @@ body[data-drag-active="true"] {
   content: '';
   position: absolute;
   inset: -4px;
-  border: 2px solid rgb(59, 130, 246); /* blue-500 */
-  border-radius: 8px;
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(59, 130, 246, 0.15);
+  /* Use hexagon clip-path to match tile shape */
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
   z-index: -1;
 }
 
 /* Move operation styling */
-[data-drop-operation="move"] {
-  background-color: rgba(34, 197, 94, 0.1) !important; /* green tint */
-}
+/* No background on the main element - only use the hexagon shape */
 
 [data-drop-operation="move"]::before {
-  border-color: rgb(34, 197, 94); /* green-500 */
-  background-color: rgba(34, 197, 94, 0.15);
+  background-color: rgba(34, 197, 94, 0.2);
 }
 
 /* Swap operation styling */
-[data-drop-operation="swap"] {
-  background-color: rgba(234, 179, 8, 0.1) !important; /* yellow tint */
-}
+/* No background on the main element - only use the hexagon shape */
 
 [data-drop-operation="swap"]::before {
-  border-color: rgb(234, 179, 8); /* yellow-500 */
-  background-color: rgba(234, 179, 8, 0.15);
+  background-color: rgba(234, 179, 8, 0.2);
 }
 
 /* Animation for drop targets */

@@ -12,7 +12,6 @@ import {
   DebugLogsWidget
 } from '~/app/map/Chat/Timeline/Widgets';
 import type { AIResponseWidgetData } from '~/app/map/Chat/types';
-import type { UseDOMBasedDragReturn } from '~/app/map/Services';
 
 function safeStringify(value: unknown, space = 0): string | undefined {
   try {
@@ -35,7 +34,6 @@ export function renderPreviewWidget(
   widget: Widget,
   handlers: WidgetHandlers,
   getItem: (coordId: string) => TileData | null,
-  dragService?: UseDOMBasedDragReturn
 ) {
   const previewData = widget.data as TileSelectedPayload;
   const { 
@@ -58,7 +56,6 @@ export function renderPreviewWidget(
       content={currentContent}
       tileColor={tileColor}
       openInEditMode={previewData.openInEditMode}
-      dragService={dragService}
       onEdit={handleEdit}
       onDelete={handleDelete}
       onSave={handlePreviewSave}

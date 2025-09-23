@@ -19,21 +19,13 @@ export {
   type PreFetchedMapData
 } from '~/app/map/Services/PreFetch/pre-fetch-service';
 
-// DragAndDrop Service - DOM-based drag and drop system
+// DragAndDrop Service - Global drag and drop system
 export {
-  DOMBasedDragService,
-  createDOMBasedDragService,
-  useDOMBasedDrag,
-  useTileRegistration,
   globalDragService,
   validateDragOperation,
   canDragTile,
   canDropOnTile,
   isCenterTile,
-  type DOMDragState,
-  type TileGeometry,
-  type DOMDragEvent,
-  type UseDOMBasedDragReturn,
   type TileDropTarget,
   type DragOperation,
   type DropHandler,

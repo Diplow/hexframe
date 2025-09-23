@@ -19,15 +19,13 @@ import {
   renderDebugLogsWidget,
   type WidgetHandlers
 } from '~/app/map/Chat/Timeline/_components/_renderers/widget-renderers';
-import type { UseDOMBasedDragReturn } from '~/app/map/Services';
 
 interface WidgetManagerProps {
   widgets: Widget[];
   focusChatInput?: () => void;
-  dragService?: UseDOMBasedDragReturn;
 }
 
-export function WidgetManager({ widgets, focusChatInput: focusChatInputProp, dragService }: WidgetManagerProps) {
+export function WidgetManager({ widgets, focusChatInput: focusChatInputProp }: WidgetManagerProps) {
   
   const { createItemOptimistic, updateItemOptimistic, getItem } = useMapCache();
   const eventBus = useEventBus();
@@ -94,7 +92,7 @@ export function WidgetManager({ widgets, focusChatInput: focusChatInputProp, dra
     <>
       {widgets.map((widget) => (
         <div key={widget.id} className="w-full">
-          {_renderWidget(widget, createWidgetHandlers, getItem, dragService)}
+          {_renderWidget(widget, createWidgetHandlers, getItem)}
         </div>
       ))}
     </>
@@ -105,12 +103,11 @@ function _renderWidget(
   widget: Widget,
   createWidgetHandlers: (widget: Widget) => WidgetHandlers,
   getItem: (coordId: string) => TileData | null,
-  dragService?: UseDOMBasedDragReturn
 ): ReactNode {
   
   switch (widget.type) {
     case 'preview':
-      return renderPreviewWidget(widget, createWidgetHandlers(widget), getItem, dragService);
+      return renderPreviewWidget(widget, createWidgetHandlers(widget), getItem);
     case 'login':
       return renderLoginWidget(widget, createWidgetHandlers(widget));
     case 'error':

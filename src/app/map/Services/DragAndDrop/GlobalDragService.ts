@@ -27,6 +27,7 @@ class GlobalDragService {
   private dropHandler: DropHandler | null = null;
   private validationHandler: ValidationHandler | null = null;
   private currentUserId: number | null = null;
+  private cleanupTimer: number | null = null;
 
   private constructor() {
     // Private constructor for singleton
@@ -91,6 +92,9 @@ class GlobalDragService {
     // Add CSS class to indicate drag is active
     document.body.setAttribute('data-drag-active', 'true');
 
+    // Start cleanup timer as a safety net (clear stale highlights every 100ms)
+    this.startCleanupTimer();
+
     // Mark the dragged tile
     const draggedElement = this.findTileElement(tileId);
     if (draggedElement) {
@@ -105,6 +109,8 @@ class GlobalDragService {
    * End drag operation
    */
   private endDrag() {
+    console.log('🐛 GlobalDragService.endDrag: Cleaning up drag state');
+
     // Clean up CSS classes
     document.body.removeAttribute('data-drag-active');
 
@@ -112,19 +118,32 @@ class GlobalDragService {
       const draggedElement = this.findTileElement(this.currentDraggedTile);
       if (draggedElement) {
         draggedElement.removeAttribute('data-being-dragged');
+        console.log('🐛 Cleaned up dragged element:', this.currentDraggedTile);
       }
     }
 
-    if (this.currentDropTarget) {
-      const targetElement = this.findTileElement(this.currentDropTarget);
-      if (targetElement) {
-        targetElement.removeAttribute('data-drop-target');
-        targetElement.removeAttribute('data-drop-operation');
-      }
-    }
+    // Clean up ALL drop targets to prevent stale highlights
+    this.clearAllDropTargets();
+
+    // Stop cleanup timer
+    this.stopCleanupTimer();
 
     this.currentDraggedTile = null;
     this.currentDropTarget = null;
+    console.log('🐛 Drag cleanup complete');
+  }
+
+  /**
+   * Clear all drop target highlights - more aggressive cleanup
+   */
+  private clearAllDropTargets() {
+    const allDropTargets = document.querySelectorAll('[data-drop-target="true"]');
+    console.log('🐛 Clearing', allDropTargets.length, 'drop targets');
+
+    allDropTargets.forEach((element) => {
+      element.removeAttribute('data-drop-target');
+      element.removeAttribute('data-drop-operation');
+    });
   }
 
   private attachEventListeners() {
@@ -220,17 +239,27 @@ class GlobalDragService {
   }
 
   private handleDragLeave(event: DragEvent) {
-    // Only clear if we're leaving the viewport entirely
+    // More aggressive cleanup - clear when leaving any tile or the viewport
     const target = event.target as Element;
-    if (target === document.body || !document.body.contains(target)) {
+    const relatedTarget = event.relatedTarget as Element | null;
+
+    // If we're leaving a tile and not entering another tile, clear the current target
+    if (target?.closest('[data-tile-id]') && !relatedTarget?.closest('[data-tile-id]')) {
       if (this.currentDropTarget) {
         const targetElement = this.findTileElement(this.currentDropTarget);
         if (targetElement) {
           targetElement.removeAttribute('data-drop-target');
           targetElement.removeAttribute('data-drop-operation');
+          console.log('🐛 Cleared drop target on leave:', this.currentDropTarget);
         }
         this.currentDropTarget = null;
       }
+    }
+
+    // Also clear if we're leaving the viewport entirely
+    if (target === document.body || !document.body.contains(target)) {
+      this.clearAllDropTargets();
+      this.currentDropTarget = null;
     }
   }
 
@@ -295,6 +324,39 @@ class GlobalDragService {
    */
   getDraggedTileId(): string | null {
     return this.currentDraggedTile;
+  }
+
+  /**
+   * Start cleanup timer to periodically clear stale highlights
+   */
+  private startCleanupTimer() {
+    this.stopCleanupTimer(); // Clear any existing timer
+    this.cleanupTimer = window.setInterval(() => {
+      // Only run cleanup if we're actually dragging
+      if (this.currentDraggedTile) {
+        // Check for stale highlights that don't match current state
+        const allDropTargets = document.querySelectorAll('[data-drop-target="true"]');
+        allDropTargets.forEach((element) => {
+          const tileId = element.getAttribute('data-tile-id');
+          if (tileId !== this.currentDropTarget) {
+            // This tile is highlighted but not the current target - clean it up
+            element.removeAttribute('data-drop-target');
+            element.removeAttribute('data-drop-operation');
+            console.log('🐛 Timer cleanup: removed stale highlight from', tileId);
+          }
+        });
+      }
+    }, 100); // Check every 100ms
+  }
+
+  /**
+   * Stop cleanup timer
+   */
+  private stopCleanupTimer() {
+    if (this.cleanupTimer) {
+      clearInterval(this.cleanupTimer);
+      this.cleanupTimer = null;
+    }
   }
 }
 
