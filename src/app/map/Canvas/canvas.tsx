@@ -20,7 +20,7 @@ import { useMapCache } from '~/app/map/Cache';
 import type { URLInfo } from "~/app/map/types/url-info";
 import { MapLoadingSkeleton } from "~/app/map/Canvas/LifeCycle/loading-skeleton";
 import { MapErrorBoundary } from "~/app/map/Canvas/LifeCycle/error-boundary";
-import { useDOMBasedDrag, type UseDOMBasedDragReturn } from "~/app/map/Services";
+import type { UseDOMBasedDragReturn } from "~/app/map/Services";
 // import type { DragEvent } from "react"; // Removed unused import
 import { loggers } from "~/lib/debug/debug-logger";
 import { useEventBus } from '~/app/map';
@@ -57,8 +57,8 @@ interface DynamicMapCanvasProps {
     maxDepth: number;
   };
 
-  // Shared drag service
-  dragService?: UseDOMBasedDragReturn;
+  // Shared drag service (required)
+  dragService: UseDOMBasedDragReturn;
 }
 
 export function DynamicMapCanvas({
@@ -71,7 +71,7 @@ export function DynamicMapCanvas({
   enableBackgroundSync: _enableBackgroundSync = true,
   syncInterval: _syncInterval = 30000,
   cacheConfig: _cacheConfig,
-  dragService: externalDragService,
+  dragService,
 }: DynamicMapCanvasProps) {
   const {
     items,
@@ -115,9 +115,8 @@ export function DynamicMapCanvas({
     return unsubscribe;
   }, [eventBus]);
   
-  // Use shared drag service or create new one if not provided
-  const localDragService = useDOMBasedDrag();
-  const domBasedDragAndDrop = externalDragService ?? localDragService;
+  // Use the required drag service
+  const domBasedDragAndDrop = dragService;
 
   useEffect(() => {
     // Initialize hydration
