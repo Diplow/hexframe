@@ -116,7 +116,8 @@ export function DynamicMapCanvas({
   }, [eventBus]);
   
   // Use shared drag service or create new one if not provided
-  const domBasedDragAndDrop = externalDragService ?? useDOMBasedDrag();
+  const localDragService = useDOMBasedDrag();
+  const domBasedDragAndDrop = externalDragService ?? localDragService;
 
   useEffect(() => {
     // Initialize hydration
