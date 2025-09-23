@@ -20,7 +20,7 @@ import { useMapCache } from '~/app/map/Cache';
 import type { URLInfo } from "~/app/map/types/url-info";
 import { MapLoadingSkeleton } from "~/app/map/Canvas/LifeCycle/loading-skeleton";
 import { MapErrorBoundary } from "~/app/map/Canvas/LifeCycle/error-boundary";
-import { useDOMBasedDrag } from "~/app/map/Services";
+import { useDOMBasedDrag, type UseDOMBasedDragReturn } from "~/app/map/Services";
 // import type { DragEvent } from "react"; // Removed unused import
 import { loggers } from "~/lib/debug/debug-logger";
 import { useEventBus } from '~/app/map';
@@ -57,6 +57,8 @@ interface DynamicMapCanvasProps {
     maxDepth: number;
   };
 
+  // Shared drag service
+  dragService?: UseDOMBasedDragReturn;
 }
 
 export function DynamicMapCanvas({
@@ -69,6 +71,7 @@ export function DynamicMapCanvas({
   enableBackgroundSync: _enableBackgroundSync = true,
   syncInterval: _syncInterval = 30000,
   cacheConfig: _cacheConfig,
+  dragService: externalDragService,
 }: DynamicMapCanvasProps) {
   const {
     items,
@@ -112,8 +115,8 @@ export function DynamicMapCanvas({
     return unsubscribe;
   }, [eventBus]);
   
-  // Initialize DOM-based drag and drop functionality
-  const domBasedDragAndDrop = useDOMBasedDrag();
+  // Use shared drag service or create new one if not provided
+  const domBasedDragAndDrop = externalDragService ?? useDOMBasedDrag();
 
   useEffect(() => {
     // Initialize hydration
@@ -245,10 +248,20 @@ export function DynamicMapCanvas({
             data-canvas-id={dynamicCenterInfo.center}
             className="pointer-events-auto grid flex-grow place-items-center overflow-auto py-4"
             // Global drop handler for DOM-based drag and drop
-            onDrop={domBasedDragAndDrop.onDrop}
+            onDrop={(e) => {
+              console.log('🎯 Canvas onDrop triggered:', { event: e, isDragging: domBasedDragAndDrop.isDragging });
+              domBasedDragAndDrop.onDrop(e);
+            }}
             onDragOver={(e) => {
+              console.log('🎯 Canvas onDragOver:', { event: e, isDragging: domBasedDragAndDrop.isDragging });
               // Prevent default to allow drop
               e.preventDefault();
+            }}
+            onDragEnter={(e) => {
+              console.log('🎯 Canvas onDragEnter:', { event: e, isDragging: domBasedDragAndDrop.isDragging });
+            }}
+            onDragLeave={(e) => {
+              console.log('🎯 Canvas onDragLeave:', { event: e, isDragging: domBasedDragAndDrop.isDragging });
             }}
           >
             <DynamicFrame

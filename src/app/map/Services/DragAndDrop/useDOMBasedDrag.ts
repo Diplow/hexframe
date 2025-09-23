@@ -171,16 +171,21 @@ export function useDOMBasedDrag(): UseDOMBasedDragReturn {
 
   // Create drag props for draggable tiles
   const createDragProps = useCallback((coordId: string) => {
+
     const checkCanDrag = (): boolean => {
       const tile = getItem(coordId);
 
       // Use the validation utility that checks ownership and center tile
-      if (!canDragTile(tile, mappingUserId)) {
+      const canDrag = canDragTile(tile, mappingUserId);
+
+      if (!canDrag) {
         return false;
       }
 
       // Check if there's a pending operation on this tile
-      if (isOperationPending(coordId)) {
+      const isPending = isOperationPending(coordId);
+
+      if (isPending) {
         return false;
       }
 
@@ -192,12 +197,14 @@ export function useDOMBasedDrag(): UseDOMBasedDragReturn {
     return {
       draggable: isDraggable,
       onDragStart: (event: DragEvent<HTMLDivElement>) => {
+
         if (!isDraggable) {
           event.preventDefault();
           return;
         }
 
         const tileData = getItem(coordId);
+
         if (!tileData) {
           event.preventDefault();
           return;

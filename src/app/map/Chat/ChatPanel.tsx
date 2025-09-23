@@ -14,34 +14,36 @@ import { authClient } from '~/lib/auth';
 import { loggers } from '~/lib/debug/debug-logger';
 import { useEventBus } from '~/app/map/Services';
 import { useAIChatIntegration } from '~/app/map/Chat/_hooks/useAIChatIntegration';
+import type { UseDOMBasedDragReturn } from '~/app/map/Services';
 
 interface ChatPanelProps {
   className?: string;
+  dragService?: UseDOMBasedDragReturn;
 }
 
-export function ChatPanel({ className }: ChatPanelProps) {
+export function ChatPanel({ className, dragService }: ChatPanelProps) {
   return (
     <ChatProvider>
       <div data-testid="chat-panel" className={cn('flex flex-col h-full bg-center-depth-0', className)}>
         <ChatHeader />
-        <ChatContent />
+        <ChatContent dragService={dragService} />
       </div>
     </ChatProvider>
   );
 }
 
 // Separate component that uses the chat state
-function ChatContent() {
+function ChatContent({ dragService }: { dragService?: UseDOMBasedDragReturn }) {
   const chatState = useChatState();
   const messages = chatState.messages;
   const widgets = chatState.widgets;
-  
+
   // Enable AI chat integration
   const { isGeneratingAI } = useAIChatIntegration();
 
   return (
     <>
-      <Timeline messages={messages} widgets={widgets} />
+      <Timeline messages={messages} widgets={widgets} dragService={dragService} />
       {isGeneratingAI && (
         <div className="flex items-center gap-2 text-muted-foreground text-sm p-3 bg-muted/50 rounded-lg mx-4 my-2">
           <div className="flex gap-1">

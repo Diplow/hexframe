@@ -6,6 +6,7 @@ import { ContentDisplay } from '~/app/map/Chat/Timeline/Widgets/PreviewWidget/Co
 import { usePreviewState } from '~/app/map/Chat/Timeline/Widgets/PreviewWidget/usePreviewState';
 import { BaseWidget } from '~/app/map/Chat/Timeline/Widgets/_shared';
 import { useMapCache } from '~/app/map/Cache';
+import type { UseDOMBasedDragReturn } from '~/app/map/Services';
 
 interface PreviewWidgetProps {
   tileId: string;
@@ -14,6 +15,7 @@ interface PreviewWidgetProps {
   forceExpanded?: boolean;
   openInEditMode?: boolean;
   tileColor?: string;
+  dragService?: UseDOMBasedDragReturn;
   onEdit?: () => void;
   onDelete?: () => void;
   onSave?: (title: string, content: string) => void;
@@ -27,6 +29,7 @@ export function PreviewWidget({
   forceExpanded,
   openInEditMode,
   tileColor,
+  dragService,
   onEdit,
   onDelete,
   onSave,
@@ -111,12 +114,14 @@ export function PreviewWidget({
       className="flex-1 w-full"
     >
       <PreviewHeader
+        tileId={tileId}
         title={title}
         isExpanded={isExpanded}
         isEditing={isEditing}
         editTitle={editTitle}
         hasContent={!!content}
         tileColor={tileColor}
+        dragService={dragService}
         onToggleExpansion={() => setIsExpanded(!isExpanded)}
         onTitleChange={setEditTitle}
         onTitleKeyDown={_handleTitleKeyDown}

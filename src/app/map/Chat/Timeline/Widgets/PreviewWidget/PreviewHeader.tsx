@@ -3,15 +3,18 @@
 import { cn } from '~/lib/utils';
 import { ActionMenu } from '~/app/map/Chat/Timeline/Widgets/PreviewWidget/ActionMenu';
 import { EditControls } from '~/app/map/Chat/Timeline/Widgets/PreviewWidget/EditControls';
-import { TilePreview } from '~/app/map/Chat/Timeline/Widgets/_shared';
+import { DraggableTilePreview } from '~/app/map/Chat/Timeline/Widgets/_shared';
+import type { UseDOMBasedDragReturn } from '~/app/map/Services';
 
 interface PreviewHeaderProps {
+  tileId: string;
   title: string;
   isExpanded: boolean;
   isEditing: boolean;
   editTitle: string;
   hasContent: boolean;
   tileColor?: string;
+  dragService?: UseDOMBasedDragReturn;
   onToggleExpansion: () => void;
   onTitleChange: (title: string) => void;
   onTitleKeyDown: (e: React.KeyboardEvent) => void;
@@ -23,12 +26,14 @@ interface PreviewHeaderProps {
 }
 
 export function PreviewHeader({
+  tileId,
   title,
   isExpanded,
   isEditing,
   editTitle,
   hasContent,
   tileColor,
+  dragService,
   onToggleExpansion,
   onTitleChange,
   onTitleKeyDown,
@@ -67,12 +72,16 @@ export function PreviewHeader({
       onKeyDown={handleKeyDown}
     >
       {/* Tile preview on the left */}
-      <TilePreview
-        tileColor={tileColor}
-        size={10}
-        className="flex-shrink-0"
-        cursor={isTogglable ? "cursor-pointer" : undefined}
-      />
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <DraggableTilePreview
+          tileId={tileId}
+          tileColor={tileColor}
+          size={10}
+          className="flex-shrink-0"
+          cursor={isTogglable ? "cursor-pointer" : undefined}
+          dragService={dragService}
+        />
+      </div>
 
       {/* Title or edit input */}
       {isEditing ? (

@@ -7,7 +7,7 @@ import { useChatState } from '~/app/map/Chat/_state';
 import { createCreationHandlers } from '~/app/map/Chat/Timeline/_utils/creation-handlers';
 import { createPreviewHandlers } from '~/app/map/Chat/Timeline/_utils/preview-handlers';
 import { focusChatInput } from '~/app/map/Chat/Timeline/_utils/focus-helpers';
-import { 
+import {
   renderPreviewWidget,
   renderLoginWidget,
   renderErrorWidget,
@@ -19,13 +19,15 @@ import {
   renderDebugLogsWidget,
   type WidgetHandlers
 } from '~/app/map/Chat/Timeline/_components/_renderers/widget-renderers';
+import type { UseDOMBasedDragReturn } from '~/app/map/Services';
 
 interface WidgetManagerProps {
   widgets: Widget[];
   focusChatInput?: () => void;
+  dragService?: UseDOMBasedDragReturn;
 }
 
-export function WidgetManager({ widgets, focusChatInput: focusChatInputProp }: WidgetManagerProps) {
+export function WidgetManager({ widgets, focusChatInput: focusChatInputProp, dragService }: WidgetManagerProps) {
   
   const { createItemOptimistic, updateItemOptimistic, getItem } = useMapCache();
   const eventBus = useEventBus();
@@ -92,7 +94,7 @@ export function WidgetManager({ widgets, focusChatInput: focusChatInputProp }: W
     <>
       {widgets.map((widget) => (
         <div key={widget.id} className="w-full">
-          {_renderWidget(widget, createWidgetHandlers, getItem)}
+          {_renderWidget(widget, createWidgetHandlers, getItem, dragService)}
         </div>
       ))}
     </>
@@ -100,14 +102,15 @@ export function WidgetManager({ widgets, focusChatInput: focusChatInputProp }: W
 }
 
 function _renderWidget(
-  widget: Widget, 
-  createWidgetHandlers: (widget: Widget) => WidgetHandlers, 
-  getItem: (coordId: string) => TileData | null
+  widget: Widget,
+  createWidgetHandlers: (widget: Widget) => WidgetHandlers,
+  getItem: (coordId: string) => TileData | null,
+  dragService?: UseDOMBasedDragReturn
 ): ReactNode {
   
   switch (widget.type) {
     case 'preview':
-      return renderPreviewWidget(widget, createWidgetHandlers(widget), getItem);
+      return renderPreviewWidget(widget, createWidgetHandlers(widget), getItem, dragService);
     case 'login':
       return renderLoginWidget(widget, createWidgetHandlers(widget));
     case 'error':

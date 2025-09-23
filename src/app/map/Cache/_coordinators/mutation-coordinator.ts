@@ -133,7 +133,7 @@ export class MutationCoordinator {
   /**
    * Track move operations that involve multiple tiles (source and target)
    */
-  private async trackMoveOperation<T>(
+  private async _trackMoveOperation<T>(
     sourceCoordId: string,
     targetCoordId: string,
     operation: () => Promise<T>
@@ -182,12 +182,10 @@ export class MutationCoordinator {
 
       if (sourceOp?.operationId === operationId) {
         this.pendingOperations.delete(sourceCoordId);
-      } else {
       }
 
       if (targetOp?.operationId === operationId) {
         this.pendingOperations.delete(targetCoordId);
-      } else {
       }
 
     }
@@ -308,7 +306,7 @@ export class MutationCoordinator {
     // Note: Validation is performed in the client-side drag service before reaching this point
     // This ensures UI validation happens immediately and server calls only happen for valid operations
 
-    return this.trackMoveOperation(sourceCoordId, targetCoordId, async () => {
+    return this._trackMoveOperation(sourceCoordId, targetCoordId, async () => {
       const changeId = this.tracker.generateChangeId();
       const moveParams = this._prepareMoveOperation(sourceCoordId, targetCoordId, changeId);
 

@@ -6,13 +6,15 @@ import { useAuthStateCoordinator } from '~/app/map/Chat/Timeline/_components/_ho
 import { UnifiedTimeline } from '~/app/map/Chat/Timeline/_core/UnifiedTimeline';
 import { useEffect } from 'react';
 import { loggers } from '~/lib/debug/debug-logger';
+import type { UseDOMBasedDragReturn } from '~/app/map/Services';
 
 interface MessagesProps {
   messages: Message[];
   widgets: Widget[];
+  dragService?: UseDOMBasedDragReturn;
 }
 
-export function Messages({ messages, widgets }: MessagesProps) {
+export function Messages({ messages, widgets, dragService }: MessagesProps) {
   useChatSettings(); // Trigger re-render when settings change
   useAuthStateCoordinator(widgets);
   
@@ -39,6 +41,6 @@ export function Messages({ messages, widgets }: MessagesProps) {
   ].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
 
   return (
-    <UnifiedTimeline items={timelineItems} />
+    <UnifiedTimeline items={timelineItems} dragService={dragService} />
   );
 }
