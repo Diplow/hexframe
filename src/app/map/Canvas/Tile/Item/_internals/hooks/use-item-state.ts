@@ -71,7 +71,7 @@ export function useItemState({
   // Data attributes for DOM-based drag detection
   const dataAttributes = {
     'data-tile-id': item.metadata.coordId,
-    'data-tile-owner': currentUserId?.toString() ?? '',
+    'data-tile-owner': item.metadata.ownerId?.toString() ?? '',
     'data-tile-has-content': 'true', // This tile has content (not empty)
   };
 
