@@ -28,9 +28,9 @@ export function getSemanticColorClass(direction: Direction, depth: number): stri
 
 // Get text color class based on depth (for contrast)
 export function getTextColorForDepth(depth: number): string {
-  // For deeper tiles (depth 5+), we need light text on dark backgrounds
+  // For deeper tiles (depth 4+), we need light text on dark backgrounds
   // In dark mode, this inverts: dark text on light backgrounds
-  if (depth >= 5) {
+  if (depth >= 4) {
     return 'text-white dark:text-neutral-900';
   }
   // For shallower tiles, use dark text on light backgrounds

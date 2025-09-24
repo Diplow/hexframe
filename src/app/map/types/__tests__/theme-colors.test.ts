@@ -24,15 +24,15 @@ describe("theme-colors", () => {
   });
 
   describe("getTextColorForDepth", () => {
-    it("should return dark text colors for shallow depths (0-4)", () => {
+    it("should return dark text colors for shallow depths (0-3)", () => {
       expect(getTextColorForDepth(0)).toBe("text-neutral-900 dark:text-neutral-100");
       expect(getTextColorForDepth(1)).toBe("text-neutral-900 dark:text-neutral-100");
       expect(getTextColorForDepth(2)).toBe("text-neutral-900 dark:text-neutral-100");
       expect(getTextColorForDepth(3)).toBe("text-neutral-900 dark:text-neutral-100");
-      expect(getTextColorForDepth(4)).toBe("text-neutral-900 dark:text-neutral-100");
     });
 
-    it("should return light text colors for deep depths (5+)", () => {
+    it("should return light text colors for deep depths (4+)", () => {
+      expect(getTextColorForDepth(4)).toBe("text-white dark:text-neutral-900");
       expect(getTextColorForDepth(5)).toBe("text-white dark:text-neutral-900");
       expect(getTextColorForDepth(6)).toBe("text-white dark:text-neutral-900");
       expect(getTextColorForDepth(7)).toBe("text-white dark:text-neutral-900");
