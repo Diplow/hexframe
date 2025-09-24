@@ -19,6 +19,7 @@ interface PreviewHeaderProps {
   onEdit?: () => void;
   onDelete?: () => void;
   onClose?: () => void;
+  onMetadata?: () => void;
   onSave: () => void;
   onCancel: () => void;
 }
@@ -37,6 +38,7 @@ export function PreviewHeader({
   onEdit,
   onDelete,
   onClose,
+  onMetadata,
   onSave,
   onCancel,
 }: PreviewHeaderProps) {
@@ -107,6 +109,7 @@ export function PreviewHeader({
             onEdit={onEdit}
             onDelete={onDelete}
             onClose={onClose}
+            onMetadata={onMetadata}
           />
         )}
       </div>

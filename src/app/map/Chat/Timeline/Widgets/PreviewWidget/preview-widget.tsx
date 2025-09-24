@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { PreviewHeader } from '~/app/map/Chat/Timeline/Widgets/PreviewWidget/PreviewHeader';
 import { ContentDisplay } from '~/app/map/Chat/Timeline/Widgets/PreviewWidget/ContentDisplay';
 import { usePreviewState } from '~/app/map/Chat/Timeline/Widgets/PreviewWidget/usePreviewState';
@@ -33,6 +33,7 @@ export function PreviewWidget({
   onClose,
 }: PreviewWidgetProps) {
   const { getItem, hasItem, isLoading } = useMapCache();
+  const [showMetadata, setShowMetadata] = useState(false);
   const { expansion, editing } = usePreviewState({
     title,
     content,
@@ -105,10 +106,26 @@ export function PreviewWidget({
     }
   };
 
+  const _handleShowMetadata = () => {
+    const tile = getItem(tileId);
+    if (tile) {
+      const metadataText = `Tile Metadata:
+- Database ID: ${tile.metadata.dbId}
+- Coordinate ID: ${tile.metadata.coordId}
+- Owner ID: ${tile.metadata.ownerId}`;
+
+      // Copy to clipboard and show a temporary indicator
+      void navigator.clipboard.writeText(metadataText).then(() => {
+        setShowMetadata(true);
+        setTimeout(() => setShowMetadata(false), 2000);
+      });
+    }
+  };
+
   return (
     <BaseWidget
       testId="preview-widget"
-      className="flex-1 w-full"
+      className="flex-1 w-full relative"
     >
       <PreviewHeader
         tileId={tileId}
@@ -124,6 +141,7 @@ export function PreviewWidget({
         onEdit={onEdit ? _handleEdit : undefined}
         onDelete={onDelete}
         onClose={onClose}
+        onMetadata={_handleShowMetadata}
         onSave={_handleSave}
         onCancel={_handleCancel}
       />
@@ -136,6 +154,12 @@ export function PreviewWidget({
         onContentChange={setEditContent}
         onContentKeyDown={_handleContentKeyDown}
       />
+
+      {showMetadata && (
+        <div className="absolute top-2 right-2 bg-neutral-800 dark:bg-neutral-200 text-white dark:text-neutral-800 px-2 py-1 rounded text-xs z-10">
+          Metadata copied to clipboard!
+        </div>
+      )}
     </BaseWidget>
   );
 }
