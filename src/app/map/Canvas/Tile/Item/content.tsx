@@ -19,13 +19,13 @@ export interface DynamicTileContentProps {
 
 const getTextClasses = (depth = 0) => getTextColorForDepth(depth);
 
-export const DynamicTileContent = ({ 
-  data, 
-  scale, 
-  tileId: _tileId, 
-  isHovered: _isHovered = false, 
+export const DynamicTileContent = ({
+  data,
+  scale,
+  tileId: _tileId,
+  isHovered: _isHovered = false,
   depth = 0,
-  isSelected = false 
+  isSelected = false
 }: DynamicTileContentProps) => {
   if (!data) return null;
   

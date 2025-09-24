@@ -21,6 +21,7 @@ import type { URLInfo } from "~/app/map/types/url-info";
 import { useCanvasTheme } from "~/app/map/Canvas";
 import { useEffect } from "react";
 import { loggers } from "~/lib/debug/debug-logger";
+import { NeighborTiles } from "~/app/map/Canvas/NeighborTiles";
 // Removed drag service import - using global service
 
 const CHILD_INDICES = [1, 2, 3, 4, 5, 6] as const;
@@ -35,6 +36,7 @@ export interface DynamicFrameProps {
   interactive?: boolean;
   currentUserId?: number;
   selectedTileId?: string | null;
+  showNeighbors?: boolean; // New prop to control neighbor display
   // Callbacks for tile actions
   onNavigate?: (coordId: string) => void;
   onToggleExpansion?: (itemId: string, coordId: string) => void;
@@ -73,9 +75,9 @@ export const DynamicFrame = (props: DynamicFrameProps) => {
 
   const isExpanded = props.expandedItemIds?.includes(centerItem.metadata.dbId) ?? false;
   
-  // Not expanded = regular tile
+  // Not expanded = regular tile + neighbors (if enabled)
   if (!isExpanded) {
-    return (
+    const centerTile = (
       <DynamicItemTile
         item={centerItem}
         scale={scale}
@@ -91,13 +93,45 @@ export const DynamicFrame = (props: DynamicFrameProps) => {
         // No drag service prop needed
       />
     );
+
+    // If neighbors are disabled, just return the center tile
+    if (!props.showNeighbors) {
+      return centerTile;
+    }
+
+    // With neighbors enabled, wrap in a container that can handle overflow
+    return (
+      <div className="relative" style={{ zIndex: 10 }}>
+        {/* Center tile (highest z-index) */}
+        <div style={{ position: "relative", zIndex: 10 }}>
+          {centerTile}
+        </div>
+
+        {/* Neighbor tiles (lower z-index, positioned around center) */}
+        <NeighborTiles
+          centerItem={centerItem}
+          mapItems={props.mapItems}
+          baseHexSize={props.baseHexSize}
+          scale={scale}
+          urlInfo={props.urlInfo}
+          expandedItemIds={props.expandedItemIds}
+          isDarkMode={isDarkMode}
+          interactive={props.interactive}
+          currentUserId={props.currentUserId}
+          selectedTileId={props.selectedTileId}
+          onNavigate={props.onNavigate}
+          onToggleExpansion={props.onToggleExpansion}
+          onCreateRequested={props.onCreateRequested}
+        />
+      </div>
+    );
   }
 
   // Expanded = Frame (shallow tile with children inside)
   // Scale progression: 3 (center) → 2 (children) → 1 (grandchildren) → 1 (cannot go lower)
   const nextScale: TileScale = scale > 1 ? ((scale - 1) as TileScale) : 1;
 
-  return (
+  const expandedFrame = (
     <DynamicBaseTileLayout
       baseHexSize={props.baseHexSize ?? 50}
       scale={scale}
@@ -125,6 +159,38 @@ export const DynamicFrame = (props: DynamicFrameProps) => {
         />
       </div>
     </DynamicBaseTileLayout>
+  );
+
+  // If neighbors are disabled, just return the expanded frame
+  if (!props.showNeighbors) {
+    return expandedFrame;
+  }
+
+  // With neighbors enabled, wrap expanded frame with neighbors too
+  return (
+    <div className="relative" style={{ zIndex: 10 }}>
+      {/* Expanded frame (highest z-index) */}
+      <div style={{ position: "relative", zIndex: 10 }}>
+        {expandedFrame}
+      </div>
+
+      {/* Neighbor tiles (lower z-index, positioned around center) */}
+      <NeighborTiles
+        centerItem={centerItem}
+        mapItems={props.mapItems}
+        baseHexSize={props.baseHexSize}
+        scale={scale}
+        urlInfo={props.urlInfo}
+        expandedItemIds={props.expandedItemIds}
+        isDarkMode={isDarkMode}
+        interactive={props.interactive}
+        currentUserId={props.currentUserId}
+        selectedTileId={props.selectedTileId}
+        onNavigate={props.onNavigate}
+        onToggleExpansion={props.onToggleExpansion}
+        onCreateRequested={props.onCreateRequested}
+      />
+    </div>
   );
 };
 
@@ -352,6 +418,7 @@ const FrameSlot = (props: {
         interactive={props.interactive}
         currentUserId={props.currentUserId}
         selectedTileId={props.selectedTileId}
+        showNeighbors={false} // Child frames don't show neighbors
         onNavigate={props.onNavigate}
         onToggleExpansion={props.onToggleExpansion}
         onCreateRequested={props.onCreateRequested}

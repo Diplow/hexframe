@@ -42,6 +42,9 @@ interface DynamicMapCanvasProps {
   // Theme
   isDarkMode?: boolean;
 
+  // Neighbor display
+  showNeighbors?: boolean;
+
   // Progressive enhancement options
   fallback?: ReactNode;
   errorBoundary?: ReactNode;
@@ -64,6 +67,7 @@ export function DynamicMapCanvas({
   expandedItemIds,
   urlInfo,
   isDarkMode = false,
+  showNeighbors = true,
   fallback,
   errorBoundary,
   enableBackgroundSync: _enableBackgroundSync = true,
@@ -239,10 +243,14 @@ export function DynamicMapCanvas({
   return (
     <CanvasThemeContext.Provider value={{ isDarkMode }}>
       <LegacyTileActionsContext.Provider value={tileActions}>
-        <div className="relative flex h-full w-full flex-col">
+        <div className={`relative flex h-full w-full flex-col ${
+          showNeighbors ? 'overflow-hidden' : ''
+        }`}>
           <div
             data-canvas-id={dynamicCenterInfo.center}
-            className="pointer-events-auto grid flex-grow place-items-center overflow-auto py-4"
+            className={`pointer-events-auto grid flex-grow place-items-center py-4 ${
+              showNeighbors ? 'overflow-visible' : 'overflow-auto'
+            }`}
             // No drag handlers needed - global service handles everything
           >
             <DynamicFrame
@@ -255,6 +263,7 @@ export function DynamicMapCanvas({
               interactive={true}
               currentUserId={mappingUserId ?? undefined}
               selectedTileId={selectedTileId}
+              showNeighbors={showNeighbors}
               onNavigate={handleNavigate}
               onToggleExpansion={handleToggleExpansion}
               onCreateRequested={handleCreateRequested}
