@@ -9,16 +9,18 @@ interface MapLoadingUIProps {
 
 export function MapLoadingUI({ message }: MapLoadingUIProps) {
   return (
-    <div className="flex h-full w-full relative">
-      <div className="flex w-full">
-        <ChatPanel className="w-[40%] min-w-[40%] flex-shrink-0 border-r border-[color:var(--stroke-color-950)] overflow-hidden" />
-        
-        <div className="flex-1 pr-[130px]">
-          <MapLoadingSkeleton 
-            message={message} 
-            state="initializing" 
-          />
-        </div>
+    <div className="h-full w-full relative">
+      {/* Canvas layer - extends full width, positioned behind chat panel */}
+      <div className="absolute inset-0 pr-[130px]" style={{ zIndex: 1 }}>
+        <MapLoadingSkeleton
+          message={message}
+          state="initializing"
+        />
+      </div>
+
+      {/* Chat panel - positioned over the canvas */}
+      <div className="absolute left-0 top-0 bottom-0 w-[40%] min-w-[40%]" style={{ zIndex: 10 }}>
+        <ChatPanel className="h-full overflow-hidden" />
       </div>
     </div>
   );

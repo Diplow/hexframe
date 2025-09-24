@@ -243,14 +243,18 @@ export function DynamicMapCanvas({
   return (
     <CanvasThemeContext.Provider value={{ isDarkMode }}>
       <LegacyTileActionsContext.Provider value={tileActions}>
-        <div className={`relative flex h-full w-full flex-col ${
-          showNeighbors ? 'overflow-hidden' : ''
-        }`}>
+        <div className="relative flex h-full w-full flex-col">
           <div
             data-canvas-id={dynamicCenterInfo.center}
-            className={`pointer-events-auto grid flex-grow place-items-center py-4 ${
+            className={`pointer-events-auto grid flex-grow py-4 ${
               showNeighbors ? 'overflow-visible' : 'overflow-auto'
             }`}
+            style={{
+              placeItems: 'center',
+              // Offset the center point to account for chat panel (40% of width)
+              // This shifts the center tile to appear centered in the right 60% area
+              transform: 'translateX(20%)'
+            }}
             // No drag handlers needed - global service handles everything
           >
             <DynamicFrame

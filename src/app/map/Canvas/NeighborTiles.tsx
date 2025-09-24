@@ -5,7 +5,7 @@
  * as partial scale-3 tiles extending off-screen for visual depth and navigation.
  */
 
-import { DynamicFrame } from "~/app/map/Canvas/frame";
+import { DynamicFrameCore } from "~/app/map/Canvas/DynamicFrameCore";
 import type { TileScale } from "~/app/map/Canvas/Tile";
 import type { TileData } from "~/app/map/types/tile-data";
 import { CoordSystem, Direction } from "~/lib/domains/mapping/utils";
@@ -101,11 +101,10 @@ export const NeighborTiles = (props: NeighborTilesProps) => {
               top: "50%",
               left: "50%",
               transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px)`,
-              opacity: 0.8,
               zIndex: 5,
             }}
           >
-            <DynamicFrame
+            <DynamicFrameCore
               center={coordId} // Each neighbor shows its own center
               mapItems={props.mapItems}
               baseHexSize={props.baseHexSize}
@@ -141,11 +140,10 @@ export const NeighborTiles = (props: NeighborTilesProps) => {
                 top: "50%",
                 left: "50%",
                 transform: `translate(-50%, -50%) translate(${position.x}px, ${position.y}px)`,
-                opacity: 0.3,
                 zIndex: 1,
               }}
             >
-              <DynamicFrame
+              <DynamicFrameCore
                 center={parentCoordId} // Parent shows its own center
                 mapItems={props.mapItems}
                 baseHexSize={props.baseHexSize}
