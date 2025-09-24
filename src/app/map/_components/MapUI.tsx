@@ -165,7 +165,7 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
     >
       <div className="h-full w-full relative">
         {/* Canvas layer - extends full width, positioned behind chat panel */}
-        <div className="absolute inset-0 pr-[130px]" style={{ zIndex: 1 }}>
+        <div className="absolute inset-0 pr-[130px] overflow-hidden" style={{ zIndex: 1 }}>
           {_renderMapContent(isLoading, centerCoordinate, loadingError, params)}
         </div>
 
