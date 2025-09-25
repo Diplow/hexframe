@@ -66,16 +66,13 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
     <>
       <div
         ref={state.tileRef}
-        className={`group relative hover:z-10 select-none ${state.hasOperationPending ? 'operation-pending' : ''}`}
+        className={`group relative select-none ${state.hasOperationPending ? 'operation-pending' : ''}`}
         data-testid={state.testId}
         style={{
           opacity: state.hasOperationPending ? 0.7 : 1,
-          pointerEvents: state.hasOperationPending ? 'none' : 'auto'
+          // Container has no pointer events - hexagon shapes handle all interactions
+          pointerEvents: 'none'
         }}
-        // Data attributes for global drag service
-        {...state.dataAttributes}
-        // Drag props from the state
-        {...state.dragProps}
       >
         <ItemTileContent
           {...props}
@@ -87,6 +84,9 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
           testId={state.testId}
           canEdit={state.canEdit}
           isSelected={props.isSelected}
+          // Pass drag props to be applied to clipped hexagon area
+          dragProps={state.dragProps}
+          dataAttributes={state.dataAttributes}
           hasOperationPending={state.hasOperationPending}
           operationType={state.operationType}
         />

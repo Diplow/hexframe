@@ -89,7 +89,39 @@ export function DynamicMapCanvas({
   const [selectedTileId, setSelectedTileId] = useState<string | null>(null);
   const { mappingUserId } = useUnifiedAuth();
   const eventBus = useEventBus();
-  
+
+  // Ctrl key detection for navigation cursor
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey) {
+        document.body.setAttribute('data-ctrl-pressed', 'true');
+      }
+    };
+
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (!event.ctrlKey) {
+        document.body.removeAttribute('data-ctrl-pressed');
+      }
+    };
+
+    // Also handle window focus/blur to reset state
+    const handleWindowBlur = () => {
+      document.body.removeAttribute('data-ctrl-pressed');
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('blur', handleWindowBlur);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('blur', handleWindowBlur);
+      // Clean up on unmount
+      document.body.removeAttribute('data-ctrl-pressed');
+    };
+  }, []);
+
   // Log component mount/unmount
   useEffect(() => {
     loggers.render.canvas('DynamicMapCanvas mounted', {
@@ -246,9 +278,7 @@ export function DynamicMapCanvas({
         <div className="relative flex h-full w-full flex-col">
           <div
             data-canvas-id={dynamicCenterInfo.center}
-            className={`pointer-events-auto grid flex-grow py-4 ${
-              showNeighbors ? 'overflow-visible' : 'overflow-auto'
-            }`}
+            className="pointer-events-auto grid flex-grow py-4 overflow-visible"
             style={{
               placeItems: 'center',
               // Offset the center point to account for chat panel (40% of width)
