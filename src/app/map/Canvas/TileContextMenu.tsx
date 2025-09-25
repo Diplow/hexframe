@@ -116,7 +116,7 @@ export function TileContextMenu({
     ...(onExpand ? [{
       icon: Maximize2,
       label: tileData.state?.isExpanded ? "Collapse" : "Expand",
-      shortcut: "Double-click",
+      shortcut: "Shift+Click",
       onClick: onExpand,
     }] : []),
     ...(onNavigate ? [{

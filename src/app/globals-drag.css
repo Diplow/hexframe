@@ -149,6 +149,23 @@ body[data-ctrl-pressed="true"] .hexagon-draggable:focus {
   cursor: pointer !important;
 }
 
+/* Change cursor to zoom when Shift is pressed (expansion mode) */
+body[data-shift-pressed="true"] .cursor-zoom-in,
+body[data-shift-pressed="true"] .cursor-zoom-in *,
+body[data-shift-pressed="true"] .cursor-zoom-in:hover,
+body[data-shift-pressed="true"] .cursor-zoom-in:active,
+body[data-shift-pressed="true"] .cursor-zoom-in:focus {
+  cursor: zoom-in !important;
+}
+
+body[data-shift-pressed="true"] .cursor-zoom-out,
+body[data-shift-pressed="true"] .cursor-zoom-out *,
+body[data-shift-pressed="true"] .cursor-zoom-out:hover,
+body[data-shift-pressed="true"] .cursor-zoom-out:active,
+body[data-shift-pressed="true"] .cursor-zoom-out:focus {
+  cursor: zoom-out !important;
+}
+
 /* Alternative approach - target by attribute and style */
 [draggable="true"][style*="clip-path"] {
   cursor: grab !important;

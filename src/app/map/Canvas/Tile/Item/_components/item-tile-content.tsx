@@ -86,7 +86,7 @@ export function ItemTileContent({
   };
   
   // Use tile interaction hook for contextual behavior
-  const { handleClick, handleDoubleClick, handleRightClick, cursor } = useTileInteraction({
+  const { handleClick, handleRightClick, cursor } = useTileInteraction({
     coordId: item.metadata.coordId,
     type: 'item',
     tileData: tileDataWithExpanded,
@@ -112,7 +112,6 @@ export function ItemTileContent({
           pointerEvents: interactive ? "auto" : "none"
         }}
         onClick={interactive ? (e) => void handleClick(e) : undefined}
-        onDoubleClick={interactive ? (e) => void handleDoubleClick(e) : undefined}
         onContextMenu={interactive ? (e) => void handleRightClick(e) : undefined}
         // Apply drag props to hexagon area
         {...(dragProps ?? {})}

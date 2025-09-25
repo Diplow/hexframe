@@ -90,11 +90,14 @@ export function DynamicMapCanvas({
   const { mappingUserId } = useUnifiedAuth();
   const eventBus = useEventBus();
 
-  // Ctrl key detection for navigation cursor
+  // Ctrl and Shift key detection for navigation and expansion cursors
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.ctrlKey) {
         document.body.setAttribute('data-ctrl-pressed', 'true');
+      }
+      if (event.shiftKey) {
+        document.body.setAttribute('data-shift-pressed', 'true');
       }
     };
 
@@ -102,11 +105,15 @@ export function DynamicMapCanvas({
       if (!event.ctrlKey) {
         document.body.removeAttribute('data-ctrl-pressed');
       }
+      if (!event.shiftKey) {
+        document.body.removeAttribute('data-shift-pressed');
+      }
     };
 
     // Also handle window focus/blur to reset state
     const handleWindowBlur = () => {
       document.body.removeAttribute('data-ctrl-pressed');
+      document.body.removeAttribute('data-shift-pressed');
     };
 
     document.addEventListener('keydown', handleKeyDown);
@@ -119,6 +126,7 @@ export function DynamicMapCanvas({
       window.removeEventListener('blur', handleWindowBlur);
       // Clean up on unmount
       document.body.removeAttribute('data-ctrl-pressed');
+      document.body.removeAttribute('data-shift-pressed');
     };
   }, []);
 

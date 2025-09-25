@@ -141,7 +141,7 @@ function _renderEmptyTile(
   setIsHovered: React.Dispatch<React.SetStateAction<boolean>>,
   tileLayout: ReturnType<typeof _createTileLayout>
 ) {
-  const { handleClick, handleDoubleClick, handleRightClick } = tileLayout.interactionHandlers;
+  const { handleClick, handleRightClick } = tileLayout.interactionHandlers;
 
   return (
     <div
@@ -169,7 +169,6 @@ function _renderEmptyTile(
             <div 
               className="pointer-events-auto absolute inset-0 z-10"
               onClick={props.interactive ? (e) => void handleClick(e) : undefined}
-              onDoubleClick={props.interactive ? (e) => void handleDoubleClick(e) : undefined}
               onContextMenu={props.interactive ? (e) => void handleRightClick(e) : undefined}
               style={{
                 clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)"
