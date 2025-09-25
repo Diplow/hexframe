@@ -10,7 +10,7 @@
  *               ├─ Center content: scale 1
  *               └─ Children: scale 1 (cannot expand further)
  *
- * The 90% scaling (scale-95) creates visual depth showing children are "inside" their parent.
+ * The 95% scaling (scale-95) creates visual depth showing children are "inside" their parent.
  */
 
 import { DynamicFrameCore } from "~/app/map/Canvas/DynamicFrameCore";
