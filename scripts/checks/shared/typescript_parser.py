@@ -669,25 +669,10 @@ class TypeScriptParser:
                 # Extract arguments by finding the complete parameter list from the opening parenthesis
                 args_str = self._extract_function_parameters(lines, i, function_match.start(1) if hasattr(function_match, 'start') else 0)
 
-                # Skip obvious function calls (not declarations)
-                # Pattern 1: function declarations should have 'function' keyword
-                # Pattern 2: const assignments should have '=' and either '=>' or 'function'
-                # Pattern 3: object methods should have ':' and '=>'
-                if matched_pattern_idx == 1:  # const name = () => pattern
-                    # Ensure this is actually a function assignment, not a function call
-                    if '=' not in line or ('=' in line and '=>' not in line and 'function' not in line):
-                        i += 1
-                        continue
-                elif matched_pattern_idx == 2:  # object method pattern
-                    # Skip if this doesn't have '=>' (likely a method call, not declaration)
-                    if '=>' not in line:
-                        i += 1
-                        continue
-                elif matched_pattern_idx == 3:  # class method pattern
-                    # Skip if this line doesn't have '{' (likely a method call, not declaration)
-                    if '{' not in line:
-                        i += 1
-                        continue
+                # Skip obvious function calls (not declarations) with improved detection
+                if not self._is_valid_function_declaration(line, matched_pattern_idx, lines, i, in_interface_block):
+                    i += 1
+                    continue
                 
                 # Count arguments
                 arg_count = self._count_arguments(args_str)
@@ -760,22 +745,217 @@ class TypeScriptParser:
         return used_symbols
 
     def _count_arguments(self, args_str: str) -> int:
-        """Count arguments in function signature."""
+        """Count arguments in function signature, properly handling nested structures."""
         if not args_str.strip():
             return 0
-        
-        args = [arg.strip() for arg in args_str.split(',') if arg.strip()]
-        
-        # Filter out empty args and type annotations
+
+        # Split arguments while respecting nested structures (braces, brackets, parentheses)
+        args = self._split_arguments_safely(args_str)
+
+        # Filter out empty args and clean up
         real_args = []
         for arg in args:
+            arg = arg.strip()
+            if not arg or arg == '...':
+                continue
+
             # Remove type annotations and default values
-            arg = re.sub(r':\s*[^=]+', '', arg)
-            arg = re.sub(r'=.*$', '', arg).strip()
-            if arg and arg != '...':
+            # Handle complex types like { prop: string }
+            arg = re.sub(r':\s*\{[^}]*\}', '', arg)  # Remove object type annotations
+            arg = re.sub(r':\s*[^=,{}]+', '', arg)   # Remove simple type annotations
+            arg = re.sub(r'=.*$', '', arg)           # Remove default values
+            arg = arg.strip()
+
+            if arg:
                 real_args.append(arg)
-        
+
         return len(real_args)
+
+    def _split_arguments_safely(self, args_str: str) -> List[str]:
+        """Split arguments by comma while respecting nested structures."""
+        if not args_str.strip():
+            return []
+
+        args = []
+        current_arg = ""
+        depth = {'braces': 0, 'brackets': 0, 'parens': 0}
+        in_string = {'single': False, 'double': False, 'template': False}
+        i = 0
+
+        while i < len(args_str):
+            char = args_str[i]
+
+            # Handle escape sequences
+            if char == '\\' and i + 1 < len(args_str):
+                current_arg += char + args_str[i + 1]
+                i += 2
+                continue
+
+            # Handle string literals
+            if char == "'" and not in_string['double'] and not in_string['template']:
+                in_string['single'] = not in_string['single']
+            elif char == '"' and not in_string['single'] and not in_string['template']:
+                in_string['double'] = not in_string['double']
+            elif char == '`' and not in_string['single'] and not in_string['double']:
+                in_string['template'] = not in_string['template']
+
+            # If we're inside any string, just add the character
+            if any(in_string.values()):
+                current_arg += char
+                i += 1
+                continue
+
+            # Track nesting depth outside strings
+            if char == '{':
+                depth['braces'] += 1
+            elif char == '}':
+                depth['braces'] -= 1
+            elif char == '[':
+                depth['brackets'] += 1
+            elif char == ']':
+                depth['brackets'] -= 1
+            elif char == '(':
+                depth['parens'] += 1
+            elif char == ')':
+                depth['parens'] -= 1
+            elif char == ',' and all(d == 0 for d in depth.values()):
+                # Found a top-level comma, split here
+                if current_arg.strip():
+                    args.append(current_arg.strip())
+                current_arg = ""
+                i += 1
+                continue
+
+            current_arg += char
+            i += 1
+
+        # Add the last argument
+        if current_arg.strip():
+            args.append(current_arg.strip())
+
+        return args
+
+    def _is_valid_function_declaration(self, line: str, pattern_idx: int, lines: List[str], line_idx: int, in_interface: bool) -> bool:
+        """
+        Determine if a matched pattern represents a valid function declaration.
+        Returns True if it's a valid function declaration, False if it's likely a function call.
+        """
+        line_stripped = line.strip()
+
+        # Pattern 0: function declarations - these are always valid
+        if pattern_idx == 0:
+            return True
+
+        # Pattern 1: const name = ... pattern
+        elif pattern_idx == 1:
+            # Must have '=' and either '=>' or 'function' keyword
+            return '=' in line and ('=>' in line or 'function' in line)
+
+        # Pattern 2: object method pattern (methodName: ...)
+        elif pattern_idx == 2:
+            # Must have ':' and '=>' to be a method declaration
+            return ':' in line and '=>' in line
+
+        # Pattern 3: class method pattern - this is the problematic one
+        elif pattern_idx == 3:
+            # First, check for obvious function calls that should never be method declarations
+            if self._is_obvious_function_call(line_stripped):
+                return False
+
+            # Check if we're actually in a class context
+            if not self._is_in_class_context(lines, line_idx):
+                return False
+
+            # Additional checks for class methods
+            # Should have visibility modifiers or be inside class body
+            has_visibility = any(keyword in line for keyword in ['public', 'private', 'protected', 'static'])
+
+            # Check if line ends with opening brace (method declaration) vs just parenthesis (method call)
+            if '{' in line:
+                return True
+
+            # If no opening brace, it's likely a method call
+            if line_stripped.endswith(');') or line_stripped.endswith(')'):
+                return False
+
+            # Look ahead to see if next non-empty line has opening brace
+            next_line_idx = line_idx + 1
+            while next_line_idx < len(lines) and not lines[next_line_idx].strip():
+                next_line_idx += 1
+
+            if next_line_idx < len(lines):
+                next_line = lines[next_line_idx].strip()
+                if next_line.startswith('{'):
+                    return True
+
+            return has_visibility
+
+        return False
+
+    def _is_obvious_function_call(self, line_stripped: str) -> bool:
+        """
+        Check if a line is obviously a function call rather than a function declaration.
+        Returns True for obvious function calls.
+        """
+        # Common patterns that indicate function calls
+        function_call_patterns = [
+            # Lines that end with semicolon and parenthesis (function calls)
+            r'\w+\([^)]*\);?\s*$',
+            # Lines with object method calls (dot notation)
+            r'\w+\.\w+\(',
+            # Lines that start with 'this.' (method calls)
+            r'^\s*this\.\w+\(',
+            # Hook calls (useEffect, useState, etc.)
+            r'^\s*use\w+\(',
+            # Common function calls
+            r'^\s*(?:console|setTimeout|setInterval|addEventListener|dispatch|eventBus)\(',
+            # Lines with complex call chains
+            r'\w+\([^)]*\)\s*\.',
+        ]
+
+        for pattern in function_call_patterns:
+            if re.search(pattern, line_stripped):
+                return True
+
+        # Check for lines that have nested calls or complex expressions
+        # These are unlikely to be method declarations
+        if (line_stripped.count('(') > 1 or
+            line_stripped.count('{') > 1 or
+            '(' in line_stripped and '{' in line_stripped and line_stripped.endswith(');')):
+            return True
+
+        return False
+
+    def _is_in_class_context(self, lines: List[str], current_line_idx: int) -> bool:
+        """
+        Check if the current line is within a class declaration.
+        Returns True if inside a class body.
+        """
+        brace_count = 0
+        in_class = False
+
+        # Look backwards to find class declaration
+        for i in range(current_line_idx, -1, -1):
+            line = lines[i].strip()
+
+            # Skip empty lines and comments
+            if not line or line.startswith('//') or line.startswith('/*'):
+                continue
+
+            # Count braces to track nesting
+            brace_count += line.count('}')
+            brace_count -= line.count('{')
+
+            # If we find a class declaration and we're inside its braces, return True
+            if re.match(r'(?:export\s+)?class\s+\w+', line):
+                # If brace_count is 0 or negative, we're inside this class
+                return brace_count <= 0
+
+            # If we've gone too far back (outside of current scope), stop
+            if brace_count > 0:
+                break
+
+        return False
 
     def find_object_parameter_violations(self, content: str, file_path: Path, max_keys: int = 6) -> List[tuple[int, int, str]]:
         """Find object parameters that violate the Rule of 6 (more than max_keys keys)."""

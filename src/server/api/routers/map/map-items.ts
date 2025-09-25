@@ -31,12 +31,25 @@ export const mapItemsRouter = createTRPCRouter({
   // Get item by coordinates
   getItemByCoords: publicProcedure
     .use(mappingServiceMiddleware)
-    .input(z.object({ coords: hexCoordSchema }))
+    .input(z.object({
+      coords: hexCoordSchema,
+      generations: z.number().optional().default(0)
+    }))
     .query(async ({ ctx, input }) => {
-      const item = await ctx.mappingService.items.crud.getItem({
-        coords: input.coords as Coord,
-      });
-      return contractToApiAdapters.mapItem(item);
+      if (input.generations > 0) {
+        // Use the new method that returns item with generations
+        const items = await ctx.mappingService.items.query.getItemWithGenerations({
+          coords: input.coords as Coord,
+          generations: input.generations,
+        });
+        return items.map(contractToApiAdapters.mapItem);
+      } else {
+        // Original behavior for backward compatibility
+        const item = await ctx.mappingService.items.crud.getItem({
+          coords: input.coords as Coord,
+        });
+        return contractToApiAdapters.mapItem(item);
+      }
     }),
 
   // Get all items for a root item (was getItems)

@@ -36,28 +36,31 @@ export function createCoordinateOperations(
         return [];
       }
       
-      // If this is a specific item (has a path), fetch it and its descendants
+      // If this is a specific item (has a path), fetch it with limited generations
       if (coords.path && coords.path.length > 0) {
-        // First get the specific item
-        const centerItem = await utils.map.getItemByCoords.fetch({
-          coords: {
-            userId: coords.userId,
-            groupId: coords.groupId,
-            path: coords.path,
-          },
-        });
-
-        // Then get its descendants if it exists
-        if (centerItem?.id) {
-          const descendants = await utils.map.getDescendants.fetch({
-            itemId: parseInt(centerItem.id),
+        // Use the enhanced endpoint with generations parameter if generations > 0
+        if (params.maxDepth > 0) {
+          const result = await utils.map.getItemByCoords.fetch({
+            coords: {
+              userId: coords.userId,
+              groupId: coords.groupId,
+              path: coords.path,
+            },
+            generations: params.maxDepth,
           });
-          
-          // Return the center item plus its descendants
-          return [centerItem, ...descendants];
+          // The enhanced endpoint returns an array when generations > 0
+          return Array.isArray(result) ? result : [result];
+        } else {
+          // Get just the center item for maxDepth = 0
+          const centerItem = await utils.map.getItemByCoords.fetch({
+            coords: {
+              userId: coords.userId,
+              groupId: coords.groupId,
+              path: coords.path,
+            },
+          });
+          return centerItem ? [centerItem] : [];
         }
-        
-        return centerItem ? [centerItem] : [];
       } else {
         // For root-level queries with proper coordinate format (e.g., "10,0:")
         // Fetch all items for this root
@@ -88,8 +91,27 @@ export function createCoordinateOperations(
       : withErrorTransform(operation, finalConfig);
   };
 
+  const getItemWithGenerations = async (params: {
+    coordId: string;
+    generations: number;
+  }) => {
+    const operation = async () => {
+      const coords = CoordSystem.parseId(params.coordId);
+      const items = await utils.map.getItemByCoords.fetch({
+        coords: coords,
+        generations: params.generations,
+      });
+      return Array.isArray(items) ? items : [items];
+    };
+
+    return finalConfig.enableRetry
+      ? withRetry(() => withErrorTransform(operation, finalConfig), finalConfig)
+      : withErrorTransform(operation, finalConfig);
+  };
+
   return {
     fetchItemsForCoordinate,
     getItemByCoordinate,
+    getItemWithGenerations,
   };
 }

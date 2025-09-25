@@ -60,4 +60,31 @@ export interface MapItemRepository
     limit?: number;
     offset?: number;
   }): Promise<MapItemWithId[]>;
+
+  /**
+   * Get descendants of a parent map item limited by generation depth.
+   *
+   * @param parentPath The parent's coordinate path that children paths must start with
+   * @param parentUserId The userId from the parent's Coord
+   * @param parentGroupId The groupId from the parent's Coord
+   * @param maxGenerations Maximum number of generations to retrieve (0 = no descendants, 1 = direct children only, etc.)
+   * @param limit Optional limit for pagination
+   * @param offset Optional offset for pagination
+   * @returns Array of map items that are descendants within the specified generation limit
+   */
+  getDescendantsWithDepth({
+    parentPath,
+    parentUserId,
+    parentGroupId,
+    maxGenerations,
+    limit,
+    offset,
+  }: {
+    parentPath: Coord["path"];
+    parentUserId: number;
+    parentGroupId: number;
+    maxGenerations: number;
+    limit?: number;
+    offset?: number;
+  }): Promise<MapItemWithId[]>;
 }

@@ -5,6 +5,7 @@ import type { ServerService } from "~/app/map/Cache/Services/types";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 import { checkAncestors, loadAncestorsForItem } from "~/app/map/Cache/Handlers/ancestor-loader";
 import type { TileData } from "~/app/map/types";
+import { getColor } from "~/app/map/types";
 import { loggers } from "~/lib/debug/debug-logger";
 import { buildMapUrl } from "~/app/map/Cache/Handlers/_internals/navigation-core";
 import type { NavigationOptions } from "~/app/map/Cache/Handlers/_internals/navigation-core";
@@ -180,6 +181,12 @@ export function performBackgroundTasks(
   serverService: ServerService | undefined,
   dispatch: React.Dispatch<CacheAction>
 ): void {
+  console.log('[NAV] performBackgroundTasks called with:', {
+    finalCoordId,
+    hasServerService: !!serverService,
+    timestamp: new Date().toISOString()
+  });
+
   // Prefetch region data if needed
   if (!getState().regionMetadata[finalCoordId]) {
     dataHandler.prefetchRegion(finalCoordId).catch(error => {
@@ -189,14 +196,147 @@ export function performBackgroundTasks(
 
   // Load ancestors if needed
   const centerItem = getState().itemsById[finalCoordId];
+  console.log('[NAV] Center item check:', {
+    finalCoordId,
+    hasCenterItem: !!centerItem,
+    centerItemData: centerItem ? {
+      name: centerItem.data.name,
+      dbId: centerItem.metadata.dbId,
+      pathLength: centerItem.metadata.coordinates.path.length,
+      coordId: centerItem.metadata.coordId
+    } : null
+  });
   if (centerItem && centerItem.metadata.coordinates.path.length > 0) {
     const { hasAllAncestors } = checkAncestors(finalCoordId, getState().itemsById);
 
+    // Load ancestors if missing
     if (!hasAllAncestors && centerItem.metadata.dbId && serverService) {
       const centerDbId = parseInt(String(centerItem.metadata.dbId));
       if (!isNaN(centerDbId)) {
         void loadAncestorsForItem(centerDbId, serverService, dispatch, "Navigation");
       }
     }
+
+    // Load siblings if the item has a parent and server service is available
+    if (centerItem.metadata.dbId && serverService) {
+      const parentCoordId = CoordSystem.getParentCoordFromId(finalCoordId);
+      console.log('[NAV] Sibling loading check:', {
+        finalCoordId,
+        parentCoordId,
+        hasParent: !!parentCoordId,
+        centerDbId: centerItem.metadata.dbId,
+        hasServerService: !!serverService
+      });
+
+      if (parentCoordId) {
+        // Check if we already have siblings loaded
+        const siblings = CoordSystem.getSiblingsFromId(finalCoordId);
+        const currentItems = getState().itemsById;
+        const siblingStatus = siblings.map(siblingCoordId => ({
+          coordId: siblingCoordId,
+          exists: !!currentItems[siblingCoordId],
+          name: currentItems[siblingCoordId]?.data.name ?? 'N/A'
+        }));
+        const hasSiblings = siblings.some(siblingCoordId => currentItems[siblingCoordId]);
+
+        console.log('[NAV] Sibling status:', {
+          siblings: siblingStatus,
+          hasSiblings,
+          willLoadSiblings: !hasSiblings
+        });
+
+        // Only load siblings if we don't have any yet
+        if (!hasSiblings) {
+          console.log('[NAV] Loading siblings for parent:', parentCoordId);
+          void loadSiblingsForItem(parentCoordId, serverService, dispatch);
+        } else {
+          console.log('[NAV] Siblings already loaded, skipping');
+        }
+      } else {
+        console.log('[NAV] No parent found, this is likely a root item');
+      }
+    } else {
+      console.log('[NAV] Skipping sibling loading:', {
+        hasDbId: !!centerItem.metadata.dbId,
+        hasServerService: !!serverService
+      });
+    }
+  }
+}
+
+/**
+ * Load siblings for an item by fetching its parent with 1 generation of children
+ */
+async function loadSiblingsForItem(
+  parentCoordId: string,
+  serverService: ServerService,
+  dispatch: React.Dispatch<CacheAction>
+): Promise<void> {
+  console.log('[NAV] loadSiblingsForItem called with parentCoordId:', parentCoordId);
+
+  try {
+    console.log('[NAV] Fetching parent with children...');
+    const parentWithChildren = await serverService.getItemWithGenerations({
+      coordId: parentCoordId,
+      generations: 1
+    });
+
+    console.log('[NAV] Received parent with children:', {
+      itemCount: parentWithChildren.length,
+      items: parentWithChildren.map(item => ({
+        id: item.id,
+        coordinates: item.coordinates,
+        name: item.name
+      }))
+    });
+
+    if (parentWithChildren.length > 0) {
+      // Convert to TileData format
+      const siblingItems: Record<string, TileData> = {};
+
+      parentWithChildren.forEach(item => {
+        const coordId = item.coordinates;
+        const itemCoords = CoordSystem.parseId(coordId);
+
+        siblingItems[coordId] = {
+          data: {
+            name: item.name,
+            description: item.descr,
+            url: item.url,
+            color: getColor(itemCoords),
+          },
+          metadata: {
+            coordId,
+            dbId: item.id,
+            depth: itemCoords.path.length,
+            parentId: item.parentId ? item.parentId.toString() : undefined,
+            coordinates: itemCoords,
+            ownerId: item.ownerId,
+          },
+          state: {
+            isDragged: false,
+            isHovered: false,
+            isSelected: false,
+            isExpanded: false,
+            isDragOver: false,
+            isHovering: false,
+          },
+        };
+      });
+
+      console.log('[NAV] Dispatching siblings to cache:', {
+        siblingCount: Object.keys(siblingItems).length,
+        siblingCoordIds: Object.keys(siblingItems)
+      });
+
+      // Dispatch siblings to cache
+      dispatch(cacheActions.updateItems(siblingItems));
+
+      console.log('[NAV] Siblings successfully dispatched to cache');
+    } else {
+      console.log('[NAV] No children found for parent');
+    }
+  } catch (error) {
+    console.error('[NAV] Failed to load siblings:', error);
   }
 }

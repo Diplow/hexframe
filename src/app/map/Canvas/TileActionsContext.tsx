@@ -75,7 +75,13 @@ export function TileActionsProvider({
   const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const onTileClick = useCallback((tileData: TileData, event: React.MouseEvent) => {
-    
+
+    // Handle shift+click for expansion/collapse immediately
+    if (event.shiftKey && tileData.state?.canExpand) {
+      onExpandClick?.(tileData);
+      return;
+    }
+
     // Clear any existing timeout
     if (clickTimeoutRef.current) {
       clearTimeout(clickTimeoutRef.current);
@@ -93,20 +99,18 @@ export function TileActionsProvider({
       }
       clickTimeoutRef.current = null;
     }, 200); // Wait 200ms to see if it's a double-click
-  }, [onNavigateClick, onSelectClick]);
+  }, [onNavigateClick, onSelectClick, onExpandClick]);
 
-  const onTileDoubleClick = useCallback((tileData: TileData) => {
+  const onTileDoubleClick = useCallback((_tileData: TileData) => {
     // Clear the single click timeout
     if (clickTimeoutRef.current) {
       clearTimeout(clickTimeoutRef.current);
       clickTimeoutRef.current = null;
     }
-    
-    // Double-click to expand - only if tile can expand
-    if (tileData.state?.canExpand) {
-      onExpandClick?.(tileData);
-    }
-  }, [onExpandClick]);
+
+    // Double-click no longer handles expansion - this is now handled by shift+click
+    // Keep this handler for potential future use or backwards compatibility
+  }, []);
 
   const onTileRightClick = useCallback((tileData: TileData, event: React.MouseEvent) => {
     // Right-click shows context menu

@@ -17,7 +17,7 @@ export const initialCacheState: CacheState = {
     maxAge: 300000, // 5 minutes
     backgroundRefreshInterval: 30000, // 30 seconds
     enableOptimisticUpdates: true,
-    maxDepth: 3,
+    maxDepth: 2, // Load center + 2 generations by default
   },
 };
 

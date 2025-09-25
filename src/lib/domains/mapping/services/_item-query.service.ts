@@ -87,6 +87,43 @@ export class ItemQueryService {
   }
 
   /**
+   * Get an item with a limited number of descendant generations
+   */
+  async getItemWithGenerations({
+    coords,
+    generations = 0,
+  }: {
+    coords: Coord;
+    generations?: number;
+  }): Promise<MapItemContract[]> {
+    // Get the center item
+    const centerItem = await this.actions.getMapItem({ coords });
+    const userId = centerItem.attrs.coords.userId;
+    const centerContract = adapt.mapItem(centerItem, userId);
+
+    // If no generations requested, return just the center item
+    if (generations <= 0) {
+      return [centerContract];
+    }
+
+    // Get the descendants with depth limit
+    const descendants = await this.actions.mapItems.getDescendantsWithDepth({
+      parentPath: coords.path,
+      parentUserId: coords.userId,
+      parentGroupId: coords.groupId,
+      maxGenerations: generations,
+    });
+
+    // Convert to contracts
+    const descendantContracts = descendants.map((desc) => {
+      const descUserId = desc.attrs.coords.userId;
+      return adapt.mapItem(desc, descUserId);
+    });
+
+    return [centerContract, ...descendantContracts];
+  }
+
+  /**
    * Move an item to new coordinates
    */
   async moveMapItem({

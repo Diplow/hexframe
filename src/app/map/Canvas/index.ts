@@ -11,7 +11,7 @@ export type { CenterInfo } from '~/app/map/Canvas/canvas';
 
 // Lifecycle components for error handling and loading states
 export { MapErrorBoundary } from '~/app/map/Canvas/LifeCycle/error-boundary'
-export { MapLoadingSkeleton } from '~/app/map/Canvas/LifeCycle/loading-skeleton'
+export { MapLoadingSpinner } from '~/app/map/Canvas/LifeCycle/loading-spinner'
 
 // Tile components - re-exported from Canvas/Tile subsystem
 export { 

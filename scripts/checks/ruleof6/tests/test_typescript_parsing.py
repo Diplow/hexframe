@@ -55,15 +55,47 @@ class TestResult:
 
 def run_test(test_file: str, expected_errors: int, expected_warnings: int) -> TestResult:
     """Run a single test case."""
-    test_path = Path(__file__).parent / "typescript" / test_file
+    test_file_path = Path(__file__).parent / "typescript" / test_file
+    test_dir = test_file_path.parent
 
-    # Create checker for this specific test file
-    checker = RuleOf6Checker(str(test_path))
-    results = checker.run_all_checks()
+    # Change to the test directory and run checker with relative path
+    import os
+    old_cwd = os.getcwd()
+    try:
+        os.chdir(str(test_dir))
+        checker = RuleOf6Checker(".")
+        results = checker.run_all_checks()
+    finally:
+        os.chdir(old_cwd)
+
+    # Filter results to only include violations from the specific test file
+    filtered_violations = []
+    for violation in results.get_all_violations():
+        # Check if this violation is from our test file
+        if (violation.file_path == test_file or
+            violation.file_path.endswith(test_file) or
+            test_file in violation.file_path):
+            filtered_violations.append(violation)
+
+    # Create filtered results
+    filtered_errors = [v for v in filtered_violations if v.severity.name == 'ERROR']
+    filtered_warnings = [v for v in filtered_violations if v.severity.name == 'WARNING']
+
+    # Create a mock results object with filtered violations
+    class FilteredResults:
+        def __init__(self, errors, warnings, all_violations):
+            self.errors = errors
+            self.warnings = warnings
+            self._all_violations = all_violations
+
+        def get_all_violations(self):
+            return self._all_violations
+
+    filtered_results = FilteredResults(filtered_errors, filtered_warnings, filtered_violations)
 
     # Create and check test result
     test_result = TestResult(test_file, expected_errors, expected_warnings)
-    test_result.check(results)
+    test_result.check(filtered_results)
 
     return test_result
 

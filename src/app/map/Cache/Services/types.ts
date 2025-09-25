@@ -62,6 +62,20 @@ export interface ServerService {
     itemType: string;
     ownerId: string;
   }[]>;
+  getItemWithGenerations: (params: {
+    coordId: string;
+    generations: number;
+  }) => Promise<{
+    id: string;
+    coordinates: string;
+    depth: number;
+    name: string;
+    descr: string;
+    url: string;
+    parentId: string | null;
+    itemType: string;
+    ownerId: string;
+  }[]>;
 
   // Mutation operations (architectural placeholders - should use mutation layer)
   createItem: (params: { coordId: string; data: Record<string, unknown> }) => Promise<unknown>;

@@ -1,7 +1,7 @@
 "use client";
 
 import { ChatPanel } from "~/app/map/Chat";
-import { MapLoadingSkeleton } from "~/app/map/Canvas";
+import { MapLoadingSpinner } from "~/app/map/Canvas";
 
 interface MapLoadingUIProps {
   message: string;
@@ -9,10 +9,10 @@ interface MapLoadingUIProps {
 
 export function MapLoadingUI({ message }: MapLoadingUIProps) {
   return (
-    <div className="h-full w-full relative">
+    <div className="h-full w-full relative overflow-hidden">
       {/* Canvas layer - extends full width, positioned behind chat panel */}
-      <div className="absolute inset-0 pr-[130px]" style={{ zIndex: 1 }}>
-        <MapLoadingSkeleton
+      <div className="absolute inset-0 pr-[130px] overflow-hidden" style={{ zIndex: 1 }}>
+        <MapLoadingSpinner
           message={message}
           state="initializing"
         />

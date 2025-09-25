@@ -28,7 +28,7 @@ export function useTileInteraction({
   onCreate,
   canEdit = false,
 }: TileInteractionProps) {
-  const { onTileClick, onTileDoubleClick, onTileRightClick } = useTileActions();
+  const { onTileClick, onTileRightClick } = useTileActions();
 
   const handleClick = useCallback((e: React.MouseEvent) => {
     
@@ -48,15 +48,7 @@ export function useTileInteraction({
     }
   }, [canEdit, onCreate, onTileClick, tileData, type]);
 
-  const handleDoubleClick = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    // Let context handle double-click logic
-    if (tileData) {
-      onTileDoubleClick(tileData);
-    }
-  }, [onTileDoubleClick, tileData]);
+  // handleDoubleClick removed - expansion is now handled via shift+click in TileActionsContext
 
   const handleRightClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -99,13 +91,21 @@ export function useTileInteraction({
 
   // Get cursor based on interaction type
   const getCursor = useCallback((): TileCursor => {
+    // Check if shift key is pressed (expansion mode)
+    const isShiftPressed = document.body.hasAttribute('data-shift-pressed');
+
     // For empty tiles in owned domains, show create cursor on hover
     if (type === 'empty' && canEdit) {
       return 'cursor-cell';
     }
 
     // For items, show appropriate cursor
-    if (type === 'item') {
+    if (type === 'item' && tileData) {
+      // If shift is pressed, show expansion cursors
+      if (isShiftPressed && tileData.state?.canExpand) {
+        return tileData.state.isExpanded ? 'cursor-zoom-out' : 'cursor-zoom-in';
+      }
+
       // If user can edit, show move cursor for drag
       if (canEdit) {
         return 'cursor-move';
@@ -115,7 +115,7 @@ export function useTileInteraction({
     }
 
     return 'cursor-pointer';
-  }, [type, canEdit]);
+  }, [type, canEdit, tileData]);
 
   // Determine if tile should show hover effects
   const shouldShowHoverEffects = useCallback(() => {
@@ -128,7 +128,6 @@ export function useTileInteraction({
 
   return {
     handleClick,
-    handleDoubleClick,
     handleRightClick,
     cursor: getCursor(),
     shouldShowHoverEffects: shouldShowHoverEffects(),

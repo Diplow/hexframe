@@ -104,11 +104,12 @@ describe('TileActionsContext', () => {
         }
       })
       const preventDefault = vi.fn()
-      const mockEvent = { 
-        clientX: 100, 
+      const mockEvent = {
+        clientX: 100,
         clientY: 200,
         ctrlKey: false,
         metaKey: false,
+        shiftKey: false,
         preventDefault
       } as unknown as React.MouseEvent
 
@@ -136,9 +137,10 @@ describe('TileActionsContext', () => {
       
       expect(mockHandlers.onNavigateClick).toHaveBeenCalledWith(tileData)
 
-      // Test double-click for expand
+      // Test shift+click for expand
+      const shiftClickEvent = { ...mockEvent, shiftKey: true }
       act(() => {
-        result.current.onTileDoubleClick(tileData)
+        result.current.onTileClick(tileData, shiftClickEvent)
       })
       expect(mockHandlers.onExpandClick).toHaveBeenCalledWith(tileData)
 
