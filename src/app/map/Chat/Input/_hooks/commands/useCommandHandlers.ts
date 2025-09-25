@@ -58,10 +58,29 @@ export function useCommandHandlers(chatState: {
   }, [chatState]);
 
   const handleMcpCommand = useCallback((_commandPath: string) => {
-    if (chatState && 'showMcpKeysWidget' in chatState) {
-      (chatState.showMcpKeysWidget as () => void)();
+    if (chatState && 'showMcpKeysWidget' in chatState && 'closeWidget' in chatState) {
+      const showWidget = chatState.showMcpKeysWidget as () => void;
+      const closeWidget = chatState.closeWidget as (widgetId: string) => void;
+
+      // Check if we have access to current widgets to determine toggle behavior
+      if ('getActiveWidgets' in chatState) {
+        const getActiveWidgets = chatState.getActiveWidgets as () => Array<{ id: string; type: string }>;
+        const activeWidgets = getActiveWidgets();
+        const existingMcpWidget = activeWidgets.find(widget => widget.type === 'mcp-keys');
+
+        if (existingMcpWidget) {
+          // Close existing MCP widget
+          closeWidget(existingMcpWidget.id);
+        } else {
+          // Open new MCP widget
+          showWidget();
+        }
+      } else {
+        // Fallback: just open the widget
+        showWidget();
+      }
     } else {
-      console.error('chatState.showMcpKeysWidget not available');
+      console.error('chatState.showMcpKeysWidget or closeWidget not available');
     }
   }, [chatState]);
 

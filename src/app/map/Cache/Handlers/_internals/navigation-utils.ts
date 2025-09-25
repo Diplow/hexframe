@@ -87,8 +87,10 @@ export function updateExpandedItemsForNavigation(
     const expandedCoordId = dbIdToCoordId[expandedDbId];
     if (!expandedCoordId) return true;
 
+    // Keep the new center itself if it's expanded
     if (newCenterDbId && expandedDbId === newCenterDbId) return true;
 
+    // Keep descendants within 1 generation
     const isDescendant = CoordSystem.isDescendant(expandedCoordId, resolvedCoordId);
     if (isDescendant) {
       const expandedDepth = CoordSystem.getDepthFromId(expandedCoordId);
@@ -96,8 +98,14 @@ export function updateExpandedItemsForNavigation(
       return generationDistance <= 1;
     }
 
+    // Keep ancestors
     const isAncestor = CoordSystem.isAncestor(expandedCoordId, resolvedCoordId);
     if (isAncestor) return true;
+
+    // Keep siblings (neighbors at the same level) to preserve expansion when navigating between neighbors
+    const siblings = CoordSystem.getSiblingsFromId(resolvedCoordId);
+    const isSibling = siblings.includes(expandedCoordId);
+    if (isSibling) return true;
 
     return false;
   });

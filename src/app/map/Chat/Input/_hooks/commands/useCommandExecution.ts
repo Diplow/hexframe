@@ -64,10 +64,6 @@ export function useCommandExecution(
         handlers.handleClear();
         return '';
       case '/mcp':
-      case '/mcp/key':
-      case '/mcp/key/create':
-      case '/mcp/key/list':
-      case '/mcp/key/revoke':
         handlers.handleMcpCommand(normalizedPath);
         return '';
       default:

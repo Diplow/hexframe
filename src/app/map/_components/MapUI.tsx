@@ -163,34 +163,37 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
       onEditClick={handleEditClick}
       onDeleteClick={handleDeleteClick}
     >
-      <div className="flex h-full w-full relative">
-        <div className="flex w-full">
+      <div className="h-full w-full relative">
+        {/* Canvas layer - extends full width, positioned behind chat panel */}
+        <div className="absolute inset-0 pr-[130px] overflow-hidden" style={{ zIndex: 1 }}>
+          {_renderMapContent(isLoading, centerCoordinate, loadingError, params)}
+        </div>
+
+        {/* Chat panel - positioned over the canvas */}
+        <div className="absolute left-0 top-0 bottom-0 w-[40%] min-w-[40%]" style={{ zIndex: 10 }}>
           <ChatPanel
-            className="w-[40%] min-w-[40%] flex-shrink-0 border-r border-[color:var(--stroke-color-950)] overflow-hidden"
+            className="h-full"
             // No drag service prop needed
           />
-
-          <div className="flex-1 pr-[130px]">
-            {_renderMapContent(isLoading, centerCoordinate, loadingError, params)}
-          </div>
-
-          {centerCoordinate && (
-            <div className="absolute right-0 top-0 bottom-0">
-              <ParentHierarchy
-                centerCoordId={centerCoordinate}
-                items={{}}
-                urlInfo={{
-                  pathname: `/map`,
-                  searchParamsString: new URLSearchParams(params as Record<string, string>).toString(),
-                  rootItemId: centerCoordinate,
-                  scale: params.scale,
-                  expandedItems: params.expandedItems,
-                  focus: params.focus,
-                }}
-              />
-            </div>
-          )}
         </div>
+
+        {/* Parent hierarchy - positioned over everything on the right */}
+        {centerCoordinate && (
+          <div className="absolute right-0 top-0 bottom-0 bg-white/50 dark:bg-neutral-900/50 backdrop-blur-md border-l border-[color:var(--stroke-color-950)]" style={{ zIndex: 10 }}>
+            <ParentHierarchy
+              centerCoordId={centerCoordinate}
+              items={{}}
+              urlInfo={{
+                pathname: `/map`,
+                searchParamsString: new URLSearchParams(params as Record<string, string>).toString(),
+                rootItemId: centerCoordinate,
+                scale: params.scale,
+                expandedItems: params.expandedItems,
+                focus: params.focus,
+              }}
+            />
+          </div>
+        )}
       </div>
     </TileActionsProvider>
   );

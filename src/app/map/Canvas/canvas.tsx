@@ -42,6 +42,9 @@ interface DynamicMapCanvasProps {
   // Theme
   isDarkMode?: boolean;
 
+  // Neighbor display
+  showNeighbors?: boolean;
+
   // Progressive enhancement options
   fallback?: ReactNode;
   errorBoundary?: ReactNode;
@@ -64,6 +67,7 @@ export function DynamicMapCanvas({
   expandedItemIds,
   urlInfo,
   isDarkMode = false,
+  showNeighbors = true,
   fallback,
   errorBoundary,
   enableBackgroundSync: _enableBackgroundSync = true,
@@ -242,7 +246,15 @@ export function DynamicMapCanvas({
         <div className="relative flex h-full w-full flex-col">
           <div
             data-canvas-id={dynamicCenterInfo.center}
-            className="pointer-events-auto grid flex-grow place-items-center overflow-auto py-4"
+            className={`pointer-events-auto grid flex-grow py-4 ${
+              showNeighbors ? 'overflow-visible' : 'overflow-auto'
+            }`}
+            style={{
+              placeItems: 'center',
+              // Offset the center point to account for chat panel (40% of width)
+              // This shifts the center tile to appear centered in the right 60% area
+              transform: 'translateX(20%)'
+            }}
             // No drag handlers needed - global service handles everything
           >
             <DynamicFrame
@@ -255,6 +267,7 @@ export function DynamicMapCanvas({
               interactive={true}
               currentUserId={mappingUserId ?? undefined}
               selectedTileId={selectedTileId}
+              showNeighbors={showNeighbors}
               onNavigate={handleNavigate}
               onToggleExpansion={handleToggleExpansion}
               onCreateRequested={handleCreateRequested}

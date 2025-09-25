@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { MoreVertical, Edit, Trash2, X } from 'lucide-react';
+import { MoreVertical, Edit, Trash2, X, Copy } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { Portal } from '~/app/map/Chat/Timeline/Widgets/Portal';
 
@@ -9,15 +9,16 @@ interface ActionMenuProps {
   onEdit?: () => void;
   onDelete?: () => void;
   onClose?: () => void;
+  onMetadata?: () => void;
 }
 
-export function ActionMenu({ onEdit, onDelete, onClose }: ActionMenuProps) {
+export function ActionMenu({ onEdit, onDelete, onClose, onMetadata }: ActionMenuProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
-  const hasActions = onEdit ?? onDelete ?? onClose;
+  const hasActions = onEdit ?? onDelete ?? onClose ?? onMetadata;
 
   // Handle click outside to close menu
   useEffect(() => {
@@ -125,6 +126,18 @@ export function ActionMenu({ onEdit, onDelete, onClose }: ActionMenuProps) {
               >
                 <Trash2 className="h-3 w-3" />
                 Delete
+              </button>
+            )}
+            {onMetadata && (
+              <button
+                className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  _handleMenuAction(onMetadata);
+                }}
+              >
+                <Copy className="h-3 w-3" />
+                Copy Metadata
               </button>
             )}
             {onClose && (
