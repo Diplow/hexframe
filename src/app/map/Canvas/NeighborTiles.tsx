@@ -283,8 +283,8 @@ function calculateRelativeDirection(centerDir: Direction, targetDir: Direction):
       [Direction.SouthEast]: Direction.SouthWest,   // SE appears SW of E
     },
     [Direction.SouthEast]: {
-      [Direction.East]: Direction.NorthWest,        // E appears NW of SE
-      [Direction.Center]: Direction.NorthWest,      // C appears NW of SE (corrected)
+      [Direction.East]: Direction.NorthEast,        // E appears NE of SE (fixed)
+      [Direction.Center]: Direction.NorthWest,      // C appears NW of SE
       [Direction.SouthWest]: Direction.West,        // SW appears W of SE
     },
     [Direction.SouthWest]: {
