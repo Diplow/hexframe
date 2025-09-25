@@ -18,7 +18,7 @@ export function MapLoadingSpinner({
 
   return (
     <div className={cn("relative flex h-full w-full flex-col", className)}>
-      <div className="grid flex-grow place-items-center overflow-auto p-4" style={{ transform: 'translateX(20%)' }}>
+      <div className="grid flex-grow place-items-center overflow-hidden p-4" style={{ transform: 'translateX(20%)' }}>
         {/* Accessible loading indicator */}
         <div className="relative" role="status" aria-label={message}>
           <div
