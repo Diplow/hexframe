@@ -40,6 +40,11 @@ export function createMockServerService(
       (async () => {
         throw new ServiceErrorClass("Mock not implemented", "NOT_IMPLEMENTED");
       }),
+    getItemWithGenerations:
+      mockResponses.getItemWithGenerations ??
+      (async () => {
+        throw new ServiceErrorClass("Mock not implemented", "NOT_IMPLEMENTED");
+      }),
     createItem:
       mockResponses.createItem ??
       (async () => {

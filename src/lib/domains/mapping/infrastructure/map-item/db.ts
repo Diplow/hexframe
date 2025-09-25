@@ -180,6 +180,19 @@ export class DbMapItemRepository implements MapItemRepository {
     return results.map((r) => mapJoinedDbToDomain(r, []));
   }
 
+  async getDescendantsWithDepth(params: {
+    parentPath: Direction[];
+    parentUserId: number;
+    parentGroupId: number;
+    maxGenerations: number;
+    limit?: number;
+    offset?: number;
+  }): Promise<MapItemWithId[]> {
+    const results =
+      await this.specializedQueries.fetchDescendantsWithDepth(params);
+    return results.map((r) => mapJoinedDbToDomain(r, []));
+  }
+
   // Relation methods (delegate to relation queries)
   async updateRelatedItem<K extends keyof RelatedItems>(args: {
     aggregate: MapItemWithId;
