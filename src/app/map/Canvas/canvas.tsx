@@ -18,7 +18,7 @@ import { DynamicFrame } from "~/app/map/Canvas/frame";
 import type { TileScale } from "~/app/map/Canvas/Tile";
 import { useMapCache } from '~/app/map/Cache';
 import type { URLInfo } from "~/app/map/types/url-info";
-import { MapLoadingSkeleton } from "~/app/map/Canvas/LifeCycle/loading-skeleton";
+import { MapLoadingSpinner } from "~/app/map/Canvas/LifeCycle/loading-spinner";
 import { MapErrorBoundary } from "~/app/map/Canvas/LifeCycle/error-boundary";
 // Removed unused drag imports
 import { loggers } from "~/lib/debug/debug-logger";
@@ -220,7 +220,7 @@ export function DynamicMapCanvas({
 
   // Progressive enhancement fallbacks
   if (!isHydrated) {
-    return fallback ?? <MapLoadingSkeleton />;
+    return fallback ?? <MapLoadingSpinner />;
   }
   
   // Get the center item to check if we have data
@@ -233,7 +233,7 @@ export function DynamicMapCanvas({
   const shouldShowLoading = isLoading && !centerItem && Object.keys(items).length === 0;
   
   if (shouldShowLoading) {
-    return fallback ?? <MapLoadingSkeleton />;
+    return fallback ?? <MapLoadingSpinner />;
   }
 
   if (error) {

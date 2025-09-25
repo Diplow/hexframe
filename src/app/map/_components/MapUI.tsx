@@ -1,6 +1,6 @@
 "use client";
 
-import { DynamicMapCanvas, MapLoadingSkeleton } from "~/app/map/Canvas";
+import { DynamicMapCanvas, MapLoadingSpinner } from "~/app/map/Canvas";
 import type { TileData } from "~/app/map/types/tile-data";
 import { ParentHierarchy } from "~/app/map/Hierarchy";
 import { TileActionsProvider } from "~/app/map/Canvas";
@@ -84,7 +84,7 @@ function _renderMapContent(
   params: Record<string, string | undefined>
 ) {
   if (isLoading || !centerCoordinate) {
-    return <MapLoadingSkeleton message="Loading map..." state="initializing" />;
+    return <MapLoadingSpinner message="Loading map..." state="initializing" />;
   }
 
   if (loadingError) {
