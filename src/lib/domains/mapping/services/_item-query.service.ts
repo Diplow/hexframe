@@ -98,6 +98,7 @@ export class ItemQueryService {
   }): Promise<MapItemContract[]> {
     // Get the center item
     const centerItem = await this.actions.getMapItem({ coords });
+    if (!centerItem) throw new Error(`Item at coordinates not found.`);
     const userId = centerItem.attrs.coords.userId;
     const centerContract = adapt.mapItem(centerItem, userId);
 

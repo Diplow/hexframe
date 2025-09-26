@@ -112,6 +112,11 @@ export class SpecializedQueries {
       offset = 0,
     } = params;
 
+    // Validate maxGenerations to prevent unbounded queries
+    if (maxGenerations <= 0) {
+      return [];
+    }
+
     const conditions = this._buildDescendantsWithDepthConditions(
       parentPath,
       parentUserId,
@@ -169,14 +174,15 @@ export class SpecializedQueries {
       eq(mapItems.coord_group_id, parentGroupId),
     ];
 
-    // Calculate min and max path lengths based on generations
-    const minLength = parentPathString.length > 0 ? parentPathString.length + 1 : 1;
-    const maxLength = parentPathString.length + (maxGenerations * 2); // Each generation adds 2 chars (comma + digit)
+    // Calculate min and max element counts based on generations
+    const parentCount = parentPath.length;
+    const minElements = parentCount > 0 ? parentCount + 1 : 1;
+    const maxElements = parentCount + maxGenerations;
 
-    conditions.push(gte(sql`length(${mapItems.path})`, minLength));
+    conditions.push(gte(sql`array_length(string_to_array(${mapItems.path}, ','), 1)`, minElements));
 
     if (maxGenerations > 0) {
-      conditions.push(lte(sql`length(${mapItems.path})`, maxLength));
+      conditions.push(lte(sql`array_length(string_to_array(${mapItems.path}, ','), 1)`, maxElements));
     }
 
     if (parentPathString !== "") {

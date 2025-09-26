@@ -224,7 +224,7 @@ def run_tests():
             test_method()
             print(f"✅ PASS: {test_name}")
             passed += 1
-        except Exception as e:
+        except AssertionError as e:
             print(f"❌ FAIL: {test_name}")
             print(f"   Error: {e}")
 
