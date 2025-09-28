@@ -111,13 +111,16 @@ export const mapItemsRouter = createTRPCRouter({
         }
       }
       
+      console.log("[PREVIEW DEBUG] tRPC addItem input.preview:", input.preview, "Type:", typeof input.preview);
       const mapItem = await ctx.mappingService.items.crud.addItemToMap({
         parentId: input.parentId ?? null,
         coords: coords,
         title: input.title,
         descr: input.descr,
+        preview: input.preview,
         url: input.url,
       });
+      console.log("[PREVIEW DEBUG] tRPC addItem result preview:", mapItem.preview);
       return contractToApiAdapters.mapItem(mapItem);
     }),
 

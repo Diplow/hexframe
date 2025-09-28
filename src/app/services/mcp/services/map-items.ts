@@ -32,9 +32,10 @@ export async function addItemHandler(
   coords: { userId: number; groupId: number; path: number[] },
   title: string,
   descr?: string,
+  preview?: string,
   url?: string,
 ): Promise<MapItem> {
-  if (process.env.DEBUG_MCP === "true") console.error("[MCP DEBUG] addItemHandler called! Title:", title);
+  console.log("[PREVIEW DEBUG] MCP addItemHandler called! Preview value:", preview, "Type:", typeof preview);
   try {
     // For creation, we need parentId if it's not a root item
     let parentId: number | null = null;
@@ -69,9 +70,10 @@ export async function addItemHandler(
       parentId,
       title,
       descr,
+      preview,
       url,
     }, { requireAuth: true });
-    if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] map.addItem returned item with id: ${newItem?.id}`);
+    console.log("[PREVIEW DEBUG] map.addItem returned item with id:", newItem?.id, "preview:", newItem?.preview);
 
     return newItem;
   } catch (error) {
@@ -83,7 +85,7 @@ export async function addItemHandler(
 // Handler for updateItem tool
 export async function updateItemHandler(
   coords: { userId: number; groupId: number; path: number[] },
-  updates: { title?: string; descr?: string; url?: string },
+  updates: { title?: string; descr?: string; preview?: string; url?: string },
 ): Promise<MapItem> {
   try {
     const updatedItem = await callTrpcEndpoint<MapItem>("map.updateItem", {

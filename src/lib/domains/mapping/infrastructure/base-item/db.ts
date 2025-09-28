@@ -18,15 +18,18 @@ type DbBaseItemSelect = typeof schemaImport.baseItems.$inferSelect;
 // Mapping function DB -> Domain
 function mapDbToDomain(dbItem: DbBaseItemSelect): BaseItemWithId {
   // BaseItem is simple, no complex relations to map in this basic version
+  console.log("[PREVIEW DEBUG] mapDbToDomain input preview:", dbItem.preview);
   const item = new BaseItem({
     id: dbItem.id,
     attrs: {
       title: dbItem.title,
       descr: dbItem.descr,
+      preview: dbItem.preview ?? undefined,
       link: dbItem.link ?? "",
     },
     // History/RelatedItems/RelatedLists are not loaded/mapped here
   });
+  console.log("[PREVIEW DEBUG] mapDbToDomain output preview:", item.attrs.preview);
   return item as BaseItemWithId;
 }
 
@@ -138,11 +141,13 @@ export class DbBaseItemRepository implements BaseItemRepository {
     relatedItems: RelatedItems; // Use direct type name
     relatedLists: RelatedLists; // Use direct type name
   }): Promise<BaseItemWithId> {
+    console.log("[PREVIEW DEBUG] DB create input preview:", attrs.preview);
     const [newItem] = await this.db
       .insert(schemaImport.baseItems)
       .values({
         title: attrs.title,
         descr: attrs.descr,
+        preview: attrs.preview ?? null,
         link: attrs.link ?? null,
         // createdAt/updatedAt handled by DB default
       })
@@ -151,7 +156,10 @@ export class DbBaseItemRepository implements BaseItemRepository {
     if (!newItem) {
       throw new Error("Failed to create base item");
     }
-    return this.getOne(newItem.id); // Fetch after create
+    console.log("[PREVIEW DEBUG] DB create calling getOne for id:", newItem.id);
+    const result = this.getOne(newItem.id); // Fetch after create
+    console.log("[PREVIEW DEBUG] DB create getOne result preview:", (await result).attrs.preview);
+    return result;
   }
 
   // Update via Aggregate
@@ -181,6 +189,8 @@ export class DbBaseItemRepository implements BaseItemRepository {
     const updateData: Partial<DbBaseItemSelect> = {};
     if (attrs.title !== undefined) updateData.title = attrs.title;
     if (attrs.descr !== undefined) updateData.descr = attrs.descr;
+    // Allow setting preview to null or a new value
+    if (attrs.hasOwnProperty("preview")) updateData.preview = attrs.preview ?? null;
     // Allow setting link to null or a new value
     if (attrs.hasOwnProperty("link")) updateData.link = attrs.link ?? null;
 

@@ -12,6 +12,7 @@ export const mapItemDomainToContractAdapter = (
     coords: CoordSystem.createId(aggregate.attrs.coords),
     name: aggregate.ref.attrs.title,
     descr: aggregate.ref.attrs.descr,
+    preview: aggregate.ref.attrs.preview,
     url: aggregate.ref.attrs.link,
     itemType: aggregate.attrs.itemType,
     depth: aggregate.attrs.coords.path.length,

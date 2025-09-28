@@ -48,6 +48,7 @@ export class MapItemActions {
     coords,
     title,
     descr,
+    preview,
     url,
     parentId,
   }: {
@@ -55,14 +56,17 @@ export class MapItemActions {
     coords: Coord;
     title?: string;
     descr?: string;
+    preview?: string;
     url?: string;
     parentId?: number;
   }): Promise<MapItemWithId> {
+    console.log("[PREVIEW DEBUG] CORRECT Actions createMapItem received preview:", preview);
     return await this.creationHelpers.createMapItem({
       itemType,
       coords,
       title,
       descr,
+      preview,
       url,
       parentId,
     });

@@ -43,29 +43,19 @@ export class MapItemActions {
     );
   }
 
-  public async createMapItem({
-    itemType,
-    coords,
-    title,
-    descr,
-    url,
-    parentId,
-  }: {
-    itemType: MapItemType;
-    coords: Coord;
-    title?: string;
-    descr?: string;
-    url?: string;
-    parentId?: number;
-  }): Promise<MapItemWithId> {
-    return await this.creationHelpers.createMapItem({
+  public async createMapItem(params: any): Promise<MapItemWithId> {
+    const { itemType, coords, title, descr, preview, url, parentId } = params;
+    console.log("[PREVIEW DEBUG] Actions createMapItem received preview:", preview);
+    const createParams = {
       itemType,
       coords,
       title,
       descr,
+      preview,
       url,
       parentId,
-    });
+    };
+    return await this.creationHelpers.createMapItem(createParams);
   }
 
   public async updateRef(ref: BaseItemWithId, attrs: Partial<BaseItemAttrs>) {

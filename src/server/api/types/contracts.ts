@@ -16,6 +16,7 @@ export const mapItemContractToApiAdapter = (contract: MapItemContract) => {
     depth: contract.depth,
     name: contract.name,
     descr: contract.descr,
+    preview: contract.preview,
     url: contract.url,
     parentId: contract.parentId,
     itemType: contract.itemType,

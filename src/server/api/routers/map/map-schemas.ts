@@ -40,6 +40,7 @@ export const itemCreationSchema = z.object({
   coords: hexCoordSchema,
   title: z.string().optional(),
   descr: z.string().optional(),
+  preview: z.string().optional(),
   url: z.string().optional(),
 });
 
@@ -49,6 +50,7 @@ export const itemUpdateSchema = z.object({
   data: z.object({
     title: z.string().optional(),
     descr: z.string().optional(),
+    preview: z.string().optional(),
     url: z.string().optional(),
   }),
 });

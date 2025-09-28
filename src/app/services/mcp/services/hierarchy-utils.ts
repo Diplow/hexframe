@@ -7,6 +7,7 @@ export interface MapItem {
   depth: number;
   name: string;
   descr: string | null;
+  preview?: string | null;
   url: string | null;
   parentId: string | null;
   itemType: string;

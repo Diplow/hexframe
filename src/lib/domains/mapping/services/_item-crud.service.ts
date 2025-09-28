@@ -33,12 +33,14 @@ export class ItemCrudService {
     coords,
     title,
     descr,
+    preview,
     url,
   }: {
     parentId: number | null;
     coords: Coord;
     title?: string;
     descr?: string;
+    preview?: string;
     url?: string;
   }): Promise<MapItemContract> {
     let parentItem = null;
@@ -67,15 +69,28 @@ export class ItemCrudService {
       }
     }
 
-    const newItem = await this.actions.createMapItem({
-      itemType: MapItemType.BASE,
-      coords,
-      title,
-      descr,
-      url,
-      parentId: parentItem?.id,
-    });
-    return adapt.mapItem(newItem, newItem.attrs.coords.userId);
+    console.log("[PREVIEW DEBUG] Service addItemToMap received preview:", preview);
+    try {
+      console.log("[PREVIEW DEBUG] Service about to call actions.createMapItem with preview:", preview);
+      console.log("[PREVIEW DEBUG] Service this.actions object:", typeof this.actions);
+      console.log("[PREVIEW DEBUG] Service this.actions.createMapItem exists:", typeof this.actions.createMapItem);
+      const createParams = {
+        itemType: MapItemType.BASE,
+        coords,
+        title,
+        descr,
+        preview,
+        url,
+        parentId: parentItem?.id,
+      };
+      console.log("[PREVIEW DEBUG] Service calling createMapItem with params:", JSON.stringify(createParams, null, 2));
+      const newItem = await this.actions.createMapItem(createParams);
+      console.log("[PREVIEW DEBUG] Service got back newItem with preview:", newItem.ref.attrs.preview);
+      return adapt.mapItem(newItem, newItem.attrs.coords.userId);
+    } catch (error) {
+      console.error("[PREVIEW DEBUG] Service error in createMapItem:", error);
+      throw error;
+    }
   }
 
   /**

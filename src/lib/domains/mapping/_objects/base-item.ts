@@ -6,6 +6,7 @@ import {
 export interface Attrs extends Record<string, unknown> {
   title: string;
   descr: string;
+  preview?: string;
   link: string;
 }
 
@@ -37,6 +38,7 @@ export class BaseItem extends GenericAggregate<
         ...args.attrs,
         title: args.attrs?.title ?? DEFAULT_CENTER_TITLE,
         descr: args.attrs?.descr ?? DEFAULT_CENTER_DESCRIPTION,
+        preview: args.attrs?.preview,
         link: args.attrs?.link ?? "",
       },
     });

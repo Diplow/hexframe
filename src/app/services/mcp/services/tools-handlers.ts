@@ -4,6 +4,32 @@ import { callTrpcEndpoint } from "~/app/services/mcp/services/api-helpers";
 import type { MapItem, MapItemWithHierarchy } from "~/app/services/mcp/services/hierarchy-utils";
 import { buildHierarchyFromFlatArray } from "~/app/services/mcp/services/hierarchy-utils";
 
+// Helper function to filter fields from an object
+function filterFields<T extends Record<string, unknown>>(item: T, fields?: string[]): Partial<T> {
+  if (!fields || fields.length === 0) {
+    return item;
+  }
+
+  const filtered: Partial<T> = {};
+  for (const field of fields) {
+    if (field in item) {
+      filtered[field as keyof T] = item[field as keyof T];
+    }
+  }
+  return filtered;
+}
+
+// Helper function to recursively filter hierarchy fields
+function filterHierarchyFields(item: MapItemWithHierarchy, fields?: string[]): Partial<MapItemWithHierarchy> {
+  const filtered = filterFields(item, fields);
+
+  if (item.children && (!fields || fields.includes('children'))) {
+    filtered.children = item.children.map(child => filterHierarchyFields(child, fields));
+  }
+
+  return filtered as Partial<MapItemWithHierarchy>;
+}
+
 // Helper to get a map item by coordinates
 async function _getItemByCoords(coords: {
   userId: number;
@@ -24,7 +50,8 @@ export async function getUserMapItemsHandler(
   userId: number,
   groupId = 0,
   depth = 3,
-): Promise<MapItemWithHierarchy | null> {
+  fields?: string[],
+): Promise<Partial<MapItemWithHierarchy> | null> {
   if (process.env.DEBUG_MCP === "true") console.error("[MCP DEBUG] getUserMapItemsHandler called! userId:", userId);
   try {
     // Get ALL items for this user in a single API call
@@ -51,7 +78,8 @@ export async function getUserMapItemsHandler(
       );
     }
 
-    return hierarchy;
+    // Apply field filtering if requested
+    return filterHierarchyFields(hierarchy, fields);
   } catch (error) {
     throw error;
   }
@@ -62,7 +90,7 @@ export async function getItemByCoordsHandler(coords: {
   userId: number;
   groupId: number;
   path: number[];
-}): Promise<MapItem | null> {
+}, fields?: string[]): Promise<Partial<MapItem> | null> {
   try {
     const item = await _getItemByCoords(coords);
     if (!item) {
@@ -71,7 +99,9 @@ export async function getItemByCoordsHandler(coords: {
           `Make sure the coordinates are correct and the tile exists.`,
       );
     }
-    return item;
+
+    // Apply field filtering if requested
+    return filterFields(item, fields);
   } catch (error) {
     throw error;
   }

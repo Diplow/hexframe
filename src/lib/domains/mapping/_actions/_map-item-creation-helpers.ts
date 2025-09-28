@@ -23,6 +23,7 @@ export class MapItemCreationHelpers {
     coords,
     title,
     descr,
+    preview,
     url,
     parentId,
   }: {
@@ -30,16 +31,22 @@ export class MapItemCreationHelpers {
     coords: Coord;
     title?: string;
     descr?: string;
+    preview?: string;
     url?: string;
     parentId?: number;
   }): Promise<MapItemWithId> {
     const parent = await this._validateAndGetParent(itemType, parentId);
     this._validateItemTypeConstraints(itemType, parent, coords);
 
-    const ref = await this._createReference(title, descr, url);
+    console.log("[PREVIEW DEBUG] CreationHelpers about to create reference with preview:", preview);
+    const ref = await this._createReference(title, descr, preview, url);
+    console.log("[PREVIEW DEBUG] CreationHelpers created reference with preview:", ref.attrs.preview);
     const mapItem = this._buildMapItem(itemType, coords, parent, ref);
+    console.log("[PREVIEW DEBUG] CreationHelpers built mapItem with ref preview:", mapItem.ref.attrs.preview);
 
-    return await this.mapItems.create(mapItem);
+    const result = await this.mapItems.create(mapItem);
+    console.log("[PREVIEW DEBUG] CreationHelpers mapItems.create result preview:", result.ref.attrs.preview);
+    return result;
   }
 
   async updateRef(ref: BaseItemWithId, attrs: Partial<BaseItemAttrs>) {
@@ -90,9 +97,12 @@ export class MapItemCreationHelpers {
   private async _createReference(
     title?: string,
     descr?: string,
+    preview?: string,
     url?: string,
   ): Promise<BaseItemWithId> {
-    const baseItem = new BaseItem({ attrs: { title, descr, link: url } });
+    console.log("[PREVIEW DEBUG] _createReference called with preview:", preview);
+    const baseItem = new BaseItem({ attrs: { title, descr, preview, link: url } });
+    console.log("[PREVIEW DEBUG] BaseItem created with preview attr:", baseItem.attrs.preview);
     return await this.baseItems.create(baseItem);
   }
 
