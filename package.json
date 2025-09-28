@@ -23,7 +23,7 @@
     "lint:colors": "node scripts/validate-colors.mjs",
     "check:architecture": "python3 -m scripts.checks.architecture.main",
     "check:architecture:map": "python3 -m scripts.checks.architecture.main src/app/map",
-    "check:deadcode": "python3 scripts/check-dead-code.py",
+    "check:deadcode": "python3 -m scripts.checks.deadcode.main",
     "check:ruleof6": "python3 scripts/checks/ruleof6/cli.py",
     "check:lint": "python3 scripts/checks/lint/main.py",
     "check:lint:verbose": "python3 scripts/checks/lint/main.py --verbose",

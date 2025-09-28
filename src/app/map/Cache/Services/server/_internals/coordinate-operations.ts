@@ -3,6 +3,7 @@ import type { api } from "~/commons/trpc/react";
 import { withRetry } from "~/app/map/Cache/Services/server/server-retry-utils";
 import type { ServiceConfig } from "~/app/map/Cache/Services/types";
 import { withErrorTransform } from "~/app/map/Cache/Services/server/server-operations";
+import type { MapItemType } from "~/lib/domains/mapping/interface.client";
 
 /**
  * Create coordinate-based query operations
@@ -14,8 +15,28 @@ export function createCoordinateOperations(
   const fetchItemsForCoordinate = async (params: {
     centerCoordId: string;
     maxDepth: number;
-  }) => {
-    const operation = async () => {
+  }): Promise<Array<{
+    id: string;
+    coordinates: string;
+    depth: number;
+    name: string;
+    descr: string;
+    url: string;
+    parentId: string | null;
+    itemType: MapItemType;
+    ownerId: string;
+  }>> => {
+    const operation = async (): Promise<Array<{
+      id: string;
+      coordinates: string;
+      depth: number;
+      name: string;
+      descr: string;
+      url: string;
+      parentId: string | null;
+      itemType: MapItemType;
+      ownerId: string;
+    }>> => {
       // Parse the coordinate to get user and group information
       // Now we only receive proper coordinates, never mapItemIds
       let coords;
@@ -49,7 +70,32 @@ export function createCoordinateOperations(
             generations: params.maxDepth,
           });
           // The enhanced endpoint returns an array when generations > 0
-          return Array.isArray(result) ? result : [result];
+          // Properly flatten mixed array: some items might be objects, some might be arrays
+          if (Array.isArray(result)) {
+            const flattened = result.flatMap(item => Array.isArray(item) ? item : [item]);
+            return flattened as Array<{
+              id: string;
+              coordinates: string;
+              depth: number;
+              name: string;
+              descr: string;
+              url: string;
+              parentId: string | null;
+              itemType: MapItemType;
+              ownerId: string;
+            }>;
+          }
+          return [result] as Array<{
+            id: string;
+            coordinates: string;
+            depth: number;
+            name: string;
+            descr: string;
+            url: string;
+            parentId: string | null;
+            itemType: MapItemType;
+            ownerId: string;
+          }>;
         } else {
           // Get just the center item for maxDepth = 0
           const centerItem = await utils.map.getItemByCoords.fetch({
@@ -59,7 +105,17 @@ export function createCoordinateOperations(
               path: coords.path,
             },
           });
-          return centerItem ? [centerItem] : [];
+          return centerItem ? [centerItem] as Array<{
+            id: string;
+            coordinates: string;
+            depth: number;
+            name: string;
+            descr: string;
+            url: string;
+            parentId: string | null;
+            itemType: MapItemType;
+            ownerId: string;
+          }> : [];
         }
       } else {
         // For root-level queries with proper coordinate format (e.g., "10,0:")
@@ -68,7 +124,32 @@ export function createCoordinateOperations(
           userId: coords.userId,
           groupId: coords.groupId,
         });
-        return items;
+        // Properly flatten mixed array: some items might be objects, some might be arrays
+        if (Array.isArray(items)) {
+          const flattened = items.flatMap(item => Array.isArray(item) ? item : [item]);
+          return flattened as Array<{
+            id: string;
+            coordinates: string;
+            depth: number;
+            name: string;
+            descr: string;
+            url: string;
+            parentId: string | null;
+            itemType: MapItemType;
+            ownerId: string;
+          }>;
+        }
+        return [items] as Array<{
+          id: string;
+          coordinates: string;
+          depth: number;
+          name: string;
+          descr: string;
+          url: string;
+          parentId: string | null;
+          itemType: MapItemType;
+          ownerId: string;
+        }>;
       }
     };
 
@@ -83,6 +164,10 @@ export function createCoordinateOperations(
       const item = await utils.map.getItemByCoords.fetch({
         coords: coords,
       });
+      // If the API returns an array, take the first item, otherwise return the item or null
+      if (Array.isArray(item)) {
+        return item[0] ?? null;
+      }
       return item;
     };
 
@@ -95,13 +180,48 @@ export function createCoordinateOperations(
     coordId: string;
     generations: number;
   }) => {
-    const operation = async () => {
+    const operation = async (): Promise<Array<{
+      id: string;
+      coordinates: string;
+      depth: number;
+      name: string;
+      descr: string;
+      url: string;
+      parentId: string | null;
+      itemType: MapItemType;
+      ownerId: string;
+    }>> => {
       const coords = CoordSystem.parseId(params.coordId);
       const items = await utils.map.getItemByCoords.fetch({
         coords: coords,
         generations: params.generations,
       });
-      return Array.isArray(items) ? items : [items];
+      // Properly flatten mixed array: some items might be objects, some might be arrays
+      if (Array.isArray(items)) {
+        const flattened = items.flatMap(item => Array.isArray(item) ? item : [item]);
+        return flattened as Array<{
+          id: string;
+          coordinates: string;
+          depth: number;
+          name: string;
+          descr: string;
+          url: string;
+          parentId: string | null;
+          itemType: MapItemType;
+          ownerId: string;
+        }>;
+      }
+      return [items] as Array<{
+        id: string;
+        coordinates: string;
+        depth: number;
+        name: string;
+        descr: string;
+        url: string;
+        parentId: string | null;
+        itemType: MapItemType;
+        ownerId: string;
+      }>;
     };
 
     return finalConfig.enableRetry

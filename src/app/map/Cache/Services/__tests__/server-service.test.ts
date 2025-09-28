@@ -444,13 +444,14 @@ describe("Server Service", () => {
         maxDepth: 3,
       });
 
-      // For complex coordinates, it should call getItemByCoords
+      // For complex coordinates, it should call getItemByCoords with generations parameter
       expect(mockGetItemByCoordsFetch).toHaveBeenCalledWith({
         coords: {
           userId: 1,
           groupId: 2,
           path: [3, 4, 5],
         },
+        generations: 3,
       });
 
       // Should return the item and its descendants
