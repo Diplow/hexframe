@@ -103,7 +103,7 @@ describe("Mutation Handler", () => {
           expect.arrayContaining([
             expect.objectContaining({
               coordinates: "2,3",
-              name: "New Item",
+              title: "New Item",
             }),
           ]) as Parameters<typeof cacheActions.loadRegion>[0],
           "2,3",
@@ -198,7 +198,7 @@ describe("Mutation Handler", () => {
         cacheActions.loadRegion(
           expect.arrayContaining([
             expect.objectContaining({
-              name: "Updated Name",
+              title: "Updated Name",
               coordinates: "1,2",
             }),
           ]) as Parameters<typeof cacheActions.loadRegion>[0],
@@ -375,7 +375,7 @@ describe("Mutation Handler", () => {
         cacheActions.loadRegion(
           expect.arrayContaining([
             expect.objectContaining({
-              name: "New Item",
+              title: "New Item",
             }),
           ]) as Parameters<typeof cacheActions.loadRegion>[0],
           "2,3",
