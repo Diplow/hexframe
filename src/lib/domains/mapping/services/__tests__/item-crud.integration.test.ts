@@ -32,6 +32,7 @@ import {
   _validateRemoveNonExistentItemError,
 } from "~/lib/domains/mapping/services/__tests__/helpers/item-crud/_item-remove-helpers";
 import { Direction } from "~/lib/domains/mapping/utils";
+import { MapItemType } from "~/lib/domains/mapping/_objects";
 
 describe("MappingService - Item CRUD [Integration - DB]", () => {
   let testEnv: TestEnvironment;
@@ -65,6 +66,36 @@ describe("MappingService - Item CRUD [Integration - DB]", () => {
         addItemArgs,
       );
       await _validateMapItemHierarchy(testEnv, setupParams, addItemArgs);
+    });
+
+    it("should add a child item with preview field", async () => {
+      const setupParams = _createUniqueTestParams();
+      const rootMap = await _setupBasicMap(testEnv.service, setupParams);
+
+      const childCoords = _createTestCoordinates({
+        userId: setupParams.userId,
+        groupId: setupParams.groupId,
+        path: [Direction.NorthEast],
+      });
+
+      const addItemArgs = {
+        parentId: rootMap.id,
+        coords: childCoords,
+        title: "Preview Test Item",
+        descr: "Full description for preview test",
+        preview: "Short preview text for progressive disclosure",
+        link: "https://example.com/preview-test",
+      };
+
+      const childItemContract = await testEnv.service.items.crud.addItemToMap(addItemArgs);
+
+      // Validate the preview field is properly saved and returned
+      expect(childItemContract).toBeDefined();
+      expect(childItemContract.title).toBe(addItemArgs.title);
+      expect(childItemContract.descr).toBe(addItemArgs.descr);
+      expect(childItemContract.preview).toBe(addItemArgs.preview);
+      expect(childItemContract.link).toBe(addItemArgs.link);
+      expect(childItemContract.itemType).toBe(MapItemType.BASE);
     });
 
     it("should throw error for mismatched userId/groupId in coords", async () => {
@@ -121,7 +152,7 @@ describe("MappingService - Item CRUD [Integration - DB]", () => {
       await _validateItemRetrieval(testEnv, itemCoords, {
         title: "Test Retrievable Item",
         descr: "Test Description",
-        url: "https://example.com",
+        link: "https://example.com",
       });
     });
 
@@ -145,7 +176,7 @@ describe("MappingService - Item CRUD [Integration - DB]", () => {
       const updateData = {
         title: "Updated Item Title",
         descr: "Updated Item Descr",
-        url: "http://updated.url",
+        link: "http://updated.url",
       };
 
       const { itemCoords } = await _setupItemForUpdate(testEnv, setupParams);

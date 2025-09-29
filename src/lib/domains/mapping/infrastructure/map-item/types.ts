@@ -16,6 +16,7 @@ export type DbBaseItemSelect = {
   id: number;
   title: string;
   descr: string;
+  preview: string | null;
   link: string | null;
 };
 

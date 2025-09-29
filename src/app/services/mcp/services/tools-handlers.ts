@@ -24,7 +24,7 @@ function filterHierarchyFields(item: MapItemWithHierarchy, fields?: string[]): P
   const filtered = filterFields(item, fields);
 
   if (item.children && (!fields || fields.includes('children'))) {
-    filtered.children = item.children.map(child => filterHierarchyFields(child, fields));
+    filtered.children = item.children.map(child => filterHierarchyFields(child, fields)) as MapItemWithHierarchy[];
   }
 
   return filtered as Partial<MapItemWithHierarchy>;

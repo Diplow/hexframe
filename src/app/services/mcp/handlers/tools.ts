@@ -112,10 +112,10 @@ Use 'fields' parameter for progressive disclosure: ["name", "preview"] for overv
           type: "array",
           items: {
             type: "string",
-            enum: ["name", "descr", "preview", "url", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
+            enum: ["title", "descr", "preview", "link", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
           },
-          description: "Fields to include in response. For overview use ['name', 'preview'], for full content use ['name', 'descr']. Default: all fields",
-          default: ["name", "descr", "preview", "url", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
+          description: "Fields to include in response. For overview use ['title', 'preview'], for full content use ['title', 'descr']. Default: all fields",
+          default: ["title", "descr", "preview", "link", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
         },
       },
       required: [],
@@ -178,10 +178,10 @@ Use 'fields' parameter for progressive disclosure: ["name", "preview"] for overv
           type: "array",
           items: {
             type: "string",
-            enum: ["name", "descr", "preview", "url", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
+            enum: ["title", "descr", "preview", "link", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
           },
-          description: "Fields to include in response. For overview use ['name', 'preview'], for full content use ['name', 'descr']. Default: all fields",
-          default: ["name", "descr", "preview", "url", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
+          description: "Fields to include in response. For overview use ['title', 'preview'], for full content use ['title', 'descr']. Default: all fields",
+          default: ["title", "descr", "preview", "link", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
         }
       },
       required: ["coords"],

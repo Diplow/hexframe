@@ -10,10 +10,10 @@ export const mapItemDomainToContractAdapter = (
     id: String(aggregate.id),
     ownerId: String(ownerId),
     coords: CoordSystem.createId(aggregate.attrs.coords),
-    name: aggregate.ref.attrs.title,
+    title: aggregate.ref.attrs.title,
     descr: aggregate.ref.attrs.descr,
     preview: aggregate.ref.attrs.preview,
-    url: aggregate.ref.attrs.link,
+    link: aggregate.ref.attrs.link,
     itemType: aggregate.attrs.itemType,
     depth: aggregate.attrs.coords.path.length,
     parentId: aggregate.attrs.parentId

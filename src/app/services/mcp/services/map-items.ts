@@ -35,7 +35,6 @@ export async function addItemHandler(
   preview?: string,
   url?: string,
 ): Promise<MapItem> {
-  console.log("[PREVIEW DEBUG] MCP addItemHandler called! Preview value:", preview, "Type:", typeof preview);
   try {
     // For creation, we need parentId if it's not a root item
     let parentId: number | null = null;
@@ -73,7 +72,6 @@ export async function addItemHandler(
       preview,
       url,
     }, { requireAuth: true });
-    console.log("[PREVIEW DEBUG] map.addItem returned item with id:", newItem?.id, "preview:", newItem?.preview);
 
     return newItem;
   } catch (error) {

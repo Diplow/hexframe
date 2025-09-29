@@ -18,7 +18,6 @@ type DbBaseItemSelect = typeof schemaImport.baseItems.$inferSelect;
 // Mapping function DB -> Domain
 function mapDbToDomain(dbItem: DbBaseItemSelect): BaseItemWithId {
   // BaseItem is simple, no complex relations to map in this basic version
-  console.log("[PREVIEW DEBUG] mapDbToDomain input preview:", dbItem.preview);
   const item = new BaseItem({
     id: dbItem.id,
     attrs: {
@@ -29,7 +28,6 @@ function mapDbToDomain(dbItem: DbBaseItemSelect): BaseItemWithId {
     },
     // History/RelatedItems/RelatedLists are not loaded/mapped here
   });
-  console.log("[PREVIEW DEBUG] mapDbToDomain output preview:", item.attrs.preview);
   return item as BaseItemWithId;
 }
 
@@ -141,7 +139,6 @@ export class DbBaseItemRepository implements BaseItemRepository {
     relatedItems: RelatedItems; // Use direct type name
     relatedLists: RelatedLists; // Use direct type name
   }): Promise<BaseItemWithId> {
-    console.log("[PREVIEW DEBUG] DB create input preview:", attrs.preview);
     const [newItem] = await this.db
       .insert(schemaImport.baseItems)
       .values({
@@ -156,10 +153,7 @@ export class DbBaseItemRepository implements BaseItemRepository {
     if (!newItem) {
       throw new Error("Failed to create base item");
     }
-    console.log("[PREVIEW DEBUG] DB create calling getOne for id:", newItem.id);
-    const result = this.getOne(newItem.id); // Fetch after create
-    console.log("[PREVIEW DEBUG] DB create getOne result preview:", (await result).attrs.preview);
-    return result;
+    return this.getOne(newItem.id); // Fetch after create
   }
 
   // Update via Aggregate

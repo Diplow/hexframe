@@ -70,9 +70,10 @@ export function createMutationHandler(
 
         const optimisticItem = {
           coordinates: coordId,
-          name: data.name || "New Item",
+          title: data.name || "New Item",
           descr: data.description || "",
-          url: data.url || "",
+          preview: undefined,
+          link: data.url || "",
           depth: 1, // TODO: Calculate actual depth
           id: `optimistic_${changeId}`,
           parentId: null, // TODO: Determine parent
@@ -89,7 +90,7 @@ export function createMutationHandler(
             source: 'map_cache',
             payload: {
               tileId: optimisticItem.id,
-              tileName: optimisticItem.name,
+              tileName: optimisticItem.title,
               coordId,
               tileData: data
             }
@@ -142,9 +143,10 @@ export function createMutationHandler(
         // We need to create a proper MapItemAPIContract for the loadRegion action
         const updatedItem = {
           id: existingItem.metadata.dbId,
-          name: data.name as string ?? existingItem.data.name,
+          title: data.name as string ?? existingItem.data.name,
           descr: data.description as string ?? existingItem.data.description,
-          url: data.url as string ?? existingItem.data.url,
+          preview: undefined,
+          link: data.url as string ?? existingItem.data.url,
           coordinates: coordId,
           depth: existingItem.metadata.depth,
           parentId: existingItem.metadata.parentId ?? null,
@@ -161,7 +163,7 @@ export function createMutationHandler(
             source: 'map_cache',
             payload: {
               tileId: existingItem.metadata.dbId,
-              tileName: updatedItem.name,
+              tileName: updatedItem.title,
               coordId,
               updates: data
             }

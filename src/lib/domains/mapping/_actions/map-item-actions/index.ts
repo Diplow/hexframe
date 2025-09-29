@@ -6,14 +6,17 @@ import type {
   BaseItemAttrs,
   BaseItemWithId,
   MapItemWithId,
-  MapItemType,
 } from "~/lib/domains/mapping/_objects";
 import type { Coord } from "~/lib/domains/mapping/utils";
 import type { MapItemIdr } from "~/lib/domains/mapping/_repositories";
 import { MapItemCreationHelpers } from "~/lib/domains/mapping/_actions/_map-item-creation-helpers";
 import { MapItemQueryHelpers } from "~/lib/domains/mapping/_actions/_map-item-query-helpers";
 import { MapItemMovementHelpers } from "~/lib/domains/mapping/_actions/_map-item-movement-helpers";
-import type { DatabaseTransaction } from "~/lib/domains/mapping/types";
+import type {
+  DatabaseTransaction,
+  CreateMapItemParams,
+  UpdateMapItemAttrs,
+} from "~/lib/domains/mapping/types";
 import { MoveOrchestrator } from "~/lib/domains/mapping/_actions/map-item-actions/move-orchestrator";
 import { ValidationStrategy } from "~/lib/domains/mapping/_actions/map-item-actions/validation-strategy";
 
@@ -43,37 +46,27 @@ export class MapItemActions {
     this.validationStrategy = new ValidationStrategy();
   }
 
-  public async createMapItem({
-    itemType,
-    coords,
-    title,
-    descr,
-    preview,
-    url,
-    parentId,
-  }: {
-    itemType: MapItemType;
-    coords: Coord;
-    title?: string;
-    descr?: string;
-    preview?: string;
-    url?: string;
-    parentId?: number;
-  }): Promise<MapItemWithId> {
-    console.log("[PREVIEW DEBUG] CORRECT Actions createMapItem received preview:", preview);
+  public async createMapItem(params: CreateMapItemParams): Promise<MapItemWithId> {
     return await this.creationHelpers.createMapItem({
-      itemType,
-      coords,
-      title,
-      descr,
-      preview,
-      url,
-      parentId,
+      itemType: params.itemType,
+      coords: params.coords,
+      title: params.title,
+      descr: params.descr,
+      preview: params.preview,
+      url: params.link, // Note: params uses 'link', helper expects 'url'
+      parentId: params.parentId,
     });
   }
 
-  public async updateRef(ref: BaseItemWithId, attrs: Partial<BaseItemAttrs>) {
-    return await this.creationHelpers.updateRef(ref, attrs);
+  public async updateRef(ref: BaseItemWithId, attrs: UpdateMapItemAttrs) {
+    // Convert our standardized field names to what the helper expects
+    const helperAttrs: Partial<BaseItemAttrs> = {
+      title: attrs.title,
+      descr: attrs.descr,
+      preview: attrs.preview,
+      link: attrs.link, // Our standard name matches BaseItemAttrs
+    };
+    return await this.creationHelpers.updateRef(ref, helperAttrs);
   }
 
   public async removeItem({ idr }: { idr: MapItemIdr }) {

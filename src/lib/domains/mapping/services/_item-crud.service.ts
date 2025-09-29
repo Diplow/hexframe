@@ -34,14 +34,14 @@ export class ItemCrudService {
     title,
     descr,
     preview,
-    url,
+    link,
   }: {
     parentId: number | null;
     coords: Coord;
     title?: string;
     descr?: string;
     preview?: string;
-    url?: string;
+    link?: string;
   }): Promise<MapItemContract> {
     let parentItem = null;
     if (parentId !== null) {
@@ -69,28 +69,17 @@ export class ItemCrudService {
       }
     }
 
-    console.log("[PREVIEW DEBUG] Service addItemToMap received preview:", preview);
-    try {
-      console.log("[PREVIEW DEBUG] Service about to call actions.createMapItem with preview:", preview);
-      console.log("[PREVIEW DEBUG] Service this.actions object:", typeof this.actions);
-      console.log("[PREVIEW DEBUG] Service this.actions.createMapItem exists:", typeof this.actions.createMapItem);
-      const createParams = {
-        itemType: MapItemType.BASE,
-        coords,
-        title,
-        descr,
-        preview,
-        url,
-        parentId: parentItem?.id,
-      };
-      console.log("[PREVIEW DEBUG] Service calling createMapItem with params:", JSON.stringify(createParams, null, 2));
-      const newItem = await this.actions.createMapItem(createParams);
-      console.log("[PREVIEW DEBUG] Service got back newItem with preview:", newItem.ref.attrs.preview);
-      return adapt.mapItem(newItem, newItem.attrs.coords.userId);
-    } catch (error) {
-      console.error("[PREVIEW DEBUG] Service error in createMapItem:", error);
-      throw error;
-    }
+    const createParams = {
+      itemType: MapItemType.BASE,
+      coords,
+      title,
+      descr,
+      preview,
+      link,
+      parentId: parentItem?.id,
+    };
+    const newItem = await this.actions.createMapItem(createParams);
+    return adapt.mapItem(newItem, newItem.attrs.coords.userId);
   }
 
   /**
@@ -108,20 +97,20 @@ export class ItemCrudService {
     coords,
     title,
     descr,
-    url,
+    link,
   }: {
     coords: Coord;
     title?: string;
     descr?: string;
-    url?: string;
+    link?: string;
   }): Promise<MapItemContract> {
     const item = await this.actions.getMapItem({ coords });
 
-    if (title !== undefined || descr !== undefined || url !== undefined) {
+    if (title !== undefined || descr !== undefined || link !== undefined) {
       await this.actions.updateRef(item.ref, {
         title,
         descr,
-        link: url,
+        link,
       });
     }
     const updatedItem = await this.actions.mapItems.getOne(item.id);

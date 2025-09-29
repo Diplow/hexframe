@@ -540,9 +540,10 @@ export class MutationCoordinator {
     return {
       id: `temp_${Date.now()}`,
       coordinates: coordId,
-      name: data.title ?? data.name ?? "New Item",
+      title: data.title ?? data.name ?? "New Item",
       descr: data.description ?? data.descr ?? "",
-      url: data.url ?? "",
+      preview: undefined,
+      link: data.url ?? "",
       depth: coords.path.length,
       parentId,
       itemType: MapItemType.BASE,
@@ -601,9 +602,9 @@ export class MutationCoordinator {
     const previousData = this._reconstructApiData(existingItem);
     const optimisticItem: MapItemAPIContract = {
       ...previousData,
-      name: data.title ?? data.name ?? existingItem.data.name,
+      title: data.title ?? data.name ?? existingItem.data.name,
       descr: data.description ?? data.descr ?? existingItem.data.description,
-      url: data.url ?? existingItem.data.url,
+      link: data.url ?? existingItem.data.url,
     };
     return { optimisticItem, previousData };
   }
@@ -671,9 +672,10 @@ export class MutationCoordinator {
       id: String(tile.metadata.dbId),
       coordinates: tile.metadata.coordId,
       depth: tile.metadata.depth,
-      name: tile.data.name,
+      title: tile.data.name,
       descr: tile.data.description,
-      url: tile.data.url,
+      preview: undefined,
+      link: tile.data.url,
       parentId: null, // We don't store this in TileData
       itemType: MapItemType.BASE,
       ownerId: tile.metadata.ownerId ?? this.config.mapContext?.userId.toString() ?? "unknown",

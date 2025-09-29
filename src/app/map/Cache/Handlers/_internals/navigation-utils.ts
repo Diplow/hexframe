@@ -286,7 +286,7 @@ async function loadSiblingsForItem(
       items: parentWithChildren.map(item => ({
         id: item.id,
         coordinates: item.coordinates,
-        name: item.name
+        title: item.title
       }))
     });
 
@@ -300,9 +300,9 @@ async function loadSiblingsForItem(
 
         siblingItems[coordId] = {
           data: {
-            name: item.name,
+            name: item.title,
             description: item.descr,
-            url: item.url,
+            url: item.link,
             color: getColor(itemCoords),
           },
           metadata: {

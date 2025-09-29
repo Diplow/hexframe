@@ -16,7 +16,7 @@ export function useSpecialCommands(center: string | null) {
         return '';
       }
     },
-  }), [baseCommands, center]);
+  }), [baseCommands]);
 
   return { extendedCommands };
 }

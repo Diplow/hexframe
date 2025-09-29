@@ -9,6 +9,14 @@ export {
 } from "~/lib/domains/mapping/types/contracts";
 
 export type { DatabaseTransaction } from "~/lib/domains/mapping/types/transaction";
+export {
+  type CreateMapItemParams,
+  type UpdateMapItemAttrs,
+  CreateMapItemParamsSchema,
+  UpdateMapItemAttrsSchema,
+  validateCreateMapItemParams,
+  validateUpdateMapItemAttrs,
+} from "~/lib/domains/mapping/types/parameters";
 
 // Input types for operations
 export interface CreateMapInput {

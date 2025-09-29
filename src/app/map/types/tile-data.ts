@@ -43,9 +43,9 @@ const adapt = (item: MapItemAPIContract) => {
       ownerId: item.ownerId, // Add the actual owner ID
     },
     data: {
-      name: item.name,
+      name: item.title,
       description: item.descr,
-      url: item.url,
+      url: item.link,
       color: getColor(coordinates),
     },
     state: {

@@ -71,9 +71,9 @@ export async function loadAncestorsForItem(
         
         ancestorItems[coordId] = {
           data: {
-            name: ancestor.name,
+            name: ancestor.title,
             description: ancestor.descr,
-            url: ancestor.url,
+            url: ancestor.link,
             color: getColor(ancestorCoords),
           },
           metadata: {

@@ -28,10 +28,11 @@ describe("Cache Actions", () => {
     {
       id: "1",
       coordinates: "1,2",
-      name: "Test Item",
+      title: "Test Item",
       descr: "Test Description",
+      preview: undefined,
       depth: 1,
-      url: "",
+      link: "",
       parentId: null,
       itemType: MapItemType.BASE,
       ownerId: "test-owner",

@@ -18,9 +18,10 @@ export interface DataHandlerServices {
       id: string;
       coordinates: string;
       depth: number;
-      name: string;
+      title: string;
       descr: string;
-      url: string;
+      preview: string | undefined;
+      link: string;
       parentId: string | null;
       itemType: string;
       ownerId: string;
