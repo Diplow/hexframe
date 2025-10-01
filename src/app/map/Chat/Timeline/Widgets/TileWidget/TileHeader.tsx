@@ -95,13 +95,14 @@ export function TileHeader({
       </div>
 
       {/* Title or edit input */}
-      {isEditing && mode !== 'create' ? (
+      {isEditing || mode === 'create' ? (
         <input
           type="text"
           value={editTitle}
           onChange={(e) => onTitleChange(e.target.value)}
           onKeyDown={onTitleKeyDown}
           className="flex-1 text-sm font-semibold bg-neutral-100 dark:bg-neutral-700 px-2 py-1 rounded border border-neutral-300 dark:border-neutral-600 focus:outline-none focus:ring-2 focus:ring-primary"
+          placeholder={mode === 'create' ? 'Enter tile name...' : 'Enter title...'}
           autoFocus
           onClick={(e) => e.stopPropagation()}
         />

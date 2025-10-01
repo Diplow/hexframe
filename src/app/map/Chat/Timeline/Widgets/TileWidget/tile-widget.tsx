@@ -38,33 +38,15 @@ export function TileWidget({
   forceExpanded,
   openInEditMode,
   tileColor: providedTileColor,
-  parentName,
-  parentCoordId,
+  parentName: _parentName,
+  parentCoordId: _parentCoordId,
   onEdit,
   onDelete,
   onSave,
   onClose,
 }: TileWidgetProps) {
-  const { getItem, hasItem, isLoading, navigateToItem } = useMapCache();
+  const { getItem, hasItem, isLoading } = useMapCache();
   const [showMetadata, setShowMetadata] = useState(false);
-
-  // Calculate direction from coordId for creation mode
-  const getDirection = () => {
-    if (!coordId) return 'child';
-    const coords = CoordSystem.parseId(coordId);
-    const lastIndex = coords.path[coords.path.length - 1];
-
-    const directions: Record<number, string> = {
-      1: 'north west',
-      2: 'north east',
-      3: 'east',
-      4: 'south east',
-      5: 'south west',
-      6: 'west',
-    };
-
-    return lastIndex !== undefined ? (directions[lastIndex] ?? 'child') : 'child';
-  };
 
   // Calculate tile color for creation mode
   const tileColor = mode === 'create' && coordId
@@ -151,30 +133,16 @@ export function TileWidget({
     }
   };
 
-  // Creation mode title
-  const creationTitle = mode === 'create' ? (
-    <span>
-      Create {getDirection()} child of{' '}
-      {parentName && parentCoordId ? (
-        <button
-          className="text-link hover:underline"
-          onClick={async () => {
-            if (parentCoordId) {
-              await navigateToItem(parentCoordId);
-            }
-          }}
-        >
-          {parentName}
-        </button>
-      ) : (
-        <span className="text-muted-foreground">parent</span>
-      )}
-    </span>
-  ) : title;
-
-  // No-op handler for unused keyboard events
-  const _handleNoOp = () => {
-    // Empty handler - keyboard events handled by TileForm
+  const _handleTitleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      // Move to preview field
+      const previewTextarea = document.querySelector<HTMLTextAreaElement>('[data-field="preview"]');
+      previewTextarea?.focus();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      _handleCancel();
+    }
   };
 
   return (
@@ -186,7 +154,7 @@ export function TileWidget({
         tileId={tileId}
         coordId={coordId}
         mode={mode}
-        title={creationTitle}
+        title={title}
         isExpanded={isExpanded}
         isEditing={isEditing}
         editTitle={editTitle}
@@ -194,7 +162,7 @@ export function TileWidget({
         tileColor={tileColor}
         onToggleExpansion={() => setIsExpanded(!isExpanded)}
         onTitleChange={setEditTitle}
-        onTitleKeyDown={_handleNoOp}
+        onTitleKeyDown={_handleTitleKeyDown}
         onEdit={onEdit ? _handleEdit : undefined}
         onDelete={mode !== 'create' ? onDelete : undefined}
         onClose={onClose}
@@ -207,10 +175,8 @@ export function TileWidget({
       {(isEditing || mode === 'create') && (
         <TileForm
           mode={mode === 'create' ? 'create' : 'edit'}
-          title={editTitle}
           preview={editPreview}
           content={editContent}
-          onTitleChange={setEditTitle}
           onPreviewChange={setEditPreview}
           onContentChange={setEditContent}
           onSave={_handleSave}
