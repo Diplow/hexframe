@@ -1,4 +1,5 @@
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
+import type { MapItemUpdateAttributes, MapItemCreateAttributes } from "~/lib/domains/mapping/utils";
 
 // Common handler dependencies
 export interface HandlerConfig {
@@ -23,8 +24,8 @@ export interface HandlerServices {
       itemType: string;
       ownerId: string;
     }[]>;
-    createItem?: (params: { coordId: string; data: Record<string, unknown> }) => Promise<unknown>;
-    updateItem?: (params: { coordId: string; data: Record<string, unknown> }) => Promise<unknown>;
+    createItem?: (params: { coordId: string; data: MapItemCreateAttributes }) => Promise<unknown>;
+    updateItem?: (params: { coordId: string; data: MapItemUpdateAttributes }) => Promise<unknown>;
     deleteItem?: (params: { coordId: string }) => Promise<void>;
   };
   url?: {
@@ -88,8 +89,8 @@ export interface NavigationOperations {
 }
 
 export interface MutationOperations {
-  createItem: (coordId: string, data: Record<string, unknown>) => Promise<MutationResult>;
-  updateItem: (coordId: string, data: Record<string, unknown>) => Promise<MutationResult>;
+  createItem: (coordId: string, data: MapItemCreateAttributes) => Promise<MutationResult>;
+  updateItem: (coordId: string, data: MapItemUpdateAttributes) => Promise<MutationResult>;
   deleteItem: (coordId: string) => Promise<MutationResult>;
   moveItem: (sourceCoordId: string, targetCoordId: string) => Promise<MutationResult & { isSwap?: boolean }>;
   rollbackOptimisticChange: (changeId: string) => void;

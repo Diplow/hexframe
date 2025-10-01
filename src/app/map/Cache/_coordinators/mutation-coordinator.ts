@@ -1,5 +1,5 @@
 import { type Dispatch } from "react";
-import { CoordSystem, type Coord } from "~/lib/domains/mapping/utils";
+import { CoordSystem, type Coord, type MapItemUpdateAttributes, type MapItemCreateAttributes } from "~/lib/domains/mapping/utils";
 import type { MapItemAPIContract } from "~/server/api";
 import type { CacheAction } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
@@ -27,6 +27,7 @@ export interface MutationCoordinatorConfig {
       parentId?: number | null;
       title?: string;
       content?: string;
+      preview?: string;
       url?: string;
     }) => Promise<MapItemAPIContract>;
   };
@@ -192,13 +193,7 @@ export class MutationCoordinator {
     }
   }
 
-  async createItem(coordId: string, data: {
-    parentId?: number;
-    title?: string;
-    content?: string;
-    preview?: string;
-    link?: string;
-  }): Promise<MutationResult> {
+  async createItem(coordId: string, data: MapItemCreateAttributes & { parentId?: number }): Promise<MutationResult> {
     const changeId = this.tracker.generateChangeId();
     
     try {
@@ -219,6 +214,7 @@ export class MutationCoordinator {
         ...(parentIdNumber !== undefined ? { parentId: parentIdNumber } : {}),
         title: data.title,
         content: data.content,
+        preview: data.preview,
         url: data.link,
       });
       
@@ -232,12 +228,7 @@ export class MutationCoordinator {
     }
   }
 
-  async updateItem(coordId: string, data: {
-    title?: string;
-    content?: string;
-    preview?: string;
-    link?: string;
-  }): Promise<MutationResult> {
+  async updateItem(coordId: string, data: MapItemUpdateAttributes): Promise<MutationResult> {
     const changeId = this.tracker.generateChangeId();
     const existingItem = this._getExistingItem(coordId);
 
