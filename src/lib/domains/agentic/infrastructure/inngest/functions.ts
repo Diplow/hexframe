@@ -1,6 +1,5 @@
 import { inngest } from '~/lib/domains/agentic/infrastructure'
-import { OpenRouterRepository, type LLMGenerationParams } from '~/lib/domains/agentic'
-import { PreviewGeneratorService } from '~/lib/domains/agentic/services/preview-generator.service'
+import { OpenRouterRepository, type LLMGenerationParams, PreviewGeneratorService } from '~/lib/domains/agentic'
 import { db, schema } from '~/server/db'
 const { llmJobResults } = schema
 import { eq, sql } from 'drizzle-orm'
