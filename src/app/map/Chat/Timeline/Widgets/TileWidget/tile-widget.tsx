@@ -1,13 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { PreviewHeader } from '~/app/map/Chat/Timeline/Widgets/PreviewWidget/PreviewHeader';
-import { ContentDisplay } from '~/app/map/Chat/Timeline/Widgets/PreviewWidget/ContentDisplay';
-import { usePreviewState } from '~/app/map/Chat/Timeline/Widgets/PreviewWidget/usePreviewState';
+import { TileHeader } from '~/app/map/Chat/Timeline/Widgets/TileWidget/TileHeader';
+import { ContentDisplay } from '~/app/map/Chat/Timeline/Widgets/TileWidget/ContentDisplay';
+import { useTileState } from '~/app/map/Chat/Timeline/Widgets/TileWidget/useTileState';
 import { BaseWidget } from '~/app/map/Chat/Timeline/Widgets/_shared';
 import { useMapCache } from '~/app/map/Cache';
 
-interface PreviewWidgetProps {
+interface TileWidgetProps {
   tileId: string;
   title: string;
   preview?: string;
@@ -21,7 +21,7 @@ interface PreviewWidgetProps {
   onClose?: () => void;
 }
 
-export function PreviewWidget({
+export function TileWidget({
   tileId,
   title,
   preview = '',
@@ -33,10 +33,10 @@ export function PreviewWidget({
   onDelete,
   onSave,
   onClose,
-}: PreviewWidgetProps) {
+}: TileWidgetProps) {
   const { getItem, hasItem, isLoading } = useMapCache();
   const [showMetadata, setShowMetadata] = useState(false);
-  const { expansion, editing } = usePreviewState({
+  const { expansion, editing } = useTileState({
     title,
     preview,
     content,
@@ -136,10 +136,10 @@ export function PreviewWidget({
 
   return (
     <BaseWidget
-      testId="preview-widget"
+      testId="tile-widget"
       className="flex-1 w-full relative"
     >
-      <PreviewHeader
+      <TileHeader
         tileId={tileId}
         title={title}
         isExpanded={isExpanded}

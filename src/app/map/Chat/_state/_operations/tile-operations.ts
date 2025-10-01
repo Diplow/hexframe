@@ -25,7 +25,7 @@ export function createTileOperations(dispatch: (event: ChatEvent) => void) {
         actor: 'system',
       });
     },
-    showPreviewWidget(tile: TileData) {
+    showTileWidget(tile: TileData) {
       dispatch({
         type: 'tile_selected',
         payload: {

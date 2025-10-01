@@ -2,7 +2,7 @@ import type { Widget, TileSelectedPayload } from '~/app/map/Chat/_state';
 import { focusChatInput } from '~/app/map/Chat/Timeline/_utils/focus-helpers';
 import type { EventBusService } from '~/app/map/types';
 
-interface PreviewHandlerDeps {
+interface TileHandlerDeps {
   updateItemOptimistic: (tileId: string, data: {
     title?: string;
     name?: string;
@@ -15,14 +15,14 @@ interface PreviewHandlerDeps {
   };
 }
 
-export function createPreviewHandlers(
+export function createTileHandlers(
   widget: Widget,
-  deps: PreviewHandlerDeps
+  deps: TileHandlerDeps
 ) {
   const { updateItemOptimistic, eventBus, chatState } = deps;
 
   const handleEdit = () => {
-    // The PreviewWidget component handles edit mode internally
+    // The TileWidget component handles edit mode internally
   };
   
   const handleDelete = () => {
@@ -39,26 +39,24 @@ export function createPreviewHandlers(
     });
   };
   
-  const handlePreviewClose = () => {
+  const handleTileClose = () => {
     chatState.closeWidget(widget.id);
     focusChatInput();
   };
-  
-  const handlePreviewSave = async (title: string, preview: string, content: string) => {
-    const previewData = widget.data as TileSelectedPayload;
-    console.log('🟦 Preview handlers - handlePreviewSave called with:', { title, preview, content, tileId: previewData.tileId });
+
+  const handleTileSave = async (title: string, preview: string, content: string) => {
+    const tileData = widget.data as TileSelectedPayload;
     try {
-      await updateItemOptimistic(previewData.tileId, {
+      await updateItemOptimistic(tileData.tileId, {
         title,
         preview,
         description: content,
       });
-      console.log('🟦 Preview handlers - updateItemOptimistic completed successfully');
 
       eventBus?.emit({
         type: 'map.tile_updated',
         payload: {
-          tileId: previewData.tileId,
+          tileId: tileData.tileId,
           title: title,
           preview: preview,
           content: content
@@ -71,7 +69,7 @@ export function createPreviewHandlers(
         type: 'error.occurred',
         payload: {
           operation: 'update',
-          tileId: previewData.tileId,
+          tileId: tileData.tileId,
           error: error instanceof Error ? error.message : 'Unknown error',
           message: `Failed to update tile: ${error instanceof Error ? error.message : 'Unknown error'}`
         },
@@ -81,5 +79,5 @@ export function createPreviewHandlers(
     }
   };
 
-  return { handleEdit, handleDelete, handlePreviewSave, handlePreviewClose };
+  return { handleEdit, handleDelete, handleTileSave, handleTileClose };
 }

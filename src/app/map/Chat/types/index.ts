@@ -17,11 +17,11 @@ export interface ChatMessage {
 }
 
 export interface ChatWidget {
-  type: 'preview' | 'search' | 'comparison' | 'action' | 'creation' | 'login' | 'confirm-delete' | 'loading' | 'error' | 'ai-response';
+  type: 'tile' | 'search' | 'comparison' | 'action' | 'creation' | 'login' | 'confirm-delete' | 'loading' | 'error' | 'ai-response';
   data: unknown; // Widget-specific data
 }
 
-export interface PreviewWidgetData {
+export interface TileWidgetData {
   tileId: string;
   title: string;
   content: string;

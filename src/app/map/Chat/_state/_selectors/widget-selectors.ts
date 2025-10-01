@@ -15,10 +15,10 @@ function _handleOperationCompleted(
   }
 
   if (payload.tileId) {
-    // Close preview widget for this tile if operation was delete
+    // Close tile widget for this tile if operation was delete
     if (payload.operation === 'delete') {
-      const previewId = `preview-${payload.tileId}`;
-      widgetStates.set(previewId, 'completed');
+      const tileWidgetId = `tile-${payload.tileId}`;
+      widgetStates.set(tileWidgetId, 'completed');
     }
   }
 
@@ -69,7 +69,7 @@ function _processWidgetStates(events: ChatEvent[]): {
       case 'tile_selected': {
         const payload = event.payload as TileSelectedPayload;
         if (payload && typeof payload === 'object' && 'tileId' in payload && typeof payload.tileId === 'string') {
-          const widgetId = `preview-${payload.tileId}`;
+          const widgetId = `tile-${payload.tileId}`;
           widgetStates.set(widgetId, 'active');
         }
         break;
@@ -112,14 +112,8 @@ function _processWidgetStates(events: ChatEvent[]): {
 
       case 'widget_created': {
         const payload = event.payload as { widget: Widget };
-        if (debugEnabled) {
-          console.log('[message.selectors.deriveActiveWidgets] widget_created event found:', payload);
-        }
         if (payload && typeof payload === 'object' && 'widget' in payload && payload.widget && typeof payload.widget === 'object' && 'id' in payload.widget) {
           widgetStates.set(payload.widget.id, 'active');
-          if (debugEnabled) {
-            console.log('[message.selectors.deriveActiveWidgets] Widget state set to active:', payload.widget.id);
-          }
         }
         break;
       }
@@ -146,16 +140,16 @@ function _processWidgetStates(events: ChatEvent[]): {
 }
 
 /**
- * Create preview widget from tile selection event
+ * Create tile widget from tile selection event
  */
-function _createPreviewWidget(event: ChatEvent, widgetStates: Map<string, 'active' | 'completed'>): Widget | null {
+function _createTileWidget(event: ChatEvent, widgetStates: Map<string, 'active' | 'completed'>): Widget | null {
   const payload = event.payload as TileSelectedPayload;
   if (payload && typeof payload === 'object' && 'tileId' in payload && typeof payload.tileId === 'string') {
-    const widgetId = `preview-${payload.tileId}`;
+    const widgetId = `tile-${payload.tileId}`;
     if (widgetStates.get(widgetId) === 'active') {
       return {
         id: widgetId,
-        type: 'preview',
+        type: 'tile',
         data: payload,
         priority: 'action',
         timestamp: event.timestamp,
@@ -251,9 +245,6 @@ function _createOperationWidgets(event: ChatEvent, widgetStates: Map<string, 'ac
 function _createDirectWidget(event: ChatEvent, widgetStates: Map<string, 'active' | 'completed'>, debugEnabled: boolean): Widget | null {
   const payload = event.payload as { widget: Widget };
   if (payload && typeof payload === 'object' && 'widget' in payload && payload.widget && typeof payload.widget === 'object' && 'id' in payload.widget && widgetStates.get(payload.widget.id) === 'active') {
-    if (debugEnabled) {
-      console.log('[message.selectors.deriveActiveWidgets] Adding widget_created widget to array:', payload.widget);
-    }
     return payload.widget;
   }
   return null;
@@ -270,7 +261,7 @@ function _createWidgetsFromStates(events: ChatEvent[], widgetStates: Map<string,
   for (const event of events) {
     switch (event.type) {
       case 'tile_selected': {
-        const widget = _createPreviewWidget(event, widgetStates);
+        const widget = _createTileWidget(event, widgetStates);
         if (widget) widgets.push(widget);
         break;
       }
@@ -310,9 +301,6 @@ function _createWidgetsFromStates(events: ChatEvent[], widgetStates: Map<string,
  */
 export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
   const debugEnabled = chatSettings.getSettings().messages.debug === true;
-  if (debugEnabled) {
-    console.log('[message.selectors.deriveActiveWidgets] Processing', events.length, 'events');
-  }
 
   // Process events to determine widget states
   const { widgetStates } = _processWidgetStates(events);
@@ -327,7 +315,7 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
     // Each AI response widget should be unique (keep all of them)
     const key = widget.type === 'ai-response'
       ? widget.id  // Use widget ID to keep all AI responses
-      : widget.type === 'preview'
+      : widget.type === 'tile'
         ? `${widget.type}-${(widget.data as TileSelectedPayload).tileId}`
         : widget.type;
     const existing = latestWidgets.get(key);
@@ -339,13 +327,6 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
   const result = Array.from(latestWidgets.values()).sort((a, b) =>
     b.timestamp.getTime() - a.timestamp.getTime()
   );
-
-  if (debugEnabled) {
-    console.log('[message.selectors.deriveActiveWidgets] Returning', result.length, 'widgets');
-    result.forEach(w => {
-      console.log('[message.selectors.deriveActiveWidgets] Widget:', { id: w.id, type: w.type });
-    });
-  }
 
   return result;
 }

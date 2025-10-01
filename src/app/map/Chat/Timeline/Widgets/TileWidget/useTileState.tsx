@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-interface UsePreviewStateProps {
+interface UseTileStateProps {
   title: string;
   preview?: string;
   content: string;
@@ -11,14 +11,14 @@ interface UsePreviewStateProps {
   tileId: string;
 }
 
-export function usePreviewState({
+export function useTileState({
   title,
   preview = '',
   content,
   forceExpanded,
   openInEditMode,
   tileId,
-}: UsePreviewStateProps) {
+}: UseTileStateProps) {
   // Start collapsed by default (changed from !!content to false)
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(openInEditMode ?? false);
