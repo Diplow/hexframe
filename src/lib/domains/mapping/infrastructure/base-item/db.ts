@@ -175,7 +175,6 @@ export class DbBaseItemRepository implements BaseItemRepository {
     idr: BaseItemIdr;
     attrs: Partial<Attrs>; // Use direct type name
   }): Promise<BaseItemWithId> {
-    console.log('🟥 DB Repository - updateByIdr called with:', { idr, attrs });
     if (!("id" in idr)) {
       throw new Error("Update by complex BaseItemIdr not supported");
     }
@@ -189,10 +188,7 @@ export class DbBaseItemRepository implements BaseItemRepository {
     // Allow setting link to null or a new value
     if (attrs.hasOwnProperty("link")) updateData.link = attrs.link ?? null;
 
-    console.log('🟥 DB Repository - Prepared updateData:', updateData);
-
     if (Object.keys(updateData).length === 0) {
-      console.log('🟥 DB Repository - No changes detected, returning existing item');
       return this.getOne(id); // No changes
     }
 
@@ -205,9 +201,7 @@ export class DbBaseItemRepository implements BaseItemRepository {
     if (!updatedItem) {
       throw new Error(`BaseItem with id ${id} not found for update.`);
     }
-    console.log('🟥 DB Repository - Database update completed, fetching updated item');
     const result = this.getOne(updatedItem.id); // Fetch after update
-    console.log('🟥 DB Repository - Returning updated item:', { id: updatedItem.id });
     return result;
   }
 

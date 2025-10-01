@@ -25,8 +25,7 @@ export const mcpAuthRouter = createTRPCRouter({
       try {
         // Verify user password before creating key
         // Use better-auth's signInEmail to verify credentials
-        console.log("🔑 Verifying password for user:", ctx.user.email);
-        
+
         try {
           const verificationResult = await auth.api.signInEmail({
             body: {
@@ -34,9 +33,7 @@ export const mcpAuthRouter = createTRPCRouter({
               password: input.password,
             },
           });
-          
-          console.log("🔑 Password verification result:", { success: !!verificationResult });
-          
+
           // If we get here without error, the password is correct
         } catch (passwordError) {
           console.error("🔑 Password verification failed:", passwordError);
@@ -57,19 +54,11 @@ export const mcpAuthRouter = createTRPCRouter({
             createdVia: "hexframe-ui",
           },
         };
-        
-        console.log("🔑 Creating API key with payload:", createKeyPayload);
-        
+
         const result = await auth.api.createApiKey({
           body: createKeyPayload,
         });
-        
-        console.log("🔑 Created API key result:", {
-          id: result.id,
-          name: result.name,
-          metadata: result.metadata as Record<string, unknown> | undefined,
-        });
-        
+
         return {
           keyId: result.id,
           key: result.key, // This will only be returned once
@@ -105,8 +94,6 @@ export const mcpAuthRouter = createTRPCRouter({
   listKeys: protectedProcedure
     .query(async ({ ctx }) => {
       try {
-        console.log("🔑 MCP listKeys called - User ID:", ctx.user.id);
-        
         // Try using the same headers approach as tRPC context creation
         const sessionHeaders = ctx.req.headers instanceof Headers 
           ? ctx.req.headers 
@@ -137,13 +124,10 @@ export const mcpAuthRouter = createTRPCRouter({
               const isMcpKey = metadata?.purpose === "mcp";
               return isUserKey && isMcpKey;
             } catch (error) {
-              console.log("🔑 Key filter error:", error);
               return false;
             }
           });
-          
-          console.log("🔑 Filtered keys:", filteredKeys.length);
-          
+
           return filteredKeys.map((key) => ({
             id: key.id,
             name: key.name,
@@ -155,7 +139,6 @@ export const mcpAuthRouter = createTRPCRouter({
         } catch (betterAuthError) {
           console.error("🔑 better-auth listApiKeys failed:", betterAuthError);
           // For now, return empty array if better-auth fails
-          console.log("🔑 Returning empty array due to better-auth error");
           return [];
         }
       } catch (error) {
@@ -172,8 +155,6 @@ export const mcpAuthRouter = createTRPCRouter({
     .input(revokeKeySchema)
     .mutation(async ({ ctx, input }) => {
       try {
-        console.log("🔑 MCP revokeKey called - keyId:", input.keyId);
-        
         // Use the same headers approach as listKeys (which works)
         const sessionHeaders = ctx.req.headers instanceof Headers 
           ? ctx.req.headers 

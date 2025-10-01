@@ -18,7 +18,7 @@ const chatMessageSchema = z.object({
   content: z.union([
     z.string(),
     z.object({
-      type: z.enum(['preview', 'search', 'comparison', 'action', 'creation', 'login', 'confirm-delete', 'loading', 'error', 'ai-response']),
+      type: z.enum(['tile', 'search', 'comparison', 'action', 'creation', 'login', 'confirm-delete', 'loading', 'error', 'ai-response']),
       data: z.unknown()
     })
   ]),
@@ -102,15 +102,7 @@ export const agenticRouter = createTRPCRouter({
       
       // Determine if we should use queue based on environment
       const useQueue = process.env.USE_QUEUE === 'true' || process.env.NODE_ENV === 'production'
-      
-      console.log('[Agentic Router] Queue configuration:', {
-        USE_QUEUE: process.env.USE_QUEUE,
-        NODE_ENV: process.env.NODE_ENV,
-        useQueue,
-        model: input.model,
-        userId: ctx.session?.userId ?? 'anonymous'
-      })
-      
+
       // Create agentic service with OpenRouter API key from environment
       const agenticService = createAgenticService({
         openRouterApiKey: env.OPENROUTER_API_KEY ?? '',

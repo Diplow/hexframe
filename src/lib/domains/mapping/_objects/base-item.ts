@@ -4,9 +4,8 @@ import {
 } from "~/lib/domains/utils";
 import type { MapItemAttributes } from "~/lib/domains/mapping/utils";
 
-export interface Attrs extends MapItemAttributes {
-  // Attrs now directly implements the canonical MapItemAttributes interface
-}
+// Type alias for MapItemAttributes - provides semantic meaning in this domain context
+export type Attrs = MapItemAttributes;
 
 export type RelatedItems = Record<string, never>;
 export type RelatedLists = Record<string, never>;

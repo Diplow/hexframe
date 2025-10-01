@@ -65,13 +65,7 @@ export async function registerAction(data: z.infer<typeof registerSchema>) {
       password: validatedData.password,
       name: validatedData.name,
     });
-    
-    console.log('[REGISTER ACTION] User created:', {
-      userId: user.id,
-      email: user.email,
-      mappingId: user.mappingId,
-    });
-    
+
     // Step 2: Create default map for the user
     let defaultMapId: string | undefined;
     try {
@@ -80,15 +74,13 @@ export async function registerAction(data: z.infer<typeof registerSchema>) {
         baseItem: new DbBaseItemRepository(db),
       };
       const mappingService = new MappingService(repositories);
-      
+
       const map = await mappingService.maps.createMap({
         userId: user.mappingId,
         title: `${user.displayName}'s Space`,
         content: "Your personal hexframe workspace",
       });
       defaultMapId = String(map.id);
-      
-      console.log('[REGISTER ACTION] Default map created:', defaultMapId);
     } catch (mapError) {
       // Log error but don't fail registration
       console.error('[REGISTER ACTION] Failed to create default map:', mapError);

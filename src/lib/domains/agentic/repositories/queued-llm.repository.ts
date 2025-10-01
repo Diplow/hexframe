@@ -63,52 +63,38 @@ export class QueuedLLMRepository implements ILLMRepository {
     )
     
     if (isSlowModel) {
-      console.log(`[QueuedLLMRepository] Model "${model}" matched slow model pattern - will queue`)
       return true
     }
 
     // Queue if large context (>4k tokens estimated)
     if (estimatedTokens && estimatedTokens > 4000) {
-      console.log(`[QueuedLLMRepository] Large context (${estimatedTokens} tokens) - will queue`)
       return true
     }
 
     // Don't queue quick models with normal context
-    console.log(`[QueuedLLMRepository] Model "${model}" is quick with normal context - will NOT queue`)
     return false
   }
 
   async generate(params: LLMGenerationParams): Promise<LLMResponse> {
     const estimatedTokens = this.estimateTokenCount(params.messages)
-    
-    console.log('[QueuedLLMRepository] Routing decision:', {
-      model: params.model,
-      estimatedTokens,
-      isQuickModel: this.isQuickModel(params.model),
-      shouldQueue: this.shouldQueue(params.model, estimatedTokens),
-      userId: this.userId
-    })
-    
+
     // For quick models and small contexts, go direct
     if (!this.shouldQueue(params.model, estimatedTokens)) {
-      loggers.agentic('Direct LLM call (quick model)', { 
+      loggers.agentic('Direct LLM call (quick model)', {
         model: params.model,
-        estimatedTokens 
+        estimatedTokens
       })
-      console.log('[QueuedLLMRepository] Using DIRECT path (not queued)')
       return this.baseRepository.generate(params)
     }
 
     // For slow models or large contexts, queue the job
-    console.log('[QueuedLLMRepository] Using QUEUED path via Inngest')
-    loggers.agentic('Queueing LLM request', { 
+    loggers.agentic('Queueing LLM request', {
       model: params.model,
       estimatedTokens,
-      userId: this.userId 
+      userId: this.userId
     })
 
     const jobId = `llm-${nanoid()}`
-    console.log(`[QueuedLLMRepository] Creating job with ID: ${jobId}`)
 
     // Create pending job record immediately in database
     try {
@@ -121,7 +107,6 @@ export class QueuedLLMRepository implements ILLMRepository {
         createdAt: new Date(),
         updatedAt: new Date()
       })
-      console.log('[QueuedLLMRepository] Pending job record created in database')
     } catch (error) {
       console.error(`[QueuedLLMRepository] Failed to create job record:`, error)
       loggers.agentic.error('Failed to create pending job record', { jobId, userId: this.userId, error })
@@ -139,8 +124,6 @@ export class QueuedLLMRepository implements ILLMRepository {
         timestamp: new Date().toISOString()
       }
     })
-
-    console.log(`[QueuedLLMRepository] Job ${jobId} sent to Inngest`)
 
     // Return a pending response with job ID
     const queuedResponse: QueuedResponse = {
@@ -184,7 +167,6 @@ export class QueuedLLMRepository implements ILLMRepository {
           createdAt: new Date(),
           updatedAt: new Date()
         })
-        console.log(`[QueuedLLMRepository] Pending streaming job record created in database`)
       } catch (error) {
         console.error(`[QueuedLLMRepository] Failed to create streaming job record:`, error)
         loggers.agentic.error('Failed to create pending streaming job record', { jobId, userId: this.userId, error })
