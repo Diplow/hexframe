@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import type { TileData } from "~/app/map/types/tile-data";
 import { useMapCache } from '~/app/map/Cache';
 import type { URLInfo } from "~/app/map/types/url-info";
-import { BaseTileLayout } from "~/app/map/Canvas";
+import { BaseTileLayout, TileTooltip } from "~/app/map/Canvas";
 import {
   HIERARCHY_TILE_BASE_SIZE,
   HIERARCHY_TILE_SCALE,
@@ -56,23 +56,25 @@ const DynamicHierarchyTile = ({
   };
 
   return (
-    <button
-      onClick={handleNavigation}
-      aria-label={`Navigate to ${item.data.title}`}
-      className="group relative flex-shrink-0 cursor-pointer rounded-lg border-none bg-transparent transition-transform duration-200 hover:scale-105 focus:scale-105"
-    >
-      <div className="pointer-events-none">
-        <BaseTileLayout
-          coordId={item.metadata.coordId}
-          scale={HIERARCHY_TILE_SCALE}
-          color={item.data.color}
-          baseHexSize={HIERARCHY_TILE_BASE_SIZE}
-          isFocusable={false}
-        >
-          <HierarchyTileContent item={item} />
-        </BaseTileLayout>
-      </div>
-    </button>
+    <TileTooltip preview={item.data.preview} title={item.data.title}>
+      <button
+        onClick={handleNavigation}
+        aria-label={`Navigate to ${item.data.title}`}
+        className="group relative flex-shrink-0 cursor-pointer rounded-lg border-none bg-transparent transition-transform duration-200 hover:scale-105 focus:scale-105"
+      >
+        <div className="pointer-events-none">
+          <BaseTileLayout
+            coordId={item.metadata.coordId}
+            scale={HIERARCHY_TILE_SCALE}
+            color={item.data.color}
+            baseHexSize={HIERARCHY_TILE_BASE_SIZE}
+            isFocusable={false}
+          >
+            <HierarchyTileContent item={item} />
+          </BaseTileLayout>
+        </div>
+      </button>
+    </TileTooltip>
   );
 };
 
