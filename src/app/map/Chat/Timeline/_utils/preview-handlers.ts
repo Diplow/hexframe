@@ -6,6 +6,7 @@ interface PreviewHandlerDeps {
   updateItemOptimistic: (tileId: string, data: {
     title?: string;
     name?: string;
+    preview?: string;
     description?: string;
   }) => Promise<void>;
   eventBus: EventBusService | null;
@@ -43,19 +44,23 @@ export function createPreviewHandlers(
     focusChatInput();
   };
   
-  const handlePreviewSave = async (title: string, content: string) => {
+  const handlePreviewSave = async (title: string, preview: string, content: string) => {
     const previewData = widget.data as TileSelectedPayload;
+    console.log('🟦 Preview handlers - handlePreviewSave called with:', { title, preview, content, tileId: previewData.tileId });
     try {
       await updateItemOptimistic(previewData.tileId, {
         title,
+        preview,
         description: content,
       });
-      
+      console.log('🟦 Preview handlers - updateItemOptimistic completed successfully');
+
       eventBus?.emit({
         type: 'map.tile_updated',
         payload: {
           tileId: previewData.tileId,
           title: title,
+          preview: preview,
           content: content
         },
         source: 'chat_cache',

@@ -71,6 +71,7 @@ export function useTileInteraction({
         data: {
           name: '',
           description: '',
+        preview: undefined,
           url: '',
           color: 'gray-500',
         },

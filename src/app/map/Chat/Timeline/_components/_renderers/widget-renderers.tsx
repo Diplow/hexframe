@@ -24,9 +24,9 @@ function safeStringify(value: unknown, space = 0): string | undefined {
 export interface WidgetHandlers {
   handleEdit?: () => void;
   handleDelete?: () => void;
-  handlePreviewSave?: (title: string, content: string) => void;
+  handlePreviewSave?: (title: string, preview: string, content: string) => void;
   handlePreviewClose?: () => void;
-  handleSave?: (name: string, description: string) => void;
+  handleSave?: (name: string, preview: string, description: string) => void;
   handleCancel?: () => void;
 }
 
@@ -45,6 +45,7 @@ export function renderPreviewWidget(
 
   const tileItem = getItem(previewData.tileId);
   const currentTitle = tileItem?.data.name ?? previewData.tileData.title;
+  const currentPreview = tileItem?.data.preview ?? '';
   const currentContent = tileItem?.data.description ?? previewData.tileData.content ?? '';
   // Get color from the cached tile data (preferred) or generate from coordinates
   const tileColor = tileItem?.data.color;
@@ -53,6 +54,7 @@ export function renderPreviewWidget(
     <PreviewWidget
       tileId={previewData.tileId}
       title={currentTitle}
+      preview={currentPreview}
       content={currentContent}
       tileColor={tileColor}
       openInEditMode={previewData.openInEditMode}

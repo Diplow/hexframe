@@ -49,6 +49,7 @@ describe("ItemTileContent - Scale 1 Expansion", () => {
     data: {
       name: "Test Tile",
       description: "Test Description",
+        preview: undefined,
       url: "",
       color: "zinc-50",
     },

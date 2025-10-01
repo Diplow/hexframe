@@ -97,21 +97,28 @@ export class ItemCrudService {
     coords,
     title,
     descr,
+    preview,
     link,
   }: {
     coords: Coord;
     title?: string;
     descr?: string;
+    preview?: string;
     link?: string;
   }): Promise<MapItemContract> {
+    console.log('🟫 Domain service - updateItem called with:', { coords, title, descr, preview, link });
     const item = await this.actions.getMapItem({ coords });
+    console.log('🟫 Domain service - Found item:', { id: item.id, title: item.ref.attrs.title, preview: item.ref.attrs.preview });
 
-    if (title !== undefined || descr !== undefined || link !== undefined) {
-      await this.actions.updateRef(item.ref, {
+    if (title !== undefined || descr !== undefined || preview !== undefined || link !== undefined) {
+      const updateAttrs = {
         title,
         descr,
+        preview,
         link,
-      });
+      };
+      console.log('🟫 Domain service - Calling updateRef with:', updateAttrs);
+      await this.actions.updateRef(item.ref, updateAttrs);
     }
     const updatedItem = await this.actions.mapItems.getOne(item.id);
     if (!updatedItem) {

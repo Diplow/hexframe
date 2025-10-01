@@ -8,6 +8,7 @@ export function createMutationCallbacks(mutationOperations: MutationOperations) 
     parentId?: number;
     title?: string;
     name?: string;
+    preview?: string;
     description?: string;
     descr?: string;
     url?: string;
@@ -18,11 +19,14 @@ export function createMutationCallbacks(mutationOperations: MutationOperations) 
   const updateItemOptimistic = async (coordId: string, data: {
     title?: string;
     name?: string;
+    preview?: string;
     description?: string;
     descr?: string;
     url?: string;
   }) => {
+    console.log('🟨 Mutation callbacks - updateItemOptimistic called with:', { coordId, data });
     await mutationOperations.updateItem(coordId, data);
+    console.log('🟨 Mutation callbacks - updateItem completed');
   };
 
   const deleteItemOptimistic = async (coordId: string) => {

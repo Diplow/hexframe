@@ -11,6 +11,7 @@ export function useSpecialCommands(center: string | null) {
     ...baseCommands,
     '/clear': {
       description: 'Clear message timeline',
+        preview: undefined,
       action: () => {
         // This will be handled specially in executeCommand
         return '';

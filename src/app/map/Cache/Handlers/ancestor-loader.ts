@@ -73,6 +73,7 @@ export async function loadAncestorsForItem(
           data: {
             name: ancestor.title,
             description: ancestor.descr,
+        preview: undefined,
             url: ancestor.link,
             color: getColor(ancestorCoords),
           },

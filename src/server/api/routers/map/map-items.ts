@@ -153,27 +153,33 @@ export const mapItemsRouter = createTRPCRouter({
     .use(mappingServiceMiddleware)
     .input(itemUpdateSchema)
     .mutation(async ({ ctx, input }) => {
+      console.log('🔴 tRPC updateItem - Input received:', JSON.stringify(input, null, 2));
       // Check if user owns the item they're trying to update
       const currentUserId = await _getUserId(ctx.user);
       const currentUserIdString = String(currentUserId);
-      
+
       const existingItem = await ctx.mappingService.items.crud.getItem({
         coords: input.coords as Coord,
       });
-      
+
       if (existingItem.ownerId !== currentUserIdString) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You can only update items you own",
         });
       }
-      
-      const item = await ctx.mappingService.items.crud.updateItem({
+
+      const updateParams = {
         coords: input.coords as Coord,
         title: input.data.title,
         descr: input.data.descr,
+        preview: input.data.preview,
         link: input.data.url, // Note: input still uses 'url' from API, but service expects 'link'
-      });
+      };
+      console.log('🔴 tRPC updateItem - Calling service with params:', JSON.stringify(updateParams, null, 2));
+
+      const item = await ctx.mappingService.items.crud.updateItem(updateParams);
+      console.log('🔴 tRPC updateItem - Service returned:', JSON.stringify(item, null, 2));
       return contractToApiAdapters.mapItem(item);
     }),
 

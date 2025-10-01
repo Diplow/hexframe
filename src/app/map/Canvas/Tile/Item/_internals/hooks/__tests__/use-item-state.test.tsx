@@ -62,6 +62,7 @@ describe("useItemState - Drag Functionality", () => {
     data: {
       name: "Test Tile",
       description: "Test Description",
+        preview: undefined,
       url: "",
       color: "blue",
     },

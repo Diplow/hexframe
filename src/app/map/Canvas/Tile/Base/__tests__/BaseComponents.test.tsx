@@ -23,6 +23,7 @@ describe("Base Components", () => {
         data: {
           name: "Test Tile",
           description: "Test description",
+        preview: undefined,
           url: "",
           color: "zinc-500",
         },
@@ -58,6 +59,7 @@ describe("Base Components", () => {
         data: {
           name: "Selected Tile",
           description: "",
+        preview: undefined,
           url: "",
           color: "amber-400",
         },

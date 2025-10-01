@@ -129,6 +129,7 @@ async function loadSiblingsForInitialLoad(
           data: {
             name: item.title,
             description: item.descr,
+        preview: undefined,
             url: item.link,
             color: getColor(itemCoords),
           },

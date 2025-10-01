@@ -11,12 +11,13 @@ interface CreationWidgetProps {
   coordId: string;
   parentName?: string;
   parentCoordId?: string;
-  onSave?: (name: string, description: string) => void;
+  onSave?: (name: string, preview: string, description: string) => void;
   onCancel?: () => void;
 }
 
 export function CreationWidget({ coordId, parentName, parentCoordId, onSave, onCancel }: CreationWidgetProps) {
   const [name, setName] = useState('');
+  const [preview, setPreview] = useState('');
   const [description, setDescription] = useState('');
   const { navigateToItem } = useMapCache();
   
@@ -48,7 +49,7 @@ export function CreationWidget({ coordId, parentName, parentCoordId, onSave, onC
 
   const handleSave = () => {
     if (name.trim() && onSave) {
-      onSave(name.trim(), description.trim());
+      onSave(name.trim(), preview.trim(), description.trim());
     }
   };
 
@@ -59,9 +60,24 @@ export function CreationWidget({ coordId, parentName, parentCoordId, onSave, onC
   const handleNameKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
+      // Move to preview field
+      const previewTextarea = document.querySelector<HTMLTextAreaElement>('[data-field="preview"]');
+      previewTextarea?.focus();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      handleCancel();
+    }
+  };
+
+  const handlePreviewKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      handleSave();
+    } else if (e.key === 'Tab' && !e.shiftKey) {
+      e.preventDefault();
       // Move to description field
-      const textarea = document.querySelector<HTMLTextAreaElement>('textarea');
-      textarea?.focus();
+      const descriptionTextarea = document.querySelector<HTMLTextAreaElement>('textarea:not([data-field="preview"])');
+      descriptionTextarea?.focus();
     } else if (e.key === 'Escape') {
       e.preventDefault();
       handleCancel();
@@ -142,6 +158,17 @@ export function CreationWidget({ coordId, parentName, parentCoordId, onSave, onC
         </div>
 
         <div>
+          <textarea
+            value={preview}
+            onChange={(e) => setPreview(e.target.value)}
+            onKeyDown={handlePreviewKeyDown}
+            className="w-full min-h-[60px] p-3 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring resize-y"
+            placeholder="Enter preview for AI context (helps AI decide whether to load full description)..."
+            data-field="preview"
+          />
+        </div>
+
+        <div>
           <label className="text-xs text-muted-foreground mb-1 block">
             Description
           </label>
@@ -155,7 +182,7 @@ export function CreationWidget({ coordId, parentName, parentCoordId, onSave, onC
         </div>
 
         <div className="text-xs text-muted-foreground space-y-1">
-          <p>Press <kbd className="px-2 py-1 bg-muted rounded text-xs">Enter</kbd> in name field to move to description</p>
+          <p>Press <kbd className="px-2 py-1 bg-muted rounded text-xs">Enter</kbd> to move to next field</p>
           <p>Press <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl+Enter</kbd> to save</p>
           <p>Press <kbd className="px-2 py-1 bg-muted rounded text-xs">Esc</kbd> to cancel</p>
         </div>

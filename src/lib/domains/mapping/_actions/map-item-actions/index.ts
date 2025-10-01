@@ -59,6 +59,7 @@ export class MapItemActions {
   }
 
   public async updateRef(ref: BaseItemWithId, attrs: UpdateMapItemAttrs) {
+    console.log('🟪 Actions - updateRef called with:', { refId: ref.id, attrs });
     // Convert our standardized field names to what the helper expects
     const helperAttrs: Partial<BaseItemAttrs> = {
       title: attrs.title,
@@ -66,7 +67,10 @@ export class MapItemActions {
       preview: attrs.preview,
       link: attrs.link, // Our standard name matches BaseItemAttrs
     };
-    return await this.creationHelpers.updateRef(ref, helperAttrs);
+    console.log('🟪 Actions - Calling creation helpers with:', helperAttrs);
+    const result = await this.creationHelpers.updateRef(ref, helperAttrs);
+    console.log('🟪 Actions - Creation helpers returned:', { id: result.id, title: result.attrs.title, preview: result.attrs.preview });
+    return result;
   }
 
   public async removeItem({ idr }: { idr: MapItemIdr }) {

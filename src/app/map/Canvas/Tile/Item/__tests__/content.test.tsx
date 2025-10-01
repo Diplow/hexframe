@@ -7,6 +7,7 @@ describe('DynamicTileContent - Simplified', () => {
   const defaultData = {
     title: '',
     description: '',
+        preview: undefined,
     url: ''
   };
   it('should only display title regardless of scale', () => {
@@ -14,6 +15,7 @@ describe('DynamicTileContent - Simplified', () => {
       ...defaultData,
       title: 'Test Title',
       description: 'Test Description',
+        preview: undefined,
       url: 'https://example.com',
     };
 
@@ -74,6 +76,7 @@ describe('DynamicTileContent - Simplified', () => {
       ...defaultData,
       title: 'Title Only',
       description: 'This should not be shown',
+        preview: undefined,
       url: 'https://should-not-be-shown.com',
     };
 

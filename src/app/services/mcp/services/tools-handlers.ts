@@ -27,7 +27,7 @@ function filterHierarchyFields(item: MapItemWithHierarchy, fields?: string[]): P
     filtered.children = item.children.map(child => filterHierarchyFields(child, fields)) as MapItemWithHierarchy[];
   }
 
-  return filtered as Partial<MapItemWithHierarchy>;
+  return filtered;
 }
 
 // Helper to get a map item by coordinates

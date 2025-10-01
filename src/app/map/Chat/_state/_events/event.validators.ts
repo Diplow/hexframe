@@ -29,6 +29,7 @@ function _transformTileSelectedEvent(validEvent: AppEvent, baseEvent: Partial<Ch
       tileData: {
         title: payload.tileData.title,
         description: payload.tileData.description,
+        preview: undefined,
         content: payload.tileData.content,
         coordId: payload.tileData.coordId,
       },

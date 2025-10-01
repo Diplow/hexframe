@@ -30,6 +30,7 @@ describe("NavigationHandler - Collapse distant tiles", () => {
     data: {
       name: "Test Tile",
       description: "Test Description",
+        preview: undefined,
       url: "",
       color: "zinc-50",
     },

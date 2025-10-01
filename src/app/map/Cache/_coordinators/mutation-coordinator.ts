@@ -35,6 +35,7 @@ export interface MutationCoordinatorConfig {
       coords: Coord;
       title?: string;
       descr?: string;
+      preview?: string;
       url?: string;
     }) => Promise<MapItemAPIContract>;
   };
@@ -237,6 +238,7 @@ export class MutationCoordinator {
     name?: string;
     description?: string;
     descr?: string;
+    preview?: string;
     url?: string;
   }): Promise<MutationResult> {
     const changeId = this.tracker.generateChangeId();
@@ -253,6 +255,7 @@ export class MutationCoordinator {
         coords,
         title: data.title ?? data.name,
         descr: data.description ?? data.descr,
+        preview: data.preview,
         url: data.url,
       });
       
@@ -596,6 +599,7 @@ export class MutationCoordinator {
       name?: string;
       description?: string;
       descr?: string;
+      preview?: string;
       url?: string;
     }
   ): { optimisticItem: MapItemAPIContract; previousData: MapItemAPIContract } {
@@ -604,6 +608,7 @@ export class MutationCoordinator {
       ...previousData,
       title: data.title ?? data.name ?? existingItem.data.name,
       descr: data.description ?? data.descr ?? existingItem.data.description,
+      preview: data.preview ?? existingItem.data.preview,
       link: data.url ?? existingItem.data.url,
     };
     return { optimisticItem, previousData };
@@ -674,7 +679,7 @@ export class MutationCoordinator {
       depth: tile.metadata.depth,
       title: tile.data.name,
       descr: tile.data.description,
-      preview: undefined,
+      preview: tile.data.preview,
       link: tile.data.url,
       parentId: null, // We don't store this in TileData
       itemType: MapItemType.BASE,

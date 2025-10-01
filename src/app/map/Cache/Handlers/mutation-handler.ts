@@ -72,7 +72,7 @@ export function createMutationHandler(
           coordinates: coordId,
           title: data.name || "New Item",
           descr: data.description || "",
-          preview: undefined,
+          preview: data.preview || "",
           link: data.url || "",
           depth: 1, // TODO: Calculate actual depth
           id: `optimistic_${changeId}`,
@@ -145,7 +145,7 @@ export function createMutationHandler(
           id: existingItem.metadata.dbId,
           title: data.name as string ?? existingItem.data.name,
           descr: data.description as string ?? existingItem.data.description,
-          preview: undefined,
+          preview: data.preview as string ?? existingItem.data.preview ?? "",
           link: data.url as string ?? existingItem.data.url,
           coordinates: coordId,
           depth: existingItem.metadata.depth,

@@ -7,6 +7,7 @@ interface CreationHandlerDeps {
     parentId?: number;
     title?: string;
     name?: string;
+    preview?: string;
     description?: string;
   }) => Promise<void>;
   eventBus: EventBusService | null;
@@ -21,28 +22,30 @@ export function createCreationHandlers(
 ) {
   const { createItemOptimistic, eventBus, chatState } = deps;
 
-  const handleSave = async (name: string, description: string) => {
+  const handleSave = async (name: string, preview: string, description: string) => {
     const creationData = widget.data as { coordId?: string; parentName?: string; parentCoordId?: string; parentId?: string };
-    
+
     try {
       await createItemOptimistic(creationData.coordId!, {
         title: name,
+        preview: preview,
         description: description,
         parentId: creationData.parentId ? parseInt(creationData.parentId, 10) : undefined
       });
-      
+
       eventBus?.emit({
         type: 'map.tile_created',
         payload: {
           tileId: creationData.coordId!,
           parentId: creationData.parentId ?? null,
           title: name,
+          preview: preview,
           content: description
         },
         source: 'chat_cache',
         timestamp: new Date(),
       });
-      
+
       chatState.closeWidget(widget.id);
       focusChatInput();
     } catch (error) {

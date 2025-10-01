@@ -25,6 +25,7 @@ describe("Mutation Handler", () => {
     data: {
       name: "Existing Item",
       description: "Existing Description",
+        preview: undefined,
       url: "http://example.com",
       color: "#000000",
     },

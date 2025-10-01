@@ -62,6 +62,7 @@ describe("Navigation Handler", () => {
           data: {
             name: "Current Item",
             description: "Currently centered",
+        preview: undefined,
             url: "",
             color: "#000000",
           },
@@ -86,6 +87,7 @@ describe("Navigation Handler", () => {
           data: {
             name: "Test Item",
             description: "Test Description",
+        preview: undefined,
             url: "",
             color: "#000000",
           },

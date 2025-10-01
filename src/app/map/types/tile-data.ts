@@ -45,6 +45,7 @@ const adapt = (item: MapItemAPIContract) => {
     data: {
       name: item.title,
       description: item.descr,
+      preview: item.preview ?? undefined,
       url: item.link,
       color: getColor(coordinates),
     },

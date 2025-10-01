@@ -45,10 +45,13 @@ export class MapItemCreationHelpers {
   }
 
   async updateRef(ref: BaseItemWithId, attrs: Partial<BaseItemAttrs>) {
-    return await this.baseItems.update({
+    console.log('🟩 Creation helpers - updateRef called with:', { refId: ref.id, attrs });
+    const result = await this.baseItems.update({
       aggregate: ref,
       attrs,
     });
+    console.log('🟩 Creation helpers - Repository returned:', { id: result.id, title: result.attrs.title, preview: result.attrs.preview });
+    return result;
   }
 
   private async _validateAndGetParent(

@@ -18,6 +18,7 @@ describe("MutationCoordinator Event Emissions", () => {
     data: {
       name: "Item 1",
       description: "Description 1",
+        preview: undefined,
       url: "",
       color: "#000000",
     },
@@ -43,6 +44,7 @@ describe("MutationCoordinator Event Emissions", () => {
     data: {
       name: "Item 2",
       description: "Description 2",
+        preview: undefined,
       url: "",
       color: "#000000",
     },

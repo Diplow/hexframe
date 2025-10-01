@@ -17,6 +17,7 @@ export function createMockTileData(overrides?: Partial<TileData>): TileData {
     data: {
       name: "Test Tile",
       description: "Test description",
+      preview: undefined,
       url: "",
       color: "zinc-50",
     },

@@ -20,6 +20,7 @@ const server = new Server(
     name: "hexframe-mcp-server",
     version: "1.0.0",
     description: "Hexframe MCP Server - Access hierarchical knowledge maps",
+        preview: undefined,
   },
   {
     capabilities: {
@@ -43,6 +44,7 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => {
         uri: "map://item/{itemId}",
         name: "Single Map Item",
         description: "Get a single map item with context. Replace {itemId} with a coordinate ID",
+        preview: undefined,
         mimeType: "application/json",
       },
     ],
@@ -74,6 +76,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: mcpTools.map(tool => ({
       name: tool.name,
       description: tool.description,
+        preview: undefined,
       inputSchema: tool.inputSchema,
     })),
   };

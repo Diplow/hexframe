@@ -10,19 +10,21 @@ import { useMapCache } from '~/app/map/Cache';
 interface PreviewWidgetProps {
   tileId: string;
   title: string;
+  preview?: string;
   content: string;
   forceExpanded?: boolean;
   openInEditMode?: boolean;
   tileColor?: string;
   onEdit?: () => void;
   onDelete?: () => void;
-  onSave?: (title: string, content: string) => void;
+  onSave?: (title: string, preview: string, content: string) => void;
   onClose?: () => void;
 }
 
 export function PreviewWidget({
   tileId,
   title,
+  preview = '',
   content,
   forceExpanded,
   openInEditMode,
@@ -36,6 +38,7 @@ export function PreviewWidget({
   const [showMetadata, setShowMetadata] = useState(false);
   const { expansion, editing } = usePreviewState({
     title,
+    preview,
     content,
     forceExpanded,
     openInEditMode,
@@ -48,6 +51,8 @@ export function PreviewWidget({
     setIsEditing,
     title: editTitle,
     setTitle: setEditTitle,
+    preview: editPreview,
+    setPreview: setEditPreview,
     content: editContent,
     setContent: setEditContent
   } = editing;
@@ -75,13 +80,14 @@ export function PreviewWidget({
 
   const _handleSave = () => {
     if (onSave) {
-      onSave(editTitle, editContent);
+      onSave(editTitle, editPreview, editContent);
     }
     setIsEditing(false);
   };
 
   const _handleCancel = () => {
     setEditTitle(title);
+    setEditPreview(preview);
     setEditContent(content);
     setIsEditing(false);
   };
@@ -89,7 +95,13 @@ export function PreviewWidget({
   const _handleTitleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      _handleSave();
+      // Move to preview field if editing, otherwise save
+      if (isEditing) {
+        const previewInput = document.querySelector<HTMLInputElement>('[placeholder*="preview"]');
+        previewInput?.focus();
+      } else {
+        _handleSave();
+      }
     } else if (e.key === 'Escape') {
       e.preventDefault();
       _handleCancel();
@@ -146,13 +158,38 @@ export function PreviewWidget({
         onCancel={_handleCancel}
       />
 
+      {/* Preview field for editing */}
+      {isEditing && (
+        <div className="px-2 pb-2">
+          <textarea
+            value={editPreview}
+            onChange={(e) => setEditPreview(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                // Move focus to description textarea
+                const descriptionTextarea = document.querySelector<HTMLTextAreaElement>('textarea[placeholder*="description"]');
+                descriptionTextarea?.focus();
+              } else if (e.key === 'Escape') {
+                e.preventDefault();
+                _handleCancel();
+              }
+            }}
+            className="w-full min-h-[60px] p-2 text-sm bg-neutral-100 dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded focus:outline-none focus:ring-2 focus:ring-primary resize-y"
+            placeholder="Enter preview for AI context (helps AI decide whether to load full description)..."
+          />
+        </div>
+      )}
+
       <ContentDisplay
         content={content}
+        preview={preview}
         editContent={editContent}
         isEditing={isEditing}
         isExpanded={isExpanded}
         onContentChange={setEditContent}
         onContentKeyDown={_handleContentKeyDown}
+        onToggleExpansion={() => setIsExpanded(!isExpanded)}
       />
 
       {showMetadata && (

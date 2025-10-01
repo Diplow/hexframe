@@ -180,6 +180,7 @@ describe("Cache Reducer", () => {
             data: {
               name: "Old Name",
               description: "Old Desc",
+        preview: undefined,
               url: "",
               color: "#000000",
             },
@@ -243,6 +244,7 @@ describe("Cache Reducer", () => {
             data: {
               name: "Test Item 1",
               description: "Test Description 1",
+        preview: undefined,
               url: "",
               color: "#000000",
             },
@@ -267,6 +269,7 @@ describe("Cache Reducer", () => {
             data: {
               name: "Test Item 2",
               description: "Test Description 2",
+        preview: undefined,
               url: "",
               color: "#000000",
             },
@@ -313,6 +316,7 @@ describe("Cache Reducer", () => {
             data: {
               name: "Old Name",
               description: "Old Desc",
+        preview: undefined,
               url: "",
               color: "#000000",
             },
@@ -509,7 +513,7 @@ describe("Cache Reducer", () => {
         ...mockState,
         itemsById: { 
           "1,2": {
-            data: { name: "Test", description: "", url: "", color: "#000000" },
+            data: { name: "Test", description: "", preview: undefined, url: "", color: "#000000" },
             metadata: { 
               coordId: "1,2", 
               dbId: "1", 
