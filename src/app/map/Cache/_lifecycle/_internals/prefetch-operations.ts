@@ -88,7 +88,6 @@ async function handleAncestorLoading(
   // Also load siblings for the center item if it has a parent
   const parentCoordId = CoordSystem.getParentCoordFromId(centerCoordId);
   if (parentCoordId) {
-    console.log('[PREFETCH] Loading siblings for center item:', centerCoordId, 'via parent:', parentCoordId);
     void loadSiblingsForInitialLoad(parentCoordId, serverService, dispatch);
   }
 }
@@ -106,15 +105,6 @@ async function loadSiblingsForInitialLoad(
     const parentWithChildren = await serverService.getItemWithGenerations({
       coordId: parentCoordId,
       generations: 1
-    });
-
-    console.log('[PREFETCH] Received parent with children:', {
-      itemCount: parentWithChildren.length,
-      items: parentWithChildren.map(item => ({
-        id: item.id,
-        coordinates: item.coordinates,
-        title: item.title
-      }))
     });
 
     if (parentWithChildren.length > 0) {
@@ -152,17 +142,8 @@ async function loadSiblingsForInitialLoad(
         };
       });
 
-      console.log('[PREFETCH] Dispatching siblings to cache:', {
-        siblingCount: Object.keys(siblingItems).length,
-        siblingCoordIds: Object.keys(siblingItems)
-      });
-
       // Dispatch siblings to cache
       dispatch(cacheActions.updateItems(siblingItems));
-
-      console.log('[PREFETCH] Siblings successfully dispatched to cache');
-    } else {
-      console.log('[PREFETCH] No children found for parent');
     }
   } catch (error) {
     console.error('[PREFETCH] Failed to load siblings:', error);

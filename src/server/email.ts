@@ -33,20 +33,12 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
     environment: env.NODE_ENV,
   });
 
-  // In development, log the email and optionally send via Brevo if ENABLE_EMAIL_SENDING is set
+  // In development, optionally send via Brevo if ENABLE_EMAIL_SENDING is set
   if (env.NODE_ENV === "development" || env.NODE_ENV === "test") {
-    console.log("📧 Email (dev mode):");
-    console.log(`  To: ${to}`);
-    console.log(`  Subject: ${subject}`);
-    console.log(`  From: ${from}`);
-    console.log(`  Content preview: ${html.substring(0, 200)}...`);
-    
     // Allow testing real email sending in development with env flag
     if (process.env.ENABLE_EMAIL_SENDING !== "true") {
-      console.log("💡 Tip: Set ENABLE_EMAIL_SENDING=true in .env to test real email sending with Brevo");
       return;
     }
-    console.log("📮 Sending real email via Brevo (test mode enabled)...");
   }
 
   // Production email sending with Brevo
