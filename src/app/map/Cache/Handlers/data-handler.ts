@@ -19,7 +19,7 @@ export interface DataHandlerServices {
       coordinates: string;
       depth: number;
       title: string;
-      descr: string;
+      content: string;
       preview: string | undefined;
       link: string;
       parentId: string | null;

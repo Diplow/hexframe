@@ -22,23 +22,23 @@ export class MapItemCreationHelpers {
     itemType,
     coords,
     title,
-    descr,
+    content,
     preview,
-    url,
+    link,
     parentId,
   }: {
     itemType: MapItemType;
     coords: Coord;
     title?: string;
-    descr?: string;
+    content?: string;
     preview?: string;
-    url?: string;
+    link?: string;
     parentId?: number;
   }): Promise<MapItemWithId> {
     const parent = await this._validateAndGetParent(itemType, parentId);
     this._validateItemTypeConstraints(itemType, parent, coords);
 
-    const ref = await this._createReference(title, descr, preview, url);
+    const ref = await this._createReference(title, content, preview, link);
     const mapItem = this._buildMapItem(itemType, coords, parent, ref);
     const result = await this.mapItems.create(mapItem);
     return result;
@@ -94,11 +94,11 @@ export class MapItemCreationHelpers {
 
   private async _createReference(
     title?: string,
-    descr?: string,
+    content?: string,
     preview?: string,
-    url?: string,
+    link?: string,
   ): Promise<BaseItemWithId> {
-    const baseItem = new BaseItem({ attrs: { title, descr, preview, link: url } });
+    const baseItem = new BaseItem({ attrs: { title, content, preview, link } });
     return await this.baseItems.create(baseItem);
   }
 

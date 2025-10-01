@@ -26,7 +26,7 @@ export interface WidgetHandlers {
   handleDelete?: () => void;
   handlePreviewSave?: (title: string, preview: string, content: string) => void;
   handlePreviewClose?: () => void;
-  handleSave?: (name: string, preview: string, description: string) => void;
+  handleSave?: (name: string, preview: string, content: string) => void;
   handleCancel?: () => void;
 }
 
@@ -44,9 +44,9 @@ export function renderPreviewWidget(
   } = handlers;
 
   const tileItem = getItem(previewData.tileId);
-  const currentTitle = tileItem?.data.name ?? previewData.tileData.title;
+  const currentTitle = tileItem?.data.title ?? previewData.tileData.title;
   const currentPreview = tileItem?.data.preview ?? '';
-  const currentContent = tileItem?.data.description ?? previewData.tileData.content ?? '';
+  const currentContent = tileItem?.data.content ?? previewData.tileData.content ?? '';
   // Get color from the cached tile data (preferred) or generate from coordinates
   const tileColor = tileItem?.data.color;
 

@@ -21,7 +21,7 @@ export async function _setupItemForRetrieval(
     parentId: setupData.id,
     coords: itemCoords,
     title: "Test Retrievable Item",
-    descr: "Test Description",
+    content: "Test Description",
     link: "https://example.com",
   });
 
@@ -33,7 +33,7 @@ export async function _validateItemRetrieval(
   itemCoords: Parameters<typeof CoordSystem.createId>[0],
   expectedItemData: {
     title: string;
-    descr: string;
+    content: string;
     link: string;
   },
 ) {
@@ -43,7 +43,7 @@ export async function _validateItemRetrieval(
 
   expect(retrievedItem).toBeDefined();
   expect(retrievedItem.title).toBe(expectedItemData.title);
-  expect(retrievedItem.descr).toBe(expectedItemData.descr);
+  expect(retrievedItem.content).toBe(expectedItemData.content);
   expect(retrievedItem.link).toBe(expectedItemData.link);
   expect(retrievedItem.coords).toEqual(CoordSystem.createId(itemCoords));
   expect(retrievedItem.itemType).toBe(MapItemType.BASE);

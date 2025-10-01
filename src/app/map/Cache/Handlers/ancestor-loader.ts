@@ -71,10 +71,10 @@ export async function loadAncestorsForItem(
         
         ancestorItems[coordId] = {
           data: {
-            name: ancestor.title,
-            description: ancestor.descr,
-        preview: undefined,
-            url: ancestor.link,
+            title: ancestor.title,
+            content: ancestor.content,
+        preview: ancestor.preview,
+            link: ancestor.link,
             color: getColor(ancestorCoords),
           },
           metadata: {

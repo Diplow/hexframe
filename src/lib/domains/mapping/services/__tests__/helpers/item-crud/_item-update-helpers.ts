@@ -20,7 +20,7 @@ export async function _setupItemForUpdate(
     parentId: setupData.id,
     coords: itemCoords,
     title: "Original Title",
-    descr: "Original Description",
+    content: "Original Description",
     link: "https://example.com",
   });
 
@@ -30,7 +30,7 @@ export async function _setupItemForUpdate(
 export async function _validateItemUpdate(
   testEnv: TestEnvironment,
   itemCoords: Coord,
-  updateData: { title: string; descr: string; link: string },
+  updateData: { title: string; content: string; link: string },
 ) {
   const updatedItemContract = await testEnv.service.items.crud.updateItem({
     coords: itemCoords,
@@ -39,14 +39,14 @@ export async function _validateItemUpdate(
 
   expect(updatedItemContract).toBeDefined();
   expect(updatedItemContract.title).toBe(updateData.title);
-  expect(updatedItemContract.descr).toBe(updateData.descr);
+  expect(updatedItemContract.content).toBe(updateData.content);
   expect(updatedItemContract.link).toBe(updateData.link);
 
   const fetchedAgain = await testEnv.service.items.crud.getItem({ coords: itemCoords });
   expect(fetchedAgain).toBeDefined();
   if (!fetchedAgain) throw new Error("Item not found");
   expect(fetchedAgain.title).toBe(updateData.title);
-  expect(fetchedAgain.descr).toBe(updateData.descr);
+  expect(fetchedAgain.content).toBe(updateData.content);
   expect(fetchedAgain.link).toBe(updateData.link);
 }
 
@@ -71,7 +71,7 @@ export async function _validateUpdateNonExistentItemError(
 export async function _validatePartialUpdate(
   testEnv: TestEnvironment,
   itemCoords: Coord,
-  originalItem: { descr: string },
+  originalItem: { content: string },
 ) {
   const updatedItemContract = await testEnv.service.items.crud.updateItem({
     coords: itemCoords,
@@ -79,13 +79,13 @@ export async function _validatePartialUpdate(
   });
 
   expect(updatedItemContract.title).toBe("New Title Only");
-  expect(updatedItemContract.descr).toBe(originalItem.descr);
+  expect(updatedItemContract.content).toBe(originalItem.content);
 }
 
 export async function _updateAndValidateItem(
   testEnv: TestEnvironment,
   itemCoords: Coord,
-  updateData: { title: string; descr: string; link: string },
+  updateData: { title: string; content: string; link: string },
 ) {
   const updatedItemContract = await testEnv.service.items.crud.updateItem({
     coords: itemCoords,
@@ -94,14 +94,14 @@ export async function _updateAndValidateItem(
 
   expect(updatedItemContract).toBeDefined();
   expect(updatedItemContract.title).toBe(updateData.title);
-  expect(updatedItemContract.descr).toBe(updateData.descr);
+  expect(updatedItemContract.content).toBe(updateData.content);
   expect(updatedItemContract.link).toBe(updateData.link);
 
   const fetchedAgain = await testEnv.service.items.crud.getItem({
     coords: itemCoords,
   });
   expect(fetchedAgain.title).toBe(updateData.title);
-  expect(fetchedAgain.descr).toBe(updateData.descr);
+  expect(fetchedAgain.content).toBe(updateData.content);
   expect(fetchedAgain.link).toBe(updateData.link);
 
   return updatedItemContract;

@@ -15,7 +15,7 @@ export type DbMapItemSelect = {
 export type DbBaseItemSelect = {
   id: number;
   title: string;
-  descr: string;
+  content: string;
   preview: string | null;
   link: string | null;
 };

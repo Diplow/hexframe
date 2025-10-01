@@ -87,7 +87,7 @@ export async function _setupBasicMap(
     userId: params.userId,
     groupId: params.groupId,
     title: params.title ?? "Test Map",
-    descr: "Test Description",
+    content: "Test Description",
   });
 }
 

@@ -23,10 +23,10 @@ describe("Mutation Handler", () => {
 
   const mockExistingItem = {
     data: {
-      name: "Existing Item",
-      description: "Existing Description",
+      title: "Existing Item",
+      content: "Existing Description",
         preview: undefined,
-      url: "http://example.com",
+      link: "http://example.com",
       color: "#000000",
     },
     metadata: {
@@ -94,7 +94,7 @@ describe("Mutation Handler", () => {
   describe("createItem", () => {
     test("creates item with optimistic update", async () => {
       const handler = createMutationHandler(config);
-      const itemData = { name: "New Item", description: "New Description" };
+      const itemData = { title: "New Item", content: "New Description" };
 
       const result = await handler.createItem("2,3", itemData);
 
@@ -123,7 +123,7 @@ describe("Mutation Handler", () => {
 
     test("emits map.tile_created event when creating item", async () => {
       const handler = createMutationHandler(config);
-      const itemData = { name: "New Item", description: "New Description" };
+      const itemData = { title: "New Item", content: "New Description" };
 
       await handler.createItem("2,3", itemData);
 
@@ -133,8 +133,8 @@ describe("Mutation Handler", () => {
         tileName: "New Item",
         coordId: "2,3",
         tileData: expect.objectContaining({
-          name: "New Item",
-          description: "New Description"
+          title: "New Item",
+          content: "New Description"
         }) as Record<string, unknown>
       });
     });
@@ -146,7 +146,7 @@ describe("Mutation Handler", () => {
       });
 
       const handler = createMutationHandler(config);
-      const itemData = { name: "Failed Item" };
+      const itemData = { title: "Failed Item" };
 
       const result = await handler.createItem("2,3", itemData);
 
@@ -176,7 +176,7 @@ describe("Mutation Handler", () => {
         ...config,
         getState: () => noOptimisticState,
       });
-      const itemData = { name: "New Item" };
+      const itemData = { title: "New Item" };
 
       const result = await handler.createItem("2,3", itemData);
 
@@ -190,7 +190,7 @@ describe("Mutation Handler", () => {
   describe("updateItem", () => {
     test("updates item with optimistic update", async () => {
       const handler = createMutationHandler(config);
-      const updates = { name: "Updated Name" };
+      const updates = { title: "Updated Name" };
 
       const result = await handler.updateItem("1,2", updates);
 
@@ -216,7 +216,7 @@ describe("Mutation Handler", () => {
 
     test("emits map.tile_updated event when updating item", async () => {
       const handler = createMutationHandler(config);
-      const updates = { name: "Updated Name" };
+      const updates = { title: "Updated Name" };
 
       await handler.updateItem("1,2", updates);
 
@@ -225,13 +225,13 @@ describe("Mutation Handler", () => {
         tileId: "existing-id",
         tileName: "Updated Name",
         coordId: "1,2",
-        updates: { name: "Updated Name" }
+        updates: { title: "Updated Name" }
       });
     });
 
     test("handles missing item gracefully", async () => {
       const handler = createMutationHandler(config);
-      const updates = { name: "Updated Name" };
+      const updates = { title: "Updated Name" };
 
       const result = await handler.updateItem("missing-coord", updates);
 
@@ -287,7 +287,7 @@ describe("Mutation Handler", () => {
       const handler = createMutationHandler(config);
 
       // Simulate a failed update that needs rollback
-      const updates = { name: "Failed Update" };
+      const updates = { title: "Failed Update" };
 
       // First apply optimistic update
       await handler.updateItem("1,2", updates);
@@ -304,7 +304,7 @@ describe("Mutation Handler", () => {
         cacheActions.loadRegion(
           expect.arrayContaining([
             expect.objectContaining({
-              name: "Existing Item", // Original name restored
+              title: "Existing Item", // Original name restored
             }),
           ]) as Parameters<typeof cacheActions.loadRegion>[0],
           "1,2",
@@ -328,7 +328,7 @@ describe("Mutation Handler", () => {
       expect(handler.getPendingOptimisticChanges()).toHaveLength(0);
 
       // Create an optimistic change
-      await handler.updateItem("1,2", { name: "Optimistic Update" });
+      await handler.updateItem("1,2", { title: "Optimistic Update" });
 
       // Should track the change
       const changes = handler.getPendingOptimisticChanges();
@@ -369,7 +369,7 @@ describe("Mutation Handler", () => {
         mockEventBus,
       );
 
-      const result = await handler.createItem("2,3", { name: "New Item" });
+      const result = await handler.createItem("2,3", { title: "New Item" });
 
       expect(result.success).toBe(true);
       expect(mockDispatch).toHaveBeenCalledWith(
@@ -390,7 +390,7 @@ describe("Mutation Handler", () => {
         tileName: "New Item",
         coordId: "2,3",
         tileData: expect.objectContaining({
-          name: "New Item"
+          title: "New Item"
         }) as Record<string, unknown>
       });
     });
@@ -405,7 +405,7 @@ describe("Mutation Handler", () => {
 
       // The simplified approach should work the same way
       await handler.updateItem("1,2", {
-        name: "Updated via simplified factory",
+        title: "Updated via simplified factory",
       });
       await handler.deleteItem("1,2");
 
@@ -419,7 +419,7 @@ describe("Mutation Handler", () => {
         tileId: "existing-id",
         tileName: "Updated via simplified factory",
         coordId: "1,2",
-        updates: { name: "Updated via simplified factory" }
+        updates: { title: "Updated via simplified factory" }
       });
       expectEventEmitted(mockEventBus, 'map.tile_deleted', {
         tileId: "existing-id",
@@ -433,8 +433,8 @@ describe("Mutation Handler", () => {
     test("invalidates affected regions after mutations", async () => {
       const handler = createMutationHandler(config);
 
-      await handler.createItem("2,3", { name: "New Item" }); // No invalidation - just optimistic update
-      await handler.updateItem("1,2", { name: "Updated Item" }); // No invalidation - just optimistic update
+      await handler.createItem("2,3", { title: "New Item" }); // No invalidation - just optimistic update
+      await handler.updateItem("1,2", { title: "Updated Item" }); // No invalidation - just optimistic update
       await handler.deleteItem("1,2"); // Invalidates region
 
       // Should invalidate regions only for delete operations

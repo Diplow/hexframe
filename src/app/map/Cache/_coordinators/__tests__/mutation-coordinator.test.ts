@@ -16,10 +16,10 @@ describe("MutationCoordinator Event Emissions", () => {
 
   const mockExistingItem1 = {
     data: {
-      name: "Item 1",
-      description: "Description 1",
+      title: "Item 1",
+      content: "Description 1",
         preview: undefined,
-      url: "",
+      link: "",
       color: "#000000",
     },
     metadata: {
@@ -42,10 +42,10 @@ describe("MutationCoordinator Event Emissions", () => {
 
   const mockExistingItem2 = {
     data: {
-      name: "Item 2",
-      description: "Description 2",
+      title: "Item 2",
+      content: "Description 2",
         preview: undefined,
-      url: "",
+      link: "",
       color: "#000000",
     },
     metadata: {
@@ -68,7 +68,7 @@ describe("MutationCoordinator Event Emissions", () => {
 
   const mockMutations = {
     addItemMutation: {
-      mutateAsync: vi.fn().mockResolvedValue({ id: 123, name: "New Item" }),
+      mutateAsync: vi.fn().mockResolvedValue({ id: 123, title: "New Item" }),
     },
     updateItemMutation: {
       mutateAsync: vi.fn().mockResolvedValue({ success: true }),

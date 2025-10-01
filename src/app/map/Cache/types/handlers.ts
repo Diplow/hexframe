@@ -17,7 +17,7 @@ export interface HandlerServices {
       coordinates: string;
       depth: number;
       name: string;
-      descr: string;
+      content: string;
       url: string;
       parentId: string | null;
       itemType: string;

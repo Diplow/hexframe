@@ -69,10 +69,10 @@ export function useTileInteraction({
           depth: 0,
         },
         data: {
-          name: '',
-          description: '',
+          title: '',
+          content: '',
         preview: undefined,
-          url: '',
+          link: '',
           color: 'gray-500',
         },
         state: {

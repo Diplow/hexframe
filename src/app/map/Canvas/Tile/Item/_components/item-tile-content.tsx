@@ -104,7 +104,7 @@ export function ItemTileContent({
     <>
       <TileTooltip
         preview={item.data.preview}
-        title={item.data.name}
+        title={item.data.title}
         disabled={!interactive}
       >
         {/* Hexagon interaction area with its own z-index hierarchy */}
@@ -138,9 +138,9 @@ export function ItemTileContent({
             >
               <DynamicTileContent
                 data={{
-                  title: item.data.name,
-                  description: item.data.description,
-                  url: item.data.url,
+                  title: item.data.title,
+                  content: item.data.content,
+                  link: item.data.link,
                 }}
                 scale={scale}
                 tileId={testId.replace("tile-", "")}

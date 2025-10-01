@@ -17,7 +17,7 @@ export const paginationSchema = z.object({
 export const userMapCreationSchema = z.object({
   groupId: z.number().optional().default(0),
   title: z.string().min(3).max(100).optional(),
-  descr: z.string().max(500).optional(),
+  content: z.string().max(500).optional(),
 });
 
 // User map update schema
@@ -25,7 +25,7 @@ export const userMapUpdateSchema = z.object({
   userId: z.number(),
   groupId: z.number(),
   title: z.string().min(3).max(100).optional(),
-  descr: z.string().max(500).optional(),
+  content: z.string().max(500).optional(),
 });
 
 // User map identifier schema
@@ -39,9 +39,9 @@ export const itemCreationSchema = z.object({
   parentId: z.number().int().positive().optional().nullable(),
   coords: hexCoordSchema,
   title: z.string().optional(),
-  descr: z.string().optional(),
+  content: z.string().optional(),
   preview: z.string().optional(),
-  url: z.string().optional(),
+  link: z.string().optional(),
 });
 
 // Item update schema
@@ -49,9 +49,9 @@ export const itemUpdateSchema = z.object({
   coords: hexCoordSchema,
   data: z.object({
     title: z.string().optional(),
-    descr: z.string().optional(),
+    content: z.string().optional(),
     preview: z.string().optional(),
-    url: z.string().optional(),
+    link: z.string().optional(),
   }),
 });
 

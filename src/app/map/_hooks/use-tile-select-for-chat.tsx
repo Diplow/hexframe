@@ -19,8 +19,8 @@ export function useTileSelectForChat() {
         tileId: fullTileData.metadata.coordId,
         tileData: {
           id: fullTileData.metadata.dbId,
-          title: fullTileData.data.name,
-          content: fullTileData.data.description ?? '',
+          title: fullTileData.data.title,
+          content: fullTileData.data.content ?? '',
           coordId: fullTileData.metadata.coordId,
         },
         openInEditMode: options?.openInEditMode,

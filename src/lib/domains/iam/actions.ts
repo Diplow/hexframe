@@ -84,7 +84,7 @@ export async function registerAction(data: z.infer<typeof registerSchema>) {
       const map = await mappingService.maps.createMap({
         userId: user.mappingId,
         title: `${user.displayName}'s Space`,
-        descr: "Your personal hexframe workspace",
+        content: "Your personal hexframe workspace",
       });
       defaultMapId = String(map.id);
       

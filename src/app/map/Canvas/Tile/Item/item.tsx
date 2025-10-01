@@ -50,7 +50,7 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
     loggers.render.canvas('DynamicItemTile render', {
       coordId: item.metadata.coordId,
       dbId: item.metadata.dbId,
-      name: item.data.name,
+      name: item.data.title,
       scale,
       isCenter,
       hasChildren,

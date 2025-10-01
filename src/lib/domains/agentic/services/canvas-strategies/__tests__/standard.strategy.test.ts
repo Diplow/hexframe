@@ -9,7 +9,7 @@ describe('StandardCanvasStrategy', () => {
   
   const createMockTile = (
     coordId: string,
-    name: string,
+    title: string,
     path: number[]
   ): TileData => ({
     metadata: {
@@ -25,10 +25,11 @@ describe('StandardCanvasStrategy', () => {
       ownerId: 'user:123'
     },
     data: {
-      name,
-      description: `Description for ${name}`,
-      url: '',
-      color: 'zinc'
+      title,
+      content: `Description for ${title}`,
+      link: '',
+      color: 'zinc',
+      preview: undefined
     },
     state: {
       isDragged: false,
@@ -70,20 +71,20 @@ describe('StandardCanvasStrategy', () => {
     
     expect(result.type).toBe('canvas')
     expect(result.strategy).toBe('standard')
-    expect(result.center.name).toBe('Center')
+    expect(result.center.title).toBe('Center')
     expect(result.center.depth).toBe(0)
     
     // Check we got some children
     expect(result.children.length).toBeGreaterThan(0)
-    expect(result.children.map(c => c.name)).toContain('Child NW')
-    expect(result.children.map(c => c.name)).toContain('Child NE')
+    expect(result.children.map(c => c.title)).toContain('Child NW')
+    expect(result.children.map(c => c.title)).toContain('Child NE')
     
     // Check we got some grandchildren
     expect(result.grandchildren.length).toBeGreaterThan(0)
-    expect(result.grandchildren.map(g => g.name)).toContain('Grandchild 1')
+    expect(result.grandchildren.map(g => g.title)).toContain('Grandchild 1')
     
     // Should not include tiles that are too deep
-    expect(result.grandchildren.map(g => g.name)).not.toContain('Too Deep')
+    expect(result.grandchildren.map(g => g.title)).not.toContain('Too Deep')
   })
   
   it('should filter empty tiles when includeEmptyTiles is false', async () => {
@@ -93,14 +94,14 @@ describe('StandardCanvasStrategy', () => {
     
     // Should filter out the empty child
     expect(result.children).toHaveLength(2)
-    expect(result.children.every(c => c.name.trim() !== '')).toBe(true)
+    expect(result.children.every(c => c.title.trim() !== '')).toBe(true)
   })
   
   it('should include position information for children', async () => {
     const result = await strategy.build('user:123,group:456:1,2', {})
     
-    const childNW = result.children.find(c => c.name === 'Child NW')
-    const childNE = result.children.find(c => c.name === 'Child NE')
+    const childNW = result.children.find(c => c.title === 'Child NW')
+    const childNE = result.children.find(c => c.title === 'Child NE')
     
     expect(childNW?.position).toBe(1) // Direction.NorthWest
     expect(childNE?.position).toBe(2) // Direction.NorthEast
@@ -125,8 +126,8 @@ describe('StandardCanvasStrategy', () => {
       includeDescriptions: true
     })
     
-    expect(result.center.description).toBe('Description for Center')
-    expect(result.children[0]?.description).toContain('Description for')
+    expect(result.center.content).toBe('Description for Center')
+    expect(result.children[0]?.content).toContain('Description for')
   })
   
   it('should serialize to structured format', async () => {

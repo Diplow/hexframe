@@ -82,7 +82,7 @@ describe("MappingService - Item CRUD [Integration - DB]", () => {
         parentId: rootMap.id,
         coords: childCoords,
         title: "Preview Test Item",
-        descr: "Full description for preview test",
+        content: "Full description for preview test",
         preview: "Short preview text for progressive disclosure",
         link: "https://example.com/preview-test",
       };
@@ -92,7 +92,7 @@ describe("MappingService - Item CRUD [Integration - DB]", () => {
       // Validate the preview field is properly saved and returned
       expect(childItemContract).toBeDefined();
       expect(childItemContract.title).toBe(addItemArgs.title);
-      expect(childItemContract.descr).toBe(addItemArgs.descr);
+      expect(childItemContract.content).toBe(addItemArgs.content);
       expect(childItemContract.preview).toBe(addItemArgs.preview);
       expect(childItemContract.link).toBe(addItemArgs.link);
       expect(childItemContract.itemType).toBe(MapItemType.BASE);
@@ -151,7 +151,7 @@ describe("MappingService - Item CRUD [Integration - DB]", () => {
 
       await _validateItemRetrieval(testEnv, itemCoords, {
         title: "Test Retrievable Item",
-        descr: "Test Description",
+        content: "Test Description",
         link: "https://example.com",
       });
     });
@@ -175,7 +175,7 @@ describe("MappingService - Item CRUD [Integration - DB]", () => {
       const setupParams = _createUniqueTestParams();
       const updateData = {
         title: "Updated Item Title",
-        descr: "Updated Item Descr",
+        content: "Updated Item Descr",
         link: "http://updated.url",
       };
 

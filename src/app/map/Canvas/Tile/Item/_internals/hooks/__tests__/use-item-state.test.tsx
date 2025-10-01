@@ -60,10 +60,10 @@ describe("useItemState - Drag Functionality", () => {
       parentId: undefined,
     },
     data: {
-      name: "Test Tile",
-      description: "Test Description",
+      title: "Test Tile",
+      content: "Test Description",
         preview: undefined,
-      url: "",
+      link: "",
       color: "blue",
     },
     state: {

@@ -40,7 +40,7 @@ const DynamicHierarchyTile = ({
     loggers.render.hierarchy('DynamicHierarchyTile render', {
       renderCount: renderCountRef.current,
       coordId: item.metadata.coordId,
-      name: item.data.name,
+      name: item.data.title,
       depth: item.metadata.depth,
       color: item.data.color,
     });
@@ -50,7 +50,7 @@ const DynamicHierarchyTile = ({
     e.preventDefault();
     loggers.render.hierarchy('DynamicHierarchyTile navigation clicked', {
       coordId: item.metadata.coordId,
-      name: item.data.name,
+      name: item.data.title,
     });
     await navigateToItem(item.metadata.coordId);
   };
@@ -58,7 +58,7 @@ const DynamicHierarchyTile = ({
   return (
     <button
       onClick={handleNavigation}
-      aria-label={`Navigate to ${item.data.name}`}
+      aria-label={`Navigate to ${item.data.title}`}
       className="group relative flex-shrink-0 cursor-pointer rounded-lg border-none bg-transparent transition-transform duration-200 hover:scale-105 focus:scale-105"
     >
       <div className="pointer-events-none">
@@ -89,9 +89,9 @@ const HierarchyTileContent = ({ item }: { item: TileData }) => {
           WebkitBoxOrient: "vertical",
           overflow: "hidden",
         }}
-        title={item.data.name}
+        title={item.data.title}
       >
-        {item.data.name}
+        {item.data.title}
       </span>
     </div>
   );
@@ -234,7 +234,7 @@ export const ParentHierarchy = ({
       hierarchyLength: hierarchy.length,
       hierarchyItems: hierarchy.map((item: TileData) => ({
         coordId: item.metadata.coordId,
-        name: item.data.name,
+        name: item.data.title,
         depth: item.metadata.depth,
       })),
       propsChanged: Object.keys(changes).length > 0,

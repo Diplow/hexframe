@@ -28,10 +28,10 @@ describe("NavigationHandler - Collapse distant tiles", () => {
       parentId: CoordSystem.getParentCoordFromId(coordId),
     },
     data: {
-      name: "Test Tile",
-      description: "Test Description",
+      title: "Test Tile",
+      content: "Test Description",
         preview: undefined,
-      url: "",
+      link: "",
       color: "zinc-50",
     },
     state: {

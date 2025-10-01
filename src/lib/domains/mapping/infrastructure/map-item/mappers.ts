@@ -47,7 +47,7 @@ function _createBaseItemWithId(
     id: dbBaseItem.id,
     attrs: {
       title: dbBaseItem.title,
-      descr: dbBaseItem.descr,
+      content: dbBaseItem.content,
       preview: dbBaseItem.preview ?? undefined,
       link: dbBaseItem.link ?? "",
     },

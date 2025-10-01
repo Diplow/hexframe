@@ -50,7 +50,7 @@ function _createMapUIHandlers(
       source: 'canvas',
       payload: {
         tileId: tileData.metadata.coordId,
-        tileName: tileData.data.name,
+        tileName: tileData.data.title,
       },
       timestamp: new Date(),
     });

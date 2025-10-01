@@ -13,12 +13,13 @@ const CoordsSchema = z.object({
 /**
  * Shared schema for creating map items
  * This ensures type safety and consistency across all layers
+ * Uses canonical field names: title, content, preview, link
  */
 export const CreateMapItemParamsSchema = z.object({
   itemType: z.nativeEnum(MapItemType),
   coords: CoordsSchema,
   title: z.string().optional(),
-  descr: z.string().optional(),
+  content: z.string().optional(),
   preview: z.string().optional(),
   link: z.string().optional(),
   parentId: z.number().positive().optional(),
@@ -28,10 +29,11 @@ export type CreateMapItemParams = z.infer<typeof CreateMapItemParamsSchema>;
 
 /**
  * Schema for updating map item attributes
+ * Uses canonical field names: title, content, preview, link
  */
 export const UpdateMapItemAttrsSchema = z.object({
   title: z.string().optional(),
-  descr: z.string().optional(),
+  content: z.string().optional(),
   preview: z.string().optional(),
   link: z.string().optional(),
 });

@@ -32,14 +32,14 @@ export class ItemCrudService {
     parentId,
     coords,
     title,
-    descr,
+    content,
     preview,
     link,
   }: {
     parentId: number | null;
     coords: Coord;
     title?: string;
-    descr?: string;
+    content?: string;
     preview?: string;
     link?: string;
   }): Promise<MapItemContract> {
@@ -73,7 +73,7 @@ export class ItemCrudService {
       itemType: MapItemType.BASE,
       coords,
       title,
-      descr,
+      content,
       preview,
       link,
       parentId: parentItem?.id,
@@ -96,24 +96,24 @@ export class ItemCrudService {
   async updateItem({
     coords,
     title,
-    descr,
+    content,
     preview,
     link,
   }: {
     coords: Coord;
     title?: string;
-    descr?: string;
+    content?: string;
     preview?: string;
     link?: string;
   }): Promise<MapItemContract> {
-    console.log('🟫 Domain service - updateItem called with:', { coords, title, descr, preview, link });
+    console.log('🟫 Domain service - updateItem called with:', { coords, title, content, preview, link });
     const item = await this.actions.getMapItem({ coords });
     console.log('🟫 Domain service - Found item:', { id: item.id, title: item.ref.attrs.title, preview: item.ref.attrs.preview });
 
-    if (title !== undefined || descr !== undefined || preview !== undefined || link !== undefined) {
+    if (title !== undefined || content !== undefined || preview !== undefined || link !== undefined) {
       const updateAttrs = {
         title,
-        descr,
+        content,
         preview,
         link,
       };

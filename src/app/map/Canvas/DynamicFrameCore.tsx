@@ -372,7 +372,7 @@ const FrameSlot = (props: {
         urlInfo={props.urlInfo}
         parentItem={parentItem ? {
           id: parentItem.metadata.dbId,
-          name: parentItem.data.name,
+          name: parentItem.data.title,
           ownerId: parentItem.metadata.ownerId,
         } : undefined}
         interactive={props.interactive}

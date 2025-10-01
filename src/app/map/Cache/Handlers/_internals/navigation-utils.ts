@@ -31,7 +31,7 @@ export function resolveItemIdentifier(
       loggers.mapCache.handlers('[Navigation] ✅ Found item by coordinate ID:', {
         coordId: existingItem.metadata.coordId,
         dbId: existingItem.metadata.dbId,
-        name: existingItem.data.name
+        title: existingItem.data.title
       });
     }
   } else {
@@ -43,7 +43,7 @@ export function resolveItemIdentifier(
       loggers.mapCache.handlers('[Navigation] ✅ Found item by database ID:', {
         dbId: existingItem.metadata.dbId,
         coordId: existingItem.metadata.coordId,
-        name: existingItem.data.name
+        title: existingItem.data.title
       });
     }
   }
@@ -55,7 +55,7 @@ export function resolveItemIdentifier(
         dbId: item.metadata.dbId,
         dbIdType: typeof item.metadata.dbId,
         coordId: item.metadata.coordId,
-        name: item.data.name
+        title: item.data.title
       })),
       lookingForId: itemIdentifier,
       lookingForIdType: typeof itemIdentifier
@@ -200,7 +200,7 @@ export function performBackgroundTasks(
     finalCoordId,
     hasCenterItem: !!centerItem,
     centerItemData: centerItem ? {
-      name: centerItem.data.name,
+      title: centerItem.data.title,
       dbId: centerItem.metadata.dbId,
       pathLength: centerItem.metadata.coordinates.path.length,
       coordId: centerItem.metadata.coordId
@@ -235,7 +235,7 @@ export function performBackgroundTasks(
         const siblingStatus = siblings.map(siblingCoordId => ({
           coordId: siblingCoordId,
           exists: !!currentItems[siblingCoordId],
-          name: currentItems[siblingCoordId]?.data.name ?? 'N/A'
+          title: currentItems[siblingCoordId]?.data.title ?? 'N/A'
         }));
         const hasSiblings = siblings.some(siblingCoordId => currentItems[siblingCoordId]);
 
@@ -300,10 +300,10 @@ async function loadSiblingsForItem(
 
         siblingItems[coordId] = {
           data: {
-            name: item.title,
-            description: item.descr,
-        preview: undefined,
-            url: item.link,
+            title: item.title,
+            content: item.content,
+        preview: item.preview,
+            link: item.link,
             color: getColor(itemCoords),
           },
           metadata: {

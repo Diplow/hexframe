@@ -70,10 +70,10 @@ export function createMutationHandler(
 
         const optimisticItem = {
           coordinates: coordId,
-          title: data.name || "New Item",
-          descr: data.description || "",
-          preview: data.preview || "",
-          link: data.url || "",
+          title: (data.title as string) || "New Item",
+          content: (data.content as string) || "",
+          preview: (data.preview as string) || "",
+          link: (data.url as string) || "",
           depth: 1, // TODO: Calculate actual depth
           id: `optimistic_${changeId}`,
           parentId: null, // TODO: Determine parent
@@ -143,17 +143,17 @@ export function createMutationHandler(
         // We need to create a proper MapItemAPIContract for the loadRegion action
         const updatedItem = {
           id: existingItem.metadata.dbId,
-          title: data.name as string ?? existingItem.data.name,
-          descr: data.description as string ?? existingItem.data.description,
-          preview: data.preview as string ?? existingItem.data.preview ?? "",
-          link: data.url as string ?? existingItem.data.url,
+          title: (data.title as string) ?? existingItem.data.title,
+          content: (data.content as string) ?? existingItem.data.content,
+          preview: (data.preview as string) ?? existingItem.data.preview ?? "",
+          link: (data.link as string) ?? existingItem.data.link,
           coordinates: coordId,
           depth: existingItem.metadata.depth,
           parentId: existingItem.metadata.parentId ?? null,
           itemType: MapItemType.BASE,
           ownerId: existingItem.metadata.ownerId,
         };
-        
+
         dispatch(cacheActions.loadRegion([updatedItem], coordId, 1));
 
         // Emit event for tile update
@@ -220,7 +220,7 @@ export function createMutationHandler(
             source: 'map_cache',
             payload: {
               tileId: existingItem.metadata.dbId,
-              tileName: existingItem.data.name,
+              tileName: existingItem.data.title,
               coordId
             }
           });

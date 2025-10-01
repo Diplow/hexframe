@@ -43,8 +43,8 @@ export function useMutationOperations(config: MutationOperationsConfig): Mutatio
         parentId: params.parentId,
         coords: params.coords,
         title: params.title,
-        descr: params.descr,
-        url: params.url,
+        content: params.descr,
+        link: params.url,
       });
     },
   }), [addItemMutation]);
@@ -55,8 +55,8 @@ export function useMutationOperations(config: MutationOperationsConfig): Mutatio
         coords: params.coords,
         data: {
           title: params.title,
-          descr: params.descr,
-          url: params.url,
+          content: params.descr,
+          link: params.url,
         },
       });
     },

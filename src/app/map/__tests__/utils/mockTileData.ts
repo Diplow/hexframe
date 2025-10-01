@@ -15,10 +15,10 @@ export function createMockTileData(overrides?: Partial<TileData>): TileData {
       ownerId: "user-1",
     },
     data: {
-      name: "Test Tile",
-      description: "Test description",
+      title: "Test Tile",
+      content: "Test description",
       preview: undefined,
-      url: "",
+      link: "",
       color: "zinc-50",
     },
     state: {

@@ -29,7 +29,7 @@ describe("Cache Actions", () => {
       id: "1",
       coordinates: "1,2",
       title: "Test Item",
-      descr: "Test Description",
+      content: "Test Description",
       preview: undefined,
       depth: 1,
       link: "",

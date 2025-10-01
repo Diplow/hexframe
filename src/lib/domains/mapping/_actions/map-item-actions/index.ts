@@ -51,21 +51,21 @@ export class MapItemActions {
       itemType: params.itemType,
       coords: params.coords,
       title: params.title,
-      descr: params.descr,
+      content: params.content,
       preview: params.preview,
-      url: params.link, // Note: params uses 'link', helper expects 'url'
+      link: params.link,
       parentId: params.parentId,
     });
   }
 
   public async updateRef(ref: BaseItemWithId, attrs: UpdateMapItemAttrs) {
     console.log('🟪 Actions - updateRef called with:', { refId: ref.id, attrs });
-    // Convert our standardized field names to what the helper expects
+    // Now using canonical field names throughout
     const helperAttrs: Partial<BaseItemAttrs> = {
       title: attrs.title,
-      descr: attrs.descr,
+      content: attrs.content,
       preview: attrs.preview,
-      link: attrs.link, // Our standard name matches BaseItemAttrs
+      link: attrs.link,
     };
     console.log('🟪 Actions - Calling creation helpers with:', helperAttrs);
     const result = await this.creationHelpers.updateRef(ref, helperAttrs);

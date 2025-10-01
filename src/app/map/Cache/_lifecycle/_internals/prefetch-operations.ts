@@ -127,10 +127,10 @@ async function loadSiblingsForInitialLoad(
 
         siblingItems[coordId] = {
           data: {
-            name: item.title,
-            description: item.descr,
-        preview: undefined,
-            url: item.link,
+            title: item.title,
+            content: item.content,
+        preview: item.preview,
+            link: item.link,
             color: getColor(itemCoords),
           },
           metadata: {

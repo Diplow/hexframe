@@ -69,7 +69,7 @@ export const userRouter = createTRPCRouter({
             const map = await ctx.mappingService.maps.createMap({
               userId: user.mappingId,
               title: `${user.displayName}'s Space`,
-              descr: "Your personal hexframe workspace",
+              content: "Your personal hexframe workspace",
             });
             defaultMapId = String(map.id);
           } catch (mapError) {

@@ -91,10 +91,10 @@ describe("Server Service", () => {
         {
           id: "1",
           coordinates: "1,2",
-          name: "Test Item",
-          descr: "Test Description",
+          title: "Test Item",
+          content: "Test Description",
           depth: 1,
-          url: "",
+          link: "",
           parentId: null,
           itemType: "base",
           ownerId: "test-owner",
@@ -224,7 +224,7 @@ describe("Server Service", () => {
       const item = {
         id: "item-id",
         coordinates: "1,2:1",
-        name: "Test Item",
+        title: "Test Item",
       };
       mockGetItemByCoordsFetch.mockResolvedValue(item);
 
@@ -241,7 +241,7 @@ describe("Server Service", () => {
       const rootItem = {
         id: "root-id",
         coordinates: "1,2",
-        name: "Root Item",
+        title: "Root Item",
       };
       mockGetRootItemByIdFetch.mockResolvedValue(rootItem);
 
@@ -256,8 +256,8 @@ describe("Server Service", () => {
 
     test("getDescendants works correctly", async () => {
       const descendants = [
-        { id: "child-1", name: "Child 1" },
-        { id: "child-2", name: "Child 2" },
+        { id: "child-1", title: "Child 1" },
+        { id: "child-2", title: "Child 2" },
       ];
       mockGetDescendantsFetch.mockResolvedValue(descendants);
 
@@ -278,14 +278,14 @@ describe("Server Service", () => {
       await expect(
         service.createItem({
           coordId: "1,2:1",
-          data: { name: "New Child Item", description: "New Description" },
+          data: { title: "New Child Item", content: "New Description" },
         }),
       ).rejects.toThrow(ServiceError);
 
       await expect(
         service.createItem({
           coordId: "1,2:1",
-          data: { name: "New Child Item", description: "New Description" },
+          data: { title: "New Child Item", content: "New Description" },
         }),
       ).rejects.toThrow(
         "Mutations should be handled through the mutation layer, not the server service",
@@ -298,14 +298,14 @@ describe("Server Service", () => {
       await expect(
         service.updateItem({
           coordId: "1,2:1",
-          data: { name: "Updated Item", description: "Updated Description" },
+          data: { title: "Updated Item", content: "Updated Description" },
         }),
       ).rejects.toThrow(ServiceError);
 
       await expect(
         service.updateItem({
           coordId: "1,2:1",
-          data: { name: "Updated Item", description: "Updated Description" },
+          data: { title: "Updated Item", content: "Updated Description" },
         }),
       ).rejects.toThrow(
         "Mutations should be handled through the mutation layer, not the server service",
@@ -367,7 +367,7 @@ describe("Server Service", () => {
     });
 
     test("uses provided mock responses", async () => {
-      const mockItems = [{ id: "1", name: "Mock Item" }];
+      const mockItems = [{ id: "1", title: "Mock Item" }];
       const mockService = createMockServerService({
         fetchItemsForCoordinate: vi.fn().mockResolvedValue(mockItems),
       });
@@ -433,7 +433,7 @@ describe("Server Service", () => {
 
   describe("Complex coordinate parsing", () => {
     test("handles complex coordinate IDs", async () => {
-      const mockItem = { id: "123", coordinates: "1,2:3,4,5", name: "Test" };
+      const mockItem = { id: "123", coordinates: "1,2:3,4,5", title: "Test" };
       mockGetItemByCoordsFetch.mockResolvedValue(mockItem);
       mockGetDescendantsFetch.mockResolvedValue([]);
 

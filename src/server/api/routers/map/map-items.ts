@@ -115,9 +115,9 @@ export const mapItemsRouter = createTRPCRouter({
         parentId: input.parentId ?? null,
         coords: coords,
         title: input.title,
-        descr: input.descr,
+        content: input.content,
         preview: input.preview,
-        link: input.url, // Note: input still uses 'url' from API, but service expects 'link'
+        link: input.link,
       });
       return contractToApiAdapters.mapItem(mapItem);
     }),
@@ -172,9 +172,9 @@ export const mapItemsRouter = createTRPCRouter({
       const updateParams = {
         coords: input.coords as Coord,
         title: input.data.title,
-        descr: input.data.descr,
+        content: input.data.content,
         preview: input.data.preview,
-        link: input.data.url, // Note: input still uses 'url' from API, but service expects 'link'
+        link: input.data.link,
       };
       console.log('🔴 tRPC updateItem - Calling service with params:', JSON.stringify(updateParams, null, 2));
 

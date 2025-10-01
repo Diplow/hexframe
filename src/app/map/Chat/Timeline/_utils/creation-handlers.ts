@@ -22,14 +22,14 @@ export function createCreationHandlers(
 ) {
   const { createItemOptimistic, eventBus, chatState } = deps;
 
-  const handleSave = async (name: string, preview: string, description: string) => {
+  const handleSave = async (name: string, preview: string, content: string) => {
     const creationData = widget.data as { coordId?: string; parentName?: string; parentCoordId?: string; parentId?: string };
 
     try {
       await createItemOptimistic(creationData.coordId!, {
         title: name,
         preview: preview,
-        description: description,
+        description: content,
         parentId: creationData.parentId ? parseInt(creationData.parentId, 10) : undefined
       });
 
@@ -40,7 +40,7 @@ export function createCreationHandlers(
           parentId: creationData.parentId ?? null,
           title: name,
           preview: preview,
-          content: description
+          content: content
         },
         source: 'chat_cache',
         timestamp: new Date(),

@@ -11,7 +11,7 @@ describe("Cache Reducer", () => {
       id: "1",
       coordinates: "1,2",
       title: "Test Item 1",
-      descr: "Test Description 1",
+      content: "Test Description 1",
       preview: undefined,
       depth: 1,
       link: "",
@@ -23,7 +23,7 @@ describe("Cache Reducer", () => {
       id: "2",
       coordinates: "1,3",
       title: "Test Item 2",
-      descr: "Test Description 2",
+      content: "Test Description 2",
       preview: undefined,
       depth: 2,
       link: "",
@@ -146,7 +146,7 @@ describe("Cache Reducer", () => {
           id: "3",
           coordinates: "1,2:0", // This should be filtered out (0 in path = Direction.Center)
           title: "Invalid Item",
-          descr: "Should be filtered",
+          content: "Should be filtered",
           preview: undefined,
           depth: 1,
           link: "",
@@ -178,10 +178,10 @@ describe("Cache Reducer", () => {
         itemsById: {
           "1,2": {
             data: {
-              name: "Old Name",
-              description: "Old Desc",
+              title: "Old Name",
+              content: "Old Desc",
         preview: undefined,
-              url: "",
+              link: "",
               color: "#000000",
             },
             metadata: {
@@ -215,7 +215,7 @@ describe("Cache Reducer", () => {
 
       const result = cacheReducer(existingState, action);
 
-      expect(result.itemsById["1,2"]?.data.name).toBe("Test Item 1");
+      expect(result.itemsById["1,2"]?.data.title).toBe("Test Item 1");
     });
   });
 
@@ -242,10 +242,10 @@ describe("Cache Reducer", () => {
         itemsById: {
           "1,2": {
             data: {
-              name: "Test Item 1",
-              description: "Test Description 1",
+              title: "Test Item 1",
+              content: "Test Description 1",
         preview: undefined,
-              url: "",
+              link: "",
               color: "#000000",
             },
             metadata: {
@@ -267,10 +267,10 @@ describe("Cache Reducer", () => {
           },
           "1,3": {
             data: {
-              name: "Test Item 2",
-              description: "Test Description 2",
+              title: "Test Item 2",
+              content: "Test Description 2",
         preview: undefined,
-              url: "",
+              link: "",
               color: "#000000",
             },
             metadata: {
@@ -314,10 +314,10 @@ describe("Cache Reducer", () => {
         itemsById: {
           "1,2": {
             data: {
-              name: "Old Name",
-              description: "Old Desc",
+              title: "Old Name",
+              content: "Old Desc",
         preview: undefined,
-              url: "",
+              link: "",
               color: "#000000",
             },
             metadata: {
@@ -513,7 +513,7 @@ describe("Cache Reducer", () => {
         ...mockState,
         itemsById: { 
           "1,2": {
-            data: { name: "Test", description: "", preview: undefined, url: "", color: "#000000" },
+            data: { title: "Test", content: "", preview: undefined, link: "", color: "#000000" },
             metadata: { 
               coordId: "1,2", 
               dbId: "1", 
@@ -613,7 +613,7 @@ describe("Cache Reducer", () => {
           id: "",
           coordinates: "",
           title: "",
-          descr: "",
+          content: "",
           preview: undefined,
           depth: -1,
           link: "",
@@ -664,7 +664,7 @@ describe("Cache Reducer", () => {
           id: i.toString(),
           coordinates: `${i},${i + 1}`,
           title: `Item ${i}`,
-          descr: `Description ${i}`,
+          content: `Description ${i}`,
           preview: undefined,
           depth: i % 5,
           link: "",

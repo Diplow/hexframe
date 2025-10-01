@@ -11,7 +11,7 @@ interface CreationWidgetProps {
   coordId: string;
   parentName?: string;
   parentCoordId?: string;
-  onSave?: (name: string, preview: string, description: string) => void;
+  onSave?: (name: string, preview: string, content: string) => void;
   onCancel?: () => void;
 }
 

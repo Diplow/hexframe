@@ -6,7 +6,7 @@ import type { TestEnvironment } from "~/lib/domains/mapping/services/__tests__/h
 export async function _createAndValidateMap(
   testEnv: TestEnvironment,
   params: { userId: number; groupId: number },
-  expectedData: { title?: string; descr?: string },
+  expectedData: { title?: string; content?: string },
 ) {
   const createArgs = { ...params, ...expectedData };
   const mapContract = await testEnv.service.maps.createMap(createArgs);
@@ -14,7 +14,7 @@ export async function _createAndValidateMap(
   expect(mapContract).toBeDefined();
   expect(mapContract.id).toBeGreaterThan(0);
   expect(mapContract.title).toBe(expectedData.title ?? "Test Map");
-  expect(mapContract.descr).toBe(expectedData.descr ?? "Test Description");
+  expect(mapContract.content).toBe(expectedData.content ?? "Test Description");
   const coords = mapContract.coords;
   expect(coords.userId).toBe(params.userId);
   expect(coords.groupId).toBe(params.groupId);
@@ -26,7 +26,7 @@ export async function _createAndValidateMap(
 export async function _validateMapInRepository(
   testEnv: TestEnvironment,
   params: { userId: number; groupId: number },
-  expectedData: { title: string; descr: string },
+  expectedData: { title: string; content: string },
 ) {
   const rootItem = await testEnv.repositories.mapItem.getRootItem(
     params.userId,
@@ -44,7 +44,7 @@ export async function _validateMapInRepository(
 
 export function _validateRetrievedMapData(
   retrievedMapData: unknown,
-  createdMap: { id: number; title: string; descr: string },
+  createdMap: { id: number; title: string; content: string },
   params: { userId: number; groupId: number },
 ) {
   expect(retrievedMapData).not.toBeNull();
@@ -52,13 +52,13 @@ export function _validateRetrievedMapData(
     const mapData = retrievedMapData as {
       id: number;
       title: string;
-      descr: string;
+      content: string;
       coords: unknown;
       itemCount: number;
     };
     expect(mapData.id).toBe(createdMap.id);
     expect(mapData.title).toBe(createdMap.title);
-    expect(mapData.descr).toBe(createdMap.descr);
+    expect(mapData.content).toBe(createdMap.content);
     expect(mapData.coords).toEqual(
       CoordSystem.getCenterCoord(params.userId, params.groupId),
     );
@@ -102,7 +102,7 @@ export function _validateUserMapsRetrieval(
 export async function _updateAndValidateMapInfo(
   testEnv: TestEnvironment,
   params: { userId: number; groupId: number },
-  updateData: { title: string; descr: string },
+  updateData: { title: string; content: string },
   expectedId: number,
 ) {
   const updateArgs = { ...params, ...updateData };
@@ -112,7 +112,7 @@ export async function _updateAndValidateMapInfo(
   if (updatedMap) {
     expect(updatedMap.id).toBe(expectedId);
     expect(updatedMap.title).toBe(updateData.title);
-    expect(updatedMap.descr).toBe(updateData.descr);
+    expect(updatedMap.content).toBe(updateData.content);
   }
   return updatedMap;
 }
@@ -120,7 +120,7 @@ export async function _updateAndValidateMapInfo(
 export async function _validateUpdatedMapInRepository(
   testEnv: TestEnvironment,
   params: { userId: number; groupId: number },
-  updateData: { title: string; descr: string },
+  updateData: { title: string; content: string },
 ) {
   const rootItem = await testEnv.repositories.mapItem.getRootItem(
     params.userId,
@@ -144,9 +144,9 @@ export async function _validateMapRemoval(
 export async function _createAndUpdateMap(
   testEnv: TestEnvironment,
   createParams: { userId: number; groupId: number },
-  updateData: { title?: string; descr?: string },
+  updateData: { title?: string; content?: string },
 ) {
-  const createArgs = { ...createParams, title: "Original", descr: "Original" };
+  const createArgs = { ...createParams, title: "Original", content: "Original" };
   const originalMap = await testEnv.service.maps.createMap(createArgs);
 
   const updateArgs = { ...createParams, ...updateData };
@@ -155,7 +155,7 @@ export async function _createAndUpdateMap(
   expect(updatedMap).toBeDefined();
   expect(updatedMap!.id).toBe(originalMap.id);
   expect(updatedMap!.title).toBe(updateData.title ?? "Original");
-  expect(updatedMap!.descr).toBe(updateData.descr ?? "Original");
+  expect(updatedMap!.content).toBe(updateData.content ?? "Original");
 
   return { originalMap, updatedMap };
 }

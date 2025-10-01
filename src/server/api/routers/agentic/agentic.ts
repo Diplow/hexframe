@@ -69,9 +69,10 @@ const tileDataSchema = z.object({
     depth: z.number()
   }),
   data: z.object({
-    name: z.string(),
-    description: z.string(),
-    url: z.string(),
+    title: z.string(),
+    content: z.string(),
+    preview: z.string().optional(),
+    link: z.string(),
     color: z.string()
   })
 })
@@ -114,7 +115,7 @@ export const agenticRouter = createTRPCRouter({
       const agenticService = createAgenticService({
         openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
         eventBus,
-        getCacheState: () => input.cacheState as CacheState,
+        getCacheState: () => input.cacheState as unknown as CacheState,
         useQueue,
         userId: ctx.session?.userId ?? 'anonymous'
       })

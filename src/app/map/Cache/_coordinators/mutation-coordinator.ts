@@ -26,7 +26,7 @@ export interface MutationCoordinatorConfig {
       coords: Coord;
       parentId?: number | null;
       title?: string;
-      descr?: string;
+      content?: string;
       url?: string;
     }) => Promise<MapItemAPIContract>;
   };
@@ -34,7 +34,7 @@ export interface MutationCoordinatorConfig {
     mutateAsync: (params: {
       coords: Coord;
       title?: string;
-      descr?: string;
+      content?: string;
       preview?: string;
       url?: string;
     }) => Promise<MapItemAPIContract>;
@@ -195,10 +195,9 @@ export class MutationCoordinator {
   async createItem(coordId: string, data: {
     parentId?: number;
     title?: string;
-    name?: string;
-    description?: string;
-    descr?: string;
-    url?: string;
+    content?: string;
+    preview?: string;
+    link?: string;
   }): Promise<MutationResult> {
     const changeId = this.tracker.generateChangeId();
     
@@ -218,9 +217,9 @@ export class MutationCoordinator {
       const result = await this.config.addItemMutation.mutateAsync({
         coords,
         ...(parentIdNumber !== undefined ? { parentId: parentIdNumber } : {}),
-        title: data.title ?? data.name,
-        descr: data.description ?? data.descr,
-        url: data.url,
+        title: data.title,
+        content: data.content,
+        url: data.link,
       });
       
       // Finalize with real data
@@ -235,28 +234,26 @@ export class MutationCoordinator {
 
   async updateItem(coordId: string, data: {
     title?: string;
-    name?: string;
-    description?: string;
-    descr?: string;
+    content?: string;
     preview?: string;
-    url?: string;
+    link?: string;
   }): Promise<MutationResult> {
     const changeId = this.tracker.generateChangeId();
     const existingItem = this._getExistingItem(coordId);
-    
+
     try {
       // Apply optimistic update
       const { optimisticItem, previousData } = this._prepareOptimisticUpdate(existingItem, data);
       this._applyOptimisticUpdate(coordId, optimisticItem, previousData, changeId);
-      
+
       // Make server call
       const coords = CoordSystem.parseId(coordId);
       const result = await this.config.updateItemMutation.mutateAsync({
         coords,
-        title: data.title ?? data.name,
-        descr: data.description ?? data.descr,
+        title: data.title,
+        content: data.content,
         preview: data.preview,
-        url: data.url,
+        url: data.link,
       });
       
       // Finalize with real data
@@ -535,18 +532,19 @@ export class MutationCoordinator {
       title?: string;
       name?: string;
       description?: string;
-      descr?: string;
-      url?: string;
+      content?: string;
+      preview?: string;
+      link?: string;
     },
     parentId: string | null
   ): MapItemAPIContract {
     return {
       id: `temp_${Date.now()}`,
       coordinates: coordId,
-      title: data.title ?? data.name ?? "New Item",
-      descr: data.description ?? data.descr ?? "",
-      preview: undefined,
-      link: data.url ?? "",
+      title: data.title ?? "New Item",
+      content: data.content ?? "",
+      preview: data.preview,
+      link: data.link ?? "",
       depth: coords.path.length,
       parentId,
       itemType: MapItemType.BASE,
@@ -598,18 +596,18 @@ export class MutationCoordinator {
       title?: string;
       name?: string;
       description?: string;
-      descr?: string;
+      content?: string;
       preview?: string;
-      url?: string;
+      link?: string;
     }
   ): { optimisticItem: MapItemAPIContract; previousData: MapItemAPIContract } {
     const previousData = this._reconstructApiData(existingItem);
     const optimisticItem: MapItemAPIContract = {
       ...previousData,
-      title: data.title ?? data.name ?? existingItem.data.name,
-      descr: data.description ?? data.descr ?? existingItem.data.description,
+      title: data.title ?? existingItem.data.title,
+      content: data.content ?? existingItem.data.content,
       preview: data.preview ?? existingItem.data.preview,
-      link: data.url ?? existingItem.data.url,
+      link: data.link ?? existingItem.data.link,
     };
     return { optimisticItem, previousData };
   }
@@ -677,10 +675,10 @@ export class MutationCoordinator {
       id: String(tile.metadata.dbId),
       coordinates: tile.metadata.coordId,
       depth: tile.metadata.depth,
-      title: tile.data.name,
-      descr: tile.data.description,
+      title: tile.data.title,
+      content: tile.data.content,
       preview: tile.data.preview,
-      link: tile.data.url,
+      link: tile.data.link,
       parentId: null, // We don't store this in TileData
       itemType: MapItemType.BASE,
       ownerId: tile.metadata.ownerId ?? this.config.mapContext?.userId.toString() ?? "unknown",
@@ -768,9 +766,9 @@ export class MutationCoordinator {
         source: 'map_cache',
         payload: {
           tile1Id: String(moveParams.sourceItem.metadata.dbId),
-          tile1Name: moveParams.sourceItem.data.name,
+          tile1Name: moveParams.sourceItem.data.title,
           tile2Id: String(moveParams.targetItem.metadata.dbId),
-          tile2Name: moveParams.targetItem.data.name
+          tile2Name: moveParams.targetItem.data.title
         }
       });
     } else {
@@ -779,7 +777,7 @@ export class MutationCoordinator {
         source: 'map_cache',
         payload: {
           tileId: String(moveParams.sourceItem.metadata.dbId),
-          tileName: moveParams.sourceItem.data.name,
+          tileName: moveParams.sourceItem.data.title,
           fromCoordId: moveParams.sourceCoordId,
           toCoordId: moveParams.targetCoordId
         }
