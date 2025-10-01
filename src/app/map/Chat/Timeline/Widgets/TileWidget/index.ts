@@ -12,6 +12,7 @@ export { ActionMenu } from '~/app/map/Chat/Timeline/Widgets/TileWidget/ActionMen
 export { ContentDisplay } from '~/app/map/Chat/Timeline/Widgets/TileWidget/ContentDisplay';
 export { EditControls } from '~/app/map/Chat/Timeline/Widgets/TileWidget/EditControls';
 export { TileHeader } from '~/app/map/Chat/Timeline/Widgets/TileWidget/TileHeader';
+export { TileForm } from '~/app/map/Chat/Timeline/Widgets/TileWidget/TileForm';
 
 // State Management
 export { useTileState } from '~/app/map/Chat/Timeline/Widgets/TileWidget/useTileState';

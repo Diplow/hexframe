@@ -2,7 +2,6 @@ import type { Widget, TileSelectedPayload, AuthRequiredPayload, ErrorOccurredPay
 import type { TileData } from '~/app/map/types';
 import {
   TileWidget,
-  CreationWidget,
   LoginWidget,
   ConfirmDeleteWidget,
   LoadingWidget,
@@ -140,12 +139,13 @@ export function renderCreationWidget(widget: Widget, handlers: WidgetHandlers) {
   const { handleSave = () => { /* noop */ }, handleCancel = () => { /* noop */ } } = handlers;
 
   return (
-    <CreationWidget
+    <TileWidget
+      mode="create"
       coordId={creationData.coordId ?? ''}
       parentName={creationData.parentName}
       parentCoordId={creationData.parentCoordId}
       onSave={handleSave}
-      onCancel={handleCancel}
+      onClose={handleCancel}
     />
   );
 }

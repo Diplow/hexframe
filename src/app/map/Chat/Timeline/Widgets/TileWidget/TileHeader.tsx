@@ -3,11 +3,13 @@
 import { cn } from '~/lib/utils';
 import { ActionMenu } from '~/app/map/Chat/Timeline/Widgets/TileWidget/ActionMenu';
 import { EditControls } from '~/app/map/Chat/Timeline/Widgets/TileWidget/EditControls';
-import { DraggableTilePreview } from '~/app/map/Chat/Timeline/Widgets/_shared';
+import { DraggableTilePreview, TilePreview } from '~/app/map/Chat/Timeline/Widgets/_shared';
 
 interface TileHeaderProps {
-  tileId: string;
-  title: string;
+  tileId?: string;
+  coordId?: string;
+  mode?: 'view' | 'edit' | 'create';
+  title: string | React.ReactNode;
   isExpanded: boolean;
   isEditing: boolean;
   editTitle: string;
@@ -26,6 +28,8 @@ interface TileHeaderProps {
 
 export function TileHeader({
   tileId,
+  coordId: _coordId,
+  mode = 'view',
   title,
   isExpanded,
   isEditing,
@@ -43,8 +47,9 @@ export function TileHeader({
   onCancel,
 }: TileHeaderProps) {
   // Show border when there's any content below (preview or expanded content)
-  const borderClass = hasContent ? 'border-b border-neutral-200 dark:border-neutral-800' : '';
-  const isTogglable = hasContent && !isEditing;
+  // In creation mode, always show border since form is always visible
+  const borderClass = (mode === 'create' || hasContent) ? 'border-b border-neutral-200 dark:border-neutral-800' : '';
+  const isTogglable = hasContent && !isEditing && mode !== 'create';
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if ((e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') && isTogglable) {
@@ -72,17 +77,25 @@ export function TileHeader({
     >
       {/* Tile preview on the left */}
       <div className="flex items-center gap-2 flex-shrink-0">
-        <DraggableTilePreview
-          tileId={tileId}
-          tileColor={tileColor}
-          size={10}
-          className="flex-shrink-0"
-          cursor={isTogglable ? "cursor-pointer" : undefined}
-        />
+        {mode === 'create' ? (
+          <TilePreview
+            tileColor={tileColor}
+            size={10}
+            className="flex-shrink-0"
+          />
+        ) : (
+          <DraggableTilePreview
+            tileId={tileId!}
+            tileColor={tileColor}
+            size={10}
+            className="flex-shrink-0"
+            cursor={isTogglable ? "cursor-pointer" : undefined}
+          />
+        )}
       </div>
 
       {/* Title or edit input */}
-      {isEditing ? (
+      {isEditing && mode !== 'create' ? (
         <input
           type="text"
           value={editTitle}
@@ -102,7 +115,7 @@ export function TileHeader({
 
       {/* Actions on the right */}
       <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-        {isEditing ? (
+        {isEditing || mode === 'create' ? (
           <EditControls onSave={onSave} onCancel={onCancel} />
         ) : (
           <ActionMenu

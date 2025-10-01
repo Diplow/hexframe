@@ -3,18 +3,25 @@
 import { useEffect, useState } from 'react';
 import { TileHeader } from '~/app/map/Chat/Timeline/Widgets/TileWidget/TileHeader';
 import { ContentDisplay } from '~/app/map/Chat/Timeline/Widgets/TileWidget/ContentDisplay';
+import { TileForm } from '~/app/map/Chat/Timeline/Widgets/TileWidget/TileForm';
 import { useTileState } from '~/app/map/Chat/Timeline/Widgets/TileWidget/useTileState';
 import { BaseWidget } from '~/app/map/Chat/Timeline/Widgets/_shared';
 import { useMapCache } from '~/app/map/Cache';
+import { CoordSystem } from '~/lib/domains/mapping/utils';
+import { getColor } from '~/app/map/types';
 
 interface TileWidgetProps {
-  tileId: string;
-  title: string;
+  mode?: 'view' | 'edit' | 'create';
+  tileId?: string;
+  coordId?: string;
+  title?: string;
   preview?: string;
-  content: string;
+  content?: string;
   forceExpanded?: boolean;
   openInEditMode?: boolean;
   tileColor?: string;
+  parentName?: string;
+  parentCoordId?: string;
   onEdit?: () => void;
   onDelete?: () => void;
   onSave?: (title: string, preview: string, content: string) => void;
@@ -22,27 +29,55 @@ interface TileWidgetProps {
 }
 
 export function TileWidget({
+  mode = 'view',
   tileId,
-  title,
+  coordId,
+  title = '',
   preview = '',
-  content,
+  content = '',
   forceExpanded,
   openInEditMode,
-  tileColor,
+  tileColor: providedTileColor,
+  parentName,
+  parentCoordId,
   onEdit,
   onDelete,
   onSave,
   onClose,
 }: TileWidgetProps) {
-  const { getItem, hasItem, isLoading } = useMapCache();
+  const { getItem, hasItem, isLoading, navigateToItem } = useMapCache();
   const [showMetadata, setShowMetadata] = useState(false);
+
+  // Calculate direction from coordId for creation mode
+  const getDirection = () => {
+    if (!coordId) return 'child';
+    const coords = CoordSystem.parseId(coordId);
+    const lastIndex = coords.path[coords.path.length - 1];
+
+    const directions: Record<number, string> = {
+      1: 'north west',
+      2: 'north east',
+      3: 'east',
+      4: 'south east',
+      5: 'south west',
+      6: 'west',
+    };
+
+    return lastIndex !== undefined ? (directions[lastIndex] ?? 'child') : 'child';
+  };
+
+  // Calculate tile color for creation mode
+  const tileColor = mode === 'create' && coordId
+    ? getColor(CoordSystem.parseId(coordId))
+    : providedTileColor;
+
   const { expansion, editing } = useTileState({
     title,
     preview,
     content,
     forceExpanded,
-    openInEditMode,
-    tileId,
+    openInEditMode: mode === 'create' ? true : openInEditMode,
+    tileId: tileId ?? '',
   });
 
   const { isExpanded, setIsExpanded } = expansion;
@@ -57,10 +92,11 @@ export function TileWidget({
     setContent: setEditContent
   } = editing;
 
-  // Auto-close widget if the previewed tile is deleted
+  // Auto-close widget if the previewed tile is deleted (only for view/edit modes)
   useEffect(() => {
     // Only check if cache is not loading to avoid false positives
-    if (!isLoading && onClose) {
+    // Skip for creation mode since tile doesn't exist yet
+    if (!isLoading && onClose && mode !== 'create' && tileId) {
       const tile = getItem(tileId);
       const tileExists = hasItem(tileId);
 
@@ -71,7 +107,7 @@ export function TileWidget({
         onClose();
       }
     }
-  }, [tileId, getItem, hasItem, isLoading, onClose]);
+  }, [tileId, getItem, hasItem, isLoading, onClose, mode]);
 
   const _handleEdit = () => {
     setIsEditing(true);
@@ -82,43 +118,24 @@ export function TileWidget({
     if (onSave) {
       onSave(editTitle, editPreview, editContent);
     }
-    setIsEditing(false);
-  };
-
-  const _handleCancel = () => {
-    setEditTitle(title);
-    setEditPreview(preview);
-    setEditContent(content);
-    setIsEditing(false);
-  };
-
-  const _handleTitleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      // Move to preview field if editing, otherwise save
-      if (isEditing) {
-        const previewInput = document.querySelector<HTMLInputElement>('[placeholder*="preview"]');
-        previewInput?.focus();
-      } else {
-        _handleSave();
-      }
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      _handleCancel();
+    if (mode !== 'create') {
+      setIsEditing(false);
     }
   };
 
-  const _handleContentKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-      _handleSave();
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      _handleCancel();
+  const _handleCancel = () => {
+    if (mode === 'create') {
+      onClose?.();
+    } else {
+      setEditTitle(title);
+      setEditPreview(preview);
+      setEditContent(content);
+      setIsEditing(false);
     }
   };
 
   const _handleShowMetadata = () => {
+    if (!tileId) return;
     const tile = getItem(tileId);
     if (tile) {
       const metadataText = `Tile Metadata:
@@ -134,14 +151,42 @@ export function TileWidget({
     }
   };
 
+  // Creation mode title
+  const creationTitle = mode === 'create' ? (
+    <span>
+      Create {getDirection()} child of{' '}
+      {parentName && parentCoordId ? (
+        <button
+          className="text-link hover:underline"
+          onClick={async () => {
+            if (parentCoordId) {
+              await navigateToItem(parentCoordId);
+            }
+          }}
+        >
+          {parentName}
+        </button>
+      ) : (
+        <span className="text-muted-foreground">parent</span>
+      )}
+    </span>
+  ) : title;
+
+  // No-op handler for unused keyboard events
+  const _handleNoOp = () => {
+    // Empty handler - keyboard events handled by TileForm
+  };
+
   return (
     <BaseWidget
-      testId="tile-widget"
+      testId={mode === 'create' ? 'creation-widget' : 'tile-widget'}
       className="flex-1 w-full relative"
     >
       <TileHeader
         tileId={tileId}
-        title={title}
+        coordId={coordId}
+        mode={mode}
+        title={creationTitle}
         isExpanded={isExpanded}
         isEditing={isEditing}
         editTitle={editTitle}
@@ -149,48 +194,39 @@ export function TileWidget({
         tileColor={tileColor}
         onToggleExpansion={() => setIsExpanded(!isExpanded)}
         onTitleChange={setEditTitle}
-        onTitleKeyDown={_handleTitleKeyDown}
+        onTitleKeyDown={_handleNoOp}
         onEdit={onEdit ? _handleEdit : undefined}
-        onDelete={onDelete}
+        onDelete={mode !== 'create' ? onDelete : undefined}
         onClose={onClose}
-        onMetadata={_handleShowMetadata}
+        onMetadata={mode !== 'create' ? _handleShowMetadata : undefined}
         onSave={_handleSave}
         onCancel={_handleCancel}
       />
 
-      {/* Preview field for editing */}
-      {isEditing && (
-        <div className="px-2 pb-2">
-          <textarea
-            value={editPreview}
-            onChange={(e) => setEditPreview(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                // Move focus to description textarea
-                const descriptionTextarea = document.querySelector<HTMLTextAreaElement>('textarea[placeholder*="description"]');
-                descriptionTextarea?.focus();
-              } else if (e.key === 'Escape') {
-                e.preventDefault();
-                _handleCancel();
-              }
-            }}
-            className="w-full min-h-[60px] p-2 text-sm bg-neutral-100 dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded focus:outline-none focus:ring-2 focus:ring-primary resize-y"
-            placeholder="Enter preview for AI context (helps AI decide whether to load full description)..."
-          />
-        </div>
+      {/* Show form when editing or creating */}
+      {(isEditing || mode === 'create') && (
+        <TileForm
+          mode={mode === 'create' ? 'create' : 'edit'}
+          title={editTitle}
+          preview={editPreview}
+          content={editContent}
+          onTitleChange={setEditTitle}
+          onPreviewChange={setEditPreview}
+          onContentChange={setEditContent}
+          onSave={_handleSave}
+          onCancel={_handleCancel}
+        />
       )}
 
-      <ContentDisplay
-        content={content}
-        preview={preview}
-        editContent={editContent}
-        isEditing={isEditing}
-        isExpanded={isExpanded}
-        onContentChange={setEditContent}
-        onContentKeyDown={_handleContentKeyDown}
-        onToggleExpansion={() => setIsExpanded(!isExpanded)}
-      />
+      {/* Show content display only in view mode */}
+      {mode !== 'create' && !isEditing && (
+        <ContentDisplay
+          content={content}
+          preview={preview}
+          isExpanded={isExpanded}
+          onToggleExpansion={() => setIsExpanded(!isExpanded)}
+        />
+      )}
 
       {showMetadata && (
         <div className="absolute top-2 right-2 bg-neutral-800 dark:bg-neutral-200 text-white dark:text-neutral-800 px-2 py-1 rounded text-xs z-10">
