@@ -4,7 +4,7 @@ import { initialCacheState } from "~/app/map/Cache/State/reducer";
 import { createMockEventBus, expectEventEmitted } from "~/test-utils/event-bus";
 import type { CacheState } from "~/app/map/Cache/State/types";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";
-import type { StorageService } from "~/app/map/Cache/Services/types";
+import type { StorageService } from "~/app/map/Cache/Services";
 
 describe("MutationCoordinator Event Emissions", () => {
   let mockDispatch: ReturnType<typeof vi.fn>;

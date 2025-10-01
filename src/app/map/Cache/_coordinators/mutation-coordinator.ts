@@ -4,7 +4,7 @@ import type { MapItemAPIContract } from "~/server/api";
 import type { CacheAction } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";
-import type { StorageService } from "~/app/map/Cache/Services/types";
+import type { StorageService } from "~/app/map/Cache/Services";
 import type { TileData } from "~/app/map/types";
 import { OptimisticChangeTracker } from "~/app/map/Cache/_coordinators/optimistic-tracker";
 import type { EventBusService } from '~/app/map';

@@ -1,7 +1,7 @@
 import type { Dispatch } from "react";
 import type { CacheAction } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
-import type { ServerService } from "~/app/map/Cache/Services/types";
+import type { ServerService } from "~/app/map/Cache/Services";
 import type { TileData } from "~/app/map/types";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 import { getColor } from "~/app/map/types";

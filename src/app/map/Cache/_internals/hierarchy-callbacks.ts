@@ -1,6 +1,6 @@
 import type { CacheState } from "~/app/map/Cache/State";
 import type { TileData } from "~/app/map/types/tile-data";
-import * as hierarchyService from "~/app/map/Cache/Services/hierarchy-service";
+import * as hierarchyService from "~/app/map/Cache/Services";
 
 /**
  * Create hierarchy operation callbacks for the public MapCache API

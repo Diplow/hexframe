@@ -3,9 +3,9 @@ import {
   createServerService,
   createServerServiceFactory,
   createMockServerService,
-} from "~/app/map/Cache/Services/server/server-service";
-import { ServiceError, NetworkError, TimeoutError } from "~/app/map/Cache/Services/types";
-import type { ServiceConfig } from "~/app/map/Cache/Services/types";
+} from "~/app/map/Cache/Services";
+import { ServiceError, NetworkError, TimeoutError } from "~/app/map/Cache/Services";
+import type { ServiceConfig } from "~/app/map/Cache/Services";
 
 // Mock console.warn to avoid noise in tests (restored after each test)
 vi.spyOn(console, 'warn').mockImplementation(() => {

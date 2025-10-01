@@ -1,7 +1,7 @@
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";
-import type { ServerService } from "~/app/map/Cache/Services/types";
+import type { ServerService } from "~/app/map/Cache/Services";
 import type { EventBusService } from '~/app/map';
 import { adapt, type TileData } from "~/app/map/types";
 import { loggers } from "~/lib/debug/debug-logger";
