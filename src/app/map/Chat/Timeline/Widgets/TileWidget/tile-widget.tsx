@@ -5,13 +5,15 @@ import { TileHeader } from '~/app/map/Chat/Timeline/Widgets/TileWidget/TileHeade
 import { ContentDisplay } from '~/app/map/Chat/Timeline/Widgets/TileWidget/ContentDisplay';
 import { TileForm } from '~/app/map/Chat/Timeline/Widgets/TileWidget/TileForm';
 import { useTileState } from '~/app/map/Chat/Timeline/Widgets/TileWidget/useTileState';
-import { BaseWidget } from '~/app/map/Chat/Timeline/Widgets/_shared';
+import { BaseWidget, WidgetHeader, WidgetContent, WidgetActions } from '~/app/map/Chat/Timeline/Widgets/_shared';
 import { useMapCache } from '~/app/map/Cache';
 import { CoordSystem } from '~/lib/domains/mapping/utils';
 import { getColor } from '~/app/map/types';
+import { Trash2, AlertTriangle } from 'lucide-react';
+import { Button } from '~/components/ui/button';
 
 interface TileWidgetProps {
-  mode?: 'view' | 'edit' | 'create';
+  mode?: 'view' | 'edit' | 'create' | 'delete';
   tileId?: string;
   coordId?: string;
   title?: string;
@@ -29,7 +31,7 @@ interface TileWidgetProps {
 }
 
 export function TileWidget({
-  mode = 'view',
+  mode: initialMode = 'view',
   tileId,
   coordId,
   title = '',
@@ -45,11 +47,16 @@ export function TileWidget({
   onSave,
   onClose,
 }: TileWidgetProps) {
-  const { getItem, hasItem, isLoading } = useMapCache();
+  const { getItem, hasItem, isLoading, deleteItemOptimistic } = useMapCache();
   const [showMetadata, setShowMetadata] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
+  // Internal mode state - allows switching from view to delete mode
+  const [currentMode, setCurrentMode] = useState(initialMode);
 
   // Calculate tile color for creation mode
-  const tileColor = mode === 'create' && coordId
+  const tileColor = currentMode === 'create' && coordId
     ? getColor(CoordSystem.parseId(coordId))
     : providedTileColor;
 
@@ -58,7 +65,7 @@ export function TileWidget({
     preview,
     content,
     forceExpanded,
-    openInEditMode: mode === 'create' ? true : openInEditMode,
+    openInEditMode: currentMode === 'create' ? true : openInEditMode,
     tileId: tileId ?? '',
   });
 
@@ -78,7 +85,7 @@ export function TileWidget({
   useEffect(() => {
     // Only check if cache is not loading to avoid false positives
     // Skip for creation mode since tile doesn't exist yet
-    if (!isLoading && onClose && mode !== 'create' && tileId) {
+    if (!isLoading && onClose && currentMode !== 'create' && tileId) {
       const tile = getItem(tileId);
       const tileExists = hasItem(tileId);
 
@@ -89,7 +96,7 @@ export function TileWidget({
         onClose();
       }
     }
-  }, [tileId, getItem, hasItem, isLoading, onClose, mode]);
+  }, [tileId, getItem, hasItem, isLoading, onClose, currentMode]);
 
   const _handleEdit = () => {
     setIsEditing(true);
@@ -100,13 +107,13 @@ export function TileWidget({
     if (onSave) {
       onSave(editTitle, editPreview, editContent);
     }
-    if (mode !== 'create') {
+    if (currentMode !== 'create') {
       setIsEditing(false);
     }
   };
 
   const _handleCancel = () => {
-    if (mode === 'create') {
+    if (currentMode === 'create' || currentMode === 'delete') {
       onClose?.();
     } else {
       setEditTitle(title);
@@ -114,6 +121,11 @@ export function TileWidget({
       setEditContent(content);
       setIsEditing(false);
     }
+  };
+
+  const _handleDeleteClick = () => {
+    // Switch to delete confirmation mode
+    setCurrentMode('delete');
   };
 
   const _handleShowMetadata = () => {
@@ -145,15 +157,86 @@ export function TileWidget({
     }
   };
 
+  const _handleConfirmDelete = async () => {
+    if (!tileId) return;
+
+    setIsDeleting(true);
+    setDeleteError('');
+
+    try {
+      await deleteItemOptimistic(tileId);
+      onClose?.();
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Failed to delete tile');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Render delete confirmation mode
+  if (currentMode === 'delete') {
+    return (
+      <BaseWidget variant="default" className="w-full">
+        <WidgetHeader
+          icon={<AlertTriangle className="h-5 w-5 text-destructive" />}
+          title="Delete Tile?"
+          onClose={_handleCancel}
+        />
+
+        <WidgetContent>
+          <div className="space-y-3">
+            <p className="text-sm">
+              Delete &ldquo;{title || 'this tile'}&rdquo;? This action cannot be undone.
+            </p>
+
+            {((tileId?.includes(':') && (tileId.split(':')[1]?.length ?? 0) > 0) ||
+              (coordId?.includes(':') && (coordId.split(':')[1]?.length ?? 0) > 0)) && (
+              <p className="text-sm text-muted-foreground">
+                All child tiles will also be deleted.
+              </p>
+            )}
+
+            {deleteError && (
+              <div className="text-sm text-destructive">
+                {deleteError}
+              </div>
+            )}
+          </div>
+
+          <WidgetActions align="between">
+            <Button
+              onClick={_handleCancel}
+              disabled={isDeleting}
+              variant="outline"
+              size="sm"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => void _handleConfirmDelete()}
+              disabled={isDeleting}
+              variant="destructive"
+              size="sm"
+              className="gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </Button>
+          </WidgetActions>
+        </WidgetContent>
+      </BaseWidget>
+    );
+  }
+
   return (
     <BaseWidget
-      testId={mode === 'create' ? 'creation-widget' : 'tile-widget'}
+      testId={currentMode === 'create' ? 'creation-widget' : 'tile-widget'}
       className="flex-1 w-full relative"
     >
       <TileHeader
         tileId={tileId}
         coordId={coordId}
-        mode={mode}
+        mode={currentMode}
         title={title}
         isExpanded={isExpanded}
         isEditing={isEditing}
@@ -164,17 +247,17 @@ export function TileWidget({
         onTitleChange={setEditTitle}
         onTitleKeyDown={_handleTitleKeyDown}
         onEdit={onEdit ? _handleEdit : undefined}
-        onDelete={mode !== 'create' ? onDelete : undefined}
+        onDelete={currentMode !== 'create' ? _handleDeleteClick : undefined}
         onClose={onClose}
-        onMetadata={mode !== 'create' ? _handleShowMetadata : undefined}
+        onMetadata={currentMode !== 'create' ? _handleShowMetadata : undefined}
         onSave={_handleSave}
         onCancel={_handleCancel}
       />
 
       {/* Show form when editing or creating */}
-      {(isEditing || mode === 'create') && (
+      {(isEditing || currentMode === 'create') && (
         <TileForm
-          mode={mode === 'create' ? 'create' : 'edit'}
+          mode={currentMode === 'create' ? 'create' : 'edit'}
           preview={editPreview}
           content={editContent}
           onPreviewChange={setEditPreview}
@@ -185,7 +268,7 @@ export function TileWidget({
       )}
 
       {/* Show content display only in view mode */}
-      {mode !== 'create' && !isEditing && (
+      {currentMode !== 'create' && !isEditing && (
         <ContentDisplay
           content={content}
           preview={preview}

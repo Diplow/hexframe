@@ -74,13 +74,6 @@ export function TileForm({
           data-field="content"
         />
       </div>
-
-      {/* Keyboard Shortcuts Help */}
-      <div className="text-xs text-muted-foreground space-y-1">
-        <p>Press <kbd className="px-2 py-1 bg-muted rounded text-xs">Enter</kbd> in Preview to move to Content</p>
-        <p>Press <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl+Enter</kbd> to save</p>
-        <p>Press <kbd className="px-2 py-1 bg-muted rounded text-xs">Esc</kbd> to cancel</p>
-      </div>
     </div>
   );
 }

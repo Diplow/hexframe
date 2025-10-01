@@ -7,7 +7,6 @@
 // Core Widget Components
 export { TileWidget } from '~/app/map/Chat/Timeline/Widgets/TileWidget';
 export { LoginWidget } from '~/app/map/Chat/Timeline/Widgets/LoginWidget';
-export { ConfirmDeleteWidget } from '~/app/map/Chat/Timeline/Widgets/ConfirmDeleteWidget';
 export { ErrorWidget } from '~/app/map/Chat/Timeline/Widgets/ErrorWidget';
 export { LoadingWidget } from '~/app/map/Chat/Timeline/Widgets/LoadingWidget';
 export { AIResponseWidget } from '~/app/map/Chat/Timeline/Widgets/AIResponseWidget';

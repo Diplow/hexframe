@@ -3,7 +3,6 @@ import type { TileData } from '~/app/map/types';
 import {
   TileWidget,
   LoginWidget,
-  ConfirmDeleteWidget,
   LoadingWidget,
   ErrorWidget,
   AIResponseWidget,
@@ -168,10 +167,11 @@ export function renderDeleteWidget(widget: Widget, handlers: WidgetHandlers) {
   const tileName = deleteData.tileName ?? deleteData.tile?.title ?? 'item';
 
   return (
-    <ConfirmDeleteWidget
+    <TileWidget
+      mode="delete"
       tileId={tileCoordId}
-      tileName={tileName}
-      widgetId={widget.id}
+      coordId={tileCoordId}
+      title={tileName}
       onClose={handleCancel}
     />
   );
