@@ -1,7 +1,7 @@
 // Types are now exported directly from their original locations
 // For MapItem types, import from: ~/lib/domains/mapping/_objects
 // For contracts, use: ~/lib/domains/mapping/types/contracts
-// For client-safe API, use: ~/lib/domains/mapping/interface.client
+// For client-safe API, use: ~/lib/domains/mapping/utils
 
 export {
   type MapContract as MapMappingContract,

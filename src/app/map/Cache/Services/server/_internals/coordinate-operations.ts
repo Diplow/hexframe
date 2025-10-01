@@ -3,7 +3,7 @@ import type { api } from "~/commons/trpc/react";
 import { withRetry } from "~/app/map/Cache/Services/server/server-retry-utils";
 import type { ServiceConfig } from "~/app/map/Cache/Services/types";
 import { withErrorTransform } from "~/app/map/Cache/Services/server/server-operations";
-import type { MapItemType } from "~/lib/domains/mapping/interface.client";
+import type { MapItemType } from "~/lib/domains/mapping/utils";
 
 /**
  * Create coordinate-based query operations

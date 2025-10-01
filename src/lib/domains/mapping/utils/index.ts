@@ -20,4 +20,7 @@ export type {
   MapItemAttributes,
   MapItemUpdateAttributes,
   MapItemCreateAttributes,
-} from '../types/item-attributes';
+} from '~/lib/domains/mapping/types/item-attributes';
+
+// MapItem type enum
+export { MapItemType } from '~/lib/domains/mapping/_objects';

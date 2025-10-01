@@ -1,5 +1,6 @@
 // Service interface types for dependency injection and mocking
-import type { MapItemType } from "~/lib/domains/mapping/interface.client";
+import type { MapItemType } from "~/lib/domains/mapping/utils";
+import type { MapItemUpdateAttributes, MapItemCreateAttributes } from "~/lib/domains/mapping/utils";
 
 export interface ServerService {
   // Data fetching operations (primary purpose)
@@ -85,8 +86,9 @@ export interface ServerService {
   }[]>;
 
   // Mutation operations (architectural placeholders - should use mutation layer)
-  createItem: (params: { coordId: string; data: Record<string, unknown> }) => Promise<unknown>;
-  updateItem: (params: { coordId: string; data: Record<string, unknown> }) => Promise<unknown>;
+  // These methods intentionally throw errors - mutations should use MutationCoordinator instead
+  createItem: (params: { coordId: string; data: MapItemCreateAttributes }) => Promise<unknown>;
+  updateItem: (params: { coordId: string; data: MapItemUpdateAttributes }) => Promise<unknown>;
   deleteItem: (params: { coordId: string }) => Promise<void>;
 }
 
