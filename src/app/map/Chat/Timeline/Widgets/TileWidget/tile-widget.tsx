@@ -43,7 +43,7 @@ export function TileWidget({
   parentName: _parentName,
   parentCoordId: _parentCoordId,
   onEdit,
-  onDelete,
+  onDelete: _onDelete,
   onSave,
   onClose,
 }: TileWidgetProps) {
@@ -189,8 +189,8 @@ export function TileWidget({
               Delete &ldquo;{title || 'this tile'}&rdquo;? This action cannot be undone.
             </p>
 
-            {((tileId?.includes(':') && (tileId.split(':')[1]?.length ?? 0) > 0) ||
-              (coordId?.includes(':') && (coordId.split(':')[1]?.length ?? 0) > 0)) && (
+            {(Boolean(tileId?.includes(':') && (tileId.split(':')[1]?.length ?? 0) > 0) ||
+              Boolean(coordId?.includes(':') && (coordId.split(':')[1]?.length ?? 0) > 0)) && (
               <p className="text-sm text-muted-foreground">
                 All child tiles will also be deleted.
               </p>
@@ -258,6 +258,7 @@ export function TileWidget({
       {(isEditing || currentMode === 'create') && (
         <TileForm
           mode={currentMode === 'create' ? 'create' : 'edit'}
+          title={editTitle}
           preview={editPreview}
           content={editContent}
           onPreviewChange={setEditPreview}

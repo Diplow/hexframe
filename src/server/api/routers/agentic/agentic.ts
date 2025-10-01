@@ -3,6 +3,8 @@ import { TRPCError } from '@trpc/server'
 import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc'
 import { verificationAwareRateLimit, verificationAwareAuthLimit } from '~/server/api/middleware'
 import { createAgenticService, type CompositionConfig } from '~/lib/domains/agentic'
+import { PreviewGeneratorService } from '~/lib/domains/agentic/services/preview-generator.service'
+import { OpenRouterRepository } from '~/lib/domains/agentic'
 import { EventBus as EventBusImpl } from '~/app/map'
 import type { CacheState } from '~/app/map'
 import type { ChatMessage } from '~/app/map'
@@ -10,6 +12,7 @@ import { env } from '~/env'
 import { db, schema } from '~/server/db'
 const { llmJobResults } = schema
 import { eq } from 'drizzle-orm'
+import { nanoid } from 'nanoid'
 
 // Message schema matching the Chat component
 const chatMessageSchema = z.object({
@@ -290,28 +293,109 @@ export const agenticRouter = createTRPCRouter({
         .from(llmJobResults)
         .where(eq(llmJobResults.jobId, input.jobId))
         .limit(1)
-      
+
       if (!job[0]) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Job not found'
         })
       }
-      
+
       if (job[0].userId !== ctx.session?.userId) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'You can only cancel your own jobs'
         })
       }
-      
+
       // Send cancel event to Inngest
       const { inngest } = await import('~/lib/domains/agentic/infrastructure/inngest/client')
       await inngest.send({
         name: 'llm/generate.cancel',
         data: { jobId: input.jobId }
       })
-      
+
       return { success: true }
+    }),
+
+  // Generate preview for tile content
+  generatePreview: protectedProcedure
+    .use(verificationAwareRateLimit) // Rate limit: 10 req/5min for verified, 3 req/5min for unverified
+    .input(
+      z.object({
+        title: z.string(),
+        content: z.string()
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { title, content } = input
+
+      // Quick return if content is already short enough
+      const MAX_PREVIEW_LENGTH = 250
+      if (content.length <= MAX_PREVIEW_LENGTH) {
+        return {
+          preview: content,
+          usedAI: false
+        }
+      }
+
+      // For longer content, use Inngest queue
+      const useQueue = process.env.USE_QUEUE === 'true' || process.env.NODE_ENV === 'production'
+
+      if (useQueue) {
+        // Queue the job
+        const jobId = `preview-${nanoid()}`
+        const userId = ctx.session?.userId ?? 'anonymous'
+
+        // Create pending job record
+        await db.insert(llmJobResults).values({
+          id: jobId,
+          jobId,
+          userId,
+          status: 'pending',
+          request: { title, content },
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+
+        // Send to Inngest queue
+        const { inngest } = await import('~/lib/domains/agentic/infrastructure/inngest/client')
+        await inngest.send({
+          name: 'preview/generate.request',
+          data: {
+            jobId,
+            userId,
+            title,
+            content,
+            timestamp: new Date().toISOString()
+          }
+        })
+
+        return {
+          preview: '',
+          usedAI: true,
+          jobId,
+          queued: true
+        }
+      }
+
+      // Direct generation (non-queued)
+      const repository = new OpenRouterRepository(env.OPENROUTER_API_KEY ?? '')
+      const previewService = new PreviewGeneratorService(repository)
+
+      if (!repository.isConfigured()) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'OpenRouter API key not configured. Please set OPENROUTER_API_KEY environment variable.',
+        })
+      }
+
+      const result = await previewService.generatePreview({ title, content })
+
+      return {
+        preview: result.preview,
+        usedAI: result.usedAI,
+        queued: false
+      }
     })
 })
