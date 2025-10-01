@@ -1,7 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
-
 interface TileFormProps {
   mode: 'create' | 'edit';
   preview: string;
@@ -13,7 +11,7 @@ interface TileFormProps {
 }
 
 export function TileForm({
-  mode,
+  mode: _mode,
   preview,
   content,
   onPreviewChange,
@@ -21,16 +19,6 @@ export function TileForm({
   onSave,
   onCancel,
 }: TileFormProps) {
-  // Auto-focus preview field on mount when creating
-  useEffect(() => {
-    if (mode === 'create') {
-      const timer = setTimeout(() => {
-        const input = document.querySelector<HTMLTextAreaElement>('[data-autofocus="true"]');
-        input?.focus();
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [mode]);
 
   const handlePreviewKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -67,9 +55,8 @@ export function TileForm({
           onChange={(e) => onPreviewChange(e.target.value)}
           onKeyDown={handlePreviewKeyDown}
           className="w-full min-h-[60px] p-2 text-sm bg-neutral-100 dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary resize-y"
-          placeholder="Enter preview for AI context (helps AI decide whether to load full content)..."
+          placeholder="Enter preview for AI context (helps AI decide whether to load full content)"
           data-field="preview"
-          data-autofocus={mode === 'create' ? 'true' : undefined}
         />
       </div>
 
@@ -83,7 +70,7 @@ export function TileForm({
           onChange={(e) => onContentChange(e.target.value)}
           onKeyDown={handleContentKeyDown}
           className="w-full min-h-[100px] p-2 text-sm bg-neutral-100 dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary resize-y"
-          placeholder="Enter content... (optional)"
+          placeholder="Enter content (optional)"
           data-field="content"
         />
       </div>

@@ -102,9 +102,10 @@ export function TileHeader({
           onChange={(e) => onTitleChange(e.target.value)}
           onKeyDown={onTitleKeyDown}
           className="flex-1 text-sm font-semibold bg-neutral-100 dark:bg-neutral-700 px-2 py-1 rounded border border-neutral-300 dark:border-neutral-600 focus:outline-none focus:ring-2 focus:ring-primary"
-          placeholder={mode === 'create' ? 'Enter tile name...' : 'Enter title...'}
+          placeholder={mode === 'create' ? "Your new tile's title" : 'Enter title'}
           autoFocus
           onClick={(e) => e.stopPropagation()}
+          data-tile-title-input="true"
         />
       ) : (
         <div className="flex-1 min-w-0">
