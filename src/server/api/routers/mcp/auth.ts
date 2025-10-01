@@ -27,7 +27,7 @@ export const mcpAuthRouter = createTRPCRouter({
         // Use better-auth's signInEmail to verify credentials
 
         try {
-          const verificationResult = await auth.api.signInEmail({
+          await auth.api.signInEmail({
             body: {
               email: ctx.user.email,
               password: input.password,
@@ -123,7 +123,7 @@ export const mcpAuthRouter = createTRPCRouter({
               const isUserKey = key.userId === ctx.user.id;
               const isMcpKey = metadata?.purpose === "mcp";
               return isUserKey && isMcpKey;
-            } catch (error) {
+            } catch {
               return false;
             }
           });

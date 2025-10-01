@@ -61,7 +61,6 @@ function _processWidgetStates(events: ChatEvent[]): {
 } {
   const activeOperations = new Set<string>();
   const widgetStates = new Map<string, 'active' | 'completed'>();
-  const debugEnabled = chatSettings.getSettings().messages.debug === true;
 
   // Process events in order to determine widget states
   for (const event of events) {
@@ -242,7 +241,7 @@ function _createOperationWidgets(event: ChatEvent, widgetStates: Map<string, 'ac
 /**
  * Create widget from widget created event
  */
-function _createDirectWidget(event: ChatEvent, widgetStates: Map<string, 'active' | 'completed'>, debugEnabled: boolean): Widget | null {
+function _createDirectWidget(event: ChatEvent, widgetStates: Map<string, 'active' | 'completed'>, _debugEnabled: boolean): Widget | null {
   const payload = event.payload as { widget: Widget };
   if (payload && typeof payload === 'object' && 'widget' in payload && payload.widget && typeof payload.widget === 'object' && 'id' in payload.widget && widgetStates.get(payload.widget.id) === 'active') {
     return payload.widget;
@@ -300,7 +299,6 @@ function _createWidgetsFromStates(events: ChatEvent[], widgetStates: Map<string,
  * Widgets are derived from events that require user interaction
  */
 export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
-  const debugEnabled = chatSettings.getSettings().messages.debug === true;
 
   // Process events to determine widget states
   const { widgetStates } = _processWidgetStates(events);
