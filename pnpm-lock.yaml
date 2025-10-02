@@ -146,8 +146,8 @@ dependencies:
 
 devDependencies:
   '@mdx-js/react':
-    specifier: ^3.1.0
-    version: 3.1.0(@types/react@18.3.18)(react@18.3.1)
+    specifier: ^3.1.1
+    version: 3.1.1(@types/react@18.3.18)(react@18.3.1)
   '@tailwindcss/typography':
     specifier: ^0.5.16
     version: 0.5.16(tailwindcss@3.4.17)
@@ -2235,8 +2235,8 @@ packages:
     resolution: {integrity: sha512-llBRm4dT4Z89aRsm6u2oEZ8tfwL/2l6BwpZ7JcyieouniDECM5AqNgr/y08zalEIvW3RSK4upYyybDcmjXqAow==}
     dev: false
 
-  /@mdx-js/react@3.1.0(@types/react@18.3.18)(react@18.3.1):
-    resolution: {integrity: sha512-QjHtSaoameoalGnKDT3FoIl4+9RwyTmo9ZJGBdLOks/YOiWHoRDI3PUwEzOE7kEmGcV3AFcp9K6dYu9rEuKLAQ==}
+  /@mdx-js/react@3.1.1(@types/react@18.3.18)(react@18.3.1):
+    resolution: {integrity: sha512-f++rKLQgUVYDAtECQ6fn/is15GkEH9+nZPM3MS0RcxVqoTfawHvDlSCH7JbMhAM6uJ32v3eXLvLmLvjGu7PTQw==}
     peerDependencies:
       '@types/react': '>=16'
       react: '>=16'
