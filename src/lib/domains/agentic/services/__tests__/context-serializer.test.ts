@@ -122,12 +122,12 @@ describe('ContextSerializerService', () => {
   describe('XML Format', () => {
     it('should produce valid XML for Claude models', async () => {
       const result = serializer.serialize(mockComposedContext, { type: 'xml' })
-      
+
       expect(result).toContain('<context>')
       expect(result).toContain('</context>')
       expect(result).toContain('<canvas>')
       expect(result).toContain('<current_item>')
-      expect(result).toContain('<name>Product Development</name>')
+      expect(result).toContain('<title>Product Development</title>')
       expect(result).toContain('<children>')
       expect(result).toContain('<chat>')
       expect(result).toContain('<message role="user">')
