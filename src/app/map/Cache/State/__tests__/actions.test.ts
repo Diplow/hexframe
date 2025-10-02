@@ -20,7 +20,7 @@ import {
 import { ACTION_TYPES } from "~/app/map/Cache/State/types";
 import type { MapItemAPIContract } from "~/server/api/types/contracts";
 import type { CacheAction, CacheState } from "~/app/map/Cache/State/types";
-import { MapItemType } from "~/lib/domains/mapping/interface.client";
+import { MapItemType } from "~/lib/domains/mapping/utils";
 
 describe("Cache Actions", () => {
   // Mock data for testing
@@ -28,10 +28,11 @@ describe("Cache Actions", () => {
     {
       id: "1",
       coordinates: "1,2",
-      name: "Test Item",
-      descr: "Test Description",
+      title: "Test Item",
+      content: "Test Description",
+      preview: undefined,
       depth: 1,
-      url: "",
+      link: "",
       parentId: null,
       itemType: MapItemType.BASE,
       ownerId: "test-owner",

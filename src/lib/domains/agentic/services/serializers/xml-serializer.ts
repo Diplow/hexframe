@@ -23,22 +23,22 @@ export class XMLContextSerializer {
   private serializeCanvasXML(context: CanvasContext): string {
     const lines: string[] = ['  <canvas>']
     lines.push(`    <current_item>`)
-    lines.push(`      <name>${this.escapeXML(context.center.name)}</name>`)
-    if (context.center.description) {
-      lines.push(`      <description>${this.escapeXML(context.center.description)}</description>`)
+    lines.push(`      <title>${this.escapeXML(context.center.title)}</title>`)
+    if (context.center.content) {
+      lines.push(`      <content>${this.escapeXML(context.center.content)}</content>`)
     }
     lines.push(`    </current_item>`)
-    
+
     if (context.children.length > 0) {
       lines.push('    <children>')
       for (const child of context.children) {
         lines.push(`      <child position="${child.position ?? 'unknown'}">`)
-        lines.push(`        <name>${this.escapeXML(child.name)}</name>`)
+        lines.push(`        <title>${this.escapeXML(child.title)}</title>`)
         lines.push(`      </child>`)
       }
       lines.push('    </children>')
     }
-    
+
     lines.push('  </canvas>')
     return lines.join('\n')
   }

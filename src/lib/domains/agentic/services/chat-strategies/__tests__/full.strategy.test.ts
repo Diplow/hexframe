@@ -27,7 +27,7 @@ describe('FullChatStrategy', () => {
       id: '3',
       type: 'user',
       content: {
-        type: 'preview',
+        type: 'tile',
         data: { title: 'My Tile', content: 'Tile content', tileId: 'tile-456' }
       },
       metadata: {
@@ -61,7 +61,7 @@ describe('FullChatStrategy', () => {
     const result = await strategy.build(mockMessages, {})
     
     const widgetMessage = result.messages[2]
-    expect(widgetMessage?.content).toBe('[Preview Widget: My Tile]')
+    expect(widgetMessage?.content).toBe('[Tile Widget: My Tile]')
   })
   
   it('should preserve message metadata', async () => {

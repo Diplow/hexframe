@@ -22,12 +22,12 @@
     "prioritization": {
       "completed": "2025-08-07",
       "top_priorities": [
-        "Fix Critical Bugs (swap state bug, focus management, widget close)",
-        "Message Rendering (fix chat UI layout and transitions)",
-        "MCP Integration (make systems alive through AI)",
-        "Privacy Controls + Basic Sharing (public/private, forking)",
-        "Usage Statistics Widget (track MCP calls, chat interactions)",
-        "Web Search Integration (import external knowledge)"
+        "Workflow Migration to Hexframe (complete tile organization)",
+        "Integrate Hexframe MCP in Chat (enable tile CRUD from chat)",
+        "Simplify System Prompt (focus on core value)",
+        "Usage Statistics Widget (demonstrate system usage)",
+        "New User Experience (free tier with limitations)",
+        "Paid Tier with OpenRouter/Claude (premium features)"
       ],
       "candidates": []
     },
@@ -38,12 +38,12 @@
     },
     "execution": {
       "started": "2025-08-08",
-      "current_priority": "Priority 2: MCP Integration",
-      "current_task": "Architecture & Planning Complete - Ready for Implementation",
+      "current_priority": "Priority 3: Workflow Migration to Hexframe",
+      "current_task": "Reorganizing workflow tiles and simplifying system",
       "completed_tasks": 0,
       "total_tasks": 4,
       "blockers": [],
-      "completed_priorities": ["Priority 1: Chat UX Enhancement"],
+      "completed_priorities": ["Priority 1: Chat UX Enhancement", "Priority 2: MCP Integration"],
       "planning_status": "architectural_design_complete",
       "next_action": "Begin MCP server implementation following priority-2-mcp-integration.md plan"
     },

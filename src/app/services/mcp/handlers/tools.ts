@@ -87,7 +87,8 @@ HEXFRAME CONTEXT: You're working with a hexagonal knowledge mapping system where
 - Empty path=[] means root/center tile
 - Each tile can have up to 6 children in different directions
 
-This tool returns nested structure with children[] arrays showing the knowledge hierarchy.`,
+This tool returns nested structure with children[] arrays showing the knowledge hierarchy.
+Use 'fields' parameter for progressive disclosure: ["name", "preview"] for overview, ["name", "descr"] for full content.`,
     inputSchema: {
       type: "object",
       properties: {
@@ -106,6 +107,15 @@ This tool returns nested structure with children[] arrays showing the knowledge 
           default: 3,
           minimum: 1,
           maximum: 10,
+        },
+        fields: {
+          type: "array",
+          items: {
+            type: "string",
+            enum: ["title", "descr", "preview", "link", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
+          },
+          description: "Fields to include in response. For overview use ['title', 'preview'], for full content use ['title', 'descr']. Default: all fields",
+          default: ["title", "descr", "preview", "link", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
         },
       },
       required: [],
@@ -133,17 +143,20 @@ This tool returns nested structure with children[] arrays showing the knowledge 
       const depth = argsObj?.depth ?
         (typeof argsObj.depth === 'string' ? parseInt(argsObj.depth, 10) : argsObj.depth as number) : 3;
 
+      // Parse fields parameter for field selection
+      const fields = argsObj?.fields as string[] | undefined;
+
       if (!userId) {
         throw new Error('userId is required');
       }
 
-      return await getUserMapItemsHandler(userId, groupId, depth);
+      return await getUserMapItemsHandler(userId, groupId, depth, fields);
     },
   },
 
   {
     name: "getItemByCoords",
-    description: "Get a single Hexframe tile by its coordinates. Use this to read specific tiles when you know their exact location in the hexagonal hierarchy.",
+    description: "Get a single Hexframe tile by its coordinates. Use this to read specific tiles when you know their exact location in the hexagonal hierarchy. Use 'fields' parameter for progressive disclosure.",
     inputSchema: {
       type: "object",
       properties: {
@@ -160,6 +173,15 @@ This tool returns nested structure with children[] arrays showing the knowledge 
             }
           },
           required: ["userId", "groupId", "path"]
+        },
+        fields: {
+          type: "array",
+          items: {
+            type: "string",
+            enum: ["title", "descr", "preview", "link", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
+          },
+          description: "Fields to include in response. For overview use ['title', 'preview'], for full content use ['title', 'descr']. Default: all fields",
+          default: ["title", "descr", "preview", "link", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
         }
       },
       required: ["coords"],
@@ -167,7 +189,8 @@ This tool returns nested structure with children[] arrays showing the knowledge 
     handler: async (args: unknown) => {
       const argsObj = args as Record<string, unknown>;
       const coords = normalizeCoordinates(argsObj?.coords);
-      return await getItemByCoordsHandler(coords);
+      const fields = argsObj?.fields as string[] | undefined;
+      return await getItemByCoordsHandler(coords, fields);
     },
   },
 
@@ -199,6 +222,10 @@ This tool returns nested structure with children[] arrays showing the knowledge 
           type: "string",
           description: "The content/description of the new tile (optional)"
         },
+        preview: {
+          type: "string",
+          description: "Short preview text for quick scanning (optional)"
+        },
         url: {
           type: "string",
           description: "Optional URL for the tile"
@@ -211,13 +238,14 @@ This tool returns nested structure with children[] arrays showing the knowledge 
       const coords = normalizeCoordinates(argsObj?.coords);
       const title = argsObj?.title as string;
       const descr = argsObj?.descr as string | undefined;
+      const preview = argsObj?.preview as string | undefined;
       const url = argsObj?.url as string | undefined;
 
       if (!title) {
         throw new Error("title parameter is required");
       }
 
-      return await addItemHandler(coords, title, descr, url);
+      return await addItemHandler(coords, title, descr, preview, url);
     },
   },
 
@@ -247,6 +275,7 @@ This tool returns nested structure with children[] arrays showing the knowledge 
           properties: {
             title: { type: "string" },
             descr: { type: "string" },
+            preview: { type: "string" },
             url: { type: "string" }
           }
         }

@@ -7,8 +7,8 @@ describe('ContextSerializerService', () => {
 
   const mockCenterTile: TileContextItem = {
     coordId: 'user:123,group:456:1,2',
-    name: 'Product Development',
-    description: 'Main product roadmap and features',
+    title: 'Product Development',
+    content: 'Main product roadmap and features',
     depth: 0,
     hasChildren: true
   }
@@ -19,16 +19,16 @@ describe('ContextSerializerService', () => {
     children: [
       { 
         coordId: 'child1', 
-        name: 'User Research', 
-        description: 'Understanding customer needs', 
+        title: 'User Research', 
+        content: 'Understanding customer needs', 
         position: 1, 
         depth: 1, 
         hasChildren: false 
       },
       { 
         coordId: 'child2', 
-        name: 'Feature Planning', 
-        description: 'Prioritizing development work', 
+        title: 'Feature Planning', 
+        content: 'Prioritizing development work', 
         position: 2, 
         depth: 1, 
         hasChildren: false 
@@ -37,8 +37,8 @@ describe('ContextSerializerService', () => {
     grandchildren: [
       { 
         coordId: 'gc1', 
-        name: 'User Interviews', 
-        description: 'Direct customer feedback', 
+        title: 'User Interviews', 
+        content: 'Direct customer feedback', 
         depth: 2, 
         hasChildren: false 
       }
@@ -122,12 +122,12 @@ describe('ContextSerializerService', () => {
   describe('XML Format', () => {
     it('should produce valid XML for Claude models', async () => {
       const result = serializer.serialize(mockComposedContext, { type: 'xml' })
-      
+
       expect(result).toContain('<context>')
       expect(result).toContain('</context>')
       expect(result).toContain('<canvas>')
       expect(result).toContain('<current_item>')
-      expect(result).toContain('<name>Product Development</name>')
+      expect(result).toContain('<title>Product Development</title>')
       expect(result).toContain('<children>')
       expect(result).toContain('<chat>')
       expect(result).toContain('<message role="user">')
@@ -145,8 +145,8 @@ describe('ContextSerializerService', () => {
         ...mockCanvasContext,
         center: {
           ...mockCenterTile,
-          name: 'Product & Development <Test>',
-          description: 'Features with "quotes" and & symbols'
+          title: 'Product & Development <Test>',
+          content: 'Features with "quotes" and & symbols'
         }
       }
       

@@ -1,10 +1,8 @@
 import type { Widget, TileSelectedPayload, AuthRequiredPayload, ErrorOccurredPayload } from '~/app/map/Chat/_state';
 import type { TileData } from '~/app/map/types';
 import {
-  PreviewWidget,
-  CreationWidget,
+  TileWidget,
   LoginWidget,
-  ConfirmDeleteWidget,
   LoadingWidget,
   ErrorWidget,
   AIResponseWidget,
@@ -24,42 +22,44 @@ function safeStringify(value: unknown, space = 0): string | undefined {
 export interface WidgetHandlers {
   handleEdit?: () => void;
   handleDelete?: () => void;
-  handlePreviewSave?: (title: string, content: string) => void;
-  handlePreviewClose?: () => void;
-  handleSave?: (name: string, description: string) => void;
+  handleTileSave?: (title: string, preview: string, content: string) => void;
+  handleTileClose?: () => void;
+  handleSave?: (name: string, preview: string, content: string) => void;
   handleCancel?: () => void;
 }
 
-export function renderPreviewWidget(
+export function renderTileWidget(
   widget: Widget,
   handlers: WidgetHandlers,
   getItem: (coordId: string) => TileData | null,
 ) {
-  const previewData = widget.data as TileSelectedPayload;
-  const { 
-    handleEdit = () => { /* noop */ }, 
-    handleDelete = () => { /* noop */ }, 
-    handlePreviewSave = () => { /* noop */ },
-    handlePreviewClose = () => { /* noop */ }
+  const tileData = widget.data as TileSelectedPayload;
+  const {
+    handleEdit = () => { /* noop */ },
+    handleDelete = () => { /* noop */ },
+    handleTileSave = () => { /* noop */ },
+    handleTileClose = () => { /* noop */ }
   } = handlers;
 
-  const tileItem = getItem(previewData.tileId);
-  const currentTitle = tileItem?.data.name ?? previewData.tileData.title;
-  const currentContent = tileItem?.data.description ?? previewData.tileData.content ?? '';
+  const tileItem = getItem(tileData.tileId);
+  const currentTitle = tileItem?.data.title ?? tileData.tileData.title;
+  const currentPreview = tileItem?.data.preview ?? '';
+  const currentContent = tileItem?.data.content ?? tileData.tileData.content ?? '';
   // Get color from the cached tile data (preferred) or generate from coordinates
   const tileColor = tileItem?.data.color;
 
   return (
-    <PreviewWidget
-      tileId={previewData.tileId}
+    <TileWidget
+      tileId={tileData.tileId}
       title={currentTitle}
+      preview={currentPreview}
       content={currentContent}
       tileColor={tileColor}
-      openInEditMode={previewData.openInEditMode}
+      openInEditMode={tileData.openInEditMode}
       onEdit={handleEdit}
       onDelete={handleDelete}
-      onSave={handlePreviewSave}
-      onClose={handlePreviewClose}
+      onSave={handleTileSave}
+      onClose={handleTileClose}
     />
   );
 }
@@ -138,12 +138,13 @@ export function renderCreationWidget(widget: Widget, handlers: WidgetHandlers) {
   const { handleSave = () => { /* noop */ }, handleCancel = () => { /* noop */ } } = handlers;
 
   return (
-    <CreationWidget
+    <TileWidget
+      mode="create"
       coordId={creationData.coordId ?? ''}
       parentName={creationData.parentName}
       parentCoordId={creationData.parentCoordId}
       onSave={handleSave}
-      onCancel={handleCancel}
+      onClose={handleCancel}
     />
   );
 }
@@ -166,10 +167,11 @@ export function renderDeleteWidget(widget: Widget, handlers: WidgetHandlers) {
   const tileName = deleteData.tileName ?? deleteData.tile?.title ?? 'item';
 
   return (
-    <ConfirmDeleteWidget
+    <TileWidget
+      mode="delete"
       tileId={tileCoordId}
-      tileName={tileName}
-      widgetId={widget.id}
+      coordId={tileCoordId}
+      title={tileName}
       onClose={handleCancel}
     />
   );

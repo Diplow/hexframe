@@ -22,31 +22,34 @@ export class MapItemCreationHelpers {
     itemType,
     coords,
     title,
-    descr,
-    url,
+    content,
+    preview,
+    link,
     parentId,
   }: {
     itemType: MapItemType;
     coords: Coord;
     title?: string;
-    descr?: string;
-    url?: string;
+    content?: string;
+    preview?: string;
+    link?: string;
     parentId?: number;
   }): Promise<MapItemWithId> {
     const parent = await this._validateAndGetParent(itemType, parentId);
     this._validateItemTypeConstraints(itemType, parent, coords);
 
-    const ref = await this._createReference(title, descr, url);
+    const ref = await this._createReference(title, content, preview, link);
     const mapItem = this._buildMapItem(itemType, coords, parent, ref);
-
-    return await this.mapItems.create(mapItem);
+    const result = await this.mapItems.create(mapItem);
+    return result;
   }
 
   async updateRef(ref: BaseItemWithId, attrs: Partial<BaseItemAttrs>) {
-    return await this.baseItems.update({
+    const result = await this.baseItems.update({
       aggregate: ref,
       attrs,
     });
+    return result;
   }
 
   private async _validateAndGetParent(
@@ -89,10 +92,11 @@ export class MapItemCreationHelpers {
 
   private async _createReference(
     title?: string,
-    descr?: string,
-    url?: string,
+    content?: string,
+    preview?: string,
+    link?: string,
   ): Promise<BaseItemWithId> {
-    const baseItem = new BaseItem({ attrs: { title, descr, link: url } });
+    const baseItem = new BaseItem({ attrs: { title, content, preview, link } });
     return await this.baseItems.create(baseItem);
   }
 

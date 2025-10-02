@@ -12,8 +12,8 @@ describe('CanvasContextBuilder', () => {
 
   const mockCenterTile: TileContextItem = {
     coordId: 'user:123,group:456:1,2',
-    name: 'Center Tile',
-    description: 'Center tile description',
+    title: 'Center Tile',
+    content: 'Center tile description',
     depth: 0,
     hasChildren: true
   }
@@ -21,16 +21,16 @@ describe('CanvasContextBuilder', () => {
   const mockChildren: TileContextItem[] = [
     {
       coordId: 'user:123,group:456:1,2,3',
-      name: 'Child 1',
-      description: 'First child',
+      title: 'Child 1',
+      content: 'First child',
       position: 1, // Direction.NorthWest
       depth: 1,
       hasChildren: true
     },
     {
       coordId: 'user:123,group:456:1,2,4',
-      name: 'Child 2',
-      description: 'Second child',
+      title: 'Child 2',
+      content: 'Second child',
       position: 2, // Direction.NorthEast
       depth: 1,
       hasChildren: false
@@ -40,8 +40,8 @@ describe('CanvasContextBuilder', () => {
   const mockGrandchildren: TileContextItem[] = [
     {
       coordId: 'user:123,group:456:1,2,3,5',
-      name: 'Grandchild 1',
-      description: 'First grandchild',
+      title: 'Grandchild 1',
+      content: 'First grandchild',
       position: 3, // Direction.East
       depth: 2,
       hasChildren: false

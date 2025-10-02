@@ -52,7 +52,7 @@ export const BaseFrame = ({
           parentItem
             ? {
                 id: parentItem.metadata.dbId,
-                name: parentItem.data.name,
+                name: parentItem.data.title,
               }
             : undefined
         }
@@ -276,7 +276,7 @@ const RenderChild = ({
           parentItem
             ? {
                 id: parentItem.metadata.dbId,
-                name: parentItem.data.name,
+                name: parentItem.data.title,
               }
             : undefined
         }

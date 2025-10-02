@@ -16,9 +16,9 @@ export function emitNavigationEvent(
   getState: () => CacheState
 ): void {
   if (!eventBus || fromCenter === toCoordId) return;
-  
+
   const targetItem = getState().itemsById[toCoordId];
-  const tileName = targetItem?.data.name ?? 'Untitled';
+  const tileName = targetItem?.data.title ?? 'Untitled';
   
   loggers.mapCache.handlers(`📡 Emitting navigation event`, {
     fromCenter,

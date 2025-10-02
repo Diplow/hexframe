@@ -38,22 +38,14 @@ export function createAgenticService(options: CreateAgenticServiceOptions): Agen
 
   // Create repository - use queued version if configured
   let llmRepository: ILLMRepository
-  
+
   const baseRepository = new OpenRouterRepository(openRouterApiKey)
-  
-  console.log('[AgenticFactory] Repository selection:', {
-    useQueue,
-    userId,
-    willUseQueue: !!(useQueue && userId)
-  })
-  
+
   if (useQueue && userId) {
     // Use queued repository for production with proper rate limiting
-    console.log('[AgenticFactory] Creating QueuedLLMRepository')
     llmRepository = new QueuedLLMRepository(baseRepository, inngest, userId)
   } else {
     // Use direct repository for development or when queue is disabled
-    console.log('[AgenticFactory] Using direct OpenRouterRepository')
     llmRepository = baseRepository
   }
 

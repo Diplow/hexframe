@@ -20,8 +20,8 @@ export async function _setupItemForUpdate(
     parentId: setupData.id,
     coords: itemCoords,
     title: "Original Title",
-    descr: "Original Description",
-    url: "https://example.com",
+    content: "Original Description",
+    link: "https://example.com",
   });
 
   return { setupData, itemCoords, originalItem };
@@ -30,7 +30,7 @@ export async function _setupItemForUpdate(
 export async function _validateItemUpdate(
   testEnv: TestEnvironment,
   itemCoords: Coord,
-  updateData: { title: string; descr: string; url: string },
+  updateData: { title: string; content: string; link: string },
 ) {
   const updatedItemContract = await testEnv.service.items.crud.updateItem({
     coords: itemCoords,
@@ -38,16 +38,16 @@ export async function _validateItemUpdate(
   });
 
   expect(updatedItemContract).toBeDefined();
-  expect(updatedItemContract.name).toBe(updateData.title);
-  expect(updatedItemContract.descr).toBe(updateData.descr);
-  expect(updatedItemContract.url).toBe(updateData.url);
+  expect(updatedItemContract.title).toBe(updateData.title);
+  expect(updatedItemContract.content).toBe(updateData.content);
+  expect(updatedItemContract.link).toBe(updateData.link);
 
   const fetchedAgain = await testEnv.service.items.crud.getItem({ coords: itemCoords });
   expect(fetchedAgain).toBeDefined();
   if (!fetchedAgain) throw new Error("Item not found");
-  expect(fetchedAgain.name).toBe(updateData.title);
-  expect(fetchedAgain.descr).toBe(updateData.descr);
-  expect(fetchedAgain.url).toBe(updateData.url);
+  expect(fetchedAgain.title).toBe(updateData.title);
+  expect(fetchedAgain.content).toBe(updateData.content);
+  expect(fetchedAgain.link).toBe(updateData.link);
 }
 
 export async function _validateUpdateNonExistentItemError(
@@ -71,21 +71,21 @@ export async function _validateUpdateNonExistentItemError(
 export async function _validatePartialUpdate(
   testEnv: TestEnvironment,
   itemCoords: Coord,
-  originalItem: { descr: string },
+  originalItem: { content: string },
 ) {
   const updatedItemContract = await testEnv.service.items.crud.updateItem({
     coords: itemCoords,
     title: "New Title Only",
   });
 
-  expect(updatedItemContract.name).toBe("New Title Only");
-  expect(updatedItemContract.descr).toBe(originalItem.descr);
+  expect(updatedItemContract.title).toBe("New Title Only");
+  expect(updatedItemContract.content).toBe(originalItem.content);
 }
 
 export async function _updateAndValidateItem(
   testEnv: TestEnvironment,
   itemCoords: Coord,
-  updateData: { title: string; descr: string; url: string },
+  updateData: { title: string; content: string; link: string },
 ) {
   const updatedItemContract = await testEnv.service.items.crud.updateItem({
     coords: itemCoords,
@@ -93,16 +93,16 @@ export async function _updateAndValidateItem(
   });
 
   expect(updatedItemContract).toBeDefined();
-  expect(updatedItemContract.name).toBe(updateData.title);
-  expect(updatedItemContract.descr).toBe(updateData.descr);
-  expect(updatedItemContract.url).toBe(updateData.url);
+  expect(updatedItemContract.title).toBe(updateData.title);
+  expect(updatedItemContract.content).toBe(updateData.content);
+  expect(updatedItemContract.link).toBe(updateData.link);
 
   const fetchedAgain = await testEnv.service.items.crud.getItem({
     coords: itemCoords,
   });
-  expect(fetchedAgain.name).toBe(updateData.title);
-  expect(fetchedAgain.descr).toBe(updateData.descr);
-  expect(fetchedAgain.url).toBe(updateData.url);
+  expect(fetchedAgain.title).toBe(updateData.title);
+  expect(fetchedAgain.content).toBe(updateData.content);
+  expect(fetchedAgain.link).toBe(updateData.link);
 
   return updatedItemContract;
 }
@@ -119,7 +119,7 @@ export async function _partialUpdateAndValidate(
 
   expect(updatedItemContract).toBeDefined();
   // Only the updated field should change
-  expect(updatedItemContract.name).toBe(partialUpdateData.title);
+  expect(updatedItemContract.title).toBe(partialUpdateData.title);
   // Other fields should remain unchanged if not specified
 
   return updatedItemContract;

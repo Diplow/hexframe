@@ -11,7 +11,7 @@ export type { CenterInfo } from '~/app/map/Canvas/canvas';
 
 // Lifecycle components for error handling and loading states
 export { MapErrorBoundary } from '~/app/map/Canvas/LifeCycle/error-boundary'
-export { MapLoadingSkeleton } from '~/app/map/Canvas/LifeCycle/loading-skeleton'
+export { MapLoadingSpinner } from '~/app/map/Canvas/LifeCycle/loading-spinner'
 
 // Tile components - re-exported from Canvas/Tile subsystem
 export { 
@@ -53,3 +53,6 @@ export type { TileActionsContextValue } from '~/app/map/Canvas/TileActionsContex
 
 // Shared hooks for Tile subsystem
 export { useTileInteraction } from '~/app/map/Canvas/hooks/shared/useTileInteraction';
+
+// Shared UI components
+export { TileTooltip } from '~/app/map/Canvas/_shared/TileTooltip';

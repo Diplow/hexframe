@@ -30,7 +30,7 @@ describe("MappingService - Map Lifecycle [Integration - DB]", () => {
       const mapCreationParams = _createUniqueTestParams();
       const expectedMapData = {
         title: "Test Root MapItem",
-        descr: "Test Description",
+        content: "Test Description",
       };
 
       await _createAndValidateMap(testEnv, mapCreationParams, expectedMapData);
@@ -103,7 +103,7 @@ describe("MappingService - Map Lifecycle [Integration - DB]", () => {
       const createdMap = await _setupBasicMap(testEnv.service, mapParams);
       const updateData = {
         title: "Updated Title",
-        descr: "Updated Description",
+        content: "Updated Description",
       };
 
       await _updateAndValidateMapInfo(

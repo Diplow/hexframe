@@ -272,6 +272,25 @@ Before responding:
 [No prefilled response - respond directly to the user's question]`
 
 /**
+ * Preview Generator - AI Assistant for Tile Previews
+ * Generates concise previews for tile content to be used in tooltips and AI context
+ */
+export const PREVIEW_GENERATOR_PROMPT_TEMPLATE: PromptTemplate = ({ CONTEXT }) => `Generate a concise preview (maximum 250 characters) for a hexagonal tile based on the following information:
+
+${CONTEXT}
+
+Requirements:
+- Maximum length: 250 characters (strict limit)
+- Purpose: This preview will be shown on hover tooltips in the tilemap
+- Purpose: This preview helps AI assistants decide whether to load the full content
+- Do NOT repeat or paraphrase the title - focus on the content essence
+- Extract the most important information from the content
+- Be concise and informative
+- Use plain text only (no formatting)
+
+Generate only the preview text, nothing else.`
+
+/**
  * Available prompt templates
  */
 export const PROMPT_TEMPLATES = {
@@ -279,6 +298,7 @@ export const PROMPT_TEMPLATES = {
   'jay': JAY_PROMPT_TEMPLATE,
   'donella': DONELLA_PROMPT_TEMPLATE,
   'elinor': ELINOR_PROMPT_TEMPLATE,
+  'preview-generator': PREVIEW_GENERATOR_PROMPT_TEMPLATE,
 } as const
 
 export type PromptTemplateName = keyof typeof PROMPT_TEMPLATES

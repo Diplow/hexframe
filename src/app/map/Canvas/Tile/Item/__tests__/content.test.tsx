@@ -6,15 +6,17 @@ import { DynamicTileContent } from '~/app/map/Canvas/Tile/Item/content';
 describe('DynamicTileContent - Simplified', () => {
   const defaultData = {
     title: '',
-    description: '',
-    url: ''
+    content: '',
+        preview: undefined,
+    link: ''
   };
   it('should only display title regardless of scale', () => {
     const data = {
       ...defaultData,
       title: 'Test Title',
-      description: 'Test Description',
-      url: 'https://example.com',
+      content: 'Test Description',
+        preview: undefined,
+      link: 'https://example.com',
     };
 
     // Test scale 1
@@ -73,8 +75,9 @@ describe('DynamicTileContent - Simplified', () => {
     const data = {
       ...defaultData,
       title: 'Title Only',
-      description: 'This should not be shown',
-      url: 'https://should-not-be-shown.com',
+      content: 'This should not be shown',
+        preview: undefined,
+      link: 'https://should-not-be-shown.com',
     };
 
     // Test all scales

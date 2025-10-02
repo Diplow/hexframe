@@ -1,7 +1,7 @@
-import type { ServiceConfig, ServerService } from "~/app/map/Cache/Services/types";
-import { ServiceError as ServiceErrorClass } from "~/app/map/Cache/Services/types";
+import type { ServiceConfig, ServerService } from "~/app/map/Cache/Services";
+import { ServiceError as ServiceErrorClass } from "~/app/map/Cache/Services";
 import type { api } from "~/commons/trpc/react";
-import { createServerService } from "~/app/map/Cache/Services/server/server-service";
+import { createServerService } from "~/app/map/Cache/Services";
 
 // Factory function for easier dependency injection
 export function createServerServiceFactory(
@@ -37,6 +37,11 @@ export function createMockServerService(
       }),
     getAncestors:
       mockResponses.getAncestors ??
+      (async () => {
+        throw new ServiceErrorClass("Mock not implemented", "NOT_IMPLEMENTED");
+      }),
+    getItemWithGenerations:
+      mockResponses.getItemWithGenerations ??
       (async () => {
         throw new ServiceErrorClass("Mock not implemented", "NOT_IMPLEMENTED");
       }),

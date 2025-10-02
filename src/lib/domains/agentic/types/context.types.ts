@@ -18,8 +18,8 @@ export interface Context {
 
 export interface TileContextItem {
   coordId: string
-  name: string
-  description: string
+  title: string
+  content: string
   position?: Direction
   depth: number
   hasChildren: boolean

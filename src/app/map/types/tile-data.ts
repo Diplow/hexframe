@@ -40,12 +40,13 @@ const adapt = (item: MapItemAPIContract) => {
       parentId: parentId ? CoordSystem.createId(parentId) : undefined,
       coordinates,
       depth: coordinates.path.length,
-      ownerId: item.ownerId, // Add the actual owner ID
+      ownerId: item.ownerId,
     },
     data: {
-      name: item.name,
-      description: item.descr,
-      url: item.url,
+      title: item.title,
+      content: item.content,
+      preview: item.preview ?? undefined,
+      link: item.link,
       color: getColor(coordinates),
     },
     state: {

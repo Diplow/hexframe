@@ -81,6 +81,7 @@ export async function POST(request: Request): Promise<Response> {
         tools: mcpTools.map(tool => ({
           name: tool.name,
           description: tool.description,
+        preview: undefined,
           inputSchema: tool.inputSchema
         }))
       };

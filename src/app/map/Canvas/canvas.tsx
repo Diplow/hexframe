@@ -18,7 +18,7 @@ import { DynamicFrame } from "~/app/map/Canvas/frame";
 import type { TileScale } from "~/app/map/Canvas/Tile";
 import { useMapCache } from '~/app/map/Cache';
 import type { URLInfo } from "~/app/map/types/url-info";
-import { MapLoadingSkeleton } from "~/app/map/Canvas/LifeCycle/loading-skeleton";
+import { MapLoadingSpinner } from "~/app/map/Canvas/LifeCycle/loading-spinner";
 import { MapErrorBoundary } from "~/app/map/Canvas/LifeCycle/error-boundary";
 // Removed unused drag imports
 import { loggers } from "~/lib/debug/debug-logger";
@@ -89,7 +89,47 @@ export function DynamicMapCanvas({
   const [selectedTileId, setSelectedTileId] = useState<string | null>(null);
   const { mappingUserId } = useUnifiedAuth();
   const eventBus = useEventBus();
-  
+
+  // Ctrl and Shift key detection for navigation and expansion cursors
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey) {
+        document.body.setAttribute('data-ctrl-pressed', 'true');
+      }
+      if (event.shiftKey) {
+        document.body.setAttribute('data-shift-pressed', 'true');
+      }
+    };
+
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (!event.ctrlKey) {
+        document.body.removeAttribute('data-ctrl-pressed');
+      }
+      if (!event.shiftKey) {
+        document.body.removeAttribute('data-shift-pressed');
+      }
+    };
+
+    // Also handle window focus/blur to reset state
+    const handleWindowBlur = () => {
+      document.body.removeAttribute('data-ctrl-pressed');
+      document.body.removeAttribute('data-shift-pressed');
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('blur', handleWindowBlur);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('blur', handleWindowBlur);
+      // Clean up on unmount
+      document.body.removeAttribute('data-ctrl-pressed');
+      document.body.removeAttribute('data-shift-pressed');
+    };
+  }, []);
+
   // Log component mount/unmount
   useEffect(() => {
     loggers.render.canvas('DynamicMapCanvas mounted', {
@@ -180,7 +220,7 @@ export function DynamicMapCanvas({
 
   // Progressive enhancement fallbacks
   if (!isHydrated) {
-    return fallback ?? <MapLoadingSkeleton />;
+    return fallback ?? <MapLoadingSpinner />;
   }
   
   // Get the center item to check if we have data
@@ -193,7 +233,7 @@ export function DynamicMapCanvas({
   const shouldShowLoading = isLoading && !centerItem && Object.keys(items).length === 0;
   
   if (shouldShowLoading) {
-    return fallback ?? <MapLoadingSkeleton />;
+    return fallback ?? <MapLoadingSpinner />;
   }
 
   if (error) {
@@ -246,9 +286,7 @@ export function DynamicMapCanvas({
         <div className="relative flex h-full w-full flex-col">
           <div
             data-canvas-id={dynamicCenterInfo.center}
-            className={`pointer-events-auto grid flex-grow py-4 ${
-              showNeighbors ? 'overflow-visible' : 'overflow-auto'
-            }`}
+            className="pointer-events-auto grid flex-grow py-4 overflow-visible"
             style={{
               placeItems: 'center',
               // Offset the center point to account for chat panel (40% of width)

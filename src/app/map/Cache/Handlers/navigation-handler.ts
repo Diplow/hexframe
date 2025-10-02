@@ -1,7 +1,7 @@
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
 import type { DataOperations, NavigationOperations } from "~/app/map/Cache/types/handlers";
-import type { ServerService } from "~/app/map/Cache/Services/types";
+import type { ServerService } from "~/app/map/Cache/Services";
 import type { EventBusService } from '~/app/map';
 import { loggers } from "~/lib/debug/debug-logger";
 import {

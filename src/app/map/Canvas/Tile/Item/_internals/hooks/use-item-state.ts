@@ -93,7 +93,7 @@ export function useItemState({
   useEffect(() => {
     testLogger.component("DynamicItemTile", {
       testId,
-      name: item.data.name,
+      name: item.data.title,
       dbId: item.metadata.dbId,
       coordinates: item.metadata.coordId,
       isExpanded: allExpandedItemIds.includes(item.metadata.dbId),

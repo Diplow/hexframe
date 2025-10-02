@@ -32,14 +32,16 @@ export class ItemCrudService {
     parentId,
     coords,
     title,
-    descr,
-    url,
+    content,
+    preview,
+    link,
   }: {
     parentId: number | null;
     coords: Coord;
     title?: string;
-    descr?: string;
-    url?: string;
+    content?: string;
+    preview?: string;
+    link?: string;
   }): Promise<MapItemContract> {
     let parentItem = null;
     if (parentId !== null) {
@@ -67,14 +69,16 @@ export class ItemCrudService {
       }
     }
 
-    const newItem = await this.actions.createMapItem({
+    const createParams = {
       itemType: MapItemType.BASE,
       coords,
       title,
-      descr,
-      url,
+      content,
+      preview,
+      link,
       parentId: parentItem?.id,
-    });
+    };
+    const newItem = await this.actions.createMapItem(createParams);
     return adapt.mapItem(newItem, newItem.attrs.coords.userId);
   }
 
@@ -92,22 +96,26 @@ export class ItemCrudService {
   async updateItem({
     coords,
     title,
-    descr,
-    url,
+    content,
+    preview,
+    link,
   }: {
     coords: Coord;
     title?: string;
-    descr?: string;
-    url?: string;
+    content?: string;
+    preview?: string;
+    link?: string;
   }): Promise<MapItemContract> {
     const item = await this.actions.getMapItem({ coords });
 
-    if (title !== undefined || descr !== undefined || url !== undefined) {
-      await this.actions.updateRef(item.ref, {
+    if (title !== undefined || content !== undefined || preview !== undefined || link !== undefined) {
+      const updateAttrs = {
         title,
-        descr,
-        link: url,
-      });
+        content,
+        preview,
+        link,
+      };
+      await this.actions.updateRef(item.ref, updateAttrs);
     }
     const updatedItem = await this.actions.mapItems.getOne(item.id);
     if (!updatedItem) {

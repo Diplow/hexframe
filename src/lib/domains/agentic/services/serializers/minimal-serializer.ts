@@ -11,9 +11,9 @@ export class MinimalContextSerializer {
     for (const ctx of context.contexts) {
       if (ctx.type === 'canvas') {
         const canvas = ctx as CanvasContext
-        parts.push(`Current: ${canvas.center.name}`)
+        parts.push(`Current: ${canvas.center.title}`)
         if (canvas.children.length > 0) {
-          const childNames = canvas.children.map(child => child.name).join(', ')
+          const childNames = canvas.children.map(child => child.title).join(', ')
           parts.push(`Children: ${childNames}`)
         }
       } else if (ctx.type === 'chat') {

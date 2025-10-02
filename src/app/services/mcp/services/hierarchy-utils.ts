@@ -5,12 +5,14 @@ export interface MapItem {
   id: string;
   coordinates: string;
   depth: number;
-  name: string;
+  title: string;
   descr: string | null;
-  url: string | null;
+  preview?: string | null;
+  link: string | null;
   parentId: string | null;
   itemType: string;
   ownerId: string;
+  [key: string]: unknown;
 }
 
 export interface MapItemWithHierarchy extends MapItem {

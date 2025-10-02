@@ -21,7 +21,7 @@ export async function _addAndValidateChildItem(
   // Validate the child item contract
   expect(childItemContract).toBeDefined();
   expect(Number(childItemContract.id)).toBeGreaterThan(0);
-  expect(childItemContract.name).toBe(addItemArgs.title);
+  expect(childItemContract.title).toBe(addItemArgs.title);
   expect(childItemContract.coords).toEqual(
     CoordSystem.createId(addItemArgs.coords),
   );
@@ -49,7 +49,7 @@ export async function _validateMapItemHierarchy(
     );
     expect(childInTree).toBeDefined();
     if (childInTree) {
-      expect(childInTree.name).toBe(addItemArgs.title);
+      expect(childInTree.title).toBe(addItemArgs.title);
       const coords = 'coords' in addItemArgs ? addItemArgs.coords : undefined;
       if (coords) {
         expect(childInTree.coords).toEqual(

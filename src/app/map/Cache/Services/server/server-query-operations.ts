@@ -1,5 +1,5 @@
 import type { api } from "~/commons/trpc/react";
-import type { ServiceConfig } from "~/app/map/Cache/Services/types";
+import type { ServiceConfig } from "~/app/map/Cache/Services";
 import { createCoordinateOperations } from "~/app/map/Cache/Services/server/_internals/coordinate-operations";
 import { createItemOperations } from "~/app/map/Cache/Services/server/_internals/item-operations";
 

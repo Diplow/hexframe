@@ -1,0 +1,1 @@
+ALTER TABLE "vde_base_items" ADD COLUMN "preview" text;

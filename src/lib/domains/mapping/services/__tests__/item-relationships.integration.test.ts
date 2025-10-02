@@ -102,7 +102,7 @@ describe("MappingService - Item Relationships [Integration - DB]", () => {
       itemId: parseInt(hierarchySetup.childItem.id),
     });
     expect(childDescendants.length).toBe(1);
-    expect(childDescendants[0]!.name).toBe("Grandchild Item");
+    expect(childDescendants[0]!.title).toBe("Grandchild Item");
   }
 
   async function _validateLeafDescendants(hierarchySetup: {

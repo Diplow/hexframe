@@ -1,5 +1,5 @@
 import { inngest } from '~/lib/domains/agentic/infrastructure'
-import { OpenRouterRepository, type LLMGenerationParams } from '~/lib/domains/agentic'
+import { OpenRouterRepository, type LLMGenerationParams, PreviewGeneratorService } from '~/lib/domains/agentic'
 import { db, schema } from '~/server/db'
 const { llmJobResults } = schema
 import { eq, sql } from 'drizzle-orm'
@@ -155,13 +155,103 @@ export const cleanupOldJobs = inngest.createFunction(
       // Delete jobs older than 7 days
       const sevenDaysAgo = new Date()
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-      
+
       // Using less than operator for date comparison
       await db.delete(llmJobResults)
         .where(sql`${llmJobResults.createdAt} < ${sevenDaysAgo}`)
-      
+
       loggers.agentic('Cleaned up old jobs older than 7 days')
     })
+  }
+)
+
+interface GeneratePreviewRequestData {
+  jobId: string
+  userId: string
+  title: string
+  content: string
+  timestamp: string
+}
+
+// Generate preview for tile content
+export const generatePreview = inngest.createFunction(
+  {
+    id: 'preview-generate',
+    name: 'Generate Tile Preview',
+    throttle: {
+      // Rate limit: 10 concurrent requests per user
+      limit: 10,
+      period: '1m',
+      key: 'event.data.userId'
+    },
+    retries: 2
+  },
+  { event: 'preview/generate.request' },
+  async ({ event, step }) => {
+    const eventData = event.data as GeneratePreviewRequestData
+    const { jobId, userId, title, content } = eventData
+
+    // Step 1: Update job status to processing
+    await step.run('update-status-processing', async () => {
+      loggers.agentic('Processing preview generation job', { jobId, userId })
+
+      await db.insert(llmJobResults).values({
+        id: jobId,
+        jobId,
+        userId,
+        status: 'processing',
+        request: { title, content },
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }).onConflictDoUpdate({
+        target: llmJobResults.jobId,
+        set: {
+          status: 'processing',
+          updatedAt: new Date()
+        }
+      })
+    })
+
+    // Step 2: Generate preview
+    const result = await step.run('generate-preview', async () => {
+      try {
+        const repository = new OpenRouterRepository(env.OPENROUTER_API_KEY ?? '')
+        const previewService = new PreviewGeneratorService(repository)
+
+        loggers.agentic('Generating preview', { jobId, titleLength: title.length, contentLength: content.length })
+
+        const previewResult = await previewService.generatePreview({ title, content })
+
+        loggers.agentic('Preview generated', {
+          jobId,
+          usedAI: previewResult.usedAI,
+          previewLength: previewResult.preview.length
+        })
+
+        return previewResult
+      } catch (error) {
+        loggers.agentic.error('Preview generation failed', {
+          jobId,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        })
+        throw error
+      }
+    })
+
+    // Step 3: Store the result
+    await step.run('store-result', async () => {
+      await db.update(llmJobResults)
+        .set({
+          status: 'completed',
+          response: { preview: result.preview, usedAI: result.usedAI },
+          updatedAt: new Date()
+        })
+        .where(eq(llmJobResults.jobId, jobId))
+
+      loggers.agentic('Preview job completed successfully', { jobId })
+    })
+
+    return { jobId, result }
   }
 )
 
@@ -169,5 +259,6 @@ export const cleanupOldJobs = inngest.createFunction(
 export const inngestFunctions = [
   generateLLMResponse,
   cancelLLMJob,
-  cleanupOldJobs
+  cleanupOldJobs,
+  generatePreview
 ]

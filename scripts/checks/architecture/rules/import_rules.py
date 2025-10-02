@@ -459,29 +459,51 @@ class ImportRuleChecker:
     
     def _is_upward_reexport(self, subsystem: SubsystemInfo, import_path: str) -> bool:
         """Check if this reexport goes to a higher-level directory (parent or ancestor sibling)."""
+        # EXCEPTION: Domain utils can reexport from their parent domain
+        # Pattern: src/lib/domains/DOMAIN/utils can reexport from ~/lib/domains/DOMAIN/*
+        subsystem_rel_path = subsystem.path.relative_to(Path('src'))
+        path_parts = subsystem_rel_path.parts
+
+        # Check if this is a domain utils directory
+        if (len(path_parts) >= 4 and
+            path_parts[0] == 'lib' and
+            path_parts[1] == 'domains' and
+            path_parts[3] == 'utils'):
+            # This is a domain utils directory
+            domain_name = path_parts[2]
+            domain_prefix = f"~/lib/domains/{domain_name}"
+
+            # If importing from the same domain (but not a child), allow it
+            if import_path.startswith(domain_prefix):
+                subsystem_abs_path = f"~/{subsystem_rel_path}"
+                # Make sure it's not a child import (those are already allowed)
+                if not import_path.startswith(f"{subsystem_abs_path}/"):
+                    # This is a same-domain import for utils - allowed
+                    return False
+
         # Handle relative upward paths like '../types' or '../../../lib'
         if import_path.startswith('../'):
             return True
-        
+
         # Handle absolute paths that point to higher-level directories
         if import_path.startswith('~/'):
             # Get the subsystem's path relative to src
             subsystem_rel_path = subsystem.path.relative_to(Path('src'))
             # Convert to absolute import pattern
             subsystem_abs_path = f"~/{subsystem_rel_path}"
-            
+
             # If the import path is identical to subsystem path, it's not upward (self-import)
             if import_path == subsystem_abs_path:
                 return False
-            
+
             # If the import starts with subsystem path + '/', it's a child (downward) - allowed
             if import_path.startswith(f"{subsystem_abs_path}/"):
                 return False
-            
+
             # Otherwise, check if it's at the same level or higher level
             import_parts = import_path.split('/')
             subsystem_parts = subsystem_abs_path.split('/')
-            
+
             # Find common prefix length
             common_length = 0
             for i in range(min(len(import_parts), len(subsystem_parts))):
@@ -489,14 +511,14 @@ class ImportRuleChecker:
                     common_length += 1
                 else:
                     break
-            
+
             # If import has fewer or equal parts than subsystem, and shares a common prefix,
             # it's pointing to a higher level directory
             if len(import_parts) <= len(subsystem_parts) and common_length > 0:
                 # Ensure we don't flag completely unrelated paths
                 if common_length >= 2:  # At least '~' and one more level in common
                     return True
-        
+
         return False
     
     def _is_domain_index(self, subsystem: SubsystemInfo) -> bool:

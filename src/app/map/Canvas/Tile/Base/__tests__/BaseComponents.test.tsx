@@ -21,9 +21,10 @@ describe("Base Components", () => {
           ownerId: "user1",
         },
         data: {
-          name: "Test Tile",
-          description: "Test description",
-          url: "",
+          title: "Test Tile",
+          content: "Test description",
+        preview: undefined,
+          link: "",
           color: "zinc-500",
         },
         state: {
@@ -56,9 +57,10 @@ describe("Base Components", () => {
           ownerId: "user1",
         },
         data: {
-          name: "Selected Tile",
-          description: "",
-          url: "",
+          title: "Selected Tile",
+          content: "",
+        preview: undefined,
+          link: "",
           color: "amber-400",
         },
         state: {
