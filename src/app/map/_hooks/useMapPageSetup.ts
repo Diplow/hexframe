@@ -3,6 +3,7 @@
 import { use, useEffect, useState } from "react";
 import { redirect } from "next/navigation";
 import { api } from "~/commons/trpc/react";
+import { useUnifiedAuth } from "~/contexts/UnifiedAuthContext";
 import { loadPreFetchedData, clearPreFetchedData, type PreFetchedMapData } from '~/app/map';
 import { EventBus } from '~/app/map';
 const eventBus = new EventBus();
@@ -28,6 +29,11 @@ interface MapPageSetupResult {
     initialItems: Record<string, TileData>;
     initialCenter: string | null;
     initialExpandedItems: string[];
+    mapContext?: {
+      rootItemId: number;
+      userId: number;
+      groupId: number;
+    };
     cacheConfig: {
       maxAge: number;
       backgroundRefreshInterval: number;
@@ -50,10 +56,11 @@ export function useMapPageSetup({ searchParams }: UseMapPageSetupProps): MapPage
   const params = use(searchParams);
   
   // Resolve center parameter to coordinate
-  const { 
-    centerCoordinate, 
-    isLoading: isCenterResolving, 
-    error: centerError 
+  const {
+    centerCoordinate,
+    rootItemId: resolvedRootItemId,
+    isLoading: isCenterResolving,
+    error: centerError
   } = useMapResolver(params.center ?? "");
   
   // State management
@@ -72,12 +79,15 @@ export function useMapPageSetup({ searchParams }: UseMapPageSetupProps): MapPage
     }
   }, [params.center, isCenterResolving, centerError, centerCoordinate]);
 
-  // User map resolution for when no center is provided
+  // Get mappingUserId from existing auth context (no additional API call needed)
+  const { mappingUserId, isLoading: isLoadingUser } = useUnifiedAuth();
+
+  // User map resolution for when no center is provided OR center resolution fails
   const [isLoadingUserMap, setIsLoadingUserMap] = useState(false);
   const { data: userMapResponse, isLoading: isUserMapLoading } = api.map.getUserMap.useQuery(
     undefined,
     {
-      enabled: mounted && !params.center,
+      enabled: mounted && (!params.center || !!centerError),
       refetchOnWindowFocus: false,
     }
   );
@@ -96,7 +106,7 @@ export function useMapPageSetup({ searchParams }: UseMapPageSetupProps): MapPage
 
   // Handle user map resolution
   useEffect(() => {
-    if (!mounted || params.center) return;
+    if (!mounted || (params.center && !centerError)) return;
     
     setIsLoadingUserMap(isUserMapLoading);
     
@@ -114,13 +124,14 @@ export function useMapPageSetup({ searchParams }: UseMapPageSetupProps): MapPage
       
       redirect(`/map?${searchParams.toString()}`);
     }
-  }, [mounted, params, userMapResponse, isUserMapLoading]);
+  }, [mounted, params, userMapResponse, isUserMapLoading, centerError]);
 
   // Determine readiness - we're ready if we have resolved center or finished user resolution
-  const isReady = mounted && 
+  const isReady = Boolean(mounted &&
+    !isLoadingUser && // Wait for user data
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    ((params.center && !isCenterResolving && !centerError && !!centerCoordinate) || 
-     (!params.center && !isLoadingUserMap));
+    ((params.center && !isCenterResolving && !centerError && Boolean(centerCoordinate)) ||
+     ((!params.center || Boolean(centerError)) && !isLoadingUserMap)));
 
 
   // Prepare cache provider props
@@ -128,6 +139,11 @@ export function useMapPageSetup({ searchParams }: UseMapPageSetupProps): MapPage
     initialItems: preFetchedData?.initialItems ?? {},
     initialCenter: centerCoordinate || null, // Use resolved coordinate as initial center
     initialExpandedItems: params.expandedItems ? params.expandedItems.split(',') : [],
+    mapContext: mappingUserId ? {
+      rootItemId: resolvedRootItemId ?? (centerCoordinate && /^\d+$/.test(centerCoordinate) ? parseInt(centerCoordinate, 10) : 0) ?? userMapResponse?.map?.id ?? 1,
+      userId: mappingUserId,
+      groupId: 0 // Default group for now
+    } : undefined,
     cacheConfig: CACHE_CONFIG,
     eventBus,
   };

@@ -29,7 +29,7 @@ export const BaseItemTile = ({
   const tileColor = getColorFromItem(item);
   const depth = item.metadata.depth ?? 0;
   const textClasses = `break-words ${getTextColorForDepth(depth)}`;
-  const title = item.data.name ?? 'Untitled';
+  const title = item.data.title ?? 'Untitled';
   
   // Scale-based styling
   const baseFontSize = scale === 1 ? "text-xs" : scale === 2 ? "text-base" : "text-lg";

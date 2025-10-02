@@ -5,10 +5,8 @@
  */
 
 // Core Widget Components
-export { PreviewWidget } from '~/app/map/Chat/Timeline/Widgets/PreviewWidget';
-export { CreationWidget } from '~/app/map/Chat/Timeline/Widgets/CreationWidget';
+export { TileWidget } from '~/app/map/Chat/Timeline/Widgets/TileWidget';
 export { LoginWidget } from '~/app/map/Chat/Timeline/Widgets/LoginWidget';
-export { ConfirmDeleteWidget } from '~/app/map/Chat/Timeline/Widgets/ConfirmDeleteWidget';
 export { ErrorWidget } from '~/app/map/Chat/Timeline/Widgets/ErrorWidget';
 export { LoadingWidget } from '~/app/map/Chat/Timeline/Widgets/LoadingWidget';
 export { AIResponseWidget } from '~/app/map/Chat/Timeline/Widgets/AIResponseWidget';
@@ -18,8 +16,8 @@ export { DebugLogsWidget } from '~/app/map/Chat/Timeline/Widgets/DebugLogsWidget
 // Widget Infrastructure
 export { Portal } from '~/app/map/Chat/Timeline/Widgets/Portal';
 
-// Preview Widget Components (re-exported from their subsystem)
-export * from '~/app/map/Chat/Timeline/Widgets/PreviewWidget';
+// Tile Widget Components (re-exported from their subsystem)
+export * from '~/app/map/Chat/Timeline/Widgets/TileWidget';
 
 // Login Widget Components (re-exported from their subsystem)
 export * from '~/app/map/Chat/Timeline/Widgets/LoginWidget';

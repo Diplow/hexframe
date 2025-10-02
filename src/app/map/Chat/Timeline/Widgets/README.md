@@ -1,36 +1,28 @@
-# Chat Widgets Subsystem
-
-## Why This Exists
-The Widgets subsystem provides interactive UI components that handle complex user operations within the chat interface, including tile creation, editing, authentication, and confirmation dialogs that require structured input or multi-step interactions.
+# Widgets
 
 ## Mental Model
-Think of Widgets as specialized modal-like components that appear in the chat timeline to handle operations that require more than simple text input or display.
+Like a digital toolbox for specialized tasks - provides a collection of interactive UI components that pop up when users need to perform specific actions (login, create tiles, edit content, etc.), each with its own focused interface and workflow.
 
-## Core Responsibility
-This subsystem owns:
-- Interactive widget UI components (creation, preview, login, etc.)
-- Widget state management and lifecycle
-- Form handling and validation within widgets
-- Widget-specific user interactions and callbacks
-- Portal rendering for complex widgets
+## Responsibilities
+- Export specialized widget components for complex user interactions in chat
+- Provide Portal infrastructure for rendering widgets outside normal DOM flow
+- Supply consistent widget base components and styling patterns via _shared
+- Handle individual widget state management and user input
+- Coordinate with chat timeline for widget display and lifecycle
 
-This subsystem does NOT own:
-- Widget lifecycle in chat timeline (delegates to Messages subsystem)
-- Backend operations (delegates to appropriate domains/services)
-- Chat state management (delegates to chat state)
+## Non-Responsibilities
+- Tile data operations and persistence → See `~/app/map/Cache/README.md`
+- Authentication business logic → See `~/lib/auth/README.md`
+- AI job processing and execution → See `~/lib/domains/agentic/README.md`
+- Chat message rendering and timeline management → See `../Messages/README.md`
+- AI response content display and job tracking → See `./AIResponseWidget/README.md`
+- User authentication forms and flows → See `./LoginWidget/README.md`
+- Tile preview and editing interfaces → See `./TileWidget/README.md`
+- MCP key management operations → Handled by McpKeysWidget
+- Shared widget components and styling → Handled by _shared directory
 
-## Public API
-See `interface.ts` for the public API. Main capabilities:
-- `PreviewWidget` - Tile preview and editing
-- `CreationWidget` - New tile creation
-- `LoginWidget` - Authentication flows
-- `ConfirmDeleteWidget` - Deletion confirmation
-- `ErrorWidget` - Error display
-- `LoadingWidget` - Operation progress
-- `AIResponseWidget` - AI interaction display
+## Interface
+*See `index.ts` for the public API - the ONLY exports other subsystems can use*
+*See `dependencies.json` for what this subsystem can import*
 
-## Dependencies
-See `dependencies.json` for allowed imports.
-
-## Architecture
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for structure details.
+Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.

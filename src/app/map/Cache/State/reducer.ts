@@ -17,7 +17,7 @@ export const initialCacheState: CacheState = {
     maxAge: 300000, // 5 minutes
     backgroundRefreshInterval: 30000, // 30 seconds
     enableOptimisticUpdates: true,
-    maxDepth: 3,
+    maxDepth: 3, // Load center + 3 generations by default
   },
 };
 
@@ -56,8 +56,8 @@ const hasDataChanges = (
 
     if (
       !oldItem ||
-      oldItem.data.name !== newItem?.data.name ||
-      oldItem.data.description !== newItem?.data.description
+      oldItem.data.title !== newItem?.data.title ||
+      oldItem.data.content !== newItem?.data.content
     ) {
       return true;
     }

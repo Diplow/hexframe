@@ -1,4 +1,4 @@
-import { eq, type SQL, sql, and, like, gte } from "drizzle-orm";
+import { eq, type SQL, sql, and, like, gte, lte } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { schema as schemaImport } from "~/server/db";
 const { mapItems, baseItems } = schemaImport;
@@ -95,6 +95,49 @@ export class SpecializedQueries {
     ) as DbMapItemWithBase[];
   }
 
+  async fetchDescendantsWithDepth(params: {
+    parentPath: Direction[];
+    parentUserId: number;
+    parentGroupId: number;
+    maxGenerations: number;
+    limit?: number;
+    offset?: number;
+  }): Promise<DbMapItemWithBase[]> {
+    const {
+      parentPath,
+      parentUserId,
+      parentGroupId,
+      maxGenerations,
+      limit = 1000,
+      offset = 0,
+    } = params;
+
+    // Validate maxGenerations to prevent unbounded queries
+    if (maxGenerations <= 0) {
+      return [];
+    }
+
+    const conditions = this._buildDescendantsWithDepthConditions(
+      parentPath,
+      parentUserId,
+      parentGroupId,
+      maxGenerations,
+    );
+
+    const results = await this.db
+      .select()
+      .from(mapItems)
+      .leftJoin(baseItems, eq(mapItems.refItemId, baseItems.id))
+      .where(and(...conditions))
+      .orderBy(sql`length(${mapItems.path})`, mapItems.path, mapItems.id)
+      .limit(limit)
+      .offset(offset);
+
+    return results.filter(
+      (r) => r.map_items && r.base_items,
+    ) as DbMapItemWithBase[];
+  }
+
   private _buildDescendantsConditions(
     parentPath: Direction[],
     parentUserId: number,
@@ -110,6 +153,37 @@ export class SpecializedQueries {
         parentPathString.length > 0 ? parentPathString.length + 1 : 1,
       ),
     ];
+
+    if (parentPathString !== "") {
+      conditions.push(like(mapItems.path, `${parentPathString},%`));
+    }
+
+    return conditions;
+  }
+
+  private _buildDescendantsWithDepthConditions(
+    parentPath: Direction[],
+    parentUserId: number,
+    parentGroupId: number,
+    maxGenerations: number,
+  ): SQL[] {
+    const parentPathString = pathToString(parentPath);
+
+    const conditions: SQL[] = [
+      eq(mapItems.coord_user_id, parentUserId),
+      eq(mapItems.coord_group_id, parentGroupId),
+    ];
+
+    // Calculate min and max element counts based on generations
+    const parentCount = parentPath.length;
+    const minElements = parentCount > 0 ? parentCount + 1 : 1;
+    const maxElements = parentCount + maxGenerations;
+
+    conditions.push(gte(sql`array_length(string_to_array(${mapItems.path}, ','), 1)`, minElements));
+
+    if (maxGenerations > 0) {
+      conditions.push(lte(sql`array_length(string_to_array(${mapItems.path}, ','), 1)`, maxElements));
+    }
 
     if (parentPathString !== "") {
       conditions.push(like(mapItems.path, `${parentPathString},%`));

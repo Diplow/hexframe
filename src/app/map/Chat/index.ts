@@ -20,10 +20,10 @@ export type {
 } from '~/app/map/Chat/_state';
 
 // Chat Types (for external consumption)
-export type { 
-  ChatMessage, 
+export type {
+  ChatMessage,
   ChatWidget,
-  PreviewWidgetData,
+  TileWidgetData,
   CreationWidgetData,
   LoginWidgetData,
   ConfirmDeleteWidgetData,

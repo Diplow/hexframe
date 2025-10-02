@@ -64,10 +64,6 @@ export function useCommandExecution(
         handlers.handleClear();
         return '';
       case '/mcp':
-      case '/mcp/key':
-      case '/mcp/key/create':
-      case '/mcp/key/list':
-      case '/mcp/key/revoke':
         handlers.handleMcpCommand(normalizedPath);
         return '';
       default:
@@ -79,14 +75,7 @@ export function useCommandExecution(
             if (result && result.trim().length > 0) {
               if (normalizedPath.startsWith('/debug')) {
                 // Extract debug command info for widget title
-                const modeRegex = /\/(full|succinct)/;
-                const limitRegex = /\/(\d+)$/;
-                const modeMatch = modeRegex.exec(normalizedPath);
-                const limitMatch = limitRegex.exec(normalizedPath);
-                const mode = modeMatch?.[1] ?? 'full';
-                const limit = limitMatch?.[1] ?? '50';
-                const timestamp = new Date().toLocaleTimeString();
-                const title = `Debug Logs (${mode.charAt(0).toUpperCase() + mode.slice(1)} Mode - ${limit} messages) ${timestamp}`;
+                const title = 'Debug Logs';
 
                 // Show debug logs widget
                 handlers.chatState.showDebugLogsWidget(title, result);

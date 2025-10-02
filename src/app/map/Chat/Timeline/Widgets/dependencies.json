@@ -1,15 +1,16 @@
 {
-  "$schema": "../../../../../schemas/dependencies.schema.json",
+  "$schema": "../../../../../scripts/checks/architecture/dependencies.schema.json",
   "allowedChildren": [],
   "allowed": [
     "~/app/map/Services",
+    "~/contexts/UnifiedAuthContext",
     "~/lib/auth",
     "~/lib/debug/debug-logger",
     "~/lib/domains/agentic"
   ],
   "subsystems": [
     "./AIResponseWidget",
-    "./LoginWidget", 
-    "./PreviewWidget"
+    "./LoginWidget",
+    "./TileWidget"
   ]
 }

@@ -36,7 +36,7 @@ Chat/
 │   ├── WidgetManager.test.tsx
 │   └── useAuthStateCoordinator.test.ts
 └── Widgets/__tests__/
-    ├── PreviewWidget.test.tsx
+    ├── TileWidget.test.tsx
     ├── CreationWidget.test.tsx
     ├── LoginWidget.test.tsx
     └── WidgetContainer.test.tsx
@@ -73,7 +73,7 @@ Widgets are created from events and interact with the Canvas through callbacks:
 
 ```typescript
 // Test widget creation from tile selection
-it('should create preview widget on tile_selected event', async () => {
+it('should create tile widget on tile_selected event', async () => {
   const { eventBus } = createTestEventBus();
   render(<WidgetManager />, { wrapper: MapTestProviders });
   
@@ -84,7 +84,7 @@ it('should create preview widget on tile_selected event', async () => {
   });
   
   await waitFor(() => {
-    expect(screen.getByTestId('preview-widget')).toBeInTheDocument();
+    expect(screen.getByTestId('tile-widget')).toBeInTheDocument();
   });
 });
 ```
@@ -155,7 +155,7 @@ export const createChatEvent = (overrides?: Partial<ChatEvent>): ChatEvent => ({
 
 export const createWidget = (overrides?: Partial<Widget>): Widget => ({
   id: `widget-${Date.now()}`,
-  type: 'preview',
+  type: 'tile',
   props: {},
   timestamp: new Date(),
   ...overrides

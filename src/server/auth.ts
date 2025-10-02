@@ -19,6 +19,9 @@ export const auth = betterAuth({
       apikey: schema.apiKeys, // API key plugin table
     },
   }),
+  rateLimit: {
+    enabled: env.NODE_ENV === "production", // Disable rate limiting in development
+  },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true, // Always require email verification
@@ -28,12 +31,10 @@ export const auth = betterAuth({
     sendOnSignUp: true, // Automatically send verification email after signup
     autoSignInAfterVerification: true, // Auto sign in after email verification
     sendVerificationEmail: async ({ user, token }: { user: { email: string; name?: string | null }, token: string }) => {
-      console.log("🔔 sendVerificationEmail called!", { user: user.email, token });
       // Build proper verification URL with callback to redirect after verification
       const baseUrl = env.BETTER_AUTH_URL;
       const callbackUrl = encodeURIComponent(`${baseUrl}/auth/verify-success`); // Redirect to success page
       const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${token}&callbackURL=${callbackUrl}`;
-      console.log("📧 Verification URL:", verificationUrl);
       await sendEmail({
         to: user.email,
         subject: "Welcome to Hexframe",
@@ -56,6 +57,11 @@ export const auth = betterAuth({
     apiKey({
       apiKeyHeaders: ["x-api-key"], // MCP standard header
       enableMetadata: true, // Enable metadata for MCP key tracking
+      rateLimit: {
+        enabled: env.NODE_ENV === "production", // Disable API key rate limiting in development
+        timeWindow: 1000 * 60 * 5, // 5 minutes
+        maxRequests: 1000, // 1000 requests per 5 minutes in production
+      },
     }),
   ],
 });

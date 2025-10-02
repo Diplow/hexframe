@@ -1,32 +1,25 @@
 # Mapping Infrastructure
 
-## Why This Exists
-This subsystem provides concrete implementations of repository interfaces for the mapping domain, handling all database operations for map items and base items. It bridges the domain layer with the PostgreSQL database through Drizzle ORM.
-
 ## Mental Model
-Database adapters that translate between domain models and PostgreSQL storage, handling complex hexagonal relationships and transactional operations.
+Like a specialized database driver that translates between domain objects (MapItem, BaseItem) and PostgreSQL tables, ensuring atomic operations and maintaining hexagonal coordinate relationships.
 
-## Core Responsibility
-This subsystem owns:
-- Repository implementations for map items and base items
-- Database query optimization and composition
-- Transaction management for atomic operations
-- Domain-to-database model translation
+## Responsibilities
+- Implement repository interfaces defined in `_repositories` with concrete database operations
+- Translate between domain entities and database row models using mappers
+- Coordinate database transactions for atomic multi-table operations
+- Compose and optimize complex queries for hexagonal map hierarchies
+- Manage database connections and transaction contexts
 
-This subsystem does NOT own:
-- Business logic (delegated to services)
-- Domain entity behavior (delegated to objects)
-- Repository interfaces (owned by _repositories)
-- Hexagonal coordinate logic (delegated to utils)
+## Non-Responsibilities
+- Business logic and domain rules → See `../services/README.md`
+- Domain entity behavior and validation → See `../_objects/README.md`
+- Repository interface definitions → See `../_repositories/README.md`
+- Hexagonal coordinate calculations → See `../utils/README.md`
+- Base item database operations → See `./base-item/README.md`
+- Map item database operations → See `./map-item/README.md`
 
-## Public API
-See `interface.ts` for the public API. Main capabilities:
-- `DbMapItemRepository` - Database implementation for map item operations
-- `DbBaseItemRepository` - Database implementation for base item operations
-- `TransactionManager` - Transaction coordination for atomic operations
+## Interface
+*See `index.ts` for the public API - the ONLY exports other subsystems can use*
+*See `dependencies.json` for what this subsystem can import*
 
-## Dependencies
-See `dependencies.json` for allowed imports.
-
-## Architecture
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for structure details.
+Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.

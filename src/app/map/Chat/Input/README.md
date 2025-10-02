@@ -1,32 +1,26 @@
-# Chat Input Subsystem
-
-## Why This Exists
-The Input subsystem handles all user text input and command processing for the chat interface, providing command autocomplete, input history, and proper text area controls for an enhanced user experience.
+# Chat Input
 
 ## Mental Model
-Think of Input as a smart command line interface that transforms user text into structured commands and messages for the chat system.
+Like a smart terminal interface that transforms user text into structured commands and messages for the chat system.
 
-## Core Responsibility
-This subsystem owns:
-- Text input processing and validation
-- Command parsing and autocomplete
-- Input history management
-- Textarea keyboard controls and focus management
+## Responsibilities
+- Process user text input with real-time validation and command detection
+- Provide intelligent command autocomplete with keyboard navigation
+- Maintain input history with up/down arrow navigation
+- Handle textarea controls including auto-resize and focus management
+- Parse and execute slash commands (navigation, debug, auth, MCP, settings)
 
-This subsystem does NOT own:
-- Command execution (delegates to chat state/services)
-- Message display (delegates to Messages subsystem)
-- Widget lifecycle (delegates to Widgets subsystem)
+## Non-Responsibilities
+- Command execution logic → See `../_state/README.md` for chat state management
+- Message display and rendering → See `../Timeline/README.md` for message display
+- Widget lifecycle management → See `../Timeline/Widgets/README.md` for widget handling
+- Command definitions implementation → See `./_commands/` internal modules
+- UI component primitives → See `./_components/` internal modules
+- Specialized hook logic → See `./_hooks/` internal modules
+- Input processing services → See `./_services/` internal modules
 
-## Public API
-See `interface.ts` for the public API. Main capabilities:
-- `Input` - Main input component
-- `useCommandHandling` - Command processing hook
-- `useInputHistory` - Input history management
-- `useTextareaController` - Textarea control logic
+## Interface
+*See `index.ts` for the public API - the ONLY exports other subsystems can use*
+*See `dependencies.json` for what this subsystem can import*
 
-## Dependencies
-See `dependencies.json` for allowed imports.
-
-## Architecture
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for structure details.
+Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.

@@ -71,36 +71,36 @@ export class MapManagementService {
     userId,
     groupId = 0,
     title,
-    descr,
+    content,
   }: {
     userId: number;
     groupId?: number;
     title?: string;
-    descr?: string;
+    content?: string;
   }): Promise<MapContract> {
     const rootCoords = CoordSystem.getCenterCoord(userId, groupId);
     const rootItem = await this.actions.createMapItem({
       itemType: MapItemType.USER,
       coords: rootCoords,
       title,
-      descr,
+      content,
     });
     return adapt.map(rootItem, []);
   }
 
   /**
-   * Updates the BaseItem (title, description) of a root USER MapItem.
+   * Updates the BaseItem (title, content) of a root USER MapItem.
    */
   async updateMapInfo({
     userId,
     groupId = 0,
     title,
-    descr,
+    content,
   }: {
     userId: number;
     groupId?: number;
     title?: string;
-    descr?: string;
+    content?: string;
   }): Promise<MapContract | null> {
     const rootItem = await this.actions.mapItems.getRootItem(userId, groupId);
     if (!rootItem) {
@@ -112,7 +112,7 @@ export class MapManagementService {
       throw new Error("Cannot update map info for a non-root item.");
     }
 
-    await this.actions.updateRef(rootItem.ref, { title, descr });
+    await this.actions.updateRef(rootItem.ref, { title, content });
     const updatedRootItem = await this.actions.mapItems.getOne(rootItem.id);
     const descendants = await this.actions.getDescendants(updatedRootItem.id);
     return adapt.map(updatedRootItem, descendants);

@@ -270,6 +270,7 @@ vi.mock('~/app/map/Cache/interface', async (importOriginal) => {
           data: {
             name: 'Edit Me',
             description: 'Content to edit',
+        preview: undefined,
           },
           position: { q: 0, r: 0, s: 0 },
         };
@@ -280,6 +281,7 @@ vi.mock('~/app/map/Cache/interface', async (importOriginal) => {
         data: {
           name: 'Test Item',
           description: 'Test description',
+        preview: undefined,
         },
         position: { q: 0, r: 0, s: 0 },
       };

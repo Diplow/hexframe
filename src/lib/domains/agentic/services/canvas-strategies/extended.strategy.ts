@@ -78,7 +78,7 @@ export class ExtendedCanvasStrategy implements ICanvasStrategy {
     let filtered = tiles
     
     if (!options.includeEmptyTiles) {
-      filtered = tiles.filter(t => t.data.name?.trim())
+      filtered = tiles.filter(t => t.data.title?.trim())
     }
     
     return filtered.map(t => this.toContextItem(t, depth))
@@ -91,8 +91,8 @@ export class ExtendedCanvasStrategy implements ICanvasStrategy {
       
     return {
       coordId: tile.metadata.coordId,
-      name: tile.data.name || '',
-      description: tile.data.description || '',
+      title: tile.data.title || '',
+      content: tile.data.content || '',
       position,
       depth,
       hasChildren: false
@@ -157,11 +157,11 @@ export class ExtendedCanvasStrategy implements ICanvasStrategy {
     if (format.type === 'structured') {
       const depth2 = context.grandchildren.filter(g => g.depth === 2)
       const depth3 = context.grandchildren.filter(g => g.depth === 3)
-      
-      return `Center: ${context.center.name}
-Children (${context.children.length}): ${context.children.map(c => c.name).join(', ')}
-Grandchildren (${depth2.length}): ${depth2.map(g => g.name).join(', ')}
-Great-grandchildren (${depth3.length}): ${depth3.map(g => g.name).join(', ')}`
+
+      return `Center: ${context.center.title}
+Children (${context.children.length}): ${context.children.map(c => c.title).join(', ')}
+Grandchildren (${depth2.length}): ${depth2.map(g => g.title).join(', ')}
+Great-grandchildren (${depth3.length}): ${depth3.map(g => g.title).join(', ')}`
     }
     
     return JSON.stringify(context)

@@ -280,14 +280,21 @@ class FileScanner:
     def find_typescript_files(self, target_path: Path) -> List[Path]:
         """Find all TypeScript files in target path."""
         ts_files = []
-        
-        for pattern in ["**/*.ts", "**/*.tsx"]:
-            ts_files.extend(target_path.glob(pattern))
-        
+
+        # Handle both individual files and directories
+        if target_path.is_file():
+            # If target is a single file, check if it's a TypeScript file
+            if target_path.suffix in ['.ts', '.tsx']:
+                ts_files.append(target_path)
+        else:
+            # If target is a directory, glob for TypeScript files
+            for pattern in ["**/*.ts", "**/*.tsx"]:
+                ts_files.extend(target_path.glob(pattern))
+
         # Filter out exceptions and test files
         filtered_files = []
         for file_path in ts_files:
             if not self.ignore_manager.is_exception(file_path) and not self.is_test_file(file_path):
                 filtered_files.append(file_path)
-        
+
         return filtered_files

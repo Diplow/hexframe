@@ -35,14 +35,14 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
     currentUserId,
   } = props;
 
-  const state = useItemState({ 
-    item, 
-    currentUserId, 
+  const state = useItemState({
+    item,
+    currentUserId,
     interactive,
     allExpandedItemIds,
     hasChildren,
     isCenter,
-    scale
+    scale,
   });
   
   // Log tile render
@@ -50,7 +50,7 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
     loggers.render.canvas('DynamicItemTile render', {
       coordId: item.metadata.coordId,
       dbId: item.metadata.dbId,
-      name: item.data.name,
+      name: item.data.title,
       scale,
       isCenter,
       hasChildren,
@@ -58,21 +58,22 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
       isSelected: props.isSelected,
       interactive,
       canEdit: state.canEdit,
-      isBeingDragged: state.interaction.isBeingDragged,
+      // Removed isBeingDragged as it's now handled by CSS
     });
   });
 
   return (
     <>
-      <div 
-        className={`group relative hover:z-10 select-none ${state.interaction.isBeingDragged ? 'dragging' : ''}`} 
+      <div
+        ref={state.tileRef}
+        className={`group relative select-none ${state.hasOperationPending ? 'operation-pending' : ''}`}
         data-testid={state.testId}
-        draggable={state.dragProps.draggable}
-        onDragStart={state.dragProps.onDragStart}
-        onDragEnd={state.dragProps.onDragEnd}
-        onDragOver={state.dropProps.onDragOver}
-        onDragLeave={state.dropProps.onDragLeave}
-        onDrop={state.dropProps.onDrop}>
+        style={{
+          opacity: state.hasOperationPending ? 0.7 : 1,
+          // Container has no pointer events - hexagon shapes handle all interactions
+          pointerEvents: 'none'
+        }}
+      >
         <ItemTileContent
           {...props}
           scale={scale}
@@ -81,9 +82,13 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
           interactive={interactive}
           tileColor={state.tileColor}
           testId={state.testId}
-          isBeingDragged={state.interaction.isBeingDragged}
           canEdit={state.canEdit}
           isSelected={props.isSelected}
+          // Pass drag props to be applied to clipped hexagon area
+          dragProps={state.dragProps}
+          dataAttributes={state.dataAttributes}
+          hasOperationPending={state.hasOperationPending}
+          operationType={state.operationType}
         />
       </div>
     </>

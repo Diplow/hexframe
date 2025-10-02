@@ -1,6 +1,6 @@
 "use client";
 
-import { DynamicMapCanvas, MapLoadingSkeleton } from "~/app/map/Canvas";
+import { DynamicMapCanvas, MapLoadingSpinner } from "~/app/map/Canvas";
 import type { TileData } from "~/app/map/types/tile-data";
 import { ParentHierarchy } from "~/app/map/Hierarchy";
 import { TileActionsProvider } from "~/app/map/Canvas";
@@ -9,6 +9,7 @@ import { useTileSelectForChat } from "~/app/map/_hooks/use-tile-select-for-chat"
 import { useMapCache, type MapCacheHook } from '~/app/map/Cache';
 import { useRouter } from "next/navigation";
 import { useEventBus, type EventBusService } from '~/app/map';
+// Removed drag service import - using global service
 
 const CACHE_CONFIG = {
   maxAge: 300000,
@@ -49,7 +50,7 @@ function _createMapUIHandlers(
       source: 'canvas',
       payload: {
         tileId: tileData.metadata.coordId,
-        tileName: tileData.data.name,
+        tileName: tileData.data.title,
       },
       timestamp: new Date(),
     });
@@ -83,7 +84,7 @@ function _renderMapContent(
   params: Record<string, string | undefined>
 ) {
   if (isLoading || !centerCoordinate) {
-    return <MapLoadingSkeleton message="Loading map..." state="initializing" />;
+    return <MapLoadingSpinner message="Loading map..." state="initializing" />;
   }
 
   if (loadingError) {
@@ -140,6 +141,8 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
   const router = useRouter();
   const eventBus = useEventBus();
 
+  // Drag service no longer needed - using global service
+
   const centerCoordinate = center;
   const loadingError = error;
   const params = _createMapUIParams(centerCoordinate, expandedItems);
@@ -160,30 +163,34 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
       onEditClick={handleEditClick}
       onDeleteClick={handleDeleteClick}
     >
-      <div className="flex h-full w-full relative">
-        <div className="flex w-full">
-          <ChatPanel className="w-[40%] min-w-[40%] flex-shrink-0 border-r border-[color:var(--stroke-color-950)] overflow-hidden" />
+      <div className="h-full w-full relative">
+        {/* Canvas layer - extends full width, positioned behind chat panel */}
+        <div className="absolute inset-0 pr-[130px] overflow-hidden" style={{ zIndex: 1 }}>
+          {_renderMapContent(isLoading, centerCoordinate, loadingError, params)}
+        </div>
 
-          <div className="flex-1 pr-[130px]">
-            {_renderMapContent(isLoading, centerCoordinate, loadingError, params)}
-          </div>
+        {/* Chat panel - positioned over the canvas */}
+        <div className="absolute left-0 top-0 bottom-0 w-[40%] min-w-[40%]" style={{ zIndex: 10 }}>
+          <ChatPanel
+            className="h-full"
+            // No drag service prop needed
+          />
+        </div>
 
-          {centerCoordinate && (
-            <div className="absolute right-0 top-0 bottom-0">
-              <ParentHierarchy
-                centerCoordId={centerCoordinate}
-                items={{}}
-                urlInfo={{
-                  pathname: `/map`,
-                  searchParamsString: new URLSearchParams(params as Record<string, string>).toString(),
-                  rootItemId: centerCoordinate,
-                  scale: params.scale,
-                  expandedItems: params.expandedItems,
-                  focus: params.focus,
-                }}
-              />
-            </div>
-          )}
+        {/* Parent hierarchy - positioned over everything on the right */}
+        <div className="absolute right-0 top-0 bottom-0 bg-white/50 dark:bg-neutral-900/50 backdrop-blur-md border-l border-[color:var(--stroke-color-950)]" style={{ zIndex: 10 }}>
+          <ParentHierarchy
+            centerCoordId={centerCoordinate ?? ""}
+            items={{}}
+            urlInfo={{
+              pathname: `/map`,
+              searchParamsString: new URLSearchParams(params as Record<string, string>).toString(),
+              rootItemId: centerCoordinate ?? "",
+              scale: params.scale,
+              expandedItems: params.expandedItems,
+              focus: params.focus,
+            }}
+          />
         </div>
       </div>
     </TileActionsProvider>

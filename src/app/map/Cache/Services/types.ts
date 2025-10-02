@@ -1,4 +1,6 @@
 // Service interface types for dependency injection and mocking
+import type { MapItemType } from "~/lib/domains/mapping/utils";
+import type { MapItemUpdateAttributes, MapItemCreateAttributes } from "~/lib/domains/mapping/utils";
 
 export interface ServerService {
   // Data fetching operations (primary purpose)
@@ -9,11 +11,12 @@ export interface ServerService {
     id: string;
     coordinates: string;
     depth: number;
-    name: string;
-    descr: string;
-    url: string;
+    title: string;
+    content: string;
+    preview: string | undefined;
+    link: string;
     parentId: string | null;
-    itemType: string;
+    itemType: MapItemType;
     ownerId: string;
   }[]>;
 
@@ -22,50 +25,70 @@ export interface ServerService {
     id: string;
     coordinates: string;
     depth: number;
-    name: string;
-    descr: string;
-    url: string;
+    title: string;
+    content: string;
+    preview: string | undefined;
+    link: string;
     parentId: string | null;
-    itemType: string;
+    itemType: MapItemType;
     ownerId: string;
   } | null>;
   getRootItemById: (mapItemId: number) => Promise<{
     id: string;
     coordinates: string;
     depth: number;
-    name: string;
-    descr: string;
-    url: string;
+    title: string;
+    content: string;
+    preview: string | undefined;
+    link: string;
     parentId: string | null;
-    itemType: string;
+    itemType: MapItemType;
     ownerId: string;
   } | null>;
   getDescendants: (itemId: number) => Promise<{
     id: string;
     coordinates: string;
     depth: number;
-    name: string;
-    descr: string;
-    url: string;
+    title: string;
+    content: string;
+    preview: string | undefined;
+    link: string;
     parentId: string | null;
-    itemType: string;
+    itemType: MapItemType;
     ownerId: string;
   }[]>;
   getAncestors: (itemId: number) => Promise<{
     id: string;
     coordinates: string;
     depth: number;
-    name: string;
-    descr: string;
-    url: string;
+    title: string;
+    content: string;
+    preview: string | undefined;
+    link: string;
     parentId: string | null;
-    itemType: string;
+    itemType: MapItemType;
+    ownerId: string;
+  }[]>;
+  getItemWithGenerations: (params: {
+    coordId: string;
+    generations: number;
+  }) => Promise<{
+    id: string;
+    coordinates: string;
+    depth: number;
+    title: string;
+    content: string;
+    preview: string | undefined;
+    link: string;
+    parentId: string | null;
+    itemType: MapItemType;
     ownerId: string;
   }[]>;
 
   // Mutation operations (architectural placeholders - should use mutation layer)
-  createItem: (params: { coordId: string; data: Record<string, unknown> }) => Promise<unknown>;
-  updateItem: (params: { coordId: string; data: Record<string, unknown> }) => Promise<unknown>;
+  // These methods intentionally throw errors - mutations should use MutationCoordinator instead
+  createItem: (params: { coordId: string; data: MapItemCreateAttributes }) => Promise<unknown>;
+  updateItem: (params: { coordId: string; data: MapItemUpdateAttributes }) => Promise<unknown>;
   deleteItem: (params: { coordId: string }) => Promise<void>;
 }
 

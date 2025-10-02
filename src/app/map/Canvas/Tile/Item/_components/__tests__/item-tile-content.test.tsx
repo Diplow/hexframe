@@ -47,9 +47,10 @@ describe("ItemTileContent - Scale 1 Expansion", () => {
       parentId: undefined,
     },
     data: {
-      name: "Test Tile",
-      description: "Test Description",
-      url: "",
+      title: "Test Tile",
+      content: "Test Description",
+        preview: undefined,
+      link: "",
       color: "zinc-50",
     },
     state: {
@@ -78,7 +79,7 @@ describe("ItemTileContent - Scale 1 Expansion", () => {
           tileColor={{ color: "zinc", tint: "50" }}
           testId="test-tile"
           interactive={true}
-          isBeingDragged={false}
+          // Removed isBeingDragged prop
           urlInfo={{ 
             pathname: "/map",
             searchParamsString: "",
@@ -109,7 +110,7 @@ describe("ItemTileContent - Scale 1 Expansion", () => {
           tileColor={{ color: "zinc", tint: "50" }}
           testId="test-tile"
           interactive={true}
-          isBeingDragged={false}
+          // Removed isBeingDragged prop
           urlInfo={{ 
             pathname: "/map",
             searchParamsString: "",
@@ -141,7 +142,7 @@ describe("ItemTileContent - Scale 1 Expansion", () => {
           tileColor={{ color: "zinc", tint: "50" }}
           testId="test-tile"
           interactive={true}
-          isBeingDragged={false}
+          // Removed isBeingDragged prop
           urlInfo={{ 
             pathname: "/map",
             searchParamsString: "",
@@ -172,7 +173,7 @@ describe("ItemTileContent - Scale 1 Expansion", () => {
           tileColor={{ color: "zinc", tint: "50" }}
           testId="test-tile"
           interactive={true}
-          isBeingDragged={false}
+          // Removed isBeingDragged prop
           urlInfo={{ 
             pathname: "/map",
             searchParamsString: "",
@@ -203,7 +204,7 @@ describe("ItemTileContent - Scale 1 Expansion", () => {
           tileColor={{ color: "zinc", tint: "50" }}
           testId="test-tile"
           interactive={true}
-          isBeingDragged={false}
+          // Removed isBeingDragged prop
           urlInfo={{ 
             pathname: "/map",
             searchParamsString: "",

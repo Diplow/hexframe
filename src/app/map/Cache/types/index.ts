@@ -27,7 +27,7 @@ import type {
   NavigationOperations,
   LoadResult,
 } from '~/app/map/Cache/types/handlers';
-import type { ServerService, StorageService, ServiceConfig } from "~/app/map/Cache/Services/types";
+import type { ServerService, StorageService, ServiceConfig } from "~/app/map/Cache/Services";
 import type { SyncOperations, SyncResult, SyncStatus } from "~/app/map/Cache/Sync/types";
 import type { EventBusService } from '~/app/map';
 
@@ -109,6 +109,14 @@ export interface MapCacheHook {
     coordId: string;
     timestamp: number;
   }>;
+
+  // Operation tracking methods for preventing race conditions
+  isOperationPending: (coordId: string) => boolean;
+  getPendingOperationType: (coordId: string) => 'create' | 'update' | 'delete' | 'move' | null;
+  getTilesWithPendingOperations: () => string[];
+
+  // Drag and drop operations
+  startDrag: (tileId: string, event: globalThis.DragEvent) => void;
 
   // Sync operations
   sync: {

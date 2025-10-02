@@ -25,6 +25,14 @@ import {
 import type { IncomingHttpHeaders } from "http";
 
 /**
+ * Helper function to extract API key from headers
+ */
+function getApiKeyFromHeaders(headers: IncomingHttpHeaders): string | undefined {
+  const apiKey = headers["x-api-key"];
+  return Array.isArray(apiKey) ? apiKey[0] : apiKey;
+}
+
+/**
  * 1. CONTEXT
  *
  * This section defines the "contexts" that are available in the backend API.
@@ -245,9 +253,7 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
  * Used by the MCP server to authenticate write operations.
  */
 export const mcpAuthProcedure = t.procedure.use(async ({ ctx, next }) => {
-  const apiKey = Array.isArray(ctx.headers["x-api-key"]) 
-    ? ctx.headers["x-api-key"][0] 
-    : ctx.headers["x-api-key"];
+  const apiKey = getApiKeyFromHeaders(ctx.headers);
   
   if (!apiKey) {
     throw new TRPCError({ 
@@ -309,9 +315,7 @@ export const dualAuthProcedure = t.procedure.use(async ({ ctx, next }) => {
   }
 
   // Fall back to API key auth
-  const apiKey = Array.isArray(ctx.headers["x-api-key"]) 
-    ? ctx.headers["x-api-key"][0] 
-    : ctx.headers["x-api-key"];
+  const apiKey = getApiKeyFromHeaders(ctx.headers);
   
   if (!apiKey) {
     throw new TRPCError({ 
@@ -321,18 +325,22 @@ export const dualAuthProcedure = t.procedure.use(async ({ ctx, next }) => {
   }
 
   try {
-    const result = await auth.api.verifyApiKey({ 
-      body: { key: apiKey } 
+    const result = await auth.api.verifyApiKey({
+      body: { key: apiKey }
     });
-    
+
     if (!result.valid) {
-      throw new TRPCError({ 
+      throw new TRPCError({
         code: "UNAUTHORIZED",
-        message: "Invalid API key" 
+        message: "Invalid API key"
       });
     }
 
-    const user = { id: result.key?.userId ?? "" };
+    const userId = result.key?.userId;
+    if (!userId) {
+      throw new TRPCError({ code: "UNAUTHORIZED", message: "API key not linked to a user" });
+    }
+    const user = { id: userId };
     
     return next({
       ctx: {
@@ -344,9 +352,9 @@ export const dualAuthProcedure = t.procedure.use(async ({ ctx, next }) => {
     });
   } catch (error) {
     console.error("Authentication error:", error);
-    throw new TRPCError({ 
+    throw new TRPCError({
       code: "UNAUTHORIZED",
-      message: "Authentication failed" 
+      message: "Authentication failed"
     });
   }
 });

@@ -1,6 +1,7 @@
 {
-  "$schema": "../../../../../schemas/dependencies.schema.json",
+  "$schema": "../../../../../scripts/checks/architecture/dependencies.schema.json",
   "allowed": [
+    "~/app/map/Services",
     "~/lib/debug/debug-logger",
     "~/lib/test-logger"
   ]

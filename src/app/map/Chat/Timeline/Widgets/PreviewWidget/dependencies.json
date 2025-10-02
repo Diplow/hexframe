@@ -1,6 +1,0 @@
-{
-  "$schema": "../../../../../../schemas/dependencies.schema.json",
-  "allowed": [
-    "~/app/map/Chat/Timeline/Widgets/PreviewWidget"
-  ]
-}

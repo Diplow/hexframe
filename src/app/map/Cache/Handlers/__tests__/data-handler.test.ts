@@ -8,7 +8,7 @@ import { initialCacheState } from "~/app/map/Cache/State/reducer";
 import type { DataHandlerConfig, DataHandlerServices } from "~/app/map/Cache/Handlers/data-handler";
 import type { CacheState } from "~/app/map/Cache/State/types";
 import type { MapItemAPIContract } from "~/server/api/types/contracts";
-import { MapItemType } from "~/lib/domains/mapping/interface.client";
+import { MapItemType } from "~/lib/domains/mapping/utils";
 
 // Mock console.warn to avoid noise in tests (restored after each test)
 vi.spyOn(console, 'warn').mockImplementation(() => {
@@ -41,10 +41,11 @@ describe("Data Handler", () => {
     {
       id: "1",
       coordinates: "1,2",
-      name: "Test Item 1",
-      descr: "Test Description 1",
+      title: "Test Item 1",
+      content: "Test Description 1",
+      preview: undefined,
       depth: 1,
-      url: "",
+      link: "",
       parentId: null,
       itemType: MapItemType.BASE,
       ownerId: "test-owner",
@@ -52,10 +53,11 @@ describe("Data Handler", () => {
     {
       id: "2",
       coordinates: "1,3",
-      name: "Test Item 2",
-      descr: "Test Description 2",
+      title: "Test Item 2",
+      content: "Test Description 2",
+      preview: undefined,
       depth: 2,
-      url: "",
+      link: "",
       parentId: null,
       itemType: MapItemType.BASE,
       ownerId: "test-owner",

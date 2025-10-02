@@ -1,10 +1,8 @@
 import type { Widget, TileSelectedPayload, AuthRequiredPayload, ErrorOccurredPayload } from '~/app/map/Chat/_state';
 import type { TileData } from '~/app/map/types';
-import { 
-  PreviewWidget,
-  CreationWidget,
+import {
+  TileWidget,
   LoginWidget,
-  ConfirmDeleteWidget,
   LoadingWidget,
   ErrorWidget,
   AIResponseWidget,
@@ -24,42 +22,44 @@ function safeStringify(value: unknown, space = 0): string | undefined {
 export interface WidgetHandlers {
   handleEdit?: () => void;
   handleDelete?: () => void;
-  handlePreviewSave?: (title: string, content: string) => void;
-  handlePreviewClose?: () => void;
-  handleSave?: (name: string, description: string) => void;
+  handleTileSave?: (title: string, preview: string, content: string) => void;
+  handleTileClose?: () => void;
+  handleSave?: (name: string, preview: string, content: string) => void;
   handleCancel?: () => void;
 }
 
-export function renderPreviewWidget(
+export function renderTileWidget(
   widget: Widget,
   handlers: WidgetHandlers,
-  getItem: (coordId: string) => TileData | null
+  getItem: (coordId: string) => TileData | null,
 ) {
-  const previewData = widget.data as TileSelectedPayload;
-  const { 
-    handleEdit = () => { /* noop */ }, 
-    handleDelete = () => { /* noop */ }, 
-    handlePreviewSave = () => { /* noop */ },
-    handlePreviewClose = () => { /* noop */ }
+  const tileData = widget.data as TileSelectedPayload;
+  const {
+    handleEdit = () => { /* noop */ },
+    handleDelete = () => { /* noop */ },
+    handleTileSave = () => { /* noop */ },
+    handleTileClose = () => { /* noop */ }
   } = handlers;
 
-  const tileItem = getItem(previewData.tileId);
-  const currentTitle = tileItem?.data.name ?? previewData.tileData.title;
-  const currentContent = tileItem?.data.description ?? previewData.tileData.content ?? '';
+  const tileItem = getItem(tileData.tileId);
+  const currentTitle = tileItem?.data.title ?? tileData.tileData.title;
+  const currentPreview = tileItem?.data.preview ?? '';
+  const currentContent = tileItem?.data.content ?? tileData.tileData.content ?? '';
   // Get color from the cached tile data (preferred) or generate from coordinates
   const tileColor = tileItem?.data.color;
 
   return (
-    <PreviewWidget
-      tileId={previewData.tileId}
+    <TileWidget
+      tileId={tileData.tileId}
       title={currentTitle}
+      preview={currentPreview}
       content={currentContent}
       tileColor={tileColor}
-      openInEditMode={previewData.openInEditMode}
+      openInEditMode={tileData.openInEditMode}
       onEdit={handleEdit}
       onDelete={handleDelete}
-      onSave={handlePreviewSave}
-      onClose={handlePreviewClose}
+      onSave={handleTileSave}
+      onClose={handleTileClose}
     />
   );
 }
@@ -75,15 +75,60 @@ export function renderLoginWidget(widget: Widget, handlers: WidgetHandlers) {
   );
 }
 
-export function renderErrorWidget(widget: Widget) {
-  const errorData = widget.data as ErrorOccurredPayload;
+// Define interface for alternative error format
+interface AlternativeErrorPayload {
+  message?: string;
+  details?: unknown;
+  severity?: string;
+}
+
+// Union type for both error payload structures
+type ErrorWidgetData = ErrorOccurredPayload | AlternativeErrorPayload;
+
+export function renderErrorWidget(widget: Widget, handlers: WidgetHandlers) {
+  const { handleCancel = () => { /* noop */ } } = handlers;
+
+  // Handle both error payload structures:
+  // 1. ErrorOccurredPayload: {error, context, retryable}
+  // 2. Alternative format: {message, details, severity}
+  const errorData = widget.data as ErrorWidgetData;
+
+  // Extract error message from either structure
+  const errorMessage =
+    ('error' in errorData ? errorData.error : undefined) ??
+    ('message' in errorData ? errorData.message : undefined) ??
+    'An error occurred';
+
+  // Extract context/details from either structure
+  const errorContext =
+    ('context' in errorData ? errorData.context : undefined) ??
+    ('details' in errorData ? errorData.details : undefined);
+
+  // Extract operation type from context if available
+  const operation =
+    'context' in errorData &&
+    errorData.context &&
+    typeof errorData.context === 'object' &&
+    errorData.context !== null &&
+    'operation' in errorData.context
+      ? (errorData.context as { operation?: string }).operation as 'create' | 'update' | 'delete' | 'move' | 'swap' | undefined
+      : undefined;
+
+  // Only show technical details for ErrorOccurredPayload (has 'error' and 'context' fields)
+  // Don't show details for user-facing validation errors (has 'message' and 'details' fields)
+  const shouldShowTechnicalDetails = 'error' in errorData && 'context' in errorData;
+
   return (
     <ErrorWidget
-      message={errorData.error}
-      error={errorData.context ? safeStringify(errorData.context, 2) : undefined}
-      retry={errorData.retryable ? () => {
-        // Handle retry
-      } : undefined}
+      message={errorMessage}
+      error={shouldShowTechnicalDetails && errorContext ? safeStringify(errorContext, 2) : undefined}
+      operation={operation}
+      retry={
+        'retryable' in errorData && errorData.retryable ? () => {
+          // Handle retry
+        } : undefined
+      }
+      onDismiss={handleCancel}
     />
   );
 }
@@ -93,12 +138,13 @@ export function renderCreationWidget(widget: Widget, handlers: WidgetHandlers) {
   const { handleSave = () => { /* noop */ }, handleCancel = () => { /* noop */ } } = handlers;
 
   return (
-    <CreationWidget
+    <TileWidget
+      mode="create"
       coordId={creationData.coordId ?? ''}
       parentName={creationData.parentName}
       parentCoordId={creationData.parentCoordId}
       onSave={handleSave}
-      onCancel={handleCancel}
+      onClose={handleCancel}
     />
   );
 }
@@ -113,17 +159,20 @@ export function renderLoadingWidget(widget: Widget) {
   );
 }
 
-export function renderDeleteWidget(widget: Widget) {
+export function renderDeleteWidget(widget: Widget, handlers: WidgetHandlers) {
   const deleteData = widget.data as { tileId?: string; tileName?: string; tile?: { id: string; title: string; coordId: string } };
-  
+  const { handleCancel = () => { /* noop */ } } = handlers;
+
   const tileCoordId = deleteData.tile?.coordId ?? deleteData.tileId ?? '';
   const tileName = deleteData.tileName ?? deleteData.tile?.title ?? 'item';
-  
+
   return (
-    <ConfirmDeleteWidget
+    <TileWidget
+      mode="delete"
       tileId={tileCoordId}
-      tileName={tileName}
-      widgetId={widget.id}
+      coordId={tileCoordId}
+      title={tileName}
+      onClose={handleCancel}
     />
   );
 }

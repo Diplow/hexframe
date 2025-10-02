@@ -3,7 +3,7 @@ import type { Dispatch } from "react";
 import type { CacheState, CacheAction } from "~/app/map/Cache/State";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";
 import { createDataHandlerWithServerService } from "~/app/map/Cache/Handlers";
-import type { ServerService } from "~/app/map/Cache/Services/types";
+import type { ServerService } from "~/app/map/Cache/Services";
 
 /**
  * Creates wrapped data operations that always use current state

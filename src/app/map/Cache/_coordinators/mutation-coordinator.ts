@@ -1,10 +1,10 @@
 import { type Dispatch } from "react";
-import { CoordSystem, type Coord } from "~/lib/domains/mapping/utils";
+import { CoordSystem, type Coord, type MapItemUpdateAttributes, type MapItemCreateAttributes } from "~/lib/domains/mapping/utils";
 import type { MapItemAPIContract } from "~/server/api";
 import type { CacheAction } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";
-import type { StorageService } from "~/app/map/Cache/Services/types";
+import type { StorageService } from "~/app/map/Cache/Services";
 import type { TileData } from "~/app/map/types";
 import { OptimisticChangeTracker } from "~/app/map/Cache/_coordinators/optimistic-tracker";
 import type { EventBusService } from '~/app/map';
@@ -26,7 +26,8 @@ export interface MutationCoordinatorConfig {
       coords: Coord;
       parentId?: number | null;
       title?: string;
-      descr?: string;
+      content?: string;
+      preview?: string;
       url?: string;
     }) => Promise<MapItemAPIContract>;
   };
@@ -34,7 +35,8 @@ export interface MutationCoordinatorConfig {
     mutateAsync: (params: {
       coords: Coord;
       title?: string;
-      descr?: string;
+      content?: string;
+      preview?: string;
       url?: string;
     }) => Promise<MapItemAPIContract>;
   };
@@ -68,16 +70,130 @@ export interface MutationResult {
 export class MutationCoordinator {
   private tracker = new OptimisticChangeTracker();
 
+  // Track pending operations by tile coordId to prevent race conditions
+  private pendingOperations = new Map<string, {
+    type: 'create' | 'update' | 'delete' | 'move';
+    promise: Promise<unknown>;
+    startTime: number;
+    operationId?: string;
+  }>();
+
   constructor(private config: MutationCoordinatorConfig) {}
 
-  async createItem(coordId: string, data: {
-    parentId?: number;
-    title?: string;
-    name?: string;
-    description?: string;
-    descr?: string;
-    url?: string;
-  }): Promise<MutationResult> {
+  /**
+   * Check if an operation is currently pending for the given tile
+   */
+  isOperationPending(coordId: string): boolean {
+    return this.pendingOperations.has(coordId);
+  }
+
+  /**
+   * Get pending operation type for a tile, if any
+   */
+  getPendingOperationType(coordId: string): 'create' | 'update' | 'delete' | 'move' | null {
+    const operation = this.pendingOperations.get(coordId);
+    return operation?.type ?? null;
+  }
+
+  /**
+   * Get all tiles with pending operations
+   */
+  getTilesWithPendingOperations(): string[] {
+    return Array.from(this.pendingOperations.keys());
+  }
+
+  /**
+   * Register a pending operation and ensure it's cleaned up when done
+   */
+  private async trackOperation<T>(
+    coordId: string,
+    type: 'create' | 'update' | 'delete' | 'move',
+    operation: () => Promise<T>
+  ): Promise<T> {
+    // Check if operation is already pending
+    if (this.pendingOperations.has(coordId)) {
+      throw new Error(`Operation already in progress for tile ${coordId}. Please wait for the current operation to complete.`);
+    }
+
+    // Start tracking the operation
+    const promise = operation();
+    this.pendingOperations.set(coordId, {
+      type,
+      promise,
+      startTime: Date.now()
+    });
+
+    try {
+      const result = await promise;
+      return result;
+    } finally {
+      // Always clean up, even if operation fails
+      this.pendingOperations.delete(coordId);
+    }
+  }
+
+  /**
+   * Track move operations that involve multiple tiles (source and target)
+   */
+  private async _trackMoveOperation<T>(
+    sourceCoordId: string,
+    targetCoordId: string,
+    operation: () => Promise<T>
+  ): Promise<T> {
+
+    // Check if either tile has pending operations
+    if (this.pendingOperations.has(sourceCoordId)) {
+      throw new Error(`Operation already in progress for source tile ${sourceCoordId}. Please wait for the current operation to complete.`);
+    }
+    if (this.pendingOperations.has(targetCoordId)) {
+      throw new Error(`Operation already in progress for target tile ${targetCoordId}. Please wait for the current operation to complete.`);
+    }
+
+    // Create unique operation promises for each tile
+    const promise = operation();
+    const operationId = `move-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    const sourceOperationData = {
+      type: 'move' as const,
+      promise: promise,
+      startTime: Date.now(),
+      operationId
+    };
+
+    const targetOperationData = {
+      type: 'move' as const,
+      promise: promise,
+      startTime: Date.now(),
+      operationId
+    };
+
+    this.pendingOperations.set(sourceCoordId, sourceOperationData);
+    this.pendingOperations.set(targetCoordId, targetOperationData);
+
+
+    try {
+      const result = await promise;
+      return result;
+    } catch (error) {
+      throw error;
+    } finally {
+      // Only clean up tiles that belong to THIS operation
+
+      const sourceOp = this.pendingOperations.get(sourceCoordId);
+      const targetOp = this.pendingOperations.get(targetCoordId);
+
+      if (sourceOp?.operationId === operationId) {
+        this.pendingOperations.delete(sourceCoordId);
+      }
+
+      if (targetOp?.operationId === operationId) {
+        this.pendingOperations.delete(targetCoordId);
+      }
+
+    }
+  }
+
+  async createItem(coordId: string, data: MapItemCreateAttributes & { parentId?: number }): Promise<MutationResult> {
     const changeId = this.tracker.generateChangeId();
     
     try {
@@ -96,9 +212,10 @@ export class MutationCoordinator {
       const result = await this.config.addItemMutation.mutateAsync({
         coords,
         ...(parentIdNumber !== undefined ? { parentId: parentIdNumber } : {}),
-        title: data.title ?? data.name,
-        descr: data.description ?? data.descr,
-        url: data.url,
+        title: data.title,
+        content: data.content,
+        preview: data.preview,
+        url: data.link,
       });
       
       // Finalize with real data
@@ -111,28 +228,23 @@ export class MutationCoordinator {
     }
   }
 
-  async updateItem(coordId: string, data: {
-    title?: string;
-    name?: string;
-    description?: string;
-    descr?: string;
-    url?: string;
-  }): Promise<MutationResult> {
+  async updateItem(coordId: string, data: MapItemUpdateAttributes): Promise<MutationResult> {
     const changeId = this.tracker.generateChangeId();
     const existingItem = this._getExistingItem(coordId);
-    
+
     try {
       // Apply optimistic update
       const { optimisticItem, previousData } = this._prepareOptimisticUpdate(existingItem, data);
       this._applyOptimisticUpdate(coordId, optimisticItem, previousData, changeId);
-      
+
       // Make server call
       const coords = CoordSystem.parseId(coordId);
       const result = await this.config.updateItemMutation.mutateAsync({
         coords,
-        title: data.title ?? data.name,
-        descr: data.description ?? data.descr,
-        url: data.url,
+        title: data.title,
+        content: data.content,
+        preview: data.preview,
+        url: data.link,
       });
       
       // Finalize with real data
@@ -181,25 +293,30 @@ export class MutationCoordinator {
     if (!this.config.moveItemMutation) {
       throw new Error("Move item mutation not configured");
     }
-    
-    const changeId = this.tracker.generateChangeId();
-    const moveParams = this._prepareMoveOperation(sourceCoordId, targetCoordId, changeId);
-    
-    try {
-      // Apply optimistic changes
-      this._applyOptimisticChange(moveParams);
-      
-      // Execute server mutation
-      const result = await this._executeMoveOnServer(moveParams);
-      
-      // Finalize the operation
-      await this._finalizeMoveOperation(result, moveParams);
-      
-      return { success: true, data: result.modifiedItems[0], isSwap: moveParams.isSwap };
-    } catch (error) {
-      this._rollbackMove(moveParams.rollbackState, changeId);
-      throw error;
-    }
+
+    // Note: Validation is performed in the client-side drag service before reaching this point
+    // This ensures UI validation happens immediately and server calls only happen for valid operations
+
+    return this._trackMoveOperation(sourceCoordId, targetCoordId, async () => {
+      const changeId = this.tracker.generateChangeId();
+      const moveParams = this._prepareMoveOperation(sourceCoordId, targetCoordId, changeId);
+
+      try {
+        // Apply optimistic changes
+        this._applyOptimisticChange(moveParams);
+
+        // Execute server mutation
+        const result = await this._executeMoveOnServer(moveParams);
+
+        // Finalize the operation
+        await this._finalizeMoveOperation(result, moveParams);
+
+        return { success: true, data: result.modifiedItems[0], isSwap: moveParams.isSwap };
+      } catch (error) {
+        this._rollbackMove(moveParams.rollbackState, changeId);
+        throw error;
+      }
+    });
   }
 
   private _applyOptimisticSwap(
@@ -406,17 +523,19 @@ export class MutationCoordinator {
       title?: string;
       name?: string;
       description?: string;
-      descr?: string;
-      url?: string;
+      content?: string;
+      preview?: string;
+      link?: string;
     },
     parentId: string | null
   ): MapItemAPIContract {
     return {
       id: `temp_${Date.now()}`,
       coordinates: coordId,
-      name: data.title ?? data.name ?? "New Item",
-      descr: data.description ?? data.descr ?? "",
-      url: data.url ?? "",
+      title: data.title ?? "New Item",
+      content: data.content ?? "",
+      preview: data.preview,
+      link: data.link ?? "",
       depth: coords.path.length,
       parentId,
       itemType: MapItemType.BASE,
@@ -468,16 +587,18 @@ export class MutationCoordinator {
       title?: string;
       name?: string;
       description?: string;
-      descr?: string;
-      url?: string;
+      content?: string;
+      preview?: string;
+      link?: string;
     }
   ): { optimisticItem: MapItemAPIContract; previousData: MapItemAPIContract } {
     const previousData = this._reconstructApiData(existingItem);
     const optimisticItem: MapItemAPIContract = {
       ...previousData,
-      name: data.title ?? data.name ?? existingItem.data.name,
-      descr: data.description ?? data.descr ?? existingItem.data.description,
-      url: data.url ?? existingItem.data.url,
+      title: data.title ?? existingItem.data.title,
+      content: data.content ?? existingItem.data.content,
+      preview: data.preview ?? existingItem.data.preview,
+      link: data.link ?? existingItem.data.link,
     };
     return { optimisticItem, previousData };
   }
@@ -545,9 +666,10 @@ export class MutationCoordinator {
       id: String(tile.metadata.dbId),
       coordinates: tile.metadata.coordId,
       depth: tile.metadata.depth,
-      name: tile.data.name,
-      descr: tile.data.description,
-      url: tile.data.url,
+      title: tile.data.title,
+      content: tile.data.content,
+      preview: tile.data.preview,
+      link: tile.data.link,
       parentId: null, // We don't store this in TileData
       itemType: MapItemType.BASE,
       ownerId: tile.metadata.ownerId ?? this.config.mapContext?.userId.toString() ?? "unknown",
@@ -635,9 +757,9 @@ export class MutationCoordinator {
         source: 'map_cache',
         payload: {
           tile1Id: String(moveParams.sourceItem.metadata.dbId),
-          tile1Name: moveParams.sourceItem.data.name,
+          tile1Name: moveParams.sourceItem.data.title,
           tile2Id: String(moveParams.targetItem.metadata.dbId),
-          tile2Name: moveParams.targetItem.data.name
+          tile2Name: moveParams.targetItem.data.title
         }
       });
     } else {
@@ -646,7 +768,7 @@ export class MutationCoordinator {
         source: 'map_cache',
         payload: {
           tileId: String(moveParams.sourceItem.metadata.dbId),
-          tileName: moveParams.sourceItem.data.name,
+          tileName: moveParams.sourceItem.data.title,
           fromCoordId: moveParams.sourceCoordId,
           toCoordId: moveParams.targetCoordId
         }

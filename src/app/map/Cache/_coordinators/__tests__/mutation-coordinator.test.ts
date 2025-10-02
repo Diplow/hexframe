@@ -4,7 +4,7 @@ import { initialCacheState } from "~/app/map/Cache/State/reducer";
 import { createMockEventBus, expectEventEmitted } from "~/test-utils/event-bus";
 import type { CacheState } from "~/app/map/Cache/State/types";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";
-import type { StorageService } from "~/app/map/Cache/Services/types";
+import type { StorageService } from "~/app/map/Cache/Services";
 
 describe("MutationCoordinator Event Emissions", () => {
   let mockDispatch: ReturnType<typeof vi.fn>;
@@ -16,9 +16,10 @@ describe("MutationCoordinator Event Emissions", () => {
 
   const mockExistingItem1 = {
     data: {
-      name: "Item 1",
-      description: "Description 1",
-      url: "",
+      title: "Item 1",
+      content: "Description 1",
+        preview: undefined,
+      link: "",
       color: "#000000",
     },
     metadata: {
@@ -41,9 +42,10 @@ describe("MutationCoordinator Event Emissions", () => {
 
   const mockExistingItem2 = {
     data: {
-      name: "Item 2",
-      description: "Description 2",
-      url: "",
+      title: "Item 2",
+      content: "Description 2",
+        preview: undefined,
+      link: "",
       color: "#000000",
     },
     metadata: {
@@ -66,7 +68,7 @@ describe("MutationCoordinator Event Emissions", () => {
 
   const mockMutations = {
     addItemMutation: {
-      mutateAsync: vi.fn().mockResolvedValue({ id: 123, name: "New Item" }),
+      mutateAsync: vi.fn().mockResolvedValue({ id: 123, title: "New Item" }),
     },
     updateItemMutation: {
       mutateAsync: vi.fn().mockResolvedValue({ success: true }),

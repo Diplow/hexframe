@@ -1,5 +1,5 @@
 {
-  "$schema": "../../../../schemas/dependencies.schema.json",
+  "$schema": "../../../../scripts/checks/architecture/dependencies.schema.json",
   "allowed": [
     "vitest",
     "~/commons/trpc/react",
@@ -9,7 +9,8 @@
     "~/app/map/Cache/State"
   ],
   "subsystems": [
-    "./Handlers"
+    "./Handlers",
+    "./Services"
   ],
   "exceptions": {
     "~/lib/domains/mapping/types/MapItemType": "Needed for specific type import while avoiding full types folder"

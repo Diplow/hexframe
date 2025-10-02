@@ -1,30 +1,22 @@
 # Agentic Infrastructure
 
-## Why This Exists
-This subsystem provides infrastructure components for the agentic domain, including queue management for asynchronous LLM operations and integration with external services.
-
 ## Mental Model
-Background job processors and external service integrations that support scalable AI operations.
+Like a postal service for AI operations - routes LLM requests through background queues, handles delivery retries, and manages the infrastructure needed for reliable asynchronous processing.
 
-## Core Responsibility
-This subsystem owns:
-- Queue client setup (Inngest)
-- Background job definitions and handlers
-- External service configurations
-- Async processing infrastructure
+## Responsibilities
+- Provides Inngest client setup for background job processing
+- Defines background job functions for async LLM operations (generation, cancellation, cleanup)
+- Manages job lifecycle states (pending → processing → completed/cancelled)
+- Implements rate limiting and retry policies for LLM requests
+- Handles job persistence and database operations for job results
 
-This subsystem does NOT own:
-- LLM provider implementations (delegated to repositories)
-- Business logic (delegated to services)
-- Context building (delegated to services)
+## Non-Responsibilities
+- LLM provider implementations → See `~/lib/domains/agentic/repositories/README.md`
+- Business logic and context building → See `~/lib/domains/agentic/services/README.md`
+- Queue message processing (Inngest subsystem) → See `./inngest/README.md`
 
-## Public API
-See `interface.ts` for the public API. Main capabilities:
-- `inngest` - Inngest client for queue operations
-- Background job functions for async LLM processing
+## Interface
+*See `index.ts` for the public API - the ONLY exports other subsystems can use*
+*See `dependencies.json` for what this subsystem can import*
 
-## Dependencies
-See `dependencies.json` for allowed imports.
-
-## Architecture
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for structure details.
+Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.

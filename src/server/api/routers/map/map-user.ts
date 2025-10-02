@@ -44,7 +44,7 @@ export const mapUserRouter = createTRPCRouter({
         userId,
         groupId: input.groupId,
         title: input.title,
-        descr: input.descr,
+        content: input.content,
       });
       return contractToApiAdapters.mapRootItem(map);
     }),
@@ -88,7 +88,7 @@ export const mapUserRouter = createTRPCRouter({
           userId,
           groupId: 0,
           title: userName,
-          descr: "",
+          content: "",
         });
         return _createSuccessResponse({ mapId: map.id });
       } catch (error) {

@@ -36,8 +36,8 @@ This document captures future design directions and features that aren't part of
 
 ### Context-Aware Actions
 - Create: Only on empty tiles
-- Navigate: Double-click or Ctrl+click
-- Expand/Collapse: Single click
+- Navigate: Ctrl+click
+- Expand/Collapse: Shift+click
 - Reduces mode switching, more intuitive
 
 ## New Components
@@ -83,7 +83,8 @@ This document captures future design directions and features that aren't part of
 
 **Possible approach:**
 - Single click = select
-- Double click = navigate
+- Ctrl+click = navigate
+- Shift+click = expand/collapse
 - Selected state shows available actions
 - Escape key to deselect
 

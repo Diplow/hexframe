@@ -1,0 +1,184 @@
+/* Global Drag & Drop Visual Feedback */
+
+
+/* Body-level state when drag is active - prevent browser auto-cursor */
+body[data-drag-active="true"] {
+  cursor: grabbing !important;
+}
+
+/* Prevent all-scroll cursor on any element during drag */
+body[data-drag-active="true"] * {
+  cursor: grabbing !important;
+}
+
+/* Tile being dragged */
+[data-being-dragged="true"] {
+  opacity: 0.5;
+  transform: scale(0.95);
+  transition: opacity 150ms ease, transform 150ms ease;
+  z-index: 1000;
+  pointer-events: none;
+  cursor: grabbing !important;
+}
+
+/* Valid drop targets */
+[data-drop-target="true"] {
+  animation: dropTargetPulse 0.8s ease-in-out infinite alternate;
+  position: relative;
+}
+
+[data-drop-target="true"]::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  background: rgba(59, 130, 246, 0.15);
+  /* Use hexagon clip-path to match tile shape */
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  z-index: -1;
+}
+
+/* Move operation styling */
+/* No background on the main element - only use the hexagon shape */
+
+[data-drop-operation="move"]::before {
+  background-color: rgba(34, 197, 94, 0.2);
+}
+
+/* Swap operation styling */
+/* No background on the main element - only use the hexagon shape */
+
+[data-drop-operation="swap"]::before {
+  background-color: rgba(234, 179, 8, 0.2);
+}
+
+/* Animation for drop targets */
+@keyframes dropTargetPulse {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.02);
+  }
+}
+
+/* Hover effects disabled while dragging */
+body[data-drag-active="true"] [data-tile-id]:not([data-drop-target="true"]) {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* Keep drop targets interactive */
+body[data-drag-active="true"] [data-drop-target="true"] {
+  pointer-events: auto;
+  opacity: 1;
+}
+
+/* Debug styling for development */
+[data-tile-id] {
+  /* Subtle indication that tile is registered for drag */
+  position: relative;
+}
+
+/* Enhanced drop zone indication for empty tiles */
+[data-tile-has-content="false"][data-drop-target="true"]::after {
+  content: '+';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2rem;
+  color: rgb(34, 197, 94); /* green-500 */
+  font-weight: bold;
+  z-index: 10;
+}
+
+/* Smooth transitions for all drag-related changes */
+[data-tile-id] {
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease,
+    background-color 150ms ease;
+}
+
+/* Ensure draggable tiles have proper cursor only when not in conflict */
+[draggable="true"]:not([data-being-dragged="true"]) {
+  cursor: grab;
+}
+
+/* Override browser default cursors for draggable elements */
+[draggable="true"] {
+  cursor: grab !important;
+}
+
+[draggable="true"]:active {
+  cursor: grabbing !important;
+}
+
+/* Fix for draggable clipped elements showing all-scroll cursor */
+.hexagon-draggable {
+  cursor: grab !important;
+}
+
+.hexagon-draggable:active {
+  cursor: grabbing !important;
+}
+
+.hexagon-draggable[draggable="true"] {
+  cursor: grab !important;
+}
+
+.hexagon-draggable[draggable="true"]:active {
+  cursor: grabbing !important;
+}
+
+/* Nuclear option - override ALL cursor behavior for hexagon elements */
+.hexagon-draggable,
+.hexagon-draggable *,
+.hexagon-draggable:hover,
+.hexagon-draggable:active,
+.hexagon-draggable:focus {
+  cursor: grab !important;
+}
+
+/* Change cursor to pointer when Ctrl is pressed (navigation mode) */
+body[data-ctrl-pressed="true"] .hexagon-draggable,
+body[data-ctrl-pressed="true"] .hexagon-draggable *,
+body[data-ctrl-pressed="true"] .hexagon-draggable:hover,
+body[data-ctrl-pressed="true"] .hexagon-draggable:active,
+body[data-ctrl-pressed="true"] .hexagon-draggable:focus {
+  cursor: pointer !important;
+}
+
+/* Change cursor to zoom when Shift is pressed (expansion mode) */
+body[data-shift-pressed="true"] .cursor-zoom-in,
+body[data-shift-pressed="true"] .cursor-zoom-in *,
+body[data-shift-pressed="true"] .cursor-zoom-in:hover,
+body[data-shift-pressed="true"] .cursor-zoom-in:active,
+body[data-shift-pressed="true"] .cursor-zoom-in:focus {
+  cursor: zoom-in !important;
+}
+
+body[data-shift-pressed="true"] .cursor-zoom-out,
+body[data-shift-pressed="true"] .cursor-zoom-out *,
+body[data-shift-pressed="true"] .cursor-zoom-out:hover,
+body[data-shift-pressed="true"] .cursor-zoom-out:active,
+body[data-shift-pressed="true"] .cursor-zoom-out:focus {
+  cursor: zoom-out !important;
+}
+
+/* Alternative approach - target by attribute and style */
+[draggable="true"][style*="clip-path"] {
+  cursor: grab !important;
+}
+
+[draggable="true"][style*="clip-path"]:active {
+  cursor: grabbing !important;
+}
+
+/* Prevent text selection during drag */
+body[data-drag-active="true"] {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}

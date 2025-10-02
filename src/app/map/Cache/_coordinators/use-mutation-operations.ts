@@ -3,9 +3,9 @@ import type { Dispatch } from "react";
 import { api } from "~/commons/trpc/react";
 import type { CacheState, CacheAction } from "~/app/map/Cache/State";
 import type { MutationOperations, DataOperations } from "~/app/map/Cache/types/handlers";
-import type { StorageService } from "~/app/map/Cache/Services/types";
+import type { StorageService } from "~/app/map/Cache/Services";
 import { MutationCoordinator } from "~/app/map/Cache/_coordinators/mutation-coordinator";
-import type { Coord } from "~/lib/domains/mapping/utils";
+import type { Coord, MapItemUpdateAttributes, MapItemCreateAttributes } from "~/lib/domains/mapping/utils";
 import type { EventBusService } from '~/app/map';
 
 interface MutationOperationsConfig {
@@ -38,25 +38,27 @@ export function useMutationOperations(config: MutationOperationsConfig): Mutatio
   
   // Wrap mutations to match expected interface
   const wrappedAddItemMutation = useMemo(() => ({
-    mutateAsync: async (params: { coords: Coord; parentId?: number | null; title?: string; descr?: string; url?: string }) => {
+    mutateAsync: async (params: { coords: Coord; parentId?: number | null } & MapItemCreateAttributes) => {
       return addItemMutation.mutateAsync({
         parentId: params.parentId,
         coords: params.coords,
         title: params.title,
-        descr: params.descr,
-        url: params.url,
+        content: params.content,
+        preview: params.preview,
+        link: params.link,
       });
     },
   }), [addItemMutation]);
 
   const wrappedUpdateItemMutation = useMemo(() => ({
-    mutateAsync: async (params: { coords: Coord; title?: string; descr?: string; url?: string }) => {
+    mutateAsync: async (params: { coords: Coord } & MapItemUpdateAttributes) => {
       return updateItemMutation.mutateAsync({
         coords: params.coords,
         data: {
           title: params.title,
-          descr: params.descr,
-          url: params.url,
+          content: params.content,
+          preview: params.preview,
+          link: params.link,
         },
       });
     },
@@ -111,5 +113,9 @@ export function useMutationOperations(config: MutationOperationsConfig): Mutatio
     rollbackOptimisticChange: coordinator.rollbackChange.bind(coordinator),
     rollbackAllOptimistic: coordinator.rollbackAll.bind(coordinator),
     getPendingOptimisticChanges: coordinator.getPendingChanges.bind(coordinator),
+    // Operation tracking methods for preventing race conditions
+    isOperationPending: coordinator.isOperationPending.bind(coordinator),
+    getPendingOperationType: coordinator.getPendingOperationType.bind(coordinator),
+    getTilesWithPendingOperations: coordinator.getTilesWithPendingOperations.bind(coordinator),
   }), [coordinator]);
 }

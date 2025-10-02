@@ -129,9 +129,9 @@ export const DynamicBaseTileLayout = ({
           )}
         </svg>
 
-        {/* Key change: Allow pointer events on content for scrolling */}
-        <div 
-          className="absolute inset-0 z-10 flex items-center justify-center overflow-hidden pointer-events-auto"
+        {/* Visual content area - no pointer events (handled by interaction layer) */}
+        <div
+          className="absolute inset-0 z-10 flex items-center justify-center overflow-hidden pointer-events-none"
           style={{
             // Clip content to hexagon shape using CSS clip-path
             clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)"

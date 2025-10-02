@@ -1,4 +1,4 @@
-import type { StorageService, ServiceConfig } from "~/app/map/Cache/Services/types";
+import type { StorageService, ServiceConfig } from "~/app/map/Cache/Services";
 import type { StorageOperations } from "~/app/map/Cache/Services/storage/storage-operations";
 
 // Storage metadata for version control and debugging

@@ -18,12 +18,17 @@ export default {
     "dark:focus-visible:ring-offset-neutral-900",
     // Text colors for toolbox
     "text-primary",
-    "text-secondary", 
+    "text-secondary",
     "text-success",
     "text-link",
     "text-destructive",
     "text-neutral-700",
     "dark:text-neutral-300",
+    // Depth-based text colors for tiles
+    "text-white",
+    "text-neutral-900",
+    "dark:text-neutral-100",
+    "dark:text-neutral-900",
     // Dark mode text colors for active tools
     "text-cyan-700",
     "dark:text-cyan-400",

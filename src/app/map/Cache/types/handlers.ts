@@ -1,4 +1,5 @@
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
+import type { MapItemUpdateAttributes, MapItemCreateAttributes } from "~/lib/domains/mapping/utils";
 
 // Common handler dependencies
 export interface HandlerConfig {
@@ -17,14 +18,14 @@ export interface HandlerServices {
       coordinates: string;
       depth: number;
       name: string;
-      descr: string;
+      content: string;
       url: string;
       parentId: string | null;
       itemType: string;
       ownerId: string;
     }[]>;
-    createItem?: (params: { coordId: string; data: Record<string, unknown> }) => Promise<unknown>;
-    updateItem?: (params: { coordId: string; data: Record<string, unknown> }) => Promise<unknown>;
+    createItem?: (params: { coordId: string; data: MapItemCreateAttributes }) => Promise<unknown>;
+    updateItem?: (params: { coordId: string; data: MapItemUpdateAttributes }) => Promise<unknown>;
     deleteItem?: (params: { coordId: string }) => Promise<void>;
   };
   url?: {
@@ -88,8 +89,8 @@ export interface NavigationOperations {
 }
 
 export interface MutationOperations {
-  createItem: (coordId: string, data: Record<string, unknown>) => Promise<MutationResult>;
-  updateItem: (coordId: string, data: Record<string, unknown>) => Promise<MutationResult>;
+  createItem: (coordId: string, data: MapItemCreateAttributes) => Promise<MutationResult>;
+  updateItem: (coordId: string, data: MapItemUpdateAttributes) => Promise<MutationResult>;
   deleteItem: (coordId: string) => Promise<MutationResult>;
   moveItem: (sourceCoordId: string, targetCoordId: string) => Promise<MutationResult & { isSwap?: boolean }>;
   rollbackOptimisticChange: (changeId: string) => void;
@@ -101,4 +102,8 @@ export interface MutationOperations {
     previousState?: unknown;
     timestamp: number;
   }>;
+  // Operation tracking methods for preventing race conditions
+  isOperationPending: (coordId: string) => boolean;
+  getPendingOperationType: (coordId: string) => 'create' | 'update' | 'delete' | 'move' | null;
+  getTilesWithPendingOperations: () => string[];
 }

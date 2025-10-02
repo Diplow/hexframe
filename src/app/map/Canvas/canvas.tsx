@@ -18,10 +18,9 @@ import { DynamicFrame } from "~/app/map/Canvas/frame";
 import type { TileScale } from "~/app/map/Canvas/Tile";
 import { useMapCache } from '~/app/map/Cache';
 import type { URLInfo } from "~/app/map/types/url-info";
-import { MapLoadingSkeleton } from "~/app/map/Canvas/LifeCycle/loading-skeleton";
+import { MapLoadingSpinner } from "~/app/map/Canvas/LifeCycle/loading-spinner";
 import { MapErrorBoundary } from "~/app/map/Canvas/LifeCycle/error-boundary";
-import { useDragAndDrop } from "~/app/map/Canvas/hooks/useDragAndDrop";
-// import type { DragEvent } from "react"; // Removed unused import
+// Removed unused drag imports
 import { loggers } from "~/lib/debug/debug-logger";
 import { useEventBus } from '~/app/map';
 
@@ -43,6 +42,9 @@ interface DynamicMapCanvasProps {
   // Theme
   isDarkMode?: boolean;
 
+  // Neighbor display
+  showNeighbors?: boolean;
+
   // Progressive enhancement options
   fallback?: ReactNode;
   errorBoundary?: ReactNode;
@@ -56,6 +58,8 @@ interface DynamicMapCanvasProps {
     enableOptimisticUpdates: boolean;
     maxDepth: number;
   };
+
+  // Drag service no longer needed - handled by global service
 }
 
 export function DynamicMapCanvas({
@@ -63,6 +67,7 @@ export function DynamicMapCanvas({
   expandedItemIds,
   urlInfo,
   isDarkMode = false,
+  showNeighbors = true,
   fallback,
   errorBoundary,
   enableBackgroundSync: _enableBackgroundSync = true,
@@ -84,7 +89,47 @@ export function DynamicMapCanvas({
   const [selectedTileId, setSelectedTileId] = useState<string | null>(null);
   const { mappingUserId } = useUnifiedAuth();
   const eventBus = useEventBus();
-  
+
+  // Ctrl and Shift key detection for navigation and expansion cursors
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey) {
+        document.body.setAttribute('data-ctrl-pressed', 'true');
+      }
+      if (event.shiftKey) {
+        document.body.setAttribute('data-shift-pressed', 'true');
+      }
+    };
+
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (!event.ctrlKey) {
+        document.body.removeAttribute('data-ctrl-pressed');
+      }
+      if (!event.shiftKey) {
+        document.body.removeAttribute('data-shift-pressed');
+      }
+    };
+
+    // Also handle window focus/blur to reset state
+    const handleWindowBlur = () => {
+      document.body.removeAttribute('data-ctrl-pressed');
+      document.body.removeAttribute('data-shift-pressed');
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('blur', handleWindowBlur);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('blur', handleWindowBlur);
+      // Clean up on unmount
+      document.body.removeAttribute('data-ctrl-pressed');
+      document.body.removeAttribute('data-shift-pressed');
+    };
+  }, []);
+
   // Log component mount/unmount
   useEffect(() => {
     loggers.render.canvas('DynamicMapCanvas mounted', {
@@ -111,16 +156,7 @@ export function DynamicMapCanvas({
     return unsubscribe;
   }, [eventBus]);
   
-  // Initialize drag and drop functionality
-  const {
-    dragHandlers,
-    canDragTile,
-    isDraggingTile,
-    isDropTarget,
-    isValidDropTarget,
-    isDragging,
-    getDropOperation,
-  } = useDragAndDrop();
+  // Drag service no longer passed as prop - using global service
 
   useEffect(() => {
     // Initialize hydration
@@ -130,31 +166,34 @@ export function DynamicMapCanvas({
   // Removed center initialization effect - MapCacheProvider handles initial center
   // The Canvas should not override the center that was set during provider initialization
 
-  // Tile actions with drag and drop support
+  // Simplified tile actions (DOM-based drag handles its own logic)
   const tileActions = useMemo(
     () => ({
       handleTileClick: (_coordId: string, _event: MouseEvent) => {
-        // handleTileClick called
         // Default tile click behavior (can be enhanced later)
       },
       handleTileHover: (_coordId: string, _isHovering: boolean) => {
-        // handleTileHover called
         // TODO: Handle hover state
       },
       onCreateTileRequested: (_coordId: string) => {
-        // Create tile requested
         // This callback is used by empty tiles to signal create requests
       },
-      // Drag and drop functionality
-      dragHandlers,
-      canDragTile,
-      isDraggingTile,
-      isDropTarget,
-      isValidDropTarget,
-      isDragging,
-      getDropOperation,
+      // Legacy interface for backward compatibility (but not used)
+      dragHandlers: {
+        onDragStart: () => { /* No-op for backward compatibility */ },
+        onDragOver: () => { /* No-op for backward compatibility */ },
+        onDragLeave: () => { /* No-op for backward compatibility */ },
+        onDrop: () => { /* No-op for backward compatibility */ },
+        onDragEnd: () => { /* No-op for backward compatibility */ },
+      },
+      canDragTile: () => true,
+      isDraggingTile: () => false,
+      isDropTarget: () => false,
+      isValidDropTarget: () => false,
+      isDragging: false,
+      getDropOperation: () => null,
     }),
-    [dragHandlers, canDragTile, isDraggingTile, isDropTarget, isValidDropTarget, isDragging, getDropOperation],
+    [],
   );
 
   // Use dynamic center and expanded items from cache state
@@ -181,7 +220,7 @@ export function DynamicMapCanvas({
 
   // Progressive enhancement fallbacks
   if (!isHydrated) {
-    return fallback ?? <MapLoadingSkeleton />;
+    return fallback ?? <MapLoadingSpinner />;
   }
   
   // Get the center item to check if we have data
@@ -194,7 +233,7 @@ export function DynamicMapCanvas({
   const shouldShowLoading = isLoading && !centerItem && Object.keys(items).length === 0;
   
   if (shouldShowLoading) {
-    return fallback ?? <MapLoadingSkeleton />;
+    return fallback ?? <MapLoadingSpinner />;
   }
 
   if (error) {
@@ -247,7 +286,14 @@ export function DynamicMapCanvas({
         <div className="relative flex h-full w-full flex-col">
           <div
             data-canvas-id={dynamicCenterInfo.center}
-            className="pointer-events-auto grid flex-grow place-items-center overflow-auto py-4"
+            className="pointer-events-auto grid flex-grow py-4 overflow-visible"
+            style={{
+              placeItems: 'center',
+              // Offset the center point to account for chat panel (40% of width)
+              // This shifts the center tile to appear centered in the right 60% area
+              transform: 'translateX(20%)'
+            }}
+            // No drag handlers needed - global service handles everything
           >
             <DynamicFrame
               center={dynamicCenterInfo.center}
@@ -259,11 +305,14 @@ export function DynamicMapCanvas({
               interactive={true}
               currentUserId={mappingUserId ?? undefined}
               selectedTileId={selectedTileId}
+              showNeighbors={showNeighbors}
               onNavigate={handleNavigate}
               onToggleExpansion={handleToggleExpansion}
               onCreateRequested={handleCreateRequested}
+              // No drag service prop needed - using global service
             />
           </div>
+          {/* Drag debug UI removed - handled by global service with CSS */}
         </div>
       </LegacyTileActionsContext.Provider>
     </CanvasThemeContext.Provider>

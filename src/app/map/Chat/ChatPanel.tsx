@@ -22,7 +22,7 @@ interface ChatPanelProps {
 export function ChatPanel({ className }: ChatPanelProps) {
   return (
     <ChatProvider>
-      <div data-testid="chat-panel" className={cn('flex flex-col h-full bg-center-depth-0', className)}>
+      <div data-testid="chat-panel" className={cn('flex flex-col h-full bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border-r border-[color:var(--stroke-color-950)]', className)}>
         <ChatHeader />
         <ChatContent />
       </div>
@@ -35,7 +35,7 @@ function ChatContent() {
   const chatState = useChatState();
   const messages = chatState.messages;
   const widgets = chatState.widgets;
-  
+
   // Enable AI chat integration
   const { isGeneratingAI } = useAIChatIntegration();
 
@@ -43,7 +43,7 @@ function ChatContent() {
     <>
       <Timeline messages={messages} widgets={widgets} />
       {isGeneratingAI && (
-        <div className="flex items-center gap-2 text-muted-foreground text-sm p-3 bg-muted/50 rounded-lg mx-4 my-2">
+        <div className="flex items-center gap-2 text-muted-foreground text-sm p-3 bg-neutral-100/50 dark:bg-neutral-800/50 backdrop-blur-sm rounded-lg mx-4 my-2">
           <div className="flex gap-1">
             <span className="animate-bounce" style={{ animationDelay: '0ms' }}>●</span>
             <span className="animate-bounce" style={{ animationDelay: '150ms' }}>●</span>
@@ -100,7 +100,7 @@ function ChatHeader() {
   };
   
   return (
-    <div className="flex items-center justify-between p-2 border-b border-[color:var(--stroke-color-950)]">
+    <div className="flex items-center justify-between p-2 border-b border-[color:var(--stroke-color-950)] bg-neutral-200/75 dark:bg-neutral-800/75 backdrop-blur-sm">
       <div className="flex items-center gap-2">
         <Logo className="w-6 h-6" />
         <h2 className="text-lg font-semibold">

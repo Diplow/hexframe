@@ -5,7 +5,7 @@ import { cacheActions } from "~/app/map/Cache/State/actions";
 import {
   createServerService,
   type useServerService,
-} from "~/app/map/Cache/Services/server/server-service";
+} from "~/app/map/Cache/Services";
 import type { LoadResult } from "~/app/map/Cache/types/handlers";
 import { loggers } from "~/lib/debug/debug-logger";
 
@@ -18,9 +18,10 @@ export interface DataHandlerServices {
       id: string;
       coordinates: string;
       depth: number;
-      name: string;
-      descr: string;
-      url: string;
+      title: string;
+      content: string;
+      preview: string | undefined;
+      link: string;
       parentId: string | null;
       itemType: string;
       ownerId: string;

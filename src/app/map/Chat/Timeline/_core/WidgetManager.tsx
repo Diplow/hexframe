@@ -5,10 +5,10 @@ import { useMapCache } from '~/app/map/Cache';
 import { useEventBus } from '~/app/map/Services';
 import { useChatState } from '~/app/map/Chat/_state';
 import { createCreationHandlers } from '~/app/map/Chat/Timeline/_utils/creation-handlers';
-import { createPreviewHandlers } from '~/app/map/Chat/Timeline/_utils/preview-handlers';
+import { createTileHandlers } from '~/app/map/Chat/Timeline/_utils/tile-handlers';
 import { focusChatInput } from '~/app/map/Chat/Timeline/_utils/focus-helpers';
-import { 
-  renderPreviewWidget,
+import {
+  renderTileWidget,
   renderLoginWidget,
   renderErrorWidget,
   renderCreationWidget,
@@ -44,8 +44,8 @@ export function WidgetManager({ widgets, focusChatInput: focusChatInputProp }: W
     };
     
     switch (widget.type) {
-      case 'preview':
-        return createPreviewHandlers(widget, deps);
+      case 'tile':
+        return createTileHandlers(widget, deps);
       case 'creation':
         return createCreationHandlers(widget, deps);
       case 'mcp-keys':
@@ -69,6 +69,20 @@ export function WidgetManager({ widgets, focusChatInput: focusChatInputProp }: W
             focusChatInputFn();
           }
         };
+      case 'delete':
+        return {
+          handleCancel: () => {
+            chatState.closeWidget(widget.id);
+            focusChatInputFn();
+          }
+        };
+      case 'error':
+        return {
+          handleCancel: () => {
+            chatState.closeWidget(widget.id);
+            focusChatInputFn();
+          }
+        };
       default:
         return {};
     }
@@ -86,24 +100,24 @@ export function WidgetManager({ widgets, focusChatInput: focusChatInputProp }: W
 }
 
 function _renderWidget(
-  widget: Widget, 
-  createWidgetHandlers: (widget: Widget) => WidgetHandlers, 
-  getItem: (coordId: string) => TileData | null
+  widget: Widget,
+  createWidgetHandlers: (widget: Widget) => WidgetHandlers,
+  getItem: (coordId: string) => TileData | null,
 ): ReactNode {
   
   switch (widget.type) {
-    case 'preview':
-      return renderPreviewWidget(widget, createWidgetHandlers(widget), getItem);
+    case 'tile':
+      return renderTileWidget(widget, createWidgetHandlers(widget), getItem);
     case 'login':
       return renderLoginWidget(widget, createWidgetHandlers(widget));
     case 'error':
-      return renderErrorWidget(widget);
+      return renderErrorWidget(widget, createWidgetHandlers(widget));
     case 'creation':
       return renderCreationWidget(widget, createWidgetHandlers(widget));
     case 'loading':
       return renderLoadingWidget(widget);
     case 'delete':
-      return renderDeleteWidget(widget);
+      return renderDeleteWidget(widget, createWidgetHandlers(widget));
     case 'ai-response':
       return renderAIResponseWidget(widget);
     case 'mcp-keys':

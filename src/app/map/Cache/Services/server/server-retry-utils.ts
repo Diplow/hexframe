@@ -1,9 +1,9 @@
-import type { ServiceConfig } from "~/app/map/Cache/Services/types";
+import type { ServiceConfig } from "~/app/map/Cache/Services";
 import {
   NetworkError as NetworkErrorClass,
   TimeoutError as TimeoutErrorClass,
   ServiceError as ServiceErrorClass,
-} from "~/app/map/Cache/Services/types";
+} from "~/app/map/Cache/Services";
 
 // Default configuration for server service
 export const DEFAULT_CONFIG: Required<ServiceConfig> = {

@@ -1,9 +1,9 @@
-import type { ServerService, ServiceConfig } from "~/app/map/Cache/Services/types";
+import type { ServerService, ServiceConfig } from "~/app/map/Cache/Services";
 import {
   NetworkError as NetworkErrorClass,
   TimeoutError as TimeoutErrorClass,
   ServiceError as ServiceErrorClass,
-} from "~/app/map/Cache/Services/types";
+} from "~/app/map/Cache/Services";
 import type { api } from "~/commons/trpc/react";
 import { createQueryOperations } from "~/app/map/Cache/Services/server/server-query-operations";
 import { createMutationStubs } from "~/app/map/Cache/Services/server/server-mutation-stubs";

@@ -1,18 +1,22 @@
 # Server API
 
-The tRPC API layer for Hexframe, providing type-safe endpoints for client-server communication.
+## Mental Model
+Like a telephone switchboard operator that routes type-safe calls between clients and backend services.
 
-## Structure
+## Responsibilities
+- Configure and initialize the tRPC framework with context, middleware, and transformers
+- Combine domain-specific routers into a unified AppRouter for the entire application
+- Provide type-safe API contracts and context creation for client-server communication
+- Export the public interface that other subsystems use to access tRPC functionality
 
-- `routers/` - API route handlers organized by domain
-- `middleware/` - tRPC middleware for authentication, logging, etc.
-- `services/` - Business logic services
-- `types/` - Shared API types and contracts
-- `trpc.ts` - tRPC configuration and context setup
-- `root.ts` - Root router combining all sub-routers
+## Non-Responsibilities
+- Route-specific business logic → See `./routers/README.md`
+- Authentication middleware → See `./middleware/README.md`
+- Business logic services → See `./services/README.md`
+- API type contracts → See `./types/README.md`
 
-## Usage
+## Interface
+*See `index.ts` for the public API - the ONLY exports other subsystems can use*
+*See `dependencies.json` for what this subsystem can import*
 
-All API endpoints are type-safe through tRPC and follow REST-like naming conventions within the RPC framework.
-
-See `CACHING.md` for caching strategies and `ARCHITECTURE.md` for architectural details.
+Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.

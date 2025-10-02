@@ -313,7 +313,7 @@ describe('AgenticService', () => {
       const mockModels = [
         {
           id: 'openai/gpt-3.5-turbo',
-          name: 'GPT-3.5 Turbo',
+          title: 'GPT-3.5 Turbo',
           provider: 'openai',
           contextWindow: 16385,
           maxOutput: 4096

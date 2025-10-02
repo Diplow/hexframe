@@ -12,6 +12,4 @@
 - **Data Consistency**: fix inconsistent userId (needing a mapping to have an integer version of the string) → [Foundation] - Affects multi-user scenarios
 
 ## Code Cleanup
-- **Dead Code**: remove unused UI components → [Foundation] - Cleaner codebase is more maintainable for active use
-- **Remove Offline Mode**: Remove non-functional offline mode references → [Foundation] - Reduces confusion, simplifies architecture
 - **Test Output Verbosity**: Configure test runners for concise output → [Foundation] - Enables AI to parse test results effectively

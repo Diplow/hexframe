@@ -28,9 +28,10 @@ describe("NavigationHandler - Collapse distant tiles", () => {
       parentId: CoordSystem.getParentCoordFromId(coordId),
     },
     data: {
-      name: "Test Tile",
-      description: "Test Description",
-      url: "",
+      title: "Test Tile",
+      content: "Test Description",
+        preview: undefined,
+      link: "",
       color: "zinc-50",
     },
     state: {
@@ -251,15 +252,15 @@ describe("NavigationHandler - Collapse distant tiles", () => {
     // - "30" (1,0 - ancestor)
     // - "31" (1,0:1 - the new center itself - was expanded)
     // - "32" (1,0:1,2 - 1 generation from new center)
+    // - "33" (1,0:2 - sibling, kept for neighbor display)
     // Should remove:
-    // - "33" (1,0:2 - sibling, not related)
     // - "34" (1,0:3,4,5,6 - too distant)
     expect(expandedItems).toContain("30");
     expect(expandedItems).toContain("31"); // The center itself should remain expanded
     expect(expandedItems).toContain("32");
-    expect(expandedItems).not.toContain("33");
+    expect(expandedItems).toContain("33"); // Siblings are kept for neighbor tiles
     expect(expandedItems).not.toContain("34");
-    expect(expandedItems).toHaveLength(3);
+    expect(expandedItems).toHaveLength(4);
   });
 
   it("should keep ALL ancestors expanded when navigating to a great-grandchild", async () => {

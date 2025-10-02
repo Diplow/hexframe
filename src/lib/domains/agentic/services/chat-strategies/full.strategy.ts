@@ -33,9 +33,9 @@ export class FullChatStrategy implements IChatStrategy {
     
     // Handle widget content extraction
     switch (content.type) {
-      case 'preview':
-        const previewData = content.data as { title?: string; content?: string }
-        return `[Preview Widget: ${previewData.title ?? 'Untitled'}]`
+      case 'tile':
+        const tileData = content.data as { title?: string; content?: string }
+        return `[Tile Widget: ${tileData.title ?? 'Untitled'}]`
       case 'creation':
         return '[Creation Widget]'
       case 'error':

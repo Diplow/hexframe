@@ -1,5 +1,5 @@
 import type { SyncOperations } from "~/app/map/Cache/Sync/types";
-import type { ServerService } from "~/app/map/Cache/Services/types";
+import type { ServerService } from "~/app/map/Cache/Services";
 
 /**
  * Create sync operations object for the public MapCache API

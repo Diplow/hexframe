@@ -22,7 +22,8 @@ function mapDbToDomain(dbItem: DbBaseItemSelect): BaseItemWithId {
     id: dbItem.id,
     attrs: {
       title: dbItem.title,
-      descr: dbItem.descr,
+      content: dbItem.content,
+      preview: dbItem.preview ?? undefined,
       link: dbItem.link ?? "",
     },
     // History/RelatedItems/RelatedLists are not loaded/mapped here
@@ -142,7 +143,8 @@ export class DbBaseItemRepository implements BaseItemRepository {
       .insert(schemaImport.baseItems)
       .values({
         title: attrs.title,
-        descr: attrs.descr,
+        content: attrs.content,
+        preview: attrs.preview ?? null,
         link: attrs.link ?? null,
         // createdAt/updatedAt handled by DB default
       })
@@ -180,7 +182,9 @@ export class DbBaseItemRepository implements BaseItemRepository {
 
     const updateData: Partial<DbBaseItemSelect> = {};
     if (attrs.title !== undefined) updateData.title = attrs.title;
-    if (attrs.descr !== undefined) updateData.descr = attrs.descr;
+    if (attrs.content !== undefined) updateData.content = attrs.content;
+    // Allow setting preview to null or a new value
+    if (attrs.hasOwnProperty("preview")) updateData.preview = attrs.preview ?? null;
     // Allow setting link to null or a new value
     if (attrs.hasOwnProperty("link")) updateData.link = attrs.link ?? null;
 
@@ -197,7 +201,8 @@ export class DbBaseItemRepository implements BaseItemRepository {
     if (!updatedItem) {
       throw new Error(`BaseItem with id ${id} not found for update.`);
     }
-    return this.getOne(updatedItem.id); // Fetch after update
+    const result = this.getOne(updatedItem.id); // Fetch after update
+    return result;
   }
 
   // --- Relation Updates --- (Stubs - BaseItem has no relations defined in its types)

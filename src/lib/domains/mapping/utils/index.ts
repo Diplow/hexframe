@@ -14,3 +14,13 @@ export {
   coordToString,
   stringToCoord,
 } from '~/lib/domains/mapping/utils/hex-coordinates';
+
+// MapItem attribute types (canonical source of truth)
+export type {
+  MapItemAttributes,
+  MapItemUpdateAttributes,
+  MapItemCreateAttributes,
+} from '~/lib/domains/mapping/types/item-attributes';
+
+// MapItem type enum
+export { MapItemType } from '~/lib/domains/mapping/_objects';

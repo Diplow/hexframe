@@ -7,8 +7,8 @@ import { cn } from "~/lib/utils";
 export interface DynamicTileContentProps {
   data: {
     title?: string;
-    description?: string;
-    url?: string;
+    content?: string;
+    link?: string;
   };
   scale: TileScale;
   tileId?: string;
@@ -19,13 +19,13 @@ export interface DynamicTileContentProps {
 
 const getTextClasses = (depth = 0) => getTextColorForDepth(depth);
 
-export const DynamicTileContent = ({ 
-  data, 
-  scale, 
-  tileId: _tileId, 
-  isHovered: _isHovered = false, 
+export const DynamicTileContent = ({
+  data,
+  scale,
+  tileId: _tileId,
+  isHovered: _isHovered = false,
   depth = 0,
-  isSelected = false 
+  isSelected = false
 }: DynamicTileContentProps) => {
   if (!data) return null;
   
@@ -33,7 +33,7 @@ export const DynamicTileContent = ({
   const title = data.title ?? 'Untitled';
   
   // Scale-based styling
-  const baseFontSize = scale === 1 ? "text-xs" : scale === 2 ? "text-base" : "text-lg";
+  const baseFontSize = scale === 1 ? "text-[11px]" : scale === 2 ? "text-base" : "text-lg";
   const fontWeight = scale === 1 ? "font-medium" : scale === 2 ? "font-medium" : "font-semibold";
   
   const testId = "tile-content";
@@ -42,13 +42,14 @@ export const DynamicTileContent = ({
     <div
       data-testid={testId}
       className={cn(
-        "flex h-full w-full items-center justify-center px-4",
+        "flex h-full w-full items-center justify-center",
+        scale === 1 ? "px-2" : "px-4",
         isSelected && "ring-2 ring-primary rounded-lg"
       )}
     >
       <h3 className={cn(
         "text-center select-none",
-        scale === 1 ? "truncate" : "break-words",
+        scale === 1 ? "break-words line-clamp-4" : "break-words",
         baseFontSize,
         fontWeight,
         textClasses

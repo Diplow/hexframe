@@ -1,69 +1,23 @@
-# Chat State Management
+# Chat State Documentation
 
-Central state management for the Chat subsystem, handling event processing, message derivation, and widget lifecycle management.
+## Mental Model
+Like a medical chart system - maintains an immutable timeline of events (symptoms, treatments, observations) that doctors use to derive current patient state and make informed decisions.
 
-## Architecture
+## Responsibilities
+- Document the event sourcing architecture and patterns used by Chat state management
+- Provide guidelines for working with immutable event streams and derived state
+- Explain the integration points between Chat state and external systems
+- Define the state flow from external events to UI rendering
 
-```
-_state/
-├── index.ts                    # Public API
-├── ChatProvider.tsx            # React context provider
-├── useChatState.ts            # Main state hook
-├── types.ts                   # Core type definitions
-├── _events/                   # Event processing
-│   ├── event.types.ts         # Event type definitions
-│   ├── event.creators.ts      # Event creation utilities
-│   └── event.validators.ts    # Event validation
-├── _reducers/                 # State reducers
-│   └── events.reducer.ts      # Events reducer
-└── _selectors/                # State selectors
-    └── message.selectors.ts   # Message and widget selectors
-```
+## Non-Responsibilities
+- Implementation of actual state management logic → See `../core/README.md`
+- Event type definitions and processing → See `../_events/README.md`
+- State reduction and transitions → See `../_reducers/README.md`
+- State derivation and selection → See `../_selectors/README.md`
+- Hook implementations → See `../_hooks/README.md`
+- Operation handlers → See `../_operations/README.md`
 
-## Key Components
+## Interface
+*See `dependencies.json` for what this documentation subsystem can reference*
 
-### ChatProvider
-React context provider that makes chat state available throughout the component tree.
-
-### useChatState Hook
-Main hook that:
-- Manages event stream processing
-- Derives messages and widgets from events
-- Handles state transitions and lifecycle
-- Integrates with external event bus
-
-### Event System
-- **Events**: Immutable event stream representing all chat interactions
-- **Reducers**: Pure functions for state transitions
-- **Selectors**: Derive UI state from event stream
-- **Validators**: Transform map events to chat events
-
-## Dependencies
-
-- **React**: Context and hooks
-- **Map Services**: Event bus integration  
-- **Map Types**: Shared type definitions
-- **Chat Settings**: Configuration and preferences
-
-## Usage
-
-```tsx
-import { ChatProvider, useChatState } from '~/app/map/Chat/_state';
-
-// Provide state context
-<ChatProvider>
-  <ChatInterface />
-</ChatProvider>
-
-// Use state in components
-const { messages, widgets, sendMessage } = useChatState();
-```
-
-## State Flow
-
-1. **External events** arrive via EventBus
-2. **Event validators** transform to ChatEvents  
-3. **Events reducer** appends to event stream
-4. **Message selectors** derive Messages from events
-5. **Widget selectors** derive Widgets from events
-6. **UI components** render derived state
+Note: This is a documentation-only directory that explains the architecture and patterns used by the Chat state management subsystem.
