@@ -1,7 +1,7 @@
 import type { Dispatch } from "react";
 import type { CacheAction } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
-import type { ServerService } from "~/app/map/Cache/Services/types";
+import type { ServerService } from "~/app/map/Cache/Services";
 import { checkAncestors, loadAncestorsForItem } from "~/app/map/Cache/Handlers";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 import type { TileData } from "~/app/map/types";
@@ -88,7 +88,6 @@ async function handleAncestorLoading(
   // Also load siblings for the center item if it has a parent
   const parentCoordId = CoordSystem.getParentCoordFromId(centerCoordId);
   if (parentCoordId) {
-    console.log('[PREFETCH] Loading siblings for center item:', centerCoordId, 'via parent:', parentCoordId);
     void loadSiblingsForInitialLoad(parentCoordId, serverService, dispatch);
   }
 }
@@ -101,22 +100,11 @@ async function loadSiblingsForInitialLoad(
   serverService: ServerService,
   dispatch: Dispatch<CacheAction>
 ): Promise<void> {
-  console.log('[PREFETCH] loadSiblingsForInitialLoad called with parentCoordId:', parentCoordId);
 
   try {
-    console.log('[PREFETCH] Fetching parent with children...');
     const parentWithChildren = await serverService.getItemWithGenerations({
       coordId: parentCoordId,
       generations: 1
-    });
-
-    console.log('[PREFETCH] Received parent with children:', {
-      itemCount: parentWithChildren.length,
-      items: parentWithChildren.map(item => ({
-        id: item.id,
-        coordinates: item.coordinates,
-        name: item.name
-      }))
     });
 
     if (parentWithChildren.length > 0) {
@@ -129,9 +117,10 @@ async function loadSiblingsForInitialLoad(
 
         siblingItems[coordId] = {
           data: {
-            name: item.name,
-            description: item.descr,
-            url: item.url,
+            title: item.title,
+            content: item.content,
+        preview: item.preview,
+            link: item.link,
             color: getColor(itemCoords),
           },
           metadata: {
@@ -153,17 +142,8 @@ async function loadSiblingsForInitialLoad(
         };
       });
 
-      console.log('[PREFETCH] Dispatching siblings to cache:', {
-        siblingCount: Object.keys(siblingItems).length,
-        siblingCoordIds: Object.keys(siblingItems)
-      });
-
       // Dispatch siblings to cache
       dispatch(cacheActions.updateItems(siblingItems));
-
-      console.log('[PREFETCH] Siblings successfully dispatched to cache');
-    } else {
-      console.log('[PREFETCH] No children found for parent');
     }
   } catch (error) {
     console.error('[PREFETCH] Failed to load siblings:', error);

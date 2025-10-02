@@ -29,13 +29,13 @@ export class StructuredContextSerializer {
     const lines: string[] = [
       '# Canvas Context',
       '',
-      `Current item: ${context.center.name}`
+      `Current item: ${context.center.title}`
     ]
-    
-    if (context.center.description) {
-      lines.push(`Description: ${context.center.description}`)
+
+    if (context.center.content) {
+      lines.push(`Content: ${context.center.content}`)
     }
-    
+
     if (context.children.length === 0) {
       lines.push('No child items')
     } else {
@@ -43,23 +43,23 @@ export class StructuredContextSerializer {
       lines.push('## Children:')
       for (const child of context.children) {
         const posLabel = this.getPositionLabel(child.position)
-        lines.push(`- ${posLabel}: ${child.name}`)
+        lines.push(`- ${posLabel}: ${child.title}`)
       }
     }
-    
+
     if (context.grandchildren.length > 0) {
       lines.push('')
       lines.push('## Grandchildren:')
       const displayCount = Math.min(6, context.grandchildren.length)
       for (let i = 0; i < displayCount; i++) {
         const grandchild = context.grandchildren[i]!
-        lines.push(`- ${grandchild.name}`)
+        lines.push(`- ${grandchild.title}`)
       }
       if (context.grandchildren.length > displayCount) {
         lines.push(`- ... and ${context.grandchildren.length - displayCount} more`)
       }
     }
-    
+
     return lines.join('\n')
   }
 

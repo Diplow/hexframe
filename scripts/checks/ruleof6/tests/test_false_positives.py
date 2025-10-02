@@ -8,7 +8,6 @@ This test suite specifically targets the known false positive issues:
 """
 
 import sys
-import os
 from pathlib import Path
 
 # Add the parent directory to the path for imports

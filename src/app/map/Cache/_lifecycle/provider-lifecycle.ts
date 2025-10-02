@@ -3,7 +3,7 @@ import type { Dispatch } from "react";
 import type { CacheState, CacheAction } from "~/app/map/Cache/State";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";
 import type { SyncOperations } from "~/app/map/Cache/Sync/types";
-import type { ServerService } from "~/app/map/Cache/Services/types";
+import type { ServerService } from "~/app/map/Cache/Services";
 import { executePrefetchRegion } from "~/app/map/Cache/_lifecycle/_internals/prefetch-operations";
 import { shouldTriggerPrefetch, createDeferredPrefetch } from "~/app/map/Cache/_lifecycle/_internals/center-change-handler";
 

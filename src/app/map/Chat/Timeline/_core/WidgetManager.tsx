@@ -5,10 +5,10 @@ import { useMapCache } from '~/app/map/Cache';
 import { useEventBus } from '~/app/map/Services';
 import { useChatState } from '~/app/map/Chat/_state';
 import { createCreationHandlers } from '~/app/map/Chat/Timeline/_utils/creation-handlers';
-import { createPreviewHandlers } from '~/app/map/Chat/Timeline/_utils/preview-handlers';
+import { createTileHandlers } from '~/app/map/Chat/Timeline/_utils/tile-handlers';
 import { focusChatInput } from '~/app/map/Chat/Timeline/_utils/focus-helpers';
 import {
-  renderPreviewWidget,
+  renderTileWidget,
   renderLoginWidget,
   renderErrorWidget,
   renderCreationWidget,
@@ -44,8 +44,8 @@ export function WidgetManager({ widgets, focusChatInput: focusChatInputProp }: W
     };
     
     switch (widget.type) {
-      case 'preview':
-        return createPreviewHandlers(widget, deps);
+      case 'tile':
+        return createTileHandlers(widget, deps);
       case 'creation':
         return createCreationHandlers(widget, deps);
       case 'mcp-keys':
@@ -106,8 +106,8 @@ function _renderWidget(
 ): ReactNode {
   
   switch (widget.type) {
-    case 'preview':
-      return renderPreviewWidget(widget, createWidgetHandlers(widget), getItem);
+    case 'tile':
+      return renderTileWidget(widget, createWidgetHandlers(widget), getItem);
     case 'login':
       return renderLoginWidget(widget, createWidgetHandlers(widget));
     case 'error':

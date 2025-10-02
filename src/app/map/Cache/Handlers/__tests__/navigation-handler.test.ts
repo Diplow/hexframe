@@ -60,9 +60,10 @@ describe("Navigation Handler", () => {
       itemsById: {
         "0,0": {
           data: {
-            name: "Current Item",
-            description: "Currently centered",
-            url: "",
+            title: "Current Item",
+            content: "Currently centered",
+        preview: undefined,
+            link: "",
             color: "#000000",
           },
           metadata: {
@@ -84,9 +85,10 @@ describe("Navigation Handler", () => {
         },
         "1,2": {
           data: {
-            name: "Test Item",
-            description: "Test Description",
-            url: "",
+            title: "Test Item",
+            content: "Test Description",
+        preview: undefined,
+            link: "",
             color: "#000000",
           },
           metadata: {

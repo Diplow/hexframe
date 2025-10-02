@@ -2,27 +2,42 @@ import type { MutationOperations } from "~/app/map/Cache/types/handlers";
 
 /**
  * Create mutation operation callbacks with clean public API naming
+ * Normalizes legacy field names to canonical domain types
  */
 export function createMutationCallbacks(mutationOperations: MutationOperations) {
   const createItemOptimistic = async (coordId: string, data: {
     parentId?: number;
     title?: string;
     name?: string;
+    preview?: string;
     description?: string;
     descr?: string;
     url?: string;
   }) => {
-    await mutationOperations.createItem(coordId, data);
+    // Normalize legacy field names to canonical domain names
+    await mutationOperations.createItem(coordId, {
+      title: data.title ?? data.name,
+      content: data.description ?? data.descr,
+      preview: data.preview,
+      link: data.url,
+    });
   };
 
   const updateItemOptimistic = async (coordId: string, data: {
     title?: string;
     name?: string;
+    preview?: string;
     description?: string;
     descr?: string;
     url?: string;
   }) => {
-    await mutationOperations.updateItem(coordId, data);
+    // Normalize legacy field names to canonical domain names
+    await mutationOperations.updateItem(coordId, {
+      title: data.title ?? data.name,
+      content: data.description ?? data.descr,
+      preview: data.preview,
+      link: data.url,
+    });
   };
 
   const deleteItemOptimistic = async (coordId: string) => {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { MapItemActions } from "~/lib/domains/mapping/_actions/map-item.actions";
+import { MapItemActions } from "~/lib/domains/mapping/_actions/map-item-actions";
 import { ItemCrudService } from "~/lib/domains/mapping/services/_item-crud.service";
 import { MapItemType } from "~/lib/domains/mapping/_objects";
 import type { MapItemWithId } from "~/lib/domains/mapping/_objects";

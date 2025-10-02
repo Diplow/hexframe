@@ -9,3 +9,6 @@ export { ContextCompositionService } from '~/lib/domains/agentic/services/contex
 export { ContextSerializerService } from '~/lib/domains/agentic/services/context-serializer.service'
 export { SimpleTokenizerService } from '~/lib/domains/agentic/services/tokenizer.service'
 export type { TokenizerService } from '~/lib/domains/agentic/services/tokenizer.service'
+
+export { PreviewGeneratorService } from '~/lib/domains/agentic/services/preview-generator.service'
+export type { GeneratePreviewInput, GeneratePreviewResult } from '~/lib/domains/agentic/services/preview-generator.service'

@@ -21,8 +21,8 @@ export async function _setupItemForRetrieval(
     parentId: setupData.id,
     coords: itemCoords,
     title: "Test Retrievable Item",
-    descr: "Test Description",
-    url: "https://example.com",
+    content: "Test Description",
+    link: "https://example.com",
   });
 
   return { setupData, itemCoords };
@@ -33,8 +33,8 @@ export async function _validateItemRetrieval(
   itemCoords: Parameters<typeof CoordSystem.createId>[0],
   expectedItemData: {
     title: string;
-    descr: string;
-    url: string;
+    content: string;
+    link: string;
   },
 ) {
   const retrievedItem = await testEnv.service.items.crud.getItem({
@@ -42,9 +42,9 @@ export async function _validateItemRetrieval(
   });
 
   expect(retrievedItem).toBeDefined();
-  expect(retrievedItem.name).toBe(expectedItemData.title);
-  expect(retrievedItem.descr).toBe(expectedItemData.descr);
-  expect(retrievedItem.url).toBe(expectedItemData.url);
+  expect(retrievedItem.title).toBe(expectedItemData.title);
+  expect(retrievedItem.content).toBe(expectedItemData.content);
+  expect(retrievedItem.link).toBe(expectedItemData.link);
   expect(retrievedItem.coords).toEqual(CoordSystem.createId(itemCoords));
   expect(retrievedItem.itemType).toBe(MapItemType.BASE);
 

@@ -255,10 +255,10 @@ vi.mock('../_widgets/auth-widget', () => ({
   ),
 }));
 
-// Mock PreviewWidget to test tile selection
-vi.mock('../_widgets/preview-widget', () => ({
-  PreviewWidget: ({ tile }: { tile: unknown }) => (
-    <div data-testid="preview-widget">
+// Mock TileWidget to test tile selection
+vi.mock('../_widgets/tile-widget', () => ({
+  TileWidget: ({ tile }: { tile: unknown }) => (
+    <div data-testid="tile-widget">
       {tile ? `Selected tile: ${JSON.stringify(tile)}` : 'No tile selected'}
     </div>
   ),
@@ -312,7 +312,7 @@ describe('ChatPanel', () => {
     });
   });
 
-  it('should display preview widget when tile is selected', async () => {
+  it('should display tile widget when tile is selected', async () => {
     render(
       <TestProviders mockEventBus={mockEventBus}>
         <ChatPanel />
@@ -321,7 +321,7 @@ describe('ChatPanel', () => {
 
     // Initially no tile selected
     await waitFor(() => {
-      expect(screen.getByTestId('preview-widget')).toHaveTextContent('No tile selected');
+      expect(screen.getByTestId('tile-widget')).toHaveTextContent('No tile selected');
     });
 
     // Emit tile.selected event
@@ -330,7 +330,7 @@ describe('ChatPanel', () => {
 
     // Should display selected tile
     await waitFor(() => {
-      expect(screen.getByTestId('preview-widget')).toHaveTextContent(JSON.stringify(selectedTile));
+      expect(screen.getByTestId('tile-widget')).toHaveTextContent(JSON.stringify(selectedTile));
     });
   });
 

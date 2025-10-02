@@ -41,8 +41,8 @@ export class MinimalCanvasStrategy implements ICanvasStrategy {
       
     return {
       coordId: tile.metadata.coordId,
-      name: tile.data.name || '',
-      description: tile.data.description || '',
+      title: tile.data.title || '',
+      content: tile.data.content || '',
       position,
       depth,
       hasChildren: false
@@ -54,9 +54,9 @@ export class MinimalCanvasStrategy implements ICanvasStrategy {
     format: { type: string; includeMetadata?: boolean }
   ): string {
     if (format.type === 'structured') {
-      return `Center: ${center.name}${center.description ? `\n${center.description}` : ''}`
+      return `Center: ${center.title}${center.content ? `\n${center.content}` : ''}`
     }
-    
+
     return JSON.stringify({ center })
   }
 }

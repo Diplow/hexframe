@@ -79,7 +79,7 @@ export class StandardCanvasStrategy implements ICanvasStrategy {
     let filtered = tiles
     
     if (!options.includeEmptyTiles) {
-      filtered = tiles.filter(t => t.data.name?.trim())
+      filtered = tiles.filter(t => t.data.title?.trim())
     }
     
     return filtered.map(t => {
@@ -145,8 +145,8 @@ export class StandardCanvasStrategy implements ICanvasStrategy {
       
     return {
       coordId: tile.metadata.coordId,
-      name: tile.data.name || '',
-      description: tile.data.description || '',
+      title: tile.data.title || '',
+      content: tile.data.content || '',
       position,
       depth,
       hasChildren
@@ -163,9 +163,9 @@ export class StandardCanvasStrategy implements ICanvasStrategy {
   ): string {
     // Basic serialization - will be replaced by proper serializer
     if (format.type === 'structured') {
-      return `Center: ${context.center.name}
-Children (${context.children.length}): ${context.children.map(c => c.name).join(', ')}
-Grandchildren (${context.grandchildren.length}): ${context.grandchildren.map(g => g.name).join(', ')}`
+      return `Center: ${context.center.title}
+Children (${context.children.length}): ${context.children.map(c => c.title).join(', ')}
+Grandchildren (${context.grandchildren.length}): ${context.grandchildren.map(g => g.title).join(', ')}`
     }
     
     return JSON.stringify(context)

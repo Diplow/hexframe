@@ -1,11 +1,10 @@
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";
-import type { ServerService } from "~/app/map/Cache/Services/types";
+import type { ServerService } from "~/app/map/Cache/Services";
 import type { EventBusService } from '~/app/map';
 import { adapt, type TileData } from "~/app/map/types";
 import { loggers } from "~/lib/debug/debug-logger";
-import { type MapItemType } from "~/lib/domains/mapping";
 
 export interface NavigationResult {
   success: boolean;
@@ -195,7 +194,7 @@ export async function loadItemFromServer(
   loggers.mapCache.handlers(`✅ Successfully loaded item from server`, {
     dbId: loadedItem.id,
     coordId: loadedItem.coordinates,
-    name: loadedItem.name
+    title: loadedItem.title
   });
 
   const loadedCoordId = loadedItem.coordinates;
@@ -217,7 +216,7 @@ export async function loadItemFromServer(
     });
   } catch (error) {
     // Fallback to just the root item if region fetch fails
-    dispatch(cacheActions.loadRegion([{...loadedItem, itemType: loadedItem.itemType as MapItemType}], loadedCoordId, 0));
+    dispatch(cacheActions.loadRegion([{...loadedItem, itemType: loadedItem.itemType}], loadedCoordId, 0));
 
     loggers.mapCache.handlers(`⚠️ Failed to load full region, loaded root item only`, {
       centerCoordId: loadedCoordId,
@@ -226,7 +225,7 @@ export async function loadItemFromServer(
   }
 
   // Convert the loaded item to the proper TileData format
-  const adaptedItem = adapt({...loadedItem, itemType: loadedItem.itemType as MapItemType});
+  const adaptedItem = adapt({...loadedItem, itemType: loadedItem.itemType});
 
   loggers.mapCache.handlers('[Navigation] ✅ Using loaded item data for navigation');
 

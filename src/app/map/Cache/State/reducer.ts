@@ -56,8 +56,8 @@ const hasDataChanges = (
 
     if (
       !oldItem ||
-      oldItem.data.name !== newItem?.data.name ||
-      oldItem.data.description !== newItem?.data.description
+      oldItem.data.title !== newItem?.data.title ||
+      oldItem.data.content !== newItem?.data.content
     ) {
       return true;
     }

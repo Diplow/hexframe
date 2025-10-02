@@ -3,7 +3,7 @@ import { api } from "~/commons/trpc/react";
 import type {
   ServerService,
   ServiceConfig,
-} from "~/app/map/Cache/Services/types";
+} from "~/app/map/Cache/Services";
 import { DEFAULT_CONFIG } from "~/app/map/Cache/Services/server/server-retry-utils";
 import { createServerOperations } from "~/app/map/Cache/Services/server/server-operations";
 

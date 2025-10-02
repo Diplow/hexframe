@@ -1,6 +1,6 @@
 {
   "$schema": "../../../../../../scripts/checks/architecture/dependencies.schema.json",
   "allowed": [
-    "~/app/map/Chat/Timeline/Widgets/PreviewWidget"
+    "~/app/map/Chat/Timeline/Widgets/TileWidget"
   ]
 }

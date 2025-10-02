@@ -9,6 +9,7 @@ import { DynamicTileContent } from "~/app/map/Canvas/Tile/Item/content";
 import { useTileInteraction } from "~/app/map/Canvas";
 // import { useRouter } from "next/navigation"; // Removed unused import
 import { useCanvasTheme } from "~/app/map/Canvas";
+import { TileTooltip } from "~/app/map/Canvas/_shared/TileTooltip";
 
 // Types for drag props
 interface DragProps {
@@ -101,50 +102,56 @@ export function ItemTileContent({
   
   return (
     <>
-      {/* Hexagon interaction area with its own z-index hierarchy */}
-      <div
-        className="absolute inset-0 hexagon-draggable"
-        style={{
-          // Clip to hexagon shape for precise click detection
-          clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
-          // Give neighbors higher z-index than center for corner priority
-          zIndex: _isCenter ? 20 : 25,
-          pointerEvents: interactive ? "auto" : "none"
-        }}
-        onClick={interactive ? (e) => void handleClick(e) : undefined}
-        onContextMenu={interactive ? (e) => void handleRightClick(e) : undefined}
-        // Apply drag props to hexagon area
-        {...(dragProps ?? {})}
-        // Apply data attributes for drag service detection
-        {...(dataAttributes ?? {})}
+      <TileTooltip
+        preview={item.data.preview}
+        title={item.data.title}
+        disabled={!interactive}
       >
-        {/* Visual content container */}
-        <div className="relative h-full w-full">
-          <DynamicBaseTileLayout
-            coordId={item.metadata.coordId}
-            scale={scale}
-            color={tileColor}
-            baseHexSize={baseHexSize}
-            cursor={interactive ? cursor : 'cursor-pointer'}
-            isFocusable={false}
-            isExpanded={allExpandedItemIds.includes(item.metadata.dbId)}
-            isDarkMode={isDarkMode}
-          >
-            <DynamicTileContent
-              data={{
-                title: item.data.name,
-                description: item.data.description,
-                url: item.data.url,
-              }}
+        {/* Hexagon interaction area with its own z-index hierarchy */}
+        <div
+          className="absolute inset-0 hexagon-draggable"
+          style={{
+            // Clip to hexagon shape for precise click detection
+            clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
+            // Give neighbors higher z-index than center for corner priority
+            zIndex: _isCenter ? 20 : 25,
+            pointerEvents: interactive ? "auto" : "none"
+          }}
+          onClick={interactive ? (e) => void handleClick(e) : undefined}
+          onContextMenu={interactive ? (e) => void handleRightClick(e) : undefined}
+          // Apply drag props to hexagon area
+          {...(dragProps ?? {})}
+          // Apply data attributes for drag service detection
+          {...(dataAttributes ?? {})}
+        >
+          {/* Visual content container */}
+          <div className="relative h-full w-full">
+            <DynamicBaseTileLayout
+              coordId={item.metadata.coordId}
               scale={scale}
-              tileId={testId.replace("tile-", "")}
-              isHovered={false}
-              depth={item.metadata.depth}
-              isSelected={isSelected}
-            />
-          </DynamicBaseTileLayout>
+              color={tileColor}
+              baseHexSize={baseHexSize}
+              cursor={interactive ? cursor : 'cursor-pointer'}
+              isFocusable={false}
+              isExpanded={allExpandedItemIds.includes(item.metadata.dbId)}
+              isDarkMode={isDarkMode}
+            >
+              <DynamicTileContent
+                data={{
+                  title: item.data.title,
+                  content: item.data.content,
+                  link: item.data.link,
+                }}
+                scale={scale}
+                tileId={testId.replace("tile-", "")}
+                isHovered={false}
+                depth={item.metadata.depth}
+                isSelected={isSelected}
+              />
+            </DynamicBaseTileLayout>
+          </div>
         </div>
-      </div>
+      </TileTooltip>
       {/* Buttons are disabled for now */}
     </>
   );

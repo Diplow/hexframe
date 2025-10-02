@@ -50,7 +50,7 @@ function _createMapUIHandlers(
       source: 'canvas',
       payload: {
         tileId: tileData.metadata.coordId,
-        tileName: tileData.data.name,
+        tileName: tileData.data.title,
       },
       timestamp: new Date(),
     });
@@ -178,22 +178,20 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
         </div>
 
         {/* Parent hierarchy - positioned over everything on the right */}
-        {centerCoordinate && (
-          <div className="absolute right-0 top-0 bottom-0 bg-white/50 dark:bg-neutral-900/50 backdrop-blur-md border-l border-[color:var(--stroke-color-950)]" style={{ zIndex: 10 }}>
-            <ParentHierarchy
-              centerCoordId={centerCoordinate}
-              items={{}}
-              urlInfo={{
-                pathname: `/map`,
-                searchParamsString: new URLSearchParams(params as Record<string, string>).toString(),
-                rootItemId: centerCoordinate,
-                scale: params.scale,
-                expandedItems: params.expandedItems,
-                focus: params.focus,
-              }}
-            />
-          </div>
-        )}
+        <div className="absolute right-0 top-0 bottom-0 bg-white/50 dark:bg-neutral-900/50 backdrop-blur-md border-l border-[color:var(--stroke-color-950)]" style={{ zIndex: 10 }}>
+          <ParentHierarchy
+            centerCoordId={centerCoordinate ?? ""}
+            items={{}}
+            urlInfo={{
+              pathname: `/map`,
+              searchParamsString: new URLSearchParams(params as Record<string, string>).toString(),
+              rootItemId: centerCoordinate ?? "",
+              scale: params.scale,
+              expandedItems: params.expandedItems,
+              focus: params.focus,
+            }}
+          />
+        </div>
       </div>
     </TileActionsProvider>
   );

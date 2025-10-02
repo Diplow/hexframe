@@ -115,8 +115,9 @@ export const mapItemsRouter = createTRPCRouter({
         parentId: input.parentId ?? null,
         coords: coords,
         title: input.title,
-        descr: input.descr,
-        url: input.url,
+        content: input.content,
+        preview: input.preview,
+        link: input.link,
       });
       return contractToApiAdapters.mapItem(mapItem);
     }),
@@ -155,24 +156,27 @@ export const mapItemsRouter = createTRPCRouter({
       // Check if user owns the item they're trying to update
       const currentUserId = await _getUserId(ctx.user);
       const currentUserIdString = String(currentUserId);
-      
+
       const existingItem = await ctx.mappingService.items.crud.getItem({
         coords: input.coords as Coord,
       });
-      
+
       if (existingItem.ownerId !== currentUserIdString) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You can only update items you own",
         });
       }
-      
-      const item = await ctx.mappingService.items.crud.updateItem({
+
+      const updateParams = {
         coords: input.coords as Coord,
         title: input.data.title,
-        descr: input.data.descr,
-        url: input.data.url,
-      });
+        content: input.data.content,
+        preview: input.data.preview,
+        link: input.data.link,
+      };
+
+      const item = await ctx.mappingService.items.crud.updateItem(updateParams);
       return contractToApiAdapters.mapItem(item);
     }),
 

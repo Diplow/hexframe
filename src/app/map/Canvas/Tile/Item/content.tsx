@@ -7,8 +7,8 @@ import { cn } from "~/lib/utils";
 export interface DynamicTileContentProps {
   data: {
     title?: string;
-    description?: string;
-    url?: string;
+    content?: string;
+    link?: string;
   };
   scale: TileScale;
   tileId?: string;

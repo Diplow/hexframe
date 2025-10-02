@@ -13,9 +13,9 @@ export function createTileOperations(dispatch: (event: ChatEvent) => void) {
           tileId: tile.metadata.coordId,
           tileData: {
             id: tile.metadata.dbId.toString(),
-            title: tile.data.name,
-            description: tile.data.description,
-            content: tile.data.description,
+            title: tile.data.title,
+            content: tile.data.content,
+            preview: tile.data.preview,
             coordId: tile.metadata.coordId,
           },
           openInEditMode: true,
@@ -25,16 +25,16 @@ export function createTileOperations(dispatch: (event: ChatEvent) => void) {
         actor: 'system',
       });
     },
-    showPreviewWidget(tile: TileData) {
+    showTileWidget(tile: TileData) {
       dispatch({
         type: 'tile_selected',
         payload: {
           tileId: tile.metadata.coordId,
           tileData: {
             id: tile.metadata.dbId.toString(),
-            title: tile.data.name,
-            description: tile.data.description,
-            content: tile.data.description,
+            title: tile.data.title,
+            content: tile.data.content,
+            preview: tile.data.preview,
             coordId: tile.metadata.coordId,
           },
           openInEditMode: false,

@@ -1,7 +1,7 @@
-# PreviewWidget
+# TileWidget
 
 ## Mental Model
-Like a document viewer with an edit mode toggle - you can preview a tile's content and seamlessly switch to editing it inline.
+Like a document viewer with an edit mode toggle - you can view a tile's content and seamlessly switch to editing it inline.
 
 ## Responsibilities
 - Display tile content in a collapsible preview interface

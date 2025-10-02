@@ -24,7 +24,7 @@ export function MapLoadingSpinner({
       case "detecting":
         return `${baseClasses} animate-pulse border-blue-300 border-t-blue-600 dark:border-blue-600 dark:border-t-blue-300`;
       case "initializing":
-        return `${baseClasses} animate-spin border-green-300 border-t-green-600 dark:border-green-600 dark:border-t-green-300`;
+        return `${baseClasses} animate-spin border-primary/30 border-t-primary dark:border-primary/60 dark:border-t-primary`;
       case "loading":
       default:
         return `${baseClasses} animate-spin border-neutral-300 border-t-neutral-600 dark:border-neutral-600 dark:border-t-neutral-300`;

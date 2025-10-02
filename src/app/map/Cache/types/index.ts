@@ -27,7 +27,7 @@ import type {
   NavigationOperations,
   LoadResult,
 } from '~/app/map/Cache/types/handlers';
-import type { ServerService, StorageService, ServiceConfig } from "~/app/map/Cache/Services/types";
+import type { ServerService, StorageService, ServiceConfig } from "~/app/map/Cache/Services";
 import type { SyncOperations, SyncResult, SyncStatus } from "~/app/map/Cache/Sync/types";
 import type { EventBusService } from '~/app/map';
 

@@ -1,7 +1,7 @@
 import type { Dispatch } from "react";
 import type { CacheAction } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
-import type { ServerService } from "~/app/map/Cache/Services/types";
+import type { ServerService } from "~/app/map/Cache/Services";
 import type { TileData } from "~/app/map/types";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 import { getColor } from "~/app/map/types";
@@ -71,9 +71,10 @@ export async function loadAncestorsForItem(
         
         ancestorItems[coordId] = {
           data: {
-            name: ancestor.name,
-            description: ancestor.descr,
-            url: ancestor.url,
+            title: ancestor.title,
+            content: ancestor.content,
+        preview: ancestor.preview,
+            link: ancestor.link,
             color: getColor(ancestorCoords),
           },
           metadata: {

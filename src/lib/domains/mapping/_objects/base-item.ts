@@ -2,12 +2,10 @@ import {
   GenericAggregate,
   type GenericAggregateConstructorArgs,
 } from "~/lib/domains/utils";
+import type { MapItemAttributes } from "~/lib/domains/mapping/utils";
 
-export interface Attrs extends Record<string, unknown> {
-  title: string;
-  descr: string;
-  link: string;
-}
+// Type alias for MapItemAttributes - provides semantic meaning in this domain context
+export type Attrs = MapItemAttributes;
 
 export type RelatedItems = Record<string, never>;
 export type RelatedLists = Record<string, never>;
@@ -36,7 +34,8 @@ export class BaseItem extends GenericAggregate<
       attrs: {
         ...args.attrs,
         title: args.attrs?.title ?? DEFAULT_CENTER_TITLE,
-        descr: args.attrs?.descr ?? DEFAULT_CENTER_DESCRIPTION,
+        content: args.attrs?.content ?? DEFAULT_CENTER_DESCRIPTION,
+        preview: args.attrs?.preview,
         link: args.attrs?.link ?? "",
       },
     });

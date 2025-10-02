@@ -53,3 +53,6 @@ export type { TileActionsContextValue } from '~/app/map/Canvas/TileActionsContex
 
 // Shared hooks for Tile subsystem
 export { useTileInteraction } from '~/app/map/Canvas/hooks/shared/useTileInteraction';
+
+// Shared UI components
+export { TileTooltip } from '~/app/map/Canvas/_shared/TileTooltip';

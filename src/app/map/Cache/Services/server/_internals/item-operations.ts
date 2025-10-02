@@ -1,6 +1,6 @@
 import type { api } from "~/commons/trpc/react";
 import { withRetry } from "~/app/map/Cache/Services/server/server-retry-utils";
-import type { ServiceConfig } from "~/app/map/Cache/Services/types";
+import type { ServiceConfig } from "~/app/map/Cache/Services";
 import { withErrorTransform } from "~/app/map/Cache/Services/server/server-operations";
 
 /**

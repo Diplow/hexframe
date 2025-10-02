@@ -17,7 +17,7 @@ Like a digital toolbox for specialized tasks - provides a collection of interact
 - Chat message rendering and timeline management → See `../Messages/README.md`
 - AI response content display and job tracking → See `./AIResponseWidget/README.md`
 - User authentication forms and flows → See `./LoginWidget/README.md`
-- Tile preview and editing interfaces → See `./PreviewWidget/README.md`
+- Tile preview and editing interfaces → See `./TileWidget/README.md`
 - MCP key management operations → Handled by McpKeysWidget
 - Shared widget components and styling → Handled by _shared directory
 

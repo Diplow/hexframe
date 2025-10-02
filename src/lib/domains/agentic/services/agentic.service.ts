@@ -217,7 +217,7 @@ export class AgenticService {
   }
 
   private widgetExtractors = new Map<string, (data: unknown) => string>([
-    ['preview', (data) => `[Preview Widget: ${(data as { title?: string })?.title ?? 'Untitled'}]`],
+    ['tile', (data) => `[Tile Widget: ${(data as { title?: string })?.title ?? 'Untitled'}]`],
     ['error', (data) => `[Error: ${(data as { message?: string })?.message ?? 'Unknown error'}]`],
     ['loading', (data) => `[Loading: ${(data as { message?: string })?.message ?? 'Loading...'}]`],
     ['creation', () => '[Creation Widget]']

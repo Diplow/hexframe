@@ -14,7 +14,6 @@ const getDatabaseUrl = () => {
         "TEST_DATABASE_URL is not set. Please check your .env.test file."
       );
     }
-    console.log("🔍 USING TEST DATABASE:", testUrl);
     return testUrl;
   }
 
