@@ -39,18 +39,21 @@ const getDatabase = () => {
 
   // Configuration optimized for Neon in serverless environments
   const isProduction = process.env.NODE_ENV === "production";
+  // Check if SSL is required based on connection string
+  const requiresSsl = connectionString.includes('sslmode=require');
+
   const client = postgres(connectionString, {
     // Neon-recommended settings for serverless
     max: isProduction ? 1 : 10, // Single connection in production
     idle_timeout: isProduction ? 20 : undefined, // Close idle connections quickly
     connect_timeout: 10, // Fast timeout for serverless
-    
+
     // Disable prepared statements for serverless environments
     // This is recommended by Neon for better connection pooling
     prepare: !isProduction,
-    
-    // SSL is required for Neon in production
-    ssl: isProduction ? 'require' : false,
+
+    // SSL is required if specified in connection string or in production
+    ssl: requiresSsl || isProduction ? 'require' : false,
   });
 
   _db = drizzle(client, { schema });
