@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { MoreVertical } from 'lucide-react';
 import { Button } from '~/components/ui/button';
-import { _MenuDropdown } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/_MenuDropdown';
+import { _MenuDropdown } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/menu/_MenuDropdown';
 
 interface ActionMenuProps {
   onEdit?: () => void;

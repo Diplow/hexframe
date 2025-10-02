@@ -19,9 +19,7 @@ export function _handleSave(
   setIsEditing: (value: boolean) => void,
   onSave?: (title: string, preview: string, content: string) => void
 ) {
-  if (onSave) {
-    onSave(editTitle, editPreview, editContent);
-  }
+  onSave?.(editTitle, editPreview, editContent);
   if (currentMode !== 'create') {
     setIsEditing(false);
   }
@@ -57,18 +55,9 @@ export function _handleShowMetadata(
   if (!tile) return;
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-assignment
-  const dbId = tile.metadata.dbId;
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-assignment
-  const coordId = tile.metadata.coordId;
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-assignment
-  const ownerId = tile.metadata.ownerId;
+  const { dbId, coordId, ownerId } = tile.metadata;
+  const metadataText = `Tile Metadata:\n- Database ID: ${dbId}\n- Coordinate ID: ${coordId}\n- Owner ID: ${ownerId}`;
 
-  const metadataText = `Tile Metadata:
-- Database ID: ${dbId}
-- Coordinate ID: ${coordId}
-- Owner ID: ${ownerId}`;
-
-  // Copy to clipboard and show a temporary indicator
   void navigator.clipboard.writeText(metadataText).then(() => {
     setShowMetadata(true);
     setTimeout(() => setShowMetadata(false), 2000);
@@ -81,9 +70,7 @@ export function _handleTitleKeyDown(
 ) {
   if (e.key === 'Enter') {
     e.preventDefault();
-    // Move to preview field
-    const previewTextarea = document.querySelector<HTMLTextAreaElement>('[data-field="preview"]');
-    previewTextarea?.focus();
+    document.querySelector<HTMLTextAreaElement>('[data-field="preview"]')?.focus();
   } else if (e.key === 'Escape') {
     e.preventDefault();
     onCancel();

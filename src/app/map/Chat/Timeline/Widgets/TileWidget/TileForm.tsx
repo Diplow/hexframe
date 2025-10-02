@@ -9,8 +9,8 @@ import {
   _handleGenerateSuccess,
   _handleGenerateError,
 } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/_form-utils';
-import { _PreviewField } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/_PreviewField';
-import { _ContentField } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/_ContentField';
+import { _PreviewField } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/form/_PreviewField';
+import { _ContentField } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/form/_ContentField';
 
 interface TileFormProps {
   mode: 'create' | 'edit';

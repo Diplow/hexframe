@@ -1,9 +1,9 @@
 'use client';
 
 import { cn } from '~/lib/utils';
-import { _TilePreviewSection } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/_TilePreview';
-import { _TitleSection } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/_TitleSection';
-import { _HeaderActions } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/_HeaderActions';
+import { _TilePreviewSection } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/header/_TilePreview';
+import { _TitleSection } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/header/_TitleSection';
+import { _HeaderActions } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/header/_HeaderActions';
 
 interface TileHeaderProps {
   tileId?: string;

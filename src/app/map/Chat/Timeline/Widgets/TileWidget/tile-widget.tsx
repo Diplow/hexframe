@@ -37,6 +37,23 @@ interface TileWidgetProps {
   onClose?: () => void;
 }
 
+function useAutoCloseOnDelete(
+  tileId: string | undefined,
+  currentMode: string,
+  getItem: (id: string) => unknown,
+  hasItem: (id: string) => boolean,
+  isLoading: boolean,
+  onClose?: () => void
+) {
+  useEffect(() => {
+    if (!isLoading && onClose && currentMode !== 'create' && tileId) {
+      const tile = getItem(tileId);
+      const tileExists = hasItem(tileId);
+      if (!tile && !tileExists) onClose();
+    }
+  }, [tileId, getItem, hasItem, isLoading, onClose, currentMode]);
+}
+
 export function TileWidget({
   mode: initialMode = 'view',
   tileId,
@@ -58,94 +75,41 @@ export function TileWidget({
   const [showMetadata, setShowMetadata] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
-
-  // Internal mode state - allows switching from view to delete mode
   const [currentMode, setCurrentMode] = useState(initialMode);
 
-  // Calculate tile color for creation mode
-  const tileColor = currentMode === 'create' && coordId
-    ? getColor(CoordSystem.parseId(coordId))
-    : providedTileColor;
+  const tileColor = currentMode === 'create' && coordId ? getColor(CoordSystem.parseId(coordId)) : providedTileColor;
 
   const { expansion, editing } = useTileState({
-    title,
-    preview,
-    content,
-    forceExpanded,
+    title, preview, content, forceExpanded,
     openInEditMode: currentMode === 'create' ? true : openInEditMode,
     tileId: tileId ?? '',
   });
 
   const { isExpanded, setIsExpanded } = expansion;
-  const {
-    isEditing,
-    setIsEditing,
-    title: editTitle,
-    setTitle: setEditTitle,
-    preview: editPreview,
-    setPreview: setEditPreview,
-    content: editContent,
-    setContent: setEditContent
-  } = editing;
+  const { isEditing, setIsEditing, title: editTitle, setTitle: setEditTitle,
+          preview: editPreview, setPreview: setEditPreview,
+          content: editContent, setContent: setEditContent } = editing;
 
-  // Auto-close widget if the previewed tile is deleted (only for view/edit modes)
-  useEffect(() => {
-    // Only check if cache is not loading to avoid false positives
-    // Skip for creation mode since tile doesn't exist yet
-    if (!isLoading && onClose && currentMode !== 'create' && tileId) {
-      const tile = getItem(tileId);
-      const tileExists = hasItem(tileId);
+  useAutoCloseOnDelete(tileId, currentMode, getItem, hasItem, isLoading, onClose);
 
-      // Close widget if:
-      // 1. Cache has the tile's region loaded but tile doesn't exist (deleted)
-      // 2. Or we have no tile and hasItem returns false (confirmed deleted)
-      if (!tile && !tileExists) {
-        onClose();
-      }
-    }
-  }, [tileId, getItem, hasItem, isLoading, onClose, currentMode]);
-
-  const handleEdit = () => _handleEdit({ setIsEditing, setIsExpanded, setEditTitle, setEditPreview, setEditContent });
-
+  const editState = { setIsEditing, setIsExpanded, setEditTitle, setEditPreview, setEditContent };
+  const handleEdit = () => _handleEdit(editState);
   const handleSave = () => _handleSave(editTitle, editPreview, editContent, currentMode, setIsEditing, onSave);
-
-  const handleCancel = () => _handleCancel(
-    currentMode,
-    title,
-    preview,
-    content,
-    { setIsEditing, setIsExpanded, setEditTitle, setEditPreview, setEditContent },
-    onClose
-  );
-
-  const handleDeleteClick = () => setCurrentMode('delete');
-
-  const handleShowMetadata = () => _handleShowMetadata(tileId, getItem, setShowMetadata);
-
+  const handleCancel = () => _handleCancel(currentMode, title, preview, content, editState, onClose);
   const handleTitleKeyDown = (e: React.KeyboardEvent) => _handleTitleKeyDown(e, handleCancel);
-
   const handleConfirmDelete = () => _handleConfirmDelete(tileId, setIsDeleting, setDeleteError, deleteItemOptimistic, onClose);
 
-  // Render delete confirmation mode
   if (currentMode === 'delete') {
-    return (
-      <_DeleteConfirmation
-        title={title}
-        tileId={tileId}
-        coordId={coordId}
-        isDeleting={isDeleting}
-        deleteError={deleteError}
-        onCancel={handleCancel}
-        onConfirmDelete={() => void handleConfirmDelete()}
-      />
-    );
+    return <_DeleteConfirmation title={title} tileId={tileId} coordId={coordId} isDeleting={isDeleting}
+                                deleteError={deleteError} onCancel={handleCancel}
+                                onConfirmDelete={() => void handleConfirmDelete()} />;
   }
 
+  const isFormMode = isEditing || currentMode === 'create';
+  const isViewMode = currentMode !== 'create' && !isEditing;
+
   return (
-    <BaseWidget
-      testId={currentMode === 'create' ? 'creation-widget' : 'tile-widget'}
-      className="flex-1 w-full relative"
-    >
+    <BaseWidget testId={currentMode === 'create' ? 'creation-widget' : 'tile-widget'} className="flex-1 w-full relative">
       <TileHeader
         tileId={tileId}
         coordId={coordId}
@@ -160,35 +124,22 @@ export function TileWidget({
         onTitleChange={setEditTitle}
         onTitleKeyDown={handleTitleKeyDown}
         onEdit={onEdit ? handleEdit : undefined}
-        onDelete={currentMode !== 'create' ? handleDeleteClick : undefined}
+        onDelete={currentMode !== 'create' ? () => setCurrentMode('delete') : undefined}
         onClose={onClose}
-        onMetadata={currentMode !== 'create' ? handleShowMetadata : undefined}
+        onMetadata={currentMode !== 'create' ? () => _handleShowMetadata(tileId, getItem, setShowMetadata) : undefined}
         onSave={handleSave}
         onCancel={handleCancel}
       />
 
-      {/* Show form when editing or creating */}
-      {(isEditing || currentMode === 'create') && (
-        <TileForm
-          mode={currentMode === 'create' ? 'create' : 'edit'}
-          title={editTitle}
-          preview={editPreview}
-          content={editContent}
-          onPreviewChange={setEditPreview}
-          onContentChange={setEditContent}
-          onSave={handleSave}
-          onCancel={handleCancel}
-        />
+      {isFormMode && (
+        <TileForm mode={currentMode === 'create' ? 'create' : 'edit'} title={editTitle}
+                  preview={editPreview} content={editContent} onPreviewChange={setEditPreview}
+                  onContentChange={setEditContent} onSave={handleSave} onCancel={handleCancel} />
       )}
 
-      {/* Show content display only in view mode */}
-      {currentMode !== 'create' && !isEditing && (
-        <ContentDisplay
-          content={content}
-          preview={preview}
-          isExpanded={isExpanded}
-          onToggleExpansion={() => setIsExpanded(!isExpanded)}
-        />
+      {isViewMode && (
+        <ContentDisplay content={content} preview={preview} isExpanded={isExpanded}
+                        onToggleExpansion={() => setIsExpanded(!isExpanded)} />
       )}
 
       {showMetadata && (

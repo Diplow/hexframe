@@ -2,7 +2,7 @@
 
 import { Edit, Trash2, X, Copy } from 'lucide-react';
 import { Portal } from '~/app/map/Chat/Timeline/Widgets/Portal';
-import { _MenuItem } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/_MenuItem';
+import { _MenuItem } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/menu/_MenuItem';
 import type { RefObject } from 'react';
 
 interface MenuDropdownProps {

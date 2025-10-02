@@ -1,12 +1,7 @@
-export function _handlePreviewKeyDown(
-  e: React.KeyboardEvent,
-  onCancel: () => void
-) {
+export function _handlePreviewKeyDown(e: React.KeyboardEvent, onCancel: () => void) {
   if (e.key === 'Enter') {
     e.preventDefault();
-    // Move to content field
-    const contentTextarea = document.querySelector<HTMLTextAreaElement>('[data-field="content"]');
-    contentTextarea?.focus();
+    document.querySelector<HTMLTextAreaElement>('[data-field="content"]')?.focus();
   } else if (e.key === 'Escape') {
     e.preventDefault();
     onCancel();
@@ -37,35 +32,25 @@ export function _startPolling(
   pollIntervalRef: React.MutableRefObject<NodeJS.Timeout | null>
 ) {
   setQueuedJobId(jobId);
-
-  // Poll every 2 seconds
   pollIntervalRef.current = setInterval(() => {
     void checkJobStatus().then((result) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (result.data) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-        const { status, response } = result.data;
+      if (!result.data) return;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+      const { status, response } = result.data;
 
-        if (status === 'completed' && response) {
-          // Extract preview from response
-          const previewData = response as { preview?: string; usedAI?: boolean };
-          if (previewData.preview) {
-            onPreviewChange(previewData.preview);
-          }
-          setIsGeneratingPreview(false);
-          setQueuedJobId('');
-          if (pollIntervalRef.current) {
-            clearInterval(pollIntervalRef.current);
-          }
-        } else if (status === 'failed' || status === 'cancelled') {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          console.error('Preview generation failed:', result.data.error);
-          setIsGeneratingPreview(false);
-          setQueuedJobId('');
-          if (pollIntervalRef.current) {
-            clearInterval(pollIntervalRef.current);
-          }
-        }
+      if (status === 'completed' && response) {
+        const previewData = response as { preview?: string };
+        if (previewData.preview) onPreviewChange(previewData.preview);
+        setIsGeneratingPreview(false);
+        setQueuedJobId('');
+        if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+      } else if (status === 'failed' || status === 'cancelled') {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        console.error('Preview generation failed:', result.data.error);
+        setIsGeneratingPreview(false);
+        setQueuedJobId('');
+        if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
       }
     });
   }, 2000);
@@ -78,10 +63,8 @@ export function _handleGenerateSuccess(
   startPolling: (jobId: string) => void
 ) {
   if (data.queued && data.jobId) {
-    // Job was queued - start polling
     startPolling(data.jobId);
   } else if (data.preview) {
-    // Immediate response - fill preview
     onPreviewChange(data.preview);
     setIsGeneratingPreview(false);
   } else {
@@ -89,10 +72,7 @@ export function _handleGenerateSuccess(
   }
 }
 
-export function _handleGenerateError(
-  error: unknown,
-  setIsGeneratingPreview: (value: boolean) => void
-) {
+export function _handleGenerateError(error: unknown, setIsGeneratingPreview: (value: boolean) => void) {
   console.error('Failed to generate preview:', error);
   setIsGeneratingPreview(false);
 }
