@@ -5,12 +5,19 @@ import { TileHeader } from '~/app/map/Chat/Timeline/Widgets/TileWidget/TileHeade
 import { ContentDisplay } from '~/app/map/Chat/Timeline/Widgets/TileWidget/ContentDisplay';
 import { TileForm } from '~/app/map/Chat/Timeline/Widgets/TileWidget/TileForm';
 import { useTileState } from '~/app/map/Chat/Timeline/Widgets/TileWidget/useTileState';
-import { BaseWidget, WidgetHeader, WidgetContent, WidgetActions } from '~/app/map/Chat/Timeline/Widgets/_shared';
+import {
+  _handleEdit,
+  _handleSave,
+  _handleCancel,
+  _handleShowMetadata,
+  _handleTitleKeyDown,
+  _handleConfirmDelete,
+} from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/_handlers';
+import { _DeleteConfirmation } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/_DeleteConfirmation';
+import { BaseWidget } from '~/app/map/Chat/Timeline/Widgets/_shared';
 import { useMapCache } from '~/app/map/Cache';
 import { CoordSystem } from '~/lib/domains/mapping/utils';
 import { getColor } from '~/app/map/types';
-import { Trash2, AlertTriangle } from 'lucide-react';
-import { Button } from '~/components/ui/button';
 
 interface TileWidgetProps {
   mode?: 'view' | 'edit' | 'create' | 'delete';
@@ -98,133 +105,39 @@ export function TileWidget({
     }
   }, [tileId, getItem, hasItem, isLoading, onClose, currentMode]);
 
-  const _handleEdit = () => {
-    setIsEditing(true);
-    setIsExpanded(true);
-  };
+  const handleEdit = () => _handleEdit({ setIsEditing, setIsExpanded, setEditTitle, setEditPreview, setEditContent });
 
-  const _handleSave = () => {
-    if (onSave) {
-      onSave(editTitle, editPreview, editContent);
-    }
-    if (currentMode !== 'create') {
-      setIsEditing(false);
-    }
-  };
+  const handleSave = () => _handleSave(editTitle, editPreview, editContent, currentMode, setIsEditing, onSave);
 
-  const _handleCancel = () => {
-    if (currentMode === 'create' || currentMode === 'delete') {
-      onClose?.();
-    } else {
-      setEditTitle(title);
-      setEditPreview(preview);
-      setEditContent(content);
-      setIsEditing(false);
-    }
-  };
+  const handleCancel = () => _handleCancel(
+    currentMode,
+    title,
+    preview,
+    content,
+    { setIsEditing, setIsExpanded, setEditTitle, setEditPreview, setEditContent },
+    onClose
+  );
 
-  const _handleDeleteClick = () => {
-    // Switch to delete confirmation mode
-    setCurrentMode('delete');
-  };
+  const handleDeleteClick = () => setCurrentMode('delete');
 
-  const _handleShowMetadata = () => {
-    if (!tileId) return;
-    const tile = getItem(tileId);
-    if (tile) {
-      const metadataText = `Tile Metadata:
-- Database ID: ${tile.metadata.dbId}
-- Coordinate ID: ${tile.metadata.coordId}
-- Owner ID: ${tile.metadata.ownerId}`;
+  const handleShowMetadata = () => _handleShowMetadata(tileId, getItem, setShowMetadata);
 
-      // Copy to clipboard and show a temporary indicator
-      void navigator.clipboard.writeText(metadataText).then(() => {
-        setShowMetadata(true);
-        setTimeout(() => setShowMetadata(false), 2000);
-      });
-    }
-  };
+  const handleTitleKeyDown = (e: React.KeyboardEvent) => _handleTitleKeyDown(e, handleCancel);
 
-  const _handleTitleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      // Move to preview field
-      const previewTextarea = document.querySelector<HTMLTextAreaElement>('[data-field="preview"]');
-      previewTextarea?.focus();
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      _handleCancel();
-    }
-  };
-
-  const _handleConfirmDelete = async () => {
-    if (!tileId) return;
-
-    setIsDeleting(true);
-    setDeleteError('');
-
-    try {
-      await deleteItemOptimistic(tileId);
-      onClose?.();
-    } catch (err) {
-      setDeleteError(err instanceof Error ? err.message : 'Failed to delete tile');
-    } finally {
-      setIsDeleting(false);
-    }
-  };
+  const handleConfirmDelete = () => _handleConfirmDelete(tileId, setIsDeleting, setDeleteError, deleteItemOptimistic, onClose);
 
   // Render delete confirmation mode
   if (currentMode === 'delete') {
     return (
-      <BaseWidget variant="default" className="w-full">
-        <WidgetHeader
-          icon={<AlertTriangle className="h-5 w-5 text-destructive" />}
-          title="Delete Tile?"
-          onClose={_handleCancel}
-        />
-
-        <WidgetContent>
-          <div className="space-y-3">
-            <p className="text-sm">
-              Delete &ldquo;{title || 'this tile'}&rdquo;? This action cannot be undone.
-            </p>
-
-            {(Boolean(tileId?.includes(':') && (tileId.split(':')[1]?.length ?? 0) > 0) ||
-              Boolean(coordId?.includes(':') && (coordId.split(':')[1]?.length ?? 0) > 0)) && (
-              <p className="text-sm text-muted-foreground">
-                All child tiles will also be deleted.
-              </p>
-            )}
-
-            {deleteError && (
-              <div className="text-sm text-destructive">
-                {deleteError}
-              </div>
-            )}
-          </div>
-
-          <WidgetActions align="between">
-            <Button
-              onClick={_handleCancel}
-              disabled={isDeleting}
-              variant="outline"
-              size="sm"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => void _handleConfirmDelete()}
-              disabled={isDeleting}
-              variant="destructive"
-              size="sm"
-              className="gap-2"
-            >
-              <Trash2 className="h-4 w-4" />
-              {isDeleting ? 'Deleting...' : 'Delete'}
-            </Button>
-          </WidgetActions>
-        </WidgetContent>
-      </BaseWidget>
+      <_DeleteConfirmation
+        title={title}
+        tileId={tileId}
+        coordId={coordId}
+        isDeleting={isDeleting}
+        deleteError={deleteError}
+        onCancel={handleCancel}
+        onConfirmDelete={() => void handleConfirmDelete()}
+      />
     );
   }
 
@@ -245,13 +158,13 @@ export function TileWidget({
         tileColor={tileColor}
         onToggleExpansion={() => setIsExpanded(!isExpanded)}
         onTitleChange={setEditTitle}
-        onTitleKeyDown={_handleTitleKeyDown}
-        onEdit={onEdit ? _handleEdit : undefined}
-        onDelete={currentMode !== 'create' ? _handleDeleteClick : undefined}
+        onTitleKeyDown={handleTitleKeyDown}
+        onEdit={onEdit ? handleEdit : undefined}
+        onDelete={currentMode !== 'create' ? handleDeleteClick : undefined}
         onClose={onClose}
-        onMetadata={currentMode !== 'create' ? _handleShowMetadata : undefined}
-        onSave={_handleSave}
-        onCancel={_handleCancel}
+        onMetadata={currentMode !== 'create' ? handleShowMetadata : undefined}
+        onSave={handleSave}
+        onCancel={handleCancel}
       />
 
       {/* Show form when editing or creating */}
@@ -263,8 +176,8 @@ export function TileWidget({
           content={editContent}
           onPreviewChange={setEditPreview}
           onContentChange={setEditContent}
-          onSave={_handleSave}
-          onCancel={_handleCancel}
+          onSave={handleSave}
+          onCancel={handleCancel}
         />
       )}
 
