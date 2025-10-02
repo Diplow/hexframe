@@ -1,3 +1,5 @@
+import type { KeyboardEvent } from 'react';
+
 interface EditState {
   setIsEditing: (value: boolean) => void;
   setIsExpanded: (value: boolean) => void;
@@ -54,8 +56,12 @@ export function _handleShowMetadata(
   const tile = getItem(tileId);
   if (!tile) return;
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+  const metadata = tile.metadata;
+  if (!metadata) return;
+
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-assignment
-  const { dbId, coordId, ownerId } = tile.metadata;
+  const { dbId, coordId, ownerId } = metadata;
   const metadataText = `Tile Metadata:\n- Database ID: ${dbId}\n- Coordinate ID: ${coordId}\n- Owner ID: ${ownerId}`;
 
   void navigator.clipboard.writeText(metadataText).then(() => {
@@ -65,7 +71,7 @@ export function _handleShowMetadata(
 }
 
 export function _handleTitleKeyDown(
-  e: React.KeyboardEvent,
+  e: KeyboardEvent,
   onCancel: () => void
 ) {
   if (e.key === 'Enter') {

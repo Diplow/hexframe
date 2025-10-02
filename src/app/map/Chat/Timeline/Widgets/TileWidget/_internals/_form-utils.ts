@@ -24,7 +24,7 @@ export function _handleContentKeyDown(
 
 export function _startPolling(
   jobId: string,
-  setQueuedJobId: (id: string) => void,
+  setQueuedJobId: (id: string | null) => void,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   checkJobStatus: () => Promise<any>,
   onPreviewChange: (preview: string) => void,
@@ -43,13 +43,13 @@ export function _startPolling(
         const previewData = response as { preview?: string };
         if (previewData.preview) onPreviewChange(previewData.preview);
         setIsGeneratingPreview(false);
-        setQueuedJobId('');
+        setQueuedJobId(null);
         if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
       } else if (status === 'failed' || status === 'cancelled') {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         console.error('Preview generation failed:', result.data.error);
         setIsGeneratingPreview(false);
-        setQueuedJobId('');
+        setQueuedJobId(null);
         if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
       }
     });

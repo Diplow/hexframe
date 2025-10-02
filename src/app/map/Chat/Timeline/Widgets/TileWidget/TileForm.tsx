@@ -45,10 +45,10 @@ export function TileForm({
 
   // Clean up polling on unmount
   useEffect(() => {
-    const interval = pollIntervalRef.current;
     return () => {
-      if (interval) {
-        clearInterval(interval);
+      if (pollIntervalRef.current) {
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        clearInterval(pollIntervalRef.current);
       }
     };
   }, []);
