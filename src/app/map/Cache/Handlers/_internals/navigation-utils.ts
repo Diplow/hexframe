@@ -5,62 +5,37 @@ import type { ServerService } from "~/app/map/Cache/Services";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 import { checkAncestors, loadAncestorsForItem } from "~/app/map/Cache/Handlers/ancestor-loader";
 import type { TileData } from "~/app/map/types";
-import { getColor } from "~/app/map/types";
 import { loggers } from "~/lib/debug/debug-logger";
 import { buildMapUrl } from "~/app/map/Cache/Handlers/_internals/navigation-core";
 import type { NavigationOptions } from "~/app/map/Cache/Handlers/_internals/navigation-core";
+import { logResolutionResult } from "~/app/map/Cache/Handlers/_internals/utils/_resolution-logger";
+import { shouldKeepExpandedItem } from "~/app/map/Cache/Handlers/_internals/utils/_expansion-filter";
+import { convertToTileData } from "~/app/map/Cache/Handlers/_internals/utils/_tile-converter";
 
 /**
  * Resolve item identifier to find existing item and coordinate ID
  */
 export function resolveItemIdentifier(
-  itemIdentifier: string, 
+  itemIdentifier: string,
   getState: () => CacheState
 ): { existingItem: TileData | undefined; resolvedCoordId: string | undefined } {
   const allItems = Object.values(getState().itemsById);
+  const isCoordinateId = itemIdentifier.includes(',') || itemIdentifier.includes(':');
+
   let existingItem: TileData | undefined;
   let resolvedCoordId: string | undefined;
 
-  // Check if it's a coordinate ID (contains comma or colon)
-  if (itemIdentifier.includes(',') || itemIdentifier.includes(':')) {
+  if (isCoordinateId) {
     loggers.mapCache.handlers('[Navigation] 🗺️ Identifier appears to be a coordinate ID');
     existingItem = getState().itemsById[itemIdentifier];
     resolvedCoordId = itemIdentifier;
-
-    if (existingItem) {
-      loggers.mapCache.handlers('[Navigation] ✅ Found item by coordinate ID:', {
-        coordId: existingItem.metadata.coordId,
-        dbId: existingItem.metadata.dbId,
-        title: existingItem.data.title
-      });
-    }
   } else {
     loggers.mapCache.handlers('[Navigation] 🏷️ Identifier appears to be a database ID');
     existingItem = allItems.find(item => String(item.metadata.dbId) === itemIdentifier);
     resolvedCoordId = existingItem?.metadata.coordId;
-
-    if (existingItem) {
-      loggers.mapCache.handlers('[Navigation] ✅ Found item by database ID:', {
-        dbId: existingItem.metadata.dbId,
-        coordId: existingItem.metadata.coordId,
-        title: existingItem.data.title
-      });
-    }
   }
 
-  if (!existingItem) {
-    loggers.mapCache.handlers(`❌ No item found with identifier: ${itemIdentifier}`, {
-      availableItems: allItems.map((item, index) => ({
-        index: index + 1,
-        dbId: item.metadata.dbId,
-        dbIdType: typeof item.metadata.dbId,
-        coordId: item.metadata.coordId,
-        title: item.data.title
-      })),
-      lookingForId: itemIdentifier,
-      lookingForIdType: typeof itemIdentifier
-    });
-  }
+  logResolutionResult(existingItem, itemIdentifier, isCoordinateId, allItems);
 
   return { existingItem, resolvedCoordId };
 }
@@ -77,41 +52,21 @@ export function updateExpandedItemsForNavigation(
   const newCenterItem = currentState.itemsById[resolvedCoordId];
   const newCenterDbId = newCenterItem?.metadata.dbId;
 
-  // Build a map of dbId -> coordId for all items
   const dbIdToCoordId: Record<string, string> = {};
   Object.values(currentState.itemsById).forEach(item => {
     dbIdToCoordId[item.metadata.dbId] = item.metadata.coordId;
   });
 
-  // Filter expanded items to keep only those within 1 generation
-  const filteredExpandedDbIds = currentState.expandedItemIds.filter(expandedDbId => {
-    const expandedCoordId = dbIdToCoordId[expandedDbId];
-    if (!expandedCoordId) return true;
+  const filteredExpandedDbIds = currentState.expandedItemIds.filter(expandedDbId =>
+    shouldKeepExpandedItem(
+      expandedDbId,
+      dbIdToCoordId[expandedDbId],
+      resolvedCoordId,
+      newCenterDbId,
+      newCenterDepth
+    )
+  );
 
-    // Keep the new center itself if it's expanded
-    if (newCenterDbId && expandedDbId === newCenterDbId) return true;
-
-    // Keep descendants within 1 generation
-    const isDescendant = CoordSystem.isDescendant(expandedCoordId, resolvedCoordId);
-    if (isDescendant) {
-      const expandedDepth = CoordSystem.getDepthFromId(expandedCoordId);
-      const generationDistance = expandedDepth - newCenterDepth;
-      return generationDistance <= 1;
-    }
-
-    // Keep ancestors
-    const isAncestor = CoordSystem.isAncestor(expandedCoordId, resolvedCoordId);
-    if (isAncestor) return true;
-
-    // Keep siblings (neighbors at the same level) to preserve expansion when navigating between neighbors
-    const siblings = CoordSystem.getSiblingsFromId(resolvedCoordId);
-    const isSibling = siblings.includes(expandedCoordId);
-    if (isSibling) return true;
-
-    return false;
-  });
-
-  // Update expanded items if there are changes
   if (filteredExpandedDbIds.length !== currentState.expandedItemIds.length ||
       filteredExpandedDbIds.some((id, idx) => id !== currentState.expandedItemIds[idx])) {
     dispatch(cacheActions.setExpandedItems(filteredExpandedDbIds));
@@ -235,41 +190,13 @@ async function loadSiblingsForItem(
     });
 
     if (parentWithChildren.length > 0) {
-      // Convert to TileData format
       const siblingItems: Record<string, TileData> = {};
 
       parentWithChildren.forEach(item => {
-        const coordId = item.coordinates;
-        const itemCoords = CoordSystem.parseId(coordId);
-
-        siblingItems[coordId] = {
-          data: {
-            title: item.title,
-            content: item.content,
-        preview: item.preview,
-            link: item.link,
-            color: getColor(itemCoords),
-          },
-          metadata: {
-            coordId,
-            dbId: item.id,
-            depth: itemCoords.path.length,
-            parentId: item.parentId ? item.parentId.toString() : undefined,
-            coordinates: itemCoords,
-            ownerId: item.ownerId,
-          },
-          state: {
-            isDragged: false,
-            isHovered: false,
-            isSelected: false,
-            isExpanded: false,
-            isDragOver: false,
-            isHovering: false,
-          },
-        };
+        const tileData = convertToTileData(item);
+        siblingItems[tileData.metadata.coordId] = tileData;
       });
 
-      // Dispatch siblings to cache
       dispatch(cacheActions.updateItems(siblingItems));
     }
   } catch (error) {

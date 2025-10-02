@@ -5,6 +5,8 @@ import type { ServerService } from "~/app/map/Cache/Services";
 import type { EventBusService } from '~/app/map';
 import { adapt, type TileData } from "~/app/map/types";
 import { loggers } from "~/lib/debug/debug-logger";
+import { validateDatabaseId } from "~/app/map/Cache/Handlers/_internals/utils/_database-validator";
+import { loadRegionForItem } from "~/app/map/Cache/Handlers/_internals/utils/_region-loader";
 
 export interface NavigationResult {
   success: boolean;
@@ -17,38 +19,42 @@ export interface NavigationOptions {
   pushToHistory?: boolean;
 }
 
+export interface NavigationDependencies {
+  getState: () => CacheState;
+  dispatch: React.Dispatch<CacheAction>;
+  dataHandler: DataOperations;
+  serverService: ServerService | undefined;
+  eventBus: EventBusService | undefined;
+  resolveItemIdentifier: (identifier: string) => { existingItem: TileData | undefined; resolvedCoordId: string | undefined };
+  loadItemFromServer: (identifier: string) => Promise<{ loadedItem: TileData | null; loadedCoordId: string | null }>;
+  updateExpandedItems: (coordId: string) => string[];
+  handleURLUpdate: (item: TileData | undefined, coordId: string, expandedIds: string[]) => Promise<{ urlUpdated: boolean }>;
+  performBackgroundTasks: (coordId: string) => void;
+  emitNavigationEvent: (fromCenter: string | null, toCoordId: string) => void;
+}
+
 /**
  * Core navigation operation that coordinates all navigation steps
  */
 export async function executeNavigationToItem(
   itemIdentifier: string,
   options: NavigationOptions,
-  getState: () => CacheState,
-  dispatch: React.Dispatch<CacheAction>,
-  dataHandler: DataOperations,
-  serverService: ServerService | undefined,
-  eventBus: EventBusService | undefined,
-  resolveItemIdentifier: (identifier: string) => { existingItem: TileData | undefined; resolvedCoordId: string | undefined },
-  loadItemFromServer: (identifier: string) => Promise<{ loadedItem: TileData | null; loadedCoordId: string | null }>,
-  updateExpandedItems: (coordId: string) => string[],
-  handleURLUpdate: (item: TileData | undefined, coordId: string, expandedIds: string[]) => Promise<{ urlUpdated: boolean }>,
-  performBackgroundTasks: (coordId: string) => void,
-  emitNavigationEvent: (fromCenter: string | null, toCoordId: string) => void
+  deps: NavigationDependencies
 ): Promise<NavigationResult> {
   loggers.mapCache.handlers('[Navigation] 🎯 Starting navigation to identifier:', { itemIdentifier });
 
   try {
     // 1. Resolve item identifier
-    const { existingItem, resolvedCoordId } = resolveItemIdentifier(itemIdentifier);
+    const { existingItem, resolvedCoordId } = deps.resolveItemIdentifier(itemIdentifier);
 
     // 2. Try to load from server if not found
     let finalItem = existingItem;
     let finalCoordId = resolvedCoordId;
 
-    if (!existingItem && serverService) {
+    if (!existingItem && deps.serverService) {
       loggers.mapCache.handlers('[Navigation] 🔄 Item not in cache, attempting to load from server...');
       try {
-        const { loadedItem, loadedCoordId } = await loadItemFromServer(itemIdentifier);
+        const { loadedItem, loadedCoordId } = await deps.loadItemFromServer(itemIdentifier);
         if (loadedItem && loadedCoordId) {
           finalItem = loadedItem;
           finalCoordId = loadedCoordId;
@@ -60,7 +66,7 @@ export async function executeNavigationToItem(
 
     // 3. Handle navigation without item in cache
     if (!finalItem && finalCoordId) {
-      return await handleNavigationWithoutItem(itemIdentifier, finalCoordId, getState, dispatch, eventBus);
+      return await handleNavigationWithoutItem(itemIdentifier, finalCoordId, deps.getState, deps.dispatch, deps.eventBus);
     }
 
     // 4. Return early if no item found
@@ -79,28 +85,28 @@ export async function executeNavigationToItem(
     }
 
     // 6. Update expanded items for navigation
-    const currentState = getState();
-    const filteredExpandedDbIds = updateExpandedItems(finalCoordId);
+    const currentState = deps.getState();
+    const filteredExpandedDbIds = deps.updateExpandedItems(finalCoordId);
 
     // 7. Update center
     const previousCenter = currentState.currentCenter;
-    dispatch(cacheActions.setCenter(finalCoordId));
+    deps.dispatch(cacheActions.setCenter(finalCoordId));
 
     // 8. Handle URL update
-    const { urlUpdated } = await handleURLUpdate(finalItem, finalCoordId, filteredExpandedDbIds);
+    const { urlUpdated } = await deps.handleURLUpdate(finalItem, finalCoordId, filteredExpandedDbIds);
 
     // 9. Emit navigation event
     if (finalCoordId) {
-      emitNavigationEvent(previousCenter, finalCoordId);
+      deps.emitNavigationEvent(previousCenter, finalCoordId);
     }
 
     // 10. Background tasks
-    performBackgroundTasks(finalCoordId);
+    deps.performBackgroundTasks(finalCoordId);
 
     return { success: true, centerUpdated: true, urlUpdated };
   } catch (error) {
     const errorObj = error instanceof Error ? error : new Error(String(error));
-    dispatch(cacheActions.setError(errorObj));
+    deps.dispatch(cacheActions.setError(errorObj));
     return { success: false, error: errorObj, centerUpdated: false, urlUpdated: false };
   }
 }
@@ -175,13 +181,8 @@ export async function loadItemFromServer(
   serverService: ServerService,
   dispatch: React.Dispatch<CacheAction>
 ): Promise<{ loadedItem: TileData | null; loadedCoordId: string | null }> {
-  if (itemIdentifier.includes(',') || itemIdentifier.includes(':')) {
-    loggers.mapCache.handlers('[Navigation] Cannot load by coordinate ID from server');
-    return { loadedItem: null, loadedCoordId: null };
-  }
-
-  const dbIdNumber = parseInt(itemIdentifier);
-  if (isNaN(dbIdNumber)) {
+  const dbIdNumber = validateDatabaseId(itemIdentifier);
+  if (dbIdNumber === null) {
     return { loadedItem: null, loadedCoordId: null };
   }
 
@@ -197,37 +198,11 @@ export async function loadItemFromServer(
     title: loadedItem.title
   });
 
-  const loadedCoordId = loadedItem.coordinates;
+  await loadRegionForItem(loadedItem, serverService, dispatch);
 
-  // Fetch the full region with children using fetchItemsForCoordinate
-  // This replaces the need for background prefetching since we load everything immediately
-  try {
-    const fullRegionItems = await serverService.fetchItemsForCoordinate({
-      centerCoordId: loadedCoordId,
-      maxDepth: 2
-    });
-
-    // Load the full region with proper depth
-    dispatch(cacheActions.loadRegion(fullRegionItems as Parameters<typeof cacheActions.loadRegion>[0], loadedCoordId, 2));
-
-    loggers.mapCache.handlers(`✅ Loaded full region with ${fullRegionItems.length} items`, {
-      centerCoordId: loadedCoordId,
-      itemCount: fullRegionItems.length
-    });
-  } catch (error) {
-    // Fallback to just the root item if region fetch fails
-    dispatch(cacheActions.loadRegion([{...loadedItem, itemType: loadedItem.itemType}], loadedCoordId, 0));
-
-    loggers.mapCache.handlers(`⚠️ Failed to load full region, loaded root item only`, {
-      centerCoordId: loadedCoordId,
-      error
-    });
-  }
-
-  // Convert the loaded item to the proper TileData format
-  const adaptedItem = adapt({...loadedItem, itemType: loadedItem.itemType});
+  const adaptedItem = adapt(loadedItem);
 
   loggers.mapCache.handlers('[Navigation] ✅ Using loaded item data for navigation');
 
-  return { loadedItem: adaptedItem, loadedCoordId };
+  return { loadedItem: adaptedItem, loadedCoordId: loadedItem.coordinates };
 }

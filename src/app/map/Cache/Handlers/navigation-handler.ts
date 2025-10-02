@@ -65,17 +65,19 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
     return executeNavigationToItem(
       itemIdentifier,
       options,
-      getState,
-      dispatch,
-      dataHandler,
-      config.serverService,
-      eventBus,
-      (id) => resolveItemIdentifier(id, getState),
-      (id) => loadItemFromServer(id, config.serverService!, dispatch),
-      (coordId) => updateExpandedItemsForNavigation(coordId, getState(), dispatch),
-      (item, coordId, expandedIds) => handleURLUpdate(item, coordId, expandedIds, options, dataHandler, getState),
-      (coordId) => performBackgroundTasks(coordId, getState, dataHandler, config.serverService, dispatch),
-      (fromCenter, toCoordId) => emitNavigationEvent(fromCenter, toCoordId, eventBus, getState)
+      {
+        getState,
+        dispatch,
+        dataHandler,
+        serverService: config.serverService,
+        eventBus,
+        resolveItemIdentifier: (id) => resolveItemIdentifier(id, getState),
+        loadItemFromServer: (id) => loadItemFromServer(id, config.serverService!, dispatch),
+        updateExpandedItems: (coordId) => updateExpandedItemsForNavigation(coordId, getState(), dispatch),
+        handleURLUpdate: (item, coordId, expandedIds) => handleURLUpdate(item, coordId, expandedIds, options, dataHandler, getState),
+        performBackgroundTasks: (coordId) => performBackgroundTasks(coordId, getState, dataHandler, config.serverService, dispatch),
+        emitNavigationEvent: (fromCenter, toCoordId) => emitNavigationEvent(fromCenter, toCoordId, eventBus, getState)
+      }
     );
   };
 
