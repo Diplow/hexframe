@@ -73,8 +73,8 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
         className={`group relative select-none ${state.hasOperationPending ? 'operation-pending' : ''}`}
         data-testid={state.testId}
         style={{
-          width: `${Math.round(width)}px`,
-          height: `${Math.round(height)}px`,
+          width,
+          height,
           opacity: state.hasOperationPending ? 0.7 : 1,
           // Container has no pointer events - hexagon shapes handle all interactions
           pointerEvents: 'none'
