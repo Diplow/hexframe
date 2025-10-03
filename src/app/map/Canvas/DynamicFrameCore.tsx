@@ -106,9 +106,9 @@ export const DynamicFrameCore = (props: DynamicFrameCoreProps) => {
 
     // With neighbors enabled, wrap in a container that can handle overflow
     return (
-      <div className="relative" style={{ zIndex: 10 }}>
+      <div className="relative" style={{ zIndex: 10, height: "100%" }}>
         {/* Center tile (highest z-index) */}
-        <div style={{ position: "relative", zIndex: 10 }}>
+        <div style={{ position: "relative", zIndex: 10, height: "100%" }}>
           {centerTile}
         </div>
 

@@ -115,7 +115,10 @@ export function ItemTileContent({
             clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
             // Give neighbors higher z-index than center for corner priority
             zIndex: _isCenter ? 20 : 25,
-            pointerEvents: interactive ? "auto" : "none"
+            pointerEvents: interactive ? "auto" : "none",
+            // Ensure this fills the parent with explicit dimensions
+            width: "100%",
+            height: "100%"
           }}
           onClick={interactive ? (e) => void handleClick(e) : undefined}
           onContextMenu={interactive ? (e) => void handleRightClick(e) : undefined}
