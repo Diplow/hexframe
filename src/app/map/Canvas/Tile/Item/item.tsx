@@ -7,6 +7,7 @@ import { useItemState } from "~/app/map/Canvas/Tile/Item/_internals/hooks";
 import { ItemTileContent } from "~/app/map/Canvas/Tile/Item/_components/item-tile-content";
 import { useEffect } from "react";
 import { loggers } from "~/lib/debug/debug-logger";
+import { calculateTileDimensions } from "~/app/map/Canvas/Tile/_internals/utils/dimensions";
 
 export interface DynamicItemTileProps {
   item: TileData;
@@ -46,12 +47,7 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
   });
   
   // Calculate dimensions based on scale (same calculation as BaseTileLayout)
-  const width =
-    scale === 1
-      ? baseHexSize * Math.sqrt(3)
-      : baseHexSize * Math.sqrt(3) * Math.pow(3, scale - 1);
-  const height =
-    scale === 1 ? baseHexSize * 2 : baseHexSize * 2 * Math.pow(3, scale - 1);
+  const { width, height } = calculateTileDimensions(scale, baseHexSize);
 
   // Log tile render
   useEffect(() => {
