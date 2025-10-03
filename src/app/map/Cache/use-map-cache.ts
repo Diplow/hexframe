@@ -3,11 +3,11 @@ import { MapCacheContext } from "~/app/map/Cache/provider";
 import { cacheSelectors } from "~/app/map/Cache/State";
 import type { MapCacheHook, DataOperations } from "~/app/map/Cache/types";
 import type { CacheState } from "~/app/map/Cache/State/types";
-import { createQueryCallbacks } from "~/app/map/Cache/_internals/query-callbacks";
-import { createMutationCallbacks } from "~/app/map/Cache/_internals/mutation-callbacks";
-import { createNavigationCallbacks } from "~/app/map/Cache/_internals/navigation-callbacks";
-import { createHierarchyCallbacks } from "~/app/map/Cache/_internals/hierarchy-callbacks";
-import { createSyncOperationsAPI } from "~/app/map/Cache/_internals/sync-operations";
+import { createQueryCallbacks } from "~/app/map/Cache/internal/internals/query-callbacks";
+import { createMutationCallbacks } from "~/app/map/Cache/internal/internals/mutation-callbacks";
+import { createNavigationCallbacks } from "~/app/map/Cache/internal/internals/navigation-callbacks";
+import { createHierarchyCallbacks } from "~/app/map/Cache/internal/internals/hierarchy-callbacks";
+import { createSyncOperationsAPI } from "~/app/map/Cache/internal/internals/sync-operations";
 import { globalDragService } from "~/app/map/Services";
 
 /**
@@ -55,7 +55,7 @@ export function useMapCache(): MapCacheHook {
     globalDragService.startDrag(tileId, event);
   }, []);
 
-  return _buildPublicAPI(
+  return _buildPublicAPI({
     state,
     dataOperations,
     queryCallbacks,
@@ -64,25 +64,41 @@ export function useMapCache(): MapCacheHook {
     mutationCallbacks,
     syncAPI,
     updateConfig,
-    startDrag
-  );
+    startDrag,
+  });
 }
 
 
 /**
+ * Dependencies for building the public cache API
+ */
+interface CacheAPIDependencies {
+  state: CacheState;
+  dataOperations: DataOperations;
+  queryCallbacks: ReturnType<typeof createQueryCallbacks>;
+  hierarchyCallbacks: ReturnType<typeof createHierarchyCallbacks>;
+  navigationCallbacks: ReturnType<typeof createNavigationCallbacks>;
+  mutationCallbacks: ReturnType<typeof createMutationCallbacks>;
+  syncAPI: ReturnType<typeof createSyncOperationsAPI>;
+  updateConfig: (config: Partial<MapCacheHook["config"]>) => void;
+  startDrag: (tileId: string, event: globalThis.DragEvent) => void;
+}
+
+/**
  * Build the public API object for the MapCache hook
  */
-function _buildPublicAPI(
-  state: CacheState,
-  dataOperations: DataOperations,
-  queryCallbacks: ReturnType<typeof createQueryCallbacks>,
-  hierarchyCallbacks: ReturnType<typeof createHierarchyCallbacks>,
-  navigationCallbacks: ReturnType<typeof createNavigationCallbacks>,
-  mutationCallbacks: ReturnType<typeof createMutationCallbacks>,
-  syncAPI: ReturnType<typeof createSyncOperationsAPI>,
-  updateConfig: (config: Partial<MapCacheHook["config"]>) => void,
-  startDrag: (tileId: string, event: globalThis.DragEvent) => void
-): MapCacheHook {
+function _buildPublicAPI(deps: CacheAPIDependencies): MapCacheHook {
+  const {
+    state,
+    dataOperations,
+    queryCallbacks,
+    hierarchyCallbacks,
+    navigationCallbacks,
+    mutationCallbacks,
+    syncAPI,
+    updateConfig,
+    startDrag,
+  } = deps;
   return {
     // State queries
     items: state.itemsById,

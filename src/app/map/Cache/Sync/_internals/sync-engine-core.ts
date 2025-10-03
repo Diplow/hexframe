@@ -9,8 +9,7 @@ import type {
 } from "~/app/map/Cache/Sync/types";
 import { createOnlineStatusManager, createSyncStatusManager } from "~/app/map/Cache/Sync/_internals/sync-status";
 import { createSyncEventEmitter } from "~/app/map/Cache/Sync/_internals/sync-events";
-import { performSyncOperation, createSyncResult } from "~/app/map/Cache/Sync/_internals/sync-operations";
-import { createPublicSyncAPI } from "~/app/map/Cache/Sync/_internals/sync-api";
+import { performSyncOperation, createSyncResult, createPublicSyncAPI } from "~/app/map/Cache/Sync/_internals/sync-api";
 
 export interface SyncEngineConfig {
   state: CacheState;
@@ -20,19 +19,37 @@ export interface SyncEngineConfig {
 }
 
 /**
+ * Context for executing a sync operation
+ */
+interface SyncOperationContext {
+  forceSync: boolean;
+  syncStatus: SyncStatus;
+  syncConfig: SyncConfig;
+  state: CacheState;
+  dataHandler: DataOperations;
+  statusManager: ReturnType<typeof createSyncStatusManager>;
+  eventEmitter: ReturnType<typeof createSyncEventEmitter>;
+  onlineManager: ReturnType<typeof createOnlineStatusManager>;
+  updateStatus: (status: SyncStatus) => void;
+}
+
+/**
  * Execute sync operation with proper error handling and status updates
  */
 export async function executeSyncOperation(
-  forceSync: boolean,
-  syncStatus: SyncStatus,
-  syncConfig: SyncConfig,
-  state: CacheState,
-  dataHandler: DataOperations,
-  statusManager: ReturnType<typeof createSyncStatusManager>,
-  eventEmitter: ReturnType<typeof createSyncEventEmitter>,
-  onlineManager: ReturnType<typeof createOnlineStatusManager>,
-  updateStatus: (status: SyncStatus) => void
+  context: SyncOperationContext
 ): Promise<SyncResult> {
+  const {
+    forceSync,
+    syncStatus,
+    syncConfig,
+    state,
+    dataHandler,
+    statusManager,
+    eventEmitter,
+    onlineManager,
+    updateStatus,
+  } = context;
   const startTime = Date.now();
 
   if (syncStatus.isSyncing && !forceSync) {
@@ -85,7 +102,7 @@ export function createSyncEngineCore(config: SyncEngineConfig): SyncOperations {
 
   // Core sync operation
   const performSyncInternal = async (forceSync = false): Promise<SyncResult> => {
-    return executeSyncOperation(
+    return executeSyncOperation({
       forceSync,
       syncStatus,
       syncConfig,
@@ -94,8 +111,8 @@ export function createSyncEngineCore(config: SyncEngineConfig): SyncOperations {
       statusManager,
       eventEmitter,
       onlineManager,
-      (status) => { syncStatus = status; }
-    );
+      updateStatus: (status) => { syncStatus = status; },
+    });
   };
 
   return createPublicSyncAPI({
