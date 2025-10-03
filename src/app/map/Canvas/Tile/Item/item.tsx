@@ -45,6 +45,14 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
     scale,
   });
   
+  // Calculate dimensions based on scale (same calculation as BaseTileLayout)
+  const width =
+    scale === 1
+      ? baseHexSize * Math.sqrt(3)
+      : baseHexSize * Math.sqrt(3) * Math.pow(3, scale - 1);
+  const height =
+    scale === 1 ? baseHexSize * 2 : baseHexSize * 2 * Math.pow(3, scale - 1);
+
   // Log tile render
   useEffect(() => {
     loggers.render.canvas('DynamicItemTile render', {
@@ -69,6 +77,8 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
         className={`group relative select-none ${state.hasOperationPending ? 'operation-pending' : ''}`}
         data-testid={state.testId}
         style={{
+          width: `${Math.round(width)}px`,
+          height: `${Math.round(height)}px`,
           opacity: state.hasOperationPending ? 0.7 : 1,
           // Container has no pointer events - hexagon shapes handle all interactions
           pointerEvents: 'none'
