@@ -286,9 +286,8 @@ export function DynamicMapCanvas({
         <div className="relative flex h-full w-full flex-col">
           <div
             data-canvas-id={dynamicCenterInfo.center}
-            className="pointer-events-auto grid flex-grow py-4 overflow-visible"
+            className="pointer-events-auto grid flex-grow py-4 overflow-visible place-items-center"
             style={{
-              placeItems: 'center',
               // Offset the center point to account for chat panel (40% of width)
               // This shifts the center tile to appear centered in the right 60% area
               transform: 'translateX(20%)'
