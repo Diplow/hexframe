@@ -87,6 +87,7 @@ export const DynamicFrameCore = (props: DynamicFrameCoreProps) => {
       <DynamicItemTile
         item={centerItem}
         scale={scale}
+        baseHexSize={props.baseHexSize}
         allExpandedItemIds={props.expandedItemIds ?? []}
         hasChildren={hasChildren(centerItem, mapItems)}
         isCenter={centerItem.metadata.dbId === props.urlInfo.rootItemId}
@@ -393,6 +394,7 @@ const FrameSlot = (props: {
       <DynamicItemTile
         item={item}
         scale={slotScale}
+        baseHexSize={props.baseHexSize}
         allExpandedItemIds={props.expandedItemIds ?? []}
         hasChildren={hasChildren(item, mapItems)}
         isCenter={item.metadata.dbId === props.urlInfo.rootItemId}
