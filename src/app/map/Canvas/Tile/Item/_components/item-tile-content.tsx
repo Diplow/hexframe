@@ -125,7 +125,7 @@ export function ItemTileContent({
           {...(dataAttributes ?? {})}
         >
           {/* Visual content container */}
-          <div className="relative h-full w-full">
+          <div className="relative" style={{ width: "100%", height: "100%" }}>
             <DynamicBaseTileLayout
               coordId={item.metadata.coordId}
               scale={scale}
