@@ -6,6 +6,11 @@ export default {
   darkMode: ["class"],
   content: ["./src/**/*.tsx"],
   safelist: [
+    // Grid and layout styles for Canvas
+    "place-items-center",
+    "grid",
+    "flex-grow",
+    "overflow-visible",
     // Focus styles for toolbox
     "focus:outline-none",
     "focus-visible:outline-none",
