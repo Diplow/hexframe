@@ -3,10 +3,10 @@ import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   createNavigationHandler,
   createNavigationHandlerForTesting,
-} from "~/app/map/Cache/Handlers/navigation-handler";
+} from "~/app/map/Cache/Handlers/NavigationHandler/navigation-handler";
 import { cacheActions } from "~/app/map/Cache/State/actions";
 import { initialCacheState } from "~/app/map/Cache/State/reducer";
-import type { NavigationHandlerConfig } from "~/app/map/Cache/Handlers/navigation-handler";
+import type { NavigationHandlerConfig } from "~/app/map/Cache/Handlers/NavigationHandler/navigation-handler";
 import type { CacheState } from "~/app/map/Cache/State/types";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";
 import { createMockEventBus, expectEventEmitted } from "~/test-utils/event-bus";

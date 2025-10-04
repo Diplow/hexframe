@@ -2,14 +2,16 @@
   "$schema": "../../../../scripts/checks/architecture/dependencies.schema.json",
   "allowed": [
     "~/app/map/Cache/Handlers",
-    "~/app/map/Cache/State",
     "~/app/map/Cache/Services",
+    "~/app/map/Cache/State",
+    "~/app/map/Cache/Sync/types",
+    "~/app/map/Cache/types",
+    "~/app/map/types",
     "~/commons/trpc/react",
-    "~/lib/debug/debug-logger",
-    "~/lib/domains/mapping"
+    "~/lib/domains/mapping",
+    "~/server/api"
   ],
   "subsystems": [
-    "./DataHandler",
-    "./NavigationHandler"
+    "./MutationCoordinator"
   ]
 }

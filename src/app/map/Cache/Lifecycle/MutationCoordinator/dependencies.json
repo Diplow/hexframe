@@ -1,0 +1,12 @@
+{
+  "$schema": "../../../../../scripts/checks/architecture/dependencies.schema.json",
+  "allowed": [
+    "~/app/map/Cache/Handlers",
+    "~/app/map/Cache/Services",
+    "~/app/map/Cache/State",
+    "~/app/map/Cache/types",
+    "~/app/map/types",
+    "~/lib/domains/mapping",
+    "~/server/api"
+  ]
+}

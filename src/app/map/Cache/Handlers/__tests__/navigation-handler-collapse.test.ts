@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, type MockedFunction } from "vitest";
-import { createNavigationHandler } from "~/app/map/Cache/Handlers/navigation-handler";
+import { createNavigationHandler } from "~/app/map/Cache/Handlers/NavigationHandler/navigation-handler";
 import type { CacheState, CacheAction } from "~/app/map/Cache/State/types";
 import { ACTION_TYPES } from "~/app/map/Cache/State/types";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";

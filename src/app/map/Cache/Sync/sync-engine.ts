@@ -5,7 +5,7 @@ import type {
   SyncOperations,
   SyncEventHandler,
 } from "~/app/map/Cache/Sync/types";
-import { createSyncEngineCore } from "~/app/map/Cache/Sync/_internals/sync-engine-core";
+import { createSyncEngineCore } from "~/app/map/Cache/Sync/_internals/engine/sync-engine-core";
 
 // Default sync configuration
 const DEFAULT_SYNC_CONFIG: SyncConfig = {

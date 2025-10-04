@@ -1,13 +1,17 @@
+"use client";
+
 import { useContext, useMemo, useCallback } from "react";
 import { MapCacheContext } from "~/app/map/Cache/provider";
 import { cacheSelectors } from "~/app/map/Cache/State";
 import type { MapCacheHook, DataOperations } from "~/app/map/Cache/types";
 import type { CacheState } from "~/app/map/Cache/State/types";
-import { createQueryCallbacks } from "~/app/map/Cache/internal/internals/query-callbacks";
-import { createMutationCallbacks } from "~/app/map/Cache/internal/internals/mutation-callbacks";
-import { createNavigationCallbacks } from "~/app/map/Cache/internal/internals/navigation-callbacks";
-import { createHierarchyCallbacks } from "~/app/map/Cache/internal/internals/hierarchy-callbacks";
-import { createSyncOperationsAPI } from "~/app/map/Cache/internal/internals/sync-operations";
+import {
+  createQueryCallbacks,
+  createMutationCallbacks,
+  createNavigationCallbacks,
+  createHierarchyCallbacks,
+  createSyncOperationsAPI,
+} from "~/app/map/Cache/Lifecycle";
 import { globalDragService } from "~/app/map/Services";
 
 /**

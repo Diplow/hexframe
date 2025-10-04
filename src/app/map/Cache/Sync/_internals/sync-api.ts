@@ -6,10 +6,11 @@ import type {
 } from "~/app/map/Cache/Sync/types";
 import type { CacheState } from "~/app/map/Cache/State";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";
-import type { createOnlineStatusManager, createSyncStatusManager } from "~/app/map/Cache/Sync/_internals/sync-status";
-import { createSyncTimerManager } from "~/app/map/Cache/Sync/_internals/sync-timers";
-import { createSyncEventManager, type createSyncEventEmitter } from "~/app/map/Cache/Sync/_internals/sync-events";
-import { createSyncControlOperations } from "~/app/map/Cache/Sync/_internals/sync-control-operations";
+import type { createOnlineStatusManager, createSyncStatusManager } from "~/app/map/Cache/Sync/_internals/engine/sync-status";
+import { createSyncTimerManager } from "~/app/map/Cache/Sync/_internals/engine/sync-timers";
+import { createSyncEventManager, type createSyncEventEmitter } from "~/app/map/Cache/Sync/_internals/engine/sync-events";
+import { createSyncControlOperations } from "~/app/map/Cache/Sync/_internals/engine/sync-control-operations";
+import { createSyncEventHandlers } from "~/app/map/Cache/Sync/_internals/engine/sync-event-handlers";
 
 /**
  * Core sync operation implementation
@@ -81,63 +82,6 @@ export interface PublicSyncAPIConfig {
   performSyncInternal: (forceSync?: boolean) => Promise<SyncResult>;
   updateState: (started: boolean, paused: boolean) => void;
   updateStatus: (status: SyncStatus) => void;
-}
-
-/**
- * Dependencies for creating sync event handlers
- */
-interface SyncHandlerDependencies {
-  syncConfig: SyncConfig;
-  syncStatus: SyncStatus;
-  isStarted: boolean;
-  isPaused: boolean;
-  statusManager: ReturnType<typeof createSyncStatusManager>;
-  onlineManager: ReturnType<typeof createOnlineStatusManager>;
-  eventEmitter: ReturnType<typeof createSyncEventEmitter>;
-  updateStatus: (status: SyncStatus) => void;
-  timerManager: ReturnType<typeof createSyncTimerManager>;
-}
-
-/**
- * Create event handlers for sync operations
- */
-export function createSyncEventHandlers(
-  deps: SyncHandlerDependencies
-): {
-  handleOnlineStatusChange: () => void;
-  handleVisibilitySync: () => void;
-} {
-  const {
-    syncConfig,
-    syncStatus,
-    isStarted,
-    isPaused,
-    statusManager,
-    onlineManager,
-    eventEmitter,
-    updateStatus,
-    timerManager,
-  } = deps;
-  const handleOnlineStatusChange = () => {
-    const isOnline = onlineManager.getInitialOnlineStatus();
-    const { status: newStatus, changed } = statusManager.updateOnlineStatus(syncStatus, isOnline);
-    updateStatus(newStatus);
-    
-    if (changed) {
-      eventEmitter.emitEvent({ type: "ONLINE_STATUS_CHANGED", isOnline });
-      if (isOnline && syncConfig.syncOnNetworkReconnect && isStarted && !isPaused) {
-        timerManager.scheduleImmediateSync(isStarted, isPaused);
-      }
-    }
-  };
-
-  const handleVisibilitySync = () => {
-    if (isStarted && !isPaused) {
-      timerManager.scheduleImmediateSync(isStarted, isPaused);
-    }
-  };
-
-  return { handleOnlineStatusChange, handleVisibilitySync };
 }
 
 /**
