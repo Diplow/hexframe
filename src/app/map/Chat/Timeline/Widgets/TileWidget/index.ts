@@ -10,7 +10,6 @@ export { TileWidget } from '~/app/map/Chat/Timeline/Widgets/TileWidget/tile-widg
 // Widget Components
 export { ActionMenu } from '~/app/map/Chat/Timeline/Widgets/TileWidget/ActionMenu';
 export { ContentDisplay } from '~/app/map/Chat/Timeline/Widgets/TileWidget/ContentDisplay';
-export { EditControls } from '~/app/map/Chat/Timeline/Widgets/TileWidget/EditControls';
 export { TileHeader } from '~/app/map/Chat/Timeline/Widgets/TileWidget/TileHeader';
 export { TileForm } from '~/app/map/Chat/Timeline/Widgets/TileWidget/TileForm';
 

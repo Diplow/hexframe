@@ -111,11 +111,10 @@ export const staticSelectors = {
   isLoading: (state: CacheState) => state.isLoading,
   error: (state: CacheState) => state.error,
 
-  // Essential item operations  
-  hasItem: (state: CacheState, coordId: string) => !!state.itemsById[coordId],
-  getItem: (state: CacheState, coordId: string) => state.itemsById[coordId] ?? null,
-  
+  // Essential item operations - merged getItem with hasItem semantics
+  getItemSafe: (state: CacheState, coordId: string) => state.itemsById[coordId] ?? null,
+
   // Region operations
-  regionItems: (state: CacheState, centerCoordId: string, maxDepth = 2) => 
+  regionItems: (state: CacheState, centerCoordId: string, maxDepth = 2) =>
     selectRegionItems(state, centerCoordId, maxDepth),
 };

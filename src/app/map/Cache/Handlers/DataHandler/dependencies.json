@@ -1,0 +1,11 @@
+{
+  "$schema": "../../../../../scripts/checks/architecture/dependencies.schema.json",
+  "allowed": [
+    "~/app/map/Cache/State",
+    "~/app/map/Cache/Services",
+    "~/app/map/Cache/types/handlers",
+    "~/commons/trpc/react",
+    "~/lib/debug/debug-logger",
+    "~/lib/domains/mapping"
+  ]
+}

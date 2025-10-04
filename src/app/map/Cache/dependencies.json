@@ -10,9 +10,7 @@
   ],
   "subsystems": [
     "./Handlers",
-    "./Services"
-  ],
-  "exceptions": {
-    "~/lib/domains/mapping/types/MapItemType": "Needed for specific type import while avoiding full types folder"
-  }
+    "./Services",
+    "./Lifecycle"
+  ]
 }

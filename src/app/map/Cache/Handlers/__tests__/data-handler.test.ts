@@ -2,10 +2,10 @@ import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   createDataHandler,
   createDataHandlerWithMockableService,
-} from "~/app/map/Cache/Handlers/data-handler";
+} from "~/app/map/Cache/Handlers/DataHandler/data-handler";
 import { cacheActions } from "~/app/map/Cache/State/actions";
 import { initialCacheState } from "~/app/map/Cache/State/reducer";
-import type { DataHandlerConfig, DataHandlerServices } from "~/app/map/Cache/Handlers/data-handler";
+import type { DataHandlerConfig, DataHandlerServices } from "~/app/map/Cache/Handlers/DataHandler/data-handler";
 import type { CacheState } from "~/app/map/Cache/State/types";
 import type { MapItemAPIContract } from "~/server/api/types/contracts";
 import { MapItemType } from "~/lib/domains/mapping/utils";

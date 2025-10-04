@@ -1,8 +1,8 @@
 import { describe, test, expect, vi } from "vitest";
-import { createNavigationHandler } from "~/app/map/Cache/Handlers/navigation-handler";
+import { createNavigationHandler } from "~/app/map/Cache/Handlers/NavigationHandler/navigation-handler";
 import { cacheActions } from "~/app/map/Cache/State/actions";
 import { cacheReducer, initialCacheState } from "~/app/map/Cache/State/reducer";
-import type { NavigationHandlerConfig } from "~/app/map/Cache/Handlers/navigation-handler";
+import type { NavigationHandlerConfig } from "~/app/map/Cache/Handlers/NavigationHandler/navigation-handler";
 import type { CacheState, CacheAction } from "~/app/map/Cache/State/types";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";
 
