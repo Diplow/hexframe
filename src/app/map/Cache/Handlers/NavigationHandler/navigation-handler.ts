@@ -8,20 +8,18 @@ import {
   type NavigationResult,
   type NavigationOptions
 } from "~/app/map/Cache/Handlers/NavigationHandler/_core/navigation-core";
-import {
-  updateURL,
-  syncURLWithState,
-  getMapContext,
-  toggleItemExpansionWithURL
-} from "~/app/map/Cache/Handlers/NavigationHandler/_url/navigation-url-handlers";
-import {
-  updateCenter,
-  prefetchForNavigation,
-  navigateWithoutURL
-} from "~/app/map/Cache/Handlers/NavigationHandler/_core/navigation-operations";
+import { updateURL } from "~/app/map/Cache/Handlers/NavigationHandler/_url/navigation-url-handlers";
 import {
   createNavigationDependencies
-} from "~/app/map/Cache/Handlers/NavigationHandler/_helpers/navigation-handler-helpers";
+} from "~/app/map/Cache/Handlers/NavigationHandler/_helpers/_core/navigation-handler-helpers";
+import {
+  createBoundUpdateCenter,
+  createBoundPrefetchForNavigation,
+  createBoundSyncURLWithState,
+  createBoundNavigateWithoutURL,
+  createBoundGetMapContext,
+  createBoundToggleItemExpansionWithURL,
+} from "~/app/map/Cache/Handlers/NavigationHandler/_bindings/navigation-bindings";
 
 export interface NavigationHandlerConfig {
   dispatch: React.Dispatch<CacheAction>;
@@ -66,23 +64,15 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
     return executeNavigationToItem(itemIdentifier, options, deps);
   };
 
-  // Binding functions to reduce inline arrow function count
-  const boundUpdateCenter = (centerCoordId: string) => updateCenter(centerCoordId, dispatch);
-  const boundPrefetchForNavigation = (itemCoordId: string) => prefetchForNavigation(itemCoordId, dataHandler);
-  const boundSyncURLWithState = () => syncURLWithState(getState);
-  const boundNavigateWithoutURL = (itemCoordId: string) => navigateWithoutURL(itemCoordId, getState, dispatch, dataHandler);
-  const boundGetMapContext = () => getMapContext(config.pathname, config.searchParams);
-  const boundToggleItemExpansionWithURL = (itemId: string) => toggleItemExpansionWithURL(itemId, getState, dispatch);
-
   return {
     navigateToItem,
-    updateCenter: boundUpdateCenter,
+    updateCenter: createBoundUpdateCenter(dispatch),
     updateURL,
-    prefetchForNavigation: boundPrefetchForNavigation,
-    syncURLWithState: boundSyncURLWithState,
-    navigateWithoutURL: boundNavigateWithoutURL,
-    getMapContext: boundGetMapContext,
-    toggleItemExpansionWithURL: boundToggleItemExpansionWithURL,
+    prefetchForNavigation: createBoundPrefetchForNavigation(dataHandler),
+    syncURLWithState: createBoundSyncURLWithState(getState),
+    navigateWithoutURL: createBoundNavigateWithoutURL(getState, dispatch, dataHandler),
+    getMapContext: createBoundGetMapContext(config.pathname, config.searchParams),
+    toggleItemExpansionWithURL: createBoundToggleItemExpansionWithURL(getState, dispatch),
   } as NavigationOperations;
 }
 

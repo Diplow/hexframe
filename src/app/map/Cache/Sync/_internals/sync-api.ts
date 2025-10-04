@@ -10,7 +10,7 @@ import type { createOnlineStatusManager, createSyncStatusManager } from "~/app/m
 import { createSyncTimerManager } from "~/app/map/Cache/Sync/_internals/engine/sync-timers";
 import { createSyncEventManager, type createSyncEventEmitter } from "~/app/map/Cache/Sync/_internals/engine/sync-events";
 import { createSyncControlOperations } from "~/app/map/Cache/Sync/_internals/engine/sync-control-operations";
-import { createSyncEventHandlers } from "~/app/map/Cache/Sync/_internals/engine/sync-event-handlers";
+import { createSyncEventHandlers } from "~/app/map/Cache/Sync/_internals/engine/_events/sync-event-handlers";
 
 /**
  * Core sync operation implementation
