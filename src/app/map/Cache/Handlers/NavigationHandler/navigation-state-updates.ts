@@ -7,7 +7,7 @@ import { checkAncestors, loadAncestorsForItem } from "~/app/map/Cache/Handlers/a
 import type { TileData } from "~/app/map/types";
 import { buildMapUrl } from "~/app/map/Cache/Handlers/NavigationHandler/_core/navigation-core";
 import type { NavigationOptions } from "~/app/map/Cache/Handlers/NavigationHandler/_core/navigation-core";
-import { shouldKeepExpandedItem } from "~/app/map/Cache/Handlers/NavigationHandler/_helpers/expansion-filter";
+import { shouldKeepExpandedItem } from "~/app/map/Cache/Handlers/NavigationHandler/_helpers/_loading/expansion-filter";
 import { loadSiblingsForItem } from "~/app/map/Cache/Handlers/NavigationHandler/navigation-resolution";
 
 /**

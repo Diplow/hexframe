@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useReducer, useMemo, useCallback, useRef } from 'react';
+import { createContext, useContext, useEffect, useReducer, useMemo, useCallback, useRef, type ReactNode } from 'react';
 import type { ChatEvent, ChatUIState } from '~/app/map/Chat/_state/_events/event.types';
 import { eventsReducer } from '~/app/map/Chat/_state/_reducers/events.reducer';
 import { deriveVisibleMessages, deriveActiveWidgets } from '~/app/map/Chat/_state/_selectors/message.selectors';
@@ -10,6 +10,7 @@ import { useEventSubscriptions } from '~/app/map/Chat/_state/_hooks/useEventSubs
 /**
  * Chat state hook - provides domain operations for chat functionality
  * This is internal to the Chat module and should not be used outside
+ * @internal - exported for testing only
  */
 export function useChatStateInternal(initialEvents: ChatEvent[] = []) {
   const hasAddedWelcomeMessage = useRef(false);
@@ -61,11 +62,37 @@ export function useChatStateInternal(initialEvents: ChatEvent[] = []) {
     messages: state.visibleMessages,
     widgets: state.activeWidgets,
     events: state.events,
-    
+
     // Operations (the only way to modify state)
     ...operations,
   };
 }
 
-// Re-export from separate provider file
-export { ChatProvider, useChatState } from '~/app/map/Chat/_state/core/ChatProvider';
+// Define the shape of the chat context
+type ChatContextValue = ReturnType<typeof useChatStateInternal>;
+
+const ChatContext = createContext<ChatContextValue | null>(null);
+
+interface ChatProviderProps {
+  children: ReactNode;
+  initialEvents?: ChatEvent[];
+}
+
+export function ChatProvider({ children, initialEvents = [] }: ChatProviderProps) {
+  // Create a single instance of chat state
+  const chatState = useChatStateInternal(initialEvents);
+
+  return (
+    <ChatContext.Provider value={chatState}>
+      {children}
+    </ChatContext.Provider>
+  );
+}
+
+export function useChatState() {
+  const context = useContext(ChatContext);
+  if (!context) {
+    throw new Error('useChatState must be used within ChatProvider');
+  }
+  return context;
+}

@@ -44,9 +44,9 @@ git log --oneline -10 [folder]
 Run checks **in priority order** and stop at first category with errors:
 
 ```bash
-pnpm check:dead-code [folder]    # Priority 1: Stop here if errors found
+pnpm check:deadcode [folder]    # Priority 1: Stop here if errors found
 pnpm check:architecture [folder] # Priority 2: Only if dead code is clean  
-pnpm check:rule-of-6 [folder]    # Priority 3: Only if architecture is clean
+pnpm check:ruleof6 [folder]    # Priority 3: Only if architecture is clean
 ```
 
 If all checks pass, declare victory and exit.

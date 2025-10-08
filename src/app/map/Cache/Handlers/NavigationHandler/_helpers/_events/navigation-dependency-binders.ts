@@ -9,7 +9,7 @@ import {
 } from "~/app/map/Cache/Handlers/NavigationHandler/navigation-utils";
 import {
   emitNavigationEvent
-} from "~/app/map/Cache/Handlers/NavigationHandler/_helpers/navigation-event-handlers";
+} from "~/app/map/Cache/Handlers/NavigationHandler/_helpers/_events/navigation-event-handlers";
 import type { NavigationOptions } from "~/app/map/Cache/Handlers/NavigationHandler/_core/navigation-core";
 
 /**

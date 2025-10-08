@@ -5,8 +5,8 @@ import type { ServerService } from "~/app/map/Cache/Services";
 import type { EventBusService } from '~/app/map';
 import { adapt, type TileData } from "~/app/map/types";
 import { loggers } from "~/lib/debug/debug-logger";
-import { validateDatabaseId } from "~/app/map/Cache/Handlers/NavigationHandler/_helpers/database-validator";
-import { loadRegionForItem } from "~/app/map/Cache/Handlers/NavigationHandler/_helpers/region-loader";
+import { validateDatabaseId } from "~/app/map/Cache/Handlers/NavigationHandler/_helpers/_validation/database-validator";
+import { loadRegionForItem } from "~/app/map/Cache/Handlers/NavigationHandler/_helpers/_loading/region-loader";
 
 export interface NavigationResult {
   success: boolean;

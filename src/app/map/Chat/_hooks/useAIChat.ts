@@ -1,25 +1,10 @@
 import { useState, useCallback, useContext, useMemo } from 'react'
 import { api } from '~/commons/trpc/react'
-import { useChatState, type ChatMessage, type Message } from '~/app/map/Chat'
+import { useChatState } from '~/app/map/Chat'
 import { MapCacheContext } from '~/app/map/Cache'
 import type { CompositionConfig } from '~/lib/domains/agentic'
-import { loggers } from '~/lib/debug/debug-logger'
-import type { useChatOperations } from '~/app/map/Chat/_state/_operations'
-import type { TileData } from '~/app/map/types'
-
-// Type for the tRPC response that might include jobId for queued responses
-interface GenerateResponseResult {
-  id: string
-  content: string
-  model: string
-  usage: {
-    promptTokens: number
-    completionTokens: number
-    totalTokens: number
-  }
-  finishReason?: 'stop' | 'length' | 'content_filter' | 'error' | 'queued'
-  jobId?: string // Present when finishReason is 'queued'
-}
+import { type GenerateResponseResult, _handleSuccessResponse, _handleErrorResponse } from '~/app/map/Chat/_hooks/_ai-response-handlers'
+import { _prepareMessagesForAI, _transformCacheState } from '~/app/map/Chat/_hooks/_ai-message-utils'
 
 interface UseAIChatOptions {
   temperature?: number
@@ -44,8 +29,12 @@ export function useAIChat(options: UseAIChatOptions = {}) {
   
   
   const generateResponseMutation = api.agentic.generateResponse.useMutation({
-    onSuccess: (response: GenerateResponseResult) => _handleSuccessResponse(response, chatState, setIsGenerating),
-    onError: (error) => _handleErrorResponse(error, chatState, setIsGenerating)
+    onSuccess: (response: GenerateResponseResult) => {
+      _handleSuccessResponse(response, chatState, setIsGenerating);
+    },
+    onError: (error) => {
+      _handleErrorResponse(error, chatState, setIsGenerating);
+    }
   })
 
   const sendToAI = useCallback(async (message: string) => {
@@ -100,77 +89,5 @@ export function useAIChat(options: UseAIChatOptions = {}) {
     isGenerating,
     isError: generateResponseMutation.isError,
     error: generateResponseMutation.error
-  }
-}
-
-// Helper functions extracted from useAIChat
-function _handleSuccessResponse(
-  response: GenerateResponseResult, 
-  chatState: ReturnType<typeof useChatOperations>, 
-  setIsGenerating: (value: boolean) => void
-) {
-  // Check if response is queued based on finishReason
-  if (response.finishReason === 'queued' && response.jobId) {
-    // Send AI Response widget for queued job
-    chatState.showAIResponseWidget({
-      jobId: response.jobId,
-      model: response.model
-    })
-    loggers.agentic('Request queued, widget sent', { jobId: response.jobId })
-  } else {
-    // Send AI Response widget for direct response
-    chatState.showAIResponseWidget({
-      initialResponse: response.content,
-      model: response.model
-    })
-    loggers.agentic('Direct AI response, widget sent', {
-      model: response.model,
-      usage: response.usage,
-      finishReason: response.finishReason
-    })
-  }
-  setIsGenerating(false)
-}
-
-function _handleErrorResponse(
-  error: unknown, 
-  chatState: ReturnType<typeof useChatOperations>, 
-  setIsGenerating: (value: boolean) => void
-) {
-  console.error('[useAIChat] Mutation error:', error)
-  const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
-  chatState.showSystemMessage(`AI Error: ${errorMessage}`, 'error')
-  loggers.agentic.error('AI generation failed', { error: errorMessage })
-  setIsGenerating(false)
-}
-
-function _prepareMessagesForAI(messages: Message[], newMessage: string): ChatMessage[] {
-  // Get current chat messages for context
-  const chatMessages: ChatMessage[] = messages.map((msg: Message) => ({
-    id: msg.id,
-    type: msg.actor as 'user' | 'assistant' | 'system',
-    content: msg.content,
-    metadata: {
-      timestamp: msg.timestamp
-    }
-  }))
-
-  // Add the new user message
-  chatMessages.push({
-    id: `msg-${Date.now()}`,
-    type: 'user',
-    content: newMessage,
-    metadata: {
-      timestamp: new Date()
-    }
-  })
-
-  return chatMessages
-}
-
-function _transformCacheState(cache: { itemsById: Record<string, TileData>; center: string | null }) {
-  return {
-    itemsById: cache.itemsById,
-    currentCenter: cache.center ?? ''
   }
 }

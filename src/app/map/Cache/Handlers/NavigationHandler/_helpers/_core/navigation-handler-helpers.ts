@@ -13,7 +13,7 @@ import {
   createURLHandler,
   createTasksHandler,
   createEventEmitter
-} from "~/app/map/Cache/Handlers/NavigationHandler/_helpers/navigation-dependency-binders";
+} from "~/app/map/Cache/Handlers/NavigationHandler/_helpers/_events/navigation-dependency-binders";
 import type { NavigationOptions, NavigationDependencies } from "~/app/map/Cache/Handlers/NavigationHandler/_core/navigation-core";
 
 /**

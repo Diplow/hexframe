@@ -3,8 +3,8 @@ import { cacheActions } from "~/app/map/Cache/State";
 import type { ServerService } from "~/app/map/Cache/Services";
 import type { TileData } from "~/app/map/types";
 import { loggers } from "~/lib/debug/debug-logger";
-import { logResolutionResult } from "~/app/map/Cache/Handlers/NavigationHandler/_helpers/resolution-logger";
-import { convertToTileData } from "~/app/map/Cache/Handlers/NavigationHandler/_helpers/tile-converter";
+import { logResolutionResult } from "~/app/map/Cache/Handlers/NavigationHandler/_helpers/_logging/resolution-logger";
+import { convertToTileData } from "~/app/map/Cache/Handlers/NavigationHandler/_helpers/_validation/tile-converter";
 
 /**
  * Resolve item identifier to find existing item and coordinate ID
