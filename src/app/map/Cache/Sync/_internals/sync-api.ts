@@ -74,8 +74,8 @@ export function createSyncResult(
 export interface PublicSyncAPIConfig {
   syncConfig: SyncConfig;
   syncStatus: SyncStatus;
-  isStarted: boolean;
-  isPaused: boolean;
+  isStarted: () => boolean;
+  isPaused: () => boolean;
   statusManager: ReturnType<typeof createSyncStatusManager>;
   onlineManager: ReturnType<typeof createOnlineStatusManager>;
   eventEmitter: ReturnType<typeof createSyncEventEmitter>;

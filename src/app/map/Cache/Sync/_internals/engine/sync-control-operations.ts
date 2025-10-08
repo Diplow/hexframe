@@ -10,8 +10,8 @@ import type { createSyncStatusManager } from "~/app/map/Cache/Sync/_internals/en
 export interface SyncControlConfig {
   syncConfig: SyncConfig;
   syncStatus: SyncStatus;
-  isStarted: boolean;
-  isPaused: boolean;
+  isStarted: () => boolean;
+  isPaused: () => boolean;
   statusManager: ReturnType<typeof createSyncStatusManager>;
   timerManager: ReturnType<typeof createSyncTimerManager>;
   eventManager: ReturnType<typeof createSyncEventManager>;
@@ -62,16 +62,18 @@ export function createSyncControlOperations(config: SyncControlConfig) {
     },
     
     pauseSync: () => {
-      updateState(isStarted, true);
+      const started = isStarted();
+      updateState(started, true);
       timerManager.clearAllTimers();
       updateStatus({ ...syncStatus, nextSyncAt: null });
     },
-    
+
     resumeSync: () => {
-      if (!isStarted) return;
-      updateState(isStarted, false);
+      const started = isStarted();
+      if (!started) return;
+      updateState(started, false);
       if (syncConfig.enabled) {
-        const nextSyncAt = timerManager.scheduleNextSync(isStarted, false);
+        const nextSyncAt = timerManager.scheduleNextSync(started, false);
         if (nextSyncAt) {
           updateStatus({ ...syncStatus, nextSyncAt });
         }

@@ -4,14 +4,19 @@ import { BaseWidget, WidgetHeader, WidgetContent } from '~/app/map/Chat/Timeline
 interface DirectResponseProps {
   response: string;
   model?: string;
+  timestamp?: number | Date;
 }
 
-export function DirectResponse({ response, model }: DirectResponseProps) {
+export function DirectResponse({ response, model, timestamp }: DirectResponseProps) {
+  const formattedTime = timestamp
+    ? new Date(timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+    : '';
+
   return (
     <BaseWidget variant="primary" className="w-full">
       <WidgetHeader
         title="HexFrame"
-        subtitle={new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+        subtitle={formattedTime}
       />
       <WidgetContent>
         <div className="prose dark:prose-invert max-w-none">

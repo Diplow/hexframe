@@ -20,6 +20,7 @@ export function _renderAIResponseWidget(widget: Widget) {
       jobId={data.jobId}
       initialResponse={data.initialResponse}
       model={data.model}
+      timestamp={widget.timestamp}
     />
   );
 }

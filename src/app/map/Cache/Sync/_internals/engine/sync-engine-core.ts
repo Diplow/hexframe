@@ -118,8 +118,8 @@ export function createSyncEngineCore(config: SyncEngineConfig): SyncOperations {
   return createPublicSyncAPI({
     syncConfig,
     syncStatus,
-    isStarted,
-    isPaused,
+    isStarted: () => isStarted,
+    isPaused: () => isPaused,
     statusManager,
     onlineManager,
     eventEmitter,

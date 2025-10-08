@@ -11,14 +11,15 @@ interface AIResponseWidgetProps {
   jobId?: string;
   initialResponse?: string;
   model?: string;
+  timestamp?: number | Date;
 }
 
-export function AIResponseWidget({ jobId, initialResponse, model }: AIResponseWidgetProps) {
+export function AIResponseWidget({ jobId, initialResponse, model, timestamp }: AIResponseWidgetProps) {
   const { status, response, error, elapsedTime } = useJobPolling(jobId, initialResponse);
   useProgressAnimation();
 
   if (status === 'direct') {
-    return <DirectResponse response={response} model={model} />;
+    return <DirectResponse response={response} model={model} timestamp={timestamp} />;
   }
 
   if (status === 'pending') {

@@ -9,8 +9,8 @@ import type { createSyncEventEmitter } from "~/app/map/Cache/Sync/_internals/eng
 export interface SyncHandlerDependencies {
   syncConfig: SyncConfig;
   syncStatus: SyncStatus;
-  isStarted: boolean;
-  isPaused: boolean;
+  isStarted: () => boolean;
+  isPaused: () => boolean;
   statusManager: ReturnType<typeof createSyncStatusManager>;
   onlineManager: ReturnType<typeof createOnlineStatusManager>;
   eventEmitter: ReturnType<typeof createSyncEventEmitter>;
@@ -46,15 +46,19 @@ export function createSyncEventHandlers(
 
     if (changed) {
       eventEmitter.emitEvent({ type: "ONLINE_STATUS_CHANGED", isOnline });
-      if (isOnline && syncConfig.syncOnNetworkReconnect && isStarted && !isPaused) {
-        timerManager.scheduleImmediateSync(isStarted, isPaused);
+      const started = isStarted();
+      const paused = isPaused();
+      if (isOnline && syncConfig.syncOnNetworkReconnect && started && !paused) {
+        timerManager.scheduleImmediateSync(started, paused);
       }
     }
   };
 
   const handleVisibilitySync = () => {
-    if (isStarted && !isPaused) {
-      timerManager.scheduleImmediateSync(isStarted, isPaused);
+    const started = isStarted();
+    const paused = isPaused();
+    if (started && !paused) {
+      timerManager.scheduleImmediateSync(started, paused);
     }
   };
 
