@@ -1,3 +1,4 @@
+import type { Dispatch } from "react";
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";
@@ -13,7 +14,7 @@ import type { NavigationResult } from "~/app/map/Cache/Handlers/NavigationHandle
  */
 export function updateCenter(
   centerCoordId: string,
-  dispatch: React.Dispatch<CacheAction>
+  dispatch: Dispatch<CacheAction>
 ): void {
   loggers.mapCache.handlers('[NavigationHandler.updateCenter] Called with:', {
     centerCoordId,
@@ -45,7 +46,7 @@ export async function prefetchForNavigation(
 export async function navigateWithoutURL(
   itemCoordId: string,
   getState: () => CacheState,
-  dispatch: React.Dispatch<CacheAction>,
+  dispatch: Dispatch<CacheAction>,
   dataHandler: DataOperations
 ): Promise<NavigationResult> {
   loggers.mapCache.handlers('[NavigationHandler.navigateWithoutURL] Called with:', {

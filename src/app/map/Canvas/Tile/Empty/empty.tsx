@@ -1,5 +1,7 @@
 "use client";
 
+import type { Dispatch, SetStateAction, RefObject } from "react";
+
 import { useState, useEffect } from "react";
 import { DynamicBaseTileLayout } from "~/app/map/Canvas/Tile/Base";
 import type { TileScale, TileColor } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
@@ -136,9 +138,9 @@ function _createTileLayout(
 
 function _renderEmptyTile(
   props: DynamicEmptyTileProps,
-  tileRef: React.RefObject<HTMLDivElement> | null,
+  tileRef: RefObject<HTMLDivElement> | null,
   isHovered: boolean,
-  setIsHovered: React.Dispatch<React.SetStateAction<boolean>>,
+  setIsHovered: Dispatch<SetStateAction<boolean>>,
   tileLayout: ReturnType<typeof _createTileLayout>
 ) {
   const { handleClick, handleRightClick } = tileLayout.interactionHandlers;

@@ -1,3 +1,4 @@
+import type { Dispatch } from "react";
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";
 import type { ServerService } from "~/app/map/Cache/Services";
@@ -22,7 +23,7 @@ import type { NavigationOptions, NavigationDependencies } from "~/app/map/Cache/
  */
 export function createNavigationDependencies(
   getState: () => CacheState,
-  dispatch: React.Dispatch<CacheAction>,
+  dispatch: Dispatch<CacheAction>,
   dataHandler: DataOperations,
   serverService: ServerService | undefined,
   eventBus: EventBusService | undefined,

@@ -1,3 +1,4 @@
+import type { Dispatch } from "react";
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
 import type { DataOperations, NavigationOperations } from "~/app/map/Cache/types/handlers";
 import type { ServerService } from "~/app/map/Cache/Services";
@@ -22,7 +23,7 @@ import {
 } from "~/app/map/Cache/Handlers/NavigationHandler/_bindings/navigation-bindings";
 
 export interface NavigationHandlerConfig {
-  dispatch: React.Dispatch<CacheAction>;
+  dispatch: Dispatch<CacheAction>;
   getState: () => CacheState;
   dataHandler: DataOperations;
   serverService?: ServerService;

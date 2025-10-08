@@ -1,3 +1,4 @@
+import type { Dispatch } from "react";
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
 import { type useServerService } from "~/app/map/Cache/Services";
 import { createDataHandler, type DataHandlerServices } from "~/app/map/Cache/Handlers/DataHandler/data-handler";
@@ -13,7 +14,7 @@ function _createServicesFromServerService(serverService: ReturnType<typeof useSe
 
 // Factory function for creating with server service
 export function createDataHandlerWithServerService(
-  dispatch: React.Dispatch<CacheAction>,
+  dispatch: Dispatch<CacheAction>,
   getState: () => CacheState,
   serverService: ReturnType<typeof useServerService>,
 ) {

@@ -1,3 +1,4 @@
+import type { Dispatch } from "react";
 import { type api } from "~/commons/trpc/react";
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
 import {
@@ -17,7 +18,7 @@ function _createServicesFromServerService(serverService: ReturnType<typeof useSe
 
 // Pure factory function for easier testing
 export function createDataHandlerWithMockableService(
-  dispatch: React.Dispatch<CacheAction>,
+  dispatch: Dispatch<CacheAction>,
   getState: () => CacheState,
   utils: ReturnType<typeof api.useUtils>,
   serviceConfig?: Parameters<typeof createServerService>[1],

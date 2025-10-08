@@ -1,3 +1,4 @@
+import type { MutableRefObject } from "react";
 export function _handlePreviewKeyDown(e: React.KeyboardEvent, onCancel: () => void) {
   if (e.key === 'Enter') {
     e.preventDefault();
@@ -29,7 +30,7 @@ export function _startPolling(
   checkJobStatus: () => Promise<any>,
   onPreviewChange: (preview: string) => void,
   setIsGeneratingPreview: (value: boolean) => void,
-  pollIntervalRef: React.MutableRefObject<NodeJS.Timeout | null>
+  pollIntervalRef: MutableRefObject<NodeJS.Timeout | null>
 ) {
   setQueuedJobId(jobId);
   pollIntervalRef.current = setInterval(() => {

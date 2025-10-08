@@ -1,3 +1,4 @@
+import type { Dispatch } from "react";
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
 import { loggers } from "~/lib/debug/debug-logger";
@@ -89,7 +90,7 @@ export function getMapContext(
 export function toggleItemExpansionWithURL(
   itemId: string,
   getState: () => CacheState,
-  dispatch: React.Dispatch<CacheAction>
+  dispatch: Dispatch<CacheAction>
 ): void {
   loggers.mapCache.handlers('[NavigationHandler.toggleItemExpansionWithURL] Called with:', {
     itemId,

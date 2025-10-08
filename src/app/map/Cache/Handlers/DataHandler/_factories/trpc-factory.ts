@@ -1,3 +1,4 @@
+import type { Dispatch } from "react";
 import { type api } from "~/commons/trpc/react";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
@@ -7,7 +8,7 @@ import { createDataHandler, type DataHandlerServices } from "~/app/map/Cache/Han
 // Legacy factory function for backwards compatibility
 // @deprecated Use createDataHandlerWithServerService instead
 export function createDataHandlerWithTRPC(
-  dispatch: React.Dispatch<CacheAction>,
+  dispatch: Dispatch<CacheAction>,
   utils: ReturnType<typeof api.useUtils>,
   getState: () => CacheState,
 ) {

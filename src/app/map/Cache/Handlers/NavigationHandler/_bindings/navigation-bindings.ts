@@ -1,3 +1,4 @@
+import type { Dispatch } from "react";
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";
 import {
@@ -11,7 +12,7 @@ import {
   toggleItemExpansionWithURL
 } from "~/app/map/Cache/Handlers/NavigationHandler/_url/navigation-url-handlers";
 
-export const createBoundUpdateCenter = (dispatch: React.Dispatch<CacheAction>) =>
+export const createBoundUpdateCenter = (dispatch: Dispatch<CacheAction>) =>
   (centerCoordId: string) => updateCenter(centerCoordId, dispatch);
 
 export const createBoundPrefetchForNavigation = (dataHandler: DataOperations) =>
@@ -22,7 +23,7 @@ export const createBoundSyncURLWithState = (getState: () => CacheState) =>
 
 export const createBoundNavigateWithoutURL = (
   getState: () => CacheState,
-  dispatch: React.Dispatch<CacheAction>,
+  dispatch: Dispatch<CacheAction>,
   dataHandler: DataOperations
 ) => (itemCoordId: string) => navigateWithoutURL(itemCoordId, getState, dispatch, dataHandler);
 
@@ -31,5 +32,5 @@ export const createBoundGetMapContext = (pathname?: string, searchParams?: URLSe
 
 export const createBoundToggleItemExpansionWithURL = (
   getState: () => CacheState,
-  dispatch: React.Dispatch<CacheAction>
+  dispatch: Dispatch<CacheAction>
 ) => (itemId: string) => toggleItemExpansionWithURL(itemId, getState, dispatch);

@@ -1,5 +1,7 @@
 'use client';
 
+import type { RefObject } from "react";
+
 import { Send } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { CommandAutocomplete } from '~/app/map/Chat/Input/_components/CommandAutocomplete';
@@ -15,7 +17,7 @@ interface InputFormProps {
   showAutocomplete: boolean;
   suggestions: CommandSuggestion[];
   selectedSuggestionIndex: number;
-  textareaRef: React.RefObject<HTMLTextAreaElement>;
+  textareaRef: RefObject<HTMLTextAreaElement>;
   onMessageChange: (value: string) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   onSend: () => void;

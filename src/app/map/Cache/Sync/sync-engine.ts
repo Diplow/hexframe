@@ -1,3 +1,4 @@
+import type { Dispatch } from "react";
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";
 import type {
@@ -19,7 +20,7 @@ const DEFAULT_SYNC_CONFIG: SyncConfig = {
 };
 
 export interface SyncEngineConfig {
-  dispatch: React.Dispatch<CacheAction>;
+  dispatch: Dispatch<CacheAction>;
   state: CacheState;
   dataHandler: DataOperations;
   syncConfig?: Partial<SyncConfig>;
@@ -49,7 +50,7 @@ export function createSyncEngine(config: SyncEngineConfig): SyncOperations {
  * Hook-based factory for use in React components
  */
 export function useSyncEngine(
-  dispatch: React.Dispatch<CacheAction>,
+  dispatch: Dispatch<CacheAction>,
   state: CacheState,
   dataHandler: DataOperations,
   syncConfig?: Partial<SyncConfig>,
@@ -68,7 +69,7 @@ export function useSyncEngine(
  * Factory function for testing with mocked dependencies
  */
 export function createSyncEngineForTesting(
-  dispatch: React.Dispatch<CacheAction>,
+  dispatch: Dispatch<CacheAction>,
   state: CacheState,
   dataHandler: DataOperations,
   syncConfig?: Partial<SyncConfig>,

@@ -1,3 +1,4 @@
+import type { Dispatch } from "react";
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";
@@ -21,7 +22,7 @@ export interface NavigationOptions {
 
 export interface NavigationDependencies {
   getState: () => CacheState;
-  dispatch: React.Dispatch<CacheAction>;
+  dispatch: Dispatch<CacheAction>;
   dataHandler: DataOperations;
   serverService: ServerService | undefined;
   eventBus: EventBusService | undefined;
@@ -118,7 +119,7 @@ export async function handleNavigationWithoutItem(
   itemIdentifier: string,
   loadedCoordId: string,
   getState: () => CacheState,
-  dispatch: React.Dispatch<CacheAction>,
+  dispatch: Dispatch<CacheAction>,
   eventBus?: EventBusService
 ): Promise<NavigationResult> {
   loggers.mapCache.handlers('[Navigation] 📍 Item loaded but not in cache yet, navigating to coordinate:', {
@@ -179,7 +180,7 @@ export function buildMapUrl(centerItemId: string, expandedItems: string[]): stri
 export async function loadItemFromServer(
   itemIdentifier: string,
   serverService: ServerService,
-  dispatch: React.Dispatch<CacheAction>
+  dispatch: Dispatch<CacheAction>
 ): Promise<{ loadedItem: TileData | null; loadedCoordId: string | null }> {
   const dbIdNumber = validateDatabaseId(itemIdentifier);
   if (dbIdNumber === null) {

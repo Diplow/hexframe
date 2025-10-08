@@ -1,9 +1,10 @@
+import type { Dispatch } from "react";
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
 import type { MapItemUpdateAttributes, MapItemCreateAttributes } from "~/lib/domains/mapping/utils";
 
 // Common handler dependencies
 export interface HandlerConfig {
-  dispatch: React.Dispatch<CacheAction>;
+  dispatch: Dispatch<CacheAction>;
   state: CacheState;
 }
 

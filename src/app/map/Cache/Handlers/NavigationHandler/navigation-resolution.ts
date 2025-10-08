@@ -1,3 +1,4 @@
+import type { Dispatch } from "react";
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
 import type { ServerService } from "~/app/map/Cache/Services";
@@ -40,7 +41,7 @@ export function resolveItemIdentifier(
 export async function loadSiblingsForItem(
   parentCoordId: string,
   serverService: ServerService,
-  dispatch: React.Dispatch<CacheAction>
+  dispatch: Dispatch<CacheAction>
 ): Promise<void> {
   try {
     const parentWithChildren = await serverService.getItemWithGenerations({

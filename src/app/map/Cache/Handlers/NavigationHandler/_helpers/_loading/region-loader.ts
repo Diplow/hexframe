@@ -1,3 +1,4 @@
+import type { Dispatch } from "react";
 import type { CacheAction } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
 import type { ServerService } from "~/app/map/Cache/Services";
@@ -21,7 +22,7 @@ export async function loadRegionForItem(
     ownerId: string;
   },
   serverService: ServerService,
-  dispatch: React.Dispatch<CacheAction>
+  dispatch: Dispatch<CacheAction>
 ): Promise<void> {
   const loadedCoordId = loadedItem.coordinates;
 

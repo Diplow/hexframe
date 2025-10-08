@@ -1,3 +1,4 @@
+import type { Dispatch } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";
@@ -7,7 +8,7 @@ import { createNavigationHandler } from "~/app/map/Cache/Handlers/NavigationHand
 
 // Hook-based factory for use in React components
 export function useNavigationHandler(
-  dispatch: React.Dispatch<CacheAction>,
+  dispatch: Dispatch<CacheAction>,
   getState: () => CacheState,
   dataHandler: DataOperations,
   serverService?: ServerService,
@@ -32,7 +33,7 @@ export function useNavigationHandler(
 
 // Factory function for testing with mocked dependencies
 export function createNavigationHandlerForTesting(
-  dispatch: React.Dispatch<CacheAction>,
+  dispatch: Dispatch<CacheAction>,
   getState: () => CacheState,
   dataHandler: DataOperations,
   mockRouter?: { push: (url: string) => void; replace: (url: string) => void },

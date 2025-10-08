@@ -1,3 +1,4 @@
+import type { Dispatch } from "react";
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State/actions";
 import type { LoadResult } from "~/app/map/Cache/types/handlers";
@@ -28,7 +29,7 @@ export interface DataHandlerServices {
 }
 
 export interface DataHandlerConfig {
-  dispatch: React.Dispatch<CacheAction>;
+  dispatch: Dispatch<CacheAction>;
   services: DataHandlerServices;
   getState: () => CacheState;
 }

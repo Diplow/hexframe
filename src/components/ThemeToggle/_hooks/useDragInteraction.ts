@@ -1,9 +1,10 @@
+import type { RefObject } from "react";
 import { useState, useRef, useCallback, useEffect } from 'react';
 
 interface UseDragInteractionProps {
   isDark: boolean;
   onThresholdCrossed: () => void;
-  containerRef: React.RefObject<HTMLDivElement>;
+  containerRef: RefObject<HTMLDivElement>;
 }
 
 export function useDragInteraction({ isDark, onThresholdCrossed, containerRef }: UseDragInteractionProps) {

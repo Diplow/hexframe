@@ -1,3 +1,4 @@
+import type { Dispatch } from "react";
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State/actions";
 import type { LoadResult } from "~/app/map/Cache/types/handlers";
@@ -19,7 +20,7 @@ export interface FetchAndDispatchOptions {
  */
 export async function fetchAndDispatchItems(
   services: DataHandlerServices,
-  dispatch: React.Dispatch<CacheAction>,
+  dispatch: Dispatch<CacheAction>,
   options: FetchAndDispatchOptions
 ): Promise<LoadResult> {
   const { centerCoordId, maxDepth, actionType, showLoading, silentFail } = options;
@@ -71,10 +72,15 @@ export function shouldLoadRegion(
   maxDepth: number,
   getState: () => CacheState
 ): boolean {
-  const regionMetadata = getState().regionMetadata[regionKey];
+  const state = getState();
+  const regionMetadata = state.regionMetadata[regionKey];
+
+  if (!regionMetadata) {
+    return true;
+  }
+
   return (
-    !regionMetadata ||
-    isStale(regionMetadata.loadedAt, getState().cacheConfig.maxAge) ||
+    isStale(regionMetadata.loadedAt, state.cacheConfig.maxAge) ||
     regionMetadata.maxDepth < maxDepth
   );
 }

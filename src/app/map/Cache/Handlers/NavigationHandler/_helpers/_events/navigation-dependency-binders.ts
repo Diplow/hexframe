@@ -1,3 +1,4 @@
+import type { Dispatch } from "react";
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";
 import type { ServerService } from "~/app/map/Cache/Services";
@@ -28,7 +29,7 @@ export function createTasksHandler(
   getState: () => CacheState,
   dataHandler: DataOperations,
   serverService: ServerService | undefined,
-  dispatch: React.Dispatch<CacheAction>
+  dispatch: Dispatch<CacheAction>
 ) {
   return (coordId: string) =>
     performBackgroundTasks(coordId, getState, dataHandler, serverService, dispatch);

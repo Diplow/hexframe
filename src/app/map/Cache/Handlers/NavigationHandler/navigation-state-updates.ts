@@ -1,3 +1,4 @@
+import type { Dispatch } from "react";
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";
@@ -16,7 +17,7 @@ import { loadSiblingsForItem } from "~/app/map/Cache/Handlers/NavigationHandler/
 export function updateExpandedItemsForNavigation(
   resolvedCoordId: string,
   currentState: CacheState,
-  dispatch: React.Dispatch<CacheAction>
+  dispatch: Dispatch<CacheAction>
 ): string[] {
   const newCenterDepth = CoordSystem.getDepthFromId(resolvedCoordId);
   const newCenterItem = currentState.itemsById[resolvedCoordId];
@@ -104,7 +105,7 @@ export function performBackgroundTasks(
   getState: () => CacheState,
   dataHandler: DataOperations,
   serverService: ServerService | undefined,
-  dispatch: React.Dispatch<CacheAction>
+  dispatch: Dispatch<CacheAction>
 ): void {
   // Prefetch region data if needed
   if (!getState().regionMetadata[finalCoordId]) {
