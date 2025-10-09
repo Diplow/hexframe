@@ -7,5 +7,9 @@
     "~/commons/trpc/react",
     "~/lib/debug/debug-logger",
     "~/lib/domains/mapping"
+  ],
+  "subsystems": [
+    "./DataHandler",
+    "./NavigationHandler"
   ]
 }

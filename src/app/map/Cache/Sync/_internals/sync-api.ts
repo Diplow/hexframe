@@ -4,61 +4,84 @@ import type {
   SyncResult,
   SyncOperations,
 } from "~/app/map/Cache/Sync/types";
-import type { createOnlineStatusManager, createSyncStatusManager } from "~/app/map/Cache/Sync/_internals/sync-status";
-import { createSyncTimerManager } from "~/app/map/Cache/Sync/_internals/sync-timers";
-import { createSyncEventManager, type createSyncEventEmitter } from "~/app/map/Cache/Sync/_internals/sync-events";
-import { createSyncControlOperations } from "~/app/map/Cache/Sync/_internals/sync-control-operations";
+import type { CacheState } from "~/app/map/Cache/State";
+import type { DataOperations } from "~/app/map/Cache/types/handlers";
+import type { createOnlineStatusManager, createSyncStatusManager } from "~/app/map/Cache/Sync/_internals/engine/sync-status";
+import { createSyncTimerManager } from "~/app/map/Cache/Sync/_internals/engine/sync-timers";
+import { createSyncEventManager, type createSyncEventEmitter } from "~/app/map/Cache/Sync/_internals/engine/sync-events";
+import { createSyncControlOperations } from "~/app/map/Cache/Sync/_internals/engine/sync-control-operations";
+import { createSyncEventHandlers } from "~/app/map/Cache/Sync/_internals/engine/_events/sync-event-handlers";
+
+/**
+ * Core sync operation implementation
+ */
+export async function performSyncOperation(
+  state: CacheState,
+  dataHandler: DataOperations,
+): Promise<{ itemsSynced: number; conflictsResolved: number }> {
+  let itemsSynced = 0;
+  const conflictsResolved = 0;
+
+  // Sync current center region if available
+  if (state.currentCenter) {
+    await dataHandler.loadRegion(
+      state.currentCenter,
+      state.cacheConfig.maxDepth,
+    );
+    itemsSynced += 1;
+  }
+
+  // Sync recently accessed regions (from regionMetadata)
+  const recentRegions = Object.entries(state.regionMetadata)
+    .filter(([_, metadata]) => {
+      const ageMs = Date.now() - metadata.loadedAt;
+      return ageMs < state.cacheConfig.maxAge;
+    })
+    .slice(0, 5); // Limit to 5 regions to avoid overwhelming
+
+  for (const [regionKey, metadata] of recentRegions) {
+    try {
+      await dataHandler.loadRegion(metadata.centerCoordId, metadata.maxDepth);
+      itemsSynced += 1;
+    } catch (error) {
+      console.warn(`Failed to sync region ${regionKey}:`, error);
+    }
+  }
+
+  return { itemsSynced, conflictsResolved };
+}
+
+/**
+ * Create sync result objects
+ */
+export function createSyncResult(
+  success: boolean,
+  startTime: number,
+  itemsSynced: number,
+  conflictsResolved: number,
+  error?: Error,
+): SyncResult {
+  return {
+    success,
+    timestamp: Date.now(),
+    itemsSynced,
+    conflictsResolved,
+    error,
+    duration: Date.now() - startTime,
+  };
+}
 
 export interface PublicSyncAPIConfig {
   syncConfig: SyncConfig;
   syncStatus: SyncStatus;
-  isStarted: boolean;
-  isPaused: boolean;
+  isStarted: () => boolean;
+  isPaused: () => boolean;
   statusManager: ReturnType<typeof createSyncStatusManager>;
   onlineManager: ReturnType<typeof createOnlineStatusManager>;
   eventEmitter: ReturnType<typeof createSyncEventEmitter>;
   performSyncInternal: (forceSync?: boolean) => Promise<SyncResult>;
   updateState: (started: boolean, paused: boolean) => void;
   updateStatus: (status: SyncStatus) => void;
-}
-
-/**
- * Create event handlers for sync operations
- */
-export function createSyncEventHandlers(
-  syncConfig: SyncConfig,
-  syncStatus: SyncStatus,
-  isStarted: boolean,
-  isPaused: boolean,
-  statusManager: ReturnType<typeof createSyncStatusManager>,
-  onlineManager: ReturnType<typeof createOnlineStatusManager>,
-  eventEmitter: ReturnType<typeof createSyncEventEmitter>,
-  updateStatus: (status: SyncStatus) => void,
-  timerManager: ReturnType<typeof createSyncTimerManager>
-): {
-  handleOnlineStatusChange: () => void;
-  handleVisibilitySync: () => void;
-} {
-  const handleOnlineStatusChange = () => {
-    const isOnline = onlineManager.getInitialOnlineStatus();
-    const { status: newStatus, changed } = statusManager.updateOnlineStatus(syncStatus, isOnline);
-    updateStatus(newStatus);
-    
-    if (changed) {
-      eventEmitter.emitEvent({ type: "ONLINE_STATUS_CHANGED", isOnline });
-      if (isOnline && syncConfig.syncOnNetworkReconnect && isStarted && !isPaused) {
-        timerManager.scheduleImmediateSync(isStarted, isPaused);
-      }
-    }
-  };
-
-  const handleVisibilitySync = () => {
-    if (isStarted && !isPaused) {
-      timerManager.scheduleImmediateSync(isStarted, isPaused);
-    }
-  };
-
-  return { handleOnlineStatusChange, handleVisibilitySync };
 }
 
 /**
@@ -84,7 +107,7 @@ export function createPublicSyncAPI(config: PublicSyncAPIConfig): SyncOperations
   });
 
   // Create event handlers
-  const { handleOnlineStatusChange, handleVisibilitySync } = createSyncEventHandlers(
+  const { handleOnlineStatusChange, handleVisibilitySync } = createSyncEventHandlers({
     syncConfig,
     syncStatus,
     isStarted,
@@ -93,8 +116,8 @@ export function createPublicSyncAPI(config: PublicSyncAPIConfig): SyncOperations
     onlineManager,
     eventEmitter,
     updateStatus,
-    timerManager
-  );
+    timerManager,
+  });
 
   // Initialize event manager
   const eventManager = createSyncEventManager(

@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { MoreVertical, Edit, Trash2, X, Copy } from 'lucide-react';
+import { MoreVertical } from 'lucide-react';
 import { Button } from '~/components/ui/button';
-import { Portal } from '~/app/map/Chat/Timeline/Widgets/Portal';
+import { _MenuDropdown } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/menu/_MenuDropdown';
 
 interface ActionMenuProps {
   onEdit?: () => void;
@@ -96,69 +96,17 @@ export function ActionMenu({ onEdit, onDelete, onClose, onMetadata }: ActionMenu
       >
         <MoreVertical className="h-4 w-4" />
       </Button>
-      
+
       {showMenu && menuPosition && (
-        <Portal>
-          <div 
-            ref={menuRef}
-            className="fixed z-50 min-w-[120px] rounded-md border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-lg"
-            style={{ top: menuPosition.top, left: menuPosition.left }}
-          >
-            {onEdit && (
-              <button
-                className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  _handleMenuAction(onEdit);
-                }}
-              >
-                <Edit className="h-3 w-3" />
-                Edit
-              </button>
-            )}
-            {onDelete && (
-              <button
-                className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-[color:var(--destructive-color-600)] dark:text-[color:var(--destructive-color-400)]"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  _handleMenuAction(onDelete);
-                }}
-              >
-                <Trash2 className="h-3 w-3" />
-                Delete
-              </button>
-            )}
-            {onMetadata && (
-              <button
-                className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  _handleMenuAction(onMetadata);
-                }}
-              >
-                <Copy className="h-3 w-3" />
-                Copy Metadata
-              </button>
-            )}
-            {onClose && (
-              <>
-                {(onEdit ?? onDelete) && (
-                  <div className="h-px bg-neutral-200 dark:bg-neutral-800" />
-                )}
-                <button
-                  className="flex items-center gap-2 w-full px-3 py-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    _handleMenuAction(onClose);
-                  }}
-                >
-                  <X className="h-3 w-3" />
-                  Close
-                </button>
-              </>
-            )}
-          </div>
-        </Portal>
+        <_MenuDropdown
+          menuRef={menuRef}
+          menuPosition={menuPosition}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onClose={onClose}
+          onMetadata={onMetadata}
+          onMenuAction={_handleMenuAction}
+        />
       )}
     </>
   );

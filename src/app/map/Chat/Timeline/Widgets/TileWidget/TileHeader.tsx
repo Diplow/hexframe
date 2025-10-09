@@ -1,9 +1,9 @@
 'use client';
 
 import { cn } from '~/lib/utils';
-import { ActionMenu } from '~/app/map/Chat/Timeline/Widgets/TileWidget/ActionMenu';
-import { EditControls } from '~/app/map/Chat/Timeline/Widgets/TileWidget/EditControls';
-import { DraggableTilePreview, TilePreview } from '~/app/map/Chat/Timeline/Widgets/_shared';
+import { _TilePreviewSection } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/header/_TilePreview';
+import { _TitleSection } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/header/_TitleSection';
+import { _HeaderActions } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/header/_HeaderActions';
 
 interface TileHeaderProps {
   tileId?: string;
@@ -75,58 +75,33 @@ export function TileHeader({
       onClick={() => isTogglable && onToggleExpansion()}
       onKeyDown={handleKeyDown}
     >
-      {/* Tile preview on the left */}
-      <div className="flex items-center gap-2 flex-shrink-0">
-        {mode === 'create' ? (
-          <TilePreview
-            tileColor={tileColor}
-            size={10}
-            className="flex-shrink-0"
-          />
-        ) : (
-          <DraggableTilePreview
-            tileId={tileId!}
-            tileColor={tileColor}
-            size={10}
-            className="flex-shrink-0"
-            cursor={isTogglable ? "cursor-pointer" : undefined}
-          />
-        )}
-      </div>
+      <_TilePreviewSection
+        mode={mode}
+        tileId={tileId}
+        tileColor={tileColor}
+        isTogglable={isTogglable}
+      />
 
-      {/* Title or edit input */}
-      {isEditing || mode === 'create' ? (
-        <input
-          type="text"
-          value={editTitle}
-          onChange={(e) => onTitleChange(e.target.value)}
-          onKeyDown={onTitleKeyDown}
-          className="flex-1 text-sm font-semibold bg-neutral-100 dark:bg-neutral-700 px-2 py-1 rounded border border-neutral-300 dark:border-neutral-600 focus:outline-none focus:ring-2 focus:ring-primary"
-          placeholder={mode === 'create' ? "Your new tile's title" : 'Enter title'}
-          autoFocus
-          onClick={(e) => e.stopPropagation()}
-          data-tile-title-input="true"
-        />
-      ) : (
-        <div className="flex-1 min-w-0">
-          <div className="font-semibold text-sm truncate">
-            {title}
-          </div>
-        </div>
-      )}
+      <_TitleSection
+        mode={mode}
+        isEditing={isEditing}
+        title={title}
+        editTitle={editTitle}
+        onTitleChange={onTitleChange}
+        onTitleKeyDown={onTitleKeyDown}
+      />
 
-      {/* Actions on the right */}
       <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-        {isEditing || mode === 'create' ? (
-          <EditControls onSave={onSave} onCancel={onCancel} />
-        ) : (
-          <ActionMenu
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onClose={onClose}
-            onMetadata={onMetadata}
-          />
-        )}
+        <_HeaderActions
+          mode={mode}
+          isEditing={isEditing}
+          onSave={onSave}
+          onCancel={onCancel}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onClose={onClose}
+          onMetadata={onMetadata}
+        />
       </div>
     </div>
   );

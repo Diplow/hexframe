@@ -20,11 +20,11 @@ export {
   createUserMessageEvent,
   createSystemMessageEvent,
   createAssistantMessageEvent,
-} from '~/app/map/Chat/_state/_events/message-creators';
+} from '~/app/map/Chat/_state/_events/_creators/message-creators';
 
 export {
   createOperationStartedEvent,
-} from '~/app/map/Chat/_state/_events/operation-creators';
+} from '~/app/map/Chat/_state/_events/_creators/operation-creators';
 
 /**
  * Create a chat event from a map event using domain-specific transformers

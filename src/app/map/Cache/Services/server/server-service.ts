@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo } from "react";
 import { api } from "~/commons/trpc/react";
 import type {

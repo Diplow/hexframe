@@ -1,0 +1,79 @@
+import type { MutableRefObject } from "react";
+export function _handlePreviewKeyDown(e: React.KeyboardEvent, onCancel: () => void) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    document.querySelector<HTMLTextAreaElement>('[data-field="content"]')?.focus();
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    onCancel();
+  }
+}
+
+export function _handleContentKeyDown(
+  e: React.KeyboardEvent,
+  onSave: () => void,
+  onCancel: () => void
+) {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
+    onSave();
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    onCancel();
+  }
+}
+
+export function _startPolling(
+  jobId: string,
+  setQueuedJobId: (id: string | null) => void,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  checkJobStatus: () => Promise<any>,
+  onPreviewChange: (preview: string) => void,
+  setIsGeneratingPreview: (value: boolean) => void,
+  pollIntervalRef: MutableRefObject<NodeJS.Timeout | null>
+) {
+  setQueuedJobId(jobId);
+  pollIntervalRef.current = setInterval(() => {
+    void checkJobStatus().then((result) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (!result.data) return;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+      const { status, response } = result.data;
+
+      if (status === 'completed' && response) {
+        const previewData = response as { preview?: string };
+        if (previewData.preview) onPreviewChange(previewData.preview);
+        setIsGeneratingPreview(false);
+        setQueuedJobId(null);
+        if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+      } else if (status === 'failed' || status === 'cancelled') {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        console.error('Preview generation failed:', result.data.error);
+        setIsGeneratingPreview(false);
+        setQueuedJobId(null);
+        if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+      }
+    });
+  }, 2000);
+}
+
+export function _handleGenerateSuccess(
+  data: { preview: string; usedAI: boolean; jobId?: string; queued?: boolean },
+  onPreviewChange: (preview: string) => void,
+  setIsGeneratingPreview: (value: boolean) => void,
+  startPolling: (jobId: string) => void
+) {
+  if (data.queued && data.jobId) {
+    startPolling(data.jobId);
+  } else if (data.preview) {
+    onPreviewChange(data.preview);
+    setIsGeneratingPreview(false);
+  } else {
+    setIsGeneratingPreview(false);
+  }
+}
+
+export function _handleGenerateError(error: unknown, setIsGeneratingPreview: (value: boolean) => void) {
+  console.error('Failed to generate preview:', error);
+  setIsGeneratingPreview(false);
+}

@@ -39,6 +39,7 @@ describe("Sync Engine", () => {
   };
   const mockDocument = {
     addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
     visibilityState: "visible",
     createElement: vi.fn(() => ({
       appendChild: vi.fn(),

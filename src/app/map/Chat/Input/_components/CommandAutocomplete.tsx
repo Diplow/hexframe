@@ -1,5 +1,7 @@
 'use client';
 
+import type { RefObject } from "react";
+
 import { useEffect, useRef } from 'react';
 import { Command, Terminal } from 'lucide-react';
 
@@ -14,7 +16,7 @@ interface CommandAutocompleteProps {
   selectedIndex: number;
   onSelect: (command: string) => void;
   _onClose: () => void;
-  inputRef: React.RefObject<HTMLTextAreaElement>;
+  inputRef: RefObject<HTMLTextAreaElement>;
 }
 
 export function CommandAutocomplete({ 
