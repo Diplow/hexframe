@@ -88,7 +88,7 @@ HEXFRAME CONTEXT: You're working with a hexagonal knowledge mapping system where
 - Each tile can have up to 6 children in different directions
 
 This tool returns nested structure with children[] arrays showing the knowledge hierarchy.
-Use 'fields' parameter for progressive disclosure: ["name", "preview"] for overview, ["name", "descr"] for full content.`,
+Use 'fields' parameter for progressive disclosure: ["name", "preview"] for overview, ["name", "content"] for full content.`,
     inputSchema: {
       type: "object",
       properties: {
@@ -112,10 +112,10 @@ Use 'fields' parameter for progressive disclosure: ["name", "preview"] for overv
           type: "array",
           items: {
             type: "string",
-            enum: ["title", "descr", "preview", "link", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
+            enum: ["title", "content", "preview", "link", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
           },
-          description: "Fields to include in response. For overview use ['title', 'preview'], for full content use ['title', 'descr']. Default: all fields",
-          default: ["title", "descr", "preview", "link", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
+          description: "Fields to include in response. For overview use ['title', 'preview'], for full content use ['title', 'content']. Default: all fields",
+          default: ["title", "content", "preview", "link", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
         },
       },
       required: [],
@@ -178,10 +178,10 @@ Use 'fields' parameter for progressive disclosure: ["name", "preview"] for overv
           type: "array",
           items: {
             type: "string",
-            enum: ["title", "descr", "preview", "link", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
+            enum: ["title", "content", "preview", "link", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
           },
-          description: "Fields to include in response. For overview use ['title', 'preview'], for full content use ['title', 'descr']. Default: all fields",
-          default: ["title", "descr", "preview", "link", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
+          description: "Fields to include in response. For overview use ['title', 'preview'], for full content use ['title', 'content']. Default: all fields",
+          default: ["title", "content", "preview", "link", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
         }
       },
       required: ["coords"],
@@ -218,7 +218,7 @@ Use 'fields' parameter for progressive disclosure: ["name", "preview"] for overv
           type: "string",
           description: "The title of the new tile"
         },
-        descr: {
+        content: {
           type: "string",
           description: "The content/description of the new tile (optional)"
         },
@@ -237,7 +237,7 @@ Use 'fields' parameter for progressive disclosure: ["name", "preview"] for overv
       const argsObj = args as Record<string, unknown>;
       const coords = normalizeCoordinates(argsObj?.coords);
       const title = argsObj?.title as string;
-      const descr = argsObj?.descr as string | undefined;
+      const content = argsObj?.content as string | undefined;
       const preview = argsObj?.preview as string | undefined;
       const url = argsObj?.url as string | undefined;
 
@@ -245,7 +245,7 @@ Use 'fields' parameter for progressive disclosure: ["name", "preview"] for overv
         throw new Error("title parameter is required");
       }
 
-      return await addItemHandler(coords, title, descr, preview, url);
+      return await addItemHandler(coords, title, content, preview, url);
     },
   },
 
@@ -274,7 +274,7 @@ Use 'fields' parameter for progressive disclosure: ["name", "preview"] for overv
           description: "The fields to update",
           properties: {
             title: { type: "string" },
-            descr: { type: "string" },
+            content: { type: "string" },
             preview: { type: "string" },
             url: { type: "string" }
           }
@@ -285,7 +285,7 @@ Use 'fields' parameter for progressive disclosure: ["name", "preview"] for overv
     handler: async (args: unknown) => {
       const argsObj = args as Record<string, unknown>;
       const coords = normalizeCoordinates(argsObj?.coords);
-      const updates = parseJsonParam(argsObj?.updates) as { title?: string; descr?: string; url?: string };
+      const updates = parseJsonParam(argsObj?.updates) as { title?: string; content?: string; url?: string };
 
       if (!updates) {
         throw new Error("updates parameter is required");
