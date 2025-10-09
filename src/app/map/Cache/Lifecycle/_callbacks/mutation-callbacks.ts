@@ -11,13 +11,13 @@ export function createMutationCallbacks(mutationOperations: MutationOperations) 
     name?: string;
     preview?: string;
     description?: string;
-    descr?: string;
+    content?: string;
     url?: string;
   }) => {
     // Normalize legacy field names to canonical domain names
     await mutationOperations.createItem(coordId, {
       title: data.title ?? data.name,
-      content: data.description ?? data.descr,
+      content: data.description ?? data.content,
       preview: data.preview,
       link: data.url,
     });
@@ -28,13 +28,13 @@ export function createMutationCallbacks(mutationOperations: MutationOperations) 
     name?: string;
     preview?: string;
     description?: string;
-    descr?: string;
+    content?: string;
     url?: string;
   }) => {
     // Normalize legacy field names to canonical domain names
     await mutationOperations.updateItem(coordId, {
       title: data.title ?? data.name,
-      content: data.description ?? data.descr,
+      content: data.description ?? data.content,
       preview: data.preview,
       link: data.url,
     });

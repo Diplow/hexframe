@@ -21,14 +21,14 @@ export {
 // Input types for operations
 export interface CreateMapInput {
   title: string;
-  descr: string;
+  content: string;
   userId: number;
   groupId?: number;
 }
 
 export interface CreateItemInput {
   title: string;
-  descr: string;
+  content: string;
   link?: string;
   parentCoords: string;
 }
@@ -36,7 +36,7 @@ export interface CreateItemInput {
 export interface UpdateItemInput {
   id: number;
   title?: string;
-  descr?: string;
+  content?: string;
   link?: string;
 }
 

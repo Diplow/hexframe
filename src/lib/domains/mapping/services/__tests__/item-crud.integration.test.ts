@@ -57,7 +57,7 @@ describe("MappingService - Item CRUD [Integration - DB]", () => {
         parentId: rootMap.id,
         coords: childCoords,
         title: "Child Item 1",
-        descr: "Child Description",
+        content: "Child Description",
       };
 
       await _addAndValidateChildItem(
@@ -171,7 +171,7 @@ describe("MappingService - Item CRUD [Integration - DB]", () => {
   });
 
   describe("updateItem", () => {
-    it("should update an item's attributes (title, descr, url)", async () => {
+    it("should update an item's attributes (title, content, url)", async () => {
       const setupParams = _createUniqueTestParams();
       const updateData = {
         title: "Updated Item Title",

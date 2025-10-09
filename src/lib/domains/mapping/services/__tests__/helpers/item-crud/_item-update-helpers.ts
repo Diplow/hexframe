@@ -110,7 +110,7 @@ export async function _updateAndValidateItem(
 export async function _partialUpdateAndValidate(
   testEnv: TestEnvironment,
   itemCoords: Coord,
-  partialUpdateData: { title?: string; descr?: string; url?: string },
+  partialUpdateData: { title?: string; content?: string; url?: string },
 ) {
   const updatedItemContract = await testEnv.service.items.crud.updateItem({
     coords: itemCoords,
