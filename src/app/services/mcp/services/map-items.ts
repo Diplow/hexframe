@@ -31,7 +31,7 @@ async function _getItemByCoords(coords: {
 export async function addItemHandler(
   coords: { userId: number; groupId: number; path: number[] },
   title: string,
-  descr?: string,
+  content?: string,
   preview?: string,
   url?: string,
 ): Promise<MapItem> {
@@ -68,7 +68,7 @@ export async function addItemHandler(
       coords,
       parentId,
       title,
-      descr,
+      content,
       preview,
       url,
     }, { requireAuth: true });
@@ -83,7 +83,7 @@ export async function addItemHandler(
 // Handler for updateItem tool
 export async function updateItemHandler(
   coords: { userId: number; groupId: number; path: number[] },
-  updates: { title?: string; descr?: string; preview?: string; url?: string },
+  updates: { title?: string; content?: string; preview?: string; url?: string },
 ): Promise<MapItem> {
   try {
     const updatedItem = await callTrpcEndpoint<MapItem>("map.updateItem", {

@@ -179,18 +179,18 @@ type Source = {
 
 type Example = {
   title: string;
-  descr: string;
+  content: string;
   source: Source;
 };
 
 type Author = {
   name: string;
-  descr: string;
+  content: string;
 };
 
 type Ref = {
   title: string;
-  descr: string;
+  content: string;
   feeling: Feeling;
   source: Source;
   author: Author;

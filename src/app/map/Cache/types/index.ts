@@ -89,14 +89,14 @@ export interface MapCacheHook {
     title?: string;
     name?: string;
     description?: string;
-    descr?: string;
+    content?: string;
     url?: string;
   }) => Promise<void>;
   updateItemOptimistic: (coordId: string, data: {
     title?: string;
     name?: string;
     description?: string;
-    descr?: string;
+    content?: string;
     url?: string;
   }) => Promise<void>;
   deleteItemOptimistic: (coordId: string) => Promise<void>;

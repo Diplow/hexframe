@@ -6,7 +6,7 @@ export interface MapItem {
   coordinates: string;
   depth: number;
   title: string;
-  descr: string | null;
+  content: string | null;
   preview?: string | null;
   link: string | null;
   parentId: string | null;
