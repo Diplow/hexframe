@@ -168,13 +168,21 @@ export const mapItemsRouter = createTRPCRouter({
         });
       }
 
-      const updateParams = {
+      const updateParams: {
+        coords: Coord;
+        title?: string;
+        content?: string;
+        preview?: string;
+        link?: string;
+      } = {
         coords: input.coords as Coord,
-        title: input.data.title,
-        content: input.data.content,
-        preview: input.data.preview,
-        link: input.data.link,
       };
+
+      // Only include fields that are explicitly provided
+      if (input.data.title !== undefined) updateParams.title = input.data.title;
+      if (input.data.content !== undefined) updateParams.content = input.data.content;
+      if (input.data.preview !== undefined) updateParams.preview = input.data.preview;
+      if (input.data.link !== undefined) updateParams.link = input.data.link;
 
       const item = await ctx.mappingService.items.crud.updateItem(updateParams);
       return contractToApiAdapters.mapItem(item);
