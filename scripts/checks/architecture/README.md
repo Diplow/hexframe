@@ -1,10 +1,10 @@
 # Architecture Checker
 
-The Architecture Checker enforces architectural boundaries and coding standards in the Hexframe codebase.
+The Architecture Checker enforces subsystem boundaries with clear interfaces and hierarchical independence.
 
 ## Overview
 
-This tool validates that the codebase follows hexagonal architecture principles, enforces subsystem encapsulation, and maintains clean import dependencies.
+This tool validates that subsystems are properly documented, have explicit dependency declarations, and maintain encapsulation through index.ts interfaces. Subsystems serve as navigable entry points for understanding the codebase at a high level, with relative independence from each other and hierarchical relationships where child subsystems are only known within their parent.
 
 ## Usage
 
@@ -23,13 +23,17 @@ python3 scripts/check-architecture.py --help
 
 ### 1. Complexity Requirements
 
-**Folders over 1000 lines need:**
+**Folders over 1000 lines need (ERROR):**
 - `dependencies.json` - Declares allowed imports and child subsystems
-- `README.md` - Documents purpose and usage
-- `ARCHITECTURE.md` - Explains internal structure
+- `README.md` - Documents purpose, mental model, responsibilities, and subsystems
 
-**Folders over 500 lines should have:**
+**Folders over 500 lines should have (WARNING):**
 - `README.md` - Basic documentation
+
+**Custom thresholds:**
+- Create `.architecture-exceptions` file in project root or parent directory
+- Format: `path/to/folder: 2000  # Justification required`
+- Use sparingly with clear reasoning
 
 ### 2. Import Boundaries
 
@@ -40,6 +44,8 @@ python3 scripts/check-architecture.py --help
 **Subsystems must expose API through index.ts:**
 - Each subsystem needs `index.ts` that reexports internal modules
 - External imports must go through the index, not directly to files
+- Child subsystems are only known within their parent subsystem
+- Enforces hierarchical encapsulation and relative independence
 
 ### 3. Domain Structure
 
@@ -61,15 +67,27 @@ python3 scripts/check-architecture.py --help
 ```json
 {
   "allowed": ["~/lib/utils", "~/server/db"],
-  "allowedChildren": ["./child-subsystem"],
-  "subsystems": ["./services", "./infrastructure"]
+  "allowedChildren": ["react", "next/navigation"],
+  "subsystems": ["./services", "./infrastructure"],
+  "exceptions": {
+    "~/legacy/old-system": "TEMPORARY: Remove when migration complete (Q2 2024)"
+  }
 }
 ```
 
+**Three dependency arrays:**
+- `allowed` - Dependencies specific to this subsystem (use `~/` absolute paths)
+- `allowedChildren` - Dependencies that cascade to child subsystems (use sparingly for truly ubiquitous dependencies like `react`)
+- `subsystems` - Declared child subsystems (relative paths like `./Cache`)
+
+**Optional exceptions object:**
+- Documents architectural violations with justification
+- Use for temporary technical debt with clear resolution plan
+
 **Path requirements:**
-- Use absolute paths with `~/` prefix
-- No relative paths like `../` (except for child subsystems)
-- Child subsystems must be declared in parent's `subsystems` array
+- Use absolute paths with `~/` prefix in `allowed` and `allowedChildren`
+- Use relative paths like `./childname` only in `subsystems` array
+- No `../` paths anywhere
 
 ### 5. Reexport Boundaries
 
@@ -88,12 +106,14 @@ python3 scripts/check-architecture.py --help
 
 | Type | Description | Recommendation |
 |------|-------------|----------------|
-| `complexity` | Missing documentation files | Create missing files: dependencies.json, README.md, ARCHITECTURE.md |
+| `complexity` | Missing documentation files | Create missing files: dependencies.json, README.md |
 | `import_boundary` | Direct imports bypassing index.ts | Use subsystem interface via index.ts |
 | `domain_import` | Services imported by non-API code | Move import to API/server or refactor to utility |
+| `domain_structure` | Invalid domain organization | Follow domain structure pattern |
 | `subsystem_structure` | Missing subsystem declarations | Add child to parent's subsystems array |
 | `dependency_format` | Invalid path formats | Use absolute paths with ~/ prefix |
 | `redundancy` | Duplicate dependency declarations | Remove redundant entries |
+| `nonexistent_dependency` | Dependency pointing to non-existent path | Remove or create missing path |
 | `reexport_boundary` | Invalid reexports | Remove external reexports |
 | `file_conflict` | File/folder naming conflicts | Move to directory structure |
 
@@ -174,7 +194,9 @@ jq -r '.errors[].recommendation' test-results/architecture-check.json | sort | u
 
 The architecture checker is integrated into:
 - **CI/CD Pipeline:** Runs on every PR via GitHub Actions
-- **Pre-commit Hooks:** Validates changes before commit
-- **Development Workflow:** Available via `pnpm check:architecture`
+- **Development Workflow:** Available via `pnpm check:architecture [path]`
+- **Claude Commands:** Use `/plan-quality-fix` to analyze violations and `/fix-architecture` to execute fixes
+
+**No pre-commit hooks** - violations are caught in CI and fixed with AI assistance.
 
 For development guidance, see the main project documentation in `/CLAUDE.md`.
