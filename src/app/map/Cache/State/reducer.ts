@@ -10,6 +10,9 @@ import {
   handleSetCenter,
   handleSetExpandedItems,
   handleToggleItemExpansion,
+  handleToggleCompositionExpansion,
+  handleSetCompositionExpansion,
+  handleClearCompositionExpansions,
 } from "~/app/map/Cache/State/_reducers/_navigation-reducers";
 import {
   handleSetLoading,
@@ -25,6 +28,7 @@ export const initialCacheState: CacheState = {
   regionMetadata: {},
   currentCenter: null,
   expandedItemIds: [],
+  compositionExpandedIds: [],
   isLoading: false,
   error: null,
   lastUpdated: 0,
@@ -56,6 +60,15 @@ export function cacheReducer(
 
     case ACTION_TYPES.TOGGLE_ITEM_EXPANSION:
       return handleToggleItemExpansion(state, action);
+
+    case ACTION_TYPES.TOGGLE_COMPOSITION_EXPANSION:
+      return handleToggleCompositionExpansion(state, action);
+
+    case ACTION_TYPES.SET_COMPOSITION_EXPANSION:
+      return handleSetCompositionExpansion(state, action);
+
+    case ACTION_TYPES.CLEAR_COMPOSITION_EXPANSIONS:
+      return handleClearCompositionExpansions(state);
 
     case ACTION_TYPES.SET_LOADING:
       return handleSetLoading(state, action);

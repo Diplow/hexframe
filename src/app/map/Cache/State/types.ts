@@ -20,6 +20,7 @@ export interface CacheState {
   // Current center for dynamic navigation
   currentCenter: string | null;
   expandedItemIds: string[];
+  compositionExpandedIds: string[];
 
   // Error handling and loading states
   isLoading: boolean;
@@ -62,6 +63,9 @@ export const ACTION_TYPES = {
   SET_CENTER: "SET_CENTER",
   SET_EXPANDED_ITEMS: "SET_EXPANDED_ITEMS",
   TOGGLE_ITEM_EXPANSION: "TOGGLE_ITEM_EXPANSION",
+  TOGGLE_COMPOSITION_EXPANSION: "TOGGLE_COMPOSITION_EXPANSION",
+  SET_COMPOSITION_EXPANSION: "SET_COMPOSITION_EXPANSION",
+  CLEAR_COMPOSITION_EXPANSIONS: "CLEAR_COMPOSITION_EXPANSIONS",
   SET_LOADING: "SET_LOADING",
   SET_ERROR: "SET_ERROR",
   INVALIDATE_REGION: "INVALIDATE_REGION",
@@ -84,6 +88,9 @@ export type CacheAction =
   | { type: typeof ACTION_TYPES.SET_CENTER; payload: string | null }
   | { type: typeof ACTION_TYPES.SET_EXPANDED_ITEMS; payload: string[] }
   | { type: typeof ACTION_TYPES.TOGGLE_ITEM_EXPANSION; payload: string }
+  | { type: typeof ACTION_TYPES.TOGGLE_COMPOSITION_EXPANSION; payload: string }
+  | { type: typeof ACTION_TYPES.SET_COMPOSITION_EXPANSION; payload: { coordId: string; isExpanded: boolean } }
+  | { type: typeof ACTION_TYPES.CLEAR_COMPOSITION_EXPANSIONS }
   | { type: typeof ACTION_TYPES.SET_LOADING; payload: boolean }
   | { type: typeof ACTION_TYPES.SET_ERROR; payload: Error | null }
   | { type: typeof ACTION_TYPES.INVALIDATE_REGION; payload: string }

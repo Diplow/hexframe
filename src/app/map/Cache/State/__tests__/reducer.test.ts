@@ -47,6 +47,7 @@ describe("Cache Reducer", () => {
         regionMetadata: {},
         currentCenter: null,
         expandedItemIds: [],
+        compositionExpandedIds: [],
         isLoading: false,
         error: null,
         lastUpdated: 0,
