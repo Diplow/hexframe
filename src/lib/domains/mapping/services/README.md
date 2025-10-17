@@ -92,6 +92,21 @@ interface HexCoord {
 - All items maintain parent-child relationships
 - Movement operations preserve hierarchical relationships
 
+### Composition Pattern (Direction 0)
+
+Items can have "composed" children positioned at direction 0, which represent internal details or components:
+
+- **Direction 0**: Reserved for composition containers
+- **Directions 1-6**: Regular structural children
+- **Filtering**: API-level queries exclude composition by default for backwards compatibility
+- **Internal operations**: Move, delete, and other internal operations ALWAYS include composition
+
+**Important**: There are two layers of `getDescendants`:
+1. **Service Layer** (`ItemQueryService.getDescendants`): Filters composition by default, used by API consumers
+2. **Action Layer** (`MapItemActions.getDescendants`): Always includes composition, used by internal operations
+
+This ensures that operations like move and delete correctly handle all descendants, including composed children, while API consumers can opt-in to composition data when needed.
+
 ## Usage Examples
 
 ### Creating and Managing Maps
