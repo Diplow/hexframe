@@ -9,17 +9,22 @@ import { buildMapUrl } from "~/app/map/Cache/Handlers/NavigationHandler/_core/na
  */
 
 /**
- * Update browser URL with center item and expanded items
+ * Update browser URL with center item, expanded items, and composition expanded items
  */
-export function updateURL(centerItemId: string, expandedItems: string[]): void {
+export function updateURL(
+  centerItemId: string,
+  expandedItems: string[],
+  compositionExpandedIds: string[] = []
+): void {
   loggers.mapCache.handlers('[NavigationHandler.updateURL] Called with:', {
     centerItemId,
     expandedItems,
+    compositionExpandedIds,
     timestamp: new Date().toISOString(),
     stackTrace: new Error().stack
   });
   if (typeof window !== 'undefined') {
-    const newUrl = buildMapUrl(centerItemId, expandedItems);
+    const newUrl = buildMapUrl(centerItemId, expandedItems, compositionExpandedIds);
     window.history.pushState({}, '', newUrl);
   }
 }
@@ -41,6 +46,7 @@ export function syncURLWithState(getState: () => CacheState): void {
     const newUrl = buildMapUrl(
       centerItem.metadata.dbId,
       state.expandedItemIds,
+      state.compositionExpandedIds,
     );
     window.history.replaceState({}, '', newUrl);
   }
@@ -55,6 +61,7 @@ export function getMapContext(
 ): {
   centerItemId: string;
   expandedItems: string[];
+  compositionExpandedIds: string[];
   pathname: string;
   searchParams: URLSearchParams;
 } {
@@ -76,9 +83,17 @@ export function getMapContext(
     ? expandedItemsParam.split(",").filter(Boolean)
     : [];
 
+  // Parse composition expanded IDs from query parameters (ce = composition expanded)
+  // Using pipe separator to avoid conflicts with commas in coordIds
+  const compositionExpandedParam = currentSearchParams.get("ce");
+  const compositionExpandedIds = compositionExpandedParam
+    ? compositionExpandedParam.split("|").filter(Boolean)
+    : [];
+
   return {
     centerItemId,
     expandedItems,
+    compositionExpandedIds,
     pathname: currentPathname,
     searchParams: currentSearchParams,
   };
@@ -109,7 +124,7 @@ export function toggleItemExpansionWithURL(
   // Toggle the item in the expanded list
   const currentExpanded = [...state.expandedItemIds];
   const index = currentExpanded.indexOf(itemId);
-  
+
   if (index > -1) {
     currentExpanded.splice(index, 1);
   } else {
@@ -118,12 +133,59 @@ export function toggleItemExpansionWithURL(
 
   // Update the cache state
   dispatch(cacheActions.toggleItemExpansion(itemId));
-  
+
   // Update URL using native history API to avoid React re-renders
   if (typeof window !== 'undefined') {
     const newUrl = buildMapUrl(
       centerItem.metadata.dbId,
       currentExpanded,
+      state.compositionExpandedIds,
+    );
+    window.history.replaceState({}, '', newUrl);
+  }
+}
+
+/**
+ * Toggle composition expansion and update URL accordingly
+ */
+export function toggleCompositionExpansionWithURL(
+  coordId: string,
+  getState: () => CacheState,
+  dispatch: Dispatch<CacheAction>
+): void {
+  loggers.mapCache.handlers('[NavigationHandler.toggleCompositionExpansionWithURL] Called with:', {
+    coordId,
+    timestamp: new Date().toISOString(),
+    stackTrace: new Error().stack
+  });
+  const state = getState();
+  const centerItem = state.currentCenter
+    ? state.itemsById[state.currentCenter]
+    : null;
+
+  if (!centerItem) {
+    return;
+  }
+
+  // Toggle the coordId in the composition expanded list
+  const currentCompositionExpanded = [...state.compositionExpandedIds];
+  const index = currentCompositionExpanded.indexOf(coordId);
+
+  if (index > -1) {
+    currentCompositionExpanded.splice(index, 1);
+  } else {
+    currentCompositionExpanded.push(coordId);
+  }
+
+  // Update the cache state
+  dispatch(cacheActions.toggleCompositionExpansion(coordId));
+
+  // Update URL using native history API to avoid React re-renders
+  if (typeof window !== 'undefined') {
+    const newUrl = buildMapUrl(
+      centerItem.metadata.dbId,
+      state.expandedItemIds,
+      currentCompositionExpanded,
     );
     window.history.replaceState({}, '', newUrl);
   }

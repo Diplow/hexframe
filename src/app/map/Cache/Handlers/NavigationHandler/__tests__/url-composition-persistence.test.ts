@@ -1,5 +1,12 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { buildMapUrl, getMapContext } from '~/app/map/Cache/Handlers/NavigationHandler/_url/navigation-url-handlers';
+import type { CacheState } from '~/app/map/Cache/State';
+import { buildMapUrl } from '~/app/map/Cache/Handlers/NavigationHandler/_core/navigation-core';
+import {
+  getMapContext,
+  updateURL,
+  syncURLWithState,
+  toggleCompositionExpansionWithURL,
+} from '~/app/map/Cache/Handlers/NavigationHandler/_url/navigation-url-handlers';
 
 describe('URL Composition Persistence', () => {
   describe('buildMapUrl', () => {
@@ -8,7 +15,7 @@ describe('URL Composition Persistence', () => {
 
       expect(url).toContain('center=123');
       expect(url).toContain('expandedItems=1%2C2');
-      expect(url).toContain('ce=comp1%2Ccomp2');
+      expect(url).toContain('ce=comp1%7Ccomp2'); // %7C is pipe |
     });
 
     test('should omit ce parameter when compositionExpandedIds is empty', () => {
@@ -31,13 +38,13 @@ describe('URL Composition Persistence', () => {
       const url = buildMapUrl('1,0:1', [], ['1,0:2', '1,0:3']);
 
       expect(url).toContain('center=1%2C0%3A1');
-      expect(url).toContain('ce=1%2C0%3A2%2C1%2C0%3A3');
+      expect(url).toContain('ce=1%2C0%3A2%7C1%2C0%3A3'); // Pipe separator to avoid comma conflicts
     });
   });
 
   describe('getMapContext', () => {
     test('should extract compositionExpandedIds from URL', () => {
-      const searchParams = new URLSearchParams('?center=123&expandedItems=1,2&ce=comp1,comp2');
+      const searchParams = new URLSearchParams('?center=123&expandedItems=1,2&ce=comp1|comp2');
       const context = getMapContext('/map', searchParams);
 
       expect(context.centerItemId).toBe('123');
@@ -60,14 +67,14 @@ describe('URL Composition Persistence', () => {
     });
 
     test('should filter out empty strings from ce parameter', () => {
-      const searchParams = new URLSearchParams('?center=123&ce=comp1,,comp2');
+      const searchParams = new URLSearchParams('?center=123&ce=comp1||comp2');
       const context = getMapContext('/map', searchParams);
 
       expect(context.compositionExpandedIds).toEqual(['comp1', 'comp2']);
     });
 
     test('should decode special characters in composition IDs', () => {
-      const searchParams = new URLSearchParams('?center=123&ce=1%2C0%3A2%2C1%2C0%3A3');
+      const searchParams = new URLSearchParams('?center=123&ce=1%2C0%3A2%7C1%2C0%3A3'); // Using pipe separator
       const context = getMapContext('/map', searchParams);
 
       expect(context.compositionExpandedIds).toEqual(['1,0:2', '1,0:3']);
@@ -99,20 +106,16 @@ describe('URL Composition Persistence', () => {
     });
 
     test('should update URL with compositionExpandedIds', () => {
-      const { updateURL } = require('~/app/map/Cache/Handlers/NavigationHandler/_url/navigation-url-handlers');
-
       updateURL('123', ['1', '2'], ['comp1', 'comp2']);
 
       expect(window.history.pushState).toHaveBeenCalledWith(
         {},
         '',
-        expect.stringContaining('ce=comp1%2Ccomp2')
+        expect.stringContaining('ce=comp1%7Ccomp2') // %7C is pipe |
       );
     });
 
     test('should omit ce parameter when compositionExpandedIds is empty', () => {
-      const { updateURL } = require('~/app/map/Cache/Handlers/NavigationHandler/_url/navigation-url-handlers');
-
       updateURL('123', ['1'], []);
 
       const callArg = (window.history.pushState as ReturnType<typeof vi.fn>).mock.calls[0]?.[2] as string;
@@ -122,8 +125,6 @@ describe('URL Composition Persistence', () => {
 
   describe('syncURLWithState', () => {
     test('should sync compositionExpandedIds from state to URL', () => {
-      const { syncURLWithState } = require('~/app/map/Cache/Handlers/NavigationHandler/_url/navigation-url-handlers');
-
       const mockState = {
         currentCenter: '1,0:1',
         expandedItemIds: ['1', '2'],
@@ -136,7 +137,17 @@ describe('URL Composition Persistence', () => {
             },
           },
         },
-      };
+        regionMetadata: {},
+        isLoading: false,
+        error: null,
+        lastUpdated: 0,
+        cacheConfig: {
+          maxAge: 300000,
+          backgroundRefreshInterval: 30000,
+          enableOptimisticUpdates: true,
+          maxDepth: 3,
+        },
+      } as unknown as CacheState;
 
       const getState = () => mockState;
 
@@ -154,13 +165,11 @@ describe('URL Composition Persistence', () => {
       expect(window.history.replaceState).toHaveBeenCalledWith(
         {},
         '',
-        expect.stringContaining('ce=comp1%2Ccomp2')
+        expect.stringContaining('ce=comp1%7Ccomp2') // %7C is pipe |
       );
     });
 
     test('should omit ce when no compositionExpandedIds in state', () => {
-      const { syncURLWithState } = require('~/app/map/Cache/Handlers/NavigationHandler/_url/navigation-url-handlers');
-
       const mockState = {
         currentCenter: '1,0:1',
         expandedItemIds: ['1'],
@@ -173,7 +182,17 @@ describe('URL Composition Persistence', () => {
             },
           },
         },
-      };
+        regionMetadata: {},
+        isLoading: false,
+        error: null,
+        lastUpdated: 0,
+        cacheConfig: {
+          maxAge: 300000,
+          backgroundRefreshInterval: 30000,
+          enableOptimisticUpdates: true,
+          maxDepth: 3,
+        },
+      } as unknown as CacheState;
 
       const getState = () => mockState;
 
@@ -195,8 +214,6 @@ describe('URL Composition Persistence', () => {
 
   describe('toggleCompositionExpansionWithURL', () => {
     test('should toggle composition expansion and update URL', () => {
-      const { toggleCompositionExpansionWithURL } = require('~/app/map/Cache/Handlers/NavigationHandler/_url/navigation-url-handlers');
-
       const mockDispatch = vi.fn();
       const mockState = {
         currentCenter: '1,0:1',
@@ -210,7 +227,17 @@ describe('URL Composition Persistence', () => {
             },
           },
         },
-      };
+        regionMetadata: {},
+        isLoading: false,
+        error: null,
+        lastUpdated: 0,
+        cacheConfig: {
+          maxAge: 300000,
+          backgroundRefreshInterval: 30000,
+          enableOptimisticUpdates: true,
+          maxDepth: 3,
+        },
+      } as unknown as CacheState;
 
       const getState = () => mockState;
 
@@ -237,8 +264,6 @@ describe('URL Composition Persistence', () => {
     });
 
     test('should remove composition expansion from URL when toggling off', () => {
-      const { toggleCompositionExpansionWithURL } = require('~/app/map/Cache/Handlers/NavigationHandler/_url/navigation-url-handlers');
-
       const mockDispatch = vi.fn();
       const mockState = {
         currentCenter: '1,0:1',
@@ -252,7 +277,17 @@ describe('URL Composition Persistence', () => {
             },
           },
         },
-      };
+        regionMetadata: {},
+        isLoading: false,
+        error: null,
+        lastUpdated: 0,
+        cacheConfig: {
+          maxAge: 300000,
+          backgroundRefreshInterval: 30000,
+          enableOptimisticUpdates: true,
+          maxDepth: 3,
+        },
+      } as unknown as CacheState;
 
       const getState = () => mockState;
 
