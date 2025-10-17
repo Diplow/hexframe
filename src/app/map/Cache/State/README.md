@@ -12,8 +12,12 @@ The Cache State is the "frontend database schema" - it defines the shape of data
 - Export initial state configuration via `initialCacheState`
 - Track regular tile expansion state via `expandedItemIds: string[]`
 - Track composition expansion state via `compositionExpandedIds: string[]`
+- Handle composition state updates via reducer handlers:
+  - `handleToggleCompositionExpansion`: Toggle coordId in/out of array
+  - `handleSetCompositionExpansion`: Explicitly set expansion state
+  - `handleClearCompositionExpansions`: Clear all composition expansions
 - Provide pure reducer function via `cacheReducer` for state transitions
-- Export action creators for all cache operations
+- Export action creators for all cache operations (including composition actions)
 - Export selectors for derived state queries
 
 ## Non-Responsibilities
@@ -33,7 +37,11 @@ The Cache State is the "frontend database schema" - it defines the shape of data
 Key exports:
 - **Types**: `CacheState`, `CacheAction`, `ACTION_TYPES`, payload types
 - **Reducer**: `cacheReducer`, `initialCacheState`
-- **Actions**: `loadRegion`, `setCenter`, `toggleItemExpansion`, etc.
+- **Actions**:
+  - Navigation: `setCenter`, `toggleItemExpansion`, `setExpandedItems`
+  - Composition: `toggleCompositionExpansion`, `setCompositionExpansion`, `clearCompositionExpansions`
+  - Data: `loadRegion`, `loadItemChildren`, `updateItems`, `removeItem`
+  - System: `setLoading`, `setError`, `invalidateRegion`, `invalidateAll`
 - **Selectors**: `cacheSelectors`, region queries, optimization helpers
 
 **State Structure**:
@@ -51,6 +59,10 @@ interface CacheState {
 }
 ```
 
-**Dependencies**: This subsystem has no dependencies.json as it's purely state management with no external imports beyond type definitions.
+**Dependencies**: See `dependencies.json` for allowed imports. The State subsystem can import from:
+- `vitest` (for testing)
+- `~/app/map/types` (for tile data types)
+- `~/server/api` (for API contract types)
+- `~/lib/domains/mapping` (for coordinate utilities)
 
 **Note**: Child subsystems (actions, _reducers, selectors) can import from this subsystem freely (including types.ts directly). All other subsystems MUST use the public exports in `index.ts`. The `pnpm check:architecture` tool enforces this boundary.
