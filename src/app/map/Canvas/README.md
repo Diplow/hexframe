@@ -10,6 +10,8 @@ Like a digital art canvas - provides the interactive surface where hexagonal til
 - Provides lifecycle components for error boundaries and loading states
 - Manages tile action contexts and providers for distributing user actions
 - Orchestrates the hexagonal coordinate system and tile positioning
+- Wires composition handlers from Cache to UI layer (MapUI integration)
+- Manages composition state visibility (hasComposition, isCompositionExpanded, canShowComposition)
 
 ## Non-Responsibilities
 - Individual tile rendering and behavior → See `./Tile/README.md`
