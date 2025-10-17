@@ -9,8 +9,7 @@ import {
 import {
   syncURLWithState,
   getMapContext,
-  toggleItemExpansionWithURL,
-  toggleCompositionExpansionWithURL
+  toggleItemExpansionWithURL
 } from "~/app/map/Cache/Handlers/NavigationHandler/_url/navigation-url-handlers";
 
 export const createBoundUpdateCenter = (dispatch: Dispatch<CacheAction>) =>
@@ -36,7 +35,5 @@ export const createBoundToggleItemExpansionWithURL = (
   dispatch: Dispatch<CacheAction>
 ) => (itemId: string) => toggleItemExpansionWithURL(itemId, getState, dispatch);
 
-export const createBoundToggleCompositionExpansionWithURL = (
-  getState: () => CacheState,
-  dispatch: Dispatch<CacheAction>
-) => (coordId: string) => toggleCompositionExpansionWithURL(coordId, getState, dispatch);
+// Composition toggle binding moved to _composition-bindings.ts to comply with Rule of 6
+export { createBoundToggleCompositionExpansionWithURL } from "~/app/map/Cache/Handlers/NavigationHandler/_bindings/_composition-bindings";
