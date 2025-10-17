@@ -18,7 +18,7 @@ export interface TileActionsContextValue {
   onTileDoubleClick: (tileData: TileData) => void;
   onTileRightClick: (tileData: TileData, event: React.MouseEvent) => void;
   onTileHover: (tileData: TileData) => void;
-  
+
   // Action handlers
   onSelectClick?: (tileData: TileData) => void;
   onNavigateClick?: (tileData: TileData) => void;
@@ -26,7 +26,8 @@ export interface TileActionsContextValue {
   onCreateClick?: (tileData: TileData) => void;
   onEditClick?: (tileData: TileData) => void;
   onDeleteClick?: (tileData: TileData) => void;
-  
+  onCompositionToggle?: (tileData: TileData) => void;
+
   // Drag and drop
   onTileDragStart: (tileData: TileData) => void;
   onTileDrop: (tileData: TileData) => void;
@@ -52,6 +53,11 @@ interface TileActionsProviderProps {
   onCreateClick?: (tileData: TileData) => void;
   onEditClick?: (tileData: TileData) => void;
   onDeleteClick?: (tileData: TileData) => void;
+  onCompositionToggle?: (tileData: TileData) => void;
+  // Composition state - for context menu
+  hasComposition?: (coordId: string) => boolean;
+  isCompositionExpanded?: (coordId: string) => boolean;
+  canShowComposition?: (tileData: TileData) => boolean;
 }
 
 interface ContextMenuState {
@@ -69,6 +75,10 @@ export function TileActionsProvider({
   onCreateClick,
   onEditClick,
   onDeleteClick,
+  onCompositionToggle,
+  hasComposition,
+  isCompositionExpanded,
+  canShowComposition,
 }: TileActionsProviderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
@@ -154,6 +164,7 @@ export function TileActionsProvider({
     onCreateClick,
     onEditClick,
     onDeleteClick,
+    onCompositionToggle,
   }), [
     onTileClick,
     onTileDoubleClick,
@@ -168,6 +179,7 @@ export function TileActionsProvider({
     onCreateClick,
     onEditClick,
     onDeleteClick,
+    onCompositionToggle,
   ]);
 
   return (
@@ -184,8 +196,12 @@ export function TileActionsProvider({
           onEdit={() => onEditClick?.(contextMenu.tileData)}
           onDelete={() => onDeleteClick?.(contextMenu.tileData)}
           onCreate={() => onCreateClick?.(contextMenu.tileData)}
+          onCompositionToggle={onCompositionToggle}
           canEdit={contextMenu.canEdit}
           isEmptyTile={contextMenu.isEmptyTile}
+          hasComposition={hasComposition?.(contextMenu.tileData.metadata.coordId) ?? false}
+          isCompositionExpanded={isCompositionExpanded?.(contextMenu.tileData.metadata.coordId) ?? false}
+          canShowComposition={canShowComposition?.(contextMenu.tileData) ?? false}
         />
       )}
     </TileActionsContext.Provider>

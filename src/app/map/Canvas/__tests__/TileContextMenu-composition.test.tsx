@@ -18,14 +18,14 @@ function createMockTileData(overrides?: Partial<TileData>): TileData {
         path: [Direction.NorthEast],
       },
       depth: 1,
-      ownerId: 1,
+      ownerId: '1',
     },
     data: {
       title: 'Test Tile',
       content: 'Test content',
       preview: 'Test preview',
-      link: null,
-      color: 'bg-blue-500',
+      link: '',
+      color: 'primary',
     },
     state: {
       isDragged: false,
@@ -55,7 +55,7 @@ describe('TileContextMenu - Show Composition', () => {
             path: [Direction.NorthEast],
           },
           depth: 1,
-          ownerId: 1,
+          ownerId: '1',
         },
       });
 
@@ -144,7 +144,7 @@ describe('TileContextMenu - Show Composition', () => {
             path: [Direction.NorthEast, Direction.East],
           },
           depth: 2,
-          ownerId: 1,
+          ownerId: '1',
         },
       });
 
@@ -214,7 +214,7 @@ describe('TileContextMenu - Show Composition', () => {
             path: [Direction.NorthEast],
           },
           depth: 1,
-          ownerId: 1,
+          ownerId: '1',
         },
       });
 
@@ -252,8 +252,8 @@ describe('TileContextMenu - Show Composition', () => {
         />
       );
 
-      // Should still render the option but not crash when clicked
-      expect(screen.queryByText('Show Composition')).toBeInTheDocument();
+      // Should hide the option when onCompositionToggle is undefined
+      expect(screen.queryByText('Show Composition')).not.toBeInTheDocument();
     });
 
     it('should handle missing composition flags gracefully', () => {
