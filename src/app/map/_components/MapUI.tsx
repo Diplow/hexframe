@@ -25,6 +25,7 @@ interface MapUIProps {
 function _createMapUIHandlers(
   navigateToItem: MapCacheHook['navigateToItem'],
   toggleItemExpansionWithURL: MapCacheHook['toggleItemExpansionWithURL'],
+  toggleCompositionExpansionWithURL: MapCacheHook['toggleCompositionExpansionWithURL'],
   handleTileSelect: (tileData: TileData, options?: { openInEditMode?: boolean }) => void,
   eventBus: EventBusService,
   router: ReturnType<typeof useRouter>
@@ -38,6 +39,10 @@ function _createMapUIHandlers(
 
   const handleExpand = (tileData: TileData) => {
     toggleItemExpansionWithURL(tileData.metadata.dbId);
+  };
+
+  const handleCompositionToggle = (tileData: TileData) => {
+    toggleCompositionExpansionWithURL(tileData.metadata.coordId);
   };
 
   const handleEditClick = (tileData: TileData) => {
@@ -60,7 +65,7 @@ function _createMapUIHandlers(
     // TODO: Implement create functionality
   };
 
-  return { handleNavigate, handleExpand, handleEditClick, handleDeleteClick, handleCreateClick };
+  return { handleNavigate, handleExpand, handleCompositionToggle, handleEditClick, handleDeleteClick, handleCreateClick };
 }
 
 function _createMapUIParams(
@@ -130,14 +135,18 @@ function _renderMapContent(
 
 export function MapUI({ centerParam: _centerParam }: MapUIProps) {
   const { handleTileSelect } = useTileSelectForChat();
+  const cache = useMapCache();
   const {
     navigateToItem,
     toggleItemExpansionWithURL,
+    toggleCompositionExpansionWithURL,
     center,
     isLoading,
     error,
-    expandedItems
-  } = useMapCache();
+    expandedItems,
+    compositionExpandedIds,
+    items: mapItems,
+  } = cache;
   const router = useRouter();
   const eventBus = useEventBus();
 
@@ -146,13 +155,33 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
   const centerCoordinate = center;
   const loadingError = error;
   const params = _createMapUIParams(centerCoordinate, expandedItems);
-  const { handleNavigate, handleExpand, handleEditClick, handleDeleteClick, handleCreateClick } = _createMapUIHandlers(
+  const { handleNavigate, handleExpand, handleCompositionToggle, handleEditClick, handleDeleteClick, handleCreateClick } = _createMapUIHandlers(
     navigateToItem,
     toggleItemExpansionWithURL,
+    toggleCompositionExpansionWithURL,
     handleTileSelect,
     eventBus,
     router
   );
+
+  // Composition state checkers
+  const hasComposition = (coordId: string): boolean => {
+    // Check if tile has a composition child (direction 0)
+    const compositionCoordId = `${coordId},0`;
+    return !!mapItems[compositionCoordId];
+  };
+
+  const isCompositionExpanded = (coordId: string): boolean => {
+    return compositionExpandedIds?.includes(coordId) ?? false;
+  };
+
+  const canShowComposition = (tileData: TileData): boolean => {
+    // Can only show composition for center tiles at scale > 1
+    const isCenterTile = tileData.metadata.coordId === centerCoordinate;
+    const hasComp = hasComposition(tileData.metadata.coordId);
+    // Scale is determined by expansion depth - center with expansion can show composition
+    return isCenterTile && hasComp;
+  };
 
   return (
     <TileActionsProvider
@@ -162,6 +191,10 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
       onCreateClick={handleCreateClick}
       onEditClick={handleEditClick}
       onDeleteClick={handleDeleteClick}
+      onCompositionToggle={handleCompositionToggle}
+      hasComposition={hasComposition}
+      isCompositionExpanded={isCompositionExpanded}
+      canShowComposition={canShowComposition}
     >
       <div className="h-full w-full relative">
         {/* Canvas layer - extends full width, positioned behind chat panel */}
