@@ -177,39 +177,39 @@ describe("Composition Expansion Actions", () => {
       const specialCoordId = "1,0:!@#$%^&*()";
       const result = toggleCompositionExpansion(specialCoordId);
 
-      expect(result.payload).toBe(specialCoordId);
+      expect((result as { payload: string }).payload).toBe(specialCoordId);
     });
 
     test("setCompositionExpansion works with special characters", () => {
       const specialCoordId = "1,0:!@#$%^&*()";
       const result = setCompositionExpansion(specialCoordId, true);
 
-      expect(result.payload.coordId).toBe(specialCoordId);
+      expect((result as { payload: { coordId: string; isExpanded: boolean } }).payload.coordId).toBe(specialCoordId);
     });
 
     test("setCompositionExpansion works with boolean edge cases", () => {
       // Test explicit true
       const resultTrue = setCompositionExpansion("1,0:1", true);
-      expect(resultTrue.payload.isExpanded).toBe(true);
+      expect((resultTrue as { payload: { coordId: string; isExpanded: boolean } }).payload.isExpanded).toBe(true);
 
       // Test explicit false
       const resultFalse = setCompositionExpansion("1,0:1", false);
-      expect(resultFalse.payload.isExpanded).toBe(false);
+      expect((resultFalse as { payload: { coordId: string; isExpanded: boolean } }).payload.isExpanded).toBe(false);
     });
 
     test("multiple calls with different coordIds produce different actions", () => {
       const result1 = toggleCompositionExpansion("1,0:1");
       const result2 = toggleCompositionExpansion("1,0:2");
 
-      expect(result1.payload).not.toBe(result2.payload);
+      expect((result1 as { payload: string }).payload).not.toBe((result2 as { payload: string }).payload);
     });
 
     test("setCompositionExpansion with same coordId but different states", () => {
       const resultExpand = setCompositionExpansion("1,0:1", true);
       const resultCollapse = setCompositionExpansion("1,0:1", false);
 
-      expect(resultExpand.payload.coordId).toBe(resultCollapse.payload.coordId);
-      expect(resultExpand.payload.isExpanded).not.toBe(resultCollapse.payload.isExpanded);
+      expect((resultExpand as { payload: { coordId: string; isExpanded: boolean } }).payload.coordId).toBe((resultCollapse as { payload: { coordId: string; isExpanded: boolean } }).payload.coordId);
+      expect((resultExpand as { payload: { coordId: string; isExpanded: boolean } }).payload.isExpanded).not.toBe((resultCollapse as { payload: { coordId: string; isExpanded: boolean } }).payload.isExpanded);
     });
   });
 
@@ -220,7 +220,7 @@ describe("Composition Expansion Actions", () => {
       // User clicks to toggle
       const toggleAction = toggleCompositionExpansion(coordId);
       expect(toggleAction.type).toBe(ACTION_TYPES.TOGGLE_COMPOSITION_EXPANSION);
-      expect(toggleAction.payload).toBe(coordId);
+      expect((toggleAction as { payload: string }).payload).toBe(coordId);
     });
 
     test("explicit expansion control workflow", () => {
@@ -229,12 +229,12 @@ describe("Composition Expansion Actions", () => {
       // Explicitly expand
       const expandAction = setCompositionExpansion(coordId, true);
       expect(expandAction.type).toBe(ACTION_TYPES.SET_COMPOSITION_EXPANSION);
-      expect(expandAction.payload).toEqual({ coordId, isExpanded: true });
+      expect((expandAction as { payload: { coordId: string; isExpanded: boolean } }).payload).toEqual({ coordId, isExpanded: true });
 
       // Explicitly collapse
       const collapseAction = setCompositionExpansion(coordId, false);
       expect(collapseAction.type).toBe(ACTION_TYPES.SET_COMPOSITION_EXPANSION);
-      expect(collapseAction.payload).toEqual({ coordId, isExpanded: false });
+      expect((collapseAction as { payload: { coordId: string; isExpanded: boolean } }).payload).toEqual({ coordId, isExpanded: false });
     });
 
     test("clear all expansions workflow", () => {
@@ -249,7 +249,7 @@ describe("Composition Expansion Actions", () => {
 
       expandActions.forEach((action) => {
         expect(action.type).toBe(ACTION_TYPES.SET_COMPOSITION_EXPANSION);
-        expect(action.payload.isExpanded).toBe(true);
+        expect((action as { payload: { coordId: string; isExpanded: boolean } }).payload.isExpanded).toBe(true);
       });
 
       // Then clear all
