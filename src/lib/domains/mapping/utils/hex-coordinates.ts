@@ -99,15 +99,31 @@ export class CoordSystem {
     };
   }
 
-  static getChildCoordsFromId(parentId: string) {
-    const parentCoord = CoordSystem.parseId(parentId);
-    return CoordSystem.getChildCoords(parentCoord).map((coord) =>
-      CoordSystem.createId(coord),
-    ) as [string, string, string, string, string, string];
+  static getCompositionCoord(parent: Coord): Coord {
+    return {
+      userId: parent.userId,
+      groupId: parent.groupId,
+      path: [...parent.path, Direction.Center],
+    };
   }
 
-  static getChildCoords(parent: Coord) {
-    return [
+  static getCompositionCoordFromId(parentId: string): string {
+    const parent = CoordSystem.parseId(parentId);
+    const compositionCoord = CoordSystem.getCompositionCoord(parent);
+    return CoordSystem.createId(compositionCoord);
+  }
+
+  static getChildCoordsFromId(
+    parentId: string,
+    includeComposition?: boolean,
+  ): string[] {
+    const parentCoord = CoordSystem.parseId(parentId);
+    const coords = CoordSystem.getChildCoords(parentCoord, includeComposition);
+    return coords.map((coord) => CoordSystem.createId(coord));
+  }
+
+  static getChildCoords(parent: Coord, includeComposition?: boolean): Coord[] {
+    const structuralChildren: Coord[] = [
       // Surrounding children
       { ...parent, path: [...parent.path, Direction.NorthWest] },
       { ...parent, path: [...parent.path, Direction.NorthEast] },
@@ -115,7 +131,14 @@ export class CoordSystem {
       { ...parent, path: [...parent.path, Direction.SouthEast] },
       { ...parent, path: [...parent.path, Direction.SouthWest] },
       { ...parent, path: [...parent.path, Direction.West] },
-    ] as [Coord, Coord, Coord, Coord, Coord, Coord];
+    ];
+
+    if (includeComposition) {
+      const compositionChild = CoordSystem.getCompositionCoord(parent);
+      return [compositionChild, ...structuralChildren];
+    }
+
+    return structuralChildren as [Coord, Coord, Coord, Coord, Coord, Coord];
   }
 
   static getParentCoordFromId(id: string): string | undefined {
