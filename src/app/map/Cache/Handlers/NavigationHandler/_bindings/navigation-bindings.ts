@@ -9,7 +9,8 @@ import {
 import {
   syncURLWithState,
   getMapContext,
-  toggleItemExpansionWithURL
+  toggleItemExpansionWithURL,
+  toggleCompositionExpansionWithURL
 } from "~/app/map/Cache/Handlers/NavigationHandler/_url/navigation-url-handlers";
 
 export const createBoundUpdateCenter = (dispatch: Dispatch<CacheAction>) =>
@@ -34,3 +35,8 @@ export const createBoundToggleItemExpansionWithURL = (
   getState: () => CacheState,
   dispatch: Dispatch<CacheAction>
 ) => (itemId: string) => toggleItemExpansionWithURL(itemId, getState, dispatch);
+
+export const createBoundToggleCompositionExpansionWithURL = (
+  getState: () => CacheState,
+  dispatch: Dispatch<CacheAction>
+) => (coordId: string) => toggleCompositionExpansionWithURL(coordId, getState, dispatch);
