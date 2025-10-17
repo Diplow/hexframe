@@ -115,15 +115,40 @@ export class CoordSystem {
 
   static getChildCoordsFromId(
     parentId: string,
+    includeComposition: true,
+  ): [string, string, string, string, string, string, string];
+  static getChildCoordsFromId(
+    parentId: string,
+    includeComposition?: false,
+  ): [string, string, string, string, string, string];
+  static getChildCoordsFromId(
+    parentId: string,
     includeComposition?: boolean,
   ): string[] {
     const parentCoord = CoordSystem.parseId(parentId);
-    const coords = CoordSystem.getChildCoords(parentCoord, includeComposition);
+
+    if (includeComposition) {
+      const coords = CoordSystem.getChildCoords(parentCoord, true);
+      return coords.map((coord) => CoordSystem.createId(coord));
+    }
+
+    const coords = CoordSystem.getChildCoords(parentCoord);
     return coords.map((coord) => CoordSystem.createId(coord));
   }
 
-  static getChildCoords(parent: Coord, includeComposition?: boolean): Coord[] {
-    const structuralChildren: Coord[] = [
+  static getChildCoords(
+    parent: Coord,
+    includeComposition: true,
+  ): [Coord, Coord, Coord, Coord, Coord, Coord, Coord];
+  static getChildCoords(
+    parent: Coord,
+    includeComposition?: false,
+  ): [Coord, Coord, Coord, Coord, Coord, Coord];
+  static getChildCoords(
+    parent: Coord,
+    includeComposition?: boolean,
+  ): Coord[] {
+    const structuralChildren: [Coord, Coord, Coord, Coord, Coord, Coord] = [
       // Surrounding children
       { ...parent, path: [...parent.path, Direction.NorthWest] },
       { ...parent, path: [...parent.path, Direction.NorthEast] },
@@ -138,7 +163,7 @@ export class CoordSystem {
       return [compositionChild, ...structuralChildren];
     }
 
-    return structuralChildren as [Coord, Coord, Coord, Coord, Coord, Coord];
+    return structuralChildren;
   }
 
   static getParentCoordFromId(id: string): string | undefined {
