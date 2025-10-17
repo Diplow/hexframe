@@ -263,4 +263,26 @@ export const mapItemsRouter = createTRPCRouter({
       });
       return ancestors.map(contractToApiAdapters.mapItem);
     }),
+
+  // Get composed children for a tile (direction 0 container and its children)
+  getComposedChildren: publicProcedure
+    .use(mappingServiceMiddleware)
+    .input(z.object({ coordId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const composedItems = await ctx.mappingService.items.query.getComposedChildren({
+        coordId: input.coordId,
+      });
+      return composedItems.map(contractToApiAdapters.mapItem);
+    }),
+
+  // Check if a tile has composition (direction 0 child)
+  hasComposition: publicProcedure
+    .use(mappingServiceMiddleware)
+    .input(z.object({ coordId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const hasComp = await ctx.mappingService.items.query.hasComposition({
+        coordId: input.coordId,
+      });
+      return { hasComposition: hasComp };
+    }),
 });

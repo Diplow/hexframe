@@ -209,8 +209,8 @@ describe("tRPC Map Items Router - Composition Queries [Integration - DB]", () =>
     });
 
     return {
-      parentCoordsId: CoordSystem.toId(parentCoords),
-      compositionContainerCoordsId: CoordSystem.toId(compositionCoords),
+      parentCoordsId: CoordSystem.createId(parentCoords),
+      compositionContainerCoordsId: CoordSystem.createId(compositionCoords),
     };
   }
 
@@ -232,7 +232,7 @@ describe("tRPC Map Items Router - Composition Queries [Integration - DB]", () =>
     });
 
     return {
-      parentCoordsId: CoordSystem.toId(parentCoords),
+      parentCoordsId: CoordSystem.createId(parentCoords),
     };
   }
 
@@ -266,7 +266,7 @@ describe("tRPC Map Items Router - Composition Queries [Integration - DB]", () =>
     });
 
     return {
-      parentCoordsId: CoordSystem.toId(parentCoords),
+      parentCoordsId: CoordSystem.createId(parentCoords),
     };
   }
 
@@ -324,7 +324,7 @@ describe("tRPC Map Items Router - Composition Queries [Integration - DB]", () =>
     });
 
     return {
-      parentCoordsId: CoordSystem.toId(parentCoords),
+      parentCoordsId: CoordSystem.createId(parentCoords),
     };
   }
 });
