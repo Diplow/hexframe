@@ -13,6 +13,7 @@ Like a set of "pure rendering templates" - provides non-interactive tile compone
 - Handle dark mode styling for static tiles
 - Detect and render composition children (direction 0) at reduced scale
 - Enforce composition rendering constraints (center-only, scale > 1)
+- Apply visual distinction for composed tiles (dashed borders + 80% opacity)
 
 ## Non-Responsibilities
 - User interactions (clicks, hovers, drags) → See `../Item/README.md` and `../Empty/README.md`
@@ -33,12 +34,19 @@ Like a set of "pure rendering templates" - provides non-interactive tile compone
 - `compositionExpandedIds`: Array of coordIds to show composition frames for
 - `scale`: Tile scale (1-6), determines frame size and nesting capability
 - `interactive`: Boolean flag - false for base components, true for dynamic variants
+- `isComposed`: Boolean flag for visual distinction (dashed borders + 80% opacity)
 
 **Composition Rendering:**
 BaseFrame now supports dual-frame rendering when composition is enabled:
 - **Outer frame**: Regular children at directions 1-6 (scale reduced by 1)
 - **Inner frame**: Composition children at direction 0 container (scale reduced by 2)
 - **Constraints**: Only center tiles can show composition, requires scale > 1
+
+**Composition Styling:**
+Composed tiles (inner frame tiles) have visual distinction:
+- **Dashed borders**: SVG stroke with `stroke-dasharray="5,5"` pattern
+- **Reduced opacity**: Content div has `opacity-80` class (80% opacity)
+- **Preserved interactions**: Selection and other styling preserved alongside composition styles
 
 **Dependencies**: No dependencies.json needed - can import from parent Tile subsystem.
 
