@@ -42,8 +42,12 @@ describe("ItemQueryService - Composition Queries [Integration - DB]", () => {
       const testParams = _createUniqueTestParams();
       const rootMap = await _setupBasicMap(testEnv.service, testParams);
 
+      // Get coordId from the root map's first item (which is the root item itself)
+      const rootItem = rootMap.items[0];
+      if (!rootItem) throw new Error("Root item not found");
+
       const hasComp = await testEnv.service.items.query.hasComposition({
-        coordId: rootMap.coords,
+        coordId: rootItem.coords,
       });
 
       expect(hasComp).toBe(false);
@@ -62,7 +66,7 @@ describe("ItemQueryService - Composition Queries [Integration - DB]", () => {
       expect(composedItems.length).toBe(3);
 
       // First item should be the composition container
-      expect(composedItems[0]!.coordId).toBe(setup.compositionContainerCoordsId);
+      expect(composedItems[0]!.coords).toBe(setup.compositionContainerCoordsId);
       expect(composedItems[0]!.title).toBe("Composition Container");
 
       // Other items should be the composed children
