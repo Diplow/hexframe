@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach, vi } from 'vitest';
+import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { CacheState } from '~/app/map/Cache/State';
 import { buildMapUrl } from '~/app/map/Cache/Handlers/NavigationHandler/_core/navigation-core';
 import {
@@ -9,6 +9,50 @@ import {
 } from '~/app/map/Cache/Handlers/NavigationHandler/_url/navigation-url-handlers';
 
 describe('URL Composition Persistence', () => {
+  let originalHistory: History;
+  let originalLocation: Location;
+
+  beforeEach(() => {
+    // Save originals
+    originalHistory = window.history;
+    originalLocation = window.location;
+
+    // Mock window.history for all tests
+    Object.defineProperty(window, 'history', {
+      writable: true,
+      configurable: true,
+      value: {
+        pushState: vi.fn(),
+        replaceState: vi.fn(),
+      },
+    });
+
+    // Mock window.location for all tests
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      configurable: true,
+      value: {
+        origin: 'http://localhost:3000',
+        pathname: '/map',
+        search: '',
+      },
+    });
+  });
+
+  afterEach(() => {
+    // Restore originals
+    Object.defineProperty(window, 'history', {
+      writable: true,
+      configurable: true,
+      value: originalHistory,
+    });
+    Object.defineProperty(window, 'location', {
+      writable: true,
+      configurable: true,
+      value: originalLocation,
+    });
+  });
+
   describe('buildMapUrl', () => {
     test('should include compositionExpandedIds in URL', () => {
       const url = buildMapUrl('123', ['1', '2'], ['comp1', 'comp2']);
@@ -82,29 +126,6 @@ describe('URL Composition Persistence', () => {
   });
 
   describe('updateURL', () => {
-    beforeEach(() => {
-      // Mock window.history
-      Object.defineProperty(window, 'history', {
-        writable: true,
-        configurable: true,
-        value: {
-          pushState: vi.fn(),
-          replaceState: vi.fn(),
-        },
-      });
-
-      // Mock window.location
-      Object.defineProperty(window, 'location', {
-        writable: true,
-        configurable: true,
-        value: {
-          origin: 'http://localhost:3000',
-          pathname: '/map',
-          search: '',
-        },
-      });
-    });
-
     test('should update URL with compositionExpandedIds', () => {
       updateURL('123', ['1', '2'], ['comp1', 'comp2']);
 
@@ -151,15 +172,6 @@ describe('URL Composition Persistence', () => {
 
       const getState = () => mockState;
 
-      // Mock window.history
-      Object.defineProperty(window, 'history', {
-        writable: true,
-        configurable: true,
-        value: {
-          replaceState: vi.fn(),
-        },
-      });
-
       syncURLWithState(getState);
 
       expect(window.history.replaceState).toHaveBeenCalledWith(
@@ -196,15 +208,6 @@ describe('URL Composition Persistence', () => {
 
       const getState = () => mockState;
 
-      // Mock window.history
-      Object.defineProperty(window, 'history', {
-        writable: true,
-        configurable: true,
-        value: {
-          replaceState: vi.fn(),
-        },
-      });
-
       syncURLWithState(getState);
 
       const callArg = (window.history.replaceState as ReturnType<typeof vi.fn>).mock.calls[0]?.[2] as string;
@@ -240,15 +243,6 @@ describe('URL Composition Persistence', () => {
       } as unknown as CacheState;
 
       const getState = () => mockState;
-
-      // Mock window.history
-      Object.defineProperty(window, 'history', {
-        writable: true,
-        configurable: true,
-        value: {
-          replaceState: vi.fn(),
-        },
-      });
 
       toggleCompositionExpansionWithURL('comp2', getState, mockDispatch);
 
@@ -290,15 +284,6 @@ describe('URL Composition Persistence', () => {
       } as unknown as CacheState;
 
       const getState = () => mockState;
-
-      // Mock window.history
-      Object.defineProperty(window, 'history', {
-        writable: true,
-        configurable: true,
-        value: {
-          replaceState: vi.fn(),
-        },
-      });
 
       toggleCompositionExpansionWithURL('comp1', getState, mockDispatch);
 
