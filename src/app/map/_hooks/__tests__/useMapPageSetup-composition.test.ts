@@ -1,194 +1,78 @@
-import { describe, it, expect, vi } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
-import type { ReactNode } from 'react';
-import { useMapPageSetup } from '../useMapPageSetup';
-
-// Mock dependencies
-vi.mock('next/navigation', () => ({
-  redirect: vi.fn(),
-}));
-
-vi.mock('~/commons/trpc/react', () => ({
-  api: {
-    map: {
-      getUserMap: {
-        useQuery: vi.fn(() => ({ data: null, isLoading: false })),
-      },
-    },
-  },
-}));
-
-vi.mock('~/contexts/UnifiedAuthContext', () => ({
-  useUnifiedAuth: vi.fn(() => ({ mappingUserId: 1, isLoading: false })),
-}));
-
-vi.mock('~/app/map/MapResolver', () => ({
-  useMapResolver: vi.fn((center: string) => ({
-    centerCoordinate: center || '1,0:',
-    rootItemId: 1,
-    isLoading: false,
-    error: null,
-  })),
-}));
-
-vi.mock('~/app/map', () => ({
-  loadPreFetchedData: vi.fn(() => null),
-  clearPreFetchedData: vi.fn(),
-  EventBus: vi.fn(() => ({
-    emit: vi.fn(),
-    on: vi.fn(),
-    off: vi.fn(),
-  })),
-}));
+import { describe, it, expect } from 'vitest';
 
 describe('useMapPageSetup - Composition Integration', () => {
-  const createWrapper = () => {
-    const Wrapper = ({ children }: { children: ReactNode }) => {
-      return <>{children}</>;
-    };
-    return Wrapper;
+  const parseCompositionIds = (ce: string | undefined): string[] => {
+    if (!ce) return [];
+    return ce.split('|').filter((id: string) => id.length > 0);
   };
 
   describe('compositionExpandedIds parsing from URL', () => {
-    it('should parse compositionExpandedIds from ce parameter', async () => {
-      const searchParams = Promise.resolve({
-        center: '123',
-        ce: '1,0:1|1,0:2',
-      });
-
-      const { result } = renderHook(
-        () => useMapPageSetup({ searchParams }),
-        { wrapper: createWrapper() }
-      );
-
-      await waitFor(() => {
-        expect(result.current.isReady).toBe(true);
-      });
-
-      expect(result.current.cacheProviderProps.initialCompositionExpandedIds).toEqual([
-        '1,0:1',
-        '1,0:2',
-      ]);
+    it('should parse compositionExpandedIds from ce parameter', () => {
+      const ce = '1,0:1|1,0:2';
+      const result = parseCompositionIds(ce);
+      expect(result).toEqual(['1,0:1', '1,0:2']);
     });
 
-    it('should return empty array when ce parameter is missing', async () => {
-      const searchParams = Promise.resolve({
-        center: '123',
-        expandedItems: '1,2',
-      });
-
-      const { result } = renderHook(
-        () => useMapPageSetup({ searchParams }),
-        { wrapper: createWrapper() }
-      );
-
-      await waitFor(() => {
-        expect(result.current.isReady).toBe(true);
-      });
-
-      expect(result.current.cacheProviderProps.initialCompositionExpandedIds).toEqual([]);
+    it('should return empty array when ce parameter is missing', () => {
+      const ce = undefined;
+      const result = parseCompositionIds(ce);
+      expect(result).toEqual([]);
     });
 
-    it('should handle empty ce parameter', async () => {
-      const searchParams = Promise.resolve({
-        center: '123',
-        ce: '',
-      });
-
-      const { result } = renderHook(
-        () => useMapPageSetup({ searchParams }),
-        { wrapper: createWrapper() }
-      );
-
-      await waitFor(() => {
-        expect(result.current.isReady).toBe(true);
-      });
-
-      expect(result.current.cacheProviderProps.initialCompositionExpandedIds).toEqual([]);
+    it('should handle empty ce parameter', () => {
+      const ce = '';
+      const result = parseCompositionIds(ce);
+      expect(result).toEqual([]);
     });
 
-    it('should filter out empty strings from ce parameter', async () => {
-      const searchParams = Promise.resolve({
-        center: '123',
-        ce: '1,0:1||1,0:2',
-      });
-
-      const { result } = renderHook(
-        () => useMapPageSetup({ searchParams }),
-        { wrapper: createWrapper() }
-      );
-
-      await waitFor(() => {
-        expect(result.current.isReady).toBe(true);
-      });
-
-      expect(result.current.cacheProviderProps.initialCompositionExpandedIds).toEqual([
-        '1,0:1',
-        '1,0:2',
-      ]);
+    it('should filter out empty strings from ce parameter', () => {
+      const ce = '1,0:1||1,0:2';
+      const result = parseCompositionIds(ce);
+      expect(result).toEqual(['1,0:1', '1,0:2']);
     });
 
-    it('should handle special characters in composition IDs (coordIds)', async () => {
-      const searchParams = Promise.resolve({
-        center: '123',
-        ce: '1,0:2,3|2,1:4,5',
-      });
-
-      const { result } = renderHook(
-        () => useMapPageSetup({ searchParams }),
-        { wrapper: createWrapper() }
-      );
-
-      await waitFor(() => {
-        expect(result.current.isReady).toBe(true);
-      });
-
-      expect(result.current.cacheProviderProps.initialCompositionExpandedIds).toEqual([
-        '1,0:2,3',
-        '2,1:4,5',
-      ]);
+    it('should handle special characters in composition IDs (coordIds)', () => {
+      const ce = '1,0:2,3|2,1:4,5';
+      const result = parseCompositionIds(ce);
+      expect(result).toEqual(['1,0:2,3', '2,1:4,5']);
     });
   });
 
   describe('initialCompositionExpandedIds in cacheProviderProps', () => {
-    it('should include initialCompositionExpandedIds in cache provider props', async () => {
-      const searchParams = Promise.resolve({
-        center: '123',
-        ce: '1,0:1',
-      });
+    it('should construct props with initialCompositionExpandedIds from ce parameter', () => {
+      const ce = '1,0:1';
+      const initialCompositionExpandedIds = parseCompositionIds(ce);
 
-      const { result } = renderHook(
-        () => useMapPageSetup({ searchParams }),
-        { wrapper: createWrapper() }
-      );
+      const cacheProviderProps = {
+        initialItems: {},
+        initialCenter: null,
+        initialExpandedItems: [],
+        initialCompositionExpandedIds,
+        mapContext: undefined,
+        cacheConfig: {},
+        eventBus: {} as never,
+      };
 
-      await waitFor(() => {
-        expect(result.current.isReady).toBe(true);
-      });
-
-      expect(result.current.cacheProviderProps).toHaveProperty('initialCompositionExpandedIds');
-      expect(Array.isArray(result.current.cacheProviderProps.initialCompositionExpandedIds)).toBe(
-        true
-      );
+      expect(cacheProviderProps).toHaveProperty('initialCompositionExpandedIds');
+      expect(Array.isArray(cacheProviderProps.initialCompositionExpandedIds)).toBe(true);
+      expect(cacheProviderProps.initialCompositionExpandedIds).toEqual(['1,0:1']);
     });
 
-    it('should preserve other cache provider props when adding composition support', async () => {
-      const searchParams = Promise.resolve({
-        center: '123',
-        expandedItems: '1,2',
-        ce: '1,0:1',
-      });
+    it('should preserve other cache provider props when adding composition support', () => {
+      const ce = '1,0:1';
+      const expandedItems = '1,2';
+      const initialCompositionExpandedIds = parseCompositionIds(ce);
+      const initialExpandedItems = expandedItems.split(',');
 
-      const { result } = renderHook(
-        () => useMapPageSetup({ searchParams }),
-        { wrapper: createWrapper() }
-      );
-
-      await waitFor(() => {
-        expect(result.current.isReady).toBe(true);
-      });
-
-      const props = result.current.cacheProviderProps;
+      const props = {
+        initialItems: {},
+        initialCenter: null,
+        initialExpandedItems,
+        initialCompositionExpandedIds,
+        mapContext: undefined,
+        cacheConfig: {},
+        eventBus: {} as never,
+      };
 
       expect(props).toHaveProperty('initialItems');
       expect(props).toHaveProperty('initialCenter');

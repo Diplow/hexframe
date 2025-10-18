@@ -14,6 +14,7 @@ interface MapPageSetupParams {
   center?: string;
   scale?: string;
   expandedItems?: string;
+  ce?: string;
   focus?: string;
 }
 
@@ -29,6 +30,7 @@ interface MapPageSetupResult {
     initialItems: Record<string, TileData>;
     initialCenter: string | null;
     initialExpandedItems: string[];
+    initialCompositionExpandedIds: string[];
     mapContext?: {
       rootItemId: number;
       userId: number;
@@ -116,12 +118,13 @@ export function useMapPageSetup({ searchParams }: UseMapPageSetupProps): MapPage
       // Redirect to user's default map
       const searchParams = new URLSearchParams();
       searchParams.set('center', userMapResponse.map.id.toString());
-      
+
       // Preserve other params
       if (params.scale) searchParams.set('scale', params.scale);
       if (params.expandedItems) searchParams.set('expandedItems', params.expandedItems);
+      if (params.ce) searchParams.set('ce', params.ce);
       if (params.focus) searchParams.set('focus', params.focus);
-      
+
       redirect(`/map?${searchParams.toString()}`);
     }
   }, [mounted, params, userMapResponse, isUserMapLoading, centerError]);
@@ -139,6 +142,7 @@ export function useMapPageSetup({ searchParams }: UseMapPageSetupProps): MapPage
     initialItems: preFetchedData?.initialItems ?? {},
     initialCenter: centerCoordinate || null, // Use resolved coordinate as initial center
     initialExpandedItems: params.expandedItems ? params.expandedItems.split(',') : [],
+    initialCompositionExpandedIds: params.ce ? params.ce.split('|').filter(id => id.length > 0) : [],
     mapContext: mappingUserId ? {
       rootItemId: resolvedRootItemId ?? (centerCoordinate && /^\d+$/.test(centerCoordinate) ? parseInt(centerCoordinate, 10) : 0) ?? userMapResponse?.map?.id ?? 1,
       userId: mappingUserId,

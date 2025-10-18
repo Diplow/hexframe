@@ -143,6 +143,7 @@ export interface MapCacheProviderProps {
   initialItems?: Record<string, TileData>;
   initialCenter?: string | null;
   initialExpandedItems?: string[];
+  initialCompositionExpandedIds?: string[];
   mapContext?: {
     rootItemId: number;
     userId: number;

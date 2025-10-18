@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { renderHook, waitFor } from '@testing-library/react';
 import type { TileData } from '~/app/map/types';
 
 // This will be implemented in the implementation phase
@@ -11,7 +10,7 @@ describe('Composition Pre-fetching in Lifecycle', () => {
     hasComposition: vi.fn(),
   };
 
-  const mockTileData: TileData = {
+  const mockTileData = {
     metadata: {
       dbId: '123',
       coordId: '1,0:1',
@@ -23,9 +22,9 @@ describe('Composition Pre-fetching in Lifecycle', () => {
     data: {
       id: 123,
       title: 'Test Tile',
-      content: null,
-      preview: null,
-      link: null,
+      content: '',
+      preview: undefined,
+      link: '',
       coordinates: { userId: 1, groupId: 0, path: [1] },
       depth: 1,
       parentId: 1,
@@ -40,7 +39,7 @@ describe('Composition Pre-fetching in Lifecycle', () => {
     },
   };
 
-  const mockComposedChild: TileData = {
+  const mockComposedChild = {
     metadata: {
       dbId: '124',
       coordId: '1,0:1,0',
@@ -52,9 +51,9 @@ describe('Composition Pre-fetching in Lifecycle', () => {
     data: {
       id: 124,
       title: 'Composed Child',
-      content: null,
-      preview: null,
-      link: null,
+      content: '',
+      preview: undefined,
+      link: '',
       coordinates: { userId: 1, groupId: 0, path: [1, 0] },
       depth: 2,
       parentId: 123,
@@ -83,8 +82,6 @@ describe('Composition Pre-fetching in Lifecycle', () => {
         return { isLoading: false };
       });
 
-      const compositionExpandedIds = ['1,0:1', '1,0:2'];
-
       mockHook();
 
       // After implementation, should have called getComposedChildren for each ID
@@ -96,8 +93,6 @@ describe('Composition Pre-fetching in Lifecycle', () => {
       const mockHook = vi.fn().mockImplementation(() => {
         return { isLoading: false };
       });
-
-      const compositionExpandedIds: string[] = [];
 
       mockHook();
 
@@ -122,8 +117,6 @@ describe('Composition Pre-fetching in Lifecycle', () => {
     it('should update cache with pre-fetched composed children', async () => {
       mockServerService.getComposedChildren.mockResolvedValue([mockComposedChild]);
 
-      const mockDispatch = vi.fn();
-
       // Expected: after fetching, should dispatch action to update cache
       // This will be verified in implementation
       expect(true).toBe(true);
@@ -134,9 +127,9 @@ describe('Composition Pre-fetching in Lifecycle', () => {
     it('should pre-fetch composed children when navigating to a tile in compositionExpandedIds', async () => {
       mockServerService.getComposedChildren.mockResolvedValue([mockComposedChild]);
 
+      const compositionExpandedIds = ['1,0:1'];
       const mockNavigate = vi.fn().mockImplementation(async (coordId: string) => {
         // Expected: if coordId is in compositionExpandedIds, fetch its composed children
-        const compositionExpandedIds = ['1,0:1'];
         if (compositionExpandedIds.includes(coordId)) {
           await mockServerService.getComposedChildren(coordId);
         }
@@ -148,8 +141,8 @@ describe('Composition Pre-fetching in Lifecycle', () => {
     });
 
     it('should NOT pre-fetch when navigating to a tile NOT in compositionExpandedIds', async () => {
+      const compositionExpandedIds = ['1,0:1'];
       const mockNavigate = vi.fn().mockImplementation(async (coordId: string) => {
-        const compositionExpandedIds = ['1,0:1'];
         if (compositionExpandedIds.includes(coordId)) {
           await mockServerService.getComposedChildren(coordId);
         }
@@ -163,13 +156,14 @@ describe('Composition Pre-fetching in Lifecycle', () => {
     it('should handle navigation pre-fetch errors gracefully', async () => {
       mockServerService.getComposedChildren.mockRejectedValue(new Error('Network error'));
 
+      const compositionExpandedIds = ['1,0:1'];
       const mockNavigate = vi.fn().mockImplementation(async (coordId: string) => {
-        const compositionExpandedIds = ['1,0:1'];
         if (compositionExpandedIds.includes(coordId)) {
           try {
             await mockServerService.getComposedChildren(coordId);
           } catch (error) {
             // Should handle error gracefully
+            // eslint-disable-next-line no-console
             console.error('Pre-fetch error:', error);
           }
         }
@@ -183,43 +177,28 @@ describe('Composition Pre-fetching in Lifecycle', () => {
     it('should check hasComposition for non-author tiles before showing composition', async () => {
       mockServerService.hasComposition.mockResolvedValue(true);
 
-      const isAuthor = false;
       const tileCoordId = '1,0:1';
 
       // Expected: for non-author, check hasComposition before allowing expansion
-      if (!isAuthor) {
-        const hasComp = await mockServerService.hasComposition(tileCoordId);
-        expect(hasComp).toBe(true);
-      }
+      const hasComp = (await mockServerService.hasComposition(tileCoordId)) as boolean;
+      expect(hasComp).toBe(true);
 
       expect(mockServerService.hasComposition).toHaveBeenCalledWith(tileCoordId);
     });
 
     it('should show empty tiles for author even without hasComposition', async () => {
-      const isAuthor = true;
-      const tileCoordId = '1,0:1';
-
       // Expected: for author, don't need to check hasComposition
       // Author can see empty composition tiles for creation
-      if (!isAuthor) {
-        await mockServerService.hasComposition(tileCoordId);
-      }
-
       expect(mockServerService.hasComposition).not.toHaveBeenCalled();
     });
 
     it('should NOT show composition for non-author when hasComposition is false', async () => {
       mockServerService.hasComposition.mockResolvedValue(false);
 
-      const isAuthor = false;
       const tileCoordId = '1,0:1';
 
-      let shouldShowComposition = true;
-
-      if (!isAuthor) {
-        const hasComp = await mockServerService.hasComposition(tileCoordId);
-        shouldShowComposition = hasComp;
-      }
+      const hasComp = (await mockServerService.hasComposition(tileCoordId)) as boolean;
+      const shouldShowComposition: boolean = hasComp;
 
       expect(shouldShowComposition).toBe(false);
     });
@@ -229,17 +208,17 @@ describe('Composition Pre-fetching in Lifecycle', () => {
     it('should add composed children to cache after fetching', async () => {
       mockServerService.getComposedChildren.mockResolvedValue([mockComposedChild]);
 
-      const mockCache = {
-        items: {} as Record<string, TileData>,
+      const mockCache: { items: Record<string, TileData> } = {
+        items: {},
       };
 
       const mockUpdateCache = vi.fn((items: TileData[]) => {
-        items.forEach((item) => {
+        items.forEach((item: TileData) => {
           mockCache.items[item.metadata.coordId] = item;
         });
       });
 
-      const composedChildren = await mockServerService.getComposedChildren('1,0:1');
+      const composedChildren = (await mockServerService.getComposedChildren('1,0:1')) as TileData[];
       mockUpdateCache(composedChildren);
 
       expect(mockCache.items['1,0:1,0']).toEqual(mockComposedChild);
@@ -248,17 +227,17 @@ describe('Composition Pre-fetching in Lifecycle', () => {
     it('should update parent tile children array with composed children', async () => {
       mockServerService.getComposedChildren.mockResolvedValue([mockComposedChild]);
 
-      const parentTile = { ...mockTileData };
+      const parentTile = { ...mockTileData, children: [] as unknown[] };
 
-      const mockUpdateParent = vi.fn((parent: TileData, children: TileData[]) => {
+      const mockUpdateParent = vi.fn((parent: typeof parentTile, children: unknown[]) => {
         parent.children = children;
       });
 
-      const composedChildren = await mockServerService.getComposedChildren('1,0:1');
+      const composedChildren = (await mockServerService.getComposedChildren('1,0:1')) as unknown[];
       mockUpdateParent(parentTile, composedChildren);
 
       expect(parentTile.children).toHaveLength(1);
-      expect(parentTile.children[0]).toEqual(mockComposedChild);
+      expect(parentTile.children).toContainEqual(mockComposedChild);
     });
   });
 });

@@ -13,6 +13,7 @@ export interface InitialStateConfig {
   initialItems: Record<string, TileData>;
   initialCenter: string | null;
   initialExpandedItems: string[];
+  initialCompositionExpandedIds?: string[];
   cacheConfig: Partial<CacheState["cacheConfig"]>;
 }
 
@@ -30,6 +31,7 @@ export function useInitialCacheState(config: InitialStateConfig): CacheState {
         ...initialCacheState,
         currentCenter: config.initialCenter,
         expandedItemIds: config.initialExpandedItems,
+        compositionExpandedIds: config.initialCompositionExpandedIds ?? [],
         lastUpdated: Date.now(),
         cacheConfig: { ...initialCacheState.cacheConfig, ...config.cacheConfig },
         isLoading: false,
@@ -42,11 +44,12 @@ export function useInitialCacheState(config: InitialStateConfig): CacheState {
       itemsById: config.initialItems,
       currentCenter: config.initialCenter,
       expandedItemIds: config.initialExpandedItems,
+      compositionExpandedIds: config.initialCompositionExpandedIds ?? [],
       lastUpdated: Date.now(),
       cacheConfig: { ...initialCacheState.cacheConfig, ...config.cacheConfig },
       isLoading: false,
     };
-  }, [config.initialItems, config.initialCenter, config.initialExpandedItems, config.cacheConfig, initialItemsCount]);
+  }, [config.initialItems, config.initialCenter, config.initialExpandedItems, config.initialCompositionExpandedIds, config.cacheConfig, initialItemsCount]);
 }
 
 /**
