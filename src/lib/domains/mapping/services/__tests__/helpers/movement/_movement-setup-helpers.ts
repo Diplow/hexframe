@@ -118,3 +118,76 @@ export async function _setupParentChildHierarchy(
     groupId: setupParams.groupId,
   };
 }
+
+export async function _setupItemWithComposition(
+  testEnv: TestEnvironment,
+  setupParams: { userId: number; groupId: number },
+) {
+  const setupData = await _setupBasicMap(testEnv.service, setupParams);
+
+  const parentCoords = _createTestCoordinates({
+    userId: setupParams.userId,
+    groupId: setupParams.groupId,
+    path: [Direction.East],
+  });
+
+  const parentItem = await testEnv.service.items.crud.addItemToMap({
+    parentId: setupData.id,
+    coords: parentCoords,
+    title: "Parent Item",
+  });
+
+  const compositionCoords = _createTestCoordinates({
+    userId: setupParams.userId,
+    groupId: setupParams.groupId,
+    path: [Direction.East, Direction.Center],
+  });
+
+  const compositionContainer = await testEnv.service.items.crud.addItemToMap({
+    parentId: parseInt(parentItem.id),
+    coords: compositionCoords,
+    title: "Composition Container",
+  });
+
+  const composedChild1Coords = _createTestCoordinates({
+    userId: setupParams.userId,
+    groupId: setupParams.groupId,
+    path: [Direction.East, Direction.Center, Direction.NorthWest],
+  });
+
+  const composedChild1 = await testEnv.service.items.crud.addItemToMap({
+    parentId: parseInt(compositionContainer.id),
+    coords: composedChild1Coords,
+    title: "Composed Child 1",
+  });
+
+  const composedChild2Coords = _createTestCoordinates({
+    userId: setupParams.userId,
+    groupId: setupParams.groupId,
+    path: [Direction.East, Direction.Center, Direction.SouthEast],
+  });
+
+  const composedChild2 = await testEnv.service.items.crud.addItemToMap({
+    parentId: parseInt(compositionContainer.id),
+    coords: composedChild2Coords,
+    title: "Composed Child 2",
+  });
+
+  const parentNewCoords = _createTestCoordinates({
+    userId: setupParams.userId,
+    groupId: setupParams.groupId,
+    path: [Direction.West],
+  });
+
+  return {
+    setupData,
+    parentItem,
+    parentInitialCoords: parentCoords,
+    parentNewCoords,
+    compositionContainer,
+    composedChild1,
+    composedChild2,
+    userId: setupParams.userId,
+    groupId: setupParams.groupId,
+  };
+}

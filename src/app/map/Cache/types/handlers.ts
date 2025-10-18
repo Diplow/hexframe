@@ -81,12 +81,13 @@ export interface DataOperations {
 export interface NavigationOperations {
   navigateToItem: (itemCoordId: string, options?: { pushToHistory?: boolean }) => Promise<NavigationResult>;
   updateCenter: (centerCoordId: string) => void;
-  updateURL: (centerItemId: string, expandedItems: string[]) => void;
+  updateURL: (centerItemId: string, expandedItems: string[], compositionExpandedIds?: string[]) => void;
   prefetchForNavigation: (itemCoordId: string) => Promise<void>;
   syncURLWithState: () => void;
   navigateWithoutURL: (itemCoordId: string) => Promise<NavigationResult>;
-  getMapContext: () => { centerItemId: string; expandedItems: string[]; pathname: string; searchParams: URLSearchParams };
+  getMapContext: () => { centerItemId: string; expandedItems: string[]; compositionExpandedIds: string[]; pathname: string; searchParams: URLSearchParams };
   toggleItemExpansionWithURL: (itemId: string) => void;
+  toggleCompositionExpansionWithURL: (coordId: string) => void;
 }
 
 export interface MutationOperations {

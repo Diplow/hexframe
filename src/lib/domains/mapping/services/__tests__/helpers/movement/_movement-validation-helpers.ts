@@ -208,3 +208,64 @@ export async function _validateCrossSpaceMovementError(
     }),
   ).rejects.toThrow();
 }
+
+export async function _validateCompositionMovement(
+  testEnv: TestEnvironment,
+  compositionSetup: {
+    userId: number;
+    groupId: number;
+    parentItem: { id: string };
+    parentInitialCoords: Coord;
+    parentNewCoords: Coord;
+    compositionContainer: { id: string };
+    composedChild1: { id: string };
+    composedChild2: { id: string };
+  },
+) {
+  await testEnv.service.items.query.moveMapItem({
+    oldCoords: compositionSetup.parentInitialCoords,
+    newCoords: compositionSetup.parentNewCoords,
+  });
+
+  await _validateParentNewPosition(
+    testEnv,
+    compositionSetup.parentNewCoords,
+    compositionSetup.parentItem.id,
+  );
+
+  const compositionNewCoords = _createTestCoordinates({
+    userId: compositionSetup.userId,
+    groupId: compositionSetup.groupId,
+    path: [...compositionSetup.parentNewCoords.path, Direction.Center],
+  });
+
+  const movedComposition = await testEnv.service.items.crud.getItem({
+    coords: compositionNewCoords,
+  });
+  expect(movedComposition.id).toBe(compositionSetup.compositionContainer.id);
+  expect(movedComposition.parentId).toBe(compositionSetup.parentItem.id);
+
+  const composedChild1NewCoords = _createTestCoordinates({
+    userId: compositionSetup.userId,
+    groupId: compositionSetup.groupId,
+    path: [...compositionSetup.parentNewCoords.path, Direction.Center, Direction.NorthWest],
+  });
+
+  const movedChild1 = await testEnv.service.items.crud.getItem({
+    coords: composedChild1NewCoords,
+  });
+  expect(movedChild1.id).toBe(compositionSetup.composedChild1.id);
+  expect(movedChild1.parentId).toBe(compositionSetup.compositionContainer.id);
+
+  const composedChild2NewCoords = _createTestCoordinates({
+    userId: compositionSetup.userId,
+    groupId: compositionSetup.groupId,
+    path: [...compositionSetup.parentNewCoords.path, Direction.Center, Direction.SouthEast],
+  });
+
+  const movedChild2 = await testEnv.service.items.crud.getItem({
+    coords: composedChild2NewCoords,
+  });
+  expect(movedChild2.id).toBe(compositionSetup.composedChild2.id);
+  expect(movedChild2.parentId).toBe(compositionSetup.compositionContainer.id);
+}

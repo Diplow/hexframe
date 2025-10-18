@@ -13,6 +13,7 @@ export interface BaseFrameProps {
   mapItems: Record<string, TileData>;
   baseHexSize?: number;
   expandedItemIds?: string[];
+  compositionExpandedIds?: string[];
   scale?: TileScale;
   urlInfo: URLInfo;
   interactive?: boolean;
@@ -25,6 +26,7 @@ export const BaseFrame = ({
   mapItems,
   baseHexSize = 50,
   expandedItemIds = [],
+  compositionExpandedIds = [],
   scale = 3,
   urlInfo,
   interactive = true,
@@ -36,6 +38,10 @@ export const BaseFrame = ({
   const isExpanded = centerItem
     ? expandedItemIds.includes(centerItem.metadata.dbId)
     : false;
+
+  const hasComposition = _hasCompositionChild(center, mapItems);
+  const isCompositionExpanded = compositionExpandedIds.includes(center);
+  const canShowComposition = isExpanded && hasComposition && scale > 1;
 
   if (!centerItem) {
     // Find parent item for context
@@ -112,7 +118,7 @@ export const BaseFrame = ({
 
   // Generate test ID for the frame
   const frameTestId = `frame-${centerItem.metadata.coordinates.userId}-${centerItem.metadata.coordinates.groupId}-${centerItem.metadata.coordinates.path.join("-")}`;
-  
+
   const frame = (
     <div className="flex flex-col items-center justify-center" data-testid={frameTestId}>
       <div className="flex justify-center p-0">
@@ -121,6 +127,7 @@ export const BaseFrame = ({
           baseHexSize={baseHexSize}
           mapItems={mapItems}
           expandedItemIds={expandedItemIds}
+          compositionExpandedIds={compositionExpandedIds}
           scale={nextScale}
           urlInfo={urlInfo}
           interactive={interactive}
@@ -132,6 +139,7 @@ export const BaseFrame = ({
           mapItems={mapItems}
           baseHexSize={baseHexSize}
           expandedItemIds={expandedItemIds}
+          compositionExpandedIds={compositionExpandedIds}
           scale={nextScale}
           urlInfo={urlInfo}
           interactive={interactive}
@@ -145,14 +153,28 @@ export const BaseFrame = ({
           baseHexSize={baseHexSize}
           mapItems={mapItems}
           expandedItemIds={expandedItemIds}
+          compositionExpandedIds={compositionExpandedIds}
           scale={nextScale}
           urlInfo={urlInfo}
           interactive={interactive}
           currentUserId={currentUserId}
           isDarkMode={isDarkMode}
         />
-        <div className="flex flex-col">
-          {interactive ? (
+        <div className="flex flex-col" style={{ position: "relative" }}>
+          {canShowComposition && isCompositionExpanded ? (
+            <CompositionFrame
+              center={center}
+              mapItems={mapItems}
+              baseHexSize={baseHexSize}
+              expandedItemIds={expandedItemIds}
+              compositionExpandedIds={compositionExpandedIds}
+              scale={scale}
+              urlInfo={urlInfo}
+              interactive={interactive}
+              currentUserId={currentUserId}
+              isDarkMode={isDarkMode}
+            />
+          ) : interactive ? (
             <DynamicItemTile
               item={centerItem}
               scale={nextScale}
@@ -176,6 +198,7 @@ export const BaseFrame = ({
           baseHexSize={baseHexSize}
           mapItems={mapItems}
           expandedItemIds={expandedItemIds}
+          compositionExpandedIds={compositionExpandedIds}
           scale={nextScale}
           urlInfo={urlInfo}
           interactive={interactive}
@@ -189,6 +212,7 @@ export const BaseFrame = ({
           baseHexSize={baseHexSize}
           mapItems={mapItems}
           expandedItemIds={expandedItemIds}
+          compositionExpandedIds={compositionExpandedIds}
           scale={nextScale}
           urlInfo={urlInfo}
           interactive={interactive}
@@ -200,6 +224,7 @@ export const BaseFrame = ({
           baseHexSize={baseHexSize}
           mapItems={mapItems}
           expandedItemIds={expandedItemIds}
+          compositionExpandedIds={compositionExpandedIds}
           scale={nextScale}
           urlInfo={urlInfo}
           interactive={interactive}
@@ -232,6 +257,7 @@ interface RenderChildProps {
   mapItems: Record<string, TileData>;
   baseHexSize?: number;
   expandedItemIds?: string[];
+  compositionExpandedIds?: string[];
   scale: TileScale;
   urlInfo: URLInfo;
   interactive?: boolean;
@@ -244,6 +270,7 @@ const RenderChild = ({
   mapItems,
   baseHexSize = 50,
   expandedItemIds = [],
+  compositionExpandedIds = [],
   scale,
   urlInfo,
   interactive = true,
@@ -308,6 +335,7 @@ const RenderChild = ({
         center={coords}
         mapItems={mapItems}
         expandedItemIds={expandedItemIds}
+        compositionExpandedIds={compositionExpandedIds}
         scale={scale}
         urlInfo={urlInfo}
         interactive={interactive}
@@ -334,5 +362,170 @@ const RenderChild = ({
       isExpanded={false}
       isDarkMode={isDarkMode}
     />
+  );
+};
+
+/**
+ * Helper function to check if a tile has a composition child (direction 0)
+ */
+function _hasCompositionChild(coordId: string, mapItems: Record<string, TileData>): boolean {
+  const coord = CoordSystem.parseId(coordId);
+  const compositionCoord = CoordSystem.getCompositionCoord(coord);
+  const compositionCoordId = CoordSystem.createId(compositionCoord);
+  return !!mapItems[compositionCoordId];
+}
+
+/**
+ * CompositionFrame renders the inner frame (composition) at reduced scale
+ */
+interface CompositionFrameProps {
+  center: string;
+  mapItems: Record<string, TileData>;
+  baseHexSize: number;
+  expandedItemIds: string[];
+  compositionExpandedIds: string[];
+  scale: TileScale;
+  urlInfo: URLInfo;
+  interactive: boolean;
+  currentUserId?: number;
+  isDarkMode: boolean;
+}
+
+const CompositionFrame = ({
+  center,
+  mapItems,
+  baseHexSize,
+  expandedItemIds,
+  compositionExpandedIds,
+  scale,
+  urlInfo,
+  interactive,
+  currentUserId,
+  isDarkMode,
+}: CompositionFrameProps) => {
+  // Get composition container coordinate (direction 0)
+  const centerCoord = CoordSystem.parseId(center);
+  const compositionCoord = CoordSystem.getCompositionCoord(centerCoord);
+  const compositionCoordId = CoordSystem.createId(compositionCoord);
+
+  // Get composition container item
+  const compositionContainer = mapItems[compositionCoordId];
+  if (!compositionContainer) {
+    return null;
+  }
+
+  // Get children of composition container (directions 1-6)
+  const [NW, NE, E, SE, SW, W] = CoordSystem.getChildCoordsFromId(compositionCoordId);
+
+  // Inner frame is at scale-2 (2 scales down from parent)
+  const innerScale = (scale - 2) as TileScale;
+
+  const marginTopValue =
+    innerScale === 2 ? baseHexSize / 2 : (baseHexSize / 2) * Math.pow(3, innerScale - 2);
+  const marginTop = {
+    marginTop: `-${marginTopValue}px`,
+  };
+
+  return (
+    <div className="flex flex-col items-center justify-center" data-testid="inner-composition-frame">
+      <div className="flex justify-center p-0">
+        <RenderChild
+          coords={NW}
+          baseHexSize={baseHexSize}
+          mapItems={mapItems}
+          expandedItemIds={expandedItemIds}
+          compositionExpandedIds={compositionExpandedIds}
+          scale={innerScale}
+          urlInfo={urlInfo}
+          interactive={interactive}
+          currentUserId={currentUserId}
+          isDarkMode={isDarkMode}
+        />
+        <RenderChild
+          coords={NE}
+          mapItems={mapItems}
+          baseHexSize={baseHexSize}
+          expandedItemIds={expandedItemIds}
+          compositionExpandedIds={compositionExpandedIds}
+          scale={innerScale}
+          urlInfo={urlInfo}
+          interactive={interactive}
+          currentUserId={currentUserId}
+          isDarkMode={isDarkMode}
+        />
+      </div>
+      <div className="flex justify-center" style={marginTop}>
+        <RenderChild
+          coords={W}
+          baseHexSize={baseHexSize}
+          mapItems={mapItems}
+          expandedItemIds={expandedItemIds}
+          compositionExpandedIds={compositionExpandedIds}
+          scale={innerScale}
+          urlInfo={urlInfo}
+          interactive={interactive}
+          currentUserId={currentUserId}
+          isDarkMode={isDarkMode}
+        />
+        <div className="flex flex-col">
+          {interactive ? (
+            <DynamicItemTile
+              item={compositionContainer}
+              scale={innerScale}
+              allExpandedItemIds={expandedItemIds}
+              hasChildren={true}
+              isCenter={false}
+              urlInfo={urlInfo}
+              interactive={interactive}
+            />
+          ) : (
+            <BaseItemTile
+              item={compositionContainer}
+              scale={innerScale}
+              isExpanded={false}
+              isDarkMode={isDarkMode}
+            />
+          )}
+        </div>
+        <RenderChild
+          coords={E}
+          baseHexSize={baseHexSize}
+          mapItems={mapItems}
+          expandedItemIds={expandedItemIds}
+          compositionExpandedIds={compositionExpandedIds}
+          scale={innerScale}
+          urlInfo={urlInfo}
+          interactive={interactive}
+          currentUserId={currentUserId}
+          isDarkMode={isDarkMode}
+        />
+      </div>
+      <div className="flex justify-center" style={marginTop}>
+        <RenderChild
+          coords={SW}
+          baseHexSize={baseHexSize}
+          mapItems={mapItems}
+          expandedItemIds={expandedItemIds}
+          compositionExpandedIds={compositionExpandedIds}
+          scale={innerScale}
+          urlInfo={urlInfo}
+          interactive={interactive}
+          currentUserId={currentUserId}
+          isDarkMode={isDarkMode}
+        />
+        <RenderChild
+          coords={SE}
+          baseHexSize={baseHexSize}
+          mapItems={mapItems}
+          expandedItemIds={expandedItemIds}
+          compositionExpandedIds={compositionExpandedIds}
+          scale={innerScale}
+          urlInfo={urlInfo}
+          interactive={interactive}
+          currentUserId={currentUserId}
+          isDarkMode={isDarkMode}
+        />
+      </div>
+    </div>
   );
 };

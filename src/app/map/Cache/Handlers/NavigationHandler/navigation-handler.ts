@@ -20,6 +20,7 @@ import {
   createBoundNavigateWithoutURL,
   createBoundGetMapContext,
   createBoundToggleItemExpansionWithURL,
+  createBoundToggleCompositionExpansionWithURL,
 } from "~/app/map/Cache/Handlers/NavigationHandler/_bindings/navigation-bindings";
 
 export interface NavigationHandlerConfig {
@@ -74,6 +75,7 @@ export function createNavigationHandler(config: NavigationHandlerConfig) {
     navigateWithoutURL: createBoundNavigateWithoutURL(getState, dispatch, dataHandler),
     getMapContext: createBoundGetMapContext(config.pathname, config.searchParams),
     toggleItemExpansionWithURL: createBoundToggleItemExpansionWithURL(getState, dispatch),
+    toggleCompositionExpansionWithURL: createBoundToggleCompositionExpansionWithURL(getState, dispatch),
   } as NavigationOperations;
 }
 

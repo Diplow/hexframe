@@ -108,6 +108,7 @@ function _buildPublicAPI(deps: CacheAPIDependencies): MapCacheHook {
     items: state.itemsById,
     center: state.currentCenter,
     expandedItems: state.expandedItemIds,
+    compositionExpandedIds: state.compositionExpandedIds,
     isLoading: state.isLoading,
     error: state.error,
     lastUpdated: state.lastUpdated,

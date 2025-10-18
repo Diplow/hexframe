@@ -246,4 +246,372 @@ describe("MutationCoordinator Event Emissions", () => {
       });
     });
   });
+
+  describe("Cache invalidation for moved items", () => {
+    test("removes stale coordIds when moving item with regular children", async () => {
+      // Setup: Item at 1,0:1 with a child at 1,0:1,2
+      const parentItem = {
+        ...mockExistingItem1,
+        metadata: {
+          ...mockExistingItem1.metadata,
+          coordId: "1,0:1",
+          dbId: "parent-1",
+        },
+      };
+
+      const childItem = {
+        ...mockExistingItem2,
+        metadata: {
+          ...mockExistingItem2.metadata,
+          coordId: "1,0:1,2",
+          dbId: "child-1",
+        },
+      };
+
+      mockState.itemsById = {
+        "1,0:1": parentItem,
+        "1,0:1,2": childItem,
+      };
+
+      // Mock server response: parent moved to [3], child now at [3,2]
+      mockMutations.moveItemMutation.mutateAsync.mockResolvedValueOnce({
+        movedItemId: "parent-1",
+        modifiedItems: [
+          {
+            id: "parent-1",
+            coordinates: "1,0:3",
+            title: "Item 1",
+            content: "Description 1",
+            preview: undefined,
+            link: "",
+            depth: 1,
+            parentId: null,
+            itemType: "BASE" as const,
+            ownerId: "test-owner",
+          },
+          {
+            id: "child-1",
+            coordinates: "1,0:3,2",
+            title: "Item 2",
+            content: "Description 2",
+            preview: undefined,
+            link: "",
+            depth: 2,
+            parentId: "parent-1",
+            itemType: "BASE" as const,
+            ownerId: "test-owner",
+          },
+        ],
+      });
+
+      // Execute move
+      await coordinator.moveItem("1,0:1", "1,0:3");
+
+      // Verify that stale coordIds were removed
+      const removeItemCalls = mockDispatch.mock.calls.filter(
+        (call) => (call[0] as { type?: string })?.type === "REMOVE_ITEM"
+      );
+
+      // Should have removed OLD coordIds: "1,0:1" and "1,0:1,2"
+      expect(removeItemCalls).toEqual(
+        expect.arrayContaining([
+          [expect.objectContaining({ payload: "1,0:1" })],
+          [expect.objectContaining({ payload: "1,0:1,2" })],
+        ])
+      );
+    });
+
+    test("removes stale coordIds when moving item with composed child (direction 0)", async () => {
+      // Setup: Item at 1,0:1 with composed child at 1,0:1,0
+      const parentItem = {
+        ...mockExistingItem1,
+        metadata: {
+          ...mockExistingItem1.metadata,
+          coordId: "1,0:1",
+          dbId: "parent-1",
+        },
+      };
+
+      const composedChild = {
+        ...mockExistingItem2,
+        metadata: {
+          ...mockExistingItem2.metadata,
+          coordId: "1,0:1,0",
+          dbId: "composed-1",
+        },
+      };
+
+      mockState.itemsById = {
+        "1,0:1": parentItem,
+        "1,0:1,0": composedChild,
+      };
+
+      // Mock server response: parent moved to [2], composed child now at [2,0]
+      mockMutations.moveItemMutation.mutateAsync.mockResolvedValueOnce({
+        movedItemId: "parent-1",
+        modifiedItems: [
+          {
+            id: "parent-1",
+            coordinates: "1,0:2",
+            title: "Item 1",
+            content: "Description 1",
+            preview: undefined,
+            link: "",
+            depth: 1,
+            parentId: null,
+            itemType: "BASE" as const,
+            ownerId: "test-owner",
+          },
+          {
+            id: "composed-1",
+            coordinates: "1,0:2,0",
+            title: "Item 2",
+            content: "Description 2",
+            preview: undefined,
+            link: "",
+            depth: 2,
+            parentId: "parent-1",
+            itemType: "BASE" as const,
+            ownerId: "test-owner",
+          },
+        ],
+      });
+
+      // Execute move
+      await coordinator.moveItem("1,0:1", "1,0:2");
+
+      // Verify that stale coordIds were removed
+      const removeItemCalls = mockDispatch.mock.calls.filter(
+        (call) => (call[0] as { type?: string })?.type === "REMOVE_ITEM"
+      );
+
+      // Should have removed OLD coordIds: "1,0:1" and "1,0:1,0"
+      expect(removeItemCalls).toEqual(
+        expect.arrayContaining([
+          [expect.objectContaining({ payload: "1,0:1" })],
+          [expect.objectContaining({ payload: "1,0:1,0" })],
+        ])
+      );
+    });
+
+    test("removes stale coordIds for nested descendants (grandchildren)", async () => {
+      // Setup: Item at 1,0:1 with child at 1,0:1,2 and grandchild at 1,0:1,2,3
+      const parentItem = {
+        ...mockExistingItem1,
+        metadata: {
+          ...mockExistingItem1.metadata,
+          coordId: "1,0:1",
+          dbId: "parent-1",
+        },
+      };
+
+      const childItem = {
+        ...mockExistingItem2,
+        metadata: {
+          ...mockExistingItem2.metadata,
+          coordId: "1,0:1,2",
+          dbId: "child-1",
+        },
+      };
+
+      const grandchildItem = {
+        ...mockExistingItem1,
+        metadata: {
+          ...mockExistingItem1.metadata,
+          coordId: "1,0:1,2,3",
+          dbId: "grandchild-1",
+        },
+      };
+
+      mockState.itemsById = {
+        "1,0:1": parentItem,
+        "1,0:1,2": childItem,
+        "1,0:1,2,3": grandchildItem,
+      };
+
+      // Mock server response: parent moved to [4], children moved accordingly
+      mockMutations.moveItemMutation.mutateAsync.mockResolvedValueOnce({
+        movedItemId: "parent-1",
+        modifiedItems: [
+          {
+            id: "parent-1",
+            coordinates: "1,0:4",
+            title: "Item 1",
+            content: "Description 1",
+            preview: undefined,
+            link: "",
+            depth: 1,
+            parentId: null,
+            itemType: "BASE" as const,
+            ownerId: "test-owner",
+          },
+          {
+            id: "child-1",
+            coordinates: "1,0:4,2",
+            title: "Item 2",
+            content: "Description 2",
+            preview: undefined,
+            link: "",
+            depth: 2,
+            parentId: "parent-1",
+            itemType: "BASE" as const,
+            ownerId: "test-owner",
+          },
+          {
+            id: "grandchild-1",
+            coordinates: "1,0:4,2,3",
+            title: "Item 1",
+            content: "Description 1",
+            preview: undefined,
+            link: "",
+            depth: 3,
+            parentId: "child-1",
+            itemType: "BASE" as const,
+            ownerId: "test-owner",
+          },
+        ],
+      });
+
+      // Execute move
+      await coordinator.moveItem("1,0:1", "1,0:4");
+
+      // Verify that ALL stale coordIds were removed
+      const removeItemCalls = mockDispatch.mock.calls.filter(
+        (call) => (call[0] as { type?: string })?.type === "REMOVE_ITEM"
+      );
+
+      // Should have removed OLD coordIds: "1,0:1", "1,0:1,2", "1,0:1,2,3"
+      expect(removeItemCalls).toEqual(
+        expect.arrayContaining([
+          [expect.objectContaining({ payload: "1,0:1" })],
+          [expect.objectContaining({ payload: "1,0:1,2" })],
+          [expect.objectContaining({ payload: "1,0:1,2,3" })],
+        ])
+      );
+    });
+
+    test("removes stale coordIds even when moving to empty space (no swap)", async () => {
+      // Setup: Item at 1,0:1 with child at 1,0:1,2
+      const parentItem = {
+        ...mockExistingItem1,
+        metadata: {
+          ...mockExistingItem1.metadata,
+          coordId: "1,0:1",
+          dbId: "parent-1",
+        },
+      };
+
+      const childItem = {
+        ...mockExistingItem2,
+        metadata: {
+          ...mockExistingItem2.metadata,
+          coordId: "1,0:1,2",
+          dbId: "child-1",
+        },
+      };
+
+      mockState.itemsById = {
+        "1,0:1": parentItem,
+        "1,0:1,2": childItem,
+      };
+
+      // Mock server response: parent moved to [5] (empty space), child now at [5,2]
+      mockMutations.moveItemMutation.mutateAsync.mockResolvedValueOnce({
+        movedItemId: "parent-1",
+        modifiedItems: [
+          {
+            id: "parent-1",
+            coordinates: "1,0:5",
+            title: "Item 1",
+            content: "Description 1",
+            preview: undefined,
+            link: "",
+            depth: 1,
+            parentId: null,
+            itemType: "BASE" as const,
+            ownerId: "test-owner",
+          },
+          {
+            id: "child-1",
+            coordinates: "1,0:5,2",
+            title: "Item 2",
+            content: "Description 2",
+            preview: undefined,
+            link: "",
+            depth: 2,
+            parentId: "parent-1",
+            itemType: "BASE" as const,
+            ownerId: "test-owner",
+          },
+        ],
+      });
+
+      // Execute move (not a swap - target is empty)
+      await coordinator.moveItem("1,0:1", "1,0:5");
+
+      // Verify that stale coordIds were removed
+      const removeItemCalls = mockDispatch.mock.calls.filter(
+        (call) => (call[0] as { type?: string })?.type === "REMOVE_ITEM"
+      );
+
+      // Should have removed OLD coordIds: "1,0:1" and "1,0:1,2"
+      expect(removeItemCalls).toEqual(
+        expect.arrayContaining([
+          [expect.objectContaining({ payload: "1,0:1" })],
+          [expect.objectContaining({ payload: "1,0:1,2" })],
+        ])
+      );
+    });
+
+    test("handles move with no children correctly", async () => {
+      // Setup: Single item at 1,0:1 with no children
+      const parentItem = {
+        ...mockExistingItem1,
+        metadata: {
+          ...mockExistingItem1.metadata,
+          coordId: "1,0:1",
+          dbId: "parent-1",
+        },
+      };
+
+      mockState.itemsById = {
+        "1,0:1": parentItem,
+      };
+
+      // Mock server response: parent moved to [2], no children
+      mockMutations.moveItemMutation.mutateAsync.mockResolvedValueOnce({
+        movedItemId: "parent-1",
+        modifiedItems: [
+          {
+            id: "parent-1",
+            coordinates: "1,0:2",
+            title: "Item 1",
+            content: "Description 1",
+            preview: undefined,
+            link: "",
+            depth: 1,
+            parentId: null,
+            itemType: "BASE" as const,
+            ownerId: "test-owner",
+          },
+        ],
+      });
+
+      // Execute move
+      await coordinator.moveItem("1,0:1", "1,0:2");
+
+      // Verify that only the parent's old coordId was removed
+      const removeItemCalls = mockDispatch.mock.calls.filter(
+        (call) => (call[0] as { type?: string })?.type === "REMOVE_ITEM"
+      );
+
+      // Should have removed only OLD coordId: "1,0:1"
+      expect(removeItemCalls).toHaveLength(2); // One from optimistic, one from finalize
+      expect(removeItemCalls).toEqual(
+        expect.arrayContaining([
+          [expect.objectContaining({ payload: "1,0:1" })],
+        ])
+      );
+    });
+  });
 });

@@ -2,14 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { TileData } from "~/app/map/types/tile-data";
-import { 
-  Eye, 
-  Maximize2, 
-  Navigation, 
-  Edit, 
-  Trash2, 
+import {
+  Eye,
+  Maximize2,
+  Navigation,
+  Edit,
+  Trash2,
   Move,
-  Plus
+  Plus,
+  Layers
 } from "lucide-react";
 
 interface TileContextMenuProps {
@@ -22,8 +23,12 @@ interface TileContextMenuProps {
   onEdit?: () => void;
   onDelete?: () => void;
   onCreate?: () => void;
+  onCompositionToggle?: (tileData: TileData) => void;
   canEdit: boolean;
   isEmptyTile?: boolean;
+  hasComposition?: boolean;
+  isCompositionExpanded?: boolean;
+  canShowComposition?: boolean;
 }
 
 export function TileContextMenu({
@@ -36,8 +41,12 @@ export function TileContextMenu({
   onEdit,
   onDelete,
   onCreate,
+  onCompositionToggle,
   canEdit,
   isEmptyTile = false,
+  hasComposition = false,
+  isCompositionExpanded = false,
+  canShowComposition = false,
 }: TileContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [adjustedPosition, setAdjustedPosition] = useState(position);
@@ -118,6 +127,12 @@ export function TileContextMenu({
       label: tileData.state?.isExpanded ? "Collapse" : "Expand",
       shortcut: "Shift+Click",
       onClick: onExpand,
+    }] : []),
+    ...(onCompositionToggle && canShowComposition && hasComposition ? [{
+      icon: Layers,
+      label: isCompositionExpanded ? "Hide Composition" : "Show Composition",
+      shortcut: "",
+      onClick: () => onCompositionToggle(tileData),
     }] : []),
     ...(onNavigate ? [{
       icon: Navigation,

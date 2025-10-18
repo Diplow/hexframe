@@ -1,5 +1,5 @@
 import { type Dispatch } from "react";
-import { CoordSystem, type Coord, type MapItemUpdateAttributes, type MapItemCreateAttributes } from "~/lib/domains/mapping/utils";
+import { CoordSystem, type Coord, type MapItemUpdateAttributes, type MapItemCreateAttributes, type Direction } from "~/lib/domains/mapping/utils";
 import type { MapItemAPIContract } from "~/server/api";
 import type { CacheAction } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
@@ -734,16 +734,29 @@ export class MutationCoordinator {
     result: { modifiedItems: MapItemAPIContract[] },
     moveParams: ReturnType<typeof this._prepareMoveOperation>
   ) {
-    // Apply server response
+    // Remove stale cache entries before loading new ones
     if (result.modifiedItems?.length > 0) {
+      // Calculate OLD coordIds that need to be removed
+      const staleCoordIds = this._calculateStaleCoordIds(
+        result.modifiedItems,
+        moveParams.sourceCoordId,
+        moveParams.targetCoordId
+      );
+
+      // Remove stale entries from cache
+      staleCoordIds.forEach(oldCoordId => {
+        this.config.dispatch(cacheActions.removeItem(oldCoordId));
+      });
+
+      // Apply server response with NEW coordinates
       this.config.dispatch(cacheActions.loadRegion(result.modifiedItems, moveParams.targetCoordId, 1));
     }
-    
+
     // Clear tracking
     this.tracker.removeChange(moveParams.changeId);
     this.tracker.removeChange(moveParams.changeId + '_source');
     this.tracker.removeChange(moveParams.changeId + '_target');
-    
+
     // Emit appropriate event
     this._emitMoveEvent(moveParams);
   }
@@ -783,6 +796,48 @@ export class MutationCoordinator {
     );
   }
 
+  /**
+   * Calculate OLD coordIds that need to be removed from cache after a move operation.
+   *
+   * For each modified item with NEW coordinates, this calculates where it was BEFORE the move
+   * by computing the relative path from target and applying it to source.
+   *
+   * Example:
+   * - Source: [1], Target: [2]
+   * - Modified item NEW coords: [2,0,1] (child at direction 0, then 1)
+   * - Relative path from target [2] to item [2,0,1] = [0,1]
+   * - OLD coords: [1] + [0,1] = [1,0,1]
+   * - OLD coordId to remove: "userId,groupId:[1,0,1]"
+   */
+  private _calculateStaleCoordIds(
+    modifiedItems: MapItemAPIContract[],
+    sourceCoordId: string,
+    targetCoordId: string
+  ): string[] {
+    const sourceCoords = CoordSystem.parseId(sourceCoordId);
+    const targetCoords = CoordSystem.parseId(targetCoordId);
+    const staleCoordIds: string[] = [];
 
+    for (const item of modifiedItems) {
+      const newCoords = CoordSystem.parseId(item.coordinates);
+
+      // Calculate relative path from target to the new position
+      // This tells us how far "down" from target the item is
+      const relativePath = newCoords.path.slice(targetCoords.path.length);
+
+      // Apply the same relative path to the source to get old position
+      const oldPath: Direction[] = [...sourceCoords.path, ...relativePath];
+
+      const oldCoordId = CoordSystem.createId({
+        userId: sourceCoords.userId,
+        groupId: sourceCoords.groupId,
+        path: oldPath
+      });
+
+      staleCoordIds.push(oldCoordId);
+    }
+
+    return staleCoordIds;
+  }
 
 }

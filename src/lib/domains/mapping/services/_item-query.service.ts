@@ -4,7 +4,7 @@ import type {
 } from "~/lib/domains/mapping/_repositories";
 import { MapItemActions } from "~/lib/domains/mapping/_actions";
 import { adapt } from "~/lib/domains/mapping/types/contracts";
-import type { Coord } from "~/lib/domains/mapping/utils";
+import { CoordSystem, Direction, type Coord } from "~/lib/domains/mapping/utils";
 import type { MapItemContract } from "~/lib/domains/mapping/types/contracts";
 
 export class ItemQueryService {
@@ -41,17 +41,101 @@ export class ItemQueryService {
   }
 
   /**
+   * Check if a tile has composition (direction 0 child)
+   */
+  async hasComposition({
+    coordId,
+  }: {
+    coordId: string;
+  }): Promise<boolean> {
+    // Parse parent coord
+    const parentCoord = CoordSystem.parseId(coordId);
+
+    // Generate composition container coord (direction 0)
+    const compositionCoord = CoordSystem.getCompositionCoord(parentCoord);
+
+    // Check if composition container exists
+    try {
+      await this.actions.getMapItem({
+        coords: compositionCoord,
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Get composed children for a tile (direction 0 container and its children)
+   */
+  async getComposedChildren({
+    coordId,
+  }: {
+    coordId: string;
+  }): Promise<MapItemContract[]> {
+    // Parse parent coord
+    const parentCoord = CoordSystem.parseId(coordId);
+
+    // Generate composition container coord (direction 0)
+    const compositionCoord = CoordSystem.getCompositionCoord(parentCoord);
+
+    // Try to fetch composition container
+    let compositionContainer;
+    try {
+      compositionContainer = await this.actions.getMapItem({
+        coords: compositionCoord,
+      });
+    } catch {
+      // If no composition exists, return empty array
+      return [];
+    }
+
+    // Fetch direct children of composition container (directions 1-6)
+    const composedChildren = await this.actions.mapItems.getDescendantsWithDepth({
+      parentPath: compositionCoord.path,
+      parentUserId: compositionCoord.userId,
+      parentGroupId: compositionCoord.groupId,
+      maxGenerations: 1,
+    });
+
+    // Convert to contracts
+    const containerContract = adapt.mapItem(
+      compositionContainer,
+      compositionContainer.attrs.coords.userId
+    );
+
+    const childrenContracts = composedChildren.map((child) =>
+      adapt.mapItem(child, child.attrs.coords.userId)
+    );
+
+    // Return container + children
+    return [containerContract, ...childrenContracts];
+  }
+
+  /**
    * Get all descendants of a specific item ID
    */
   async getDescendants({
     itemId,
+    includeComposition = false,
   }: {
     itemId: number;
+    includeComposition?: boolean;
   }): Promise<MapItemContract[]> {
     const item = await this.actions.mapItems.getOne(itemId);
     if (!item) throw new Error(`Item with id ${itemId} not found.`);
 
-    const descendants = await this.actions.getDescendants(itemId);
+    // Get descendants
+    let descendants = await this.actions.getDescendants(itemId);
+
+    // Filter out composition if not requested
+    if (!includeComposition) {
+      descendants = descendants.filter((desc) => {
+        // Remove items with direction 0 in their path
+        return !desc.attrs.coords.path.includes(Direction.Center);
+      });
+    }
+
     return descendants.map((desc) => {
       const userId = desc.attrs.coords.userId;
       return adapt.mapItem(desc, userId);

@@ -154,95 +154,39 @@ if (typeof window !== "undefined") {
 
 // Clean up after each test
 afterEach(() => {
-  // React Testing Library cleanup first
+  // React Testing Library cleanup first - this handles unmounting components
   cleanup();
-  
-  // More thorough DOM cleanup for React 18 createRoot compatibility
-  if (typeof document !== 'undefined' && document.querySelectorAll) {
-    // Remove all React roots that might be lingering
-    const allElements = document.querySelectorAll('[data-reactroot], #root, #test-container, .react-root');
-    allElements.forEach(element => {
-      if (element.parentNode) {
-        element.parentNode.removeChild(element);
-      }
-    });
-    
-    // Clear body content
-    if (document.body) {
-      document.body.innerHTML = '';
-    }
-    
-    // Clear document head of any test-added elements
-    if (document.head) {
-      const testElements = document.head.querySelectorAll('[data-test]');
-      testElements.forEach(element => {
-        if (element.parentNode) {
-          element.parentNode.removeChild(element);
-        }
-      });
-    }
-  }
-  
-  // Clear any React 18 createRoot containers from memory
-  if (typeof global !== 'undefined') {
-    const globalWithHook = global as typeof global & {
-      __REACT_DEVTOOLS_GLOBAL_HOOK__?: {
-        onCommitFiberRoot?: unknown;
-        onCommitFiberUnmount?: unknown;
-      };
-    };
-    if (globalWithHook.__REACT_DEVTOOLS_GLOBAL_HOOK__) {
-      try {
-        globalWithHook.__REACT_DEVTOOLS_GLOBAL_HOOK__.onCommitFiberRoot = undefined;
-        globalWithHook.__REACT_DEVTOOLS_GLOBAL_HOOK__.onCommitFiberUnmount = undefined;
-      } catch {
-        // Ignore cleanup errors
-      }
-    }
+
+  // Clear all mocks to prevent state leakage between tests
+  vi.clearAllMocks();
+
+  // Clear localStorage to prevent state leakage
+  if (typeof window !== 'undefined' && window.localStorage) {
+    window.localStorage.clear();
   }
 });
 
 // Add a global beforeEach to ensure DOM is ready
 beforeEach(() => {
-  // Ensure document.body exists before each test
-  if (typeof document !== 'undefined') {
-    if (!document.body) {
-      const body = document.createElement('body');
-      if (document.documentElement) {
-        document.documentElement.appendChild(body);
-      }
-    }
-    
-    // Force re-create containers to ensure clean state
-    // Remove existing containers first
-    const existingRoot = document.getElementById('root');
-    if (existingRoot) {
-      existingRoot.remove();
-    }
-    const existingTestContainer = document.getElementById('test-container');
-    if (existingTestContainer) {
-      existingTestContainer.remove();
-    }
-    
-    // Create fresh containers
-    const root = document.createElement('div');
-    root.id = 'root';
-    // Add data attribute for easier cleanup
-    root.setAttribute('data-test', 'true');
-    document.body.appendChild(root);
-    
-    const testContainer = document.createElement('div');
-    testContainer.id = 'test-container';
-    testContainer.setAttribute('data-test', 'true');
-    document.body.appendChild(testContainer);
-    
-    // Ensure we have a clean slate for React 18 createRoot
-    // Add some additional containers that React Testing Library might need
-    const reactContainer = document.createElement('div');
-    reactContainer.id = 'react-test-container';
-    reactContainer.setAttribute('data-test', 'true');
-    document.body.appendChild(reactContainer);
+  // Ensure document and document.body exist
+  if (typeof document === 'undefined' || !document.body) {
+    return;
   }
+
+  // Clear the body and recreate containers
+  // cleanup() from React Testing Library already handles unmounting
+  document.body.innerHTML = '';
+
+  // Create standard test containers for each test
+  const root = document.createElement('div');
+  root.id = 'root';
+  root.setAttribute('data-test', 'true');
+  document.body.appendChild(root);
+
+  const testContainer = document.createElement('div');
+  testContainer.id = 'test-container';
+  testContainer.setAttribute('data-test', 'true');
+  document.body.appendChild(testContainer);
 });
 
 // Mock providers for tests
