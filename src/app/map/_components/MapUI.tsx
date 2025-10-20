@@ -176,11 +176,20 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
   };
 
   const canShowComposition = (tileData: TileData): boolean => {
-    // Can only show composition for center tiles at scale > 1
+    // Can only show composition for center tiles
     const isCenterTile = tileData.metadata.coordId === centerCoordinate;
+    if (!isCenterTile) return false;
+
+    // Check if tile has composition children
     const hasComp = hasComposition(tileData.metadata.coordId);
-    // Scale is determined by expansion depth - center with expansion can show composition
-    return isCenterTile && hasComp;
+
+    // Check if user owns the tile (hardcoded to userId 0 for now)
+    // TODO: Get actual user ID from session/auth context
+    const currentUserId = 0;
+    const isOwner = tileData.metadata.ownerId === currentUserId.toString();
+
+    // Show composition if: (1) tile has composition children, OR (2) user owns the tile (to allow creation)
+    return hasComp || isOwner;
   };
 
   return (

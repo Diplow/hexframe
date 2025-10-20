@@ -184,7 +184,8 @@ describe('TileContextMenu - Show Composition', () => {
       expect(screen.queryByText('Show Composition')).not.toBeInTheDocument();
     });
 
-    it('should NOT show "Show Composition" when tile has no composition', () => {
+    it('should show "Show Composition" when canShowComposition is true (even without existing composition)', () => {
+      // This allows owners to create composition children
       const tileWithoutComposition = createMockTileData();
 
       render(
@@ -200,7 +201,7 @@ describe('TileContextMenu - Show Composition', () => {
         />
       );
 
-      expect(screen.queryByText('Show Composition')).not.toBeInTheDocument();
+      expect(screen.getByText('Show Composition')).toBeInTheDocument();
     });
 
     it('should hide "Show Composition" for empty tiles', () => {
