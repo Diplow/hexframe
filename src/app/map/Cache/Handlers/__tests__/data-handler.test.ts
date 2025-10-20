@@ -10,11 +10,6 @@ import type { CacheState } from "~/app/map/Cache/State/types";
 import type { MapItemAPIContract } from "~/server/api/types/contracts";
 import { MapItemType } from "~/lib/domains/mapping/utils";
 
-// Mock console.warn to avoid noise in tests (restored after each test)
-vi.spyOn(console, 'warn').mockImplementation(() => {
-  // Intentionally empty to silence warnings in tests
-});
-
 describe("Data Handler", () => {
   let mockDispatch: ReturnType<typeof vi.fn>;
   let mockUtils: {
@@ -65,6 +60,11 @@ describe("Data Handler", () => {
   ];
 
   beforeEach(() => {
+    // Mock console.warn to avoid noise in tests and allow spying
+    vi.spyOn(console, 'warn').mockImplementation(() => {
+      // Intentionally empty to silence warnings in tests
+    });
+
     mockDispatch = vi.fn();
 
     // Mock tRPC utils for the new pure service approach
