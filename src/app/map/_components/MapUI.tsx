@@ -183,10 +183,10 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
     // Check if tile has composition children
     const hasComp = hasComposition(tileData.metadata.coordId);
 
-    // Check if user owns the tile (hardcoded to userId 0 for now)
-    // TODO: Get actual user ID from session/auth context
-    const currentUserId = 0;
-    const isOwner = tileData.metadata.ownerId === currentUserId.toString();
+    // Get current user ID from the tile's coordinates
+    // The userId is embedded in the coordinates
+    const currentUserId = tileData.metadata.coordinates.userId.toString();
+    const isOwner = tileData.metadata.ownerId === currentUserId;
 
     // Show composition if: (1) tile has composition children, OR (2) user owns the tile (to allow creation)
     return hasComp || isOwner;
