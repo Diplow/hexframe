@@ -410,9 +410,17 @@ const CompositionFrame = ({
 
   // Get composition container item
   const compositionContainer = mapItems[compositionCoordId];
-  if (!compositionContainer) {
-    return null;
-  }
+
+  console.log('[CompositionFrame DEBUG]', {
+    center,
+    compositionCoordId,
+    hasCompositionContainer: !!compositionContainer,
+    compositionContainer: compositionContainer ? 'exists' : 'missing',
+  });
+
+  // If no composition container exists, we should still render empty tiles
+  // for the user to create composition children (the container will be created on first child)
+  // For now, continue rendering - RenderChild will handle empty tiles
 
   // Get children of composition container (directions 1-6)
   const [NW, NE, E, SE, SW, W] = CoordSystem.getChildCoordsFromId(compositionCoordId);
@@ -468,23 +476,49 @@ const CompositionFrame = ({
           isDarkMode={isDarkMode}
         />
         <div className="flex flex-col">
-          {interactive ? (
-            <DynamicItemTile
-              item={compositionContainer}
-              scale={innerScale}
-              allExpandedItemIds={expandedItemIds}
-              hasChildren={true}
-              isCenter={false}
-              urlInfo={urlInfo}
-              interactive={interactive}
-            />
+          {compositionContainer ? (
+            interactive ? (
+              <DynamicItemTile
+                item={compositionContainer}
+                scale={innerScale}
+                baseHexSize={baseHexSize}
+                allExpandedItemIds={expandedItemIds}
+                hasChildren={true}
+                isCenter={false}
+                urlInfo={urlInfo}
+                interactive={interactive}
+              />
+            ) : (
+              <BaseItemTile
+                item={compositionContainer}
+                scale={innerScale}
+                isExpanded={false}
+                isDarkMode={isDarkMode}
+              />
+            )
           ) : (
-            <BaseItemTile
-              item={compositionContainer}
-              scale={innerScale}
-              isExpanded={false}
-              isDarkMode={isDarkMode}
-            />
+            // Render empty tile for composition container when it doesn't exist
+            interactive ? (
+              <DynamicEmptyTile
+                coordId={compositionCoordId}
+                scale={innerScale}
+                baseHexSize={baseHexSize}
+                urlInfo={urlInfo}
+                parentItem={{
+                  id: mapItems[center]?.metadata.dbId ?? '',
+                  name: mapItems[center]?.data.title ?? 'Parent',
+                }}
+                interactive={interactive}
+                currentUserId={currentUserId}
+              />
+            ) : (
+              <BaseEmptyTile
+                coordId={compositionCoordId}
+                scale={innerScale}
+                baseHexSize={baseHexSize}
+                isDarkMode={isDarkMode}
+              />
+            )
           )}
         </div>
         <RenderChild
