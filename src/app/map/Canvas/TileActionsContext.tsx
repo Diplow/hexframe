@@ -86,6 +86,12 @@ export function TileActionsProvider({
 
   const onTileClick = useCallback((tileData: TileData, event: React.MouseEvent) => {
 
+    // Handle ctrl+shift+click for composition toggle immediately
+    if ((event.ctrlKey || event.metaKey) && event.shiftKey) {
+      onCompositionToggle?.(tileData);
+      return;
+    }
+
     // Handle shift+click for expansion/collapse immediately
     if (event.shiftKey && tileData.state?.canExpand) {
       onExpandClick?.(tileData);
@@ -109,7 +115,7 @@ export function TileActionsProvider({
       }
       clickTimeoutRef.current = null;
     }, 200); // Wait 200ms to see if it's a double-click
-  }, [onNavigateClick, onSelectClick, onExpandClick]);
+  }, [onNavigateClick, onSelectClick, onExpandClick, onCompositionToggle]);
 
   const onTileDoubleClick = useCallback((_tileData: TileData) => {
     // Clear the single click timeout

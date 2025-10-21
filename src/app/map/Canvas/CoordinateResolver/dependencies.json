@@ -1,0 +1,7 @@
+{
+  "allowed": [
+    "~/app/map/types/tile-data"
+  ],
+  "allowedChildren": [],
+  "subsystems": []
+}

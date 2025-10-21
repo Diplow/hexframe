@@ -131,7 +131,7 @@ export function TileContextMenu({
     ...(onCompositionToggle && canShowComposition ? [{
       icon: Layers,
       label: isCompositionExpanded ? "Hide Composition" : "Show Composition",
-      shortcut: "",
+      shortcut: "Ctrl+Shift+Click",
       onClick: () => onCompositionToggle(tileData),
     }] : []),
     ...(onNavigate ? [{
