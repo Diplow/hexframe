@@ -195,11 +195,11 @@ export class MutationCoordinator {
 
   async createItem(coordId: string, data: MapItemCreateAttributes & { parentId?: number }): Promise<MutationResult> {
     const changeId = this.tracker.generateChangeId();
-    
+
     try {
       const coords = CoordSystem.parseId(coordId);
       const parentId = await this._resolveParentId(coords, data.parentId);
-      
+
       // Apply optimistic update
       const optimisticItem = this._createOptimisticItem(coordId, coords, data, parentId);
       this._applyOptimisticCreate(coordId, optimisticItem, changeId);
@@ -506,13 +506,23 @@ export class MutationCoordinator {
     if (providedParentId !== undefined && providedParentId !== null) {
       return providedParentId.toString();
     }
-    
+
     const parentCoords = CoordSystem.getParentCoord(coords);
     if (!parentCoords) return null;
-    
+
     const parentCoordId = CoordSystem.createId(parentCoords);
-    const parentItem = this.config.getState().itemsById[parentCoordId];
-    
+    let parentItem = this.config.getState().itemsById[parentCoordId];
+
+    // Handle virtual composition containers (ending in ,0)
+    // If parent doesn't exist and is a composition container, use grandparent
+    if (!parentItem && parentCoordId.endsWith(',0')) {
+      const grandparentCoords = CoordSystem.getParentCoord(parentCoords);
+      if (grandparentCoords) {
+        const grandparentCoordId = CoordSystem.createId(grandparentCoords);
+        parentItem = this.config.getState().itemsById[grandparentCoordId];
+      }
+    }
+
     return parentItem ? String(parentItem.metadata.dbId) : null;
   }
 

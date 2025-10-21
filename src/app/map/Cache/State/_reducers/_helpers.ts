@@ -14,8 +14,13 @@ export const formatItems = (items: MapItemAPIContract[]): TileData[] => {
     })
     .filter((item): item is TileData => {
       if (!item) return false;
-      // Filter out items with zero in path
-      return !item.metadata.coordinates.path.includes(0);
+      // Filter out virtual composition containers (paths ending with 0)
+      // BUT keep composition children (paths like [3,0,1] where 0 is second-to-last)
+      const path = item.metadata.coordinates.path;
+      if (path.length === 0) return true; // Keep root items
+      const lastElement = path[path.length - 1];
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+      return lastElement !== 0; // Filter out only if path ENDS with 0
     });
 };
 

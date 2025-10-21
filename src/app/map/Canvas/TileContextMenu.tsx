@@ -44,7 +44,7 @@ export function TileContextMenu({
   onCompositionToggle,
   canEdit,
   isEmptyTile = false,
-  hasComposition = false,
+  hasComposition: _hasComposition = false,
   isCompositionExpanded = false,
   canShowComposition = false,
 }: TileContextMenuProps) {
