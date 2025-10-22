@@ -9,6 +9,7 @@ import { useTileSelectForChat } from "~/app/map/_hooks/use-tile-select-for-chat"
 import { useMapCache, type MapCacheHook } from '~/app/map/Cache';
 import { useRouter } from "next/navigation";
 import { useEventBus, type EventBusService } from '~/app/map';
+import { CoordSystem } from "~/lib/domains/mapping/utils";
 // Removed drag service import - using global service
 
 const CACHE_CONFIG = {
@@ -168,7 +169,7 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
   // Composition state checkers
   const hasComposition = (coordId: string): boolean => {
     // Check if tile has a composition child (direction 0)
-    const compositionCoordId = `${coordId},0`;
+    const compositionCoordId = CoordSystem.getCompositionCoordFromId(coordId);
     return !!mapItems[compositionCoordId];
   };
 

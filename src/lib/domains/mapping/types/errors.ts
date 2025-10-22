@@ -10,7 +10,7 @@ export const MAPPING_ERRORS = {
   MUST_GRAVITATE_AROUND_CENTER:
     "MapItems are built to gravitate around a center.",
   INVALID_PARENT_LEVEL: "Invalid parent: must be one level deeper",
-  INVALID_NEIGHBORS_COUNT: "Invalid number of neighbors: must be 6 or less",
+  INVALID_NEIGHBORS_COUNT: "Invalid neighbors count: must be 6 or fewer, or 7 if a composition child (Direction.Center) is present",
   INVALID_NEIGHBOR_COLOR:
     "Invalid neighbor: must have the same color as parent",
   INVALID_NEIGHBOR_PATH: "Invalid neighbor: path must extend parent's path",

@@ -8,7 +8,7 @@ The Actions subsystem is the "command factory" for the cache state - it creates 
 
 - Create action objects for cache data operations (load, update, remove)
 - Create action objects for navigation state changes (center, expansion)
-- Create action objects for composition expansion state (toggle, set, clear)
+- Create action objects for composition expansion state (toggle, set)
 - Create action objects for system operations (loading, errors, invalidation)
 - Provide validated action creators with runtime checks
 - Provide helper functions for creating batch operations
@@ -43,9 +43,8 @@ The Actions subsystem is the "command factory" for the cache state - it creates 
 - `createSetCenterAction(centerCoordId)`: Validated version with runtime checks
 
 ### Composition Actions (composition.ts)
-- `toggleCompositionExpansion(coordId)`: Toggle composition view for a tile
-- `setCompositionExpansion(coordId, isExpanded)`: Set composition state explicitly
-- `clearCompositionExpansions()`: Clear all composition expansions
+- `toggleCompositionExpansion()`: Toggle composition expansion state for the current center tile
+- `setCompositionExpansion(isExpanded: boolean)`: Set composition expansion state explicitly
 
 ### System Actions (system.ts)
 - `setLoading(isLoading)`: Set loading state

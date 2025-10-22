@@ -11,11 +11,10 @@ The Cache State is the "frontend database schema" - it defines the shape of data
 - Provide action type constants via `ACTION_TYPES` for type-safe action creation
 - Export initial state configuration via `initialCacheState`
 - Track regular tile expansion state via `expandedItemIds: string[]`
-- Track composition expansion state via `compositionExpandedIds: string[]`
+- Track composition expansion state via `isCompositionExpanded: boolean`
 - Handle composition state updates via reducer handlers:
-  - `handleToggleCompositionExpansion`: Toggle coordId in/out of array
-  - `handleSetCompositionExpansion`: Explicitly set expansion state
-  - `handleClearCompositionExpansions`: Clear all composition expansions
+  - `handleToggleCompositionExpansion`: Toggle the boolean flag
+  - `handleSetCompositionExpansion`: Explicitly set the boolean flag
 - Provide pure reducer function via `cacheReducer` for state transitions
 - Export action creators for all cache operations (including composition actions)
 - Export selectors for derived state queries
@@ -39,7 +38,7 @@ Key exports:
 - **Reducer**: `cacheReducer`, `initialCacheState`
 - **Actions**:
   - Navigation: `setCenter`, `toggleItemExpansion`, `setExpandedItems`
-  - Composition: `toggleCompositionExpansion`, `setCompositionExpansion`, `clearCompositionExpansions`
+  - Composition: `toggleCompositionExpansion`, `setCompositionExpansion`
   - Data: `loadRegion`, `loadItemChildren`, `updateItems`, `removeItem`
   - System: `setLoading`, `setError`, `invalidateRegion`, `invalidateAll`
 - **Selectors**: `cacheSelectors`, region queries, optimization helpers
@@ -51,7 +50,7 @@ interface CacheState {
   regionMetadata: Record<string, RegionMetadata>;
   currentCenter: string | null;
   expandedItemIds: string[];                // Tiles with all 6 children visible
-  compositionExpandedIds: string[];         // Tiles with direction 0 visible
+  isCompositionExpanded: boolean;           // Global composition view toggle
   isLoading: boolean;
   error: Error | null;
   lastUpdated: number;
