@@ -14,6 +14,7 @@ import { useCanvasTheme } from "~/app/map/Canvas";
 import { useEffect } from "react";
 import { loggers } from "~/lib/debug/debug-logger";
 import { CoordinateResolver } from "~/app/map/Canvas/CoordinateResolver";
+import { TileWithNeighbors } from "~/app/map/Canvas/_components/TileWithNeighbors";
 
 const CHILD_INDICES = [1, 2, 3, 4, 5, 6] as const;
 
@@ -109,21 +110,13 @@ export const DynamicFrameCore = (props: DynamicFrameCoreProps) => {
       />
     );
 
-    // If neighbors are disabled or no render function provided, just return the center tile
-    if (!props.showNeighbors || !props.renderNeighbors) {
-      return centerTile;
-    }
-
-    // With neighbors enabled, wrap in a container that can handle overflow
     return (
-      <div className="relative" style={{ zIndex: 10 }}>
-        {/* Center tile (highest z-index) */}
-        <div style={{ position: "relative", zIndex: 10 }}>
-          {centerTile}
-        </div>
-
-        {/* Neighbor tiles (lower z-index, positioned around center) */}
-        {props.renderNeighbors(centerItem, {
+      <TileWithNeighbors
+        centerTile={centerTile}
+        centerItem={centerItem}
+        showNeighbors={props.showNeighbors ?? false}
+        renderNeighbors={props.renderNeighbors}
+        neighborProps={{
           mapItems: props.mapItems,
           baseHexSize: props.baseHexSize,
           scale,
@@ -137,8 +130,8 @@ export const DynamicFrameCore = (props: DynamicFrameCoreProps) => {
           onNavigate: props.onNavigate,
           onToggleExpansion: props.onToggleExpansion,
           onCreateRequested: props.onCreateRequested,
-        })}
-      </div>
+        }}
+      />
     );
   }
 
@@ -179,21 +172,13 @@ export const DynamicFrameCore = (props: DynamicFrameCoreProps) => {
     </DynamicBaseTileLayout>
   );
 
-  // If neighbors are disabled or no render function provided, just return the expanded frame
-  if (!props.showNeighbors || !props.renderNeighbors) {
-    return expandedFrame;
-  }
-
-  // With neighbors enabled, wrap expanded frame with neighbors too
   return (
-    <div className="relative" style={{ zIndex: 10 }}>
-      {/* Expanded frame (highest z-index) */}
-      <div style={{ position: "relative", zIndex: 10 }}>
-        {expandedFrame}
-      </div>
-
-      {/* Neighbor tiles (lower z-index, positioned around center) */}
-      {props.renderNeighbors(centerItem, {
+    <TileWithNeighbors
+      centerTile={expandedFrame}
+      centerItem={centerItem}
+      showNeighbors={props.showNeighbors ?? false}
+      renderNeighbors={props.renderNeighbors}
+      neighborProps={{
         mapItems: props.mapItems,
         baseHexSize: props.baseHexSize,
         scale,
@@ -207,8 +192,8 @@ export const DynamicFrameCore = (props: DynamicFrameCoreProps) => {
         onNavigate: props.onNavigate,
         onToggleExpansion: props.onToggleExpansion,
         onCreateRequested: props.onCreateRequested,
-      })}
-    </div>
+      }}
+    />
   );
 };
 
