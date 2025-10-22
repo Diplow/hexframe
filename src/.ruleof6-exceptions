@@ -12,6 +12,14 @@ commons/trpc/react.tsx:12 # tRPC client setup requires multiple React hooks and 
 app/map/Chat/_state/_selectors/widget-selectors.ts:12 # Widget state management requires multiple selector functions for performance
 app/map/Chat/_state/_events/tile-event-transformers.ts:10 # Event transformation requires one transformer per event type
 
+# Chat subsystem - Parser false positives (counts callbacks and inline components as functions)
+app/map/Chat/Timeline/Widgets/TileWidget/_internals/_form-utils.ts:20 # Form utility helpers module - collection of related form processing functions
+app/map/Chat/Timeline/Widgets/TileWidget/_internals/_handlers.ts:20 # Event handler utilities module - collection of related event handlers
+app/map/Chat/Input/_hooks/autocomplete/useAutocompleteLogic.ts:15 # Autocomplete logic hook - complex state machine with multiple internal helpers
+app/map/Chat/Timeline/_components/_renderers/widget-renderers.tsx:15 # Widget renderer collection - one render function per widget type for type safety
+app/map/Chat/Timeline/_components/_renderers/_markdown-components.tsx:12 # Markdown component collection - one component per markdown element type
+app/map/Chat/Timeline/Widgets/TileWidget/tile-widget.tsx:12 # Complex widget orchestrator with multiple event handlers and state transitions
+
 # Function argument exceptions
 app/map/Chat/_state/_selectors/widget-selectors.ts:_createDirectWidget:8 # Widget creation requires comprehensive configuration parameters
 

@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import type { CreateKeyData, CreateKeyResult } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/useMcpKeys';
-import { KeyNameField } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/_components/KeyNameField';
-import { PasswordField } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/_components/PasswordField';
-import { ExpirationField } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/_components/ExpirationField';
-import { FormButtons } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/_components/FormButtons';
+import { KeyNameField } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/_components/form-fields/KeyNameField';
+import { PasswordField } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/_components/form-fields/PasswordField';
+import { ExpirationField } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/_components/form-fields/ExpirationField';
+import { FormButtons } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/_components/form-fields/FormButtons';
 
 interface KeyCreationProps {
   onCreate: (data: CreateKeyData) => Promise<CreateKeyResult>;
