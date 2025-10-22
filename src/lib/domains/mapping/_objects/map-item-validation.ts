@@ -2,6 +2,7 @@ import type { MapItem } from "~/lib/domains/mapping/_objects/map-item";
 import { MAPPING_ERRORS } from "~/lib/domains/mapping/types/errors";
 import { MapItemType } from "~/lib/domains/mapping/_objects/map-item";
 import { MapItemNeighborValidation } from "~/lib/domains/mapping/_objects/map-item-neighbor-validation";
+import { Direction } from "../utils";
 
 export class MapItemValidation {
   public static validateCoords(_item: MapItem) {
@@ -39,8 +40,7 @@ export class MapItemValidation {
         // Composition child: depth = parent + 2, second-to-last direction is 0
         const isCompositionChild =
           itemDepth === parentDepth + 2 &&
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-          item.attrs.coords.path[itemDepth - 2] === 0;
+          item.attrs.coords.path[itemDepth - 2] === Direction.Center;
 
         if (!isDirectChild && !isCompositionChild) {
           throw new Error(MAPPING_ERRORS.INVALID_PARENT_LEVEL);

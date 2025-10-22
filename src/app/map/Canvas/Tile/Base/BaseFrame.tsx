@@ -408,13 +408,6 @@ const CompositionFrame = ({
   // Get composition container item
   const compositionContainer = mapItems[compositionCoordId];
 
-  console.log('[CompositionFrame DEBUG]', {
-    center,
-    compositionCoordId,
-    hasCompositionContainer: !!compositionContainer,
-    compositionContainer: compositionContainer ? 'exists' : 'missing',
-  });
-
   // If no composition container exists, we should still render empty tiles
   // for the user to create composition children (the container will be created on first child)
   // For now, continue rendering - RenderChild will handle empty tiles
