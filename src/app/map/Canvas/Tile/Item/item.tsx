@@ -7,6 +7,7 @@ import { useItemState } from "~/app/map/Canvas/Tile/Item/_internals/hooks";
 import { ItemTileContent } from "~/app/map/Canvas/Tile/Item/_components/item-tile-content";
 import { useEffect } from "react";
 import { loggers } from "~/lib/debug/debug-logger";
+import { calculateTileDimensions } from "~/app/map/Canvas/Tile/_internals/utils/dimensions";
 
 export interface DynamicItemTileProps {
   item: TileData;
@@ -45,6 +46,9 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
     scale,
   });
   
+  // Calculate dimensions based on scale (same calculation as BaseTileLayout)
+  const { width, height } = calculateTileDimensions(scale, baseHexSize);
+
   // Log tile render
   useEffect(() => {
     loggers.render.canvas('DynamicItemTile render', {
@@ -69,6 +73,8 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
         className={`group relative select-none ${state.hasOperationPending ? 'operation-pending' : ''}`}
         data-testid={state.testId}
         style={{
+          width,
+          height,
           opacity: state.hasOperationPending ? 0.7 : 1,
           // Container has no pointer events - hexagon shapes handle all interactions
           pointerEvents: 'none'

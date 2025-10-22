@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { getDefaultStroke, getStrokeHexColor } from "~/app/map/Canvas/Tile/utils/stroke";
 import { CoordSystem, type Direction } from "~/lib/domains/mapping/utils";
 import { renderStaticTileGradients } from "~/app/map/Canvas/Tile/Base/gradient";
+import { calculateTileDimensions } from "~/app/map/Canvas/Tile/_internals/utils/dimensions";
 
 export type TileCursor =
   | "cursor-pointer"
@@ -86,13 +87,7 @@ export const BaseTileLayout = ({
     coord = { userId: 0, groupId: 0, path: [] };
   }
   // Calculate dimensions based on scale
-  const width =
-    scale === 1
-      ? baseHexSize * Math.sqrt(3)
-      : baseHexSize * Math.sqrt(3) * Math.pow(3, scale - 1);
-
-  const height =
-    scale === 1 ? baseHexSize * 2 : baseHexSize * 2 * Math.pow(3, scale - 1);
+  const { width, height } = calculateTileDimensions(scale, baseHexSize);
 
   // SVG constants
   const svgPath = "M50 0 L100 28.87 L100 86.6 L50 115.47 L0 86.6 L0 28.87Z";
