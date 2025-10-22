@@ -35,11 +35,12 @@ export default defineConfig({
       // Load .env.test file for tests
       NODE_ENV: "test",
     },
-    // Run integration tests sequentially to avoid database conflicts
+    // Run tests in separate forks for better isolation
+    // Note: singleFork was causing jsdom environment corruption between test files
     pool: "forks",
     poolOptions: {
       forks: {
-        singleFork: true,
+        singleFork: false, // Each test file gets its own fork/environment
       },
     },
     // Ensure proper test isolation

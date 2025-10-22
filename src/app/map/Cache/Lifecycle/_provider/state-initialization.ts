@@ -4,7 +4,7 @@ import { useMemo, useRef, useEffect, useCallback } from "react";
 import type { Dispatch } from "react";
 import { initialCacheState } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
-import type { CacheState, CacheAction } from "~/app/map/Cache/State/types";
+import type { CacheState, CacheAction } from "~/app/map/Cache/State";
 import type { TileData } from "~/app/map/types";
 import { globalDragService } from "~/app/map/Services";
 import { createDropHandler, createValidationHandler } from "~/app/map/Cache/Lifecycle/_provider/_internals/drag-handlers";
@@ -13,6 +13,7 @@ export interface InitialStateConfig {
   initialItems: Record<string, TileData>;
   initialCenter: string | null;
   initialExpandedItems: string[];
+  initialCompositionExpanded?: boolean;
   cacheConfig: Partial<CacheState["cacheConfig"]>;
 }
 
@@ -30,6 +31,7 @@ export function useInitialCacheState(config: InitialStateConfig): CacheState {
         ...initialCacheState,
         currentCenter: config.initialCenter,
         expandedItemIds: config.initialExpandedItems,
+        isCompositionExpanded: config.initialCompositionExpanded ?? false,
         lastUpdated: Date.now(),
         cacheConfig: { ...initialCacheState.cacheConfig, ...config.cacheConfig },
         isLoading: false,
@@ -42,11 +44,12 @@ export function useInitialCacheState(config: InitialStateConfig): CacheState {
       itemsById: config.initialItems,
       currentCenter: config.initialCenter,
       expandedItemIds: config.initialExpandedItems,
+      isCompositionExpanded: config.initialCompositionExpanded ?? false,
       lastUpdated: Date.now(),
       cacheConfig: { ...initialCacheState.cacheConfig, ...config.cacheConfig },
       isLoading: false,
     };
-  }, [config.initialItems, config.initialCenter, config.initialExpandedItems, config.cacheConfig, initialItemsCount]);
+  }, [config.initialItems, config.initialCenter, config.initialExpandedItems, config.initialCompositionExpanded, config.cacheConfig, initialItemsCount]);
 }
 
 /**

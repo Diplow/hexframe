@@ -12,11 +12,12 @@ const createDefaultSelectors = () => {
     itemsById: {},
     currentCenter: null,
     expandedItemIds: [],
+    isCompositionExpanded: false,
     isLoading: false,
     error: null,
     lastUpdated: 0,
     regionMetadata: {},
-    cacheConfig: { 
+    cacheConfig: {
       maxAge: 300000,
       backgroundRefreshInterval: 60000,
       enableOptimisticUpdates: true,

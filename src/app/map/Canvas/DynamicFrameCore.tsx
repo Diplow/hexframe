@@ -13,6 +13,7 @@ import type { URLInfo } from "~/app/map/types/url-info";
 import { useCanvasTheme } from "~/app/map/Canvas";
 import { useEffect } from "react";
 import { loggers } from "~/lib/debug/debug-logger";
+import { CoordinateResolver } from "~/app/map/Canvas/CoordinateResolver";
 
 const CHILD_INDICES = [1, 2, 3, 4, 5, 6] as const;
 
@@ -21,6 +22,7 @@ export interface DynamicFrameCoreProps {
   mapItems: Record<string, TileData>;
   baseHexSize?: number;
   expandedItemIds?: string[];
+  isCompositionExpanded?: boolean;
   scale?: TileScale;
   urlInfo: URLInfo;
   interactive?: boolean;
@@ -43,6 +45,7 @@ export interface DynamicFrameCoreProps {
     scale: TileScale;
     urlInfo: URLInfo;
     expandedItemIds?: string[];
+    isCompositionExpanded?: boolean;
     isDarkMode: boolean;
     interactive?: boolean;
     currentUserId?: number;
@@ -63,8 +66,11 @@ export interface DynamicFrameCoreProps {
  */
 export const DynamicFrameCore = (props: DynamicFrameCoreProps) => {
   const { center, mapItems, scale = 3 } = props;
-  const centerItem = mapItems[center];
   const { isDarkMode } = useCanvasTheme();
+
+  // Use CoordinateResolver to handle virtual composition containers
+  const resolver = new CoordinateResolver(mapItems);
+  const centerItem = resolver.getDisplayItem(center);
 
   // Log frame render
   useEffect(() => {
@@ -72,6 +78,7 @@ export const DynamicFrameCore = (props: DynamicFrameCoreProps) => {
       center,
       scale,
       hasItem: !!centerItem,
+      isVirtualContainer: resolver.isVirtualContainer(center),
       isExpanded: centerItem ? props.expandedItemIds?.includes(centerItem.metadata.dbId) ?? false : false,
       childCount: centerItem ? getChildCoordIds(centerItem).filter(id => mapItems[id]).length : 0,
     });
@@ -79,7 +86,10 @@ export const DynamicFrameCore = (props: DynamicFrameCoreProps) => {
 
   if (!centerItem) return null;
 
-  const isExpanded = props.expandedItemIds?.includes(centerItem.metadata.dbId) ?? false;
+  // Check expansion state (virtual containers always expanded)
+  // Also treat composition-expanded tiles as expanded (to show the frame with composition children)
+  const isCompositionExpanded = props.isCompositionExpanded ?? false;
+  const isExpanded = resolver.isExpanded(center, props.expandedItemIds ?? []) || isCompositionExpanded;
 
   // Not expanded = regular tile + neighbors (if enabled)
   if (!isExpanded) {
@@ -119,6 +129,7 @@ export const DynamicFrameCore = (props: DynamicFrameCoreProps) => {
           scale,
           urlInfo: props.urlInfo,
           expandedItemIds: props.expandedItemIds,
+          isCompositionExpanded: props.isCompositionExpanded,
           isDarkMode,
           interactive: props.interactive,
           currentUserId: props.currentUserId,
@@ -140,18 +151,21 @@ export const DynamicFrameCore = (props: DynamicFrameCoreProps) => {
       baseHexSize={props.baseHexSize ?? 50}
       scale={scale}
       color={getColorFromItem(centerItem)}
-      coordId={centerItem.metadata.coordId}
+      coordId={resolver.isVirtualContainer(center) ? center : centerItem.metadata.coordId}
       _shallow={true}
       isExpanded={true}
       isDarkMode={isDarkMode}
     >
       <div className="scale-95 transform" style={{ position: "relative", zIndex: 5 }}>
         <FrameInterior
+          centerCoordId={center}
           centerItem={centerItem}
           childScale={nextScale}
           mapItems={props.mapItems}
+          resolver={resolver}
           baseHexSize={props.baseHexSize}
           expandedItemIds={props.expandedItemIds}
+          isCompositionExpanded={props.isCompositionExpanded}
           urlInfo={props.urlInfo}
           interactive={props.interactive}
           currentUserId={props.currentUserId}
@@ -185,6 +199,7 @@ export const DynamicFrameCore = (props: DynamicFrameCoreProps) => {
         scale,
         urlInfo: props.urlInfo,
         expandedItemIds: props.expandedItemIds,
+        isCompositionExpanded: props.isCompositionExpanded,
         isDarkMode,
         interactive: props.interactive,
         currentUserId: props.currentUserId,
@@ -202,11 +217,14 @@ export const DynamicFrameCore = (props: DynamicFrameCoreProps) => {
  * The childScale is the scale for all children (center + surrounding tiles).
  */
 const FrameInterior = (props: {
-  centerItem: TileData;
+  centerCoordId: string; // The coordinate to use for calculating children (may be virtual for composition)
+  centerItem: TileData; // The actual item data to display in the center
   childScale: TileScale;
   mapItems: Record<string, TileData>;
+  resolver: CoordinateResolver;
   baseHexSize?: number;
   expandedItemIds?: string[];
+  isCompositionExpanded?: boolean;
   urlInfo: URLInfo;
   interactive?: boolean;
   currentUserId?: number;
@@ -221,18 +239,21 @@ const FrameInterior = (props: {
   }) => void;
   renderNeighbors?: DynamicFrameCoreProps['renderNeighbors'];
 }) => {
-  const { centerItem, baseHexSize = 50, childScale } = props;
+  const { centerCoordId, centerItem, baseHexSize = 50, childScale, resolver } = props;
 
   // Log frame interior render
   useEffect(() => {
-    const childCoordIds = getChildCoordIds(centerItem);
+    const centerCoord = CoordSystem.parseId(centerCoordId);
+    const childCoordIds = CHILD_INDICES.map(idx =>
+      CoordSystem.createId({ ...centerCoord, path: [...centerCoord.path, idx] })
+    );
     const childStats = childCoordIds.map(id => ({
       exists: !!props.mapItems[id],
       isExpanded: props.mapItems[id] ? props.expandedItemIds?.includes(props.mapItems[id].metadata.dbId) ?? false : false,
     }));
 
     loggers.render.canvas('FrameInterior render', {
-      centerCoordId: centerItem.metadata.coordId,
+      centerCoordId,
       centerDbId: centerItem.metadata.dbId,
       childScale,
       totalChildren: childCoordIds.length,
@@ -248,12 +269,15 @@ const FrameInterior = (props: {
     ? baseHexSize / 2
     : (baseHexSize / 2) * Math.pow(3, parentScale - 2);
 
-  // Get child coordinates
-  const childCoordIds = getChildCoordIds(centerItem);
+  // Get child coordinates from the centerCoordId (which may be a virtual composition container)
+  const centerCoord = CoordSystem.parseId(centerCoordId);
+  const childCoordIds = CHILD_INDICES.map(idx =>
+    CoordSystem.createId({ ...centerCoord, path: [...centerCoord.path, idx] })
+  );
 
   // Create position map
   const positionMap: Record<string, string | undefined> = {
-    C: centerItem.metadata.coordId,
+    C: centerCoordId,
     NW: childCoordIds[0],
     NE: childCoordIds[1],
     E: childCoordIds[2],
@@ -288,8 +312,10 @@ const FrameInterior = (props: {
                 slotScale={childScale}
                 isCenter={position === 'C'}
                 mapItems={props.mapItems}
+                resolver={resolver}
                 baseHexSize={props.baseHexSize}
                 expandedItemIds={props.expandedItemIds}
+                isCompositionExpanded={props.isCompositionExpanded}
                 urlInfo={props.urlInfo}
                 interactive={props.interactive}
                 currentUserId={props.currentUserId}
@@ -322,8 +348,10 @@ const FrameSlot = (props: {
   slotScale: TileScale;
   isCenter: boolean;
   mapItems: Record<string, TileData>;
+  resolver: CoordinateResolver;
   baseHexSize?: number;
   expandedItemIds?: string[];
+  isCompositionExpanded?: boolean;
   urlInfo: URLInfo;
   interactive?: boolean;
   currentUserId?: number;
@@ -338,7 +366,7 @@ const FrameSlot = (props: {
   }) => void;
   renderNeighbors?: DynamicFrameCoreProps['renderNeighbors'];
 }) => {
-  const { coordId, mapItems, slotScale, isCenter } = props;
+  const { coordId, mapItems, slotScale, isCenter, resolver } = props;
   const item = mapItems[coordId];
 
   // Log frame slot render
@@ -355,14 +383,8 @@ const FrameSlot = (props: {
 
   // Empty slot
   if (!item && !isCenter) {
-    const parentCoords = CoordSystem.getParentCoord(CoordSystem.parseId(coordId));
-    if (!parentCoords) {
-      console.error(`Failed to get parent coordinates for ${coordId}`);
-      return null;
-    }
-
-    const parentCoordsId = CoordSystem.createId(parentCoords);
-    const parentItem = mapItems[parentCoordsId];
+    // Use resolver to get parent (handles virtual composition containers)
+    const parentItem = resolver.getParentItem(coordId);
 
     return (
       <DynamicEmptyTile
@@ -382,24 +404,63 @@ const FrameSlot = (props: {
     );
   }
 
-  if (!item) return null;
+  // Use resolver to get display item (handles virtual composition containers)
+  const displayItem = resolver.getDisplayItem(coordId);
 
-  const isExpanded = props.expandedItemIds?.includes(item.metadata.dbId) ?? false;
+  if (!displayItem) {
+    return null;
+  }
+
+  // Check expansion state (handles virtual containers)
+  const isExpanded = resolver.isExpanded(coordId, props.expandedItemIds ?? []);
 
   // CRITICAL: The center of a frame is special - it's already "expanded" (that's why we see this frame)
-  // So the center should ALWAYS render as a simple tile, never as another frame
+  // Check if composition should be shown
   if (isCenter) {
+    const isCompositionExpanded = props.isCompositionExpanded ?? false;
+    const isUserTile = displayItem.metadata.coordinates.path.length === 0;
+    const canShowComposition = isCompositionExpanded && slotScale > 1 && !isUserTile;
+
+    if (canShowComposition) {
+      // Get composition container coordinate (direction 0)
+      const centerCoord = CoordSystem.parseId(coordId);
+      const compositionCoord = CoordSystem.getCompositionCoord(centerCoord);
+      const compositionCoordId = CoordSystem.createId(compositionCoord);
+
+      // Render composition as a regular frame, centered on the composition container
+      // This reuses all existing frame logic - the only difference is which tile is the "center"
+      return (
+        <DynamicFrameCore
+          center={compositionCoordId}
+          mapItems={mapItems}
+          baseHexSize={props.baseHexSize}
+          expandedItemIds={props.expandedItemIds}
+          isCompositionExpanded={false}
+          scale={slotScale}
+          urlInfo={props.urlInfo}
+          interactive={props.interactive}
+          currentUserId={props.currentUserId}
+          selectedTileId={props.selectedTileId}
+          showNeighbors={false}
+          onNavigate={props.onNavigate}
+          onToggleExpansion={props.onToggleExpansion}
+          onCreateRequested={props.onCreateRequested}
+          renderNeighbors={props.renderNeighbors}
+        />
+      );
+    }
+
     return (
       <DynamicItemTile
-        item={item}
+        item={displayItem}
         scale={slotScale}
         allExpandedItemIds={props.expandedItemIds ?? []}
-        hasChildren={hasChildren(item, mapItems)}
-        isCenter={item.metadata.dbId === props.urlInfo.rootItemId}
+        hasChildren={hasChildren(displayItem, mapItems)}
+        isCenter={displayItem.metadata.dbId === props.urlInfo.rootItemId}
         urlInfo={props.urlInfo}
         interactive={props.interactive}
         currentUserId={props.currentUserId}
-        isSelected={props.selectedTileId === item.metadata.coordId}
+        isSelected={props.selectedTileId === displayItem.metadata.coordId}
         onNavigate={props.onNavigate}
         onToggleExpansion={props.onToggleExpansion}
       />
@@ -431,15 +492,15 @@ const FrameSlot = (props: {
   // Not expanded = regular ItemTile
   return (
     <DynamicItemTile
-      item={item}
+      item={displayItem}
       scale={slotScale}
       allExpandedItemIds={props.expandedItemIds ?? []}
-      hasChildren={hasChildren(item, mapItems)}
-      isCenter={item.metadata.dbId === props.urlInfo.rootItemId}
+      hasChildren={hasChildren(displayItem, mapItems)}
+      isCenter={displayItem.metadata.dbId === props.urlInfo.rootItemId}
       urlInfo={props.urlInfo}
       interactive={props.interactive}
       currentUserId={props.currentUserId}
-      isSelected={props.selectedTileId === item.metadata.coordId}
+      isSelected={props.selectedTileId === displayItem.metadata.coordId}
       onNavigate={props.onNavigate}
       onToggleExpansion={props.onToggleExpansion}
     />

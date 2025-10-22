@@ -31,7 +31,18 @@ export class MapItemValidation {
         }
         const parentDepth = item.parent.attrs.coords.path.length;
         const itemDepth = item.attrs.coords.path.length;
-        if (itemDepth !== parentDepth + 1) {
+
+        // Check if this is a direct child
+        const isDirectChild = itemDepth === parentDepth + 1;
+
+        // Check if this is a composition child (virtual composition container as intermediate)
+        // Composition child: depth = parent + 2, second-to-last direction is 0
+        const isCompositionChild =
+          itemDepth === parentDepth + 2 &&
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+          item.attrs.coords.path[itemDepth - 2] === 0;
+
+        if (!isDirectChild && !isCompositionChild) {
           throw new Error(MAPPING_ERRORS.INVALID_PARENT_LEVEL);
         }
       }

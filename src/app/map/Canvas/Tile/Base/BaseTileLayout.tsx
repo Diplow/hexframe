@@ -50,6 +50,7 @@ export interface BaseTileLayoutProps {
   _shallow?: boolean;
   isExpanded?: boolean;
   isDarkMode?: boolean;
+  isComposed?: boolean;
 }
 
 export const BaseTileLayout = ({
@@ -63,6 +64,7 @@ export const BaseTileLayout = ({
   baseHexSize = 50,
   _shallow = false,
   isExpanded = false,
+  isComposed = false,
 }: BaseTileLayoutProps) => {
   // Calculate default stroke based on scale, expansion, and shallow state
   const defaultStroke = getDefaultStroke(scale, isExpanded, _shallow);
@@ -141,6 +143,7 @@ export const BaseTileLayout = ({
             strokeLinejoin="round"
             vectorEffect="non-scaling-stroke"
             fill={color ? undefined : "none"}
+            strokeDasharray={isComposed ? "5,5" : undefined}
           />
           {/* Gradient overlay for faceted effect */}
           {(color ?? (isExpanded && !_shallow)) && (

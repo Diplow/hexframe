@@ -14,11 +14,11 @@ describe("Item Movement - Transaction Integration Tests", () => {
   let service: ItemCrudService;
   let actions: MapItemActions;
   const testUserId = 1;
-  const testGroupId = 99999; // Use a high group ID to avoid conflicts
+  const testGroupId = 66666; // Use a unique group ID to avoid conflicts
 
   beforeEach(async () => {
     // Clean up any existing test data
-    await db.delete(mapItems).where(eq(mapItems.coord_group_id, 99999));
+    await db.delete(mapItems).where(eq(mapItems.coord_group_id, testGroupId));
 
     // Initialize repositories with main db connection
     mapItemRepo = new DbMapItemRepository(db);
