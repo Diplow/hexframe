@@ -2,7 +2,7 @@ import type { MapItem } from "~/lib/domains/mapping/_objects/map-item";
 import { MAPPING_ERRORS } from "~/lib/domains/mapping/types/errors";
 import { MapItemType } from "~/lib/domains/mapping/_objects/map-item";
 import { MapItemNeighborValidation } from "~/lib/domains/mapping/_objects/map-item-neighbor-validation";
-import { Direction } from "../utils";
+import { Direction } from "~/lib/domains/mapping/utils";
 
 export class MapItemValidation {
   public static validateCoords(_item: MapItem) {
