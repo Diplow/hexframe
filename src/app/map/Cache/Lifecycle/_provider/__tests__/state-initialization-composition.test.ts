@@ -34,21 +34,21 @@ describe('State Initialization - Composition Support', () => {
   };
 
   describe('useInitialCacheState with composition', () => {
-    it('should initialize with compositionExpandedIds from config', () => {
+    it('should initialize with isCompositionExpanded from config', () => {
       const { result } = renderHook(() =>
         useInitialCacheState({
           initialItems: { '1,0:1': mockTileData as unknown as TileData },
           initialCenter: '1,0:1',
           initialExpandedItems: ['1,0:2'],
-          initialCompositionExpandedIds: ['1,0:1', '1,0:3'],
+          initialCompositionExpanded: true,
           cacheConfig: {},
         })
       );
 
-      expect(result.current.compositionExpandedIds).toEqual(['1,0:1', '1,0:3']);
+      expect(result.current.isCompositionExpanded).toBe(true);
     });
 
-    it('should default to empty array when initialCompositionExpandedIds not provided', () => {
+    it('should default to false when initialCompositionExpanded not provided', () => {
       const { result } = renderHook(() =>
         useInitialCacheState({
           initialItems: { '1,0:1': mockTileData as unknown as TileData },
@@ -58,21 +58,21 @@ describe('State Initialization - Composition Support', () => {
         })
       );
 
-      expect(result.current.compositionExpandedIds).toEqual([]);
+      expect(result.current.isCompositionExpanded).toBe(false);
     });
 
-    it.skip('should preserve compositionExpandedIds on remount with empty items', () => {
+    it.skip('should preserve isCompositionExpanded on remount with empty items', () => {
       // Skipped: Complex type interaction with renderHook rerender
       // The core functionality is tested in other test cases
     });
 
-    it('should preserve all state properties including compositionExpandedIds', () => {
+    it('should preserve all state properties including isCompositionExpanded', () => {
       const { result } = renderHook(() =>
         useInitialCacheState({
           initialItems: { '1,0:1': mockTileData as unknown as TileData },
           initialCenter: '1,0:1',
           initialExpandedItems: ['1,0:2'],
-          initialCompositionExpandedIds: ['1,0:1'],
+          initialCompositionExpanded: true,
           cacheConfig: { maxAge: 5000 },
         })
       );
@@ -81,24 +81,24 @@ describe('State Initialization - Composition Support', () => {
         itemsById: { '1,0:1': mockTileData },
         currentCenter: '1,0:1',
         expandedItemIds: ['1,0:2'],
-        compositionExpandedIds: ['1,0:1'],
+        isCompositionExpanded: true,
         isLoading: false,
       });
     });
 
-    it('should handle multiple composition expanded IDs', () => {
+    it('should handle composition expanded as boolean', () => {
       const { result } = renderHook(() =>
         useInitialCacheState({
           initialItems: {},
           initialCenter: null,
           initialExpandedItems: [],
-          initialCompositionExpandedIds: ['1,0:1', '1,0:2', '1,0:3'],
+          initialCompositionExpanded: false,
           cacheConfig: {},
         })
       );
 
-      expect(result.current.compositionExpandedIds).toEqual(['1,0:1', '1,0:2', '1,0:3']);
-      expect(result.current.compositionExpandedIds).toHaveLength(3);
+      expect(result.current.isCompositionExpanded).toBe(false);
+      expect(typeof result.current.isCompositionExpanded).toBe('boolean');
     });
   });
 });

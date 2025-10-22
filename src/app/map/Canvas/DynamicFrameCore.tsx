@@ -22,7 +22,7 @@ export interface DynamicFrameCoreProps {
   mapItems: Record<string, TileData>;
   baseHexSize?: number;
   expandedItemIds?: string[];
-  compositionExpandedIds?: string[];
+  isCompositionExpanded?: boolean;
   scale?: TileScale;
   urlInfo: URLInfo;
   interactive?: boolean;
@@ -45,7 +45,7 @@ export interface DynamicFrameCoreProps {
     scale: TileScale;
     urlInfo: URLInfo;
     expandedItemIds?: string[];
-    compositionExpandedIds?: string[];
+    isCompositionExpanded?: boolean;
     isDarkMode: boolean;
     interactive?: boolean;
     currentUserId?: number;
@@ -88,7 +88,7 @@ export const DynamicFrameCore = (props: DynamicFrameCoreProps) => {
 
   // Check expansion state (virtual containers always expanded)
   // Also treat composition-expanded tiles as expanded (to show the frame with composition children)
-  const isCompositionExpanded = props.compositionExpandedIds?.includes(center) ?? false;
+  const isCompositionExpanded = props.isCompositionExpanded ?? false;
   const isExpanded = resolver.isExpanded(center, props.expandedItemIds ?? []) || isCompositionExpanded;
 
   // Not expanded = regular tile + neighbors (if enabled)
@@ -129,6 +129,7 @@ export const DynamicFrameCore = (props: DynamicFrameCoreProps) => {
           scale,
           urlInfo: props.urlInfo,
           expandedItemIds: props.expandedItemIds,
+          isCompositionExpanded: props.isCompositionExpanded,
           isDarkMode,
           interactive: props.interactive,
           currentUserId: props.currentUserId,
@@ -164,7 +165,7 @@ export const DynamicFrameCore = (props: DynamicFrameCoreProps) => {
           resolver={resolver}
           baseHexSize={props.baseHexSize}
           expandedItemIds={props.expandedItemIds}
-          compositionExpandedIds={props.compositionExpandedIds}
+          isCompositionExpanded={props.isCompositionExpanded}
           urlInfo={props.urlInfo}
           interactive={props.interactive}
           currentUserId={props.currentUserId}
@@ -198,7 +199,7 @@ export const DynamicFrameCore = (props: DynamicFrameCoreProps) => {
         scale,
         urlInfo: props.urlInfo,
         expandedItemIds: props.expandedItemIds,
-        compositionExpandedIds: props.compositionExpandedIds,
+        isCompositionExpanded: props.isCompositionExpanded,
         isDarkMode,
         interactive: props.interactive,
         currentUserId: props.currentUserId,
@@ -223,7 +224,7 @@ const FrameInterior = (props: {
   resolver: CoordinateResolver;
   baseHexSize?: number;
   expandedItemIds?: string[];
-  compositionExpandedIds?: string[];
+  isCompositionExpanded?: boolean;
   urlInfo: URLInfo;
   interactive?: boolean;
   currentUserId?: number;
@@ -314,7 +315,7 @@ const FrameInterior = (props: {
                 resolver={resolver}
                 baseHexSize={props.baseHexSize}
                 expandedItemIds={props.expandedItemIds}
-                compositionExpandedIds={props.compositionExpandedIds}
+                isCompositionExpanded={props.isCompositionExpanded}
                 urlInfo={props.urlInfo}
                 interactive={props.interactive}
                 currentUserId={props.currentUserId}
@@ -350,7 +351,7 @@ const FrameSlot = (props: {
   resolver: CoordinateResolver;
   baseHexSize?: number;
   expandedItemIds?: string[];
-  compositionExpandedIds?: string[];
+  isCompositionExpanded?: boolean;
   urlInfo: URLInfo;
   interactive?: boolean;
   currentUserId?: number;
@@ -416,8 +417,9 @@ const FrameSlot = (props: {
   // CRITICAL: The center of a frame is special - it's already "expanded" (that's why we see this frame)
   // Check if composition should be shown
   if (isCenter) {
-    const isCompositionExpanded = props.compositionExpandedIds?.includes(coordId) ?? false;
-    const canShowComposition = isCompositionExpanded && slotScale > 1;
+    const isCompositionExpanded = props.isCompositionExpanded ?? false;
+    const isUserTile = displayItem.metadata.coordinates.path.length === 0;
+    const canShowComposition = isCompositionExpanded && slotScale > 1 && !isUserTile;
 
     if (canShowComposition) {
       // Get composition container coordinate (direction 0)
@@ -433,7 +435,7 @@ const FrameSlot = (props: {
           mapItems={mapItems}
           baseHexSize={props.baseHexSize}
           expandedItemIds={props.expandedItemIds}
-          compositionExpandedIds={props.compositionExpandedIds}
+          isCompositionExpanded={false}
           scale={slotScale}
           urlInfo={props.urlInfo}
           interactive={props.interactive}

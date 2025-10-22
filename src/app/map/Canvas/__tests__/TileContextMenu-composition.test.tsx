@@ -184,6 +184,39 @@ describe('TileContextMenu - Show Composition', () => {
       expect(screen.queryByText('Show Composition')).not.toBeInTheDocument();
     });
 
+    it('should NOT show "Show Composition" for user tiles (empty path)', () => {
+      // User tiles have empty path and should never show composition
+      const userTile = createMockTileData({
+        metadata: {
+          dbId: '100',
+          coordId: '1,0:',
+          parentId: undefined,
+          coordinates: {
+            userId: 1,
+            groupId: 0,
+            path: [], // Empty path = user tile
+          },
+          depth: 0,
+          ownerId: '1',
+        },
+      });
+
+      render(
+        <TileContextMenu
+          tileData={userTile}
+          position={{ x: 100, y: 100 }}
+          onClose={vi.fn()}
+          onCompositionToggle={vi.fn()}
+          canEdit={true}
+          hasComposition={false}
+          isCompositionExpanded={false}
+          canShowComposition={false} // Should be false for user tiles
+        />
+      );
+
+      expect(screen.queryByText('Show Composition')).not.toBeInTheDocument();
+    });
+
     it('should show "Show Composition" when canShowComposition is true (even without existing composition)', () => {
       // This allows owners to create composition children
       const tileWithoutComposition = createMockTileData();

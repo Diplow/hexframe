@@ -54,7 +54,7 @@ export interface MapCacheHook {
   items: Record<string, TileData>;
   center: string | null;
   expandedItems: string[];
-  compositionExpandedIds: string[];
+  isCompositionExpanded: boolean;
   isLoading: boolean;
   error: Error | null;
   lastUpdated: number;
@@ -83,7 +83,7 @@ export interface MapCacheHook {
   updateCenter: (centerCoordId: string) => void;
   prefetchForNavigation: (itemCoordId: string) => Promise<void>;
   toggleItemExpansionWithURL: (itemId: string) => void;
-  toggleCompositionExpansionWithURL: (coordId: string) => void;
+  toggleCompositionExpansionWithURL: () => void;
 
   // Mutation operations
   createItemOptimistic: (coordId: string, data: {
@@ -143,7 +143,7 @@ export interface MapCacheProviderProps {
   initialItems?: Record<string, TileData>;
   initialCenter?: string | null;
   initialExpandedItems?: string[];
-  initialCompositionExpandedIds?: string[];
+  initialCompositionExpanded?: boolean;
   mapContext?: {
     rootItemId: number;
     userId: number;

@@ -54,102 +54,95 @@ describe('URL Composition Persistence', () => {
   });
 
   describe('buildMapUrl', () => {
-    test('should include compositionExpandedIds in URL', () => {
-      const url = buildMapUrl('123', ['1', '2'], ['comp1', 'comp2']);
+    test('should include composition=true in URL when expanded', () => {
+      const url = buildMapUrl('123', ['1', '2'], true);
 
       expect(url).toContain('center=123');
       expect(url).toContain('expandedItems=1%2C2');
-      expect(url).toContain('ce=comp1%7Ccomp2'); // %7C is pipe |
+      expect(url).toContain('composition=true');
     });
 
-    test('should omit ce parameter when compositionExpandedIds is empty', () => {
-      const url = buildMapUrl('123', ['1'], []);
+    test('should omit composition parameter when false', () => {
+      const url = buildMapUrl('123', ['1'], false);
 
       expect(url).toContain('center=123');
       expect(url).toContain('expandedItems=1');
-      expect(url).not.toContain('ce=');
+      expect(url).not.toContain('composition=');
     });
 
-    test('should omit expandedItems when empty but include ce when present', () => {
-      const url = buildMapUrl('123', [], ['comp1']);
+    test('should omit composition parameter when undefined', () => {
+      const url = buildMapUrl('123', ['1']);
 
       expect(url).toContain('center=123');
-      expect(url).not.toContain('expandedItems=');
-      expect(url).toContain('ce=comp1');
-    });
-
-    test('should handle special characters in coordIds', () => {
-      const url = buildMapUrl('1,0:1', [], ['1,0:2', '1,0:3']);
-
-      expect(url).toContain('center=1%2C0%3A1');
-      expect(url).toContain('ce=1%2C0%3A2%7C1%2C0%3A3'); // Pipe separator to avoid comma conflicts
+      expect(url).toContain('expandedItems=1');
+      expect(url).not.toContain('composition=');
     });
   });
 
   describe('getMapContext', () => {
-    test('should extract compositionExpandedIds from URL', () => {
-      const searchParams = new URLSearchParams('?center=123&expandedItems=1,2&ce=comp1|comp2');
+    test('should extract isCompositionExpanded=true from URL', () => {
+      const searchParams = new URLSearchParams('?center=123&expandedItems=1,2&composition=true');
       const context = getMapContext('/map', searchParams);
 
       expect(context.centerItemId).toBe('123');
       expect(context.expandedItems).toEqual(['1', '2']);
-      expect(context.compositionExpandedIds).toEqual(['comp1', 'comp2']);
+      expect(context.isCompositionExpanded).toBe(true);
     });
 
-    test('should return empty array when ce parameter is missing', () => {
+    test('should return false when composition parameter is missing', () => {
       const searchParams = new URLSearchParams('?center=123&expandedItems=1,2');
       const context = getMapContext('/map', searchParams);
 
-      expect(context.compositionExpandedIds).toEqual([]);
+      expect(context.isCompositionExpanded).toBe(false);
     });
 
-    test('should handle empty ce parameter', () => {
-      const searchParams = new URLSearchParams('?center=123&ce=');
+    test('should return false when composition parameter is not "true"', () => {
+      const searchParams = new URLSearchParams('?center=123&composition=false');
       const context = getMapContext('/map', searchParams);
 
-      expect(context.compositionExpandedIds).toEqual([]);
+      expect(context.isCompositionExpanded).toBe(false);
     });
 
-    test('should filter out empty strings from ce parameter', () => {
-      const searchParams = new URLSearchParams('?center=123&ce=comp1||comp2');
+    test('should return false when composition parameter is empty', () => {
+      const searchParams = new URLSearchParams('?center=123&composition=');
       const context = getMapContext('/map', searchParams);
 
-      expect(context.compositionExpandedIds).toEqual(['comp1', 'comp2']);
-    });
-
-    test('should decode special characters in composition IDs', () => {
-      const searchParams = new URLSearchParams('?center=123&ce=1%2C0%3A2%7C1%2C0%3A3'); // Using pipe separator
-      const context = getMapContext('/map', searchParams);
-
-      expect(context.compositionExpandedIds).toEqual(['1,0:2', '1,0:3']);
+      expect(context.isCompositionExpanded).toBe(false);
     });
   });
 
   describe('updateURL', () => {
-    test('should update URL with compositionExpandedIds', () => {
-      updateURL('123', ['1', '2'], ['comp1', 'comp2']);
+    test('should update URL with composition=true', () => {
+      updateURL('123', ['1', '2'], true);
 
       expect(window.history.pushState).toHaveBeenCalledWith(
         {},
         '',
-        expect.stringContaining('ce=comp1%7Ccomp2') // %7C is pipe |
+        expect.stringContaining('composition=true')
       );
     });
 
-    test('should omit ce parameter when compositionExpandedIds is empty', () => {
-      updateURL('123', ['1'], []);
+    test('should omit composition parameter when false', () => {
+      updateURL('123', ['1'], false);
 
       const callArg = (window.history.pushState as ReturnType<typeof vi.fn>).mock.calls[0]?.[2] as string;
-      expect(callArg).not.toContain('ce=');
+      expect(callArg).not.toContain('composition=');
+    });
+
+    test('should omit composition parameter when undefined', () => {
+      updateURL('123', ['1']);
+
+      const callArg = (window.history.pushState as ReturnType<typeof vi.fn>).mock.calls[0]?.[2] as string;
+      expect(callArg).not.toContain('composition=');
     });
   });
 
   describe('syncURLWithState', () => {
-    test('should sync compositionExpandedIds from state to URL', () => {
+    test('should sync isCompositionExpanded=true from state to URL', () => {
       const mockState = {
         currentCenter: '1,0:1',
         expandedItemIds: ['1', '2'],
-        compositionExpandedIds: ['comp1', 'comp2'],
+        isCompositionExpanded: true,
         itemsById: {
           '1,0:1': {
             metadata: {
@@ -177,15 +170,15 @@ describe('URL Composition Persistence', () => {
       expect(window.history.replaceState).toHaveBeenCalledWith(
         {},
         '',
-        expect.stringContaining('ce=comp1%7Ccomp2') // %7C is pipe |
+        expect.stringContaining('composition=true')
       );
     });
 
-    test('should omit ce when no compositionExpandedIds in state', () => {
+    test('should omit composition when false in state', () => {
       const mockState = {
         currentCenter: '1,0:1',
         expandedItemIds: ['1'],
-        compositionExpandedIds: [],
+        isCompositionExpanded: false,
         itemsById: {
           '1,0:1': {
             metadata: {
@@ -211,17 +204,17 @@ describe('URL Composition Persistence', () => {
       syncURLWithState(getState);
 
       const callArg = (window.history.replaceState as ReturnType<typeof vi.fn>).mock.calls[0]?.[2] as string;
-      expect(callArg).not.toContain('ce=');
+      expect(callArg).not.toContain('composition=');
     });
   });
 
   describe('toggleCompositionExpansionWithURL', () => {
-    test('should toggle composition expansion and update URL', () => {
+    test('should toggle composition from false to true and update URL', () => {
       const mockDispatch = vi.fn();
       const mockState = {
         currentCenter: '1,0:1',
         expandedItemIds: [],
-        compositionExpandedIds: ['comp1'],
+        isCompositionExpanded: false,
         itemsById: {
           '1,0:1': {
             metadata: {
@@ -244,25 +237,25 @@ describe('URL Composition Persistence', () => {
 
       const getState = () => mockState;
 
-      toggleCompositionExpansionWithURL('comp2', getState, mockDispatch);
+      toggleCompositionExpansionWithURL(getState, mockDispatch);
 
-      // Should dispatch action
+      // Should dispatch toggle action
       expect(mockDispatch).toHaveBeenCalled();
 
-      // Should update URL with new composition expansion
+      // Should update URL with composition=true
       expect(window.history.replaceState).toHaveBeenCalledWith(
         {},
         '',
-        expect.stringContaining('ce=')
+        expect.stringContaining('composition=true')
       );
     });
 
-    test('should remove composition expansion from URL when toggling off', () => {
+    test('should toggle composition from true to false and remove from URL', () => {
       const mockDispatch = vi.fn();
       const mockState = {
         currentCenter: '1,0:1',
         expandedItemIds: [],
-        compositionExpandedIds: ['comp1', 'comp2'],
+        isCompositionExpanded: true,
         itemsById: {
           '1,0:1': {
             metadata: {
@@ -285,14 +278,13 @@ describe('URL Composition Persistence', () => {
 
       const getState = () => mockState;
 
-      toggleCompositionExpansionWithURL('comp1', getState, mockDispatch);
+      toggleCompositionExpansionWithURL(getState, mockDispatch);
 
       expect(mockDispatch).toHaveBeenCalled();
 
-      // URL should only have comp2 now
+      // URL should not have composition parameter
       const callArg = (window.history.replaceState as ReturnType<typeof vi.fn>).mock.calls[0]?.[2] as string;
-      expect(callArg).toContain('ce=comp2');
-      expect(callArg).not.toContain('comp1');
+      expect(callArg).not.toContain('composition=');
     });
   });
 });

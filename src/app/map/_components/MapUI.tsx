@@ -41,8 +41,9 @@ function _createMapUIHandlers(
     toggleItemExpansionWithURL(tileData.metadata.dbId);
   };
 
-  const handleCompositionToggle = (tileData: TileData) => {
-    toggleCompositionExpansionWithURL(tileData.metadata.coordId);
+  const handleCompositionToggle = (_tileData: TileData) => {
+    // No need for coordId - composition only applies to center
+    toggleCompositionExpansionWithURL();
   };
 
   const handleEditClick = (tileData: TileData) => {
@@ -144,7 +145,7 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
     isLoading,
     error,
     expandedItems,
-    compositionExpandedIds,
+    isCompositionExpanded,
     items: mapItems,
   } = cache;
   const router = useRouter();
@@ -171,14 +172,20 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
     return !!mapItems[compositionCoordId];
   };
 
-  const isCompositionExpanded = (coordId: string): boolean => {
-    return compositionExpandedIds?.includes(coordId) ?? false;
+  const isCompositionExpandedForTile = (coordId: string): boolean => {
+    // Only the center tile can be composition expanded
+    if (coordId !== centerCoordinate) return false;
+    return isCompositionExpanded;
   };
 
   const canShowComposition = (tileData: TileData): boolean => {
     // Can only show composition for center tiles
     const isCenterTile = tileData.metadata.coordId === centerCoordinate;
     if (!isCenterTile) return false;
+
+    // User tiles (tiles with empty path) cannot have composition
+    const isUserTile = tileData.metadata.coordinates.path.length === 0;
+    if (isUserTile) return false;
 
     // Check if tile has composition children
     const hasComp = hasComposition(tileData.metadata.coordId);
@@ -202,7 +209,7 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
       onDeleteClick={handleDeleteClick}
       onCompositionToggle={handleCompositionToggle}
       hasComposition={hasComposition}
-      isCompositionExpanded={isCompositionExpanded}
+      isCompositionExpanded={isCompositionExpandedForTile}
       canShowComposition={canShowComposition}
     >
       <div className="h-full w-full relative">

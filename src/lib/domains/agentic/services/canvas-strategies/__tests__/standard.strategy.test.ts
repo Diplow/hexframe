@@ -54,7 +54,7 @@ describe('StandardCanvasStrategy', () => {
     },
     currentCenter: 'user:123,group:456:1,2',
     expandedItemIds: [],
-    compositionExpandedIds: [],
+    isCompositionExpanded: false,
     isLoading: false,
     error: null,
     lastUpdated: Date.now(),

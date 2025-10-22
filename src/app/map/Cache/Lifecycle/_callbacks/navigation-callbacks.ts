@@ -20,8 +20,8 @@ export function createNavigationCallbacks(navigationOperations: NavigationOperat
     navigationOperations.toggleItemExpansionWithURL(itemId);
   };
 
-  const toggleCompositionExpansionWithURL = (coordId: string) => {
-    navigationOperations.toggleCompositionExpansionWithURL(coordId);
+  const toggleCompositionExpansionWithURL = () => {
+    navigationOperations.toggleCompositionExpansionWithURL();
   };
 
   return {

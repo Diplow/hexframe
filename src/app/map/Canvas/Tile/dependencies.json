@@ -4,5 +4,8 @@
     "~/app/map/Services",
     "~/lib/debug/debug-logger",
     "~/lib/test-logger"
+  ],
+  "subsystems": [
+    "./Base"
   ]
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import type { TileScale } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
+import type { TileScale } from "~/app/map/Canvas/Tile/Base";
 import { getTextColorForDepth } from "~/app/map/types";
 import { cn } from "~/lib/utils";
 

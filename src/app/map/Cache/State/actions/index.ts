@@ -36,7 +36,6 @@ export {
 export {
   toggleCompositionExpansion,
   setCompositionExpansion,
-  clearCompositionExpansions,
 } from '~/app/map/Cache/State/actions/composition';
 
 // ============================================================================
@@ -63,7 +62,6 @@ export const cacheActions = {
   // Composition actions
   toggleCompositionExpansion: compositionActions.toggleCompositionExpansion,
   setCompositionExpansion: compositionActions.setCompositionExpansion,
-  clearCompositionExpansions: compositionActions.clearCompositionExpansions,
 
   // System actions
   setLoading: systemActions.setLoading,

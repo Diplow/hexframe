@@ -13,7 +13,7 @@ export interface BaseFrameProps {
   mapItems: Record<string, TileData>;
   baseHexSize?: number;
   expandedItemIds?: string[];
-  compositionExpandedIds?: string[];
+  isCompositionExpanded?: boolean;
   scale?: TileScale;
   urlInfo: URLInfo;
   interactive?: boolean;
@@ -26,7 +26,7 @@ export const BaseFrame = ({
   mapItems,
   baseHexSize = 50,
   expandedItemIds = [],
-  compositionExpandedIds = [],
+  isCompositionExpanded = false,
   scale = 3,
   urlInfo,
   interactive = true,
@@ -40,8 +40,8 @@ export const BaseFrame = ({
     : false;
 
   const hasComposition = _hasCompositionChild(center, mapItems);
-  const isCompositionExpanded = compositionExpandedIds.includes(center);
-  const canShowComposition = isExpanded && hasComposition && scale > 1;
+  const isUserTile = centerItem && centerItem.metadata.coordinates.path.length === 0;
+  const canShowComposition = isExpanded && hasComposition && scale > 1 && !isUserTile;
 
   if (!centerItem) {
     // Find parent item for context
@@ -127,7 +127,7 @@ export const BaseFrame = ({
           baseHexSize={baseHexSize}
           mapItems={mapItems}
           expandedItemIds={expandedItemIds}
-          compositionExpandedIds={compositionExpandedIds}
+          isCompositionExpanded={false}
           scale={nextScale}
           urlInfo={urlInfo}
           interactive={interactive}
@@ -139,7 +139,7 @@ export const BaseFrame = ({
           mapItems={mapItems}
           baseHexSize={baseHexSize}
           expandedItemIds={expandedItemIds}
-          compositionExpandedIds={compositionExpandedIds}
+          isCompositionExpanded={false}
           scale={nextScale}
           urlInfo={urlInfo}
           interactive={interactive}
@@ -153,7 +153,7 @@ export const BaseFrame = ({
           baseHexSize={baseHexSize}
           mapItems={mapItems}
           expandedItemIds={expandedItemIds}
-          compositionExpandedIds={compositionExpandedIds}
+          isCompositionExpanded={false}
           scale={nextScale}
           urlInfo={urlInfo}
           interactive={interactive}
@@ -167,7 +167,6 @@ export const BaseFrame = ({
               mapItems={mapItems}
               baseHexSize={baseHexSize}
               expandedItemIds={expandedItemIds}
-              compositionExpandedIds={compositionExpandedIds}
               scale={scale}
               urlInfo={urlInfo}
               interactive={interactive}
@@ -198,7 +197,7 @@ export const BaseFrame = ({
           baseHexSize={baseHexSize}
           mapItems={mapItems}
           expandedItemIds={expandedItemIds}
-          compositionExpandedIds={compositionExpandedIds}
+          isCompositionExpanded={false}
           scale={nextScale}
           urlInfo={urlInfo}
           interactive={interactive}
@@ -212,7 +211,7 @@ export const BaseFrame = ({
           baseHexSize={baseHexSize}
           mapItems={mapItems}
           expandedItemIds={expandedItemIds}
-          compositionExpandedIds={compositionExpandedIds}
+          isCompositionExpanded={false}
           scale={nextScale}
           urlInfo={urlInfo}
           interactive={interactive}
@@ -224,7 +223,7 @@ export const BaseFrame = ({
           baseHexSize={baseHexSize}
           mapItems={mapItems}
           expandedItemIds={expandedItemIds}
-          compositionExpandedIds={compositionExpandedIds}
+          isCompositionExpanded={false}
           scale={nextScale}
           urlInfo={urlInfo}
           interactive={interactive}
@@ -257,7 +256,7 @@ interface RenderChildProps {
   mapItems: Record<string, TileData>;
   baseHexSize?: number;
   expandedItemIds?: string[];
-  compositionExpandedIds?: string[];
+  isCompositionExpanded?: boolean;
   scale: TileScale;
   urlInfo: URLInfo;
   interactive?: boolean;
@@ -270,7 +269,7 @@ const RenderChild = ({
   mapItems,
   baseHexSize = 50,
   expandedItemIds = [],
-  compositionExpandedIds = [],
+  isCompositionExpanded = false,
   scale,
   urlInfo,
   interactive = true,
@@ -335,7 +334,7 @@ const RenderChild = ({
         center={coords}
         mapItems={mapItems}
         expandedItemIds={expandedItemIds}
-        compositionExpandedIds={compositionExpandedIds}
+        isCompositionExpanded={isCompositionExpanded}
         scale={scale}
         urlInfo={urlInfo}
         interactive={interactive}
@@ -383,7 +382,6 @@ interface CompositionFrameProps {
   mapItems: Record<string, TileData>;
   baseHexSize: number;
   expandedItemIds: string[];
-  compositionExpandedIds: string[];
   scale: TileScale;
   urlInfo: URLInfo;
   interactive: boolean;
@@ -396,7 +394,6 @@ const CompositionFrame = ({
   mapItems,
   baseHexSize,
   expandedItemIds,
-  compositionExpandedIds,
   scale,
   urlInfo,
   interactive,
@@ -442,7 +439,7 @@ const CompositionFrame = ({
           baseHexSize={baseHexSize}
           mapItems={mapItems}
           expandedItemIds={expandedItemIds}
-          compositionExpandedIds={compositionExpandedIds}
+          isCompositionExpanded={false}
           scale={innerScale}
           urlInfo={urlInfo}
           interactive={interactive}
@@ -454,7 +451,7 @@ const CompositionFrame = ({
           mapItems={mapItems}
           baseHexSize={baseHexSize}
           expandedItemIds={expandedItemIds}
-          compositionExpandedIds={compositionExpandedIds}
+          isCompositionExpanded={false}
           scale={innerScale}
           urlInfo={urlInfo}
           interactive={interactive}
@@ -468,7 +465,7 @@ const CompositionFrame = ({
           baseHexSize={baseHexSize}
           mapItems={mapItems}
           expandedItemIds={expandedItemIds}
-          compositionExpandedIds={compositionExpandedIds}
+          isCompositionExpanded={false}
           scale={innerScale}
           urlInfo={urlInfo}
           interactive={interactive}
@@ -526,7 +523,7 @@ const CompositionFrame = ({
           baseHexSize={baseHexSize}
           mapItems={mapItems}
           expandedItemIds={expandedItemIds}
-          compositionExpandedIds={compositionExpandedIds}
+          isCompositionExpanded={false}
           scale={innerScale}
           urlInfo={urlInfo}
           interactive={interactive}
@@ -540,7 +537,7 @@ const CompositionFrame = ({
           baseHexSize={baseHexSize}
           mapItems={mapItems}
           expandedItemIds={expandedItemIds}
-          compositionExpandedIds={compositionExpandedIds}
+          isCompositionExpanded={false}
           scale={innerScale}
           urlInfo={urlInfo}
           interactive={interactive}
@@ -552,7 +549,7 @@ const CompositionFrame = ({
           baseHexSize={baseHexSize}
           mapItems={mapItems}
           expandedItemIds={expandedItemIds}
-          compositionExpandedIds={compositionExpandedIds}
+          isCompositionExpanded={false}
           scale={innerScale}
           urlInfo={urlInfo}
           interactive={interactive}

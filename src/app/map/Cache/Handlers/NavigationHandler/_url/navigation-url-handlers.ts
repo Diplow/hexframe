@@ -9,22 +9,22 @@ import { buildMapUrl } from "~/app/map/Cache/Handlers/NavigationHandler/_core/na
  */
 
 /**
- * Update browser URL with center item, expanded items, and composition expanded items
+ * Update browser URL with center item, expanded items, and composition expanded state
  */
 export function updateURL(
   centerItemId: string,
   expandedItems: string[],
-  compositionExpandedIds: string[] = []
+  isCompositionExpanded = false
 ): void {
   loggers.mapCache.handlers('[NavigationHandler.updateURL] Called with:', {
     centerItemId,
     expandedItems,
-    compositionExpandedIds,
+    isCompositionExpanded,
     timestamp: new Date().toISOString(),
     stackTrace: new Error().stack
   });
   if (typeof window !== 'undefined') {
-    const newUrl = buildMapUrl(centerItemId, expandedItems, compositionExpandedIds);
+    const newUrl = buildMapUrl(centerItemId, expandedItems, isCompositionExpanded);
     window.history.pushState({}, '', newUrl);
   }
 }
@@ -46,7 +46,7 @@ export function syncURLWithState(getState: () => CacheState): void {
     const newUrl = buildMapUrl(
       centerItem.metadata.dbId,
       state.expandedItemIds,
-      state.compositionExpandedIds,
+      state.isCompositionExpanded,
     );
     window.history.replaceState({}, '', newUrl);
   }
@@ -61,7 +61,7 @@ export function getMapContext(
 ): {
   centerItemId: string;
   expandedItems: string[];
-  compositionExpandedIds: string[];
+  isCompositionExpanded: boolean;
   pathname: string;
   searchParams: URLSearchParams;
 } {
@@ -83,17 +83,14 @@ export function getMapContext(
     ? expandedItemsParam.split(",").filter(Boolean)
     : [];
 
-  // Parse composition expanded IDs from query parameters (ce = composition expanded)
-  // Using pipe separator to avoid conflicts with commas in coordIds
-  const compositionExpandedParam = currentSearchParams.get("ce");
-  const compositionExpandedIds = compositionExpandedParam
-    ? compositionExpandedParam.split("|").filter(Boolean)
-    : [];
+  // Parse composition expanded state from query parameters
+  const compositionParam = currentSearchParams.get("composition");
+  const isCompositionExpanded = compositionParam === "true";
 
   return {
     centerItemId,
     expandedItems,
-    compositionExpandedIds,
+    isCompositionExpanded,
     pathname: currentPathname,
     searchParams: currentSearchParams,
   };
@@ -139,7 +136,7 @@ export function toggleItemExpansionWithURL(
     const newUrl = buildMapUrl(
       centerItem.metadata.dbId,
       currentExpanded,
-      state.compositionExpandedIds,
+      state.isCompositionExpanded,
     );
     window.history.replaceState({}, '', newUrl);
   }

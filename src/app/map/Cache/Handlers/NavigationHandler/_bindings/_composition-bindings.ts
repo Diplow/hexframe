@@ -5,4 +5,4 @@ import { toggleCompositionExpansionWithURL } from "~/app/map/Cache/Handlers/Navi
 export const createBoundToggleCompositionExpansionWithURL = (
   getState: () => CacheState,
   dispatch: Dispatch<CacheAction>
-) => (coordId: string) => toggleCompositionExpansionWithURL(coordId, getState, dispatch);
+) => () => toggleCompositionExpansionWithURL(getState, dispatch);

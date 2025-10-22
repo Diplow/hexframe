@@ -20,7 +20,7 @@ export interface NeighborTilesProps {
   scale?: TileScale;
   urlInfo: URLInfo;
   expandedItemIds?: string[];
-  compositionExpandedIds?: string[];
+  isCompositionExpanded?: boolean;
   isDarkMode?: boolean;
   interactive?: boolean;
   currentUserId?: number;
@@ -110,7 +110,7 @@ export const NeighborTiles = (props: NeighborTilesProps) => {
               mapItems={props.mapItems}
               baseHexSize={props.baseHexSize}
               expandedItemIds={props.expandedItemIds}
-              compositionExpandedIds={props.compositionExpandedIds}
+              isCompositionExpanded={false}
               scale={scale}
               urlInfo={props.urlInfo}
               interactive={props.interactive}

@@ -6,45 +6,27 @@ import { ACTION_TYPES } from "~/app/map/Cache/State/types";
 // ============================================================================
 
 /**
- * Toggle the composition expansion state for a tile.
+ * Toggle the composition expansion state for the current center tile.
  *
- * Adds the coordId to compositionExpandedIds if not present, or removes it if present.
+ * Flips the boolean isCompositionExpanded state.
  *
- * @param coordId - The coordinate ID of the tile to toggle
  * @returns CacheAction to toggle composition expansion
  */
-export const toggleCompositionExpansion = (coordId: string): CacheAction => ({
+export const toggleCompositionExpansion = (): CacheAction => ({
   type: ACTION_TYPES.TOGGLE_COMPOSITION_EXPANSION,
-  payload: coordId,
 });
 
 /**
- * Set the composition expansion state for a tile explicitly.
+ * Set the composition expansion state explicitly.
  *
- * Adds coordId to compositionExpandedIds if isExpanded=true, or removes if isExpanded=false.
+ * Sets isCompositionExpanded to the provided boolean value.
  *
- * @param coordId - The coordinate ID of the tile
  * @param isExpanded - Whether the composition should be expanded
  * @returns CacheAction to set composition expansion state
  */
 export const setCompositionExpansion = (
-  coordId: string,
   isExpanded: boolean
 ): CacheAction => ({
   type: ACTION_TYPES.SET_COMPOSITION_EXPANSION,
-  payload: {
-    coordId,
-    isExpanded,
-  },
-});
-
-/**
- * Clear all composition expansions.
- *
- * Resets compositionExpandedIds to an empty array.
- *
- * @returns CacheAction to clear all composition expansions
- */
-export const clearCompositionExpansions = (): CacheAction => ({
-  type: ACTION_TYPES.CLEAR_COMPOSITION_EXPANSIONS,
+  payload: isExpanded,
 });

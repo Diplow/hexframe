@@ -1,4 +1,4 @@
-import type { cacheSelectors } from "~/app/map/Cache/State/selectors";
+import type { cacheSelectors } from "~/app/map/Cache/State";
 
 /**
  * Create query operation callbacks for the public MapCache API

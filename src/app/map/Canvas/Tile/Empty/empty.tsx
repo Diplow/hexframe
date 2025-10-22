@@ -4,7 +4,7 @@ import type { Dispatch, SetStateAction, RefObject } from "react";
 
 import { useState, useEffect } from "react";
 import { DynamicBaseTileLayout } from "~/app/map/Canvas/Tile/Base";
-import type { TileScale, TileColor } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
+import type { TileScale, TileColor } from "~/app/map/Canvas/Tile/Base";
 import { useCanvasTheme } from "~/app/map/Canvas";
 import type { URLInfo } from "~/app/map/types";
 import { CoordSystem } from "~/lib/domains/mapping/utils";

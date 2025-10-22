@@ -78,7 +78,7 @@ export function DynamicMapCanvas({
     items,
     center,
     expandedItems,
-    compositionExpandedIds,
+    isCompositionExpanded,
     isLoading,
     error,
     invalidateRegion,
@@ -301,7 +301,7 @@ export function DynamicMapCanvas({
               mapItems={items}
               baseHexSize={50}
               expandedItemIds={currentExpandedItems}
-              compositionExpandedIds={compositionExpandedIds}
+              isCompositionExpanded={isCompositionExpanded}
               scale={3 as TileScale}
               urlInfo={urlInfo}
               interactive={true}

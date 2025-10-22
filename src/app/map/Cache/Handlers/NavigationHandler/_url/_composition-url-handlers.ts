@@ -6,14 +6,13 @@ import { buildMapUrl } from "~/app/map/Cache/Handlers/NavigationHandler/_core/na
 
 /**
  * Toggle composition expansion and update URL accordingly
+ * Only affects the current center tile
  */
 export function toggleCompositionExpansionWithURL(
-  coordId: string,
   getState: () => CacheState,
   dispatch: Dispatch<CacheAction>
 ): void {
-  loggers.mapCache.handlers('[NavigationHandler.toggleCompositionExpansionWithURL] Called with:', {
-    coordId,
+  loggers.mapCache.handlers('[NavigationHandler.toggleCompositionExpansionWithURL] Called:', {
     timestamp: new Date().toISOString(),
     stackTrace: new Error().stack
   });
@@ -26,25 +25,18 @@ export function toggleCompositionExpansionWithURL(
     return;
   }
 
-  // Toggle the coordId in the composition expanded list
-  const currentCompositionExpanded = [...state.compositionExpandedIds];
-  const index = currentCompositionExpanded.indexOf(coordId);
-
-  if (index > -1) {
-    currentCompositionExpanded.splice(index, 1);
-  } else {
-    currentCompositionExpanded.push(coordId);
-  }
+  // Toggle the composition expanded state
+  const newCompositionExpanded = !state.isCompositionExpanded;
 
   // Update the cache state
-  dispatch(cacheActions.toggleCompositionExpansion(coordId));
+  dispatch(cacheActions.toggleCompositionExpansion());
 
   // Update URL using native history API to avoid React re-renders
   if (typeof window !== 'undefined') {
     const newUrl = buildMapUrl(
       centerItem.metadata.dbId,
       state.expandedItemIds,
-      currentCompositionExpanded,
+      newCompositionExpanded,
     );
     window.history.replaceState({}, '', newUrl);
   }

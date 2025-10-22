@@ -4,7 +4,7 @@ import { useContext, useMemo, useCallback } from "react";
 import { MapCacheContext } from "~/app/map/Cache/provider";
 import { cacheSelectors } from "~/app/map/Cache/State";
 import type { MapCacheHook, DataOperations } from "~/app/map/Cache/types";
-import type { CacheState } from "~/app/map/Cache/State/types";
+import type { CacheState } from "~/app/map/Cache/State";
 import {
   createQueryCallbacks,
   createMutationCallbacks,
@@ -108,7 +108,7 @@ function _buildPublicAPI(deps: CacheAPIDependencies): MapCacheHook {
     items: state.itemsById,
     center: state.currentCenter,
     expandedItems: state.expandedItemIds,
-    compositionExpandedIds: state.compositionExpandedIds,
+    isCompositionExpanded: state.isCompositionExpanded,
     isLoading: state.isLoading,
     error: state.error,
     lastUpdated: state.lastUpdated,
