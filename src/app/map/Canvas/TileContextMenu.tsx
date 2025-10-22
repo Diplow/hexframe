@@ -1,16 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import type { TileData } from "~/app/map/types/tile-data";
-import { 
-  Eye, 
-  Maximize2, 
-  Navigation, 
-  Edit, 
-  Trash2, 
-  Move,
-  Plus
-} from "lucide-react";
+import { useMenuPositioning } from "~/app/map/Canvas/_internals/menu/positioning";
+import { buildMenuItems } from "~/app/map/Canvas/_internals/menu/items-builder";
+import { MenuItemButton } from "~/app/map/Canvas/_components/menu/MenuItemButton";
 
 interface TileContextMenuProps {
   tileData: TileData;
@@ -22,8 +16,12 @@ interface TileContextMenuProps {
   onEdit?: () => void;
   onDelete?: () => void;
   onCreate?: () => void;
+  onCompositionToggle?: (tileData: TileData) => void;
   canEdit: boolean;
   isEmptyTile?: boolean;
+  hasComposition?: boolean;
+  isCompositionExpanded?: boolean;
+  canShowComposition?: boolean;
 }
 
 export function TileContextMenu({
@@ -36,36 +34,15 @@ export function TileContextMenu({
   onEdit,
   onDelete,
   onCreate,
+  onCompositionToggle,
   canEdit,
   isEmptyTile = false,
+  hasComposition: _hasComposition = false,
+  isCompositionExpanded = false,
+  canShowComposition = false,
 }: TileContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
-  const [adjustedPosition, setAdjustedPosition] = useState(position);
-
-  // Adjust position to keep menu on screen
-  useEffect(() => {
-    if (!menuRef.current) return;
-    
-    const menu = menuRef.current;
-    const rect = menu.getBoundingClientRect();
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    
-    let newX = position.x;
-    let newY = position.y;
-    
-    // Adjust if menu goes off right edge
-    if (position.x + rect.width > viewportWidth) {
-      newX = viewportWidth - rect.width - 10;
-    }
-    
-    // Adjust if menu goes off bottom edge
-    if (position.y + rect.height > viewportHeight) {
-      newY = viewportHeight - rect.height - 10;
-    }
-    
-    setAdjustedPosition({ x: newX, y: newY });
-  }, [position]);
+  const adjustedPosition = useMenuPositioning(menuRef, position);
 
   // Close on click outside
   useEffect(() => {
@@ -90,62 +67,21 @@ export function TileContextMenu({
     };
   }, [onClose]);
 
-  interface MenuItem {
-    icon: typeof Eye;
-    label: string;
-    shortcut: string;
-    onClick: () => void;
-    separator?: boolean;
-    className?: string;
-  }
-
-  const menuItems: MenuItem[] = isEmptyTile ? (
-    onCreate && canEdit ? [{
-      icon: Plus,
-      label: "Create Tile",
-      shortcut: "Hover",
-      onClick: onCreate,
-    }] : []
-  ) : [
-    ...(onSelect ? [{
-      icon: Eye,
-      label: "Preview",
-      shortcut: "Click",
-      onClick: onSelect,
-    }] : []),
-    ...(onExpand ? [{
-      icon: Maximize2,
-      label: tileData.state?.isExpanded ? "Collapse" : "Expand",
-      shortcut: "Shift+Click",
-      onClick: onExpand,
-    }] : []),
-    ...(onNavigate ? [{
-      icon: Navigation,
-      label: "Navigate",
-      shortcut: "Ctrl+Click",
-      onClick: onNavigate,
-    }] : []),
-    ...(canEdit && onEdit ? [{
-      icon: Edit,
-      label: "Edit",
-      shortcut: "",
-      onClick: onEdit,
-      separator: true,
-    }] : []),
-    ...(canEdit ? [{
-      icon: Move,
-      label: "Move",
-      shortcut: "Drag",
-      onClick: onClose, // Just close menu, drag is always enabled
-    }] : []),
-    ...(canEdit && onDelete ? [{
-      icon: Trash2,
-      label: "Delete",
-      shortcut: "",
-      onClick: onDelete,
-      className: "text-[color:var(--destructive-color-600)] dark:text-[color:var(--destructive-color-400)]",
-    }] : []),
-  ];
+  const menuItems = buildMenuItems({
+    tileData,
+    canEdit,
+    isEmptyTile,
+    isCompositionExpanded,
+    canShowComposition,
+    onSelect,
+    onExpand,
+    onNavigate,
+    onEdit,
+    onDelete,
+    onCreate,
+    onCompositionToggle,
+    onClose,
+  });
 
   if (menuItems.length === 0) return null;
 
@@ -157,33 +93,19 @@ export function TileContextMenu({
     >
       {menuItems.map((item, index) => {
         if (!item) return null;
-        const Icon = item.icon;
-        
+
         return (
-          <div key={index}>
-            {item.separator && index > 0 && (
-              <div className="my-1 border-t border-[color:var(--stroke-color-200)] dark:border-[color:var(--stroke-color-700)]" />
-            )}
-            <button
-              className={`w-full px-3 py-2 text-left flex items-center justify-between hover:bg-[color:var(--bg-color-100)] dark:hover:bg-[color:var(--bg-color-700)] transition-colors ${
-                item.className ?? "text-[color:var(--text-color-700)] dark:text-[color:var(--text-color-300)]"
-              }`}
-              onClick={() => {
-                item.onClick();
-                onClose();
-              }}
-            >
-              <span className="flex items-center gap-2">
-                <Icon className="w-4 h-4" />
-                {item.label}
-              </span>
-              {item.shortcut && (
-                <span className="text-xs text-[color:var(--text-color-500)] dark:text-[color:var(--text-color-400)] ml-4">
-                  {item.shortcut}
-                </span>
-              )}
-            </button>
-          </div>
+          <MenuItemButton
+            key={index}
+            icon={item.icon}
+            label={item.label}
+            shortcut={item.shortcut}
+            onClick={item.onClick}
+            onClose={onClose}
+            className={item.className}
+            separator={item.separator}
+            showSeparator={index > 0}
+          />
         );
       })}
     </div>

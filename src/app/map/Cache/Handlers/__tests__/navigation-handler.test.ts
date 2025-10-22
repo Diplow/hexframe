@@ -354,6 +354,7 @@ describe("Navigation Handler", () => {
       expect(context).toEqual({
         centerItemId: "123",
         expandedItems: ["1", "2"],
+        isCompositionExpanded: false,
         pathname: "/map",
         searchParams: config.searchParams,
       });
@@ -405,6 +406,7 @@ describe("Navigation Handler", () => {
       expect(context).toEqual({
         centerItemId: "",
         expandedItems: [],
+        isCompositionExpanded: false,
         pathname: "/", // Falls back to window.location.pathname in tests
         searchParams: new URLSearchParams(),
       });
@@ -437,6 +439,7 @@ describe("Navigation Handler", () => {
       expect(context).toEqual({
         centerItemId: "",
         expandedItems: [],
+        isCompositionExpanded: false,
         pathname: "/map", // From mockTestPathname
         searchParams: mockTestSearchParams, // Should match the provided mockTestSearchParams
       });

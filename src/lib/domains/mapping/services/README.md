@@ -58,6 +58,11 @@ Handles basic CRUD operations:
 Handles complex queries and operations:
 
 - **Get descendants**: Retrieve all child items of a given item
+  - Optional `includeComposition` parameter to include/exclude direction 0 subtrees
+  - Default behavior excludes composition (backwards compatible)
+- **Composition queries**: Query direction 0 (composed) children
+  - `hasComposition(coordId)`: Check if a tile has direction 0 child
+  - `getComposedChildren(coordId)`: Get composition container and its children
 - **Move items**: Move items to new coordinates (with swapping support)
 - **Get by ID**: Retrieve items by their database ID
 
@@ -86,6 +91,21 @@ interface HexCoord {
 - BASE items can have child BASE items
 - All items maintain parent-child relationships
 - Movement operations preserve hierarchical relationships
+
+### Composition Pattern (Direction 0)
+
+Items can have "composed" children positioned at direction 0, which represent internal details or components:
+
+- **Direction 0**: Reserved for composition containers
+- **Directions 1-6**: Regular structural children
+- **Filtering**: API-level queries exclude composition by default for backwards compatibility
+- **Internal operations**: Move, delete, and other internal operations ALWAYS include composition
+
+**Important**: There are two layers of `getDescendants`:
+1. **Service Layer** (`ItemQueryService.getDescendants`): Filters composition by default, used by API consumers
+2. **Action Layer** (`MapItemActions.getDescendants`): Always includes composition, used by internal operations
+
+This ensures that operations like move and delete correctly handle all descendants, including composed children, while API consumers can opt-in to composition data when needed.
 
 ## Usage Examples
 
@@ -132,9 +152,25 @@ await service.items.query.moveMapItem({
   newCoords: { userId: 123, groupId: 0, path: [HexDirection.West] },
 });
 
-// Get all descendants of an item
+// Get all descendants of an item (excludes composition by default)
 const descendants = await service.items.query.getDescendants({
   itemId: newItem.id,
+});
+
+// Get all descendants including composition
+const allDescendants = await service.items.query.getDescendants({
+  itemId: newItem.id,
+  includeComposition: true,
+});
+
+// Check if a tile has composition
+const hasComp = await service.items.query.hasComposition({
+  coordId: "1,0:2",
+});
+
+// Get composed children (direction 0 container and its children)
+const composedItems = await service.items.query.getComposedChildren({
+  coordId: "1,0:2",
 });
 ```
 
@@ -146,6 +182,7 @@ The `__tests__/` folder contains comprehensive integration tests that demonstrat
 - Item CRUD operations
 - Item movement and swapping
 - Hierarchical relationship management
+- Composition queries (direction 0 children)
 - Error handling for edge cases
 
 ### Test Structure
@@ -154,6 +191,7 @@ The `__tests__/` folder contains comprehensive integration tests that demonstrat
 - **Item CRUD tests**: Basic operations on individual items
 - **Item movement tests**: Moving items and handling collisions
 - **Item relationships tests**: Testing hierarchical structures
+- **Composition query tests**: Testing direction 0 children queries and filtering
 
 ## Dependencies
 

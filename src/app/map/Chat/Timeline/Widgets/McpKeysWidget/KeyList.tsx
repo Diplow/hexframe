@@ -1,10 +1,10 @@
 import type { McpKey, CreateKeyResult } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/useMcpKeys';
 import { useKeyActions } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/_hooks/useKeyActions';
-import { LoadingState } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/_components/LoadingState';
-import { EmptyState } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/_components/EmptyState';
-import { KeyListHeader } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/_components/KeyListHeader';
-import { NewKeyAlert } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/_components/NewKeyAlert';
-import { KeyItem } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/_components/KeyItem';
+import { LoadingState } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/_components/key-list/LoadingState';
+import { EmptyState } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/_components/key-list/EmptyState';
+import { KeyListHeader } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/_components/key-list/KeyListHeader';
+import { NewKeyAlert } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/_components/key-list/NewKeyAlert';
+import { KeyItem } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/_components/key-list/KeyItem';
 
 interface KeyListProps {
   keys: McpKey[];

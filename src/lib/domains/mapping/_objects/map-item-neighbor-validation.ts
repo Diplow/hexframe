@@ -1,5 +1,5 @@
 import type { MapItem } from "~/lib/domains/mapping/_objects/map-item";
-import type { Direction } from "~/lib/domains/mapping/utils";
+import { Direction } from "~/lib/domains/mapping/utils";
 import { MAPPING_ERRORS } from "~/lib/domains/mapping/types/errors";
 
 export class MapItemNeighborValidation {
@@ -10,9 +10,21 @@ export class MapItemNeighborValidation {
 
   private static validateNeighborsCount(item: MapItem) {
     const neighbors = item.neighbors;
-    if (neighbors.length > 6) {
+    const hasCompositionChild = MapItemNeighborValidation._hasDirection0Child(neighbors);
+    const maxNeighbors = hasCompositionChild ? 7 : 6;
+
+    if (neighbors.length > maxNeighbors) {
       throw new Error(MAPPING_ERRORS.INVALID_NEIGHBORS_COUNT);
     }
+  }
+
+  private static _hasDirection0Child(neighbors: MapItem[]): boolean {
+    return neighbors.some((neighbor) => {
+      const direction = neighbor.attrs.coords.path[
+        neighbor.attrs.coords.path.length - 1
+      ];
+      return direction === Direction.Center;
+    });
   }
 
   private static validateNeighborDirections(item: MapItem) {

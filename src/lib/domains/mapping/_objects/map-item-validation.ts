@@ -2,6 +2,7 @@ import type { MapItem } from "~/lib/domains/mapping/_objects/map-item";
 import { MAPPING_ERRORS } from "~/lib/domains/mapping/types/errors";
 import { MapItemType } from "~/lib/domains/mapping/_objects/map-item";
 import { MapItemNeighborValidation } from "~/lib/domains/mapping/_objects/map-item-neighbor-validation";
+import { Direction } from "~/lib/domains/mapping/utils";
 
 export class MapItemValidation {
   public static validateCoords(_item: MapItem) {
@@ -31,7 +32,17 @@ export class MapItemValidation {
         }
         const parentDepth = item.parent.attrs.coords.path.length;
         const itemDepth = item.attrs.coords.path.length;
-        if (itemDepth !== parentDepth + 1) {
+
+        // Check if this is a direct child
+        const isDirectChild = itemDepth === parentDepth + 1;
+
+        // Check if this is a composition child (virtual composition container as intermediate)
+        // Composition child: depth = parent + 2, second-to-last direction is 0
+        const isCompositionChild =
+          itemDepth === parentDepth + 2 &&
+          item.attrs.coords.path[itemDepth - 2] === Direction.Center;
+
+        if (!isDirectChild && !isCompositionChild) {
           throw new Error(MAPPING_ERRORS.INVALID_PARENT_LEVEL);
         }
       }

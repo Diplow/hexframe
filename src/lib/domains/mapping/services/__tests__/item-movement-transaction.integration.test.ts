@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { db } from "~/server/db";
-import { mapItems } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
+import { mapItems, baseItems } from "~/server/db/schema";
+import { eq, inArray } from "drizzle-orm";
 import { DbMapItemRepository } from "~/lib/domains/mapping/infrastructure/map-item/db";
 import { DbBaseItemRepository } from "~/lib/domains/mapping/infrastructure/base-item/db";
 import { ItemCrudService } from "~/lib/domains/mapping/services/_item-crud.service";
@@ -14,21 +14,20 @@ describe("Item Movement - Transaction Integration Tests", () => {
   let service: ItemCrudService;
   let actions: MapItemActions;
   const testUserId = 1;
-  const testGroupId = 99999; // Use a high group ID to avoid conflicts
+  const testGroupId = 66666; // Use a unique group ID to avoid conflicts
 
   beforeEach(async () => {
-    // Clean up any existing test data
-    await db.delete(mapItems).where(eq(mapItems.coord_group_id, 99999));
-
+    // Clean up any existing test data thoroughly
+    await _cleanupTestData();
     // Initialize repositories with main db connection
     mapItemRepo = new DbMapItemRepository(db);
     baseItemRepo = new DbBaseItemRepository(db);
-    
+
     service = new ItemCrudService({
       mapItem: mapItemRepo,
       baseItem: baseItemRepo,
     });
-    
+
     actions = new MapItemActions({
       mapItem: mapItemRepo,
       baseItem: baseItemRepo,
@@ -37,9 +36,31 @@ describe("Item Movement - Transaction Integration Tests", () => {
   });
 
   afterEach(async () => {
-    // Clean up test data
-    await db.delete(mapItems).where(eq(mapItems.coord_group_id, testGroupId));
+    // Clean up test data thoroughly
+    await _cleanupTestData();
   });
+
+  async function _cleanupTestData() {
+    // First get all map items for this test group
+    const testMapItems = await db
+      .select({ id: mapItems.id, refItemId: mapItems.refItemId })
+      .from(mapItems)
+      .where(eq(mapItems.coord_group_id, testGroupId));
+
+    // Delete map items first (this should cascade to children due to parentFk cascade)
+    await db.delete(mapItems).where(eq(mapItems.coord_group_id, testGroupId));
+
+    // Then delete orphaned base items
+    if (testMapItems.length > 0) {
+      const refItemIds = testMapItems
+        .map((item) => item.refItemId)
+        .filter((id): id is number => id !== null);
+
+      if (refItemIds.length > 0) {
+        await db.delete(baseItems).where(inArray(baseItems.id, refItemIds));
+      }
+    }
+  }
 
   it("should atomically move items with transaction support", async () => {
     // Create test items

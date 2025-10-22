@@ -5,25 +5,25 @@
  */
 
 // Base tile components for static rendering
-export { BaseFrame } from '~/app/map/Canvas/Tile/Base/BaseFrame'
-export { BaseTileLayout } from '~/app/map/Canvas/Tile/Base/BaseTileLayout'
-export { BaseItemTile } from '~/app/map/Canvas/Tile/Base/_components/BaseItemTile'
-export { BaseEmptyTile } from '~/app/map/Canvas/Tile/Base/_components/BaseEmptyTile'
-
-// Dynamic base tile component (used by Canvas parent)
-export { DynamicBaseTileLayout } from '~/app/map/Canvas/Tile/Base/index'
-export type { DynamicBaseTileLayoutProps } from '~/app/map/Canvas/Tile/Base/index'
+export {
+  BaseFrame,
+  BaseTileLayout,
+  BaseItemTile,
+  BaseEmptyTile,
+  DynamicBaseTileLayout
+} from '~/app/map/Canvas/Tile/Base'
 
 // Base component types
-export type { 
+export type {
   BaseTileLayoutProps,
   TileScale,
   TileColor,
   TileStroke,
-  TileCursor
-} from '~/app/map/Canvas/Tile/Base/BaseTileLayout'
+  TileCursor,
+  DynamicBaseTileLayoutProps
+} from '~/app/map/Canvas/Tile/Base'
 export type { BaseFrameProps } from '~/app/map/Canvas/Tile/Base/BaseFrame'
-export type { BaseItemTileProps } from '~/app/map/Canvas/Tile/Base/_components/BaseItemTile'  
+export type { BaseItemTileProps } from '~/app/map/Canvas/Tile/Base/_components/BaseItemTile'
 export type { BaseEmptyTileProps } from '~/app/map/Canvas/Tile/Base/_components/BaseEmptyTile'
 
 // Dynamic tile components

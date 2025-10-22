@@ -1,73 +1,67 @@
 # Cache State Subsystem
 
-## Purpose
+## Mental Model
 
-Manages the central cache state for the map application using a Redux-style pattern:
-- **State Types**: Defines the complete cache state structure and action types
-- **Actions**: Action creators for all cache operations
-- **Reducer**: Pure functions handling state transitions
-- **Selectors**: Derived state computations and data queries
+The Cache State is the "frontend database schema" - it defines the shape of data stored in memory and the operations (actions) that can modify it. Like a relational database has tables, columns, and stored procedures, this subsystem has state types, action types, and reducers.
 
-## Architecture
+## Responsibilities
 
-### Key Components
-- `types.ts` - State shape, action types, and payload interfaces
-- `actions.ts` - Action creator functions for type-safe dispatching
-- `reducer.ts` - Pure reducer functions handling state transitions
-- `selectors.ts` - Memoized selectors for derived state and queries
-- `index.ts` - Public API barrel exports
+- Define complete cache state structure via `CacheState` interface
+- Define all action types and payloads for cache operations via `CacheAction` union
+- Provide action type constants via `ACTION_TYPES` for type-safe action creation
+- Export initial state configuration via `initialCacheState`
+- Track regular tile expansion state via `expandedItemIds: string[]`
+- Track composition expansion state via `isCompositionExpanded: boolean`
+- Handle composition state updates via reducer handlers:
+  - `handleToggleCompositionExpansion`: Toggle the boolean flag
+  - `handleSetCompositionExpansion`: Explicitly set the boolean flag
+- Provide pure reducer function via `cacheReducer` for state transitions
+- Export action creators for all cache operations (including composition actions)
+- Export selectors for derived state queries
 
-### State Structure
+## Non-Responsibilities
+
+- Action creator implementation → See `./actions/README.md`
+- Reducer implementation details → See `./_reducers/README.md`
+- Selector implementation and memoization → See `./selectors/README.md`
+- Test implementations → See `./__tests__/`
+- React integration and hooks → See `~/app/map/Cache/README.md`
+- Data fetching and API calls → See `~/app/map/Cache/Services/README.md`
+- Lifecycle orchestration → See `~/app/map/Cache/Lifecycle/README.md`
+
+## Interface
+
+**Exports**: See `index.ts` - this is the ONLY file other subsystems should import from.
+
+Key exports:
+- **Types**: `CacheState`, `CacheAction`, `ACTION_TYPES`, payload types
+- **Reducer**: `cacheReducer`, `initialCacheState`
+- **Actions**:
+  - Navigation: `setCenter`, `toggleItemExpansion`, `setExpandedItems`
+  - Composition: `toggleCompositionExpansion`, `setCompositionExpansion`
+  - Data: `loadRegion`, `loadItemChildren`, `updateItems`, `removeItem`
+  - System: `setLoading`, `setError`, `invalidateRegion`, `invalidateAll`
+- **Selectors**: `cacheSelectors`, region queries, optimization helpers
+
+**State Structure**:
 ```typescript
 interface CacheState {
-  itemsById: Record<string, TileData>;
-  center: string | null;
-  expandedItems: Set<string>;
-  loading: Record<string, boolean>;
-  errors: Record<string, string | null>;
-  // ... other cache state
+  itemsById: Record<string, TileData>;      // Tile data indexed by coordId
+  regionMetadata: Record<string, RegionMetadata>;
+  currentCenter: string | null;
+  expandedItemIds: string[];                // Tiles with all 6 children visible
+  isCompositionExpanded: boolean;           // Global composition view toggle
+  isLoading: boolean;
+  error: Error | null;
+  lastUpdated: number;
+  cacheConfig: {...};
 }
 ```
 
-### Dependencies
-- Domain utilities for coordinate operations
-- No direct dependencies on React - pure state management
-- Type-safe action patterns throughout
+**Dependencies**: See `dependencies.json` for allowed imports. The State subsystem can import from:
+- `vitest` (for testing)
+- `~/app/map/types` (for tile data types)
+- `~/server/api` (for API contract types)
+- `~/lib/domains/mapping` (for coordinate utilities)
 
-## Usage
-
-State is managed centrally by the cache provider and accessed through selectors:
-
-```typescript
-// Accessing state through selectors
-const { getItemById, getVisibleItems, isLoading } = cacheSelectors(state);
-const item = getItemById('coord-id');
-```
-
-## Architectural Principles
-
-### Pure State Management
-- **Immutable Updates**: All state changes create new objects, never mutate existing state
-- **Predictable Transitions**: Actions clearly describe what happened, reducers describe how state changes
-- **Type Safety**: Full TypeScript coverage prevents runtime state errors
-- **Single Source of Truth**: All cache state flows through this central reducer
-
-### Redux-Style Pattern
-```typescript
-// Action -> Reducer -> New State -> Selectors -> Derived Data
-dispatch(loadRegion(params)) -> reducer -> newState -> selectors(newState) -> viewData
-```
-
-### Performance Optimizations
-- Memoized selectors prevent unnecessary recalculations
-- Normalized state shape minimizes update impact
-- Batch updates where possible to reduce re-renders
-- Selector efficiency with stable references
-
-## Testing
-
-Comprehensive test coverage for:
-- Action creators and type safety
-- Reducer state transitions and immutability
-- Selector computations and memoization
-- Error handling and edge cases
+**Note**: Child subsystems (actions, _reducers, selectors) can import from this subsystem freely (including types.ts directly). All other subsystems MUST use the public exports in `index.ts`. The `pnpm check:architecture` tool enforces this boundary.

@@ -59,10 +59,21 @@ export class ItemCrudService {
       const expectedParentPath =
         CoordSystem.getParentCoord(coords)?.path.join(",");
       const actualParentPath = parentItem.attrs.coords.path.join(",");
-      if (
-        coords.path.length !== parentItem.attrs.coords.path.length + 1 ||
-        actualParentPath !== expectedParentPath
-      ) {
+
+      // Check if this is a direct child
+      const isDirectChild =
+        coords.path.length === parentItem.attrs.coords.path.length + 1 &&
+        actualParentPath === expectedParentPath;
+
+      // Check if this is a composition child (parent is virtual composition container)
+      // Composition child has path length = parent + 2, and intermediate path ends with 0
+      const isCompositionChild =
+        coords.path.length === parentItem.attrs.coords.path.length + 2 &&
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+        coords.path[coords.path.length - 2] === 0 && // Second-to-last direction is 0 (composition container)
+        parentItem.attrs.coords.path.join(",") === coords.path.slice(0, -2).join(",");
+
+      if (!isDirectChild && !isCompositionChild) {
         throw new Error(
           "New item's coordinates are not a direct child of the parent.",
         );

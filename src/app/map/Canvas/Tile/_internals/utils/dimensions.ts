@@ -5,7 +5,7 @@
  * consistent sizing across all tile types (item tiles, base tiles, frames).
  */
 
-import type { TileScale } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
+import type { TileScale } from "~/app/map/Canvas/Tile/Base";
 
 export interface TileDimensions {
   width: number;
@@ -21,7 +21,7 @@ export interface TileDimensions {
  */
 export function calculateTileDimensions(
   scale: TileScale,
-  baseHexSize: number = 50
+  baseHexSize = 50
 ): TileDimensions {
   const width =
     scale === 1

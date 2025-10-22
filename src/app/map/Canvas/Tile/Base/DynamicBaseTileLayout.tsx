@@ -24,6 +24,7 @@ export interface DynamicBaseTileLayoutProps {
   _shallow?: boolean;
   isExpanded?: boolean;
   isDarkMode?: boolean;
+  isComposed?: boolean;
 }
 
 export const DynamicBaseTileLayout = ({
@@ -38,6 +39,7 @@ export const DynamicBaseTileLayout = ({
   _shallow = false,
   isExpanded = false,
   isDarkMode = false,
+  isComposed = false,
 }: DynamicBaseTileLayoutProps) => {
   // Calculate default stroke based on scale, expansion, and shallow state
   const defaultStroke = getDefaultStroke(scale, isExpanded, _shallow);
@@ -112,6 +114,7 @@ export const DynamicBaseTileLayout = ({
             strokeLinejoin="round"
             vectorEffect="non-scaling-stroke"
             fill={color ? undefined : "none"}
+            strokeDasharray={isComposed ? "5,5" : undefined}
           />
           {/* Gradient overlay for faceted effect */}
           {(color ?? (isExpanded && !_shallow)) && (

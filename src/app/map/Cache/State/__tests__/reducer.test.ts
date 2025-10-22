@@ -47,6 +47,7 @@ describe("Cache Reducer", () => {
         regionMetadata: {},
         currentCenter: null,
         expandedItemIds: [],
+        isCompositionExpanded: false,
         isLoading: false,
         error: null,
         lastUpdated: 0,
@@ -727,6 +728,176 @@ describe("Cache Reducer", () => {
 
       expect(result.expandedItemIds).not.toBe(mockState.expandedItemIds);
       expect(result.expandedItemIds).not.toBe(action.payload);
+    });
+  });
+
+  describe("TOGGLE_COMPOSITION_EXPANSION Action", () => {
+    test("toggles composition from false to true", () => {
+      const stateWithoutComposition: CacheState = {
+        ...mockState,
+        isCompositionExpanded: false,
+      };
+
+      const action: CacheAction = {
+        type: ACTION_TYPES.TOGGLE_COMPOSITION_EXPANSION,
+      };
+
+      const result = cacheReducer(stateWithoutComposition, action);
+
+      expect(result.isCompositionExpanded).toBe(true);
+    });
+
+    test("toggles composition from true to false", () => {
+      const stateWithComposition: CacheState = {
+        ...mockState,
+        isCompositionExpanded: true,
+      };
+
+      const action: CacheAction = {
+        type: ACTION_TYPES.TOGGLE_COMPOSITION_EXPANSION,
+      };
+
+      const result = cacheReducer(stateWithComposition, action);
+
+      expect(result.isCompositionExpanded).toBe(false);
+    });
+
+    test("does not mutate original state", () => {
+      const stateWithComposition: CacheState = {
+        ...mockState,
+        isCompositionExpanded: true,
+      };
+      const originalValue = stateWithComposition.isCompositionExpanded;
+
+      const action: CacheAction = {
+        type: ACTION_TYPES.TOGGLE_COMPOSITION_EXPANSION,
+      };
+
+      cacheReducer(stateWithComposition, action);
+
+      expect(stateWithComposition.isCompositionExpanded).toBe(originalValue);
+    });
+
+    test("creates new state object", () => {
+      const stateWithComposition: CacheState = {
+        ...mockState,
+        isCompositionExpanded: false,
+      };
+
+      const action: CacheAction = {
+        type: ACTION_TYPES.TOGGLE_COMPOSITION_EXPANSION,
+      };
+
+      const result = cacheReducer(stateWithComposition, action);
+
+      expect(result).not.toBe(stateWithComposition);
+    });
+  });
+
+  describe("SET_COMPOSITION_EXPANSION Action", () => {
+    test("sets composition to true", () => {
+      const stateWithoutComposition: CacheState = {
+        ...mockState,
+        isCompositionExpanded: false,
+      };
+
+      const action: CacheAction = {
+        type: ACTION_TYPES.SET_COMPOSITION_EXPANSION,
+        payload: true,
+      };
+
+      const result = cacheReducer(stateWithoutComposition, action);
+
+      expect(result.isCompositionExpanded).toBe(true);
+    });
+
+    test("sets composition to false", () => {
+      const stateWithComposition: CacheState = {
+        ...mockState,
+        isCompositionExpanded: true,
+      };
+
+      const action: CacheAction = {
+        type: ACTION_TYPES.SET_COMPOSITION_EXPANSION,
+        payload: false,
+      };
+
+      const result = cacheReducer(stateWithComposition, action);
+
+      expect(result.isCompositionExpanded).toBe(false);
+    });
+
+    test("does not mutate original state", () => {
+      const stateWithComposition: CacheState = {
+        ...mockState,
+        isCompositionExpanded: false,
+      };
+      const originalValue = stateWithComposition.isCompositionExpanded;
+
+      const action: CacheAction = {
+        type: ACTION_TYPES.SET_COMPOSITION_EXPANSION,
+        payload: true,
+      };
+
+      cacheReducer(stateWithComposition, action);
+
+      expect(stateWithComposition.isCompositionExpanded).toBe(originalValue);
+    });
+
+    test("creates new state object when value changes", () => {
+      const stateWithComposition: CacheState = {
+        ...mockState,
+        isCompositionExpanded: false,
+      };
+
+      const action: CacheAction = {
+        type: ACTION_TYPES.SET_COMPOSITION_EXPANSION,
+        payload: true,
+      };
+
+      const result = cacheReducer(stateWithComposition, action);
+
+      expect(result).not.toBe(stateWithComposition);
+    });
+  });
+
+  describe("SET_CENTER Action - Composition Reset", () => {
+    test("resets composition when navigating to new center", () => {
+      const stateWithComposition: CacheState = {
+        ...mockState,
+        currentCenter: "1,0:1",
+        isCompositionExpanded: true,
+      };
+
+      const action: CacheAction = {
+        type: ACTION_TYPES.SET_CENTER,
+        payload: "1,0:2",
+      };
+
+      const result = cacheReducer(stateWithComposition, action);
+
+      expect(result.currentCenter).toBe("1,0:2");
+      expect(result.isCompositionExpanded).toBe(false);
+    });
+
+    test("preserves other state properties when resetting composition", () => {
+      const stateWithComposition: CacheState = {
+        ...mockState,
+        currentCenter: "1,0:1",
+        expandedItemIds: ["1", "2"],
+        isCompositionExpanded: true,
+      };
+
+      const action: CacheAction = {
+        type: ACTION_TYPES.SET_CENTER,
+        payload: "1,0:2",
+      };
+
+      const result = cacheReducer(stateWithComposition, action);
+
+      expect(result.currentCenter).toBe("1,0:2");
+      expect(result.expandedItemIds).toEqual(["1", "2"]);
+      expect(result.isCompositionExpanded).toBe(false);
     });
   });
 });

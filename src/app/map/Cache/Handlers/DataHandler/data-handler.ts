@@ -1,6 +1,6 @@
 import type { Dispatch } from "react";
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
-import { cacheActions } from "~/app/map/Cache/State/actions";
+import { cacheActions } from "~/app/map/Cache/State";
 import type { LoadResult } from "~/app/map/Cache/types/handlers";
 import { loggers } from "~/lib/debug/debug-logger";
 import {

@@ -7,6 +7,8 @@ export function handleSetCenter(
   return {
     ...state,
     currentCenter: action.payload,
+    // Reset composition when navigating to a new center
+    isCompositionExpanded: false,
   };
 }
 
@@ -33,5 +35,25 @@ export function handleToggleItemExpansion(
   return {
     ...state,
     expandedItemIds: newExpandedItems,
+  };
+}
+
+export function handleToggleCompositionExpansion(
+  state: CacheState,
+  _action: Extract<CacheAction, { type: typeof ACTION_TYPES.TOGGLE_COMPOSITION_EXPANSION }>,
+): CacheState {
+  return {
+    ...state,
+    isCompositionExpanded: !state.isCompositionExpanded,
+  };
+}
+
+export function handleSetCompositionExpansion(
+  state: CacheState,
+  action: Extract<CacheAction, { type: typeof ACTION_TYPES.SET_COMPOSITION_EXPANSION }>,
+): CacheState {
+  return {
+    ...state,
+    isCompositionExpanded: action.payload,
   };
 }

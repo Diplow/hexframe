@@ -177,6 +177,7 @@ export class SpecializedQueries {
     // Calculate min and max element counts based on generations
     const parentCount = parentPath.length;
     const minElements = parentCount > 0 ? parentCount + 1 : 1;
+    // maxElements should be parentCount + maxGenerations to get exact generations
     const maxElements = parentCount + maxGenerations;
 
     conditions.push(gte(sql`array_length(string_to_array(${mapItems.path}, ','), 1)`, minElements));

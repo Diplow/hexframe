@@ -6,11 +6,11 @@ import {
   useState,
   useCallback,
   useMemo,
-  useRef,
   type ReactNode,
 } from "react";
 import type { TileData } from "~/app/map/types/tile-data";
-import { TileContextMenu } from "~/app/map/Canvas/TileContextMenu";
+import { useTileClickHandlers } from "~/app/map/Canvas/_internals/tile-click-handlers";
+import { ContextMenuContainer } from "~/app/map/Canvas/_components/ContextMenuContainer";
 
 export interface TileActionsContextValue {
   // Click handlers
@@ -18,7 +18,7 @@ export interface TileActionsContextValue {
   onTileDoubleClick: (tileData: TileData) => void;
   onTileRightClick: (tileData: TileData, event: React.MouseEvent) => void;
   onTileHover: (tileData: TileData) => void;
-  
+
   // Action handlers
   onSelectClick?: (tileData: TileData) => void;
   onNavigateClick?: (tileData: TileData) => void;
@@ -26,7 +26,8 @@ export interface TileActionsContextValue {
   onCreateClick?: (tileData: TileData) => void;
   onEditClick?: (tileData: TileData) => void;
   onDeleteClick?: (tileData: TileData) => void;
-  
+  onCompositionToggle?: (tileData: TileData) => void;
+
   // Drag and drop
   onTileDragStart: (tileData: TileData) => void;
   onTileDrop: (tileData: TileData) => void;
@@ -52,6 +53,11 @@ interface TileActionsProviderProps {
   onCreateClick?: (tileData: TileData) => void;
   onEditClick?: (tileData: TileData) => void;
   onDeleteClick?: (tileData: TileData) => void;
+  onCompositionToggle?: (tileData: TileData) => void;
+  // Composition state - for context menu
+  hasComposition?: (coordId: string) => boolean;
+  isCompositionExpanded?: (coordId: string) => boolean;
+  canShowComposition?: (tileData: TileData) => boolean;
 }
 
 interface ContextMenuState {
@@ -69,48 +75,20 @@ export function TileActionsProvider({
   onCreateClick,
   onEditClick,
   onDeleteClick,
+  onCompositionToggle,
+  hasComposition,
+  isCompositionExpanded,
+  canShowComposition,
 }: TileActionsProviderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
-  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const onTileClick = useCallback((tileData: TileData, event: React.MouseEvent) => {
-
-    // Handle shift+click for expansion/collapse immediately
-    if (event.shiftKey && tileData.state?.canExpand) {
-      onExpandClick?.(tileData);
-      return;
-    }
-
-    // Clear any existing timeout
-    if (clickTimeoutRef.current) {
-      clearTimeout(clickTimeoutRef.current);
-      clickTimeoutRef.current = null;
-    }
-
-    // Set a timeout to handle single click
-    clickTimeoutRef.current = setTimeout(() => {
-      if (event.ctrlKey || event.metaKey) {
-        // Ctrl/Cmd+click for navigation
-        onNavigateClick?.(tileData);
-      } else {
-        // Regular click for selection/preview
-        onSelectClick?.(tileData);
-      }
-      clickTimeoutRef.current = null;
-    }, 200); // Wait 200ms to see if it's a double-click
-  }, [onNavigateClick, onSelectClick, onExpandClick]);
-
-  const onTileDoubleClick = useCallback((_tileData: TileData) => {
-    // Clear the single click timeout
-    if (clickTimeoutRef.current) {
-      clearTimeout(clickTimeoutRef.current);
-      clickTimeoutRef.current = null;
-    }
-
-    // Double-click no longer handles expansion - this is now handled by shift+click
-    // Keep this handler for potential future use or backwards compatibility
-  }, []);
+  const { onTileClick, onTileDoubleClick } = useTileClickHandlers({
+    onNavigateClick,
+    onSelectClick,
+    onExpandClick,
+    onCompositionToggle,
+  });
 
   const onTileRightClick = useCallback((tileData: TileData, event: React.MouseEvent) => {
     // Right-click shows context menu
@@ -154,6 +132,7 @@ export function TileActionsProvider({
     onCreateClick,
     onEditClick,
     onDeleteClick,
+    onCompositionToggle,
   }), [
     onTileClick,
     onTileDoubleClick,
@@ -168,26 +147,26 @@ export function TileActionsProvider({
     onCreateClick,
     onEditClick,
     onDeleteClick,
+    onCompositionToggle,
   ]);
 
   return (
     <TileActionsContext.Provider value={value}>
       {children}
-      {contextMenu && (
-        <TileContextMenu
-          tileData={contextMenu.tileData}
-          position={contextMenu.position}
-          onClose={() => setContextMenu(null)}
-          onSelect={() => onSelectClick?.(contextMenu.tileData)}
-          onExpand={() => onExpandClick?.(contextMenu.tileData)}
-          onNavigate={() => onNavigateClick?.(contextMenu.tileData)}
-          onEdit={() => onEditClick?.(contextMenu.tileData)}
-          onDelete={() => onDeleteClick?.(contextMenu.tileData)}
-          onCreate={() => onCreateClick?.(contextMenu.tileData)}
-          canEdit={contextMenu.canEdit}
-          isEmptyTile={contextMenu.isEmptyTile}
-        />
-      )}
+      <ContextMenuContainer
+        contextMenu={contextMenu}
+        onClose={() => setContextMenu(null)}
+        onSelectClick={onSelectClick}
+        onNavigateClick={onNavigateClick}
+        onExpandClick={onExpandClick}
+        onCreateClick={onCreateClick}
+        onEditClick={onEditClick}
+        onDeleteClick={onDeleteClick}
+        onCompositionToggle={onCompositionToggle}
+        hasComposition={hasComposition}
+        isCompositionExpanded={isCompositionExpanded}
+        canShowComposition={canShowComposition}
+      />
     </TileActionsContext.Provider>
   );
 }

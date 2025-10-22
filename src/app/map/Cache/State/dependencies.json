@@ -1,0 +1,14 @@
+{
+  "$schema": "../../../../../scripts/checks/architecture/dependencies.schema.json",
+  "allowed": [
+    "vitest",
+    "~/app/map/types",
+    "~/server/api",
+    "~/lib/domains/mapping"
+  ],
+  "subsystems": [
+    "./_reducers",
+    "./actions",
+    "./selectors"
+  ]
+}
