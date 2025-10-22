@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import type { TileData } from "~/app/map/types/tile-data";
-import { useMenuPositioning } from "~/app/map/Canvas/_internals/menu-positioning";
-import { buildMenuItems } from "~/app/map/Canvas/_internals/menu-items-builder";
+import { useMenuPositioning } from "~/app/map/Canvas/_internals/menu/positioning";
+import { buildMenuItems } from "~/app/map/Canvas/_internals/menu/items-builder";
 import { MenuItemButton } from "~/app/map/Canvas/_components/menu/MenuItemButton";
 
 interface TileContextMenuProps {
