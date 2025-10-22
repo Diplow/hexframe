@@ -45,6 +45,7 @@ export function MapCacheProvider({
   initialItems = {},
   initialCenter = null,
   initialExpandedItems = [],
+  initialCompositionExpanded = false,
   mapContext,
   cacheConfig = {},
   serverConfig = {},
@@ -57,6 +58,7 @@ export function MapCacheProvider({
     initialItems,
     initialCenter,
     initialExpandedItems,
+    initialCompositionExpanded,
     cacheConfig,
   });
 

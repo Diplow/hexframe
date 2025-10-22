@@ -34,3 +34,6 @@ export const createBoundToggleItemExpansionWithURL = (
   getState: () => CacheState,
   dispatch: Dispatch<CacheAction>
 ) => (itemId: string) => toggleItemExpansionWithURL(itemId, getState, dispatch);
+
+// Composition toggle binding moved to _composition-bindings.ts to comply with Rule of 6
+export { createBoundToggleCompositionExpansionWithURL } from "~/app/map/Cache/Handlers/NavigationHandler/_bindings/_composition-bindings";

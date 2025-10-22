@@ -156,9 +156,13 @@ export async function handleNavigationWithoutItem(
 }
 
 /**
- * Build map URL with center and expanded items
+ * Build map URL with center, expanded items, and composition expanded state
  */
-export function buildMapUrl(centerItemId: string, expandedItems: string[]): string {
+export function buildMapUrl(
+  centerItemId: string,
+  expandedItems: string[],
+  isCompositionExpanded = false
+): string {
   const origin =
     typeof window !== "undefined" && window.location?.origin
       ? window.location.origin
@@ -169,6 +173,10 @@ export function buildMapUrl(centerItemId: string, expandedItems: string[]): stri
 
   if (expandedItems.length > 0) {
     url.searchParams.set("expandedItems", expandedItems.join(","));
+  }
+
+  if (isCompositionExpanded) {
+    url.searchParams.set("composition", "true");
   }
 
   return url.pathname + url.search;

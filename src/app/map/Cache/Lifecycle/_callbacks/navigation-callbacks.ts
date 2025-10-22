@@ -20,10 +20,15 @@ export function createNavigationCallbacks(navigationOperations: NavigationOperat
     navigationOperations.toggleItemExpansionWithURL(itemId);
   };
 
+  const toggleCompositionExpansionWithURL = () => {
+    navigationOperations.toggleCompositionExpansionWithURL();
+  };
+
   return {
     navigateToItem,
     updateCenter,
     prefetchForNavigation,
     toggleItemExpansionWithURL,
+    toggleCompositionExpansionWithURL,
   };
 }

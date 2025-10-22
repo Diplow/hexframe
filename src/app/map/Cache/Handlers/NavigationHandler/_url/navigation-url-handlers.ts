@@ -9,17 +9,22 @@ import { buildMapUrl } from "~/app/map/Cache/Handlers/NavigationHandler/_core/na
  */
 
 /**
- * Update browser URL with center item and expanded items
+ * Update browser URL with center item, expanded items, and composition expanded state
  */
-export function updateURL(centerItemId: string, expandedItems: string[]): void {
+export function updateURL(
+  centerItemId: string,
+  expandedItems: string[],
+  isCompositionExpanded = false
+): void {
   loggers.mapCache.handlers('[NavigationHandler.updateURL] Called with:', {
     centerItemId,
     expandedItems,
+    isCompositionExpanded,
     timestamp: new Date().toISOString(),
     stackTrace: new Error().stack
   });
   if (typeof window !== 'undefined') {
-    const newUrl = buildMapUrl(centerItemId, expandedItems);
+    const newUrl = buildMapUrl(centerItemId, expandedItems, isCompositionExpanded);
     window.history.pushState({}, '', newUrl);
   }
 }
@@ -41,6 +46,7 @@ export function syncURLWithState(getState: () => CacheState): void {
     const newUrl = buildMapUrl(
       centerItem.metadata.dbId,
       state.expandedItemIds,
+      state.isCompositionExpanded,
     );
     window.history.replaceState({}, '', newUrl);
   }
@@ -55,6 +61,7 @@ export function getMapContext(
 ): {
   centerItemId: string;
   expandedItems: string[];
+  isCompositionExpanded: boolean;
   pathname: string;
   searchParams: URLSearchParams;
 } {
@@ -76,9 +83,14 @@ export function getMapContext(
     ? expandedItemsParam.split(",").filter(Boolean)
     : [];
 
+  // Parse composition expanded state from query parameters
+  const compositionParam = currentSearchParams.get("composition");
+  const isCompositionExpanded = compositionParam === "true";
+
   return {
     centerItemId,
     expandedItems,
+    isCompositionExpanded,
     pathname: currentPathname,
     searchParams: currentSearchParams,
   };
@@ -109,7 +121,7 @@ export function toggleItemExpansionWithURL(
   // Toggle the item in the expanded list
   const currentExpanded = [...state.expandedItemIds];
   const index = currentExpanded.indexOf(itemId);
-  
+
   if (index > -1) {
     currentExpanded.splice(index, 1);
   } else {
@@ -118,13 +130,17 @@ export function toggleItemExpansionWithURL(
 
   // Update the cache state
   dispatch(cacheActions.toggleItemExpansion(itemId));
-  
+
   // Update URL using native history API to avoid React re-renders
   if (typeof window !== 'undefined') {
     const newUrl = buildMapUrl(
       centerItem.metadata.dbId,
       currentExpanded,
+      state.isCompositionExpanded,
     );
     window.history.replaceState({}, '', newUrl);
   }
 }
+
+// Composition toggle moved to _composition-url-handlers.ts to comply with Rule of 6
+export { toggleCompositionExpansionWithURL } from "~/app/map/Cache/Handlers/NavigationHandler/_url/_composition-url-handlers";

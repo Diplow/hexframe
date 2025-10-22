@@ -1,12 +1,14 @@
 # Mapping Domain
 
 ## Mental Model
-Like a hexagonal filing cabinet where knowledge items are organized in a spatial 6-neighbor coordinate system, creating meaningful relationships between ideas through their physical proximity.
+Like a hexagonal filing cabinet where knowledge items are organized in a spatial 7-direction coordinate system (6 neighbors + 1 composition center), creating meaningful relationships between ideas through their physical proximity and allowing tiles to have composed internal structures through direction 0.
 
 ## Responsibilities
 - Create and manage hexagonal maps with ROOT (USER) items at the center
-- Place and move items within hexagonal coordinate spaces using a 6-direction system
+- Place and move items within hexagonal coordinate spaces using a 7-direction system (directions 1-6 for neighbors, direction 0 for composition)
 - Maintain parent-child hierarchical relationships between map items
+- Support tile composition through direction 0 (center) allowing tiles to contain internal structures
+- Query and manage composed children (direction 0 descendants) separately from structural neighbors
 - Orchestrate complex operations like item movement with automatic descendant updates
 - Provide both server-side domain services and client-safe interfaces for map operations
 

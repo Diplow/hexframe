@@ -36,6 +36,7 @@ export const DynamicFrame = (props: DynamicFrameProps) => {
           scale={neighborProps.scale}
           urlInfo={neighborProps.urlInfo}
           expandedItemIds={neighborProps.expandedItemIds}
+          isCompositionExpanded={neighborProps.isCompositionExpanded}
           isDarkMode={neighborProps.isDarkMode}
           interactive={neighborProps.interactive}
           currentUserId={neighborProps.currentUserId}

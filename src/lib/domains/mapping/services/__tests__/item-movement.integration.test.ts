@@ -11,6 +11,7 @@ import {
   _setupItemForMovement,
   _setupTwoItemsForSwap,
   _setupParentChildHierarchy,
+  _setupItemWithComposition,
 } from "~/lib/domains/mapping/services/__tests__/helpers/movement/_movement-setup-helpers";
 import {
   _validateItemMovementToEmptyCell,
@@ -18,6 +19,7 @@ import {
   _validateParentChildMovement,
   _validateUserItemMoveRestriction,
   _validateCrossSpaceMovementError,
+  _validateCompositionMovement,
 } from "~/lib/domains/mapping/services/__tests__/helpers/movement/_movement-validation-helpers";
 
 describe("MappingService - Item Movement [Integration - DB]", () => {
@@ -67,6 +69,16 @@ describe("MappingService - Item Movement [Integration - DB]", () => {
       const movementSetup = await _setupItemForMovement(testEnv, setupParams);
 
       await _validateCrossSpaceMovementError(testEnv, movementSetup);
+    });
+
+    it("should correctly move an item with composed children", async () => {
+      const setupParams = _createUniqueTestParams();
+      const compositionSetup = await _setupItemWithComposition(
+        testEnv,
+        setupParams,
+      );
+
+      await _validateCompositionMovement(testEnv, compositionSetup);
     });
   });
 });

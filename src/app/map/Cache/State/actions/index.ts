@@ -32,6 +32,12 @@ export {
   createBatchActions,
 } from '~/app/map/Cache/State/actions/system';
 
+// Composition actions
+export {
+  toggleCompositionExpansion,
+  setCompositionExpansion,
+} from '~/app/map/Cache/State/actions/composition';
+
 // ============================================================================
 // GROUPED ACTION CREATORS - for better organization
 // ============================================================================
@@ -39,6 +45,7 @@ export {
 import * as dataActions from '~/app/map/Cache/State/actions/data';
 import * as navigationActions from '~/app/map/Cache/State/actions/navigation';
 import * as systemActions from '~/app/map/Cache/State/actions/system';
+import * as compositionActions from '~/app/map/Cache/State/actions/composition';
 
 export const cacheActions = {
   // Data actions
@@ -51,6 +58,10 @@ export const cacheActions = {
   setCenter: navigationActions.setCenter,
   setExpandedItems: navigationActions.setExpandedItems,
   toggleItemExpansion: navigationActions.toggleItemExpansion,
+
+  // Composition actions
+  toggleCompositionExpansion: compositionActions.toggleCompositionExpansion,
+  setCompositionExpansion: compositionActions.setCompositionExpansion,
 
   // System actions
   setLoading: systemActions.setLoading,

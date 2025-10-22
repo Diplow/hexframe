@@ -1,3 +1,4 @@
+import '~/test/setup'; // Import test setup FIRST
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock tRPC BEFORE any other imports that might use it

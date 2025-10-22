@@ -4,7 +4,7 @@ import type { DragEvent } from "react";
 import type { TileData } from "~/app/map/types/tile-data";
 import type { URLInfo } from "~/app/map/types/url-info";
 import { DynamicBaseTileLayout } from "~/app/map/Canvas/Tile/Base";
-import type { TileScale, TileColor } from "~/app/map/Canvas/Tile/Base/BaseTileLayout";
+import type { TileScale, TileColor } from "~/app/map/Canvas/Tile/Base";
 import { DynamicTileContent } from "~/app/map/Canvas/Tile/Item/content";
 import { useTileInteraction } from "~/app/map/Canvas";
 // import { useRouter } from "next/navigation"; // Removed unused import

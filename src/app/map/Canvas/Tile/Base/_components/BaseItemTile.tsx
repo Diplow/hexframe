@@ -12,6 +12,7 @@ export interface BaseItemTileProps {
   isExpanded?: boolean;
   isSelected?: boolean;
   isDarkMode?: boolean;
+  isComposed?: boolean;
 }
 
 /**
@@ -25,6 +26,7 @@ export const BaseItemTile = ({
   isExpanded = false,
   isSelected = false,
   isDarkMode = false,
+  isComposed = false,
 }: BaseItemTileProps) => {
   const tileColor = getColorFromItem(item);
   const depth = item.metadata.depth ?? 0;
@@ -49,12 +51,14 @@ export const BaseItemTile = ({
         isFocusable={false}
         isExpanded={isExpanded}
         isDarkMode={isDarkMode}
+        isComposed={isComposed}
       >
         <div
           data-testid="tile-content"
           className={cn(
             "flex h-full w-full items-center justify-center px-4",
-            isSelected && "ring-2 ring-primary rounded-lg"
+            isSelected && "ring-2 ring-primary rounded-lg",
+            isComposed && "opacity-80"
           )}
         >
           <h3 className={cn(
