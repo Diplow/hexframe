@@ -14,12 +14,12 @@ export interface CenterInfo {
   userId: number;
   groupId: number;
 }
-import { DynamicFrame } from "~/app/map/Canvas/frame";
 import type { TileScale } from "~/app/map/Canvas/Tile";
 import { useMapCache } from '~/app/map/Cache';
 import type { URLInfo } from "~/app/map/types/url-info";
-import { MapLoadingSpinner } from "~/app/map/Canvas/LifeCycle/loading-spinner";
-import { MapErrorBoundary } from "~/app/map/Canvas/LifeCycle/error-boundary";
+import { CanvasLoadingState } from "~/app/map/Canvas/_components/CanvasLoadingState";
+import { CanvasErrorState } from "~/app/map/Canvas/_components/CanvasErrorState";
+import { CanvasTileGrid } from "~/app/map/Canvas/_components/CanvasTileGrid";
 // Removed unused drag imports
 import { loggers } from "~/lib/debug/debug-logger";
 import { useEventBus } from '~/app/map';
@@ -174,24 +174,24 @@ export function DynamicMapCanvas({
 
   // Progressive enhancement fallbacks
   if (!isHydrated) {
-    return fallback ?? <MapLoadingSpinner />;
+    return <CanvasLoadingState fallback={fallback} />;
   }
-  
+
   // Get the center item to check if we have data
   const centerItem = items[center ?? centerInfo.center];
 
   if (shouldShowLoadingState(isLoading, centerItem, Object.keys(items).length)) {
-    return fallback ?? <MapLoadingSpinner />;
+    return <CanvasLoadingState fallback={fallback} />;
   }
 
   if (error) {
     return (
-      errorBoundary ?? (
-        <MapErrorBoundary
-          error={error}
-          onRetry={() => invalidateRegion(centerInfo.center)}
-        />
-      )
+      <CanvasErrorState
+        error={error}
+        centerInfo={centerInfo.center}
+        errorBoundary={errorBoundary}
+        onRetry={invalidateRegion}
+      />
     );
   }
 
@@ -213,38 +213,22 @@ export function DynamicMapCanvas({
   return (
     <CanvasThemeContext.Provider value={{ isDarkMode }}>
       <LegacyTileActionsContext.Provider value={tileActions}>
-        <div className="relative flex h-full w-full flex-col">
-          <div
-            data-canvas-id={dynamicCenterInfo.center}
-            className="pointer-events-auto grid flex-grow py-4 overflow-visible"
-            style={{
-              placeItems: 'center',
-              // Offset the center point to account for chat panel (40% of width)
-              // This shifts the center tile to appear centered in the right 60% area
-              transform: 'translateX(20%)'
-            }}
-            // No drag handlers needed - global service handles everything
-          >
-            <DynamicFrame
-              center={dynamicCenterInfo.center}
-              mapItems={items}
-              baseHexSize={50}
-              expandedItemIds={currentExpandedItems}
-              isCompositionExpanded={isCompositionExpanded}
-              scale={3 as TileScale}
-              urlInfo={urlInfo}
-              interactive={true}
-              currentUserId={mappingUserId ?? undefined}
-              selectedTileId={selectedTileId}
-              showNeighbors={showNeighbors}
-              onNavigate={callbacks.handleNavigate}
-              onToggleExpansion={callbacks.handleToggleExpansion}
-              onCreateRequested={callbacks.handleCreateRequested}
-              // No drag service prop needed - using global service
-            />
-          </div>
-          {/* Drag debug UI removed - handled by global service with CSS */}
-        </div>
+        <CanvasTileGrid
+          centerInfo={dynamicCenterInfo.center}
+          items={items}
+          baseHexSize={50}
+          expandedItemIds={currentExpandedItems}
+          isCompositionExpanded={isCompositionExpanded}
+          scale={3 as TileScale}
+          urlInfo={urlInfo}
+          interactive={true}
+          currentUserId={mappingUserId ?? undefined}
+          selectedTileId={selectedTileId}
+          showNeighbors={showNeighbors}
+          onNavigate={callbacks.handleNavigate}
+          onToggleExpansion={callbacks.handleToggleExpansion}
+          onCreateRequested={callbacks.handleCreateRequested}
+        />
       </LegacyTileActionsContext.Provider>
     </CanvasThemeContext.Provider>
   );
