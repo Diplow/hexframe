@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import { mapItems } from "~/server/db/schema/_tables/mapping/map-items";
 import { baseItems } from "~/server/db/schema/_tables/mapping/base-items";
+import { baseItemVersions } from "~/server/db/schema/_tables/mapping/base-item-versions";
 import { userMapping } from "~/server/db/schema/_tables/mapping/user-mapping";
 import { users } from "~/server/db/schema/_tables/auth/users";
 import { accounts } from "~/server/db/schema/_tables/auth/accounts";
@@ -45,7 +46,23 @@ export const mapItemRelations = relations(mapItems, ({ one, many }) => ({
 export const baseItemRelations = relations(baseItems, ({ many }) => ({
   // One-to-many: BaseItem -> Referencing MapItems
   mapItems: many(mapItems),
+  // One-to-many: BaseItem -> Version History
+  versions: many(baseItemVersions),
 }));
+
+/**
+ * Relations for base_item_versions table
+ */
+export const baseItemVersionsRelations = relations(
+  baseItemVersions,
+  ({ one }) => ({
+    // Many-to-one: Version -> BaseItem
+    baseItem: one(baseItems, {
+      fields: [baseItemVersions.baseItemId],
+      references: [baseItems.id],
+    }),
+  })
+);
 
 /**
  * Relations for user_mapping table

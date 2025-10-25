@@ -9,6 +9,7 @@ Like a specialized database driver that translates between domain objects (MapIt
 - Coordinate database transactions for atomic multi-table operations
 - Compose and optimize complex queries for hexagonal map hierarchies
 - Manage database connections and transaction contexts
+- Automatically create version snapshots when baseItems are updated (version history tracking)
 
 ## Non-Responsibilities
 - Business logic and domain rules → See `../services/README.md`

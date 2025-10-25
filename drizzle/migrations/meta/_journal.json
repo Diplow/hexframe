@@ -26,29 +26,29 @@
     {
       "idx": 3,
       "version": "7",
-      "when": 1756985653764,
-      "tag": "0003_motionless_scorpion",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
       "when": 1756985934156,
       "tag": "0004_friendly_the_phantom",
       "breakpoints": true
     },
     {
-      "idx": 5,
+      "idx": 4,
       "version": "7",
       "when": 1756989322610,
       "tag": "0005_pink_blink",
       "breakpoints": true
     },
     {
-      "idx": 6,
+      "idx": 5,
       "version": "7",
       "when": 1759055061654,
       "tag": "0006_futuristic_doctor_doom",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1761421000000,
+      "tag": "0007_add_base_item_versions",
       "breakpoints": true
     }
   ]
