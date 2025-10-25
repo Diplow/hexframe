@@ -1,13 +1,14 @@
 import { eq, inArray, asc, desc } from "drizzle-orm";
 
 import {
-  type Attrs,
+  type BaseItemAttrs as Attrs,
   type BaseItemIdr,
   type BaseItemWithId,
-  type RelatedItems,
-  type RelatedLists,
+  type BaseItemRelatedItems as RelatedItems,
+  type BaseItemRelatedLists as RelatedLists,
   BaseItem,
-} from "~/lib/domains/mapping/_objects/base-item";
+  type BaseItemVersion,
+} from "~/lib/domains/mapping/_objects";
 import type { BaseItemRepository } from "~/lib/domains/mapping/_repositories";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { schema as schemaImport } from "~/server/db";
@@ -315,6 +316,119 @@ export class DbBaseItemRepository implements BaseItemRepository {
       throw new Error("Remove by complex BaseItemIdr not supported");
     }
     await this.remove(idr.id);
+  }
+
+  // --- Version Query Methods ---
+
+  async getVersionHistory(
+    baseItemId: number,
+    options?: {
+      limit?: number;
+      offset?: number;
+    }
+  ): Promise<BaseItemVersion[]> {
+    // Verify BaseItem exists
+    await this.getOne(baseItemId);
+
+    const limit = options?.limit;
+    const offset = options?.offset ?? 0;
+
+    const versions = await this.db.query.baseItemVersions.findMany({
+      where: eq(schemaImport.baseItemVersions.baseItemId, baseItemId),
+      orderBy: desc(schemaImport.baseItemVersions.versionNumber),
+      limit,
+      offset,
+    });
+
+    return versions.map((v) => ({
+      id: v.id,
+      baseItemId: v.baseItemId,
+      versionNumber: v.versionNumber,
+      title: v.title,
+      content: v.content,
+      preview: v.preview,
+      link: v.link,
+      createdAt: v.createdAt,
+      updatedBy: v.updatedBy,
+    }));
+  }
+
+  async getVersionByNumber(
+    baseItemId: number,
+    versionNumber: number
+  ): Promise<BaseItemVersion> {
+    // Verify BaseItem exists
+    await this.getOne(baseItemId);
+
+    const version = await this.db.query.baseItemVersions.findFirst({
+      where: eq(schemaImport.baseItemVersions.baseItemId, baseItemId),
+      // Note: Drizzle doesn't support compound WHERE with AND in findFirst easily
+      // We'll filter after fetch or use raw query
+    });
+
+    if (!version || version.versionNumber !== versionNumber) {
+      // Fetch all versions for this baseItem and find the specific version number
+      const allVersions = await this.db.query.baseItemVersions.findMany({
+        where: eq(schemaImport.baseItemVersions.baseItemId, baseItemId),
+      });
+
+      const found = allVersions.find((v) => v.versionNumber === versionNumber);
+      if (!found) {
+        throw new Error(
+          `Version ${versionNumber} not found for BaseItem ${baseItemId}`
+        );
+      }
+
+      return {
+        id: found.id,
+        baseItemId: found.baseItemId,
+        versionNumber: found.versionNumber,
+        title: found.title,
+        content: found.content,
+        preview: found.preview,
+        link: found.link,
+        createdAt: found.createdAt,
+        updatedBy: found.updatedBy,
+      };
+    }
+
+    return {
+      id: version.id,
+      baseItemId: version.baseItemId,
+      versionNumber: version.versionNumber,
+      title: version.title,
+      content: version.content,
+      preview: version.preview,
+      link: version.link,
+      createdAt: version.createdAt,
+      updatedBy: version.updatedBy,
+    };
+  }
+
+  async getLatestVersion(baseItemId: number): Promise<BaseItemVersion> {
+    // Verify BaseItem exists
+    await this.getOne(baseItemId);
+
+    const version = await this.db.query.baseItemVersions.findFirst({
+      where: eq(schemaImport.baseItemVersions.baseItemId, baseItemId),
+      orderBy: desc(schemaImport.baseItemVersions.versionNumber),
+    });
+
+    if (!version) {
+      throw new Error(`No versions found for BaseItem ${baseItemId}`);
+    }
+
+    return {
+      id: version.id,
+      baseItemId: version.baseItemId,
+      versionNumber: version.versionNumber,
+      title: version.title,
+      content: version.content,
+      preview: version.preview,
+      link: version.link,
+      createdAt: version.createdAt,
+      updatedBy: version.updatedBy,
+    };
   }
 
   /**
