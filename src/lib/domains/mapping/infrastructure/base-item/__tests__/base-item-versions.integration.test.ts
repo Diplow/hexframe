@@ -3,6 +3,7 @@ import { eq, desc } from "drizzle-orm";
 import { db } from "~/server/db";
 import { schema } from "~/server/db";
 import { DbBaseItemRepository } from "~/lib/domains/mapping/infrastructure/base-item/db";
+import { _cleanupDatabase } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 
 /**
  * Integration tests for BaseItem versioning feature
@@ -18,14 +19,8 @@ describe("BaseItem Versioning [Integration - DB]", () => {
   let repository: DbBaseItemRepository;
 
   beforeEach(async () => {
-    // Clean up test data (order matters due to foreign keys)
-    // eslint-disable-next-line drizzle/enforce-delete-with-where -- Intentionally deleting all rows for test cleanup
-    await db.delete(schema.mapItems); // Must delete mapItems first (references baseItems)
-    // eslint-disable-next-line drizzle/enforce-delete-with-where -- Intentionally deleting all rows for test cleanup
-    await db.delete(schema.baseItemVersions); // Then versions
-    // eslint-disable-next-line drizzle/enforce-delete-with-where -- Intentionally deleting all rows for test cleanup
-    await db.delete(schema.baseItems); // Finally baseItems
-
+    // Use common cleanup utility which handles CASCADE properly
+    await _cleanupDatabase();
     repository = new DbBaseItemRepository(db);
   });
 
