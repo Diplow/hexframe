@@ -1,6 +1,6 @@
 {
-  "id": "109c8eb4-143c-4829-b880-a34e738ffaa9",
-  "prevId": "28815201-8972-449d-a60d-ee8b66e82139",
+  "id": "869db4c9-25f1-43d4-8f32-8be51693fc5c",
+  "prevId": "109c8eb4-143c-4829-b880-a34e738ffaa9",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -14,15 +14,15 @@
           "primaryKey": true,
           "notNull": true,
           "identity": {
-            "type": "byDefault",
             "name": "vde_base_items_id_seq",
-            "schema": "public",
             "increment": "1",
-            "startWith": "1",
             "minValue": "1",
             "maxValue": "2147483647",
+            "startWith": "1",
             "cache": "1",
-            "cycle": false
+            "cycle": false,
+            "schema": "public",
+            "type": "byDefault"
           }
         },
         "title": {
@@ -31,8 +31,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "content": {
-          "name": "content",
+        "descr": {
+          "name": "descr",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -67,7 +67,10 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.vde_map_items": {
       "name": "vde_map_items",
@@ -79,15 +82,15 @@
           "primaryKey": true,
           "notNull": true,
           "identity": {
-            "type": "byDefault",
             "name": "vde_map_items_id_seq",
-            "schema": "public",
             "increment": "1",
-            "startWith": "1",
             "minValue": "1",
             "maxValue": "2147483647",
+            "startWith": "1",
             "cache": "1",
-            "cycle": false
+            "cycle": false,
+            "schema": "public",
+            "type": "byDefault"
           }
         },
         "coord_user_id": {
@@ -167,9 +170,9 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         },
         "map_item_item_type_idx": {
           "name": "map_item_item_type_idx",
@@ -182,9 +185,9 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         },
         "map_item_parent_idx": {
           "name": "map_item_parent_idx",
@@ -197,9 +200,9 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         },
         "map_item_ref_item_idx": {
           "name": "map_item_ref_item_idx",
@@ -212,9 +215,9 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         },
         "map_item_unique_coords_idx": {
           "name": "map_item_unique_coords_idx",
@@ -239,54 +242,57 @@
             }
           ],
           "isUnique": true,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "vde_map_items_origin_id_vde_map_items_id_fk": {
           "name": "vde_map_items_origin_id_vde_map_items_id_fk",
           "tableFrom": "vde_map_items",
-          "tableTo": "vde_map_items",
           "columnsFrom": [
             "origin_id"
           ],
+          "tableTo": "vde_map_items",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "set null"
         },
         "vde_map_items_parent_id_vde_map_items_id_fk": {
           "name": "vde_map_items_parent_id_vde_map_items_id_fk",
           "tableFrom": "vde_map_items",
-          "tableTo": "vde_map_items",
           "columnsFrom": [
             "parent_id"
           ],
+          "tableTo": "vde_map_items",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         },
         "vde_map_items_ref_item_id_vde_base_items_id_fk": {
           "name": "vde_map_items_ref_item_id_vde_base_items_id_fk",
           "tableFrom": "vde_map_items",
-          "tableTo": "vde_base_items",
           "columnsFrom": [
             "ref_item_id"
           ],
+          "tableTo": "vde_base_items",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "restrict",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "restrict"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.users": {
       "name": "users",
@@ -344,12 +350,15 @@
       "uniqueConstraints": {
         "users_email_unique": {
           "name": "users_email_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "email"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
-      }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.accounts": {
       "name": "accounts",
@@ -441,19 +450,22 @@
         "accounts_user_id_users_id_fk": {
           "name": "accounts_user_id_users_id_fk",
           "tableFrom": "accounts",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.sessions": {
       "name": "sessions",
@@ -515,27 +527,30 @@
         "sessions_user_id_users_id_fk": {
           "name": "sessions_user_id_users_id_fk",
           "tableFrom": "sessions",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "sessions_token_unique": {
           "name": "sessions_token_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "token"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
-      }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.verification_tokens": {
       "name": "verification_tokens",
@@ -586,12 +601,15 @@
       "uniqueConstraints": {
         "verification_tokens_value_unique": {
           "name": "verification_tokens_value_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "value"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
-      }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.apikey": {
       "name": "apikey",
@@ -734,19 +752,22 @@
         "apikey_user_id_users_id_fk": {
           "name": "apikey_user_id_users_id_fk",
           "tableFrom": "apikey",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.vde_user_mapping": {
       "name": "vde_user_mapping",
@@ -758,15 +779,15 @@
           "primaryKey": true,
           "notNull": true,
           "identity": {
-            "type": "byDefault",
             "name": "vde_user_mapping_id_seq",
-            "schema": "public",
             "increment": "1",
-            "startWith": "1",
             "minValue": "1",
             "maxValue": "2147483647",
+            "startWith": "1",
             "cache": "1",
-            "cycle": false
+            "cycle": false,
+            "schema": "public",
+            "type": "byDefault"
           }
         },
         "auth_user_id": {
@@ -808,9 +829,9 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         },
         "user_mapping_mapping_user_id_idx": {
           "name": "user_mapping_mapping_user_id_idx",
@@ -823,43 +844,46 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "vde_user_mapping_auth_user_id_users_id_fk": {
           "name": "vde_user_mapping_auth_user_id_users_id_fk",
           "tableFrom": "vde_user_mapping",
-          "tableTo": "users",
           "columnsFrom": [
             "auth_user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "vde_user_mapping_auth_user_id_unique": {
           "name": "vde_user_mapping_auth_user_id_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "auth_user_id"
-          ]
+          ],
+          "nullsNotDistinct": false
         },
         "vde_user_mapping_mapping_user_id_unique": {
           "name": "vde_user_mapping_mapping_user_id_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "mapping_user_id"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
-      }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     },
     "public.llm_job_results": {
       "name": "llm_job_results",
@@ -940,9 +964,9 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         },
         "idx_user_jobs": {
           "name": "idx_user_jobs",
@@ -961,9 +985,9 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {},
@@ -971,17 +995,23 @@
       "uniqueConstraints": {
         "llm_job_results_job_id_unique": {
           "name": "llm_job_results_job_id_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "job_id"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
-      }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     }
   },
   "enums": {},
   "schemas": {},
+  "views": {},
   "sequences": {},
+  "roles": {},
+  "policies": {},
   "_meta": {
     "columns": {},
     "schemas": {},

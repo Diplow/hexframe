@@ -1,4 +1,4 @@
-import { eq, inArray, asc } from "drizzle-orm";
+import { eq, inArray, asc, desc } from "drizzle-orm";
 
 import {
   type Attrs,
@@ -153,6 +153,10 @@ export class DbBaseItemRepository implements BaseItemRepository {
     if (!newItem) {
       throw new Error("Failed to create base item");
     }
+
+    // Create initial version (version 1)
+    await this._createVersion(newItem.id, attrs);
+
     return this.getOne(newItem.id); // Fetch after create
   }
 
@@ -192,6 +196,24 @@ export class DbBaseItemRepository implements BaseItemRepository {
       return this.getOne(id); // No changes
     }
 
+    // Get current values BEFORE update (for version snapshot)
+    const currentItem = await this.db.query.baseItems.findFirst({
+      where: eq(schemaImport.baseItems.id, id),
+    });
+
+    if (!currentItem) {
+      throw new Error(`BaseItem with id ${id} not found for update.`);
+    }
+
+    // Create version snapshot with OLD values
+    await this._createVersion(id, {
+      title: currentItem.title,
+      content: currentItem.content,
+      preview: currentItem.preview ?? undefined,
+      link: currentItem.link ?? undefined,
+    });
+
+    // Now perform the update
     const [updatedItem] = await this.db
       .update(schemaImport.baseItems)
       .set(updateData)
@@ -293,5 +315,35 @@ export class DbBaseItemRepository implements BaseItemRepository {
       throw new Error("Remove by complex BaseItemIdr not supported");
     }
     await this.remove(idr.id);
+  }
+
+  /**
+   * Create a version snapshot of a baseItem
+   * @private
+   */
+  private async _createVersion(
+    baseItemId: number,
+    attrs: Partial<Attrs>
+  ): Promise<void> {
+    // Get the next version number
+    const existingVersions = await this.db.query.baseItemVersions.findMany({
+      where: eq(schemaImport.baseItemVersions.baseItemId, baseItemId),
+      orderBy: desc(schemaImport.baseItemVersions.versionNumber),
+      limit: 1,
+    });
+
+    const nextVersionNumber =
+      existingVersions.length > 0 ? existingVersions[0]!.versionNumber + 1 : 1;
+
+    // Insert version snapshot
+    await this.db.insert(schemaImport.baseItemVersions).values({
+      baseItemId,
+      title: attrs.title!,
+      content: attrs.content!,
+      preview: attrs.preview ?? null,
+      link: attrs.link && attrs.link !== "" ? attrs.link : null,
+      versionNumber: nextVersionNumber,
+      updatedBy: null, // Future: capture user ID
+    });
   }
 }

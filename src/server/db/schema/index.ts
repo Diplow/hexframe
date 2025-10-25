@@ -2,10 +2,12 @@
 
 // Core Aggregates
 export { baseItems } from "~/server/db/schema/_tables/mapping/base-items";
+export { baseItemVersions } from "~/server/db/schema/_tables/mapping/base-item-versions";
 export { mapItems } from "~/server/db/schema/_tables/mapping/map-items";
 
 export {
   baseItemRelations,
+  baseItemVersionsRelations,
   mapItemRelations,
   userMappingRelations,
   usersRelations,
@@ -22,6 +24,7 @@ export * from "~/server/db/schema/_tables/auth/api-keys";
 
 // Mapping/domain-specific tables
 export * from "~/server/db/schema/_tables/mapping/base-items";
+export * from "~/server/db/schema/_tables/mapping/base-item-versions";
 export * from "~/server/db/schema/_tables/mapping/map-items";
 export * from "~/server/db/schema/_tables/mapping/user-mapping";
 

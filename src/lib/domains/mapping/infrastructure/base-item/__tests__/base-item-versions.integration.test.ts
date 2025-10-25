@@ -18,9 +18,13 @@ describe("BaseItem Versioning [Integration - DB]", () => {
   let repository: DbBaseItemRepository;
 
   beforeEach(async () => {
-    // Clean up test data
-    await db.delete(schema.baseItemVersions);
-    await db.delete(schema.baseItems);
+    // Clean up test data (order matters due to foreign keys)
+    // eslint-disable-next-line drizzle/enforce-delete-with-where -- Intentionally deleting all rows for test cleanup
+    await db.delete(schema.mapItems); // Must delete mapItems first (references baseItems)
+    // eslint-disable-next-line drizzle/enforce-delete-with-where -- Intentionally deleting all rows for test cleanup
+    await db.delete(schema.baseItemVersions); // Then versions
+    // eslint-disable-next-line drizzle/enforce-delete-with-where -- Intentionally deleting all rows for test cleanup
+    await db.delete(schema.baseItems); // Finally baseItems
 
     repository = new DbBaseItemRepository(db);
   });
@@ -120,6 +124,7 @@ describe("BaseItem Versioning [Integration - DB]", () => {
         attrs: {
           title: "V1",
           content: "Content V1",
+          link: "",
         },
         relatedItems: {},
         relatedLists: {},
@@ -193,6 +198,7 @@ describe("BaseItem Versioning [Integration - DB]", () => {
         attrs: {
           title: "Test",
           content: "Content",
+          link: "",
         },
         relatedItems: {},
         relatedLists: {},
@@ -399,7 +405,7 @@ describe("BaseItem Versioning [Integration - DB]", () => {
     it("should create version when updating via updateByIdr", async () => {
       // Arrange
       const item = await repository.create({
-        attrs: { title: "Original", content: "Content" },
+        attrs: { title: "Original", content: "Content", link: "" },
         relatedItems: {},
         relatedLists: {},
       });
