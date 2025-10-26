@@ -14,12 +14,13 @@ export * from '~/lib/domains/mapping/types';
 export * from '~/lib/domains/mapping/_objects';
 
 // Domain services (server-only)
-export { 
+export {
   MappingService,
   MapManagementService,
   ItemManagementService,
   ItemCrudService,
   ItemQueryService,
+  ItemHistoryService,
   MappingUtils,
 } from '~/lib/domains/mapping/services';
 

@@ -35,7 +35,6 @@ describe("Mapping Domain - Version History Integration", () => {
       const { childCoords } = await _setupMapWithChild(testEnv.service, {
         ...testParams,
         childTitle: "Original Title",
-        childContent: "Original Content",
       });
 
       // Act: Perform multiple updates
@@ -87,7 +86,7 @@ describe("Mapping Domain - Version History Integration", () => {
     it("should maintain version history across complex operations", async () => {
       // Arrange: Create map with multiple tiles
       const testParams = _createUniqueTestParams();
-      const { rootMap, childCoords } = await _setupMapWithChild(testEnv.service, testParams);
+      const { rootMap } = await _setupMapWithChild(testEnv.service, testParams);
 
       // Use different directions to avoid conflicts
       const tile1Coords = {
@@ -322,7 +321,7 @@ describe("Mapping Domain - Version History Integration", () => {
       // work together correctly
 
       const testParams = _createUniqueTestParams();
-      const { rootMap, childCoords } = await _setupMapWithChild(testEnv.service, testParams);
+      const { childCoords } = await _setupMapWithChild(testEnv.service, testParams);
 
       // Update the child tile
       await testEnv.service.items.crud.updateItem({
