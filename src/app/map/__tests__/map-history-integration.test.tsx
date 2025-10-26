@@ -82,13 +82,13 @@ describe('Map History Integration', () => {
     it('should have getItemHistory query available', () => {
       // Verify the tRPC query exists (even if mocked in tests)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-      expect((api.map as any).getItemHistory).toBeDefined();
+      expect((api.map.items as any).getItemHistory).toBeDefined();
     });
 
     it('should have getItemVersion query available', () => {
       // Verify the tRPC query exists for viewing specific versions
       // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-      expect((api.map as any).getItemVersion).toBeDefined();
+      expect((api.map.items as any).getItemVersion).toBeDefined();
     });
 
     it('should allow descendant components to access tRPC queries', () => {
@@ -162,9 +162,9 @@ describe('Map History Integration', () => {
 
       // Verify tRPC mock structure supports history queries
       // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-      expect((api.map as any).getItemHistory).toBeDefined();
+      expect((api.map.items as any).getItemHistory).toBeDefined();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-      expect((api.map as any).getItemVersion).toBeDefined();
+      expect((api.map.items as any).getItemVersion).toBeDefined();
 
       // In production, these would be actual useQuery hooks
       // In tests, they're mocked to verify the API contract
@@ -219,9 +219,9 @@ describe('Map History Integration', () => {
       // Success criterion from context engineering report
       expect(api.map).toBeDefined();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-      expect((api.map as any).getItemHistory).toBeDefined();
+      expect((api.map.items as any).getItemHistory).toBeDefined();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-      expect((api.map as any).getItemVersion).toBeDefined();
+      expect((api.map.items as any).getItemVersion).toBeDefined();
     });
 
     it('validates: Cache provider can store and invalidate version history responses', () => {
@@ -249,7 +249,7 @@ describe('Map History Integration', () => {
 
       // This integration test validates infrastructure supports these steps
       // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-      expect((api.map as any).getItemHistory).toBeDefined();
+      expect((api.map.items as any).getItemHistory).toBeDefined();
     });
 
     it('should support version history user journey steps 5-9', () => {
@@ -262,7 +262,7 @@ describe('Map History Integration', () => {
 
       // This integration test validates infrastructure supports these steps
       // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-      expect((api.map as any).getItemVersion).toBeDefined();
+      expect((api.map.items as any).getItemVersion).toBeDefined();
     });
   });
 });
