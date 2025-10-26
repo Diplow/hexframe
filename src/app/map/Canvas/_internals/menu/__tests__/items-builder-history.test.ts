@@ -9,18 +9,27 @@ describe('buildMenuItems - History Support', () => {
     metadata: {
       coordId: '1,0:1',
       dbId: '123',
+      parentId: '1,0:',
+      coordinates: { userId: 1, groupId: 0, path: [1] },
       depth: 1,
+      ownerId: '1',
     },
     data: {
       title: 'Test Tile',
       content: 'Test content',
       preview: 'Test preview',
       link: '',
+      color: 'bg-primary-50',
     },
     state: {
       isExpanded: false,
       canExpand: true,
       canEdit: true,
+      isDragged: false,
+      isHovered: false,
+      isSelected: false,
+      isDragOver: false,
+      isHovering: false,
     },
   };
 
