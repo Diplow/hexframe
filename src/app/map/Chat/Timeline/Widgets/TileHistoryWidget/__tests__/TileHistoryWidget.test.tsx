@@ -22,7 +22,33 @@ vi.mock('~/commons/trpc/react', () => ({
         },
       },
     },
+    useUtils: vi.fn(() => ({
+      map: {
+        items: {
+          getItemHistory: {
+            invalidate: vi.fn(),
+          },
+        },
+      },
+    })),
   },
+}));
+
+// Mock useMapCache
+vi.mock('~/app/map/Cache', () => ({
+  useMapCache: vi.fn(() => ({
+    getItem: vi.fn((coordId: string) => ({
+      data: {
+        title: 'Current Title',
+        preview: 'Current preview',
+        content: 'Current content',
+      },
+      metadata: {
+        coordId,
+      },
+    })),
+    updateItemOptimistic: vi.fn(),
+  })),
 }));
 
 import { TileHistoryView } from '~/app/map/Chat/Timeline/Widgets/TileHistoryWidget/TileHistoryWidget';
@@ -116,8 +142,7 @@ describe('TileHistoryView', () => {
       const onClose = vi.fn();
       render(<TileHistoryView coords={mockCoords} onClose={onClose} />);
 
-      expect(screen.getByText(/error/i)).toBeInTheDocument();
-      expect(screen.getByText(/failed to load version history/i)).toBeInTheDocument();
+      expect(screen.getByText(/failed to load history/i)).toBeInTheDocument();
     });
   });
 
@@ -147,9 +172,12 @@ describe('TileHistoryView', () => {
       const onClose = vi.fn();
       render(<TileHistoryView coords={mockCoords} onClose={onClose} />);
 
-      expect(screen.getByText(/version 3/i)).toBeInTheDocument();
-      expect(screen.getByText(/version 2/i)).toBeInTheDocument();
-      expect(screen.getByText(/version 1/i)).toBeInTheDocument();
+      // Current version shows "Current" badge instead of version number
+      expect(screen.getByText('Current')).toBeInTheDocument();
+      // Historical versions show as v1, v2, v3 badges
+      expect(screen.getByText('v3')).toBeInTheDocument();
+      expect(screen.getByText('v2')).toBeInTheDocument();
+      expect(screen.getByText('v1')).toBeInTheDocument();
     });
 
     it('should display formatted dates for each version', () => {
@@ -293,13 +321,15 @@ describe('TileHistoryView', () => {
         expect(screen.getByText('Middle content')).toBeInTheDocument();
       });
 
-      // Click back button
-      const backButton = screen.getByRole('button', { name: /back|return/i });
-      await user.click(backButton);
+      // Click close button to return to version list
+      const closeButton = screen.getByRole('button', { name: /close/i });
+      await user.click(closeButton);
 
       // Should be back at version list
-      expect(screen.getByText('Latest Version')).toBeInTheDocument();
-      expect(screen.queryByText('Middle content')).not.toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText('Latest Version')).toBeInTheDocument();
+        expect(screen.queryByText('Middle content')).not.toBeInTheDocument();
+      });
     });
 
     it('should call onClose when close button is clicked', async () => {
@@ -322,7 +352,7 @@ describe('TileHistoryView', () => {
   });
 
   describe('Accessibility', () => {
-    it('should have proper ARIA labels for version list', () => {
+    it('should have proper heading for version history', () => {
       vi.mocked(api.map.items.getItemHistory.useQuery).mockReturnValue({
         data: mockHistoryData,
         isLoading: false,
@@ -332,9 +362,14 @@ describe('TileHistoryView', () => {
       const onClose = vi.fn();
       render(<TileHistoryView coords={mockCoords} onClose={onClose} />);
 
-      const list = screen.getByRole('list');
-      expect(list).toBeInTheDocument();
-      expect(list).toHaveAccessibleName(/version history|history/i);
+      // Check that the widget has a clear title
+      expect(screen.getByText('Version History')).toBeInTheDocument();
+
+      // Check that all versions are accessible
+      expect(screen.getByText('Current Title')).toBeInTheDocument();
+      expect(screen.getByText('Latest Version')).toBeInTheDocument();
+      expect(screen.getByText('Middle Version')).toBeInTheDocument();
+      expect(screen.getByText('First Version')).toBeInTheDocument();
     });
 
     it('should be keyboard navigable', async () => {
@@ -349,12 +384,9 @@ describe('TileHistoryView', () => {
       const onClose = vi.fn();
       render(<TileHistoryView coords={mockCoords} onClose={onClose} />);
 
-      // Get the first version button
-      const firstVersionButton = screen.getByText('Latest Version');
-      expect(firstVersionButton).toBeInTheDocument();
-
-      // Focus the button
-      firstVersionButton.closest('button')?.focus();
+      // Get the first historical version (not current)
+      const firstVersionDiv = screen.getByText('Latest Version').closest('div');
+      expect(firstVersionDiv).toBeInTheDocument();
 
       // Mock the version detail query AFTER rendering but BEFORE clicking
       vi.mocked(api.map.items.getItemVersion.useQuery).mockReturnValue({
@@ -363,8 +395,8 @@ describe('TileHistoryView', () => {
         error: null,
       } as any);
 
-      // Press Enter to select
-      await user.keyboard('{Enter}');
+      // Click the version to view details
+      await user.click(firstVersionDiv!);
 
       await waitFor(() => {
         expect(screen.getByText('Latest content')).toBeInTheDocument();

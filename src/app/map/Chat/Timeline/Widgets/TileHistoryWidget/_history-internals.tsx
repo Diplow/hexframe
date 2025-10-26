@@ -1,6 +1,7 @@
 import ReactMarkdown from 'react-markdown';
 import { BaseWidget, WidgetHeader, WidgetContent } from "~/app/map/Chat/Timeline/Widgets";
-import { History } from "lucide-react";
+import { History, RotateCcw } from "lucide-react";
+import { Button } from "~/components/ui/button";
 
 interface LoadingStateProps {
   onClose: () => void;
@@ -69,9 +70,10 @@ interface VersionData {
 interface VersionDetailProps {
   versionData: VersionData;
   onClose: () => void;
+  onRestore?: () => void;
 }
 
-export function _VersionDetail({ versionData, onClose }: VersionDetailProps) {
+export function _VersionDetail({ versionData, onClose, onRestore }: VersionDetailProps) {
   const formattedDate = new Date(versionData.createdAt).toLocaleString();
 
   return (
@@ -89,10 +91,21 @@ export function _VersionDetail({ versionData, onClose }: VersionDetailProps) {
         onClose={onClose}
       />
       <WidgetContent>
-        <div className="p-3 bg-neutral-100 dark:bg-neutral-800 border-l-4 border-primary mb-3">
+        <div className="p-3 bg-neutral-100 dark:bg-neutral-800 border-l-4 border-primary mb-3 flex items-center justify-between">
           <p className="text-sm text-secondary-900 dark:text-secondary-100">
             📜 This is a historical version (read-only)
           </p>
+          {onRestore && (
+            <Button
+              onClick={onRestore}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Restore
+            </Button>
+          )}
         </div>
 
         {versionData.preview && (

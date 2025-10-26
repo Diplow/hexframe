@@ -95,10 +95,12 @@ export function TileWidget({
 
   const editState = { setIsEditing, setIsExpanded, setEditTitle, setEditPreview, setEditContent };
   const handleEdit = () => {
-    if (currentMode === 'history') {
-      setCurrentMode('view');
-    }
-    _handleEdit(editState);
+    // Exit history mode first if active
+    setCurrentMode('view');
+    // Use setTimeout to ensure mode change is processed before setting edit state
+    setTimeout(() => {
+      _handleEdit(editState);
+    }, 0);
   };
   const handleSave = () => _handleSave(editTitle, editPreview, editContent, currentMode, setIsEditing, onSave);
   const handleCancel = () => _handleCancel(currentMode, title, preview, content, editState, onClose);
