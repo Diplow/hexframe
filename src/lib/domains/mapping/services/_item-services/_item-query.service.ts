@@ -219,7 +219,7 @@ export class ItemQueryService {
     newCoords: Coord;
   }) {
     // Import TransactionManager at the top of the file
-    const { TransactionManager } = await import("../infrastructure/transaction-manager");
+    const { TransactionManager } = await import("~/lib/domains/mapping/infrastructure/transaction-manager");
     
     // Wrap the move operation in a transaction to ensure atomicity
     // This is critical for swap operations which involve multiple database updates
