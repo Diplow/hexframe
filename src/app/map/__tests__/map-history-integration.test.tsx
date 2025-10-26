@@ -81,12 +81,14 @@ describe('Map History Integration', () => {
   describe('tRPC Client Access', () => {
     it('should have getItemHistory query available', () => {
       // Verify the tRPC query exists (even if mocked in tests)
-      expect(api.map.getItemHistory).toBeDefined();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+      expect((api.map as any).getItemHistory).toBeDefined();
     });
 
     it('should have getItemVersion query available', () => {
       // Verify the tRPC query exists for viewing specific versions
-      expect(api.map.getItemVersion).toBeDefined();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+      expect((api.map as any).getItemVersion).toBeDefined();
     });
 
     it('should allow descendant components to access tRPC queries', () => {
@@ -112,25 +114,43 @@ describe('Map History Integration', () => {
   describe('Event Bus Integration', () => {
     it('should allow cache invalidation events', async () => {
       const eventHandler = vi.fn();
-      eventBus.on('cache:invalidate', eventHandler);
+      eventBus.on('cache.invalidate', eventHandler);
 
       // Simulate TileWidget triggering cache invalidation
-      eventBus.emit('cache:invalidate', { coordId: '1,0:1' });
+      eventBus.emit({
+        type: 'cache.invalidate',
+        source: 'test',
+        payload: { coordId: '1,0:1' },
+      });
 
       await waitFor(() => {
-        expect(eventHandler).toHaveBeenCalledWith({ coordId: '1,0:1' });
+        expect(eventHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'cache.invalidate',
+            payload: { coordId: '1,0:1' },
+          })
+        );
       });
     });
 
     it('should support version history invalidation events', async () => {
       const eventHandler = vi.fn();
-      eventBus.on('history:invalidate', eventHandler);
+      eventBus.on('history.invalidate', eventHandler);
 
       // TileWidget could emit this when tile is updated
-      eventBus.emit('history:invalidate', { coordId: '1,0:1' });
+      eventBus.emit({
+        type: 'history.invalidate',
+        source: 'test',
+        payload: { coordId: '1,0:1' },
+      });
 
       await waitFor(() => {
-        expect(eventHandler).toHaveBeenCalledWith({ coordId: '1,0:1' });
+        expect(eventHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'history.invalidate',
+            payload: { coordId: '1,0:1' },
+          })
+        );
       });
     });
   });
@@ -140,11 +160,11 @@ describe('Map History Integration', () => {
       // This validates the architectural data flow described in context:
       // TileWidget → tRPC client → API router → Domain service → Repository → Database
 
-      const mockCoords = { userId: 1, groupId: 0, path: [1] };
-
       // Verify tRPC mock structure supports history queries
-      expect(api.map.getItemHistory).toBeDefined();
-      expect(api.map.getItemVersion).toBeDefined();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+      expect((api.map as any).getItemHistory).toBeDefined();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+      expect((api.map as any).getItemVersion).toBeDefined();
 
       // In production, these would be actual useQuery hooks
       // In tests, they're mocked to verify the API contract
@@ -153,7 +173,9 @@ describe('Map History Integration', () => {
     it('should allow cache provider to handle version history responses', () => {
       // Verify localStorage mock is available for caching
       expect(window.localStorage).toBeDefined();
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(window.localStorage.setItem).toBeDefined();
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(window.localStorage.getItem).toBeDefined();
 
       // TileWidget would cache version history in localStorage
@@ -196,8 +218,10 @@ describe('Map History Integration', () => {
     it('validates: tRPC client accessible from TileWidget descendants', () => {
       // Success criterion from context engineering report
       expect(api.map).toBeDefined();
-      expect(api.map.getItemHistory).toBeDefined();
-      expect(api.map.getItemVersion).toBeDefined();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+      expect((api.map as any).getItemHistory).toBeDefined();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+      expect((api.map as any).getItemVersion).toBeDefined();
     });
 
     it('validates: Cache provider can store and invalidate version history responses', () => {
@@ -224,7 +248,8 @@ describe('Map History Integration', () => {
       // 4. TileWidget calls api.map.getItemHistory.useQuery({ coords })
 
       // This integration test validates infrastructure supports these steps
-      expect(api.map.getItemHistory).toBeDefined();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+      expect((api.map as any).getItemHistory).toBeDefined();
     });
 
     it('should support version history user journey steps 5-9', () => {
@@ -236,7 +261,8 @@ describe('Map History Integration', () => {
       // 9. User closes history → TileWidget returns to 'view' mode
 
       // This integration test validates infrastructure supports these steps
-      expect(api.map.getItemVersion).toBeDefined();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+      expect((api.map as any).getItemVersion).toBeDefined();
     });
   });
 });
