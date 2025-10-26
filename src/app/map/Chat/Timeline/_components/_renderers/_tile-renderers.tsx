@@ -23,9 +23,11 @@ export function _renderTileWidget(
   // Get color from the cached tile data (preferred) or generate from coordinates
   const tileColor = tileItem?.data.color;
 
+
   return (
     <TileWidget
       tileId={tileData.tileId}
+      coordId={tileItem?.metadata?.coordId ?? tileData.tileId}
       title={currentTitle}
       preview={currentPreview}
       content={currentContent}

@@ -3,7 +3,7 @@
 import { DraggableTilePreview, TilePreview } from '~/app/map/Chat/Timeline/Widgets/_shared';
 
 interface TilePreviewSectionProps {
-  mode: 'view' | 'edit' | 'create';
+  mode: 'view' | 'edit' | 'create' | 'history';
   tileId?: string;
   tileColor?: string;
   isTogglable: boolean;

@@ -14,13 +14,14 @@ export { MapErrorBoundary } from '~/app/map/Canvas/LifeCycle/error-boundary'
 export { MapLoadingSpinner } from '~/app/map/Canvas/LifeCycle/loading-spinner'
 
 // Tile components - re-exported from Canvas/Tile subsystem
-export { 
+export {
   BaseTileLayout,    // Core hexagonal tile layout (used by Hierarchy)
   // ErrorTile removed - was unused dead code
   DynamicItemTile,   // Dynamic item tiles (used by Frame)
   DynamicEmptyTile,  // Dynamic empty tiles (used by Frame)
   DynamicBaseTileLayout, // Dynamic base tile layout (used by Frame and tiles)
-  getColorFromItem   // Utility for color extraction
+  getColorFromItem,  // Utility for color extraction
+  
 } from '~/app/map/Canvas/Tile'
 
 // Tile types for external consumers

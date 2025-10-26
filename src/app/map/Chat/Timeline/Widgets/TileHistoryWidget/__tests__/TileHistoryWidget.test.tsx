@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import '~/test/setup';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -23,7 +25,7 @@ vi.mock('~/commons/trpc/react', () => ({
   },
 }));
 
-import { TileHistoryView } from '~/app/map/Canvas/Tile/Item/_components/tile-history-view';
+import { TileHistoryView } from '~/app/map/Chat/Timeline/Widgets/TileHistoryWidget/TileHistoryWidget';
 import { api } from '~/commons/trpc/react';
 
 describe('TileHistoryView', () => {

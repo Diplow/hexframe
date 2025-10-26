@@ -6,6 +6,7 @@
 
 // Core Widget Components
 export { TileWidget } from '~/app/map/Chat/Timeline/Widgets/TileWidget';
+export { TileHistoryView } from '~/app/map/Chat/Timeline/Widgets/TileHistoryWidget/TileHistoryWidget';
 export { LoginWidget } from '~/app/map/Chat/Timeline/Widgets/LoginWidget';
 export { ErrorWidget } from '~/app/map/Chat/Timeline/Widgets/ErrorWidget';
 export { LoadingWidget } from '~/app/map/Chat/Timeline/Widgets/LoadingWidget';
@@ -15,6 +16,9 @@ export { DebugLogsWidget } from '~/app/map/Chat/Timeline/Widgets/DebugLogsWidget
 
 // Widget Infrastructure
 export { Portal } from '~/app/map/Chat/Timeline/Widgets/Portal';
+
+// Shared Widget Components (for internal widget implementations)
+export { BaseWidget, WidgetHeader, WidgetContent } from '~/app/map/Chat/Timeline/Widgets/_shared';
 
 // Tile Widget Components (re-exported from their subsystem)
 export * from '~/app/map/Chat/Timeline/Widgets/TileWidget';
