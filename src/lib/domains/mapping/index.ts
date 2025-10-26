@@ -28,5 +28,4 @@ export {
 export {
   DbMapItemRepository,
   DbBaseItemRepository,
-  TransactionManager,
 } from '~/lib/domains/mapping/infrastructure';
