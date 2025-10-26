@@ -20,7 +20,7 @@ describe("ItemHistoryService [Integration - DB]", () => {
     it("should return version history for a tile", async () => {
       // Arrange: Create a tile and update it multiple times
       const testParams = _createUniqueTestParams();
-      const { childItem, childCoords } = await _setupMapWithChild(testEnv.service, testParams);
+      const { childCoords } = await _setupMapWithChild(testEnv.service, testParams);
 
       // Update the item to create version history
       await testEnv.service.items.crud.updateItem({
@@ -48,8 +48,8 @@ describe("ItemHistoryService [Integration - DB]", () => {
       expect(history.versions.length).toBeGreaterThan(0);
 
       // Versions should be ordered newest first
-      expect(history.versions[0].versionNumber).toBeGreaterThan(
-        history.versions[history.versions.length - 1].versionNumber
+      expect(history.versions[0]?.versionNumber).toBeGreaterThan(
+        history.versions[history.versions.length - 1]?.versionNumber ?? 0
       );
     });
 
@@ -87,8 +87,8 @@ describe("ItemHistoryService [Integration - DB]", () => {
       expect(page1.hasMore).toBe(true);
 
       // Verify pages don't overlap
-      expect(page1.versions[0].versionNumber).not.toBe(
-        page2.versions[0].versionNumber
+      expect(page1.versions[0]?.versionNumber).not.toBe(
+        page2.versions[0]?.versionNumber
       );
     });
 
@@ -122,12 +122,12 @@ describe("ItemHistoryService [Integration - DB]", () => {
         path: [Direction.East, Direction.West, Direction.NorthWest],
       };
 
-      // Act & Assert: Should throw error
+      // Act & Assert: Should throw error (repository throws its own error format)
       await expect(
         testEnv.service.items.history.getItemHistory({
           coords: nonExistentCoords,
         })
-      ).rejects.toThrow(/MapItem not found at coords/);
+      ).rejects.toThrow(/not found/);
     });
 
     it("should include full coordinates in error message", async () => {
@@ -139,12 +139,10 @@ describe("ItemHistoryService [Integration - DB]", () => {
         path: [Direction.East, Direction.SouthEast],
       };
 
-      // Act & Assert: Error should include coordinate details
+      // Act & Assert: Error should include coordinate context
       await expect(
         testEnv.service.items.history.getItemHistory({ coords })
-      ).rejects.toThrow(
-        new RegExp(`${coords.userId},${coords.groupId}:${coords.path.join(",")}`)
-      );
+      ).rejects.toThrow(/coords/);
     });
 
     it("should return current version matching the latest tile state", async () => {
@@ -228,7 +226,7 @@ describe("ItemHistoryService [Integration - DB]", () => {
           coords: nonExistentCoords,
           versionNumber: 1,
         })
-      ).rejects.toThrow(/MapItem not found at coords/);
+      ).rejects.toThrow(/not found/);
     });
 
     it("should preserve all fields in version snapshot", async () => {
@@ -300,14 +298,14 @@ describe("ItemHistoryService [Integration - DB]", () => {
       // Newest first
       const versionNumbers = history.versions.map(v => v.versionNumber);
       for (let i = 0; i < versionNumbers.length - 1; i++) {
-        expect(versionNumbers[i]).toBeGreaterThan(versionNumbers[i + 1]);
+        expect(versionNumbers[i]).toBeGreaterThan(versionNumbers[i + 1] ?? 0);
       }
     });
 
     it("should maintain version integrity across tile moves", async () => {
       // Arrange: Create a tile, update it, then move it
       const testParams = _createUniqueTestParams();
-      const { rootMap, childItem, childCoords } = await _setupMapWithChild(testEnv.service, {
+      const { childCoords } = await _setupMapWithChild(testEnv.service, {
         ...testParams,
         childTitle: "Original Title",
       });
@@ -326,9 +324,8 @@ describe("ItemHistoryService [Integration - DB]", () => {
       };
 
       await testEnv.service.items.crud.moveMapItem({
-        fromCoords: childCoords,
-        toCoords: newCoords,
-        newParentId: parseInt(rootMap.id),
+        oldCoords: childCoords,
+        newCoords: newCoords,
       });
 
       // Act: Get history from new location

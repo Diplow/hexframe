@@ -3,5 +3,6 @@ export { MapManagementService } from "~/lib/domains/mapping/services/_map-manage
 export { ItemManagementService } from "~/lib/domains/mapping/services/_item-management.service";
 export { ItemCrudService } from "~/lib/domains/mapping/services/_item-crud.service";
 export { ItemQueryService } from "~/lib/domains/mapping/services/_item-query.service";
+export { ItemHistoryService } from "~/lib/domains/mapping/services/_item-history.service";
 export { MappingUtils } from "~/lib/domains/mapping/services/_mapping-utils";
 // export * from "./adapters";
