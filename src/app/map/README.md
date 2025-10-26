@@ -9,6 +9,7 @@ Like the main cockpit of a spacecraft - the central command center that orchestr
 - Handles initial map resolution from URL parameters or user default maps
 - Manages page-level state transitions between loading, ready, and error states
 - Coordinates authentication state and user session integration
+- Provides infrastructure (tRPC client, EventBus, providers) for child components to access version history features
 
 ## Non-Responsibilities
 - Tile data management and caching → See `./Cache/README.md`
