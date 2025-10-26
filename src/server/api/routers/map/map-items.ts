@@ -285,4 +285,63 @@ export const mapItemsRouter = createTRPCRouter({
       });
       return { hasComposition: hasComp };
     }),
+
+  // Get version history for a tile
+  getItemHistory: publicProcedure
+    .use(mappingServiceMiddleware)
+    .input(
+      z.object({
+        coords: hexCoordSchema,
+        limit: z.number().min(1).max(100).optional().default(50),
+        offset: z.number().min(0).optional().default(0),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      try {
+        const history = await ctx.mappingService.items.history.getItemHistory({
+          coords: input.coords as Coord,
+          limit: input.limit,
+          offset: input.offset,
+        });
+        return history;
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to retrieve version history",
+          cause: error,
+        });
+      }
+    }),
+
+  // Get a specific historical version of a tile
+  getItemVersion: publicProcedure
+    .use(mappingServiceMiddleware)
+    .input(
+      z.object({
+        coords: hexCoordSchema,
+        versionNumber: z.number().int().positive(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      try {
+        const version = await ctx.mappingService.items.history.getItemVersion({
+          coords: input.coords as Coord,
+          versionNumber: input.versionNumber,
+        });
+        return version;
+      } catch (error) {
+        if (error instanceof Error && error.message.includes("not found")) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: `Version ${input.versionNumber} not found`,
+            cause: error,
+          });
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to retrieve version",
+          cause: error,
+        });
+      }
+    }),
 });
