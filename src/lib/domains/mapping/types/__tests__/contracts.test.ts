@@ -3,15 +3,41 @@ import {
   baseItemVersionDomainToContractAdapter,
   mapItemDomainToContractAdapter,
   baseItemDomainToContractAdapter,
-  mapDomainToContractAdapter,
   adapt,
   type BaseItemVersionContract,
   type ItemHistoryContract,
 } from "~/lib/domains/mapping/types/contracts";
-import type { BaseItemVersion, MapItemWithId, BaseItemWithId } from "~/lib/domains/mapping/_objects";
-import { MapItemType } from "~/lib/domains/mapping/_objects";
+import type { BaseItemVersion } from "~/lib/domains/mapping/_objects";
+import { BaseItem, MapItem, MapItemType } from "~/lib/domains/mapping/_objects";
 import { Direction } from "~/lib/domains/mapping/utils";
 import type { Coord } from "~/lib/domains/mapping/utils";
+
+// Helper to create a BaseItemWithId for testing
+function createTestBaseItem(id: number, title: string, content: string, preview: string | null = null, link = "") {
+  const baseItem = new BaseItem({ attrs: { title, content, preview: preview ?? undefined, link } });
+  return Object.assign(baseItem, { id });
+}
+
+// Helper to create a MapItemWithId for testing
+function createTestMapItem(
+  id: number,
+  coords: Coord,
+  itemType: MapItemType,
+  baseItemId: number,
+  title: string,
+  content: string,
+  preview: string | null = null,
+  link = "",
+  parentId: number | null = null
+) {
+  const baseItem = createTestBaseItem(baseItemId, title, content, preview, link);
+  const mapItem = new MapItem({
+    attrs: { coords, itemType, parentId, originId: null },
+    ref: baseItem,
+    neighbors: [],
+  });
+  return Object.assign(mapItem, { id });
+}
 
 describe("baseItemVersionDomainToContractAdapter", () => {
   describe("happy path", () => {
@@ -167,15 +193,13 @@ describe("baseItemVersionDomainToContractAdapter", () => {
 describe("ItemHistoryContract type", () => {
   it("should be compatible with expected structure", () => {
     const coords: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest] };
-    const currentVersion: BaseItemWithId = {
-      id: 789,
-      attrs: {
-        title: "Current Title",
-        content: "Current content",
-        preview: "Current preview",
-        link: "https://current.com",
-      },
-    };
+    const currentVersion = createTestBaseItem(
+      789,
+      "Current Title",
+      "Current content",
+      "Current preview",
+      "https://current.com"
+    );
 
     const versions: BaseItemVersionContract[] = [
       {
@@ -215,15 +239,7 @@ describe("ItemHistoryContract type", () => {
 
   it("should support pagination with hasMore flag", () => {
     const coords: Coord = { userId: 1, groupId: 0, path: [] };
-    const currentVersion: BaseItemWithId = {
-      id: 789,
-      attrs: {
-        title: "Current",
-        content: "Content",
-        preview: null,
-        link: null,
-      },
-    };
+    const currentVersion = createTestBaseItem(789, "Current", "Content", null, "");
 
     const history: ItemHistoryContract = {
       coords,
@@ -259,15 +275,7 @@ describe("adapt object - centralized access", () => {
   });
 
   it("should provide baseItem adapter", () => {
-    const baseItem: BaseItemWithId = {
-      id: 789,
-      attrs: {
-        title: "Base Title",
-        content: "Base content",
-        preview: "Base preview",
-        link: "https://base.com",
-      },
-    };
+    const baseItem = createTestBaseItem(789, "Base Title", "Base content", "Base preview", "https://base.com");
 
     const contract = adapt.baseItem(baseItem);
 
@@ -277,23 +285,17 @@ describe("adapt object - centralized access", () => {
 
   it("should provide mapItem adapter", () => {
     const coords: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest] };
-    const mapItem: MapItemWithId = {
-      id: 123,
-      attrs: {
-        coords,
-        itemType: MapItemType.STRUCTURAL,
-        parentId: null,
-      },
-      ref: {
-        id: 456,
-        attrs: {
-          title: "Map Item Title",
-          content: "Map Item Content",
-          preview: "Map Item Preview",
-          link: "https://mapitem.com",
-        },
-      },
-    };
+    const mapItem = createTestMapItem(
+      123,
+      coords,
+      MapItemType.BASE,
+      456,
+      "Map Item Title",
+      "Map Item Content",
+      "Map Item Preview",
+      "https://mapitem.com",
+      999 // parentId - BASE items need a parent
+    );
 
     const contract = adapt.mapItem(mapItem, 1);
 
@@ -303,23 +305,16 @@ describe("adapt object - centralized access", () => {
 
   it("should provide map adapter", () => {
     const coords: Coord = { userId: 1, groupId: 0, path: [] };
-    const rootItem: MapItemWithId = {
-      id: 1,
-      attrs: {
-        coords,
-        itemType: MapItemType.USER,
-        parentId: null,
-      },
-      ref: {
-        id: 100,
-        attrs: {
-          title: "Root Title",
-          content: "Root Content",
-          preview: null,
-          link: null,
-        },
-      },
-    };
+    const rootItem = createTestMapItem(
+      1,
+      coords,
+      MapItemType.USER,
+      100,
+      "Root Title",
+      "Root Content",
+      null,
+      ""
+    );
 
     const contract = adapt.map(rootItem, []);
 
@@ -349,45 +344,35 @@ describe("adapter function purity", () => {
   });
 
   it("should not mutate input BaseItem", () => {
-    const baseItem: BaseItemWithId = {
-      id: 789,
-      attrs: {
-        title: "Base Title",
-        content: "Base content",
-        preview: "Base preview",
-        link: "https://base.com",
-      },
-    };
+    const baseItem = createTestBaseItem(789, "Base Title", "Base content", "Base preview", "https://base.com");
 
-    const originalBaseItem = JSON.parse(JSON.stringify(baseItem));
+    const originalAttrs = { ...baseItem.attrs };
     baseItemDomainToContractAdapter(baseItem);
 
-    expect(baseItem).toEqual(originalBaseItem);
+    expect(baseItem.attrs).toEqual(originalAttrs);
+    expect(baseItem.id).toBe(789);
   });
 
   it("should not mutate input MapItem", () => {
     const coords: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest] };
-    const mapItem: MapItemWithId = {
-      id: 123,
-      attrs: {
-        coords,
-        itemType: MapItemType.STRUCTURAL,
-        parentId: null,
-      },
-      ref: {
-        id: 456,
-        attrs: {
-          title: "Map Item Title",
-          content: "Map Item Content",
-          preview: "Map Item Preview",
-          link: "https://mapitem.com",
-        },
-      },
-    };
+    const mapItem = createTestMapItem(
+      123,
+      coords,
+      MapItemType.BASE,
+      456,
+      "Map Item Title",
+      "Map Item Content",
+      "Map Item Preview",
+      "https://mapitem.com",
+      999 // parentId - BASE items need a parent
+    );
 
-    const originalMapItem = JSON.parse(JSON.stringify(mapItem));
+    const originalAttrs = { ...mapItem.attrs };
+    const originalRefAttrs = { ...mapItem.ref.attrs };
     mapItemDomainToContractAdapter(mapItem, 1);
 
-    expect(mapItem).toEqual(originalMapItem);
+    expect(mapItem.attrs).toEqual(originalAttrs);
+    expect(mapItem.ref.attrs).toEqual(originalRefAttrs);
+    expect(mapItem.id).toBe(123);
   });
 });
