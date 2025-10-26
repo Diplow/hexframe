@@ -4,12 +4,13 @@
 Like a telephone switchboard operator, connecting frontend map requests to the right backend services and translating between different data formats.
 
 ## Responsibilities
-- Expose tRPC API endpoints for all hexagonal map operations (CRUD, navigation, queries, composition)
+- Expose tRPC API endpoints for all hexagonal map operations (CRUD, navigation, queries, composition, history)
 - Validate incoming request data using Zod schemas for coordinates, items, and user maps
 - Aggregate user map management and item operations into a unified router interface
 - Provide backward compatibility by exposing nested router endpoints as flat legacy endpoints
 - Transform domain service responses into API-friendly formats using contract adapters
 - Expose composition queries (getComposedChildren, hasComposition) for direction 0 child tiles
+- Expose version history queries (getItemHistory, getItemVersion) with pagination support
 
 ## Non-Responsibilities
 - Business logic and domain rules → See `~/lib/domains/mapping/README.md`
