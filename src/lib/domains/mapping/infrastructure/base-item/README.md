@@ -32,6 +32,11 @@ The BaseItem infrastructure is like a "version-aware database adapter" that hand
 - `getMany()`: Retrieves multiple baseItems with pagination
 - `remove(id)`: Deletes baseItem (versions cascade automatically)
 
+**Version Query Methods**:
+- `getVersionHistory(baseItemId, options?)`: Retrieves all versions in descending order (newest first), supports pagination
+- `getVersionByNumber(baseItemId, versionNumber)`: Retrieves a specific version by number
+- `getLatestVersion(baseItemId)`: Retrieves the most recent version snapshot
+
 **Version Tracking**:
 - Version created on baseItem creation (version 1)
 - Version created BEFORE each update (captures OLD values)
