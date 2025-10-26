@@ -6,6 +6,7 @@ This subsystem is the "entity layer" of the mapping domain - defining the core d
 ## Responsibilities
 - Define MapItem entity with coordinates, type, and hierarchical relationships
 - Define BaseItem entity representing the underlying content of map items
+- Define BaseItemVersion type for version history snapshots (read-only value object)
 - Validate map item structure and relationships (parent-child hierarchy)
 - Validate neighbor relationships including direction 0 (composition) children
 - Enforce business rules: USER items have no parent, BASE items must have parent
@@ -24,6 +25,7 @@ This subsystem is the "entity layer" of the mapping domain - defining the core d
 **Exports**: See `index.ts` for the complete public API. Key exports:
 - `MapItem`: Main domain entity for map items
 - `BaseItem`: Entity representing underlying content
+- `BaseItemVersion`: Type for version history snapshots (immutable records)
 - `MapItemValidation`: Validates coordinates and parent-child relationships
 - `MapItemNeighborValidation`: Validates neighbor relationships and direction constraints
 - `MapItemType`: Enum for item types (USER, BASE)
@@ -39,3 +41,14 @@ This subsystem is the "entity layer" of the mapping domain - defining the core d
 - **Parent-Child Types**: USER items cannot have parents; BASE items must have parents
 - **Coordinate Consistency**: Children's coordinates must match parent's userId/groupId
 - **Depth Consistency**: Child depth must be exactly parent depth + 1
+
+## Design Decisions
+
+### BaseItemVersion: Repository-Level Type
+`BaseItemVersion` is defined as a simple type (not a full domain entity) because:
+- Versions are purely read-only historical snapshots with no business logic
+- No version comparison, rollback validation, or other domain operations exist yet
+- Validation happens at repository layer (sequential version numbers, uniqueness)
+- Following YAGNI principle: avoid premature complexity
+
+**Future considerations**: If business logic emerges (e.g., version comparison, rollback validation, computed properties), convert to full domain entity with factory functions and methods.
