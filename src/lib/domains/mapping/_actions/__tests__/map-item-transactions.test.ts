@@ -61,6 +61,7 @@ describe("MapItemActions - Transaction Support", () => {
       getVersionHistory: vi.fn(),
       getVersionByNumber: vi.fn(),
       getLatestVersion: vi.fn(),
+      countVersions: vi.fn(),
       removeFromRelatedListByIdr: vi.fn(),
       remove: vi.fn(),
       removeByIdr: vi.fn(),
