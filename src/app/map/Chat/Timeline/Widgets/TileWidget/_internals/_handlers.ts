@@ -17,7 +17,7 @@ export function _handleSave(
   editTitle: string,
   editPreview: string,
   editContent: string,
-  currentMode: 'view' | 'edit' | 'create' | 'delete',
+  currentMode: 'view' | 'edit' | 'create' | 'delete' | 'history',
   setIsEditing: (value: boolean) => void,
   onSave?: (title: string, preview: string, content: string) => void
 ) {
@@ -28,14 +28,14 @@ export function _handleSave(
 }
 
 export function _handleCancel(
-  currentMode: 'view' | 'edit' | 'create' | 'delete',
+  currentMode: 'view' | 'edit' | 'create' | 'delete' | 'history',
   title: string,
   preview: string,
   content: string,
   editState: EditState,
   onClose?: () => void
 ) {
-  if (currentMode === 'create' || currentMode === 'delete') {
+  if (currentMode === 'create' || currentMode === 'delete' || currentMode === 'history') {
     onClose?.();
   } else {
     editState.setEditTitle(title);

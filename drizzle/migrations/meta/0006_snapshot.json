@@ -31,8 +31,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "descr": {
-          "name": "descr",
+        "content": {
+          "name": "content",
           "type": "text",
           "primaryKey": false,
           "notNull": true

@@ -15,12 +15,13 @@ import {
 } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/_handlers';
 import { _DeleteConfirmation } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/_DeleteConfirmation';
 import { BaseWidget } from '~/app/map/Chat/Timeline/Widgets/_shared';
+import { TileHistoryView } from '~/app/map/Chat/Timeline/Widgets/TileHistoryWidget/TileHistoryWidget';
 import { useMapCache } from '~/app/map/Cache';
 import { CoordSystem } from '~/lib/domains/mapping/utils';
 import { getColor } from '~/app/map/types';
 
 interface TileWidgetProps {
-  mode?: 'view' | 'edit' | 'create' | 'delete';
+  mode?: 'view' | 'edit' | 'create' | 'delete' | 'history';
   tileId?: string;
   coordId?: string;
   title?: string;
@@ -93,11 +94,19 @@ export function TileWidget({
   useAutoCloseOnDelete(tileId, currentMode, getItem, hasItem, isLoading, onClose);
 
   const editState = { setIsEditing, setIsExpanded, setEditTitle, setEditPreview, setEditContent };
-  const handleEdit = () => _handleEdit(editState);
+  const handleEdit = () => {
+    // Exit history mode first if active
+    setCurrentMode('view');
+    // Use setTimeout to ensure mode change is processed before setting edit state
+    setTimeout(() => {
+      _handleEdit(editState);
+    }, 0);
+  };
   const handleSave = () => _handleSave(editTitle, editPreview, editContent, currentMode, setIsEditing, onSave);
   const handleCancel = () => _handleCancel(currentMode, title, preview, content, editState, onClose);
   const handleTitleKeyDown = (e: React.KeyboardEvent) => _handleTitleKeyDown(e, handleCancel);
   const handleConfirmDelete = () => _handleConfirmDelete(tileId, setIsDeleting, setDeleteError, deleteItemOptimistic, onClose);
+  const handleHistory = () => setCurrentMode('history');
 
   if (currentMode === 'delete') {
     return <_DeleteConfirmation title={title} tileId={tileId} coordId={coordId} isDeleting={isDeleting}
@@ -105,8 +114,19 @@ export function TileWidget({
                                 onConfirmDelete={() => void handleConfirmDelete()} />;
   }
 
+  if (currentMode === 'history' && coordId) {
+    const coords = CoordSystem.parseId(coordId);
+    return (
+      <BaseWidget testId="tile-widget-history" className="flex-1 w-full relative">
+        <TileHistoryView coords={coords} onClose={() => setCurrentMode('view')} />
+      </BaseWidget>
+    );
+  }
+
   const isFormMode = isEditing || currentMode === 'create';
   const isViewMode = currentMode !== 'create' && !isEditing;
+
+  const historyHandler = currentMode !== 'create' && coordId ? handleHistory : undefined;
 
   return (
     <BaseWidget testId={currentMode === 'create' ? 'creation-widget' : 'tile-widget'} className="flex-1 w-full relative">
@@ -127,6 +147,7 @@ export function TileWidget({
         onDelete={currentMode !== 'create' ? () => setCurrentMode('delete') : undefined}
         onClose={onClose}
         onMetadata={currentMode !== 'create' ? () => _handleShowMetadata(tileId, getItem, setShowMetadata) : undefined}
+        onHistory={historyHandler}
         onSave={handleSave}
         onCancel={handleCancel}
       />

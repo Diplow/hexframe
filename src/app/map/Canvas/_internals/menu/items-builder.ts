@@ -8,6 +8,7 @@ import {
   Move,
   Plus,
   Layers,
+  History,
   type LucideIcon,
 } from "lucide-react";
 
@@ -33,6 +34,7 @@ interface MenuItemsConfig {
   onDelete?: () => void;
   onCreate?: () => void;
   onCompositionToggle?: (tileData: TileData) => void;
+  onViewHistory?: () => void;
   onClose: () => void;
 }
 
@@ -50,6 +52,7 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
     onDelete,
     onCreate,
     onCompositionToggle,
+    onViewHistory,
     onClose,
   } = config;
 
@@ -106,6 +109,16 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
             label: "Navigate",
             shortcut: "Ctrl+Click",
             onClick: onNavigate,
+          },
+        ]
+      : []),
+    ...(onViewHistory
+      ? [
+          {
+            icon: History,
+            label: "View History",
+            shortcut: "",
+            onClick: onViewHistory,
           },
         ]
       : []),

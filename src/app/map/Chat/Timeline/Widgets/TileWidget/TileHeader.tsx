@@ -8,7 +8,7 @@ import { _HeaderActions } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_inte
 interface TileHeaderProps {
   tileId?: string;
   coordId?: string;
-  mode?: 'view' | 'edit' | 'create';
+  mode?: 'view' | 'edit' | 'create' | 'history';
   title: string | React.ReactNode;
   isExpanded: boolean;
   isEditing: boolean;
@@ -22,6 +22,7 @@ interface TileHeaderProps {
   onDelete?: () => void;
   onClose?: () => void;
   onMetadata?: () => void;
+  onHistory?: () => void;
   onSave: () => void;
   onCancel: () => void;
 }
@@ -43,6 +44,7 @@ export function TileHeader({
   onDelete,
   onClose,
   onMetadata,
+  onHistory,
   onSave,
   onCancel,
 }: TileHeaderProps) {
@@ -101,6 +103,7 @@ export function TileHeader({
           onDelete={onDelete}
           onClose={onClose}
           onMetadata={onMetadata}
+          onHistory={onHistory}
         />
       </div>
     </div>

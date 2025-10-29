@@ -38,7 +38,7 @@ fi
 
 # Run Phase 1 if requested
 if [[ "$PHASE" == "phase1" ]] || [[ "$PHASE" == "all" ]]; then
-  echo "Phase 1: Main test suite (excluding React component and drag-and-drop tests)..."
+  echo "Phase 1: Main test suite (excluding React component and isolated integration tests)..."
   # Temporarily disable exit-on-error to collect exit codes without aborting
   set +e
   pnpm vitest run --config vitest.config.ts \
@@ -64,6 +64,10 @@ if [[ "$PHASE" == "phase1" ]] || [[ "$PHASE" == "all" ]]; then
     --exclude "**/ChatPanel.comprehensive.test.tsx" \
     --exclude "**/useChatState.test.tsx" \
     --exclude "**/navigation-handler.test.ts" \
+    --exclude "**/base-item-versions.integration.test.ts" \
+    --exclude "**/item-query-composition.integration.test.ts" \
+    --exclude "**/item-movement-transaction.integration.test.ts" \
+    --exclude "**/item-swap-fix.integration.test.ts" \
     "${STORYBOOK_EXCLUDE[@]}" 2>test-results/main-suite.log
 
   MAIN_EXIT_CODE=$?
@@ -75,7 +79,7 @@ fi
 
 # Run Phase 2 if requested
 if [[ "$PHASE" == "phase2" ]] || [[ "$PHASE" == "all" ]]; then
-  echo "Phase 2: React component tests (isolated, single thread)..."
+  echo "Phase 2: Isolated tests (React components + integration tests, single thread)..."
 REACT_TEST_FILES=""
 for file in \
   src/app/static/map/Tile/Base/base.test.tsx \
@@ -98,7 +102,11 @@ for file in \
   src/app/map/Chat/__tests__/ChatPanel.render-debug.test.tsx \
   src/app/map/Chat/__tests__/ChatPanel.comprehensive.test.tsx \
   src/app/map/Chat/__tests__/useChatState.test.tsx \
-  src/app/map/Cache/Handlers/__tests__/navigation-handler.test.ts
+  src/app/map/Cache/Handlers/__tests__/navigation-handler.test.ts \
+  src/lib/domains/mapping/infrastructure/base-item/__tests__/base-item-versions.integration.test.ts \
+  src/lib/domains/mapping/services/__tests__/item-query-composition.integration.test.ts \
+  src/lib/domains/mapping/services/__tests__/item-movement-transaction.integration.test.ts \
+  src/lib/domains/mapping/services/__tests__/item-swap-fix.integration.test.ts
 do
   if [ -f "$file" ]; then
     REACT_TEST_FILES="$REACT_TEST_FILES $file"
@@ -252,13 +260,22 @@ print()
 if data['success']:
     print(\"✅ All tests passed!\")
 else:
-    print(f\"❌ {data['numFailedTests']} tests failed\")
+    # Count actual failed assertions across all test files
+    actual_failed_count = 0
+    for test_file in data.get('testResults', []):
+        for assertion in test_file.get('assertionResults', []):
+            if assertion.get('status') == 'failed':
+                actual_failed_count += 1
+
+    print(f\"❌ {actual_failed_count} tests failed\")
     print()
     print(\"Failed Tests Details:\")
     print(\"=\"*40)
     failed_count = 0
     for test_file in data.get('testResults', []):
-        if test_file.get('status') == 'failed':
+        # Check if this file has any failed tests
+        file_has_failures = any(a.get('status') == 'failed' for a in test_file.get('assertionResults', []))
+        if file_has_failures:
             try:
                 file_name = os.path.relpath(test_file['name'], start=os.getcwd())
             except Exception:
@@ -269,7 +286,7 @@ else:
                     failed_count += 1
                     print(f\"  ❌ {assertion.get('title', 'Unknown test')}\")
                     if failed_count >= 10:
-                        remaining = data['numFailedTests'] - failed_count
+                        remaining = actual_failed_count - failed_count
                         if remaining > 0:
                             print(f\"\\n  ... and {remaining} more failures\")
                         break

@@ -4,7 +4,7 @@ import { mapItems, baseItems } from "~/server/db/schema";
 import { eq, inArray } from "drizzle-orm";
 import { DbMapItemRepository } from "~/lib/domains/mapping/infrastructure/map-item/db";
 import { DbBaseItemRepository } from "~/lib/domains/mapping/infrastructure/base-item/db";
-import { ItemCrudService } from "~/lib/domains/mapping/services/_item-crud.service";
+import { ItemCrudService } from "~/lib/domains/mapping/services/_item-services/_item-crud.service";
 import { MapItemActions } from "~/lib/domains/mapping/_actions/map-item-actions";
 import { MapItemType } from "~/lib/domains/mapping/_objects";
 

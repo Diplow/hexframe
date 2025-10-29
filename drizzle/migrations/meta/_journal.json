@@ -26,8 +26,8 @@
     {
       "idx": 3,
       "version": "7",
-      "when": 1756985653764,
-      "tag": "0003_motionless_scorpion",
+      "when": 1756000000000,
+      "tag": "0003_rename_descr_to_content",
       "breakpoints": true
     },
     {
@@ -49,6 +49,13 @@
       "version": "7",
       "when": 1759055061654,
       "tag": "0006_futuristic_doctor_doom",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1761421000000,
+      "tag": "0007_add_base_item_versions",
       "breakpoints": true
     }
   ]

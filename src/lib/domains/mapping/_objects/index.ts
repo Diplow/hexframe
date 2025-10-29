@@ -24,3 +24,7 @@ export {
 export {
   MapItemNeighborValidation,
 } from "~/lib/domains/mapping/_objects/map-item-neighbor-validation";
+
+export type {
+  BaseItemVersion,
+} from "~/lib/domains/mapping/_objects/base-item-version";

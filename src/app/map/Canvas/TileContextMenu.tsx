@@ -17,6 +17,7 @@ interface TileContextMenuProps {
   onDelete?: () => void;
   onCreate?: () => void;
   onCompositionToggle?: (tileData: TileData) => void;
+  onViewHistory?: () => void;
   canEdit: boolean;
   isEmptyTile?: boolean;
   hasComposition?: boolean;
@@ -35,6 +36,7 @@ export function TileContextMenu({
   onDelete,
   onCreate,
   onCompositionToggle,
+  onViewHistory,
   canEdit,
   isEmptyTile = false,
   hasComposition: _hasComposition = false,
@@ -80,6 +82,7 @@ export function TileContextMenu({
     onDelete,
     onCreate,
     onCompositionToggle,
+    onViewHistory,
     onClose,
   });
 

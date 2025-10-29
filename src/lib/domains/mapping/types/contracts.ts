@@ -1,6 +1,6 @@
-import type { MapItemWithId } from "~/lib/domains/mapping/_objects";
+import type { MapItemWithId, BaseItemWithId, BaseItemVersion } from "~/lib/domains/mapping/_objects";
 import { MapItemType } from "~/lib/domains/mapping/_objects";
-import { CoordSystem } from "~/lib/domains/mapping/utils";
+import { CoordSystem, type Coord } from "~/lib/domains/mapping/utils";
 
 export const mapItemDomainToContractAdapter = (
   aggregate: MapItemWithId,
@@ -68,7 +68,58 @@ export const mapDomainToContractAdapter = (
 
 export type MapContract = ReturnType<typeof mapDomainToContractAdapter>;
 
+/**
+ * Adapts a BaseItem domain entity to a contract for API responses.
+ * Converts internal IDs to strings and exposes only safe data.
+ */
+export const baseItemDomainToContractAdapter = (
+  baseItem: BaseItemWithId,
+) => {
+  return {
+    id: String(baseItem.id),
+    title: baseItem.attrs.title,
+    content: baseItem.attrs.content,
+    preview: baseItem.attrs.preview,
+    link: baseItem.attrs.link,
+  };
+};
+
+export type BaseItemContract = ReturnType<typeof baseItemDomainToContractAdapter>;
+
+/**
+ * Adapts a BaseItemVersion domain entity to a contract for API responses.
+ * Exposes version history snapshot data.
+ */
+export const baseItemVersionDomainToContractAdapter = (
+  version: BaseItemVersion,
+) => {
+  return {
+    versionNumber: version.versionNumber,
+    title: version.title,
+    content: version.content,
+    preview: version.preview,
+    link: version.link,
+    createdAt: version.createdAt,
+    updatedBy: version.updatedBy,
+  };
+};
+
+export type BaseItemVersionContract = ReturnType<typeof baseItemVersionDomainToContractAdapter>;
+
+/**
+ * Complete version history for a tile at specific coordinates
+ */
+export interface ItemHistoryContract {
+  coords: Coord;
+  currentVersion: BaseItemContract;
+  versions: BaseItemVersionContract[];
+  totalCount: number;
+  hasMore: boolean;
+}
+
 export const adapt = {
   map: mapDomainToContractAdapter,
   mapItem: mapItemDomainToContractAdapter,
+  baseItem: baseItemDomainToContractAdapter,
+  baseItemVersion: baseItemVersionDomainToContractAdapter,
 };

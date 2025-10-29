@@ -10,15 +10,17 @@ interface ActionMenuProps {
   onDelete?: () => void;
   onClose?: () => void;
   onMetadata?: () => void;
+  onHistory?: () => void;
 }
 
-export function ActionMenu({ onEdit, onDelete, onClose, onMetadata }: ActionMenuProps) {
+export function ActionMenu({ onEdit, onDelete, onClose, onMetadata, onHistory }: ActionMenuProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
-  const hasActions = onEdit ?? onDelete ?? onClose ?? onMetadata;
+
+  const hasActions = onEdit ?? onDelete ?? onClose ?? onMetadata ?? onHistory;
 
   // Handle click outside to close menu
   useEffect(() => {
@@ -105,6 +107,7 @@ export function ActionMenu({ onEdit, onDelete, onClose, onMetadata }: ActionMenu
           onDelete={onDelete}
           onClose={onClose}
           onMetadata={onMetadata}
+          onHistory={onHistory}
           onMenuAction={_handleMenuAction}
         />
       )}

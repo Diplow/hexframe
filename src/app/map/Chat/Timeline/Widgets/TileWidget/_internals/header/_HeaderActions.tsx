@@ -5,7 +5,7 @@ import { Button } from '~/components/ui/button';
 import { ActionMenu } from '~/app/map/Chat/Timeline/Widgets/TileWidget/ActionMenu';
 
 interface HeaderActionsProps {
-  mode: 'view' | 'edit' | 'create';
+  mode: 'view' | 'edit' | 'create' | 'history';
   isEditing: boolean;
   onSave: () => void;
   onCancel: () => void;
@@ -13,6 +13,7 @@ interface HeaderActionsProps {
   onDelete?: () => void;
   onClose?: () => void;
   onMetadata?: () => void;
+  onHistory?: () => void;
 }
 
 export function _HeaderActions({
@@ -24,7 +25,9 @@ export function _HeaderActions({
   onDelete,
   onClose,
   onMetadata,
+  onHistory,
 }: HeaderActionsProps) {
+
   if (isEditing || mode === 'create') {
     return (
       <>
@@ -56,6 +59,7 @@ export function _HeaderActions({
       onDelete={onDelete}
       onClose={onClose}
       onMetadata={onMetadata}
+      onHistory={onHistory}
     />
   );
 }

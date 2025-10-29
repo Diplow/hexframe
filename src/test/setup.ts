@@ -467,6 +467,21 @@ vi.mock('~/commons/trpc/react', () => ({
             isLoading: false,
           })),
         },
+        // History API endpoints for version viewing
+        getItemHistory: {
+          useQuery: vi.fn(() => ({
+            data: null,
+            isLoading: false,
+            error: null,
+          })),
+        },
+        getItemVersion: {
+          useQuery: vi.fn(() => ({
+            data: null,
+            isLoading: false,
+            error: null,
+          })),
+        },
       },
     },
   },

@@ -1,13 +1,14 @@
-import { eq, inArray, asc } from "drizzle-orm";
+import { eq, inArray, asc, desc, and } from "drizzle-orm";
 
 import {
-  type Attrs,
+  type BaseItemAttrs as Attrs,
   type BaseItemIdr,
   type BaseItemWithId,
-  type RelatedItems,
-  type RelatedLists,
+  type BaseItemRelatedItems as RelatedItems,
+  type BaseItemRelatedLists as RelatedLists,
   BaseItem,
-} from "~/lib/domains/mapping/_objects/base-item";
+  type BaseItemVersion,
+} from "~/lib/domains/mapping/_objects";
 import type { BaseItemRepository } from "~/lib/domains/mapping/_repositories";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { schema as schemaImport } from "~/server/db";
@@ -153,6 +154,10 @@ export class DbBaseItemRepository implements BaseItemRepository {
     if (!newItem) {
       throw new Error("Failed to create base item");
     }
+
+    // Create initial version (version 1)
+    await this._createVersion(newItem.id, attrs);
+
     return this.getOne(newItem.id); // Fetch after create
   }
 
@@ -192,6 +197,24 @@ export class DbBaseItemRepository implements BaseItemRepository {
       return this.getOne(id); // No changes
     }
 
+    // Get current values BEFORE update (for version snapshot)
+    const currentItem = await this.db.query.baseItems.findFirst({
+      where: eq(schemaImport.baseItems.id, id),
+    });
+
+    if (!currentItem) {
+      throw new Error(`BaseItem with id ${id} not found for update.`);
+    }
+
+    // Create version snapshot with OLD values
+    await this._createVersion(id, {
+      title: currentItem.title,
+      content: currentItem.content,
+      preview: currentItem.preview ?? undefined,
+      link: currentItem.link ?? undefined,
+    });
+
+    // Now perform the update
     const [updatedItem] = await this.db
       .update(schemaImport.baseItems)
       .set(updateData)
@@ -293,5 +316,141 @@ export class DbBaseItemRepository implements BaseItemRepository {
       throw new Error("Remove by complex BaseItemIdr not supported");
     }
     await this.remove(idr.id);
+  }
+
+  // --- Version Query Methods ---
+
+  async getVersionHistory(
+    baseItemId: number,
+    options?: {
+      limit?: number;
+      offset?: number;
+    }
+  ): Promise<BaseItemVersion[]> {
+    // Verify BaseItem exists
+    await this.getOne(baseItemId);
+
+    const limit = options?.limit;
+    const offset = options?.offset ?? 0;
+
+    const versions = await this.db.query.baseItemVersions.findMany({
+      where: eq(schemaImport.baseItemVersions.baseItemId, baseItemId),
+      orderBy: desc(schemaImport.baseItemVersions.versionNumber),
+      limit,
+      offset,
+    });
+
+    return versions.map((v) => ({
+      id: v.id,
+      baseItemId: v.baseItemId,
+      versionNumber: v.versionNumber,
+      title: v.title,
+      content: v.content,
+      preview: v.preview,
+      link: v.link,
+      createdAt: v.createdAt,
+      updatedBy: v.updatedBy,
+    }));
+  }
+
+  async getVersionByNumber(
+    baseItemId: number,
+    versionNumber: number
+  ): Promise<BaseItemVersion> {
+    // Verify BaseItem exists
+    await this.getOne(baseItemId);
+
+    const version = await this.db.query.baseItemVersions.findFirst({
+      where: and(
+        eq(schemaImport.baseItemVersions.baseItemId, baseItemId),
+        eq(schemaImport.baseItemVersions.versionNumber, versionNumber)
+      ),
+    });
+
+    if (!version) {
+      throw new Error(
+        `Version ${versionNumber} not found for BaseItem ${baseItemId}`
+      );
+    }
+
+    return {
+      id: version.id,
+      baseItemId: version.baseItemId,
+      versionNumber: version.versionNumber,
+      title: version.title,
+      content: version.content,
+      preview: version.preview,
+      link: version.link,
+      createdAt: version.createdAt,
+      updatedBy: version.updatedBy,
+    };
+  }
+
+  async getLatestVersion(baseItemId: number): Promise<BaseItemVersion> {
+    // Verify BaseItem exists
+    await this.getOne(baseItemId);
+
+    const version = await this.db.query.baseItemVersions.findFirst({
+      where: eq(schemaImport.baseItemVersions.baseItemId, baseItemId),
+      orderBy: desc(schemaImport.baseItemVersions.versionNumber),
+    });
+
+    if (!version) {
+      throw new Error(`No versions found for BaseItem ${baseItemId}`);
+    }
+
+    return {
+      id: version.id,
+      baseItemId: version.baseItemId,
+      versionNumber: version.versionNumber,
+      title: version.title,
+      content: version.content,
+      preview: version.preview,
+      link: version.link,
+      createdAt: version.createdAt,
+      updatedBy: version.updatedBy,
+    };
+  }
+
+  async countVersions(baseItemId: number): Promise<number> {
+    // Verify BaseItem exists
+    await this.getOne(baseItemId);
+
+    const result = await this.db
+      .select({ count: schemaImport.baseItemVersions.id })
+      .from(schemaImport.baseItemVersions)
+      .where(eq(schemaImport.baseItemVersions.baseItemId, baseItemId));
+
+    return result.length;
+  }
+
+  /**
+   * Create a version snapshot of a baseItem
+   * @private
+   */
+  private async _createVersion(
+    baseItemId: number,
+    attrs: Partial<Attrs>
+  ): Promise<void> {
+    // Get the next version number
+    const existingVersions = await this.db.query.baseItemVersions.findMany({
+      where: eq(schemaImport.baseItemVersions.baseItemId, baseItemId),
+      orderBy: desc(schemaImport.baseItemVersions.versionNumber),
+      limit: 1,
+    });
+
+    const nextVersionNumber =
+      existingVersions.length > 0 ? existingVersions[0]!.versionNumber + 1 : 1;
+
+    // Insert version snapshot
+    await this.db.insert(schemaImport.baseItemVersions).values({
+      baseItemId,
+      title: attrs.title!,
+      content: attrs.content!,
+      preview: attrs.preview ?? null,
+      link: attrs.link && attrs.link !== "" ? attrs.link : null,
+      versionNumber: nextVersionNumber,
+      updatedBy: null, // Future: capture user ID
+    });
   }
 }

@@ -1,7 +1,7 @@
 'use client';
 
 interface TitleSectionProps {
-  mode: 'view' | 'edit' | 'create';
+  mode: 'view' | 'edit' | 'create' | 'history';
   isEditing: boolean;
   title: string | React.ReactNode;
   editTitle: string;

@@ -9,6 +9,9 @@ export {
 } from "~/lib/domains/mapping/types/contracts";
 
 export type { DatabaseTransaction } from "~/lib/domains/mapping/types/transaction";
+
+// Note: These are internal types used within the mapping domain
+// They are not exported from the main index.ts
 export {
   type CreateMapItemParams,
   type UpdateMapItemAttrs,

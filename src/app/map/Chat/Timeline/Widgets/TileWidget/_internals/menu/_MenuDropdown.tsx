@@ -1,6 +1,6 @@
 'use client';
 
-import { Edit, Trash2, X, Copy } from 'lucide-react';
+import { Edit, Trash2, X, Copy, History } from 'lucide-react';
 import { Portal } from '~/app/map/Chat/Timeline/Widgets/Portal';
 import { _MenuItem } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/menu/_MenuItem';
 import type { RefObject } from 'react';
@@ -12,6 +12,7 @@ interface MenuDropdownProps {
   onDelete?: () => void;
   onClose?: () => void;
   onMetadata?: () => void;
+  onHistory?: () => void;
   onMenuAction: (action: (() => void) | undefined) => void;
 }
 
@@ -22,8 +23,10 @@ export function _MenuDropdown({
   onDelete,
   onClose,
   onMetadata,
+  onHistory,
   onMenuAction,
 }: MenuDropdownProps) {
+
   return (
     <Portal>
       <div
@@ -37,6 +40,15 @@ export function _MenuDropdown({
               icon={Edit}
               label="Edit"
               onClick={() => onMenuAction(onEdit)}
+            />
+          </div>
+        )}
+        {onHistory && (
+          <div onClick={(e) => e.stopPropagation()}>
+            <_MenuItem
+              icon={History}
+              label="View History"
+              onClick={() => onMenuAction(onHistory)}
             />
           </div>
         )}
