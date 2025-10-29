@@ -279,7 +279,7 @@ jobs:
           echo "SKIP_ENV_VALIDATION=true" >> .env.test
 
       - name: Run database migrations
-        run: pnpm db:push
+        run: pnpm db:migrate
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
           SKIP_ENV_VALIDATION: true
@@ -347,7 +347,7 @@ jobs:
           echo "SKIP_ENV_VALIDATION=true" >> .env.test
 
       - name: Run database migrations
-        run: pnpm db:push
+        run: pnpm db:migrate
         env:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
           SKIP_ENV_VALIDATION: true
