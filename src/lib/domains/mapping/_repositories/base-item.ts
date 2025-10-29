@@ -68,4 +68,13 @@ export interface BaseItemRepository extends GenericRepository<
    * @throws Error if no versions exist
    */
   getLatestVersion(baseItemId: number): Promise<BaseItemVersion>;
+
+  /**
+   * Count total versions for a BaseItem
+   *
+   * @param baseItemId - ID of the BaseItem
+   * @returns Total count of versions
+   * @throws Error if BaseItem not found
+   */
+  countVersions(baseItemId: number): Promise<number>;
 }

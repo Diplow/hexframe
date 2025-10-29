@@ -70,19 +70,26 @@ export class ItemHistoryService {
       );
     }
 
-    // 3. Query version history from repository
+    // 3. Fetch limit+1 to detect if there are more results
     const versions = await this.repositories.baseItem.getVersionHistory(
       baseItemId,
-      { limit, offset },
+      { limit: limit + 1, offset },
     );
 
-    // 4. Convert to contracts and return
+    // 4. Get total count of versions
+    const totalCount = await this.repositories.baseItem.countVersions(baseItemId);
+
+    // 5. Determine if there are more results beyond current page
+    const hasMore = versions.length > limit;
+    const pageVersions = hasMore ? versions.slice(0, limit) : versions;
+
+    // 6. Convert to contracts and return
     return {
       coords,
       currentVersion: adapt.baseItem(mapItem.ref),
-      versions: versions.map(adapt.baseItemVersion),
-      totalCount: versions.length, // TODO: Add count query to repo
-      hasMore: versions.length === limit,
+      versions: pageVersions.map(adapt.baseItemVersion),
+      totalCount,
+      hasMore,
     };
   }
 

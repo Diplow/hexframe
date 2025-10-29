@@ -1,4 +1,4 @@
-import { eq, inArray, asc, desc } from "drizzle-orm";
+import { eq, inArray, asc, desc, and } from "drizzle-orm";
 
 import {
   type BaseItemAttrs as Attrs,
@@ -361,35 +361,16 @@ export class DbBaseItemRepository implements BaseItemRepository {
     await this.getOne(baseItemId);
 
     const version = await this.db.query.baseItemVersions.findFirst({
-      where: eq(schemaImport.baseItemVersions.baseItemId, baseItemId),
-      // Note: Drizzle doesn't support compound WHERE with AND in findFirst easily
-      // We'll filter after fetch or use raw query
+      where: and(
+        eq(schemaImport.baseItemVersions.baseItemId, baseItemId),
+        eq(schemaImport.baseItemVersions.versionNumber, versionNumber)
+      ),
     });
 
-    if (!version || version.versionNumber !== versionNumber) {
-      // Fetch all versions for this baseItem and find the specific version number
-      const allVersions = await this.db.query.baseItemVersions.findMany({
-        where: eq(schemaImport.baseItemVersions.baseItemId, baseItemId),
-      });
-
-      const found = allVersions.find((v) => v.versionNumber === versionNumber);
-      if (!found) {
-        throw new Error(
-          `Version ${versionNumber} not found for BaseItem ${baseItemId}`
-        );
-      }
-
-      return {
-        id: found.id,
-        baseItemId: found.baseItemId,
-        versionNumber: found.versionNumber,
-        title: found.title,
-        content: found.content,
-        preview: found.preview,
-        link: found.link,
-        createdAt: found.createdAt,
-        updatedBy: found.updatedBy,
-      };
+    if (!version) {
+      throw new Error(
+        `Version ${versionNumber} not found for BaseItem ${baseItemId}`
+      );
     }
 
     return {
@@ -429,6 +410,18 @@ export class DbBaseItemRepository implements BaseItemRepository {
       createdAt: version.createdAt,
       updatedBy: version.updatedBy,
     };
+  }
+
+  async countVersions(baseItemId: number): Promise<number> {
+    // Verify BaseItem exists
+    await this.getOne(baseItemId);
+
+    const result = await this.db
+      .select({ count: schemaImport.baseItemVersions.id })
+      .from(schemaImport.baseItemVersions)
+      .where(eq(schemaImport.baseItemVersions.baseItemId, baseItemId));
+
+    return result.length;
   }
 
   /**
