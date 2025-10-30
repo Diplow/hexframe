@@ -7,8 +7,8 @@ import type { CacheState, CacheAction } from "~/app/map/Cache/State";
 import type { MutationOperations, DataOperations } from "~/app/map/Cache/types/handlers";
 import type { StorageService } from "~/app/map/Cache/Services";
 import { MutationCoordinator } from "~/app/map/Cache/Lifecycle/MutationCoordinator/mutation-coordinator";
-import type { Coord, MapItemUpdateAttributes, MapItemCreateAttributes } from "~/lib/domains/mapping/utils";
 import type { EventBusService } from '~/app/map';
+import { _wrapTRPCMutations } from "~/app/map/Cache/Lifecycle/MutationCoordinator/_mutation-wrappers";
 
 interface MutationOperationsConfig {
   dispatch: Dispatch<CacheAction>;
@@ -33,58 +33,20 @@ export function useMutationOperations(config: MutationOperationsConfig): Mutatio
   const deleteItemMutation = api.map.removeItem.useMutation();
   const moveItemMutation = api.map.items.moveMapItem.useMutation();
   const copyItemMutation = api.map.items.copyMapItem.useMutation();
-  
+
   // Use ref to provide current state to coordinator
   const stateRef = useRef(config.state);
   stateRef.current = config.state;
   const getState = useCallback(() => ({ itemsById: stateRef.current.itemsById }), []);
-  
+
   // Wrap mutations to match expected interface
-  const wrappedAddItemMutation = useMemo(() => ({
-    mutateAsync: async (params: { coords: Coord; parentId?: number | null } & MapItemCreateAttributes) => {
-      return addItemMutation.mutateAsync({
-        parentId: params.parentId,
-        coords: params.coords,
-        title: params.title,
-        content: params.content,
-        preview: params.preview,
-        link: params.link,
-      });
-    },
-  }), [addItemMutation]);
-
-  const wrappedUpdateItemMutation = useMemo(() => ({
-    mutateAsync: async (params: { coords: Coord } & MapItemUpdateAttributes) => {
-      return updateItemMutation.mutateAsync({
-        coords: params.coords,
-        data: {
-          title: params.title,
-          content: params.content,
-          preview: params.preview,
-          link: params.link,
-        },
-      });
-    },
-  }), [updateItemMutation]);
-
-  const wrappedDeleteItemMutation = useMemo(() => ({
-    mutateAsync: async (params: { coords: Coord }) => {
-      await deleteItemMutation.mutateAsync(params);
-      return { success: true as const };
-    },
-  }), [deleteItemMutation]);
-
-  const wrappedMoveItemMutation = useMemo(() => ({
-    mutateAsync: async (params: { oldCoords: Coord; newCoords: Coord }) => {
-      return moveItemMutation.mutateAsync(params);
-    },
-  }), [moveItemMutation]);
-
-  const wrappedCopyItemMutation = useMemo(() => ({
-    mutateAsync: async (params: { sourceCoords: Coord; destinationCoords: Coord; destinationParentId: number }) => {
-      return copyItemMutation.mutateAsync(params);
-    },
-  }), [copyItemMutation]);
+  const wrappedMutations = useMemo(() => _wrapTRPCMutations({
+    addItemMutation,
+    updateItemMutation,
+    deleteItemMutation,
+    moveItemMutation,
+    copyItemMutation,
+  }), [addItemMutation, updateItemMutation, deleteItemMutation, moveItemMutation, copyItemMutation]);
 
   // Create coordinator instance
   const coordinator = useMemo(() => {
@@ -95,11 +57,7 @@ export function useMutationOperations(config: MutationOperationsConfig): Mutatio
       storageService: config.storageService,
       mapContext: config.mapContext,
       eventBus: config.eventBus,
-      addItemMutation: wrappedAddItemMutation,
-      updateItemMutation: wrappedUpdateItemMutation,
-      deleteItemMutation: wrappedDeleteItemMutation,
-      moveItemMutation: wrappedMoveItemMutation,
-      copyItemMutation: wrappedCopyItemMutation,
+      ...wrappedMutations,
     });
   }, [
     config.dispatch,
@@ -108,11 +66,7 @@ export function useMutationOperations(config: MutationOperationsConfig): Mutatio
     config.storageService,
     config.mapContext,
     config.eventBus,
-    wrappedAddItemMutation,
-    wrappedUpdateItemMutation,
-    wrappedDeleteItemMutation,
-    wrappedMoveItemMutation,
-    wrappedCopyItemMutation,
+    wrappedMutations,
   ]);
   
   // Return operations interface
