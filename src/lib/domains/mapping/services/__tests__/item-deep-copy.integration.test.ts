@@ -302,7 +302,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       const setupParams = _createUniqueTestParams();
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
-      const sourceItem = await testEnv.service.items.crud.addItemToMap({
+      await testEnv.service.items.crud.addItemToMap({
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -350,7 +350,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       const setupParams = _createUniqueTestParams();
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
-      const sourceItem = await testEnv.service.items.crud.addItemToMap({
+      await testEnv.service.items.crud.addItemToMap({
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -392,7 +392,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       const setupParams = _createUniqueTestParams();
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
-      const leafItem = await testEnv.service.items.crud.addItemToMap({
+      await testEnv.service.items.crud.addItemToMap({
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -482,7 +482,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
           destinationCoords,
           destinationParentId: rootMap.id,
         });
-      } catch (error) {
+      } catch {
         // If it fails, verify no partial copies exist
         try {
           await testEnv.service.items.crud.getItem({

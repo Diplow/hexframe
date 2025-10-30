@@ -26,7 +26,7 @@ function mapDbToDomain(dbItem: DbBaseItemSelect): BaseItemWithId {
       content: dbItem.content,
       preview: dbItem.preview ?? undefined,
       link: dbItem.link ?? "",
-      originId: dbItem.originId !== null ? dbItem.originId : undefined,
+      originId: dbItem.originId ?? undefined,
     },
     // History/RelatedItems/RelatedLists are not loaded/mapped here
   });
