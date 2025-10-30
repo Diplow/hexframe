@@ -33,7 +33,6 @@ export function _buildCopyItem(
           label: "Copy to...",
           shortcut: "Drag",
           onClick: onCopy,
-          className: "text-link",
         },
       ]
     : [];

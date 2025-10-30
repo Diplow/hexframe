@@ -147,24 +147,6 @@ describe('TileContextMenu - Copy and Move', () => {
       expect(onMove).toHaveBeenCalledTimes(1);
       expect(onClose).toHaveBeenCalledTimes(1);
     });
-
-    it('should apply link color styling to "Copy to..." menu item', () => {
-      const tileData = createMockTileData();
-
-      render(
-        <TileContextMenu
-          tileData={tileData}
-          position={{ x: 100, y: 100 }}
-          onClose={vi.fn()}
-          onCopy={vi.fn()}
-          onMove={vi.fn()}
-          canEdit={true}
-        />
-      );
-
-      const copyButton = screen.getByText('Copy to...').closest('button');
-      expect(copyButton).toHaveClass('text-link');
-    });
   });
 
   describe('edge cases', () => {

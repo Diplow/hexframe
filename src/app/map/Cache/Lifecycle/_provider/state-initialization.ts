@@ -82,11 +82,35 @@ export function useDragServiceSetup(
   useEffect(() => {
     if (!userId) return;
 
+    const dropHandler = createDropHandler(moveItem, copyItem, itemsById);
+
     globalDragService.initialize({
       currentUserId: userId,
-      dropHandler: createDropHandler(moveItem, copyItem, itemsById),
+      dropHandler,
       validationHandler: createValidationHandler(itemsById, userId)
     });
+
+    // Listen for simulated drop events from context menu click-to-select
+    const handleSimulatedDrop = (event: Event) => {
+      const customEvent = event as CustomEvent<{ sourceId: string; targetId: string; operation: 'copy' | 'move' }>;
+
+      void (async () => {
+        try {
+          await dropHandler(customEvent.detail);
+        } catch (error) {
+          // Show error to user
+          if (error instanceof Error) {
+            alert(error.message);
+          }
+        }
+      })();
+    };
+
+    document.addEventListener('simulated-drop', handleSimulatedDrop);
+
+    return () => {
+      document.removeEventListener('simulated-drop', handleSimulatedDrop);
+    };
   }, [userId, moveItem, copyItem, itemsById]);
 }
 
