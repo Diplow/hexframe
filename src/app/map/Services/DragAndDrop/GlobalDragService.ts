@@ -206,10 +206,9 @@ class GlobalDragService {
 
     const sourceId = this.currentDraggedTile;
     const targetId = this.currentDropTarget;
-    const targetElement = this.findTileElement(targetId);
-    // Get operation type from drop target element (set during dragover)
-    const operation = targetElement?.getAttribute('data-drop-operation') as 'copy' | 'move' || 'copy';
 
+    // Get operation type from body attribute (most reliable source, updated during dragover)
+    const operation = (document.body.getAttribute('data-drag-operation-type') as 'copy' | 'move') || 'copy';
 
     // Execute the drop through the handler
     if (this.dropHandler) {
