@@ -36,7 +36,6 @@ describe('buildMenuItems - History Support', () => {
   describe('View History menu item', () => {
     it('should include View History option when onViewHistory is provided', () => {
       const onViewHistory = vi.fn();
-      const onClose = vi.fn();
 
       const items = buildMenuItems({
         tileData: mockTileData,
@@ -45,7 +44,6 @@ describe('buildMenuItems - History Support', () => {
         isCompositionExpanded: false,
         canShowComposition: false,
         onViewHistory,
-        onClose,
       });
 
       const historyItem = items.find(item => item?.label === 'View History');
@@ -56,7 +54,6 @@ describe('buildMenuItems - History Support', () => {
 
     it('should call onViewHistory when View History is clicked', () => {
       const onViewHistory = vi.fn();
-      const onClose = vi.fn();
 
       const items = buildMenuItems({
         tileData: mockTileData,
@@ -65,7 +62,6 @@ describe('buildMenuItems - History Support', () => {
         isCompositionExpanded: false,
         canShowComposition: false,
         onViewHistory,
-        onClose,
       });
 
       const historyItem = items.find(item => item?.label === 'View History');
@@ -75,15 +71,12 @@ describe('buildMenuItems - History Support', () => {
     });
 
     it('should not include View History when onViewHistory is not provided', () => {
-      const onClose = vi.fn();
-
       const items = buildMenuItems({
         tileData: mockTileData,
         canEdit: false,
         isEmptyTile: false,
         isCompositionExpanded: false,
         canShowComposition: false,
-        onClose,
       });
 
       const historyItem = items.find(item => item?.label === 'View History');
@@ -92,7 +85,6 @@ describe('buildMenuItems - History Support', () => {
 
     it('should not include View History for empty tiles', () => {
       const onViewHistory = vi.fn();
-      const onClose = vi.fn();
 
       const items = buildMenuItems({
         tileData: mockTileData,
@@ -101,7 +93,6 @@ describe('buildMenuItems - History Support', () => {
         isCompositionExpanded: false,
         canShowComposition: false,
         onViewHistory,
-        onClose,
       });
 
       const historyItem = items.find(item => item?.label === 'View History');
@@ -111,7 +102,6 @@ describe('buildMenuItems - History Support', () => {
     it('should place View History before Edit action', () => {
       const onViewHistory = vi.fn();
       const onEdit = vi.fn();
-      const onClose = vi.fn();
 
       const items = buildMenuItems({
         tileData: mockTileData,
@@ -121,7 +111,6 @@ describe('buildMenuItems - History Support', () => {
         canShowComposition: false,
         onViewHistory,
         onEdit,
-        onClose,
       });
 
       const historyIndex = items.findIndex(item => item?.label === 'View History');

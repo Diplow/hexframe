@@ -6,6 +6,7 @@ import {
   Edit,
   Trash2,
   Move,
+  Copy,
   Plus,
   Layers,
   History,
@@ -35,7 +36,8 @@ interface MenuItemsConfig {
   onCreate?: () => void;
   onCompositionToggle?: (tileData: TileData) => void;
   onViewHistory?: () => void;
-  onClose: () => void;
+  onCopy?: () => void;
+  onMove?: () => void;
 }
 
 export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
@@ -53,7 +55,8 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
     onCreate,
     onCompositionToggle,
     onViewHistory,
-    onClose,
+    onCopy,
+    onMove,
   } = config;
 
   if (isEmptyTile) {
@@ -133,13 +136,24 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
           },
         ]
       : []),
-    ...(canEdit
+    ...(canEdit && onCopy
+      ? [
+          {
+            icon: Copy,
+            label: "Copy to...",
+            shortcut: "Drag",
+            onClick: onCopy,
+            className: "text-link",
+          },
+        ]
+      : []),
+    ...(canEdit && onMove
       ? [
           {
             icon: Move,
-            label: "Move",
-            shortcut: "Drag",
-            onClick: onClose,
+            label: "Move to...",
+            shortcut: "Ctrl+Drag",
+            onClick: onMove,
           },
         ]
       : []),

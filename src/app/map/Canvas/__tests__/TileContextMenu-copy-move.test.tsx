@@ -148,7 +148,7 @@ describe('TileContextMenu - Copy and Move', () => {
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    it('should apply blue styling to "Copy to..." menu item', () => {
+    it('should apply link color styling to "Copy to..." menu item', () => {
       const tileData = createMockTileData();
 
       render(
@@ -163,7 +163,7 @@ describe('TileContextMenu - Copy and Move', () => {
       );
 
       const copyButton = screen.getByText('Copy to...').closest('button');
-      expect(copyButton).toHaveClass('text-blue-600');
+      expect(copyButton).toHaveClass('text-link');
     });
   });
 
