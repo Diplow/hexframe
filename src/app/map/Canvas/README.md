@@ -6,7 +6,8 @@ Like a digital art canvas - provides the interactive surface where hexagonal til
 ## Responsibilities
 - Renders the main interactive map canvas (DynamicMapCanvas) with hexagonal tile layouts
 - Handles user interactions like clicking, dragging, and hovering on tiles
-- Provides context menu for tile actions including expansion, navigation, editing, and composition toggling
+- Provides context menu for tile actions including expansion, navigation, editing, copy/move operations, and composition toggling
+- Displays distinct "Copy to..." (default drag) and "Move to..." (Ctrl+drag) menu options with keyboard shortcuts
 - Provides lifecycle components for error boundaries and loading states
 - Manages tile action contexts and providers for distributing user actions
 - Orchestrates the hexagonal coordinate system and tile positioning
