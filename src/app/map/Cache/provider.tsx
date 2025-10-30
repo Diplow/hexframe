@@ -118,7 +118,8 @@ export function MapCacheProvider({
     mapContext?.userId,
     state.itemsById,
     mutationOperations.moveItem,
-    mutationOperations.copyItem
+    mutationOperations.copyItem,
+    eventBus
   );
 
   // Build context value

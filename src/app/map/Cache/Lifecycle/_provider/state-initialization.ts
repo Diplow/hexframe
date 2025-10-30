@@ -6,6 +6,7 @@ import { initialCacheState } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
 import type { CacheState, CacheAction } from "~/app/map/Cache/State";
 import type { TileData } from "~/app/map/types";
+import type { EventBusService } from "~/app/map/types/events";
 import { globalDragService } from "~/app/map/Services";
 import { createDropHandler, createValidationHandler } from "~/app/map/Cache/Lifecycle/_provider/_internals/drag-handlers";
 
@@ -77,7 +78,8 @@ export function useDragServiceSetup(
   userId: number | undefined,
   itemsById: Record<string, TileData>,
   moveItem: (sourceId: string, targetId: string) => Promise<unknown>,
-  copyItem: (sourceId: string, targetId: string, destinationParentId: string) => Promise<unknown>
+  copyItem: (sourceId: string, targetId: string, destinationParentId: string) => Promise<unknown>,
+  eventBus?: EventBusService
 ): void {
   useEffect(() => {
     if (!userId) return;
@@ -98,9 +100,16 @@ export function useDragServiceSetup(
         try {
           await dropHandler(customEvent.detail);
         } catch (error) {
-          // Show error to user
-          if (error instanceof Error) {
-            alert(error.message);
+          // Show error to user via chat error widget
+          if (error instanceof Error && eventBus) {
+            eventBus.emit({
+              type: 'chat.message_received',
+              source: 'chat_cache',
+              payload: {
+                message: error.message,
+                actor: 'system'
+              }
+            });
           }
         }
       })();
@@ -111,7 +120,7 @@ export function useDragServiceSetup(
     return () => {
       document.removeEventListener('simulated-drop', handleSimulatedDrop);
     };
-  }, [userId, moveItem, copyItem, itemsById]);
+  }, [userId, moveItem, copyItem, itemsById, eventBus]);
 }
 
 /**
