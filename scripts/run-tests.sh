@@ -68,6 +68,7 @@ if [[ "$PHASE" == "phase1" ]] || [[ "$PHASE" == "all" ]]; then
     --exclude "**/item-query-composition.integration.test.ts" \
     --exclude "**/item-movement-transaction.integration.test.ts" \
     --exclude "**/item-swap-fix.integration.test.ts" \
+    --exclude "**/map-items-history.integration.test.ts" \
     "${STORYBOOK_EXCLUDE[@]}" 2>test-results/main-suite.log
 
   MAIN_EXIT_CODE=$?
@@ -106,7 +107,8 @@ for file in \
   src/lib/domains/mapping/infrastructure/base-item/__tests__/base-item-versions.integration.test.ts \
   src/lib/domains/mapping/services/__tests__/item-query-composition.integration.test.ts \
   src/lib/domains/mapping/services/__tests__/item-movement-transaction.integration.test.ts \
-  src/lib/domains/mapping/services/__tests__/item-swap-fix.integration.test.ts
+  src/lib/domains/mapping/services/__tests__/item-swap-fix.integration.test.ts \
+  src/server/api/routers/map/__tests__/map-items-history.integration.test.ts
 do
   if [ -f "$file" ]; then
     REACT_TEST_FILES="$REACT_TEST_FILES $file"
