@@ -76,17 +76,18 @@ export function useInitialCenterSetup(
 export function useDragServiceSetup(
   userId: number | undefined,
   itemsById: Record<string, TileData>,
-  moveItem: (sourceId: string, targetId: string) => Promise<unknown>
+  moveItem: (sourceId: string, targetId: string) => Promise<unknown>,
+  copyItem: (sourceId: string, targetId: string, destinationParentId: string) => Promise<unknown>
 ): void {
   useEffect(() => {
     if (!userId) return;
 
     globalDragService.initialize({
       currentUserId: userId,
-      dropHandler: createDropHandler(moveItem),
+      dropHandler: createDropHandler(moveItem, copyItem, itemsById),
       validationHandler: createValidationHandler(itemsById, userId)
     });
-  }, [userId, moveItem, itemsById]);
+  }, [userId, moveItem, copyItem, itemsById]);
 }
 
 /**

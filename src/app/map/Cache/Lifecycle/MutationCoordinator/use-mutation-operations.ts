@@ -32,6 +32,7 @@ export function useMutationOperations(config: MutationOperationsConfig): Mutatio
   const updateItemMutation = api.map.updateItem.useMutation();
   const deleteItemMutation = api.map.removeItem.useMutation();
   const moveItemMutation = api.map.items.moveMapItem.useMutation();
+  const copyItemMutation = api.map.items.copyMapItem.useMutation();
   
   // Use ref to provide current state to coordinator
   const stateRef = useRef(config.state);
@@ -79,6 +80,12 @@ export function useMutationOperations(config: MutationOperationsConfig): Mutatio
     },
   }), [moveItemMutation]);
 
+  const wrappedCopyItemMutation = useMemo(() => ({
+    mutateAsync: async (params: { sourceCoords: Coord; destinationCoords: Coord; destinationParentId: number }) => {
+      return copyItemMutation.mutateAsync(params);
+    },
+  }), [copyItemMutation]);
+
   // Create coordinator instance
   const coordinator = useMemo(() => {
     return new MutationCoordinator({
@@ -92,6 +99,7 @@ export function useMutationOperations(config: MutationOperationsConfig): Mutatio
       updateItemMutation: wrappedUpdateItemMutation,
       deleteItemMutation: wrappedDeleteItemMutation,
       moveItemMutation: wrappedMoveItemMutation,
+      copyItemMutation: wrappedCopyItemMutation,
     });
   }, [
     config.dispatch,
@@ -104,6 +112,7 @@ export function useMutationOperations(config: MutationOperationsConfig): Mutatio
     wrappedUpdateItemMutation,
     wrappedDeleteItemMutation,
     wrappedMoveItemMutation,
+    wrappedCopyItemMutation,
   ]);
   
   // Return operations interface
@@ -112,6 +121,7 @@ export function useMutationOperations(config: MutationOperationsConfig): Mutatio
     updateItem: coordinator.updateItem.bind(coordinator),
     deleteItem: coordinator.deleteItem.bind(coordinator),
     moveItem: coordinator.moveItem.bind(coordinator),
+    copyItem: coordinator.copyItem.bind(coordinator),
     rollbackOptimisticChange: coordinator.rollbackChange.bind(coordinator),
     rollbackAllOptimistic: coordinator.rollbackAll.bind(coordinator),
     getPendingOptimisticChanges: coordinator.getPendingChanges.bind(coordinator),

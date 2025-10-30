@@ -54,6 +54,13 @@ export interface MutationCoordinatorConfig {
       modifiedItems: MapItemAPIContract[];
     }>;
   };
+  copyItemMutation?: {
+    mutateAsync: (params: {
+      sourceCoords: Coord;
+      destinationCoords: Coord;
+      destinationParentId: number;
+    }) => Promise<MapItemAPIContract>;
+  };
   eventBus?: EventBusService;
 }
 
@@ -72,7 +79,7 @@ export class MutationCoordinator {
 
   // Track pending operations by tile coordId to prevent race conditions
   private pendingOperations = new Map<string, {
-    type: 'create' | 'update' | 'delete' | 'move';
+    type: 'create' | 'update' | 'delete' | 'move' | 'copy';
     promise: Promise<unknown>;
     startTime: number;
     operationId?: string;
@@ -90,7 +97,7 @@ export class MutationCoordinator {
   /**
    * Get pending operation type for a tile, if any
    */
-  getPendingOperationType(coordId: string): 'create' | 'update' | 'delete' | 'move' | null {
+  getPendingOperationType(coordId: string): 'create' | 'update' | 'delete' | 'move' | 'copy' | null {
     const operation = this.pendingOperations.get(coordId);
     return operation?.type ?? null;
   }
@@ -107,7 +114,7 @@ export class MutationCoordinator {
    */
   private async trackOperation<T>(
     coordId: string,
-    type: 'create' | 'update' | 'delete' | 'move',
+    type: 'create' | 'update' | 'delete' | 'move' | 'copy',
     operation: () => Promise<T>
   ): Promise<T> {
     // Check if operation is already pending
@@ -314,6 +321,82 @@ export class MutationCoordinator {
         return { success: true, data: result.modifiedItems[0], isSwap: moveParams.isSwap };
       } catch (error) {
         this._rollbackMove(moveParams.rollbackState, changeId);
+        throw error;
+      }
+    });
+  }
+
+  async copyItem(sourceCoordId: string, destinationCoordId: string, destinationParentId: string): Promise<MutationResult> {
+    if (!this.config.copyItemMutation) {
+      throw new Error("Copy item mutation not configured");
+    }
+
+    // Prevent copying item to itself
+    if (sourceCoordId === destinationCoordId) {
+      throw new Error("Cannot copy item to itself");
+    }
+
+    return this.trackOperation(sourceCoordId, 'copy', async () => {
+      const changeId = this.tracker.generateChangeId();
+      const sourceItem = this._getExistingItem(sourceCoordId);
+
+      // Track all coordIds that will be optimistically created (for rollback)
+      const optimisticCoordIds: string[] = [];
+
+      try {
+        // Get all descendants of source item
+        const currentState = this.config.getState();
+        const descendants = this._getAllDescendants(sourceCoordId, currentState.itemsById);
+
+        // Apply optimistic deep copy
+        const optimisticItems = this._createOptimisticCopy(
+          sourceItem,
+          descendants,
+          sourceCoordId,
+          destinationCoordId,
+          destinationParentId
+        );
+
+        // Track coordIds for rollback
+        optimisticItems.forEach(item => optimisticCoordIds.push(item.coordinates));
+
+        // Apply optimistic updates to cache
+        this.config.dispatch(cacheActions.loadRegion(optimisticItems, destinationCoordId, 1));
+        this.tracker.trackChange(changeId, {
+          type: 'create',
+          coordId: destinationCoordId,
+          metadata: { optimisticCoordIds }
+        });
+
+        // Make server call
+        const sourceCoords = CoordSystem.parseId(sourceCoordId);
+        const destinationCoords = CoordSystem.parseId(destinationCoordId);
+
+        const destinationParentIdNumber = Number(destinationParentId);
+        if (!Number.isFinite(destinationParentIdNumber)) {
+          throw new Error(`Invalid destinationParentId: ${destinationParentId}`);
+        }
+
+        if (!this.config.copyItemMutation) {
+          throw new Error("Copy item mutation not configured");
+        }
+
+        const copiedRootItem = await this.config.copyItemMutation.mutateAsync({
+          sourceCoords,
+          destinationCoords,
+          destinationParentId: destinationParentIdNumber,
+        });
+
+        // Finalize with real server data
+        await this._finalizeCopy(copiedRootItem, optimisticItems, changeId, destinationCoordId);
+
+        // Emit success event
+        this._emitCopyEvent(sourceItem, copiedRootItem, sourceCoordId, destinationCoordId);
+
+        return { success: true, data: copiedRootItem };
+      } catch (error) {
+        // Rollback: remove all optimistically created items
+        this._rollbackCopy(optimisticCoordIds, changeId);
         throw error;
       }
     });
@@ -850,6 +933,135 @@ export class MutationCoordinator {
     }
 
     return staleCoordIds;
+  }
+
+  /**
+   * Create optimistic deep copy of source tree at destination
+   */
+  private _createOptimisticCopy(
+    sourceItem: TileData,
+    descendants: TileData[],
+    sourceCoordId: string,
+    destinationCoordId: string,
+    destinationParentId: string
+  ): MapItemAPIContract[] {
+    const sourceCoords = CoordSystem.parseId(sourceCoordId);
+    const destinationCoords = CoordSystem.parseId(destinationCoordId);
+    const optimisticItems: MapItemAPIContract[] = [];
+
+    // Create optimistic copy of root item
+    const rootCopy: MapItemAPIContract = {
+      ...this._reconstructApiData(sourceItem),
+      id: `temp_copy_${Date.now()}_root`,
+      coordinates: destinationCoordId,
+      depth: destinationCoords.path.length,
+      parentId: destinationParentId,
+      originId: String(sourceItem.metadata.dbId),
+    };
+    optimisticItems.push(rootCopy);
+
+    // Create optimistic copies of all descendants
+    descendants.forEach((descendant) => {
+      const descendantCoords = CoordSystem.parseId(descendant.metadata.coordId);
+
+      // Calculate relative path from source
+      const relativePath = descendantCoords.path.slice(sourceCoords.path.length);
+
+      // Apply relative path to destination
+      const newPath = [...destinationCoords.path, ...relativePath];
+      const newCoordId = CoordSystem.createId({
+        ...destinationCoords,
+        path: newPath
+      });
+
+      const descendantCopy: MapItemAPIContract = {
+        ...this._reconstructApiData(descendant),
+        id: `temp_copy_${Date.now()}_${descendant.metadata.dbId}`,
+        coordinates: newCoordId,
+        depth: newPath.length,
+        parentId: null, // Server will set correct parent
+        originId: String(descendant.metadata.dbId),
+      };
+      optimisticItems.push(descendantCopy);
+    });
+
+    return optimisticItems;
+  }
+
+  /**
+   * Finalize copy operation with server data
+   */
+  private async _finalizeCopy(
+    copiedRootItem: MapItemAPIContract,
+    optimisticItems: MapItemAPIContract[],
+    changeId: string,
+    destinationCoordId: string
+  ): Promise<void> {
+    // Build list of items to load into cache
+    // Server only returns root item, so we update root and keep optimistic children
+    const itemsToLoad: MapItemAPIContract[] = [copiedRootItem];
+
+    // Update optimistic children with proper parent reference
+    optimisticItems.slice(1).forEach(optimisticItem => {
+      // Update parent reference to the real root item's ID
+      const updatedItem: MapItemAPIContract = {
+        ...optimisticItem,
+        parentId: copiedRootItem.id, // Update to real parent ID
+      };
+      itemsToLoad.push(updatedItem);
+    });
+
+    // Replace optimistic items with updated data
+    this.config.dispatch(cacheActions.loadRegion(itemsToLoad, destinationCoordId, 1));
+
+    // Save to storage (best-effort)
+    try {
+      for (const item of itemsToLoad) {
+        await this.config.storageService.save(`item:${item.id}`, item);
+      }
+    } catch (e) {
+      console.warn('MapCache storage save failed on copy:', e);
+    }
+
+    // Clear tracking
+    this.tracker.removeChange(changeId);
+  }
+
+  /**
+   * Rollback copy operation by removing all optimistically created items
+   */
+  private _rollbackCopy(optimisticCoordIds: string[], changeId: string): void {
+    // Remove all optimistically created items
+    optimisticCoordIds.forEach(coordId => {
+      this.config.dispatch(cacheActions.removeItem(coordId));
+    });
+
+    // Clear tracking
+    this.tracker.removeChange(changeId);
+  }
+
+  /**
+   * Emit copy event via event bus
+   */
+  private _emitCopyEvent(
+    sourceItem: TileData,
+    copiedItem: MapItemAPIContract,
+    sourceCoordId: string,
+    destinationCoordId: string
+  ): void {
+    if (!this.config.eventBus) return;
+
+    this.config.eventBus.emit({
+      type: 'map.item_copied',
+      source: 'map_cache',
+      payload: {
+        sourceId: String(sourceItem.metadata.dbId),
+        sourceName: sourceItem.data.title,
+        destinationId: copiedItem.id,
+        fromCoordId: sourceCoordId,
+        toCoordId: destinationCoordId
+      }
+    });
   }
 
 }

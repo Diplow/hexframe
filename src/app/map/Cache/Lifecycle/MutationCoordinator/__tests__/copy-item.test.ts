@@ -6,6 +6,7 @@ import type { CacheState } from "~/app/map/Cache/State/types";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";
 import type { StorageService } from "~/app/map/Cache/Services";
 import type { MapItemAPIContract } from "~/server/api";
+import { MapItemType } from "~/lib/domains/mapping";
 
 describe("MutationCoordinator - copyItem", () => {
   let mockDispatch: ReturnType<typeof vi.fn>;
@@ -154,31 +155,14 @@ describe("MutationCoordinator - copyItem", () => {
         link: "https://source.com",
         depth: 1,
         parentId: "parent-1",
-        itemType: "BASE",
+        itemType: MapItemType.BASE,
         ownerId: "test-owner",
         originId: "source-1",
       };
 
-      const copiedChildResponse: MapItemAPIContract = {
-        id: "copy-child-1",
-        coordinates: "1,0:3,2",
-        title: "Source Child",
-        content: "Child content",
-        preview: undefined,
-        link: "",
-        depth: 2,
-        parentId: "copy-1",
-        itemType: "BASE",
-        ownerId: "test-owner",
-        originId: "child-1",
-      };
+      mockCopyItemMutation.mutateAsync.mockResolvedValueOnce(copiedItemResponse);
 
-      mockCopyItemMutation.mutateAsync.mockResolvedValueOnce({
-        copiedRootItem: copiedItemResponse,
-        allCopiedItems: [copiedItemResponse, copiedChildResponse],
-      });
-
-      await coordinator.copyItem("1,0:1", "1,0:3", "parent-1");
+      await coordinator.copyItem("1,0:1", "1,0:3", "1");
 
       // Verify optimistic update was applied (load region called twice: optimistic + finalize)
       const loadRegionCalls = mockDispatch.mock.calls.filter(
@@ -197,22 +181,19 @@ describe("MutationCoordinator - copyItem", () => {
         link: "https://source.com",
         depth: 1,
         parentId: "parent-1",
-        itemType: "BASE",
+        itemType: MapItemType.BASE,
         ownerId: "test-owner",
         originId: "source-1",
       };
 
-      mockCopyItemMutation.mutateAsync.mockResolvedValueOnce({
-        copiedRootItem: copiedItemResponse,
-        allCopiedItems: [copiedItemResponse],
-      });
+      mockCopyItemMutation.mutateAsync.mockResolvedValueOnce(copiedItemResponse);
 
-      await coordinator.copyItem("1,0:1", "1,0:3", "parent-1");
+      await coordinator.copyItem("1,0:1", "1,0:3", "1");
 
       expect(mockCopyItemMutation.mutateAsync).toHaveBeenCalledWith({
         sourceCoords: { userId: 1, groupId: 0, path: [1] },
         destinationCoords: { userId: 1, groupId: 0, path: [3] },
-        destinationParentId: "parent-1",
+        destinationParentId: 1,
       });
     });
 
@@ -226,17 +207,14 @@ describe("MutationCoordinator - copyItem", () => {
         link: "https://source.com",
         depth: 1,
         parentId: "parent-1",
-        itemType: "BASE",
+        itemType: MapItemType.BASE,
         ownerId: "test-owner",
         originId: "source-1",
       };
 
-      mockCopyItemMutation.mutateAsync.mockResolvedValueOnce({
-        copiedRootItem: copiedItemResponse,
-        allCopiedItems: [copiedItemResponse],
-      });
+      mockCopyItemMutation.mutateAsync.mockResolvedValueOnce(copiedItemResponse);
 
-      await coordinator.copyItem("1,0:1", "1,0:3", "parent-1");
+      await coordinator.copyItem("1,0:1", "1,0:3", "1");
 
       // Verify final load region was called with server data
       const loadRegionCalls = mockDispatch.mock.calls.filter(
@@ -255,17 +233,14 @@ describe("MutationCoordinator - copyItem", () => {
         link: "https://source.com",
         depth: 1,
         parentId: "parent-1",
-        itemType: "BASE",
+        itemType: MapItemType.BASE,
         ownerId: "test-owner",
         originId: "source-1",
       };
 
-      mockCopyItemMutation.mutateAsync.mockResolvedValueOnce({
-        copiedRootItem: copiedItemResponse,
-        allCopiedItems: [copiedItemResponse],
-      });
+      mockCopyItemMutation.mutateAsync.mockResolvedValueOnce(copiedItemResponse);
 
-      await coordinator.copyItem("1,0:1", "1,0:3", "parent-1");
+      await coordinator.copyItem("1,0:1", "1,0:3", "1");
 
       expectEventEmitted(mockEventBus, 'map.item_copied', {
         sourceId: "source-1",
@@ -286,17 +261,14 @@ describe("MutationCoordinator - copyItem", () => {
         link: "https://source.com",
         depth: 1,
         parentId: "parent-1",
-        itemType: "BASE",
+        itemType: MapItemType.BASE,
         ownerId: "test-owner",
         originId: "source-1",
       };
 
-      mockCopyItemMutation.mutateAsync.mockResolvedValueOnce({
-        copiedRootItem: copiedItemResponse,
-        allCopiedItems: [copiedItemResponse],
-      });
+      mockCopyItemMutation.mutateAsync.mockResolvedValueOnce(copiedItemResponse);
 
-      const result = await coordinator.copyItem("1,0:1", "1,0:3", "parent-1");
+      const result = await coordinator.copyItem("1,0:1", "1,0:3", "1");
 
       expect(result).toEqual({
         success: true,
@@ -316,31 +288,14 @@ describe("MutationCoordinator - copyItem", () => {
         link: "https://source.com",
         depth: 1,
         parentId: "parent-1",
-        itemType: "BASE",
+        itemType: MapItemType.BASE,
         ownerId: "test-owner",
         originId: "source-1",
       };
 
-      const copiedChildResponse: MapItemAPIContract = {
-        id: "copy-child-1",
-        coordinates: "1,0:3,2",
-        title: "Source Child",
-        content: "Child content",
-        preview: undefined,
-        link: "",
-        depth: 2,
-        parentId: "copy-1",
-        itemType: "BASE",
-        ownerId: "test-owner",
-        originId: "child-1",
-      };
+      mockCopyItemMutation.mutateAsync.mockResolvedValueOnce(copiedItemResponse);
 
-      mockCopyItemMutation.mutateAsync.mockResolvedValueOnce({
-        copiedRootItem: copiedItemResponse,
-        allCopiedItems: [copiedItemResponse, copiedChildResponse],
-      });
-
-      await coordinator.copyItem("1,0:1", "1,0:3", "parent-1");
+      await coordinator.copyItem("1,0:1", "1,0:3", "1");
 
       // Verify load region includes both parent and child
       const loadRegionCalls = mockDispatch.mock.calls.filter(
@@ -388,45 +343,14 @@ describe("MutationCoordinator - copyItem", () => {
         link: "https://source.com",
         depth: 1,
         parentId: "parent-1",
-        itemType: "BASE",
+        itemType: MapItemType.BASE,
         ownerId: "test-owner",
         originId: "source-1",
       };
 
-      const copiedChildResponse: MapItemAPIContract = {
-        id: "copy-child-1",
-        coordinates: "1,0:3,2",
-        title: "Source Child",
-        content: "Child content",
-        preview: undefined,
-        link: "",
-        depth: 2,
-        parentId: "copy-1",
-        itemType: "BASE",
-        ownerId: "test-owner",
-        originId: "child-1",
-      };
+      mockCopyItemMutation.mutateAsync.mockResolvedValueOnce(copiedItemResponse);
 
-      const copiedGrandchildResponse: MapItemAPIContract = {
-        id: "copy-grandchild-1",
-        coordinates: "1,0:3,2,4",
-        title: "Source Grandchild",
-        content: "Grandchild content",
-        preview: undefined,
-        link: "",
-        depth: 3,
-        parentId: "copy-child-1",
-        itemType: "BASE",
-        ownerId: "test-owner",
-        originId: "grandchild-1",
-      };
-
-      mockCopyItemMutation.mutateAsync.mockResolvedValueOnce({
-        copiedRootItem: copiedItemResponse,
-        allCopiedItems: [copiedItemResponse, copiedChildResponse, copiedGrandchildResponse],
-      });
-
-      await coordinator.copyItem("1,0:1", "1,0:3", "parent-1");
+      await coordinator.copyItem("1,0:1", "1,0:3", "1");
 
       // Verify path structure is preserved (relative paths maintained)
       // Source: [1], [1,2], [1,2,4]
@@ -445,7 +369,7 @@ describe("MutationCoordinator - copyItem", () => {
       );
 
       await expect(
-        coordinator.copyItem("1,0:1", "1,0:3", "parent-1")
+        coordinator.copyItem("1,0:1", "1,0:3", "1")
       ).rejects.toThrow("Server copy failed");
 
       // Verify rollback: all optimistically added items should be removed
@@ -463,7 +387,7 @@ describe("MutationCoordinator - copyItem", () => {
       );
 
       await expect(
-        coordinator.copyItem("1,0:1", "1,0:3", "parent-1")
+        coordinator.copyItem("1,0:1", "1,0:3", "1")
       ).rejects.toThrow("Server copy failed");
 
       // All optimistically copied items (parent + children) should be removed
@@ -481,7 +405,7 @@ describe("MutationCoordinator - copyItem", () => {
       );
 
       await expect(
-        coordinator.copyItem("1,0:1", "1,0:3", "parent-1")
+        coordinator.copyItem("1,0:1", "1,0:3", "1")
       ).rejects.toThrow("Server copy failed");
 
       expect(mockEventBus.emit).not.toHaveBeenCalled();
@@ -493,7 +417,7 @@ describe("MutationCoordinator - copyItem", () => {
       );
 
       await expect(
-        coordinator.copyItem("1,0:1", "1,0:3", "parent-1")
+        coordinator.copyItem("1,0:1", "1,0:3", "1")
       ).rejects.toThrow("Server copy failed");
 
       // Source items should still be in state (not affected by rollback)
@@ -505,7 +429,7 @@ describe("MutationCoordinator - copyItem", () => {
   describe("copyItem - Edge cases", () => {
     test("should throw error if source item does not exist", async () => {
       await expect(
-        coordinator.copyItem("1,0:999", "1,0:3", "parent-1")
+        coordinator.copyItem("1,0:999", "1,0:3", "1")
       ).rejects.toThrow();
 
       // Should not call server mutation
@@ -522,17 +446,14 @@ describe("MutationCoordinator - copyItem", () => {
         link: "https://source.com",
         depth: 1,
         parentId: "parent-1",
-        itemType: "BASE",
+        itemType: MapItemType.BASE,
         ownerId: "test-owner",
         originId: "source-1",
       };
 
-      mockCopyItemMutation.mutateAsync.mockResolvedValueOnce({
-        copiedRootItem: copiedItemResponse,
-        allCopiedItems: [copiedItemResponse],
-      });
+      mockCopyItemMutation.mutateAsync.mockResolvedValueOnce(copiedItemResponse);
 
-      await coordinator.copyItem("1,0:1", "1,0:2", "parent-1");
+      await coordinator.copyItem("1,0:1", "1,0:2", "1");
 
       expect(mockCopyItemMutation.mutateAsync).toHaveBeenCalled();
     });
@@ -547,24 +468,21 @@ describe("MutationCoordinator - copyItem", () => {
         link: "https://source.com",
         depth: 3,
         parentId: "parent-1",
-        itemType: "BASE",
+        itemType: MapItemType.BASE,
         ownerId: "test-owner",
         originId: "source-1",
       };
 
-      mockCopyItemMutation.mutateAsync.mockResolvedValueOnce({
-        copiedRootItem: copiedItemResponse,
-        allCopiedItems: [copiedItemResponse],
-      });
+      mockCopyItemMutation.mutateAsync.mockResolvedValueOnce(copiedItemResponse);
 
-      await coordinator.copyItem("1,0:1", "1,0:1,3,4", "parent-1");
+      await coordinator.copyItem("1,0:1", "1,0:1,3,4", "1");
 
       expect(mockCopyItemMutation.mutateAsync).toHaveBeenCalled();
     });
 
     test("should not allow copying item to itself", async () => {
       await expect(
-        coordinator.copyItem("1,0:1", "1,0:1", "parent-1")
+        coordinator.copyItem("1,0:1", "1,0:1", "1")
       ).rejects.toThrow();
 
       expect(mockCopyItemMutation.mutateAsync).not.toHaveBeenCalled();
@@ -582,24 +500,21 @@ describe("MutationCoordinator - copyItem", () => {
         link: "https://source.com",
         depth: 1,
         parentId: "parent-1",
-        itemType: "BASE",
+        itemType: MapItemType.BASE,
         ownerId: "test-owner",
         originId: "source-1",
       };
 
       // Make first mutation slow
       mockCopyItemMutation.mutateAsync.mockImplementationOnce(
-        () => new Promise(resolve => setTimeout(() => resolve({
-          copiedRootItem: copiedItemResponse,
-          allCopiedItems: [copiedItemResponse],
-        }), 100))
+        () => new Promise(resolve => setTimeout(() => resolve(copiedItemResponse), 100))
       );
 
-      const firstCopy = coordinator.copyItem("1,0:1", "1,0:3", "parent-1");
+      const firstCopy = coordinator.copyItem("1,0:1", "1,0:3", "1");
 
       // Try to copy again while first is in progress
       await expect(
-        coordinator.copyItem("1,0:1", "1,0:4", "parent-2")
+        coordinator.copyItem("1,0:1", "1,0:4", "2")
       ).rejects.toThrow("Operation already in progress");
 
       await firstCopy;
@@ -615,7 +530,7 @@ describe("MutationCoordinator - copyItem", () => {
         link: "https://source.com",
         depth: 1,
         parentId: "parent-1",
-        itemType: "BASE",
+        itemType: MapItemType.BASE,
         ownerId: "test-owner",
         originId: "source-1",
       };
@@ -629,23 +544,17 @@ describe("MutationCoordinator - copyItem", () => {
         link: "https://source.com",
         depth: 1,
         parentId: "parent-2",
-        itemType: "BASE",
+        itemType: MapItemType.BASE,
         ownerId: "test-owner",
         originId: "source-1",
       };
 
       mockCopyItemMutation.mutateAsync
-        .mockResolvedValueOnce({
-          copiedRootItem: firstCopiedResponse,
-          allCopiedItems: [firstCopiedResponse],
-        })
-        .mockResolvedValueOnce({
-          copiedRootItem: secondCopiedResponse,
-          allCopiedItems: [secondCopiedResponse],
-        });
+        .mockResolvedValueOnce(firstCopiedResponse)
+        .mockResolvedValueOnce(secondCopiedResponse);
 
-      await coordinator.copyItem("1,0:1", "1,0:3", "parent-1");
-      await coordinator.copyItem("1,0:1", "1,0:4", "parent-2");
+      await coordinator.copyItem("1,0:1", "1,0:3", "1");
+      await coordinator.copyItem("1,0:1", "1,0:4", "2");
 
       expect(mockCopyItemMutation.mutateAsync).toHaveBeenCalledTimes(2);
     });
