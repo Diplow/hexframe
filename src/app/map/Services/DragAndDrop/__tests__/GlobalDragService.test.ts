@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { globalDragService } from '../GlobalDragService';
-import type { DragOperation, DropHandler, ValidationHandler } from '../GlobalDragService';
+import { globalDragService } from '~/app/map/Services/DragAndDrop/GlobalDragService';
+import type { DropHandler, ValidationHandler } from '~/app/map/Services/DragAndDrop/GlobalDragService';
 
 // Polyfill DragEvent for test environment (JSDOM doesn't provide it)
 if (typeof DragEvent === 'undefined') {
@@ -475,7 +475,7 @@ describe('GlobalDragService - Ctrl Key Detection and Copy/Move Operations', () =
   describe('Validation logic preservation', () => {
     it('should maintain ownership validation regardless of operation type', () => {
       // Arrange
-      mockValidationHandler.mockReturnValue({ isValid: false, reason: 'Not owned' });
+      (mockValidationHandler as ReturnType<typeof vi.fn>).mockReturnValue({ isValid: false, reason: 'Not owned' });
 
       const sourceElement = createTileElement('tile-1', 1, true);
       const targetElement = createTileElement('tile-2', 2, false); // Different owner
@@ -535,7 +535,10 @@ describe('GlobalDragService - Ctrl Key Detection and Copy/Move Operations', () =
 function createTileElement(tileId: string, ownerId: number, hasContent: boolean): HTMLElement {
   const element = document.createElement('div');
   element.setAttribute('data-tile-id', tileId);
-  element.setAttribute('data-tile-owner', ownerId.toString());
+  // Only set owner if tile has content (empty tiles have no owner)
+  if (hasContent) {
+    element.setAttribute('data-tile-owner', ownerId.toString());
+  }
   element.setAttribute('data-tile-has-content', hasContent.toString());
   element.draggable = true;
   return element;
