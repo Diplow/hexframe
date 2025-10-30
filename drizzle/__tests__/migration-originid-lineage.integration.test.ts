@@ -3,6 +3,7 @@ import { eq, and, isNull } from "drizzle-orm";
 import { db } from "~/server/db";
 import { schema } from "~/server/db";
 import { _cleanupDatabase } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
+import { MapItemType } from "~/lib/domains/mapping";
 
 /**
  * Integration tests for originId lineage migration
@@ -36,7 +37,7 @@ describe("Migration: originId Lineage Tracking [Integration - DB]", () => {
         coord_user_id: 1,
         coord_group_id: 0,
         path: "1",
-        item_type: "NORMAL",
+        item_type: MapItemType.BASE,
         refItemId: baseItem[0]!.id,
       }).returning();
 
@@ -45,7 +46,7 @@ describe("Migration: originId Lineage Tracking [Integration - DB]", () => {
       expect('originId' in mapItem[0]!).toBe(false);
     });
 
-    it("should fail when trying to insert mapItem with originId", async () => {
+    it("should ignore originId property when inserting mapItem (TypeScript prevents this)", async () => {
       // Arrange
       const baseItem = await db.insert(schema.baseItems).values({
         title: "Test Item",
@@ -53,18 +54,21 @@ describe("Migration: originId Lineage Tracking [Integration - DB]", () => {
         link: "",
       }).returning();
 
-      // Act & Assert - should fail with unknown column error
-      await expect(async () => {
-        await db.insert(schema.mapItems).values({
-          coord_user_id: 1,
-          coord_group_id: 0,
-          path: "1",
-          item_type: "NORMAL",
-          refItemId: baseItem[0]!.id,
-          // @ts-expect-error - originId should not exist
-          originId: 999,
-        } as any).returning();
-      }).rejects.toThrow();
+      // Act - TypeScript prevents this at compile time, but if we bypass with 'as any'
+      // the runtime should just ignore the unknown property
+      const mapItem = await db.insert(schema.mapItems).values({
+        coord_user_id: 1,
+        coord_group_id: 0,
+        path: "1",
+        item_type: MapItemType.BASE,
+        refItemId: baseItem[0]!.id,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        originId: 999,
+      } as any).returning();
+
+      // Assert - mapItem should be created successfully without originId
+      expect(mapItem[0]).toBeDefined();
+      expect('originId' in mapItem[0]!).toBe(false);
     });
   });
 

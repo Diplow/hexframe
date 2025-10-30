@@ -23,7 +23,6 @@ export const mapItems = createTable(
     item_type: varchar("item_type", { length: 50 })
       .$type<MapItemType>()
       .notNull(),
-    originId: integer("origin_id"),
     parentId: integer("parent_id"),
     refItemId: integer("ref_item_id").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -31,10 +30,6 @@ export const mapItems = createTable(
   },
   (table): PgTableExtraConfig => {
     return {
-      originFk: foreignKey({
-        columns: [table.originId],
-        foreignColumns: [table.id],
-      }).onDelete("set null"),
       parentFk: foreignKey({
         columns: [table.parentId],
         foreignColumns: [table.id],

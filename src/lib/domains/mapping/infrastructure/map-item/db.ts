@@ -277,7 +277,6 @@ export class DbMapItemRepository implements MapItemRepository {
 
   private _buildCreateAttrs(attrs: Attrs) {
     return {
-      originId: attrs.originId,
       parentId: attrs.parentId,
       coord_user_id: attrs.coords.userId,
       coord_group_id: attrs.coords.groupId,
