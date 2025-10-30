@@ -40,18 +40,17 @@ describe("MapItem Copy Helpers", () => {
         "~/lib/domains/mapping/_actions/_map-item-copy-helpers"
       );
 
-      const baseItemsToCopy = await testEnv.repositories.mapItem.getMany({
-        limit: 1,
+      // Get the original item from the repository
+      const originalMapItem = await testEnv.repositories.mapItem.getOneByIdr({
+        idr: { id: Number(originalItem.id) },
       });
 
-      const preparedItems = await _prepareBaseItemsForCopy(
-        baseItemsToCopy.map(mi => mi.ref)
-      );
+      const preparedItems = _prepareBaseItemsForCopy([originalMapItem.ref]);
 
       expect(preparedItems).toHaveLength(1);
       expect(preparedItems[0]!.title).toBe("Original Item");
       expect(preparedItems[0]!.content).toBe("Original content");
-      expect(preparedItems[0]!.originId).toBe(originalItem.ref.id);
+      expect(preparedItems[0]!.originId).toBe(originalMapItem.ref.id);
     });
 
     it("should prepare multiple BaseItems for copying", async () => {
@@ -88,7 +87,7 @@ describe("MapItem Copy Helpers", () => {
         limit: 10,
       });
 
-      const preparedItems = await _prepareBaseItemsForCopy(
+      const preparedItems = _prepareBaseItemsForCopy(
         baseItemsToCopy
           .filter(mi => mi.attrs.itemType === MapItemType.BASE)
           .map(mi => mi.ref)
@@ -128,7 +127,7 @@ describe("MapItem Copy Helpers", () => {
       );
       expect(targetItem).toBeDefined();
 
-      const preparedItems = await _prepareBaseItemsForCopy([targetItem!.ref]);
+      const preparedItems = _prepareBaseItemsForCopy([targetItem!.ref]);
 
       expect(preparedItems).toHaveLength(1);
       expect(preparedItems[0]!.title).toBe("Full Item");
@@ -160,7 +159,7 @@ describe("MapItem Copy Helpers", () => {
       );
 
       const sourceMapItem = await testEnv.repositories.mapItem.getOneByIdr({
-        idr: { id: originalItem.id },
+        idr: { id: Number(originalItem.id) },
       });
 
       const destinationCoords = _createTestCoordinates({
@@ -169,7 +168,7 @@ describe("MapItem Copy Helpers", () => {
         path: [Direction.West],
       });
 
-      const preparedMapItems = await _prepareMapItemsForCopy(
+      const preparedMapItems = _prepareMapItemsForCopy(
         [sourceMapItem],
         destinationCoords,
         rootMap.id
@@ -198,7 +197,7 @@ describe("MapItem Copy Helpers", () => {
 
       // Create child
       await testEnv.service.items.crud.addItemToMap({
-        parentId: parentItem.id,
+        parentId: Number(parentItem.id),
         coords: _createTestCoordinates({
           userId: setupParams.userId,
           groupId: setupParams.groupId,
@@ -228,7 +227,7 @@ describe("MapItem Copy Helpers", () => {
         path: [Direction.West],
       });
 
-      const preparedMapItems = await _prepareMapItemsForCopy(
+      const preparedMapItems = _prepareMapItemsForCopy(
         sourceMapItems,
         destinationCoords,
         rootMap.id
@@ -281,7 +280,15 @@ describe("MapItem Copy Helpers", () => {
       );
 
       const sourceMapItems = await testEnv.repositories.mapItem.getManyByIdr({
-        idrs: [{ id: item1.id }, { id: item2.id }],
+        idrs: [{ id: Number(item1.id) }, { id: Number(item2.id) }],
+      });
+
+      // Get the BaseItem IDs from the MapItems
+      const mapItem1 = await testEnv.repositories.mapItem.getOneByIdr({
+        idr: { id: Number(item1.id) },
+      });
+      const mapItem2 = await testEnv.repositories.mapItem.getOneByIdr({
+        idr: { id: Number(item2.id) },
       });
 
       const copiedBaseItems = await testEnv.repositories.baseItem.createMany([
@@ -290,25 +297,25 @@ describe("MapItem Copy Helpers", () => {
           content: "Content 1",
           link: "",
           preview: undefined,
-          originId: item1.ref.id,
+          originId: mapItem1.ref.id,
         },
         {
           title: "Item 2",
           content: "Content 2",
           link: "",
           preview: undefined,
-          originId: item2.ref.id,
+          originId: mapItem2.ref.id,
         },
       ]);
 
-      const mapping = await _createCopyMapping(
+      const mapping = _createCopyMapping(
         sourceMapItems,
         copiedBaseItems
       );
 
       expect(mapping.size).toBe(2);
-      expect(mapping.get(item1.ref.id)).toBe(copiedBaseItems[0]!.id);
-      expect(mapping.get(item2.ref.id)).toBe(copiedBaseItems[1]!.id);
+      expect(mapping.get(mapItem1.ref.id)).toBe(copiedBaseItems[0]!.id);
+      expect(mapping.get(mapItem2.ref.id)).toBe(copiedBaseItems[1]!.id);
     });
   });
 
@@ -332,19 +339,24 @@ describe("MapItem Copy Helpers", () => {
         "~/lib/domains/mapping/_actions/_map-item-copy-helpers"
       );
 
+      // Get the actual MapItem to access the BaseItem ref
+      const originalMapItem = await testEnv.repositories.mapItem.getOneByIdr({
+        idr: { id: Number(originalItem.id) },
+      });
+
       const copiedBaseItem = await testEnv.repositories.baseItem.create({
         attrs: {
           title: "Original",
           content: "Content",
           link: "",
           preview: undefined,
-          originId: originalItem.ref.id,
+          originId: originalMapItem.ref.id,
         },
         relatedItems: {},
         relatedLists: {},
       });
 
-      const mapping = new Map([[originalItem.ref.id, copiedBaseItem.id]]);
+      const mapping = new Map([[originalMapItem.ref.id, copiedBaseItem.id]]);
 
       const destinationCoords = _createTestCoordinates({
         userId: setupParams.userId,
@@ -356,13 +368,14 @@ describe("MapItem Copy Helpers", () => {
         {
           coords: destinationCoords,
           parentId: rootMap.id,
-          sourceRefId: originalItem.ref.id,
+          sourceRefId: originalMapItem.ref.id,
         },
       ];
 
-      const builtMapItems = await _buildMapItemsWithCopiedRefs(
+      const builtMapItems = _buildMapItemsWithCopiedRefs(
         preparedMapItems,
-        mapping
+        mapping,
+        [copiedBaseItem]
       );
 
       expect(builtMapItems).toHaveLength(1);

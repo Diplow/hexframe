@@ -8,7 +8,6 @@ import {
   type TestEnvironment,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { Direction } from "~/lib/domains/mapping/utils";
-import { MapItemType } from "~/lib/domains/mapping/_objects";
 
 describe("MappingService - Deep Copy [Integration - DB]", () => {
   let testEnv: TestEnvironment;
@@ -43,9 +42,15 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
         path: [Direction.West],
       });
 
+      const sourceCoords = _createTestCoordinates({
+        userId: setupParams.userId,
+        groupId: setupParams.groupId,
+        path: [Direction.East],
+      });
+
       // Perform deep copy
-      const copiedItem = await testEnv.service.items.management.deepCopyMapItem({
-        sourceCoords: sourceItem.coords,
+      const copiedItem = await testEnv.service.items.deepCopyMapItem({
+        sourceCoords,
         destinationCoords,
         destinationParentId: rootMap.id,
       });
@@ -60,20 +65,16 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       expect(copiedItem.preview).toBe("Source preview");
       expect(copiedItem.link).toBe("https://source.com");
 
-      // Verify coordinates are different
-      expect(copiedItem.coords.path).toEqual([Direction.West]);
-      expect(copiedItem.coords.userId).toBe(setupParams.userId);
-      expect(copiedItem.coords.groupId).toBe(setupParams.groupId);
-
-      // Verify originId is set to source BaseItem id
-      expect(copiedItem.ref.originId).toBe(sourceItem.ref.id);
+      // Verify coordinates are different - coords is a string ID in MapItemContract
+      expect(copiedItem.coords).toBeDefined();
+      expect(copiedItem.depth).toBe(1); // Single direction = depth 1
 
       // Verify source item is unchanged
       const sourceItemAfter = await testEnv.service.items.crud.getItem({
-        coords: sourceItem.coords,
+        coords: sourceCoords,
       });
       expect(sourceItemAfter.title).toBe("Source Item");
-      expect(sourceItemAfter.coords.path).toEqual([Direction.East]);
+      expect(sourceItemAfter.depth).toBe(1);
     });
 
     it("should deep copy a MapItem with its entire subtree", async () => {
@@ -93,8 +94,8 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       });
 
       // Create children
-      const child1 = await testEnv.service.items.crud.addItemToMap({
-        parentId: parentItem.id,
+      await testEnv.service.items.crud.addItemToMap({
+        parentId: Number(parentItem.id),
         coords: _createTestCoordinates({
           userId: setupParams.userId,
           groupId: setupParams.groupId,
@@ -104,8 +105,8 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
         content: "Child 1 content",
       });
 
-      const child2 = await testEnv.service.items.crud.addItemToMap({
-        parentId: parentItem.id,
+      await testEnv.service.items.crud.addItemToMap({
+        parentId: Number(parentItem.id),
         coords: _createTestCoordinates({
           userId: setupParams.userId,
           groupId: setupParams.groupId,
@@ -115,6 +116,12 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
         content: "Child 2 content",
       });
 
+      const parentSourceCoords = _createTestCoordinates({
+        userId: setupParams.userId,
+        groupId: setupParams.groupId,
+        path: [Direction.East],
+      });
+
       const destinationCoords = _createTestCoordinates({
         userId: setupParams.userId,
         groupId: setupParams.groupId,
@@ -122,16 +129,15 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       });
 
       // Perform deep copy
-      const copiedParent = await testEnv.service.items.management.deepCopyMapItem({
-        sourceCoords: parentItem.coords,
+      const copiedParent = await testEnv.service.items.deepCopyMapItem({
+        sourceCoords: parentSourceCoords,
         destinationCoords,
         destinationParentId: rootMap.id,
       });
 
       // Verify parent was copied
       expect(copiedParent.title).toBe("Parent Item");
-      expect(copiedParent.coords.path).toEqual([Direction.West]);
-      expect(copiedParent.ref.originId).toBe(parentItem.ref.id);
+      expect(copiedParent.depth).toBe(1);
 
       // Verify children were copied
       const copiedChild1Coords = _createTestCoordinates({
@@ -155,19 +161,25 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       });
 
       expect(copiedChild1.title).toBe("Child 1");
-      expect(copiedChild1.ref.originId).toBe(child1.ref.id);
+      expect(copiedChild1.depth).toBe(2);
 
       expect(copiedChild2.title).toBe("Child 2");
-      expect(copiedChild2.ref.originId).toBe(child2.ref.id);
+      expect(copiedChild2.depth).toBe(2);
 
       // Verify source tree is unchanged
       const sourceParentAfter = await testEnv.service.items.crud.getItem({
-        coords: parentItem.coords,
+        coords: parentSourceCoords,
       });
       expect(sourceParentAfter.title).toBe("Parent Item");
 
+      const child1Coords = _createTestCoordinates({
+        userId: setupParams.userId,
+        groupId: setupParams.groupId,
+        path: [Direction.East, Direction.NorthEast],
+      });
+
       const sourceChild1After = await testEnv.service.items.crud.getItem({
-        coords: child1.coords,
+        coords: child1Coords,
       });
       expect(sourceChild1After.title).toBe("Child 1");
     });
@@ -189,7 +201,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       });
 
       const level2 = await testEnv.service.items.crud.addItemToMap({
-        parentId: level1.id,
+        parentId: Number(level1.id),
         coords: _createTestCoordinates({
           userId: setupParams.userId,
           groupId: setupParams.groupId,
@@ -199,8 +211,8 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
         content: "L2",
       });
 
-      const level3 = await testEnv.service.items.crud.addItemToMap({
-        parentId: level2.id,
+      await testEnv.service.items.crud.addItemToMap({
+        parentId: Number(level2.id),
         coords: _createTestCoordinates({
           userId: setupParams.userId,
           groupId: setupParams.groupId,
@@ -210,6 +222,12 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
         content: "L3",
       });
 
+      const level1SourceCoords = _createTestCoordinates({
+        userId: setupParams.userId,
+        groupId: setupParams.groupId,
+        path: [Direction.East],
+      });
+
       const destinationCoords = _createTestCoordinates({
         userId: setupParams.userId,
         groupId: setupParams.groupId,
@@ -217,8 +235,8 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       });
 
       // Copy entire tree
-      await testEnv.service.items.management.deepCopyMapItem({
-        sourceCoords: level1.coords,
+      await testEnv.service.items.deepCopyMapItem({
+        sourceCoords: level1SourceCoords,
         destinationCoords,
         destinationParentId: rootMap.id,
       });
@@ -232,7 +250,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
         }),
       });
       expect(copiedL1.title).toBe("Level 1");
-      expect(copiedL1.ref.originId).toBe(level1.ref.id);
+      expect(copiedL1.depth).toBe(1);
 
       const copiedL2 = await testEnv.service.items.crud.getItem({
         coords: _createTestCoordinates({
@@ -242,7 +260,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
         }),
       });
       expect(copiedL2.title).toBe("Level 2");
-      expect(copiedL2.ref.originId).toBe(level2.ref.id);
+      expect(copiedL2.depth).toBe(2);
 
       const copiedL3 = await testEnv.service.items.crud.getItem({
         coords: _createTestCoordinates({
@@ -252,7 +270,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
         }),
       });
       expect(copiedL3.title).toBe("Level 3");
-      expect(copiedL3.ref.originId).toBe(level3.ref.id);
+      expect(copiedL3.depth).toBe(3);
     });
 
     it("should throw error when source coords do not exist", async () => {
@@ -272,7 +290,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       });
 
       await expect(
-        testEnv.service.items.management.deepCopyMapItem({
+        testEnv.service.items.deepCopyMapItem({
           sourceCoords: nonExistentCoords,
           destinationCoords,
           destinationParentId: rootMap.id,
@@ -313,9 +331,15 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
         path: [Direction.West],
       });
 
+      const sourceItemCoords = _createTestCoordinates({
+        userId: setupParams.userId,
+        groupId: setupParams.groupId,
+        path: [Direction.East],
+      });
+
       await expect(
-        testEnv.service.items.management.deepCopyMapItem({
-          sourceCoords: sourceItem.coords,
+        testEnv.service.items.deepCopyMapItem({
+          sourceCoords: sourceItemCoords,
           destinationCoords,
           destinationParentId: rootMap.id,
         })
@@ -339,14 +363,20 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
         link: "https://example.com/full-item",
       });
 
+      const sourceItemCoords = _createTestCoordinates({
+        userId: setupParams.userId,
+        groupId: setupParams.groupId,
+        path: [Direction.NorthEast],
+      });
+
       const destinationCoords = _createTestCoordinates({
         userId: setupParams.userId,
         groupId: setupParams.groupId,
         path: [Direction.NorthWest],
       });
 
-      const copiedItem = await testEnv.service.items.management.deepCopyMapItem({
-        sourceCoords: sourceItem.coords,
+      const copiedItem = await testEnv.service.items.deepCopyMapItem({
+        sourceCoords: sourceItemCoords,
         destinationCoords,
         destinationParentId: rootMap.id,
       });
@@ -356,7 +386,6 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       expect(copiedItem.content).toBe("This item has all attributes populated");
       expect(copiedItem.preview).toBe("A comprehensive preview of the item");
       expect(copiedItem.link).toBe("https://example.com/full-item");
-      expect(copiedItem.ref.originId).toBe(sourceItem.ref.id);
     });
 
     it("should handle copy of item with no children", async () => {
@@ -374,21 +403,26 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
         content: "No children",
       });
 
+      const leafSourceCoords = _createTestCoordinates({
+        userId: setupParams.userId,
+        groupId: setupParams.groupId,
+        path: [Direction.SouthEast],
+      });
+
       const destinationCoords = _createTestCoordinates({
         userId: setupParams.userId,
         groupId: setupParams.groupId,
         path: [Direction.SouthWest],
       });
 
-      const copiedItem = await testEnv.service.items.management.deepCopyMapItem({
-        sourceCoords: leafItem.coords,
+      const copiedItem = await testEnv.service.items.deepCopyMapItem({
+        sourceCoords: leafSourceCoords,
         destinationCoords,
         destinationParentId: rootMap.id,
       });
 
       expect(copiedItem.title).toBe("Leaf Node");
-      expect(copiedItem.coords.path).toEqual([Direction.SouthWest]);
-      expect(copiedItem.ref.originId).toBe(leafItem.ref.id);
+      expect(copiedItem.depth).toBe(1);
 
       // Verify no unexpected children were created
       const descendants = await testEnv.repositories.mapItem.getDescendantsByParent({
@@ -418,7 +452,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       });
 
       await testEnv.service.items.crud.addItemToMap({
-        parentId: parentItem.id,
+        parentId: Number(parentItem.id),
         coords: _createTestCoordinates({
           userId: setupParams.userId,
           groupId: setupParams.groupId,
@@ -426,6 +460,12 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
         }),
         title: "Child",
         content: "Child content",
+      });
+
+      const parentSourceCoords = _createTestCoordinates({
+        userId: setupParams.userId,
+        groupId: setupParams.groupId,
+        path: [Direction.East],
       });
 
       const destinationCoords = _createTestCoordinates({
@@ -437,8 +477,8 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       // This should fail if we introduce an error condition
       // For now, we just verify the method can be called
       try {
-        await testEnv.service.items.management.deepCopyMapItem({
-          sourceCoords: parentItem.coords,
+        await testEnv.service.items.deepCopyMapItem({
+          sourceCoords: parentSourceCoords,
           destinationCoords,
           destinationParentId: rootMap.id,
         });

@@ -124,6 +124,7 @@ export function _createCopyMapping(
  *
  * @param preparedMapItems - Prepared MapItem coordinates and metadata
  * @param baseItemMapping - Mapping from source to copied BaseItem IDs
+ * @param copiedBaseItems - Array of copied BaseItems (needed for refs)
  * @returns Array of MapItem data ready for bulk creation
  */
 export function _buildMapItemsWithCopiedRefs(
@@ -132,7 +133,8 @@ export function _buildMapItemsWithCopiedRefs(
     parentId: number;
     sourceRefId: number;
   }>,
-  baseItemMapping: Map<number, number>
+  baseItemMapping: Map<number, number>,
+  copiedBaseItems: BaseItemWithId[]
 ): Array<{
   attrs: {
     coords: Coord;
@@ -140,14 +142,27 @@ export function _buildMapItemsWithCopiedRefs(
     ref: { itemType: MapItemType; itemId: number };
     itemType: MapItemType;
   };
-  ref: { id: number };
+  ref: BaseItemWithId;
 }> {
+  // Create a lookup map for copied BaseItems by ID
+  const baseItemById = new Map<number, BaseItemWithId>();
+  for (const baseItem of copiedBaseItems) {
+    baseItemById.set(baseItem.id, baseItem);
+  }
+
   return preparedMapItems.map((prepared) => {
     const copiedBaseItemId = baseItemMapping.get(prepared.sourceRefId);
 
     if (copiedBaseItemId === undefined) {
       throw new Error(
         `Failed to find copied BaseItem for source ref ${prepared.sourceRefId}`
+      );
+    }
+
+    const copiedBaseItem = baseItemById.get(copiedBaseItemId);
+    if (!copiedBaseItem) {
+      throw new Error(
+        `Failed to find copied BaseItem with ID ${copiedBaseItemId}`
       );
     }
 
@@ -161,9 +176,7 @@ export function _buildMapItemsWithCopiedRefs(
         },
         itemType: MapItemType.BASE,
       },
-      ref: {
-        id: copiedBaseItemId,
-      } as BaseItemWithId,
+      ref: copiedBaseItem,
     };
   });
 }

@@ -6,6 +6,7 @@ import { ItemCrudService } from "~/lib/domains/mapping/services/_item-services/_
 import { ItemQueryService } from "~/lib/domains/mapping/services/_item-services/_item-query.service";
 import { ItemHistoryService } from "~/lib/domains/mapping/services/_item-services/_item-history.service";
 import type { Coord } from "~/lib/domains/mapping/utils";
+import { CoordSystem } from "~/lib/domains/mapping/utils";
 import type { MapItemContract } from "~/lib/domains/mapping/types/contracts";
 import {
   _prepareBaseItemsForCopy,
@@ -119,7 +120,8 @@ export class ItemManagementService {
     // 8. Build MapItems with copied BaseItem references
     const mapItemsToCreate = _buildMapItemsWithCopiedRefs(
       preparedMapItems,
-      baseItemMapping
+      baseItemMapping,
+      copiedBaseItems
     );
 
     // 9. Bulk create MapItems
@@ -134,17 +136,18 @@ export class ItemManagementService {
     }
 
     return {
-      id: rootCopiedItem.id,
-      coords: rootCopiedItem.attrs.coords,
+      id: String(rootCopiedItem.id),
+      ownerId: String(rootCopiedItem.attrs.coords.userId),
+      coords: CoordSystem.createId(rootCopiedItem.attrs.coords),
       title: rootCopiedItem.ref.attrs.title,
       content: rootCopiedItem.ref.attrs.content,
       preview: rootCopiedItem.ref.attrs.preview,
       link: rootCopiedItem.ref.attrs.link ?? "",
       itemType: rootCopiedItem.attrs.itemType,
-      ref: {
-        id: rootCopiedItem.ref.id,
-        originId: rootCopiedItem.ref.attrs.originId,
-      },
+      depth: rootCopiedItem.attrs.coords.path.length,
+      parentId: rootCopiedItem.attrs.parentId
+        ? String(rootCopiedItem.attrs.parentId)
+        : null,
     };
   }
 }

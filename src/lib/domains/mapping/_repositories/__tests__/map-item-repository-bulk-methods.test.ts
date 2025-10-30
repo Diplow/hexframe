@@ -180,6 +180,12 @@ describe("MapItemRepository - bulk createMany method", () => {
         },
       ]);
 
+      // Get the actual root MapItem
+      const rootMapItem = await mapItemRepo.getOne(rootMap.id);
+      if (!rootMapItem) {
+        throw new Error("Root map not found");
+      }
+
       // Create parent map item first
       const parentMapItem = await mapItemRepo.create({
         attrs: {
@@ -197,7 +203,7 @@ describe("MapItemRepository - bulk createMany method", () => {
         },
         relatedItems: {
           ref: baseItems[0]!,
-          parent: rootMap,
+          parent: rootMapItem,
         },
         relatedLists: {
           neighbors: [],
