@@ -1,17 +1,19 @@
 import type { TileData } from "~/app/map/types/tile-data";
+import { type LucideIcon } from "lucide-react";
 import {
-  Eye,
-  Maximize2,
-  Navigation,
-  Edit,
-  Trash2,
-  Move,
-  Copy,
-  Plus,
-  Layers,
-  History,
-  type LucideIcon,
-} from "lucide-react";
+  _buildPreviewItem,
+  _buildExpandItem,
+  _buildCompositionItem,
+  _buildNavigateItem,
+} from "~/app/map/Canvas/_internals/menu/_builders/view-actions";
+import {
+  _buildViewHistoryItem,
+  _buildEditItem,
+  _buildCopyItem,
+  _buildMoveItem,
+  _buildDeleteItem,
+  _buildCreateItem,
+} from "~/app/map/Canvas/_internals/menu/_builders/edit-actions";
 
 export interface MenuItem {
   icon: LucideIcon;
@@ -60,114 +62,23 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
   } = config;
 
   if (isEmptyTile) {
-    return onCreate && canEdit
-      ? [
-          {
-            icon: Plus,
-            label: "Create Tile",
-            shortcut: "Hover",
-            onClick: onCreate,
-          },
-        ]
-      : [];
+    return _buildCreateItem(canEdit, onCreate);
   }
 
   return [
-    ...(onSelect
-      ? [
-          {
-            icon: Eye,
-            label: "Preview",
-            shortcut: "Click",
-            onClick: onSelect,
-          },
-        ]
-      : []),
-    ...(onExpand
-      ? [
-          {
-            icon: Maximize2,
-            label: tileData.state?.isExpanded ? "Collapse" : "Expand",
-            shortcut: "Shift+Click",
-            onClick: onExpand,
-          },
-        ]
-      : []),
-    ...(onCompositionToggle && canShowComposition
-      ? [
-          {
-            icon: Layers,
-            label: isCompositionExpanded
-              ? "Hide Composition"
-              : "Show Composition",
-            shortcut: "Ctrl+Shift+Click",
-            onClick: () => onCompositionToggle(tileData),
-          },
-        ]
-      : []),
-    ...(onNavigate
-      ? [
-          {
-            icon: Navigation,
-            label: "Navigate",
-            shortcut: "Ctrl+Click",
-            onClick: onNavigate,
-          },
-        ]
-      : []),
-    ...(onViewHistory
-      ? [
-          {
-            icon: History,
-            label: "View History",
-            shortcut: "",
-            onClick: onViewHistory,
-          },
-        ]
-      : []),
-    ...(canEdit && onEdit
-      ? [
-          {
-            icon: Edit,
-            label: "Edit",
-            shortcut: "",
-            onClick: onEdit,
-            separator: true,
-          },
-        ]
-      : []),
-    ...(canEdit && onCopy
-      ? [
-          {
-            icon: Copy,
-            label: "Copy to...",
-            shortcut: "Drag",
-            onClick: onCopy,
-            className: "text-link",
-          },
-        ]
-      : []),
-    ...(canEdit && onMove
-      ? [
-          {
-            icon: Move,
-            label: "Move to...",
-            shortcut: "Ctrl+Drag",
-            onClick: onMove,
-          },
-        ]
-      : []),
-    ...(canEdit && onDelete
-      ? [
-          {
-            icon: Trash2,
-            label: "Delete",
-            shortcut: "",
-            onClick: onDelete,
-            className:
-              "text-[color:var(--destructive-color-600)] dark:text-[color:var(--destructive-color-400)]",
-          },
-        ]
-      : []),
+    ..._buildPreviewItem(onSelect),
+    ..._buildExpandItem(tileData, onExpand),
+    ..._buildCompositionItem(
+      tileData,
+      isCompositionExpanded,
+      canShowComposition,
+      onCompositionToggle,
+    ),
+    ..._buildNavigateItem(onNavigate),
+    ..._buildViewHistoryItem(onViewHistory),
+    ..._buildEditItem(canEdit, onEdit),
+    ..._buildCopyItem(canEdit, onCopy),
+    ..._buildMoveItem(canEdit, onMove),
+    ..._buildDeleteItem(canEdit, onDelete),
   ];
 }
