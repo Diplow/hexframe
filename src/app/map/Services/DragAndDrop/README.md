@@ -6,9 +6,11 @@ The DragAndDrop subsystem is like a "physical moving company" for hexagonal tile
 ## Responsibilities
 - DOM-based drag and drop operations using native events (no React state)
 - Global coordination of drag operations across the entire map
+- Ctrl key detection for operation type determination (copy vs move)
+- Operation type tracking: default drag = copy, ctrl+drag = move
 - Validation of drag operations based on business rules
 - Registration and management of draggable tile elements
-- Visual feedback through CSS classes during drag operations
+- Visual feedback through CSS classes during drag operations (blue for copy, existing for move)
 
 ## Non-Responsibilities
 - Tile rendering → See `../../Canvas/README.md`
@@ -43,3 +45,27 @@ The GlobalDragService is purposely designed to operate outside of React's state 
 - Automatic handling of dynamically added/removed tiles without re-registration
 
 This approach trades some React integration convenience for significant performance gains, which is essential for smooth interaction with complex hexagonal maps.
+
+### Copy vs Move Operations
+
+The GlobalDragService supports two operation types controlled by the ctrl key:
+
+**Copy Operation (Default)**
+- Triggered by: Regular drag without ctrl key
+- Behavior: Creates a deep copy of the source tile and its subtree
+- Use case: Duplicating tiles to new locations
+- Visual feedback: Blue highlight via `data-drop-operation="copy"` CSS attribute
+- Backend: Routes to `copyMapItem` endpoint
+
+**Move Operation (Ctrl+Drag)**
+- Triggered by: Holding ctrl key during drag
+- Behavior: Moves the source tile to the target location
+- Use case: Reorganizing tiles without duplication
+- Visual feedback: Existing highlight via `data-drop-operation="move"` CSS attribute
+- Backend: Routes to `moveMapItem` endpoint
+
+**Implementation Details**
+- Ctrl key state tracked via `data-drag-operation-type` DOM attribute on document.body
+- Operation type updates dynamically during dragover events (can switch mid-drag)
+- Final operation type read from drop target element at drop time
+- No React state involved - purely DOM-based tracking for performance
