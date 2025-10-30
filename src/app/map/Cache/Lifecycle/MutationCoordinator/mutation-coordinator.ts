@@ -550,6 +550,7 @@ export class MutationCoordinator {
       parentId,
       itemType: MapItemType.BASE,
       ownerId: this.config.mapContext?.userId.toString() ?? "unknown",
+      originId: null,
     };
   }
 
@@ -683,6 +684,7 @@ export class MutationCoordinator {
       parentId: null, // We don't store this in TileData
       itemType: MapItemType.BASE,
       ownerId: tile.metadata.ownerId ?? this.config.mapContext?.userId.toString() ?? "unknown",
+      originId: null,
     };
   }
 

@@ -11,6 +11,7 @@ export interface FetchedMapItem {
   parentId: string | null;
   itemType: MapItemType;
   ownerId: string;
+  originId: string | null;
 }
 
 /**

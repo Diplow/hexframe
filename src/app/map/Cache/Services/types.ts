@@ -18,6 +18,7 @@ export interface ServerService {
     parentId: string | null;
     itemType: MapItemType;
     ownerId: string;
+    originId: string | null;
   }[]>;
 
   // Additional query operations
@@ -32,6 +33,7 @@ export interface ServerService {
     parentId: string | null;
     itemType: MapItemType;
     ownerId: string;
+    originId: string | null;
   } | null>;
   getRootItemById: (mapItemId: number) => Promise<{
     id: string;
@@ -44,6 +46,7 @@ export interface ServerService {
     parentId: string | null;
     itemType: MapItemType;
     ownerId: string;
+    originId: string | null;
   } | null>;
   getDescendants: (itemId: number) => Promise<{
     id: string;
@@ -56,6 +59,7 @@ export interface ServerService {
     parentId: string | null;
     itemType: MapItemType;
     ownerId: string;
+    originId: string | null;
   }[]>;
   getAncestors: (itemId: number) => Promise<{
     id: string;
@@ -68,6 +72,7 @@ export interface ServerService {
     parentId: string | null;
     itemType: MapItemType;
     ownerId: string;
+    originId: string | null;
   }[]>;
   getItemWithGenerations: (params: {
     coordId: string;
@@ -83,6 +88,7 @@ export interface ServerService {
     parentId: string | null;
     itemType: MapItemType;
     ownerId: string;
+    originId: string | null;
   }[]>;
 
   // Mutation operations (architectural placeholders - should use mutation layer)

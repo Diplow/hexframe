@@ -12,6 +12,7 @@ import {
   itemCreationSchema,
   itemUpdateSchema,
   itemMovementSchema,
+  itemCopySchema,
 } from "~/server/api/routers/map/map-schemas";
 import { _createSuccessResponse, _getUserId } from "~/server/api/routers/map/_map-auth-helpers";
 import { TRPCError } from "@trpc/server";
@@ -343,5 +344,36 @@ export const mapItemsRouter = createTRPCRouter({
           cause: error,
         });
       }
+    }),
+
+  // Deep copy a map item and its entire subtree
+  copyMapItem: dualAuthProcedure
+    .use(mappingServiceMiddleware)
+    .input(itemCopySchema)
+    .mutation(async ({ ctx, input }) => {
+      // Check if user owns the destination parent
+      const currentUserId = await _getUserId(ctx.user);
+      const currentUserIdString = String(currentUserId);
+
+      // Verify user owns the destination parent
+      const destinationParentItem = await ctx.mappingService.items.query.getItemById({
+        itemId: input.destinationParentId,
+      });
+
+      if (destinationParentItem.ownerId !== currentUserIdString) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You can only copy items to locations you own",
+        });
+      }
+
+      // Perform the deep copy
+      const copiedItem = await ctx.mappingService.items.deepCopyMapItem({
+        sourceCoords: input.sourceCoords as Coord,
+        destinationCoords: input.destinationCoords as Coord,
+        destinationParentId: input.destinationParentId,
+      });
+
+      return contractToApiAdapters.mapItem(copiedItem);
     }),
 });

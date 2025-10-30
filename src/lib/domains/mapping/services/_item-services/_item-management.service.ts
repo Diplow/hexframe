@@ -148,6 +148,9 @@ export class ItemManagementService {
       parentId: rootCopiedItem.attrs.parentId
         ? String(rootCopiedItem.attrs.parentId)
         : null,
+      originId: rootCopiedItem.ref.attrs.originId
+        ? String(rootCopiedItem.ref.attrs.originId)
+        : null,
     };
   }
 }
