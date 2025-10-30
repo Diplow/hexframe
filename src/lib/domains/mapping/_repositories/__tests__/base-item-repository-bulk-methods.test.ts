@@ -14,7 +14,7 @@ describe("BaseItemRepository - bulk createMany method", () => {
   beforeEach(async () => {
     await _cleanupDatabase();
     testEnv = _createTestEnvironment();
-    baseItemRepo = testEnv.baseItemRepo;
+    baseItemRepo = testEnv.repositories.baseItem;
   });
 
   describe("createMany", () => {
@@ -59,29 +59,40 @@ describe("BaseItemRepository - bulk createMany method", () => {
     });
 
     it("should create BaseItems with originId in bulk", async () => {
-      const originalItemId = 999;
+      // First create the original item
+      const originalItem = await baseItemRepo.create({
+        attrs: {
+          title: "Original",
+          content: "Original content",
+          link: "",
+          preview: undefined,
+        },
+        relatedItems: {},
+        relatedLists: {},
+      });
+
       const itemsToCreate: MapItemAttributes[] = [
         {
           title: "Copy 1",
           content: "Content 1",
           link: "",
           preview: undefined,
-          originId: originalItemId,
+          originId: originalItem.id,
         },
         {
           title: "Copy 2",
           content: "Content 2",
           link: "",
           preview: undefined,
-          originId: originalItemId,
+          originId: originalItem.id,
         },
       ];
 
       const createdItems = await baseItemRepo.createMany(itemsToCreate);
 
       expect(createdItems).toHaveLength(2);
-      expect(createdItems[0]!.attrs.originId).toBe(originalItemId);
-      expect(createdItems[1]!.attrs.originId).toBe(originalItemId);
+      expect(createdItems[0]!.attrs.originId).toBe(originalItem.id);
+      expect(createdItems[1]!.attrs.originId).toBe(originalItem.id);
     });
 
     it("should handle empty array input", async () => {
@@ -109,20 +120,43 @@ describe("BaseItemRepository - bulk createMany method", () => {
     });
 
     it("should preserve all attributes when creating multiple items", async () => {
+      // First create originals for valid FK references
+      const original1 = await baseItemRepo.create({
+        attrs: {
+          title: "Original 1",
+          content: "Original 1 content",
+          link: "",
+          preview: undefined,
+        },
+        relatedItems: {},
+        relatedLists: {},
+      });
+
+      const original2 = await baseItemRepo.create({
+        attrs: {
+          title: "Original 2",
+          content: "Original 2 content",
+          link: "",
+          preview: undefined,
+        },
+        relatedItems: {},
+        relatedLists: {},
+      });
+
       const itemsToCreate: MapItemAttributes[] = [
         {
           title: "Full Item 1",
           content: "Content with details",
           preview: "Preview text",
           link: "https://example.com/1",
-          originId: 42,
+          originId: original1.id,
         },
         {
           title: "Full Item 2",
           content: "More content",
           preview: "Another preview",
           link: "https://example.com/2",
-          originId: 43,
+          originId: original2.id,
         },
       ];
 
@@ -135,17 +169,29 @@ describe("BaseItemRepository - bulk createMany method", () => {
       expect(createdItems[0]!.attrs.content).toBe("Content with details");
       expect(createdItems[0]!.attrs.preview).toBe("Preview text");
       expect(createdItems[0]!.attrs.link).toBe("https://example.com/1");
-      expect(createdItems[0]!.attrs.originId).toBe(42);
+      expect(createdItems[0]!.attrs.originId).toBe(original1.id);
 
       // Second item
       expect(createdItems[1]!.attrs.title).toBe("Full Item 2");
       expect(createdItems[1]!.attrs.content).toBe("More content");
       expect(createdItems[1]!.attrs.preview).toBe("Another preview");
       expect(createdItems[1]!.attrs.link).toBe("https://example.com/2");
-      expect(createdItems[1]!.attrs.originId).toBe(43);
+      expect(createdItems[1]!.attrs.originId).toBe(original2.id);
     });
 
     it("should handle mix of items with and without originId", async () => {
+      // Create an original first for valid FK
+      const original = await baseItemRepo.create({
+        attrs: {
+          title: "Original",
+          content: "Original content",
+          link: "",
+          preview: undefined,
+        },
+        relatedItems: {},
+        relatedLists: {},
+      });
+
       const itemsToCreate: MapItemAttributes[] = [
         {
           title: "Original Item",
@@ -159,7 +205,7 @@ describe("BaseItemRepository - bulk createMany method", () => {
           content: "Copied content",
           link: "",
           preview: undefined,
-          originId: 100,
+          originId: original.id,
         },
       ];
 
@@ -167,7 +213,7 @@ describe("BaseItemRepository - bulk createMany method", () => {
 
       expect(createdItems).toHaveLength(2);
       expect(createdItems[0]!.attrs.originId).toBeUndefined();
-      expect(createdItems[1]!.attrs.originId).toBe(100);
+      expect(createdItems[1]!.attrs.originId).toBe(original.id);
     });
 
     it("should create items with null originId when explicitly set", async () => {
@@ -184,7 +230,8 @@ describe("BaseItemRepository - bulk createMany method", () => {
       const createdItems = await baseItemRepo.createMany(itemsToCreate);
 
       expect(createdItems).toHaveLength(1);
-      expect(createdItems[0]!.attrs.originId).toBeNull();
+      // null in DB becomes undefined in domain model
+      expect(createdItems[0]!.attrs.originId).toBeUndefined();
     });
 
     it("should handle large batch creation (performance test)", async () => {

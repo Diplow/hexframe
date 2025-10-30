@@ -40,7 +40,7 @@ describe("MapItem Copy Helpers", () => {
         "~/lib/domains/mapping/_actions/_map-item-copy-helpers"
       );
 
-      const baseItemsToCopy = await testEnv.mapItemRepo.getMany({
+      const baseItemsToCopy = await testEnv.repositories.mapItem.getMany({
         limit: 1,
       });
 
@@ -84,7 +84,7 @@ describe("MapItem Copy Helpers", () => {
         "~/lib/domains/mapping/_actions/_map-item-copy-helpers"
       );
 
-      const baseItemsToCopy = await testEnv.mapItemRepo.getMany({
+      const baseItemsToCopy = await testEnv.repositories.mapItem.getMany({
         limit: 10,
       });
 
@@ -122,7 +122,7 @@ describe("MapItem Copy Helpers", () => {
         "~/lib/domains/mapping/_actions/_map-item-copy-helpers"
       );
 
-      const baseItems = await testEnv.mapItemRepo.getMany({ limit: 10 });
+      const baseItems = await testEnv.repositories.mapItem.getMany({ limit: 10 });
       const targetItem = baseItems.find(
         mi => mi.ref.attrs.title === "Full Item"
       );
@@ -159,7 +159,7 @@ describe("MapItem Copy Helpers", () => {
         "~/lib/domains/mapping/_actions/_map-item-copy-helpers"
       );
 
-      const sourceMapItem = await testEnv.mapItemRepo.getOneByIdr({
+      const sourceMapItem = await testEnv.repositories.mapItem.getOneByIdr({
         idr: { id: originalItem.id },
       });
 
@@ -212,7 +212,7 @@ describe("MapItem Copy Helpers", () => {
         "~/lib/domains/mapping/_actions/_map-item-copy-helpers"
       );
 
-      const descendants = await testEnv.mapItemRepo.getDescendantsByParent({
+      const descendants = await testEnv.repositories.mapItem.getDescendantsByParent({
         parentPath: [],
         parentUserId: setupParams.userId,
         parentGroupId: setupParams.groupId,
@@ -280,11 +280,11 @@ describe("MapItem Copy Helpers", () => {
         "~/lib/domains/mapping/_actions/_map-item-copy-helpers"
       );
 
-      const sourceMapItems = await testEnv.mapItemRepo.getManyByIdr({
+      const sourceMapItems = await testEnv.repositories.mapItem.getManyByIdr({
         idrs: [{ id: item1.id }, { id: item2.id }],
       });
 
-      const copiedBaseItems = await testEnv.baseItemRepo.createMany([
+      const copiedBaseItems = await testEnv.repositories.baseItem.createMany([
         {
           title: "Item 1",
           content: "Content 1",
@@ -332,7 +332,7 @@ describe("MapItem Copy Helpers", () => {
         "~/lib/domains/mapping/_actions/_map-item-copy-helpers"
       );
 
-      const copiedBaseItem = await testEnv.baseItemRepo.create({
+      const copiedBaseItem = await testEnv.repositories.baseItem.create({
         attrs: {
           title: "Original",
           content: "Content",

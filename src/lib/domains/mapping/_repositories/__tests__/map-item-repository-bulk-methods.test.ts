@@ -19,7 +19,7 @@ describe("MapItemRepository - bulk createMany method", () => {
   beforeEach(async () => {
     await _cleanupDatabase();
     testEnv = _createTestEnvironment();
-    mapItemRepo = testEnv.mapItemRepo;
+    mapItemRepo = testEnv.repositories.mapItem;
   });
 
   describe("createMany", () => {
@@ -28,7 +28,7 @@ describe("MapItemRepository - bulk createMany method", () => {
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
       // Create base items for the map items
-      const baseItem1 = await testEnv.baseItemRepo.create({
+      const baseItem1 = await testEnv.repositories.baseItem.create({
         attrs: {
           title: "Base 1",
           content: "Content 1",
@@ -39,7 +39,7 @@ describe("MapItemRepository - bulk createMany method", () => {
         relatedLists: {},
       });
 
-      const baseItem2 = await testEnv.baseItemRepo.create({
+      const baseItem2 = await testEnv.repositories.baseItem.create({
         attrs: {
           title: "Base 2",
           content: "Content 2",
@@ -114,7 +114,7 @@ describe("MapItemRepository - bulk createMany method", () => {
       const setupParams = _createUniqueTestParams();
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
-      const baseItem = await testEnv.baseItemRepo.create({
+      const baseItem = await testEnv.repositories.baseItem.create({
         attrs: {
           title: "Single Base",
           content: "Content",
@@ -159,7 +159,7 @@ describe("MapItemRepository - bulk createMany method", () => {
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
       // Create base items
-      const baseItems = await testEnv.baseItemRepo.createMany([
+      const baseItems = await testEnv.repositories.baseItem.createMany([
         {
           title: "Parent Item",
           content: "Parent content",
@@ -254,7 +254,7 @@ describe("MapItemRepository - bulk createMany method", () => {
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
       const itemCount = 20;
-      const baseItems = await testEnv.baseItemRepo.createMany(
+      const baseItems = await testEnv.repositories.baseItem.createMany(
         Array.from({ length: itemCount }, (_, i) => ({
           title: `Bulk Item ${i + 1}`,
           content: `Content ${i + 1}`,

@@ -26,6 +26,27 @@ export class WriteQueries {
     return { id: newDbItemArr[0].id };
   }
 
+  async createManyMapItems(
+    attrsArray: CreateMapItemDbAttrs[]
+  ): Promise<Array<{ id: number }>> {
+    if (attrsArray.length === 0) {
+      return [];
+    }
+
+    const newDbItems = await this.db
+      .insert(mapItems)
+      .values(attrsArray)
+      .returning();
+
+    if (newDbItems.length !== attrsArray.length) {
+      throw new Error(
+        `Failed to create all MapItems. Expected ${attrsArray.length}, got ${newDbItems.length}`
+      );
+    }
+
+    return newDbItems.map((item) => ({ id: item.id }));
+  }
+
   async updateMapItem(
     id: number,
     updateValues: UpdateMapItemDbAttrs,

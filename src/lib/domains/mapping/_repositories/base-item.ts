@@ -77,4 +77,16 @@ export interface BaseItemRepository extends GenericRepository<
    * @throws Error if BaseItem not found
    */
   countVersions(baseItemId: number): Promise<number>;
+
+  /**
+   * Create multiple BaseItems in a single bulk operation
+   *
+   * Efficiently creates multiple BaseItem records. Each item is created
+   * with its initial version snapshot.
+   *
+   * @param attrsArray - Array of BaseItem attributes to create
+   * @returns Array of created BaseItems with IDs
+   * @throws Error if creation fails
+   */
+  createMany(attrsArray: BaseItemAttrs[]): Promise<BaseItemWithId[]>;
 }

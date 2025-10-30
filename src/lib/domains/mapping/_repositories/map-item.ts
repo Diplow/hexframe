@@ -87,4 +87,20 @@ export interface MapItemRepository
     limit?: number;
     offset?: number;
   }): Promise<MapItemWithId[]>;
+
+  /**
+   * Create multiple MapItems in a single bulk operation
+   *
+   * Efficiently creates multiple MapItem records.
+   *
+   * @param items - Array of MapItem data to create (attrs + ref)
+   * @returns Array of created MapItems
+   * @throws Error if creation fails
+   */
+  createMany(
+    items: Array<{
+      attrs: MapItemAttrs;
+      ref: MapItemRelatedItems["ref"];
+    }>
+  ): Promise<MapItemWithId[]>;
 }

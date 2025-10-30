@@ -391,7 +391,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       expect(copiedItem.ref.originId).toBe(leafItem.ref.id);
 
       // Verify no unexpected children were created
-      const descendants = await testEnv.mapItemRepo.getDescendantsByParent({
+      const descendants = await testEnv.repositories.mapItem.getDescendantsByParent({
         parentPath: destinationCoords.path,
         parentUserId: setupParams.userId,
         parentGroupId: setupParams.groupId,
