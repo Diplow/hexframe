@@ -17,6 +17,8 @@ interface ContextMenuContainerProps {
   onCreateClick?: (tileData: TileData) => void;
   onEditClick?: (tileData: TileData) => void;
   onDeleteClick?: (tileData: TileData) => void;
+  onCopyClick?: (tileData: TileData) => void;
+  onMoveClick?: (tileData: TileData) => void;
   onCompositionToggle?: (tileData: TileData) => void;
   hasComposition?: (coordId: string) => boolean;
   isCompositionExpanded?: (coordId: string) => boolean;
@@ -32,6 +34,8 @@ export function ContextMenuContainer({
   onCreateClick,
   onEditClick,
   onDeleteClick,
+  onCopyClick,
+  onMoveClick,
   onCompositionToggle,
   hasComposition,
   isCompositionExpanded,
@@ -50,6 +54,8 @@ export function ContextMenuContainer({
       onEdit={() => onEditClick?.(contextMenu.tileData)}
       onDelete={() => onDeleteClick?.(contextMenu.tileData)}
       onCreate={() => onCreateClick?.(contextMenu.tileData)}
+      onCopy={() => onCopyClick?.(contextMenu.tileData)}
+      onMove={() => onMoveClick?.(contextMenu.tileData)}
       onCompositionToggle={onCompositionToggle}
       canEdit={contextMenu.canEdit}
       isEmptyTile={contextMenu.isEmptyTile}

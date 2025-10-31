@@ -16,6 +16,7 @@ export interface MapItemAttributes extends Record<string, unknown> {
   content: string;
   preview?: string;
   link: string;
+  originId?: number | null;
 }
 
 /**
@@ -26,6 +27,7 @@ export interface MapItemUpdateAttributes {
   content?: string;
   preview?: string;
   link?: string;
+  originId?: number | null;
 }
 
 /**
@@ -36,4 +38,5 @@ export interface MapItemCreateAttributes {
   content?: string;
   preview?: string;
   link?: string;
+  originId?: number | null;
 }

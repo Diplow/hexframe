@@ -13,7 +13,7 @@ export interface TileDropTarget {
 export interface DragOperation {
   sourceId: string;
   targetId: string;
-  operation: 'move' | 'swap';
+  operation: 'copy' | 'move';
 }
 
 export type DropHandler = (operation: DragOperation) => Promise<void>;
@@ -84,6 +84,11 @@ class GlobalDragService {
     // Add CSS class to indicate drag is active
     document.body.setAttribute('data-drag-active', 'true');
 
+    // Track ctrl key state for copy/move operation
+    // Default: copy (no ctrl), ctrl+drag: move
+    const operationType = event.ctrlKey ? 'move' : 'copy';
+    document.body.setAttribute('data-drag-operation-type', operationType);
+
     // Start cleanup timer as a safety net (clear stale highlights every 100ms)
     this.startCleanupTimer();
 
@@ -102,6 +107,7 @@ class GlobalDragService {
 
     // Clean up CSS classes
     document.body.removeAttribute('data-drag-active');
+    document.body.removeAttribute('data-drag-operation-type');
 
     if (this.currentDraggedTile) {
       const draggedElement = this.findTileElement(this.currentDraggedTile);
@@ -145,15 +151,27 @@ class GlobalDragService {
 
     if (!this.currentDraggedTile) return;
 
+    // Update ctrl key state during drag (allows switching between copy/move mid-drag)
+    const operationType = event.ctrlKey ? 'move' : 'copy';
+    document.body.setAttribute('data-drag-operation-type', operationType);
+
     const dropTarget = this.findDropTargetFromEvent(event);
 
-    // No change in target
-    if (dropTarget?.tileId === this.currentDropTarget) {
+    // Check if target or operation type changed
+    const currentOperation = document.body.getAttribute('data-drag-operation-type') as 'copy' | 'move';
+    const prevOperation = dropTarget ?
+      this.findTileElement(dropTarget.tileId)?.getAttribute('data-drop-operation') : null;
+
+    const targetChanged = dropTarget?.tileId !== this.currentDropTarget;
+    const operationChanged = currentOperation !== prevOperation;
+
+    // No change in target or operation
+    if (!targetChanged && !operationChanged && dropTarget?.tileId === this.currentDropTarget) {
       return;
     }
 
-    // Clear previous target
-    if (this.currentDropTarget) {
+    // Clear previous target if target changed
+    if (targetChanged && this.currentDropTarget) {
       const prevElement = this.findTileElement(this.currentDropTarget);
       if (prevElement) {
         prevElement.removeAttribute('data-drop-target');
@@ -161,16 +179,15 @@ class GlobalDragService {
       }
     }
 
-    // Set new target
+    // Set new target or update operation
     if (dropTarget && dropTarget.tileId !== this.currentDraggedTile) {
       const validation = this.validateDrop(this.currentDraggedTile, dropTarget);
 
       if (validation.isValid) {
         this.currentDropTarget = dropTarget.tileId;
-        const operation = this.determineOperation(dropTarget);
 
         dropTarget.element.setAttribute('data-drop-target', 'true');
-        dropTarget.element.setAttribute('data-drop-operation', operation);
+        dropTarget.element.setAttribute('data-drop-operation', operationType);
       } else {
         this.currentDropTarget = null;
       }
@@ -189,14 +206,21 @@ class GlobalDragService {
 
     const sourceId = this.currentDraggedTile;
     const targetId = this.currentDropTarget;
-    const targetElement = this.findTileElement(targetId);
-    const operation = targetElement?.getAttribute('data-drop-operation') as 'move' | 'swap' || 'move';
 
+    // Get operation type from body attribute (most reliable source, updated during dragover)
+    const operation = (document.body.getAttribute('data-drag-operation-type') as 'copy' | 'move') || 'copy';
 
     // Execute the drop through the handler
     if (this.dropHandler) {
       this.dropHandler({ sourceId, targetId, operation }).catch(error => {
         console.error('Drop operation failed:', error);
+        // Emit error event for user feedback
+        if (error instanceof Error) {
+          // Dispatch custom event that cache provider can handle
+          document.dispatchEvent(new CustomEvent('drag-drop-error', {
+            detail: { message: error.message }
+          }));
+        }
       });
     }
 
@@ -265,12 +289,6 @@ class GlobalDragService {
     const sourceOwned = sourceOwnerIdAttr ? parseInt(sourceOwnerIdAttr) === this.currentUserId : false;
 
     return this.validationHandler(sourceId, target.tileId, sourceOwned, target.isOwned);
-  }
-
-  private determineOperation(target: TileDropTarget): 'move' | 'swap' {
-    // If target has content (has owner), it's a swap; otherwise it's a move
-    const hasContent = target.element.getAttribute('data-tile-has-content') === 'true';
-    return hasContent ? 'swap' : 'move';
   }
 
   /**

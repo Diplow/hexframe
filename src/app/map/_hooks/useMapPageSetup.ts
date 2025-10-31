@@ -5,8 +5,7 @@ import { redirect } from "next/navigation";
 import { api } from "~/commons/trpc/react";
 import { useUnifiedAuth } from "~/contexts/UnifiedAuthContext";
 import { loadPreFetchedData, clearPreFetchedData, type PreFetchedMapData } from '~/app/map';
-import { EventBus } from '~/app/map';
-const eventBus = new EventBus();
+import { eventBus } from '~/app/map/Services';
 import type { TileData } from '~/app/map';
 import { useMapResolver } from '~/app/map/MapResolver';
 

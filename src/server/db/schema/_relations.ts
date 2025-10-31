@@ -24,30 +24,32 @@ export const mapItemRelations = relations(mapItems, ({ one, many }) => ({
     references: [mapItems.id],
     relationName: "parentItem", // Alias for self-relation
   }),
-  // Many-to-one: MapItem -> Origin MapItem
-  origin: one(mapItems, {
-    fields: [mapItems.originId],
-    references: [mapItems.id],
-    relationName: "originItem", // Alias for self-relation
-  }),
   // One-to-many: MapItem -> Children MapItems
   children: many(mapItems, {
     relationName: "parentItem", // Corresponds to parent relationName
-  }),
-  // One-to-many: MapItem -> Copies MapItems
-  copies: many(mapItems, {
-    relationName: "originItem", // Corresponds to origin relationName
   }),
 }));
 
 /**
  * Relations for base_items table
  */
-export const baseItemRelations = relations(baseItems, ({ many }) => ({
+export const baseItemRelations = relations(baseItems, ({ one, many }) => ({
   // One-to-many: BaseItem -> Referencing MapItems
   mapItems: many(mapItems),
   // One-to-many: BaseItem -> Version History
   versions: many(baseItemVersions),
+
+  // Self-referencing relationships for content lineage
+  // Many-to-one: BaseItem -> Origin BaseItem (the content this was copied from)
+  origin: one(baseItems, {
+    fields: [baseItems.originId],
+    references: [baseItems.id],
+    relationName: "originItem", // Alias for self-relation
+  }),
+  // One-to-many: BaseItem -> Derived BaseItems (content copied from this)
+  derivedItems: many(baseItems, {
+    relationName: "originItem", // Corresponds to origin relationName
+  }),
 }));
 
 /**

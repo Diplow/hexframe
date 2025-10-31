@@ -60,3 +60,10 @@ export const itemMovementSchema = z.object({
   oldCoords: hexCoordSchema,
   newCoords: hexCoordSchema,
 });
+
+// Item copy schema
+export const itemCopySchema = z.object({
+  sourceCoords: hexCoordSchema,
+  destinationCoords: hexCoordSchema,
+  destinationParentId: z.number().int().positive(),
+});

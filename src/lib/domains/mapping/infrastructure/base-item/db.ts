@@ -26,6 +26,7 @@ function mapDbToDomain(dbItem: DbBaseItemSelect): BaseItemWithId {
       content: dbItem.content,
       preview: dbItem.preview ?? undefined,
       link: dbItem.link ?? "",
+      originId: dbItem.originId ?? undefined,
     },
     // History/RelatedItems/RelatedLists are not loaded/mapped here
   });
@@ -147,6 +148,7 @@ export class DbBaseItemRepository implements BaseItemRepository {
         content: attrs.content,
         preview: attrs.preview ?? null,
         link: attrs.link ?? null,
+        originId: attrs.originId ?? null,
         // createdAt/updatedAt handled by DB default
       })
       .returning({ id: schemaImport.baseItems.id });
@@ -192,6 +194,8 @@ export class DbBaseItemRepository implements BaseItemRepository {
     if (attrs.hasOwnProperty("preview")) updateData.preview = attrs.preview ?? null;
     // Allow setting link to null or a new value
     if (attrs.hasOwnProperty("link")) updateData.link = attrs.link ?? null;
+    // Allow setting originId to null or a new value
+    if (attrs.hasOwnProperty("originId")) updateData.originId = attrs.originId ?? null;
 
     if (Object.keys(updateData).length === 0) {
       return this.getOne(id); // No changes
@@ -422,6 +426,46 @@ export class DbBaseItemRepository implements BaseItemRepository {
       .where(eq(schemaImport.baseItemVersions.baseItemId, baseItemId));
 
     return result.length;
+  }
+
+  // --- Bulk Operations ---
+
+  async createMany(attrsArray: Attrs[]): Promise<BaseItemWithId[]> {
+    if (attrsArray.length === 0) {
+      return [];
+    }
+
+    // Insert all base items
+    const newItems = await this.db
+      .insert(schemaImport.baseItems)
+      .values(
+        attrsArray.map((attrs) => ({
+          title: attrs.title,
+          content: attrs.content,
+          preview: attrs.preview ?? null,
+          link: attrs.link ?? null,
+          originId: attrs.originId ?? null,
+        }))
+      )
+      .returning({ id: schemaImport.baseItems.id });
+
+    if (newItems.length !== attrsArray.length) {
+      throw new Error("Failed to create all base items");
+    }
+
+    // Create initial versions for all items
+    const versionPromises = newItems.map((item, index) =>
+      this._createVersion(item.id, attrsArray[index]!)
+    );
+    await Promise.all(versionPromises);
+
+    // Fetch and return all created items
+    const createdItems = await this.getManyByIdr({
+      idrs: newItems.map((item) => ({ id: item.id })),
+      limit: newItems.length,
+    });
+
+    return createdItems;
   }
 
   /**

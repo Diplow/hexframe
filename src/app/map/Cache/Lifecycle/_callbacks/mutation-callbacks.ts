@@ -49,11 +49,17 @@ export function createMutationCallbacks(mutationOperations: MutationOperations) 
     return result;
   };
 
+  const copyItemOptimistic = async (sourceCoordId: string, destinationCoordId: string, destinationParentId: string) => {
+    const result = await mutationOperations.copyItem(sourceCoordId, destinationCoordId, destinationParentId);
+    return result;
+  };
+
   return {
     createItemOptimistic,
     updateItemOptimistic,
     deleteItemOptimistic,
     moveItemOptimistic,
+    copyItemOptimistic,
     rollbackOptimisticChange: mutationOperations.rollbackOptimisticChange,
     rollbackAllOptimistic: mutationOperations.rollbackAllOptimistic,
     getPendingOptimisticChanges: mutationOperations.getPendingOptimisticChanges,

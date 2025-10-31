@@ -18,6 +18,7 @@ describe("Cache Reducer", () => {
       parentId: null,
       itemType: MapItemType.BASE,
       ownerId: "test-owner",
+      originId: null,
     },
     {
       id: "2",
@@ -30,6 +31,7 @@ describe("Cache Reducer", () => {
       parentId: null,
       itemType: MapItemType.BASE,
       ownerId: "test-owner",
+      originId: null,
     },
   ];
 
@@ -154,6 +156,7 @@ describe("Cache Reducer", () => {
           parentId: null,
           itemType: MapItemType.BASE,
           ownerId: "test-owner",
+          originId: null,
         },
       ];
 
@@ -621,6 +624,7 @@ describe("Cache Reducer", () => {
           parentId: null,
           itemType: MapItemType.BASE,
           ownerId: "",
+          originId: null,
         },
       ];
 
@@ -672,6 +676,7 @@ describe("Cache Reducer", () => {
           parentId: null,
           itemType: MapItemType.BASE,
           ownerId: "test-owner",
+          originId: null,
         }),
       );
 

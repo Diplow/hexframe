@@ -117,7 +117,9 @@ export function MapCacheProvider({
   useDragServiceSetup(
     mapContext?.userId,
     state.itemsById,
-    mutationOperations.moveItem
+    mutationOperations.moveItem,
+    mutationOperations.copyItem,
+    eventBus
   );
 
   // Build context value

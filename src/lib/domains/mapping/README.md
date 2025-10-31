@@ -10,6 +10,8 @@ Like a hexagonal filing cabinet with built-in version control, where knowledge i
 - Support tile composition through direction 0 (center) allowing tiles to contain internal structures
 - Query and manage composed children (direction 0 descendants) separately from structural neighbors
 - Orchestrate complex operations like item movement with automatic descendant updates
+- Deep copy tiles and their entire subtrees to new locations with originId lineage tracking
+- Track content lineage through originId references in BaseItems for provenance
 - Track complete version history for all tile content changes with immutable snapshots
 - Provide version retrieval with pagination support for historical tile states
 - Preserve version history integrity across tile moves and updates
@@ -36,7 +38,16 @@ Like a hexagonal filing cabinet with built-in version control, where knowledge i
 - `ItemCrudService` - Create, update, delete, and move tile operations
 - `ItemQueryService` - Query tiles and relationships
 - `ItemHistoryService` - Version history queries (getItemHistory, getItemVersion)
+- `ItemManagementService` - Complex operations including deep copy with lineage tracking
 - `DbMapItemRepository`, `DbBaseItemRepository` - Database persistence layer
+
+**Deep Copy Feature:**
+Deep copy tiles and their entire subtrees to new locations while preserving content lineage. Use `ItemManagementService.deepCopyMapItem()`:
+- Recursively copies a tile and all its descendants to a new location
+- Tracks content lineage through `originId` stored in BaseItems
+- Creates new MapItems with new coordinates while preserving BaseItem content
+- Validates destination is unoccupied before copying
+- Uses bulk operations for performance on large subtrees
 
 **Version History Feature:**
 All tile content changes are automatically tracked with immutable version snapshots. Use `ItemHistoryService` to:

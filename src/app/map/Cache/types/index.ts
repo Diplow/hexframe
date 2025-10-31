@@ -114,7 +114,7 @@ export interface MapCacheHook {
 
   // Operation tracking methods for preventing race conditions
   isOperationPending: (coordId: string) => boolean;
-  getPendingOperationType: (coordId: string) => 'create' | 'update' | 'delete' | 'move' | null;
+  getPendingOperationType: (coordId: string) => 'create' | 'update' | 'delete' | 'move' | 'copy' | null;
   getTilesWithPendingOperations: () => string[];
 
   // Drag and drop operations

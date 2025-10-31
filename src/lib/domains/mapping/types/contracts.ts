@@ -19,6 +19,9 @@ export const mapItemDomainToContractAdapter = (
     parentId: aggregate.attrs.parentId
       ? String(aggregate.attrs.parentId)
       : null,
+    originId: aggregate.ref.attrs.originId
+      ? String(aggregate.ref.attrs.originId)
+      : null,
   };
 };
 

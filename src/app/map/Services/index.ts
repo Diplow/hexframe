@@ -6,7 +6,7 @@
  */
 
 // Event Bus - Core system communication
-export { EventBus, EventBusProvider, EventBusContext, useEventBus } from '~/app/map/Services/EventBus';
+export { EventBus, eventBus, EventBusProvider, EventBusContext, useEventBus } from '~/app/map/Services/EventBus';
 // Services must import parent types directly - no reexports from parent directories
 
 // Prefetch Service - Data loading and caching
