@@ -36,6 +36,7 @@ describe("Cache Actions", () => {
       parentId: null,
       itemType: MapItemType.BASE,
       ownerId: "test-owner",
+      originId: null,
     },
   ];
 

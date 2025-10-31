@@ -7,6 +7,9 @@ export interface OptimisticChange {
   coordId: string;
   previousData?: MapItemAPIContract;
   rawData?: MapItemAPIContract;
+  metadata?: {
+    optimisticCoordIds?: string[];
+  };
 }
 
 export interface TrackedChange extends OptimisticChange {

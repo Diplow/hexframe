@@ -95,6 +95,7 @@ export interface MutationOperations {
   updateItem: (coordId: string, data: MapItemUpdateAttributes) => Promise<MutationResult>;
   deleteItem: (coordId: string) => Promise<MutationResult>;
   moveItem: (sourceCoordId: string, targetCoordId: string) => Promise<MutationResult & { isSwap?: boolean }>;
+  copyItem: (sourceCoordId: string, destinationCoordId: string, destinationParentId: string) => Promise<MutationResult>;
   rollbackOptimisticChange: (changeId: string) => void;
   rollbackAllOptimistic: () => void;
   getPendingOptimisticChanges: () => Array<{
@@ -106,6 +107,6 @@ export interface MutationOperations {
   }>;
   // Operation tracking methods for preventing race conditions
   isOperationPending: (coordId: string) => boolean;
-  getPendingOperationType: (coordId: string) => 'create' | 'update' | 'delete' | 'move' | null;
+  getPendingOperationType: (coordId: string) => 'create' | 'update' | 'delete' | 'move' | 'copy' | null;
   getTilesWithPendingOperations: () => string[];
 }

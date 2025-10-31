@@ -62,7 +62,6 @@ function _buildMapItemArgs(
   return {
     id: dbMapItem.id,
     attrs: {
-      originId: dbMapItem.originId,
       parentId: dbMapItem.parentId,
       coords: {
         userId: dbMapItem.coord_user_id,
@@ -78,6 +77,5 @@ function _buildMapItemArgs(
     ref: baseItem,
     neighbors: neighbors,
     parent: null,
-    origin: null,
   };
 }

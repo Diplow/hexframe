@@ -15,8 +15,7 @@ export enum MapItemType {
 }
 
 export interface Attrs extends Record<string, unknown> {
-  originId: number | null; // The original mapItem this is a copy of.
-  parentId: number | null; // The parent mapItem this is a copy of.
+  parentId: number | null; // The parent mapItem this is a child of.
   coords: Coord; // Updated to new Coord structure
   ref: {
     itemType: MapItemType; // Will be 'BASE' for all items except root
@@ -27,7 +26,6 @@ export interface Attrs extends Record<string, unknown> {
 
 export type ShallNotUpdate = {
   parentId?: undefined;
-  originId?: undefined;
   itemType?: undefined;
   // coords might be updatable via a move operation, but not directly here.
 };
@@ -35,7 +33,6 @@ export type ShallNotUpdate = {
 export interface RelatedItems {
   ref: BaseItemWithId;
   parent: MapItemWithId | null;
-  origin: MapItemWithId | null;
 }
 
 export interface RelatedLists {
@@ -52,7 +49,6 @@ export interface MapItemConstructorArgs
   ref: BaseItemWithId;
   neighbors?: MapItemWithId[];
   parent?: MapItemWithId | null;
-  origin?: MapItemWithId | null;
 }
 
 export type MapItemIdr =
@@ -71,14 +67,12 @@ export class MapItem extends GenericAggregate<
   readonly neighbors: MapItem[];
   readonly ref: BaseItemWithId;
   readonly parent: MapItemWithId | null;
-  readonly origin: MapItemWithId | null;
 
   constructor(args: MapItemConstructorArgs) {
     const {
       ref,
       neighbors = [],
       parent = null,
-      origin = null,
       attrs,
       ...rest
     } = args;
@@ -97,7 +91,6 @@ export class MapItem extends GenericAggregate<
     super({
       ...rest,
       attrs: {
-        originId: attrs.originId ?? origin?.id ?? null,
         parentId: attrs.parentId ?? parent?.id ?? null,
         coords: attrs.coords, // coords is now mandatory
         ref: attrs.ref ?? {
@@ -109,13 +102,12 @@ export class MapItem extends GenericAggregate<
         itemType: attrs.itemType, // itemType is now mandatory
       },
       relatedLists: { neighbors },
-      relatedItems: { ref, parent, origin },
+      relatedItems: { ref, parent },
     });
 
     this.neighbors = neighbors;
     this.ref = ref;
     this.parent = parent; // parent is passed from args
-    this.origin = origin; // origin is passed from args
 
     MapItem.validate(this);
   }

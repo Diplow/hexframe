@@ -3,7 +3,6 @@ import type { MapItemType } from "~/lib/domains/mapping/_objects/map-item";
 // Infer DB types
 export type DbMapItemSelect = {
   id: number;
-  originId: number | null;
   parentId: number | null;
   coord_user_id: number;
   coord_group_id: number;
@@ -18,6 +17,7 @@ export type DbBaseItemSelect = {
   content: string;
   preview: string | null;
   link: string | null;
+  originId: number | null;
 };
 
 // Joined result type
@@ -27,7 +27,6 @@ export type DbMapItemWithBase = {
 };
 
 export type CreateMapItemDbAttrs = {
-  originId: number | null;
   parentId: number | null;
   coord_user_id: number;
   coord_group_id: number;
@@ -37,7 +36,6 @@ export type CreateMapItemDbAttrs = {
 };
 
 export type UpdateMapItemDbAttrs = Partial<{
-  originId: number | null;
   parentId: number | null;
   coord_user_id: number;
   coord_group_id: number;

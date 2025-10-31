@@ -211,7 +211,7 @@ function _transformSystemEvents(validEvent: AppEvent, baseEvent: Partial<ChatEve
 
     case 'error.occurred': {
       const payload = errorOccurredEventSchema.parse(validEvent).payload;
-      return {
+      const chatEvent = {
         ...baseEvent,
         type: 'error_occurred',
         payload: {
@@ -220,6 +220,7 @@ function _transformSystemEvents(validEvent: AppEvent, baseEvent: Partial<ChatEve
           severity: payload.retryable ? 'warning' : 'error',
         },
       } as ChatEvent;
+      return chatEvent;
     }
 
     default:

@@ -171,6 +171,15 @@ export class ItemQueryService {
   }
 
   /**
+   * Get an item by coordinates
+   */
+  async getItemByCoords({ coords }: { coords: Coord }): Promise<MapItemContract> {
+    const item = await this.actions.getMapItem({ coords });
+    const userId = item.attrs.coords.userId;
+    return adapt.mapItem(item, userId);
+  }
+
+  /**
    * Get an item with a limited number of descendant generations
    */
   async getItemWithGenerations({

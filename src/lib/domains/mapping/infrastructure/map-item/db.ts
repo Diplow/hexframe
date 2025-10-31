@@ -63,6 +63,11 @@ export class DbMapItemRepository implements MapItemRepository {
     return this.getOne(mapItemId);
   }
 
+  async exists({ idr }: { idr: MapItemIdr }): Promise<boolean> {
+    const mapItemId = await this._resolveItemId(idr);
+    return mapItemId !== undefined;
+  }
+
   async getMany(params: {
     limit?: number;
     offset?: number;
@@ -275,9 +280,33 @@ export class DbMapItemRepository implements MapItemRepository {
     return numericIds;
   }
 
+  async createMany(
+    items: Array<{
+      attrs: Attrs;
+      ref: RelatedItems["ref"];
+    }>
+  ): Promise<MapItemWithId[]> {
+    if (items.length === 0) {
+      return [];
+    }
+
+    // Build DB attributes for all items
+    const dbAttrsArray = items.map((item) => this._buildCreateAttrs(item.attrs));
+
+    // Bulk insert
+    const newItems = await this.writeQueries.createManyMapItems(dbAttrsArray);
+
+    // Fetch all created items with their relations
+    const createdItems = await this.getManyByIdr({
+      idrs: newItems.map((item) => ({ id: item.id })),
+      limit: newItems.length,
+    });
+
+    return createdItems;
+  }
+
   private _buildCreateAttrs(attrs: Attrs) {
     return {
-      originId: attrs.originId,
       parentId: attrs.parentId,
       coord_user_id: attrs.coords.userId,
       coord_group_id: attrs.coords.groupId,

@@ -20,6 +20,7 @@ export async function loadRegionForItem(
     parentId: string | null;
     itemType: MapItemType;
     ownerId: string;
+    originId: string | null;
   },
   serverService: ServerService,
   dispatch: Dispatch<CacheAction>

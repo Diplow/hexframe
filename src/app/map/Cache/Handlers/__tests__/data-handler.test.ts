@@ -44,6 +44,7 @@ describe("Data Handler", () => {
       parentId: null,
       itemType: MapItemType.BASE,
       ownerId: "test-owner",
+      originId: null,
     },
     {
       id: "2",
@@ -56,6 +57,7 @@ describe("Data Handler", () => {
       parentId: null,
       itemType: MapItemType.BASE,
       ownerId: "test-owner",
+      originId: null,
     },
   ];
 

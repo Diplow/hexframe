@@ -11,6 +11,7 @@ import {
 import type { TileData } from "~/app/map/types/tile-data";
 import { useTileClickHandlers } from "~/app/map/Canvas/_internals/tile-click-handlers";
 import { ContextMenuContainer } from "~/app/map/Canvas/_components/ContextMenuContainer";
+import { simulateDragStart } from "~/app/map/Canvas/_internals/drag-simulator";
 
 export interface TileActionsContextValue {
   // Click handlers
@@ -117,6 +118,22 @@ export function TileActionsProvider({
     setIsDragging(false);
   }, []);
 
+  const closeContextMenu = useCallback(() => {
+    setContextMenu(null);
+  }, []);
+
+  const handleCopyToClick = useCallback((tileData: TileData) => {
+    // Start drag in copy mode (no ctrl)
+    simulateDragStart(tileData.metadata.coordId, { ctrlKey: false });
+    closeContextMenu();
+  }, [closeContextMenu]);
+
+  const handleMoveToClick = useCallback((tileData: TileData) => {
+    // Start drag in move mode (with ctrl)
+    simulateDragStart(tileData.metadata.coordId, { ctrlKey: true });
+    closeContextMenu();
+  }, [closeContextMenu]);
+
   const value = useMemo(() => ({
     onTileClick,
     onTileDoubleClick,
@@ -155,13 +172,15 @@ export function TileActionsProvider({
       {children}
       <ContextMenuContainer
         contextMenu={contextMenu}
-        onClose={() => setContextMenu(null)}
+        onClose={closeContextMenu}
         onSelectClick={onSelectClick}
         onNavigateClick={onNavigateClick}
         onExpandClick={onExpandClick}
         onCreateClick={onCreateClick}
         onEditClick={onEditClick}
         onDeleteClick={onDeleteClick}
+        onCopyClick={handleCopyToClick}
+        onMoveClick={handleMoveToClick}
         onCompositionToggle={onCompositionToggle}
         hasComposition={hasComposition}
         isCompositionExpanded={isCompositionExpanded}
