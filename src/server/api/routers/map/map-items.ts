@@ -351,9 +351,20 @@ export const mapItemsRouter = createTRPCRouter({
     .use(mappingServiceMiddleware)
     .input(itemCopySchema)
     .mutation(async ({ ctx, input }) => {
-      // Check if user owns the destination parent
       const currentUserId = await _getUserId(ctx.user);
       const currentUserIdString = String(currentUserId);
+
+      // Verify user owns the source item
+      const sourceItem = await ctx.mappingService.items.query.getItemByCoords({
+        coords: input.sourceCoords as Coord,
+      });
+
+      if (sourceItem.ownerId !== currentUserIdString) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You can only copy items you own",
+        });
+      }
 
       // Verify user owns the destination parent
       const destinationParentItem = await ctx.mappingService.items.query.getItemById({
