@@ -14,6 +14,7 @@ export function createDropHandler(
     if (operation.operation === 'copy') {
       // Validate: cannot copy to non-empty tile
       const targetTile = itemsById[operation.targetId];
+
       if (targetTile?.metadata.dbId && targetTile.metadata.dbId !== 'empty' && targetTile.metadata.dbId !== '0') {
         throw new Error('Cannot copy to occupied tile. Please select an empty destination.');
       }

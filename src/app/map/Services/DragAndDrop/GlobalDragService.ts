@@ -214,6 +214,13 @@ class GlobalDragService {
     if (this.dropHandler) {
       this.dropHandler({ sourceId, targetId, operation }).catch(error => {
         console.error('Drop operation failed:', error);
+        // Emit error event for user feedback
+        if (error instanceof Error) {
+          // Dispatch custom event that cache provider can handle
+          document.dispatchEvent(new CustomEvent('drag-drop-error', {
+            detail: { message: error.message }
+          }));
+        }
       });
     }
 

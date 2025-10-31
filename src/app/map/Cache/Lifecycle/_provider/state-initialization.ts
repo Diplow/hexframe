@@ -115,10 +115,29 @@ export function useDragServiceSetup(
       })();
     };
 
+    // Listen for drag-drop errors from GlobalDragService
+    const handleDragDropError = (event: Event) => {
+      const customEvent = event as CustomEvent<{ message: string }>;
+
+      if (eventBus) {
+        eventBus.emit({
+          type: 'error.occurred',
+          source: 'map_cache',
+          payload: {
+            error: customEvent.detail.message,
+            context: { operation: 'drag_drop' },
+            retryable: false
+          }
+        });
+      }
+    };
+
     document.addEventListener('simulated-drop', handleSimulatedDrop);
+    document.addEventListener('drag-drop-error', handleDragDropError);
 
     return () => {
       document.removeEventListener('simulated-drop', handleSimulatedDrop);
+      document.removeEventListener('drag-drop-error', handleDragDropError);
     };
   }, [userId, moveItem, copyItem, itemsById, eventBus]);
 }
