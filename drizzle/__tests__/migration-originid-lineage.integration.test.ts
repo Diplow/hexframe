@@ -109,14 +109,14 @@ describe("Migration: originId Lineage Tracking [Integration - DB]", () => {
 
     it("should fail when originId references non-existent baseItem", async () => {
       // Act & Assert - should fail with FK constraint violation
-      await expect(async () => {
-        await db.insert(schema.baseItems).values({
+      await expect(
+        db.insert(schema.baseItems).values({
           title: "Invalid Origin",
           content: "Content",
           originId: 99999, // Non-existent ID
           link: "",
-        }).returning();
-      }).rejects.toThrow();
+        }).returning()
+      ).rejects.toThrow();
     });
 
     it("should support self-referential lineage chains", async () => {
@@ -162,11 +162,11 @@ describe("Migration: originId Lineage Tracking [Integration - DB]", () => {
       }).returning();
 
       // Act & Assert - try to update to reference itself
-      await expect(async () => {
-        await db.update(schema.baseItems)
+      await expect(
+        db.update(schema.baseItems)
           .set({ originId: item[0]!.id })
-          .where(eq(schema.baseItems.id, item[0]!.id));
-      }).rejects.toThrow();
+          .where(eq(schema.baseItems.id, item[0]!.id))
+      ).rejects.toThrow();
     });
   });
 

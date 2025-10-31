@@ -22,6 +22,27 @@ export function simulateDragStart(
   // Store the source tile ID for the drop handler
   document.body.setAttribute('data-simulated-drag-source', coordId);
 
+  // Create accessible guidance element
+  const guidanceElement = document.createElement('div');
+  guidanceElement.id = 'drag-guidance';
+  guidanceElement.setAttribute('role', 'status');
+  guidanceElement.setAttribute('aria-live', 'polite');
+  guidanceElement.textContent = 'Click destination to complete; press ESC to cancel';
+  guidanceElement.style.cssText = `
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 10000;
+    pointer-events: none;
+  `;
+  document.body.appendChild(guidanceElement);
+
   // Add one-time click listener to complete the operation
   const handleClick = (event: MouseEvent) => {
     // Prevent the click from triggering other handlers (like tile creation or preview)
@@ -54,14 +75,30 @@ export function simulateDragStart(
     cancelDrag();
   };
 
+  // Add ESC key listener to cancel the drag
+  const handleKeydown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      cancelDrag();
+    }
+  };
+
   const cancelDrag = () => {
     document.body.removeAttribute('data-drag-active');
     document.body.removeAttribute('data-drag-operation-type');
     document.body.removeAttribute('data-simulated-drag-source');
     tileElement.removeAttribute('data-being-dragged');
     document.removeEventListener('click', handleClick, true);
+    document.removeEventListener('keydown', handleKeydown);
+
+    // Remove guidance element
+    const guidance = document.getElementById('drag-guidance');
+    if (guidance) {
+      guidance.remove();
+    }
   };
 
   // Use capture phase to intercept clicks before other handlers
   document.addEventListener('click', handleClick, true);
+  document.addEventListener('keydown', handleKeydown);
 }

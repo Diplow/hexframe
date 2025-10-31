@@ -3,44 +3,8 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { TileContextMenu } from '~/app/map/Canvas/TileContextMenu';
-import type { TileData } from '~/app/map/types/tile-data';
+import { createMockTileData } from '~/app/map/__tests__/utils/mockTileData';
 import { Direction } from '~/app/map/constants';
-
-// Helper to create mock tile data
-function createMockTileData(overrides?: Partial<TileData>): TileData {
-  return {
-    metadata: {
-      dbId: '123',
-      coordId: '1,0:[2]',
-      parentId: '1,0:[]',
-      coordinates: {
-        userId: 1,
-        groupId: 0,
-        path: [Direction.NorthEast],
-      },
-      depth: 1,
-      ownerId: '1',
-    },
-    data: {
-      title: 'Test Tile',
-      content: 'Test content',
-      preview: 'Test preview',
-      link: '',
-      color: 'primary',
-    },
-    state: {
-      isDragged: false,
-      isHovered: false,
-      isSelected: false,
-      isExpanded: false,
-      isDragOver: false,
-      isHovering: false,
-      canExpand: true,
-      canEdit: true,
-    },
-    ...overrides,
-  };
-}
 
 describe('TileContextMenu - Copy and Move', () => {
   describe('happy path', () => {

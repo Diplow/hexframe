@@ -440,6 +440,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       const setupParams = _createUniqueTestParams();
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
+      // Create source item with a child
       const parentItem = await testEnv.service.items.crud.addItemToMap({
         parentId: rootMap.id,
         coords: _createTestCoordinates({
@@ -474,27 +475,116 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
         path: [Direction.West],
       });
 
-      // This should fail if we introduce an error condition
-      // For now, we just verify the method can be called
-      try {
-        await testEnv.service.items.deepCopyMapItem({
+      // Create an item at the destination to force a failure
+      const existingDestItem = await testEnv.service.items.crud.addItemToMap({
+        parentId: rootMap.id,
+        coords: destinationCoords,
+        title: "Existing",
+        content: "Should remain unchanged",
+      });
+
+      // Attempt to copy - should fail because destination exists
+      await expect(
+        testEnv.service.items.deepCopyMapItem({
           sourceCoords: parentSourceCoords,
           destinationCoords,
           destinationParentId: rootMap.id,
-        });
-      } catch {
-        // If it fails, verify no partial copies exist
-        try {
-          await testEnv.service.items.crud.getItem({
-            coords: destinationCoords,
-          });
-          // If we get here, a partial copy exists - this is bad
-          expect.fail("Partial copy should not exist after failed operation");
-        } catch {
-          // Good - no partial copy exists
-          expect(true).toBe(true);
-        }
-      }
+        })
+      ).rejects.toThrow("already exist");
+
+      // Verify the original item at destination still exists and is unchanged
+      const itemAtDestination = await testEnv.service.items.crud.getItem({
+        coords: destinationCoords,
+      });
+
+      expect(itemAtDestination.id).toBe(existingDestItem.id);
+      expect(itemAtDestination.title).toBe("Existing");
+      expect(itemAtDestination.content).toBe("Should remain unchanged");
+    });
+
+    it("should correctly map parent IDs in copied subtree", async () => {
+      const setupParams = _createUniqueTestParams();
+      const rootMap = await _setupBasicMap(testEnv.service, setupParams);
+
+      // Create parent
+      const parentItem = await testEnv.service.items.crud.addItemToMap({
+        parentId: rootMap.id,
+        coords: _createTestCoordinates({
+          userId: setupParams.userId,
+          groupId: setupParams.groupId,
+          path: [Direction.East],
+        }),
+        title: "Parent Item",
+        content: "Parent content",
+      });
+
+      // Create child
+      await testEnv.service.items.crud.addItemToMap({
+        parentId: Number(parentItem.id),
+        coords: _createTestCoordinates({
+          userId: setupParams.userId,
+          groupId: setupParams.groupId,
+          path: [Direction.East, Direction.NorthEast],
+        }),
+        title: "Child Item",
+        content: "Child content",
+      });
+
+      const sourceCoords = _createTestCoordinates({
+        userId: setupParams.userId,
+        groupId: setupParams.groupId,
+        path: [Direction.East],
+      });
+
+      const destinationCoords = _createTestCoordinates({
+        userId: setupParams.userId,
+        groupId: setupParams.groupId,
+        path: [Direction.West],
+      });
+
+      // Perform deep copy
+      await testEnv.service.items.deepCopyMapItem({
+        sourceCoords,
+        destinationCoords,
+        destinationParentId: rootMap.id,
+      });
+
+      // Get the copied parent MapItem from repository
+      const copiedParentMapItem = await testEnv.repositories.mapItem.getOneByIdr({
+        idr: {
+          attrs: {
+            coords: {
+              userId: setupParams.userId,
+              groupId: setupParams.groupId,
+              path: [Direction.West],
+            },
+          },
+        },
+      });
+
+      // Get the copied child MapItem from repository
+      const copiedChildMapItem = await testEnv.repositories.mapItem.getOneByIdr({
+        idr: {
+          attrs: {
+            coords: {
+              userId: setupParams.userId,
+              groupId: setupParams.groupId,
+              path: [Direction.West, Direction.NorthEast],
+            },
+          },
+        },
+      });
+
+      // CRITICAL ASSERTIONS: Verify parent-child relationships
+      // Parent should point to the destination parent (rootMap)
+      expect(copiedParentMapItem.attrs.parentId).toBe(rootMap.id);
+
+      // Child should point to the COPIED parent, not the original parent
+      expect(copiedChildMapItem.attrs.parentId).toBe(copiedParentMapItem.id);
+      expect(copiedChildMapItem.attrs.parentId).not.toBe(Number(parentItem.id));
+
+      // Verify the parent IDs form a proper hierarchy
+      expect(copiedChildMapItem.attrs.parentId).not.toBe(rootMap.id);
     });
   });
 });

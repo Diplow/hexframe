@@ -278,22 +278,31 @@ describe("MapItemRepository - bulk createMany method", () => {
         Direction.SouthWest,
       ];
 
-      const mapItemsToCreate = baseItems.map((baseItem, i) => ({
-        attrs: {
-          parentId: rootMap.id,
-          coords: _createTestCoordinates({
-            userId: setupParams.userId,
-            groupId: setupParams.groupId,
-            path: [directions[i % directions.length]!, i + 1],
-          }),
-          ref: {
+      const mapItemsToCreate = baseItems.map((baseItem, i) => {
+        // Create unique paths by varying depth
+        const depth = Math.floor(i / directions.length) + 1;
+        const path: Direction[] = [];
+        for (let d = 0; d < depth; d++) {
+          path.push(directions[(i + d) % directions.length]!);
+        }
+
+        return {
+          attrs: {
+            parentId: rootMap.id,
+            coords: _createTestCoordinates({
+              userId: setupParams.userId,
+              groupId: setupParams.groupId,
+              path,
+            }),
+            ref: {
+              itemType: MapItemType.BASE,
+              itemId: baseItem.id,
+            },
             itemType: MapItemType.BASE,
-            itemId: baseItem.id,
           },
-          itemType: MapItemType.BASE,
-        },
-        ref: baseItem,
-      }));
+          ref: baseItem,
+        };
+      });
 
       const createdMapItems = await mapItemRepo.createMany(mapItemsToCreate);
 

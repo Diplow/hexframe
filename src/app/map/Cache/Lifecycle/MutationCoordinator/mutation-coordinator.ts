@@ -949,16 +949,22 @@ export class MutationCoordinator {
     const destinationCoords = CoordSystem.parseId(destinationCoordId);
     const optimisticItems: MapItemAPIContract[] = [];
 
+    // Map from original coordinate ID to optimistic item ID
+    // This preserves parent-child relationships across the copied tree
+    const coordToOptimisticId = new Map<string, string>();
+
     // Create optimistic copy of root item
+    const rootOptimisticId = `temp_copy_${Date.now()}_root`;
     const rootCopy: MapItemAPIContract = {
       ...this._reconstructApiData(sourceItem),
-      id: `temp_copy_${Date.now()}_root`,
+      id: rootOptimisticId,
       coordinates: destinationCoordId,
       depth: destinationCoords.path.length,
       parentId: destinationParentId,
       originId: String(sourceItem.metadata.dbId),
     };
     optimisticItems.push(rootCopy);
+    coordToOptimisticId.set(destinationCoordId, rootOptimisticId);
 
     // Create optimistic copies of all descendants
     descendants.forEach((descendant) => {
@@ -974,15 +980,25 @@ export class MutationCoordinator {
         path: newPath
       });
 
+      // Find parent's optimistic ID by looking up parent coordinate
+      const parentPath = newPath.slice(0, -1);
+      const parentCoordId = CoordSystem.createId({
+        ...destinationCoords,
+        path: parentPath
+      });
+      const optimisticParentId = coordToOptimisticId.get(parentCoordId);
+
+      const descendantOptimisticId = `temp_copy_${Date.now()}_${descendant.metadata.dbId}`;
       const descendantCopy: MapItemAPIContract = {
         ...this._reconstructApiData(descendant),
-        id: `temp_copy_${Date.now()}_${descendant.metadata.dbId}`,
+        id: descendantOptimisticId,
         coordinates: newCoordId,
         depth: newPath.length,
-        parentId: null, // Server will set correct parent
+        parentId: optimisticParentId ?? null,
         originId: String(descendant.metadata.dbId),
       };
       optimisticItems.push(descendantCopy);
+      coordToOptimisticId.set(newCoordId, descendantOptimisticId);
     });
 
     return optimisticItems;
@@ -1001,12 +1017,25 @@ export class MutationCoordinator {
     // Server only returns root item, so we update root and keep optimistic children
     const itemsToLoad: MapItemAPIContract[] = [copiedRootItem];
 
-    // Update optimistic children with proper parent reference
+    // Build mapping from optimistic IDs to real IDs
+    // The first optimistic item (root) maps to the server-returned root item
+    const optimisticIdToRealId = new Map<string, string>();
+    const rootOptimisticItem = optimisticItems[0];
+    if (rootOptimisticItem) {
+      optimisticIdToRealId.set(rootOptimisticItem.id, copiedRootItem.id);
+    }
+
+    // Update optimistic children with proper parent references
+    // Process in order so we can build the ID mapping as we go
     optimisticItems.slice(1).forEach(optimisticItem => {
-      // Update parent reference to the real root item's ID
+      // Map the optimistic parent ID to the real parent ID
+      const realParentId = optimisticItem.parentId
+        ? optimisticIdToRealId.get(optimisticItem.parentId) ?? optimisticItem.parentId
+        : copiedRootItem.id; // Fallback to root if no parent set
+
       const updatedItem: MapItemAPIContract = {
         ...optimisticItem,
-        parentId: copiedRootItem.id, // Update to real parent ID
+        parentId: realParentId,
       };
       itemsToLoad.push(updatedItem);
     });

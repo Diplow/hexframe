@@ -28,6 +28,7 @@ export interface GenericRepository<
     limit?: number;
     offset?: number;
   }): Promise<T>;
+  exists({ idr }: { idr: Idr }): Promise<boolean>;
   getMany({ limit, offset }: { limit?: number; offset?: number }): Promise<T[]>;
   getManyByIdr({
     idrs,

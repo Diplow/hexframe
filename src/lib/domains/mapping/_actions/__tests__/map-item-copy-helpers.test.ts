@@ -241,10 +241,19 @@ describe("MapItem Copy Helpers", () => {
         mi => mi.coords.path.length === 1
       );
       expect(parentCopy?.coords.path).toEqual([Direction.West]);
+      expect(parentCopy?.parentId).toBe(rootMap.id); // Root gets destinationParentId
+      expect(parentCopy?.sourceParentId).toBeNull(); // Root has no source parent
 
       // Child should have new path [West, NorthEast]
       const childCopy = preparedMapItems.find(mi => mi.coords.path.length === 2);
       expect(childCopy?.coords.path).toEqual([Direction.West, Direction.NorthEast]);
+
+      // Child should have sourceParentId pointing to original parent
+      expect(childCopy?.sourceParentId).toBe(Number(parentItem.id));
+
+      // Child's parentId will be temporary - it gets resolved during creation
+      // (This is the key insight: prepared items store sourceParentId,
+      // which is used to look up the new parent ID after parents are created)
     });
   });
 

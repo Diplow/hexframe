@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import type { BaseItemRepository } from "~/lib/domains/mapping/_repositories/base-item";
-import type { MapItemAttributes } from "~/lib/domains/mapping/utils";
+import type { BaseItemAttrs } from "~/lib/domains/mapping/_objects";
 import {
   _cleanupDatabase,
   _createTestEnvironment,
@@ -19,7 +19,7 @@ describe("BaseItemRepository - bulk createMany method", () => {
 
   describe("createMany", () => {
     it("should create multiple BaseItems in a single operation", async () => {
-      const itemsToCreate: MapItemAttributes[] = [
+      const itemsToCreate: BaseItemAttrs[] = [
         {
           title: "Item 1",
           content: "Content 1",
@@ -71,7 +71,7 @@ describe("BaseItemRepository - bulk createMany method", () => {
         relatedLists: {},
       });
 
-      const itemsToCreate: MapItemAttributes[] = [
+      const itemsToCreate: BaseItemAttrs[] = [
         {
           title: "Copy 1",
           content: "Content 1",
@@ -103,7 +103,7 @@ describe("BaseItemRepository - bulk createMany method", () => {
     });
 
     it("should create single item when array contains one element", async () => {
-      const itemsToCreate: MapItemAttributes[] = [
+      const itemsToCreate: BaseItemAttrs[] = [
         {
           title: "Single Item",
           content: "Single content",
@@ -143,7 +143,7 @@ describe("BaseItemRepository - bulk createMany method", () => {
         relatedLists: {},
       });
 
-      const itemsToCreate: MapItemAttributes[] = [
+      const itemsToCreate: BaseItemAttrs[] = [
         {
           title: "Full Item 1",
           content: "Content with details",
@@ -192,7 +192,7 @@ describe("BaseItemRepository - bulk createMany method", () => {
         relatedLists: {},
       });
 
-      const itemsToCreate: MapItemAttributes[] = [
+      const itemsToCreate: BaseItemAttrs[] = [
         {
           title: "Original Item",
           content: "Original content",
@@ -217,7 +217,7 @@ describe("BaseItemRepository - bulk createMany method", () => {
     });
 
     it("should create items with null originId when explicitly set", async () => {
-      const itemsToCreate: MapItemAttributes[] = [
+      const itemsToCreate: BaseItemAttrs[] = [
         {
           title: "Item with null origin",
           content: "Content",
@@ -236,7 +236,7 @@ describe("BaseItemRepository - bulk createMany method", () => {
 
     it("should handle large batch creation (performance test)", async () => {
       const itemCount = 50;
-      const itemsToCreate: MapItemAttributes[] = Array.from({ length: itemCount }, (_, i) => ({
+      const itemsToCreate: BaseItemAttrs[] = Array.from({ length: itemCount }, (_, i) => ({
         title: `Bulk Item ${i + 1}`,
         content: `Content ${i + 1}`,
         link: "",

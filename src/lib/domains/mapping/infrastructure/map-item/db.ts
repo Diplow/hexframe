@@ -63,6 +63,11 @@ export class DbMapItemRepository implements MapItemRepository {
     return this.getOne(mapItemId);
   }
 
+  async exists({ idr }: { idr: MapItemIdr }): Promise<boolean> {
+    const mapItemId = await this._resolveItemId(idr);
+    return mapItemId !== undefined;
+  }
+
   async getMany(params: {
     limit?: number;
     offset?: number;

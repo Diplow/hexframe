@@ -79,6 +79,16 @@ export class DbBaseItemRepository implements BaseItemRepository {
     );
   }
 
+  async exists({ idr }: { idr: BaseItemIdr }): Promise<boolean> {
+    if ("id" in idr) {
+      const result = await this.db.query.baseItems.findFirst({
+        where: eq(schemaImport.baseItems.id, idr.id),
+      });
+      return result !== undefined;
+    }
+    return false;
+  }
+
   // Basic Get Many (pagination)
   async getMany({
     limit = 50,

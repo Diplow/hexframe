@@ -8,11 +8,11 @@ import { ItemHistoryService } from "~/lib/domains/mapping/services/_item-service
 import type { Coord } from "~/lib/domains/mapping/utils";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 import type { MapItemContract } from "~/lib/domains/mapping/types/contracts";
+import { MapItemType } from "~/lib/domains/mapping/_objects";
 import {
   _prepareBaseItemsForCopy,
   _prepareMapItemsForCopy,
   _createCopyMapping,
-  _buildMapItemsWithCopiedRefs,
 } from "~/lib/domains/mapping/_actions/_map-item-copy-helpers";
 
 /**
@@ -74,18 +74,14 @@ export class ItemManagementService {
     });
 
     // 2. Verify destination doesn't exist
-    try {
-      await this.repositories.mapItem.getOneByIdr({
-        idr: { attrs: { coords: destinationCoords } },
-      });
+    const destinationExists = await this.repositories.mapItem.exists({
+      idr: { attrs: { coords: destinationCoords } },
+    });
+
+    if (destinationExists) {
       throw new Error(
         `Destination coordinates ${JSON.stringify(destinationCoords)} already exist`
       );
-    } catch (error) {
-      // Good - destination doesn't exist
-      if ((error as Error).message.includes("already exist")) {
-        throw error;
-      }
     }
 
     // 3. Get all descendants of source
@@ -110,24 +106,74 @@ export class ItemManagementService {
     // 6. Create mapping from source to copied BaseItem IDs
     const baseItemMapping = _createCopyMapping(allSourceItems, copiedBaseItems);
 
-    // 7. Prepare MapItems with new coordinates
+    // 7. Prepare MapItems with new coordinates (with sourceParentId tracking)
     const preparedMapItems = _prepareMapItemsForCopy(
       allSourceItems,
       destinationCoords,
       destinationParentId
     );
 
-    // 8. Build MapItems with copied BaseItem references
-    const mapItemsToCreate = _buildMapItemsWithCopiedRefs(
-      preparedMapItems,
-      baseItemMapping,
-      copiedBaseItems
+    // 8. Create MapItems sequentially to resolve parent IDs correctly
+    const copiedMapItems = [];
+    const sourceToNewMapItemId = new Map<number, number>();
+
+    // Sort by depth to ensure parents are created before children
+    const sortedPrepared = [...preparedMapItems].sort(
+      (a, b) => a.coords.path.length - b.coords.path.length
     );
 
-    // 9. Bulk create MapItems
-    const copiedMapItems = await this.repositories.mapItem.createMany(
-      mapItemsToCreate
-    );
+    for (const prepared of sortedPrepared) {
+      // Resolve parent ID if this is a child
+      let finalParentId = prepared.parentId;
+      if (prepared.sourceParentId !== null) {
+        const resolvedParentId = sourceToNewMapItemId.get(prepared.sourceParentId);
+        if (resolvedParentId !== undefined) {
+          finalParentId = resolvedParentId;
+        }
+      }
+
+      // Get the copied BaseItem ID
+      const copiedBaseItemId = baseItemMapping.get(prepared.sourceRefId);
+      if (copiedBaseItemId === undefined) {
+        throw new Error(
+          `Failed to find copied BaseItem for source ref ${prepared.sourceRefId}`
+        );
+      }
+
+      const copiedBaseItem = copiedBaseItems.find(
+        (item) => item.id === copiedBaseItemId
+      );
+      if (!copiedBaseItem) {
+        throw new Error(
+          `Failed to find copied BaseItem with ID ${copiedBaseItemId}`
+        );
+      }
+
+      // Create MapItem with resolved parent ID
+      const createdMapItem = await this.repositories.mapItem.create({
+        attrs: {
+          coords: prepared.coords,
+          parentId: finalParentId,
+          ref: {
+            itemType: MapItemType.BASE,
+            itemId: copiedBaseItemId,
+          },
+          itemType: MapItemType.BASE,
+        },
+        relatedItems: {
+          ref: copiedBaseItem,
+          parent: null, // Will be resolved by repository
+        },
+        relatedLists: {
+          neighbors: [], // No neighbors yet
+        },
+      });
+
+      copiedMapItems.push(createdMapItem);
+
+      // Store mapping for children
+      sourceToNewMapItemId.set(prepared.sourceMapItemId, createdMapItem.id);
+    }
 
     // 10. Return the root copied item as a contract
     const rootCopiedItem = copiedMapItems[0];

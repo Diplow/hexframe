@@ -28,6 +28,9 @@ export function _prepareBaseItemsForCopy(
  * Adjusts paths relative to the destination coordinates.
  * For example, if copying [East, North] to [West], children become [West, North].
  *
+ * NOTE: This function stores sourceParentId for children. After MapItems are created,
+ * use _resolveParentIds to map sourceParentId to actual new parent IDs.
+ *
  * @param mapItems - Array of MapItems to copy (including subtree)
  * @param destinationCoords - Target coordinates for the root of the copy
  * @param destinationParentId - Parent ID for the root of the copy
@@ -42,6 +45,7 @@ export function _prepareMapItemsForCopy(
   parentId: number;
   sourceRefId: number;
   sourceMapItemId: number;
+  sourceParentId: number | null;
 }> {
   if (mapItems.length === 0) {
     return [];
@@ -56,31 +60,28 @@ export function _prepareMapItemsForCopy(
   const rootItem = sortedItems[0]!;
   const rootPathLength = rootItem.attrs.coords.path.length;
 
-  // Create mapping from source MapItem ID to destination parent ID
-  const sourceToDestParent = new Map<number, number>();
-  sourceToDestParent.set(rootItem.id, destinationParentId);
-
   return sortedItems.map((mapItem, index) => {
     const sourcePath = mapItem.attrs.coords.path;
     const relativePathFromRoot = sourcePath.slice(rootPathLength);
 
     let newPath: Direction[];
-    let newParentId: number;
+    let parentId: number;
+    let sourceParentId: number | null;
 
     if (index === 0) {
       // This is the root of the copy
       newPath = destinationCoords.path;
-      newParentId = destinationParentId;
+      parentId = destinationParentId;
+      sourceParentId = null; // Root has no source parent in the copied subtree
     } else {
       // This is a child - adjust path relative to new root
       newPath = [...destinationCoords.path, ...relativePathFromRoot];
 
-      // Find parent's new ID
-      const sourceParentId = mapItem.attrs.parentId;
-      newParentId = sourceToDestParent.get(sourceParentId!) ?? destinationParentId;
+      // Store the source parent ID - will be resolved later
+      sourceParentId = mapItem.attrs.parentId ?? null;
 
-      // Store this mapping for children
-      sourceToDestParent.set(mapItem.id, newParentId);
+      // Temporary value - will be updated by _resolveParentIds
+      parentId = destinationParentId;
     }
 
     return {
@@ -89,9 +90,10 @@ export function _prepareMapItemsForCopy(
         groupId: destinationCoords.groupId,
         path: newPath,
       },
-      parentId: newParentId,
+      parentId,
       sourceRefId: mapItem.ref.id,
       sourceMapItemId: mapItem.id,
+      sourceParentId,
     };
   });
 }
