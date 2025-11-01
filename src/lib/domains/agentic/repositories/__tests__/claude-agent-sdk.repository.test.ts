@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { ClaudeAgentSDKRepository } from '~/lib/domains/agentic/repositories/claude-agent-sdk.repository'
 import type { LLMGenerationParams } from '~/lib/domains/agentic/types/llm.types'
@@ -8,6 +9,8 @@ vi.mock('@anthropic-ai/claude-agent-sdk', () => ({
 }))
 
 import { query } from '@anthropic-ai/claude-agent-sdk'
+
+const mockQuery = vi.mocked(query)
 
 describe('ClaudeAgentSDKRepository', () => {
   let repository: ClaudeAgentSDKRepository
@@ -37,7 +40,7 @@ describe('ClaudeAgentSDKRepository', () => {
         }
       })()
 
-      ;(query as ReturnType<typeof vi.fn>).mockReturnValueOnce(mockAsyncGenerator)
+      mockQuery.mockReturnValueOnce(mockAsyncGenerator as ReturnType<typeof query>)
 
       const params: LLMGenerationParams = {
         messages: [
@@ -51,7 +54,7 @@ describe('ClaudeAgentSDKRepository', () => {
 
       const result = await repository.generate(params)
 
-      expect(query).toHaveBeenCalledWith({
+      expect(mockQuery).toHaveBeenCalledWith({
         prompt: expect.any(String),
         options: expect.objectContaining({
           model: 'claude-sonnet-4-5-20250929',
@@ -78,7 +81,7 @@ describe('ClaudeAgentSDKRepository', () => {
         yield { type: 'result', subtype: 'success', result: 'Response' }
       })()
 
-      ;(query as ReturnType<typeof vi.fn>).mockReturnValueOnce(mockAsyncGenerator)
+      mockQuery.mockReturnValueOnce(mockAsyncGenerator as ReturnType<typeof query>)
 
       const params: LLMGenerationParams = {
         messages: [
@@ -90,7 +93,7 @@ describe('ClaudeAgentSDKRepository', () => {
 
       await repository.generate(params)
 
-      expect(query).toHaveBeenCalledWith(
+      expect(mockQuery).toHaveBeenCalledWith(
         expect.objectContaining({
           options: expect.objectContaining({
             systemPrompt: 'System prompt'
@@ -104,7 +107,7 @@ describe('ClaudeAgentSDKRepository', () => {
         yield { type: 'result', subtype: 'success', result: 'Response with tools' }
       })()
 
-      ;(query as ReturnType<typeof vi.fn>).mockReturnValueOnce(mockAsyncGenerator)
+      mockQuery.mockReturnValueOnce(mockAsyncGenerator as ReturnType<typeof query>)
 
       const mockTools = [
         { name: 'search', description: 'Search tool' }
@@ -119,12 +122,12 @@ describe('ClaudeAgentSDKRepository', () => {
       await repository.generate(params)
 
       // Note: SDK doesn't support tools via options, they need to be via mcpServers
-      expect(query).toHaveBeenCalled()
+      expect(mockQuery).toHaveBeenCalled()
     })
 
     it('should handle SDK errors gracefully', async () => {
       const mockError = new Error('SDK error occurred')
-      ;(query as ReturnType<typeof vi.fn>).mockImplementationOnce(() => {
+      mockQuery.mockImplementationOnce(() => {
         throw mockError
       })
 
@@ -144,7 +147,7 @@ describe('ClaudeAgentSDKRepository', () => {
         yield { type: 'result', subtype: 'success', result: 'Response' }
       })()
 
-      ;(query as ReturnType<typeof vi.fn>).mockReturnValueOnce(mockAsyncGenerator)
+      mockQuery.mockReturnValueOnce(mockAsyncGenerator as ReturnType<typeof query>)
 
       const params: LLMGenerationParams = {
         messages: [{ role: 'user', content: 'Hello!' }],
@@ -156,7 +159,7 @@ describe('ClaudeAgentSDKRepository', () => {
       await repository.generate(params)
 
       // SDK handles model parameters differently, just verify it was called
-      expect(query).toHaveBeenCalled()
+      expect(mockQuery).toHaveBeenCalled()
     })
   })
 
@@ -174,7 +177,7 @@ describe('ClaudeAgentSDKRepository', () => {
         }
       })()
 
-      ;(query as ReturnType<typeof vi.fn>).mockReturnValueOnce(mockAsyncGenerator)
+      mockQuery.mockReturnValueOnce(mockAsyncGenerator as ReturnType<typeof query>)
 
       const params: LLMGenerationParams = {
         messages: [{ role: 'user', content: 'Hello!' }],
@@ -206,7 +209,7 @@ describe('ClaudeAgentSDKRepository', () => {
         }
       })()
 
-      ;(query as ReturnType<typeof vi.fn>).mockReturnValueOnce(mockAsyncGenerator)
+      mockQuery.mockReturnValueOnce(mockAsyncGenerator as ReturnType<typeof query>)
 
       const onChunkMock = vi.fn()
 
@@ -228,7 +231,7 @@ describe('ClaudeAgentSDKRepository', () => {
         yield { type: 'result', subtype: 'success', result: 'Response' }
       })()
 
-      ;(query as ReturnType<typeof vi.fn>).mockReturnValueOnce(mockAsyncGenerator)
+      mockQuery.mockReturnValueOnce(mockAsyncGenerator as ReturnType<typeof query>)
 
       const mockTools = [{ name: 'tool1', description: 'Test tool' }]
 
@@ -241,7 +244,7 @@ describe('ClaudeAgentSDKRepository', () => {
       await repository.generateStream(params, vi.fn())
 
       // SDK handles tools via mcpServers, not direct options
-      expect(query).toHaveBeenCalled()
+      expect(mockQuery).toHaveBeenCalled()
     })
   })
 
@@ -326,7 +329,7 @@ describe('ClaudeAgentSDKRepository', () => {
         yield { type: 'result', subtype: 'success', result: 'Response' }
       })()
 
-      ;(query as ReturnType<typeof vi.fn>).mockReturnValueOnce(mockAsyncGenerator)
+      mockQuery.mockReturnValueOnce(mockAsyncGenerator as ReturnType<typeof query>)
 
       const params: LLMGenerationParams = {
         messages: [
@@ -341,18 +344,16 @@ describe('ClaudeAgentSDKRepository', () => {
       await repository.generate(params)
 
       // Verify the query was called with correct prompt format
-      expect(query).toHaveBeenCalled()
-      const callArgs = (query as ReturnType<typeof vi.fn>).mock.calls[0]
-      if (callArgs && callArgs[0]) {
-        expect(callArgs[0].prompt).toBeDefined()
-      }
+      expect(mockQuery).toHaveBeenCalled()
+      const callArgs = mockQuery.mock.calls[0]
+      expect(callArgs?.[0]?.prompt).toBeDefined()
     })
   })
 
   describe('error handling', () => {
     it('should wrap SDK errors with consistent error format', async () => {
       const sdkError = new Error('Rate limit exceeded')
-      ;(query as ReturnType<typeof vi.fn>).mockImplementationOnce(() => {
+      mockQuery.mockImplementationOnce(() => {
         throw sdkError
       })
 
@@ -374,7 +375,7 @@ describe('ClaudeAgentSDKRepository', () => {
         throw new Error('Stream interrupted')
       })()
 
-      ;(query as ReturnType<typeof vi.fn>).mockReturnValueOnce(mockAsyncGenerator)
+      mockQuery.mockReturnValueOnce(mockAsyncGenerator as ReturnType<typeof query>)
 
       const params: LLMGenerationParams = {
         messages: [{ role: 'user', content: 'Hello!' }],

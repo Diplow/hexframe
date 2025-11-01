@@ -107,7 +107,8 @@ export const agenticRouter = createTRPCRouter({
       // Create agentic service with OpenRouter API key from environment
       const agenticService = createAgenticService({
         llmConfig: {
-          openRouterApiKey: env.OPENROUTER_API_KEY ?? ''
+          openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
+          anthropicApiKey: env.ANTHROPIC_API_KEY ?? ''
         },
         eventBus,
         getCacheState: () => input.cacheState as unknown as CacheState,

@@ -1,5 +1,4 @@
 import { query } from '@anthropic-ai/claude-agent-sdk'
-import type { SDKMessage, SDKResultMessage } from '@anthropic-ai/claude-agent-sdk'
 import type { ILLMRepository } from '~/lib/domains/agentic/repositories/llm.repository.interface'
 import type {
   LLMGenerationParams,
@@ -15,6 +14,24 @@ import {
   estimateUsage,
   getClaudeModels
 } from '~/lib/domains/agentic/repositories/_helpers/sdk-helpers'
+
+// Helper function to safely extract delta text from SDK events
+function extractDeltaText(event: unknown): string | undefined {
+  if (
+    event &&
+    typeof event === 'object' &&
+    'type' in event &&
+    event.type === 'content_block_delta' &&
+    'delta' in event &&
+    event.delta &&
+    typeof event.delta === 'object' &&
+    'text' in event.delta &&
+    typeof event.delta.text === 'string'
+  ) {
+    return event.delta.text
+  }
+  return undefined
+}
 
 export class ClaudeAgentSDKRepository implements ILLMRepository {
   private readonly apiKey: string
@@ -54,9 +71,8 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
       for await (const msg of queryResult) {
         if (!msg) continue
 
-        if (msg.type === 'stream_event' && msg.event?.type === 'content_block_delta') {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          const deltaText = (msg.event as any).delta?.text as string | undefined
+        if (msg.type === 'stream_event') {
+          const deltaText = extractDeltaText(msg.event)
           if (deltaText) {
             fullContent += deltaText
           }
@@ -117,9 +133,8 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
       for await (const msg of queryResult) {
         if (!msg) continue
 
-        if (msg.type === 'stream_event' && msg.event?.type === 'content_block_delta') {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          const deltaText = (msg.event as any).delta?.text as string | undefined
+        if (msg.type === 'stream_event') {
+          const deltaText = extractDeltaText(msg.event)
           if (deltaText) {
             fullContent += deltaText
             onChunk({ content: deltaText, isFinished: false })
