@@ -335,4 +335,123 @@ describe('AgenticService', () => {
       expect(mockLLMRepository.isConfigured).toHaveBeenCalled()
     })
   })
+
+  describe('generateResponse with tools', () => {
+    const mockMessages: ChatMessage[] = [
+      {
+        id: '1',
+        type: 'user',
+        content: 'Help me analyze this data'
+      }
+    ]
+
+    it('should pass tools to LLM repository when provided', async () => {
+      const mockTools = [
+        { name: 'search', description: 'Search the knowledge base' },
+        { name: 'calculate', description: 'Perform calculations' }
+      ]
+
+      await service.generateResponse({
+        centerCoordId: 'user:123,group:456:1,2',
+        messages: mockMessages,
+        model: 'openai/gpt-3.5-turbo',
+        tools: mockTools
+      })
+
+      expect(mockLLMRepository.generate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tools: mockTools
+        })
+      )
+    })
+
+    it('should not pass tools when not provided', async () => {
+      await service.generateResponse({
+        centerCoordId: 'user:123,group:456:1,2',
+        messages: mockMessages,
+        model: 'openai/gpt-3.5-turbo'
+      })
+
+      const callArgs = (mockLLMRepository.generate as ReturnType<typeof vi.fn>).mock.calls[0][0]
+      expect(callArgs).not.toHaveProperty('tools')
+    })
+
+    it('should pass empty tools array when provided', async () => {
+      await service.generateResponse({
+        centerCoordId: 'user:123,group:456:1,2',
+        messages: mockMessages,
+        model: 'openai/gpt-3.5-turbo',
+        tools: []
+      })
+
+      expect(mockLLMRepository.generate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tools: []
+        })
+      )
+    })
+  })
+
+  describe('createSubagent', () => {
+    const mockSubagentConfig = {
+      description: 'A test subagent for data analysis',
+      tools: ['search', 'calculate'],
+      prompt: 'You are a data analysis expert. Help users analyze their data.'
+    }
+
+    it('should create a subagent with the provided configuration', () => {
+      const subagentId = service.createSubagent(mockSubagentConfig)
+
+      expect(subagentId).toEqual(expect.stringMatching(/^subagent-[a-z0-9-]+$/))
+    })
+
+    it('should store subagent configuration for later use', () => {
+      const subagentId = service.createSubagent(mockSubagentConfig)
+      const config = service.getSubagentConfig(subagentId)
+
+      expect(config).toEqual(mockSubagentConfig)
+    })
+
+    it('should generate unique IDs for multiple subagents', () => {
+      const id1 = service.createSubagent(mockSubagentConfig)
+      const id2 = service.createSubagent(mockSubagentConfig)
+      const id3 = service.createSubagent(mockSubagentConfig)
+
+      expect(id1).not.toBe(id2)
+      expect(id2).not.toBe(id3)
+      expect(id1).not.toBe(id3)
+    })
+
+    it('should create subagent with minimal configuration', () => {
+      const minimalConfig = {
+        description: 'Minimal subagent',
+        prompt: 'Help the user'
+      }
+
+      const subagentId = service.createSubagent(minimalConfig)
+      const config = service.getSubagentConfig(subagentId)
+
+      expect(config).toEqual(minimalConfig)
+    })
+
+    it('should create subagent with all optional fields', () => {
+      const fullConfig = {
+        description: 'Full featured subagent',
+        tools: ['tool1', 'tool2'],
+        disallowedTools: ['dangerous-tool'],
+        prompt: 'Advanced prompt',
+        model: 'sonnet' as const
+      }
+
+      const subagentId = service.createSubagent(fullConfig)
+      const config = service.getSubagentConfig(subagentId)
+
+      expect(config).toEqual(fullConfig)
+    })
+
+    it('should throw error when retrieving non-existent subagent', () => {
+      expect(() => service.getSubagentConfig('non-existent-id'))
+        .toThrow('Subagent not found: non-existent-id')
+    })
+  })
 })
