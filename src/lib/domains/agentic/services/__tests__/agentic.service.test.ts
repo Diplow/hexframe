@@ -372,7 +372,8 @@ describe('AgenticService', () => {
         model: 'openai/gpt-3.5-turbo'
       })
 
-      const callArgs = (mockLLMRepository.generate as ReturnType<typeof vi.fn>).mock.calls[0][0]
+      const callArgs = (mockLLMRepository.generate as ReturnType<typeof vi.fn>).mock.calls[0]?.[0]
+      expect(callArgs).toBeDefined()
       expect(callArgs).not.toHaveProperty('tools')
     })
 

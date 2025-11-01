@@ -26,10 +26,20 @@ export interface GenerateResponseOptions {
   isOwnSystem?: boolean
   systemBriefDescription?: string
   specialContext?: 'onboarding' | 'importing'
+  tools?: Array<{ name: string; description: string; [key: string]: unknown }>
+}
+
+export interface SubagentConfig {
+  description: string
+  tools?: string[]
+  disallowedTools?: string[]
+  prompt: string
+  model?: 'sonnet' | 'opus' | 'haiku' | 'inherit'
 }
 
 export class AgenticService {
   private promptTemplate: PromptTemplateService
+  private subagents: Map<string, SubagentConfig>
   // private intentClassifier: IntentClassifierService
 
   constructor(
@@ -38,6 +48,7 @@ export class AgenticService {
     private readonly eventBus: EventBus
   ) {
     this.promptTemplate = new PromptTemplateService()
+    this.subagents = new Map()
   }
 
   async generateResponse(options: GenerateResponseOptions): Promise<LLMResponse> {
@@ -65,7 +76,8 @@ export class AgenticService {
         model: options.model,
         temperature: options.temperature ?? 0.7,
         maxTokens: options.maxTokens ?? 2048,
-        stream: false
+        stream: false,
+        ...(options.tools && { tools: options.tools })
       }
 
       const response = await this.llmRepository.generate(llmParams)
@@ -134,7 +146,8 @@ export class AgenticService {
         model: options.model,
         temperature: options.temperature ?? 0.7,
         maxTokens: options.maxTokens ?? 2048,
-        stream: true
+        stream: true,
+        ...(options.tools && { tools: options.tools })
       }
 
       const response = await this.llmRepository.generateStream(llmParams, onChunk)
@@ -235,6 +248,33 @@ export class AgenticService {
   }
 
   // Intent classification methods temporarily removed due to missing dependencies
+
+  /**
+   * Create a subagent with the specified configuration
+   *
+   * @param config - Subagent configuration including description, prompt, and optional tools
+   * @returns Unique identifier for the created subagent
+   */
+  createSubagent(config: SubagentConfig): string {
+    const subagentId = `subagent-${crypto.randomUUID()}`
+    this.subagents.set(subagentId, config)
+    return subagentId
+  }
+
+  /**
+   * Get the configuration for a specific subagent
+   *
+   * @param subagentId - The unique identifier of the subagent
+   * @returns The subagent configuration
+   * @throws Error if subagent not found
+   */
+  getSubagentConfig(subagentId: string): SubagentConfig {
+    const config = this.subagents.get(subagentId)
+    if (!config) {
+      throw new Error(`Subagent not found: ${subagentId}`)
+    }
+    return config
+  }
 
   private getDefaultCompositionConfig(): CompositionConfig {
     return {
