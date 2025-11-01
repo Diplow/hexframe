@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
-import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc'
+import { createTRPCRouter, protectedProcedure, mappingServiceMiddleware, iamServiceMiddleware } from '~/server/api/trpc'
 import { verificationAwareRateLimit, verificationAwareAuthLimit } from '~/server/api/middleware'
 import { createAgenticService, type CompositionConfig, PreviewGeneratorService, OpenRouterRepository } from '~/lib/domains/agentic'
 import { EventBus as EventBusImpl } from '~/lib/utils/event-bus'
@@ -87,6 +87,8 @@ const cacheStateSchema = z.object({
 export const agenticRouter = createTRPCRouter({
   generateResponse: protectedProcedure
     .use(verificationAwareRateLimit) // Rate limit: 10 req/5min for verified, 3 req/5min for unverified
+    .use(mappingServiceMiddleware) // Add mapping service to context
+    .use(iamServiceMiddleware) // Add IAM service to context
     .input(
       z.object({
         centerCoordId: z.string(),
@@ -160,6 +162,8 @@ export const agenticRouter = createTRPCRouter({
 
   generateStreamingResponse: protectedProcedure
     .use(verificationAwareRateLimit) // Rate limit: 10 req/5min for verified, 3 req/5min for unverified
+    .use(mappingServiceMiddleware) // Add mapping service to context
+    .use(iamServiceMiddleware) // Add IAM service to context
     .input(
       z.object({
         centerCoordId: z.string(),

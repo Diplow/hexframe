@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { createMCPTools, type MCPTool } from '~/server/api/routers/map/mcp-tools'
+import { createMCPTools } from '~/server/api/routers/map/mcp-tools'
 import type { Context } from '~/server/api/trpc'
 import type { MappingService } from '~/lib/domains/mapping'
 import type { IAMService } from '~/lib/domains/iam'
-import { Direction } from '~/lib/domains/mapping/utils'
+import { Direction, MapItemType } from '~/lib/domains/mapping/utils'
+import type { MapItemContract } from '~/lib/domains/mapping/types/contracts'
 
 /**
  * Tests for MCP Tools creation
@@ -16,8 +17,28 @@ import { Direction } from '~/lib/domains/mapping/utils'
  * 5. Validates inputs according to schemas
  */
 
+/**
+ * Helper to create a mock MapItemContract
+ */
+function createMockItem(partial: Partial<MapItemContract>): MapItemContract {
+  return {
+    id: '1',
+    ownerId: '1',
+    coords: '1,0:',
+    title: 'Test Item',
+    content: '',
+    preview: undefined,
+    link: '',
+    itemType: MapItemType.BASE,
+    depth: 0,
+    parentId: null,
+    originId: null,
+    ...partial,
+  }
+}
+
 describe('createMCPTools', () => {
-  let mockCtx: Context
+  let mockCtx: Context & { mappingService: MappingService; iamService: IAMService }
   let mockMappingService: MappingService
   let mockIAMService: IAMService
 
@@ -29,10 +50,10 @@ describe('createMCPTools', () => {
           getItem: vi.fn(),
           addItemToMap: vi.fn(),
           updateItem: vi.fn(),
-          deleteItem: vi.fn(),
+          removeItem: vi.fn(),
         },
         query: {
-          getItemsForRootItem: vi.fn(),
+          getItems: vi.fn(),
         },
       },
     } as unknown as MappingService
@@ -49,7 +70,7 @@ describe('createMCPTools', () => {
       iamService: mockIAMService,
       user: { id: 'test-user-123' },
       session: { id: 'test-session', userId: 'test-user-123' },
-    } as unknown as Context
+    } as unknown as Context & { mappingService: MappingService; iamService: IAMService }
   })
 
   describe('tool structure', () => {
@@ -95,12 +116,12 @@ describe('createMCPTools', () => {
       const tools = createMCPTools(mockCtx)
       const tool = tools.find((t) => t.name === 'getItemByCoords')!
 
-      const mockItem = {
+      const mockItem = createMockItem({
         id: '1',
         title: 'Test Item',
         coords: '1,0:1',
         depth: 1,
-      }
+      })
       vi.mocked(mockMappingService.items.crud.getItem).mockResolvedValue(mockItem)
 
       const coords = {
@@ -147,12 +168,21 @@ describe('createMCPTools', () => {
       const tools = createMCPTools(mockCtx)
       const tool = tools.find((t) => t.name === 'addItem')!
 
-      const mockItem = {
+      // Mock parent item
+      const mockParentItem = createMockItem({
+        id: '1',
+        title: 'Root',
+        coords: '1,0:',
+        depth: 0,
+      })
+      vi.mocked(mockMappingService.items.crud.getItem).mockResolvedValue(mockParentItem)
+
+      const mockItem = createMockItem({
         id: '2',
         title: 'New Item',
         coords: '1,0:2',
         depth: 1,
-      }
+      })
       vi.mocked(mockMappingService.items.crud.addItemToMap).mockResolvedValue(mockItem)
 
       const input = {
@@ -176,6 +206,7 @@ describe('createMCPTools', () => {
           content: input.content,
           preview: input.preview,
           link: input.url,
+          parentId: 1,
         })
       )
       expect(result).toEqual(mockItem)
@@ -196,12 +227,21 @@ describe('createMCPTools', () => {
       const tools = createMCPTools(mockCtx)
       const tool = tools.find((t) => t.name === 'addItem')!
 
-      const mockItem = {
+      // Mock parent item
+      const mockParentItem = createMockItem({
+        id: '1',
+        title: 'Root',
+        coords: '1,0:',
+        depth: 0,
+      })
+      vi.mocked(mockMappingService.items.crud.getItem).mockResolvedValue(mockParentItem)
+
+      const mockItem = createMockItem({
         id: '3',
         title: 'Minimal Item',
         coords: '1,0:3',
         depth: 1,
-      }
+      })
       vi.mocked(mockMappingService.items.crud.addItemToMap).mockResolvedValue(mockItem)
 
       const input = {
@@ -224,12 +264,12 @@ describe('createMCPTools', () => {
       const tools = createMCPTools(mockCtx)
       const tool = tools.find((t) => t.name === 'updateItem')!
 
-      const mockItem = {
+      const mockItem = createMockItem({
         id: '1',
         title: 'Updated Title',
         coords: '1,0:1',
         depth: 1,
-      }
+      })
       vi.mocked(mockMappingService.items.crud.updateItem).mockResolvedValue(mockItem)
 
       const input = {
@@ -268,11 +308,11 @@ describe('createMCPTools', () => {
   })
 
   describe('deleteItem tool', () => {
-    it('should call mappingService.items.crud.deleteItem with coords', async () => {
+    it('should call mappingService.items.crud.removeItem with coords', async () => {
       const tools = createMCPTools(mockCtx)
       const tool = tools.find((t) => t.name === 'deleteItem')!
 
-      vi.mocked(mockMappingService.items.crud.deleteItem).mockResolvedValue(undefined)
+      vi.mocked(mockMappingService.items.crud.removeItem).mockResolvedValue(undefined)
 
       const coords = {
         userId: 1,
@@ -282,7 +322,7 @@ describe('createMCPTools', () => {
 
       await tool.execute({ coords })
 
-      expect(mockMappingService.items.crud.deleteItem).toHaveBeenCalledWith({ coords })
+      expect(mockMappingService.items.crud.removeItem).toHaveBeenCalledWith({ coords })
     })
 
     it('should have proper input schema', () => {
@@ -296,17 +336,15 @@ describe('createMCPTools', () => {
   })
 
   describe('getItemsForRootItem tool', () => {
-    it('should call mappingService.items.query.getItemsForRootItem', async () => {
+    it('should call mappingService.items.query.getItems', async () => {
       const tools = createMCPTools(mockCtx)
       const tool = tools.find((t) => t.name === 'getItemsForRootItem')!
 
       const mockItems = [
-        { id: '1', title: 'Item 1', coords: '1,0:1', depth: 1 },
-        { id: '2', title: 'Item 2', coords: '1,0:2', depth: 1 },
+        createMockItem({ id: '1', title: 'Item 1', coords: '1,0:1', depth: 1 }),
+        createMockItem({ id: '2', title: 'Item 2', coords: '1,0:2', depth: 1 }),
       ]
-      vi.mocked(mockMappingService.items.query.getItemsForRootItem).mockResolvedValue(
-        mockItems
-      )
+      vi.mocked(mockMappingService.items.query.getItems).mockResolvedValue(mockItems)
 
       const input = {
         userId: 1,
@@ -316,11 +354,10 @@ describe('createMCPTools', () => {
 
       const result = await tool.execute(input)
 
-      expect(mockMappingService.items.query.getItemsForRootItem).toHaveBeenCalledWith(
+      expect(mockMappingService.items.query.getItems).toHaveBeenCalledWith(
         expect.objectContaining({
           userId: input.userId,
           groupId: input.groupId,
-          depth: input.depth,
         })
       )
       expect(result).toEqual(mockItems)
@@ -336,24 +373,22 @@ describe('createMCPTools', () => {
       expect(tool.inputSchema.required).toContain('userId')
     })
 
-    it('should use default depth if not provided', async () => {
+    it('should use default groupId if not provided', async () => {
       const tools = createMCPTools(mockCtx)
       const tool = tools.find((t) => t.name === 'getItemsForRootItem')!
 
-      vi.mocked(mockMappingService.items.query.getItemsForRootItem).mockResolvedValue([])
+      vi.mocked(mockMappingService.items.query.getItems).mockResolvedValue([])
 
       const input = {
         userId: 1,
-        groupId: 0,
       }
 
       await tool.execute(input)
 
-      expect(mockMappingService.items.query.getItemsForRootItem).toHaveBeenCalledWith(
+      expect(mockMappingService.items.query.getItems).toHaveBeenCalledWith(
         expect.objectContaining({
           userId: input.userId,
-          groupId: input.groupId,
-          depth: expect.any(Number),
+          groupId: 0,
         })
       )
     })
@@ -402,7 +437,7 @@ describe('createMCPTools', () => {
       const tools = createMCPTools({
         ...mockCtx,
         user: null,
-      } as unknown as Context)
+      } as unknown as Context & { mappingService: MappingService; iamService: IAMService })
       const tool = tools.find((t) => t.name === 'getCurrentUser')!
 
       await expect(tool.execute({})).rejects.toThrow()
@@ -466,7 +501,7 @@ describe('createMCPTools', () => {
       const incompleteCtx = {
         ...mockCtx,
         mappingService: undefined,
-      } as unknown as Context
+      } as unknown as Context & { mappingService: MappingService; iamService: IAMService }
 
       // Should throw or handle gracefully
       expect(() => createMCPTools(incompleteCtx)).toThrow()
