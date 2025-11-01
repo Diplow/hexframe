@@ -1,10 +1,32 @@
 import { inngest } from '~/lib/domains/agentic/infrastructure'
-import { OpenRouterRepository, type LLMGenerationParams, PreviewGeneratorService } from '~/lib/domains/agentic'
+import {
+  OpenRouterRepository,
+  ClaudeAgentSDKRepository,
+  type ILLMRepository,
+  type LLMGenerationParams,
+  PreviewGeneratorService
+} from '~/lib/domains/agentic'
 import { db, schema } from '~/server/db'
 const { llmJobResults } = schema
 import { eq, sql } from 'drizzle-orm'
 import { loggers } from '~/lib/debug/debug-logger'
 import { env } from '~/env'
+
+/**
+ * Create the appropriate LLM repository based on environment configuration
+ * Supports both OpenRouter and Claude Agent SDK
+ */
+function _createLLMRepository(): ILLMRepository {
+  const provider = env.LLM_PROVIDER ?? 'openrouter'
+
+  switch (provider) {
+    case 'claude-agent-sdk':
+      return new ClaudeAgentSDKRepository(env.ANTHROPIC_API_KEY ?? '')
+    case 'openrouter':
+    default:
+      return new OpenRouterRepository(env.OPENROUTER_API_KEY ?? '')
+  }
+}
 
 interface GenerateRequestData {
   jobId: string
@@ -62,30 +84,36 @@ export const generateLLMResponse = inngest.createFunction(
       })
     })
 
-    // Step 2: Call OpenRouter with automatic retries
-    const response = await step.run('call-openrouter', async () => {
+    // Step 2: Call LLM repository with automatic retries
+    // Supports both OpenRouter (fetch-based) and Claude Agent SDK (async generator)
+    const response = await step.run('call-llm-repository', async () => {
       try {
-        const repository = new OpenRouterRepository(env.OPENROUTER_API_KEY ?? '')
-        
-        loggers.agentic('Calling OpenRouter', { 
-          jobId, 
-          model: params.model,
-          messageCount: params.messages.length 
-        })
-        
-        const llmResponse = await repository.generate(params)
-        
-        loggers.agentic('OpenRouter response received', {
+        const repository = _createLLMRepository()
+
+        loggers.agentic('Calling LLM repository', {
           jobId,
+          model: params.model,
+          provider: repository.isConfigured() ? 'configured' : 'not-configured',
+          messageCount: params.messages.length
+        })
+
+        // Both OpenRouter and SDK repositories implement the same interface
+        // OpenRouter uses fetch API with ReadableStream
+        // SDK uses async generators - both patterns work in Inngest step.run()
+        const llmResponse = await repository.generate(params)
+
+        loggers.agentic('LLM response received', {
+          jobId,
+          provider: llmResponse.provider,
           usage: llmResponse.usage,
           finishReason: llmResponse.finishReason
         })
-        
+
         return llmResponse
       } catch (error) {
-        loggers.agentic.error('OpenRouter call failed', { 
-          jobId, 
-          error: error instanceof Error ? error.message : 'Unknown error' 
+        loggers.agentic.error('LLM call failed', {
+          jobId,
+          error: error instanceof Error ? error.message : 'Unknown error'
         })
         throw error
       }
@@ -215,7 +243,7 @@ export const generatePreview = inngest.createFunction(
     // Step 2: Generate preview
     const result = await step.run('generate-preview', async () => {
       try {
-        const repository = new OpenRouterRepository(env.OPENROUTER_API_KEY ?? '')
+        const repository = _createLLMRepository()
         const previewService = new PreviewGeneratorService(repository)
 
         loggers.agentic('Generating preview', { jobId, titleLength: title.length, contentLength: content.length })

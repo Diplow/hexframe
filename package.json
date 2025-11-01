@@ -51,6 +51,7 @@
     "mcp:dev": "tsx src/app/services/mcp/server.ts"
   },
   "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.1.30",
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^5.1.1",
     "@mistralai/mistralai": "^1.5.2",

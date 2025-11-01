@@ -7,8 +7,11 @@ Like a translation bureau that takes hexagonal map context and chat history, con
 - Orchestrate AI conversations by combining map context with chat history
 - Build and compose context from canvas (hexagonal tiles) and chat messages
 - Manage prompt templates and AI model interactions (both streaming and non-streaming)
+- Support tool usage in AI conversations for extended functionality
+- Create and manage subagents with specific configurations and capabilities
 - Handle tokenization and optimize context size to fit model limits
 - Serialize complex domain data into AI-readable formats
+- Select and configure LLM repositories (OpenRouter or Claude Agent SDK)
 
 ## Non-Responsibilities
 - Canvas strategy implementations → See `./canvas-strategies/`

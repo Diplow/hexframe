@@ -1,7 +1,7 @@
 export { AgenticService } from '~/lib/domains/agentic/services/agentic.service'
-export type { GenerateResponseOptions } from '~/lib/domains/agentic/services/agentic.service'
+export type { GenerateResponseOptions, SubagentConfig } from '~/lib/domains/agentic/services/agentic.service'
 export { createAgenticService } from '~/lib/domains/agentic/services/agentic.factory'
-export type { CreateAgenticServiceOptions } from '~/lib/domains/agentic/services/agentic.factory'
+export type { CreateAgenticServiceOptions, LLMConfig } from '~/lib/domains/agentic/services/agentic.factory'
 
 export { CanvasContextBuilder } from '~/lib/domains/agentic/services/canvas-context-builder.service'
 export { ChatContextBuilder } from '~/lib/domains/agentic/services/chat-context-builder.service'

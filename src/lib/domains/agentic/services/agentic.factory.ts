@@ -1,4 +1,5 @@
 import { OpenRouterRepository } from '~/lib/domains/agentic/repositories/openrouter.repository'
+import { ClaudeAgentSDKRepository } from '~/lib/domains/agentic/repositories/claude-agent-sdk.repository'
 import { QueuedLLMRepository } from '~/lib/domains/agentic/repositories/queued-llm.repository'
 import { CanvasContextBuilder } from '~/lib/domains/agentic/services/canvas-context-builder.service'
 import { ChatContextBuilder } from '~/lib/domains/agentic/services/chat-context-builder.service'
@@ -25,8 +26,14 @@ import type { IChatStrategy } from '~/lib/domains/agentic/services/chat-strategi
 
 import type { CacheState } from '~/app/map'
 
+export interface LLMConfig {
+  openRouterApiKey?: string
+  anthropicApiKey?: string
+  preferClaudeSDK?: boolean // If true, use ClaudeAgentSDKRepository when anthropicApiKey is provided
+}
+
 export interface CreateAgenticServiceOptions {
-  openRouterApiKey: string
+  llmConfig: LLMConfig
   eventBus: EventBus
   getCacheState: () => CacheState
   useQueue?: boolean
@@ -34,12 +41,27 @@ export interface CreateAgenticServiceOptions {
 }
 
 export function createAgenticService(options: CreateAgenticServiceOptions): AgenticService {
-  const { openRouterApiKey, eventBus, getCacheState, useQueue, userId } = options
+  const { llmConfig, eventBus, getCacheState, useQueue, userId } = options
+  const { openRouterApiKey, anthropicApiKey, preferClaudeSDK } = llmConfig
 
   // Create repository - use queued version if configured
   let llmRepository: ILLMRepository
 
-  const baseRepository = new OpenRouterRepository(openRouterApiKey)
+  // Choose base repository based on available API keys and preferences
+  let baseRepository: ILLMRepository
+
+  if (preferClaudeSDK && anthropicApiKey) {
+    // Use Claude Agent SDK repository when explicitly preferred
+    baseRepository = new ClaudeAgentSDKRepository(anthropicApiKey)
+  } else if (openRouterApiKey) {
+    // Default to OpenRouter if available
+    baseRepository = new OpenRouterRepository(openRouterApiKey)
+  } else if (anthropicApiKey) {
+    // Fall back to Claude SDK if only anthropic key is provided
+    baseRepository = new ClaudeAgentSDKRepository(anthropicApiKey)
+  } else {
+    throw new Error('Either openRouterApiKey or anthropicApiKey must be provided')
+  }
 
   if (useQueue && userId) {
     // Use queued repository for production with proper rate limiting

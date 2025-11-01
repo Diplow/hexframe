@@ -13,6 +13,7 @@ export interface LLMGenerationParams {
   frequencyPenalty?: number
   presencePenalty?: number
   stop?: string[]
+  tools?: Array<{ name: string; description: string; [key: string]: unknown }>
 }
 
 export interface LLMResponse {
