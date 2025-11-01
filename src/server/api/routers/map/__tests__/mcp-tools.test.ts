@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { createMCPTools } from '~/server/api/routers/map/mcp-tools'
+import { createMCPTools } from '~/server/api/routers/map/_mcp-tools'
 import type { Context } from '~/server/api/trpc'
 import type { MappingService } from '~/lib/domains/mapping'
 import type { IAMService } from '~/lib/domains/iam'
