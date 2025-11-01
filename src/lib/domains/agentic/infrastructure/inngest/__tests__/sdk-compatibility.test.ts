@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import type { SDKMessage } from '~/lib/domains/agentic/types/sdk.types'
 
 /**
@@ -422,7 +422,7 @@ describe('Inngest SDK Compatibility', () => {
           }
         }
 
-        throw lastError
+        throw lastError ?? new Error('Max retries exceeded')
       }
 
       const result = await stepRunWithRetry(

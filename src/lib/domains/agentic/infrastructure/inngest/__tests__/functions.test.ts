@@ -48,6 +48,9 @@ describe('Inngest Functions with SDK', () => {
             provider: 'claude-agent-sdk' as const
           }
         }),
+        generateStream: vi.fn(),
+        getModelInfo: vi.fn(),
+        listModels: vi.fn(),
         isConfigured: () => true
       }
 
@@ -75,19 +78,24 @@ describe('Inngest Functions with SDK', () => {
 
     it('should handle SDK errors in step.run', async () => {
       const mockSDKRepository = {
-        generate: vi.fn(async () => {
+        generate: vi.fn(async (_params: LLMGenerationParams) => {
           // Simulate error from async generator
           async function* errorQuery(): AsyncGenerator<SDKMessage, void, unknown> {
             yield { type: 'stream_event', event: { type: 'message_start' } }
             throw new Error('SDK error')
           }
 
-          for await (const _msg of errorQuery()) {
+          for await (const msg of errorQuery()) {
             // Process messages
+            void msg
           }
 
           throw new Error('Should not reach here')
-        })
+        }),
+        generateStream: vi.fn(),
+        getModelInfo: vi.fn(),
+        listModels: vi.fn(),
+        isConfigured: () => true
       }
 
       const mockStep = {
@@ -110,7 +118,7 @@ describe('Inngest Functions with SDK', () => {
 
     it('should handle long-running SDK generation without timeout', async () => {
       const mockSDKRepository = {
-        generate: vi.fn(async () => {
+        generate: vi.fn(async (_params: LLMGenerationParams) => {
           // Simulate slow async generator (multiple chunks over time)
           async function* slowQuery(): AsyncGenerator<SDKMessage, void, unknown> {
             yield { type: 'stream_event', event: { type: 'message_start' } }
@@ -142,7 +150,11 @@ describe('Inngest Functions with SDK', () => {
             finishReason: 'stop' as const,
             provider: 'claude-agent-sdk' as const
           }
-        })
+        }),
+        generateStream: vi.fn(),
+        getModelInfo: vi.fn(),
+        listModels: vi.fn(),
+        isConfigured: () => true
       }
 
       const mockStep = {
@@ -248,7 +260,7 @@ describe('Inngest Functions with SDK', () => {
       let attemptCount = 0
 
       const mockSDKRepository = {
-        generate: vi.fn(async () => {
+        generate: vi.fn(async (_params: LLMGenerationParams) => {
           attemptCount++
 
           async function* retryableQuery(): AsyncGenerator<SDKMessage, void, unknown> {
@@ -278,7 +290,11 @@ describe('Inngest Functions with SDK', () => {
             finishReason: 'stop' as const,
             provider: 'claude-agent-sdk' as const
           }
-        })
+        }),
+        generateStream: vi.fn(),
+        getModelInfo: vi.fn(),
+        listModels: vi.fn(),
+        isConfigured: () => true
       }
 
       // Simulate Inngest retry logic
@@ -297,7 +313,7 @@ describe('Inngest Functions with SDK', () => {
             }
           }
 
-          throw lastError
+          throw lastError ?? new Error('Max retries exceeded')
         }
       }
 
@@ -322,7 +338,7 @@ describe('Inngest Functions with SDK', () => {
       const abortController = new AbortController()
 
       const mockSDKRepository = {
-        generate: vi.fn(async () => {
+        generate: vi.fn(async (_params: LLMGenerationParams) => {
           async function* abortableQuery(): AsyncGenerator<SDKMessage, void, unknown> {
             try {
               yield { type: 'stream_event', event: { type: 'message_start' } }
@@ -354,7 +370,11 @@ describe('Inngest Functions with SDK', () => {
             finishReason: 'stop' as const,
             provider: 'claude-agent-sdk' as const
           }
-        })
+        }),
+        generateStream: vi.fn(),
+        getModelInfo: vi.fn(),
+        listModels: vi.fn(),
+        isConfigured: () => true
       }
 
       const mockStep = {

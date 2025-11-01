@@ -19,7 +19,7 @@ export { ContextSerializerService } from '~/lib/domains/agentic/services/context
 export type { TokenizerService } from '~/lib/domains/agentic/services/tokenizer.service';
 
 // Repository implementations (for service instantiation)
-export { OpenRouterRepository, QueuedLLMRepository } from '~/lib/domains/agentic/repositories';
+export { OpenRouterRepository, ClaudeAgentSDKRepository, QueuedLLMRepository } from '~/lib/domains/agentic/repositories';
 export type { ILLMRepository } from '~/lib/domains/agentic/repositories';
 
 // Domain types
