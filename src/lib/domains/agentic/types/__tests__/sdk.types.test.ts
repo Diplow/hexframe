@@ -103,7 +103,8 @@ describe('SDK Types', () => {
       expect(event.type).toBe('stream_event')
       expect(event.event.type).toBe('content_block_delta')
       if (event.event.type === 'content_block_delta') {
-        expect(event.event.delta.text).toBe('Hello')
+        const deltaEvent = event.event as { type: 'content_block_delta'; delta: SDKContentBlockDelta }
+        expect(deltaEvent.delta.text).toBe('Hello')
       }
     })
 
@@ -307,8 +308,8 @@ describe('SDK Types', () => {
         }
       }
 
-      expect(tool.inputSchema.properties.data.type).toBe('array')
-      expect(tool.inputSchema.properties.method.enum).toEqual(['mean', 'median', 'mode'])
+      expect(tool.inputSchema.properties?.data?.type).toBe('array')
+      expect(tool.inputSchema.properties?.method?.enum).toEqual(['mean', 'median', 'mode'])
     })
   })
 
@@ -375,8 +376,10 @@ describe('SDK Types', () => {
       )
 
       expect(contentDeltas).toHaveLength(1)
-      if (contentDeltas[0]?.event.type === 'content_block_delta') {
-        expect(contentDeltas[0].event.delta.text).toBe('Hi')
+      const firstDelta = contentDeltas[0]
+      if (firstDelta && firstDelta.event.type === 'content_block_delta') {
+        const deltaEvent = firstDelta.event as { type: 'content_block_delta'; delta: SDKContentBlockDelta }
+        expect(deltaEvent.delta.text).toBe('Hi')
       }
     })
 
