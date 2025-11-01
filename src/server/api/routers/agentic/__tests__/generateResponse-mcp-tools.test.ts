@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { AgenticService } from '~/lib/domains/agentic'
 
@@ -189,7 +193,7 @@ describe('generateResponse endpoint with MCP tools', () => {
         ...mockAgenticService,
         generateStreamingResponse: vi.fn().mockImplementation(async (options, onChunk) => {
           for await (const chunk of mockAsyncGenerator()) {
-            if (chunk.type === 'stream_event') {
+            if (chunk.type === 'stream_event' && chunk.event) {
               const text = chunk.event.type === 'content_block_delta' ? chunk.event.delta.text : ''
               onChunk({ content: text, isFinished: false })
             }
@@ -240,7 +244,7 @@ describe('generateResponse endpoint with MCP tools', () => {
       }
 
       for await (const msg of mockGenerator()) {
-        if (msg.type === 'stream_event' && msg.event.type === 'content_block_delta') {
+        if (msg.type === 'stream_event' && msg.event?.type === 'content_block_delta') {
           chunks.push({ content: msg.event.delta.text, isFinished: false })
         }
       }

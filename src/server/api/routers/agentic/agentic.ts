@@ -11,6 +11,7 @@ import { db, schema } from '~/server/db'
 const { llmJobResults } = schema
 import { eq } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
+import { createMCPTools } from '~/server/api/routers/map/mcp-tools'
 
 // Message schema matching the Chat component
 const chatMessageSchema = z.object({
@@ -100,7 +101,7 @@ export const agenticRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       // Create a server-side event bus instance
       const eventBus = new EventBusImpl()
-      
+
       // Determine if we should use queue based on environment
       const useQueue = process.env.USE_QUEUE === 'true' || process.env.NODE_ENV === 'production'
 
@@ -123,14 +124,18 @@ export const agenticRouter = createTRPCRouter({
         })
       }
 
-      // Generate the response
+      // Create MCP tools from context for Claude Agent SDK
+      const mcpTools = createMCPTools(ctx)
+
+      // Generate the response with MCP tools
       const response = await agenticService.generateResponse({
         centerCoordId: input.centerCoordId,
         messages: input.messages as ChatMessage[], // Type mismatch due to zod schema limitations
         model: input.model,
         temperature: input.temperature,
         maxTokens: input.maxTokens,
-        compositionConfig: input.compositionConfig as CompositionConfig // Type mismatch due to zod schema limitations
+        compositionConfig: input.compositionConfig as CompositionConfig, // Type mismatch due to zod schema limitations
+        tools: mcpTools as Array<{ name: string; description: string; [key: string]: unknown }>
       })
 
       // Handle queued responses differently
@@ -166,14 +171,60 @@ export const agenticRouter = createTRPCRouter({
         cacheState: cacheStateSchema
       })
     )
-    .mutation(async () => {
-      // TODO: Implement streaming functionality
-      // This will require:
-      // 1. WebSocket or Server-Sent Events infrastructure
-      // 2. Stream handling in the OpenRouter repository
-      // 3. Progressive token emission to the client
-      // For now, return a simple error since streaming requires different infrastructure
-      throw new Error('Streaming not yet implemented. Use generateResponse for now.')
+    .mutation(async ({ input, ctx }) => {
+      // Create a server-side event bus instance
+      const eventBus = new EventBusImpl()
+
+      // Create agentic service
+      const agenticService = createAgenticService({
+        llmConfig: {
+          openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
+          anthropicApiKey: env.ANTHROPIC_API_KEY ?? ''
+        },
+        eventBus,
+        getCacheState: () => input.cacheState as unknown as CacheState,
+        useQueue: false, // Streaming doesn't use queue
+        userId: ctx.session?.userId ?? 'anonymous'
+      })
+
+      if (!agenticService.isConfigured()) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'API key not configured. Please set OPENROUTER_API_KEY or ANTHROPIC_API_KEY environment variable.',
+        })
+      }
+
+      // Create MCP tools from context for Claude Agent SDK
+      const mcpTools = createMCPTools(ctx)
+
+      // Handle SDK async generator for streaming
+      const chunks: Array<{ content: string; isFinished: boolean }> = []
+
+      // Generate streaming response with MCP tools
+      const response = await agenticService.generateStreamingResponse(
+        {
+          centerCoordId: input.centerCoordId,
+          messages: input.messages as ChatMessage[],
+          model: input.model,
+          temperature: input.temperature,
+          maxTokens: input.maxTokens,
+          compositionConfig: input.compositionConfig as CompositionConfig,
+          tools: mcpTools as Array<{ name: string; description: string; [key: string]: unknown }>
+        },
+        (chunk) => {
+          chunks.push(chunk)
+        }
+      )
+
+      // Return complete response with accumulated chunks
+      return {
+        id: response.id,
+        content: response.content,
+        model: response.model,
+        usage: response.usage,
+        finishReason: response.finishReason,
+        chunks
+      }
     }),
 
   getAvailableModels: protectedProcedure
@@ -183,7 +234,8 @@ export const agenticRouter = createTRPCRouter({
 
       const agenticService = createAgenticService({
         llmConfig: {
-          openRouterApiKey: env.OPENROUTER_API_KEY ?? ''
+          openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
+          anthropicApiKey: env.ANTHROPIC_API_KEY ?? ''
         },
         eventBus,
         getCacheState: () => {
