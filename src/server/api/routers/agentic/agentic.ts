@@ -106,7 +106,9 @@ export const agenticRouter = createTRPCRouter({
 
       // Create agentic service with OpenRouter API key from environment
       const agenticService = createAgenticService({
-        openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
+        llmConfig: {
+          openRouterApiKey: env.OPENROUTER_API_KEY ?? ''
+        },
         eventBus,
         getCacheState: () => input.cacheState as unknown as CacheState,
         useQueue,
@@ -177,9 +179,11 @@ export const agenticRouter = createTRPCRouter({
     .use(verificationAwareAuthLimit) // Rate limit: 100 req/min for verified, 20 req/min for unverified
     .query(async () => {
       const eventBus = new EventBusImpl()
-      
+
       const agenticService = createAgenticService({
-        openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
+        llmConfig: {
+          openRouterApiKey: env.OPENROUTER_API_KEY ?? ''
+        },
         eventBus,
         getCacheState: () => {
           throw new Error('Cache state not needed for listing models')

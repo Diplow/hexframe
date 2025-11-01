@@ -26,18 +26,23 @@ import type { IChatStrategy } from '~/lib/domains/agentic/services/chat-strategi
 
 import type { CacheState } from '~/app/map'
 
-export interface CreateAgenticServiceOptions {
+export interface LLMConfig {
   openRouterApiKey?: string
   anthropicApiKey?: string
+  preferClaudeSDK?: boolean // If true, use ClaudeAgentSDKRepository when anthropicApiKey is provided
+}
+
+export interface CreateAgenticServiceOptions {
+  llmConfig: LLMConfig
   eventBus: EventBus
   getCacheState: () => CacheState
   useQueue?: boolean
   userId?: string // Required when using queue for rate limiting
-  preferClaudeSDK?: boolean // If true, use ClaudeAgentSDKRepository when anthropicApiKey is provided
 }
 
 export function createAgenticService(options: CreateAgenticServiceOptions): AgenticService {
-  const { openRouterApiKey, anthropicApiKey, eventBus, getCacheState, useQueue, userId, preferClaudeSDK } = options
+  const { llmConfig, eventBus, getCacheState, useQueue, userId } = options
+  const { openRouterApiKey, anthropicApiKey, preferClaudeSDK } = llmConfig
 
   // Create repository - use queued version if configured
   let llmRepository: ILLMRepository
