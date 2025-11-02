@@ -98,7 +98,12 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
       if ((error as LLMError).code) {
         throw error
       }
-      throw this.createError('UNKNOWN', 'SDK error occurred', error)
+      loggers.agentic.error('Claude SDK generate() error', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        errorObject: error
+      })
+      throw this.createError('UNKNOWN', `SDK error occurred: ${error instanceof Error ? error.message : String(error)}`, error)
     }
   }
 
@@ -164,7 +169,12 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
       if ((error as LLMError).code) {
         throw error
       }
-      throw this.createError('UNKNOWN', 'SDK streaming error occurred', error)
+      loggers.agentic.error('Claude SDK generateStream() error', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        errorObject: error
+      })
+      throw this.createError('UNKNOWN', `SDK streaming error occurred: ${error instanceof Error ? error.message : String(error)}`, error)
     }
   }
 
