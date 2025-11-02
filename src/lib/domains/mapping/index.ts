@@ -21,8 +21,12 @@ export {
   ItemCrudService,
   ItemQueryService,
   ItemHistoryService,
+  ItemContextService,
   MappingUtils,
 } from '~/lib/domains/mapping/services';
+
+// Context types and strategies
+export { ContextStrategies, type ContextStrategy, type MapContext } from '~/lib/domains/mapping/services';
 
 // Infrastructure (server-only - contains database connections)
 export {

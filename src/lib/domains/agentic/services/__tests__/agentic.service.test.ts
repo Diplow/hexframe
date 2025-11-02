@@ -4,6 +4,7 @@ import type { ILLMRepository } from '~/lib/domains/agentic/repositories/llm.repo
 import type { ContextCompositionService } from '~/lib/domains/agentic/services/context-composition.service'
 import type { EventBus } from '~/lib/utils/event-bus'
 import type { ComposedContext, LLMResponse, StreamChunk, ChatMessageContract } from '~/lib/domains/agentic/types'
+import { createMockMapContext } from '~/lib/domains/agentic/services/__tests__/__fixtures__/context-mocks'
 
 describe('AgenticService', () => {
   let mockLLMRepository: ILLMRepository
@@ -74,14 +75,26 @@ describe('AgenticService', () => {
 
     it('should generate a response with composed context', async () => {
       const result = await service.generateResponse({
-        centerCoordId: 'user:123,group:456:1,2',
+        mapContext: createMockMapContext(),
         messages: mockMessages,
         model: 'openai/gpt-3.5-turbo'
       })
 
-      // Should compose context
+      // Should compose context with MapContext
       expect(mockContextComposition.composeContext).toHaveBeenCalledWith(
-        'user:123,group:456:1,2',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        expect.objectContaining({
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          center: expect.any(Object),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          parent: expect.any(Object),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          composed: expect.any(Array),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          children: expect.any(Array),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          grandchildren: expect.any(Array)
+        }),
         mockMessages,
         {
           canvas: {
@@ -145,7 +158,7 @@ describe('AgenticService', () => {
 
     it('should use custom generation options', async () => {
       await service.generateResponse({
-        centerCoordId: 'user:123,group:456:1,2',
+        mapContext: createMockMapContext(),
         messages: mockMessages,
         model: 'anthropic/claude-3-opus',
         temperature: 0.5,
@@ -162,8 +175,21 @@ describe('AgenticService', () => {
         }
       })
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       expect(mockContextComposition.composeContext).toHaveBeenCalledWith(
-        'user:123,group:456:1,2',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        expect.objectContaining({
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          center: expect.any(Object),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          parent: expect.any(Object),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          composed: expect.any(Array),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          children: expect.any(Array),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          grandchildren: expect.any(Array)
+        }),
         mockMessages,
         {
           canvas: {
@@ -177,6 +203,7 @@ describe('AgenticService', () => {
         }
       )
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       expect(mockLLMRepository.generate).toHaveBeenCalledWith(
         expect.objectContaining({
           model: 'anthropic/claude-3-opus',
@@ -192,7 +219,7 @@ describe('AgenticService', () => {
 
       await expect(
         service.generateResponse({
-          centerCoordId: 'user:123,group:456:1,2',
+          mapContext: createMockMapContext(),
           messages: mockMessages,
           model: 'openai/gpt-3.5-turbo'
         })
@@ -213,7 +240,7 @@ describe('AgenticService', () => {
 
       await expect(
         service.generateResponse({
-          centerCoordId: 'user:123,group:456:1,2',
+          mapContext: createMockMapContext(),
           messages: mockMessages,
           model: 'openai/gpt-3.5-turbo'
         })
@@ -248,7 +275,7 @@ describe('AgenticService', () => {
       const receivedChunks: StreamChunk[] = []
       const result = await service.generateStreamingResponse(
         {
-          centerCoordId: 'user:123,group:456:1,2',
+          mapContext: createMockMapContext(),
           messages: mockMessages,
           model: 'openai/gpt-3.5-turbo'
         },
@@ -288,7 +315,7 @@ describe('AgenticService', () => {
       await expect(
         service.generateStreamingResponse(
           {
-            centerCoordId: 'user:123,group:456:1,2',
+            mapContext: createMockMapContext(),
             messages: mockMessages,
             model: 'openai/gpt-3.5-turbo'
           },
@@ -361,12 +388,13 @@ describe('AgenticService', () => {
       ]
 
       await service.generateResponse({
-        centerCoordId: 'user:123,group:456:1,2',
+        mapContext: createMockMapContext(),
         messages: mockMessages,
         model: 'openai/gpt-3.5-turbo',
         tools: mockTools
       })
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       expect(mockLLMRepository.generate).toHaveBeenCalledWith(
         expect.objectContaining({
           tools: mockTools
@@ -376,7 +404,7 @@ describe('AgenticService', () => {
 
     it('should not pass tools when not provided', async () => {
       await service.generateResponse({
-        centerCoordId: 'user:123,group:456:1,2',
+        mapContext: createMockMapContext(),
         messages: mockMessages,
         model: 'openai/gpt-3.5-turbo'
       })
@@ -389,12 +417,13 @@ describe('AgenticService', () => {
 
     it('should pass empty tools array when provided', async () => {
       await service.generateResponse({
-        centerCoordId: 'user:123,group:456:1,2',
+        mapContext: createMockMapContext(),
         messages: mockMessages,
         model: 'openai/gpt-3.5-turbo',
         tools: []
       })
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       expect(mockLLMRepository.generate).toHaveBeenCalledWith(
         expect.objectContaining({
           tools: []

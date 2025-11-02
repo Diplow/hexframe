@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import { createMockMapContext } from '~/lib/domains/agentic/services/__tests__/__fixtures__/context-mocks'
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -131,7 +132,7 @@ describe('generateResponse endpoint with MCP tools', () => {
       const tools = mockCreateMCPTools(mockCtx)
 
       await mockAgenticService.generateResponse({
-        centerCoordId: '1,0:1,2',
+        mapContext: createMockMapContext(),
         messages: [{ id: '1', type: 'user', content: 'Create a new tile' }],
         model: 'claude-sonnet-4-5-20250929',
         tools
@@ -153,7 +154,7 @@ describe('generateResponse endpoint with MCP tools', () => {
     it('should work without tools for backward compatibility', async () => {
       // Endpoint should still work if tools are not provided
       await mockAgenticService.generateResponse({
-        centerCoordId: '1,0:1,2',
+        mapContext: createMockMapContext(),
         messages: [{ id: '1', type: 'user', content: 'Hello' }],
         model: 'claude-sonnet-4-5-20250929'
       })
@@ -165,7 +166,7 @@ describe('generateResponse endpoint with MCP tools', () => {
       const tools = mockCreateMCPTools(mockCtx)
 
       const result = await mockAgenticService.generateResponse({
-        centerCoordId: '1,0:1,2',
+        mapContext: createMockMapContext(),
         messages: [{ id: '1', type: 'user', content: 'Test' }],
         model: 'claude-sonnet-4-5-20250929',
         temperature: 0.7,
@@ -214,7 +215,7 @@ describe('generateResponse endpoint with MCP tools', () => {
       const chunks: Array<{ content: string; isFinished: boolean }> = []
       const result = await streamingService.generateStreamingResponse(
         {
-          centerCoordId: '1,0:1,2',
+          mapContext: createMockMapContext(),
           messages: [{ id: '1', type: 'user', content: 'Test streaming' }],
           model: 'claude-sonnet-4-5-20250929',
           tools: mockCreateMCPTools(mockCtx)
@@ -277,7 +278,7 @@ describe('generateResponse endpoint with MCP tools', () => {
 
       await expect(
         errorService.generateResponse({
-          centerCoordId: '1,0:1,2',
+          mapContext: createMockMapContext(),
           messages: [{ id: '1', type: 'user', content: 'Test' }],
           model: 'claude-sonnet-4-5-20250929',
           tools: mockCreateMCPTools(mockCtx)
@@ -294,7 +295,7 @@ describe('generateResponse endpoint with MCP tools', () => {
       await expect(
         errorService.generateStreamingResponse(
           {
-            centerCoordId: '1,0:1,2',
+            mapContext: createMockMapContext(),
             messages: [{ id: '1', type: 'user', content: 'Test' }],
             model: 'claude-sonnet-4-5-20250929',
             tools: mockCreateMCPTools(mockCtx)
@@ -315,7 +316,7 @@ describe('generateResponse endpoint with MCP tools', () => {
 
       // Should be able to generate response with tools
       const result = await mockAgenticService.generateResponse({
-        centerCoordId: '1,0:1,2',
+        mapContext: createMockMapContext(),
         messages: [{ id: '1', type: 'user', content: 'Test' }],
         model: 'claude-sonnet-4-5-20250929',
         tools
@@ -327,10 +328,10 @@ describe('generateResponse endpoint with MCP tools', () => {
   })
 
   describe('tRPC signature compatibility', () => {
-    it('should maintain backward-compatible input schema', async () => {
-      // The input should still accept all existing fields
+    it('should accept input schema with MapContext', async () => {
+      // The input should accept mapContext instead of centerCoordId
       const input = {
-        centerCoordId: '1,0:1,2',
+        mapContext: createMockMapContext(),
         messages: [{ id: '1', type: 'user', content: 'Test' }],
         model: 'claude-sonnet-4-5-20250929',
         temperature: 0.7,
@@ -338,16 +339,12 @@ describe('generateResponse endpoint with MCP tools', () => {
         compositionConfig: {
           canvas: { enabled: true, strategy: 'standard' as const },
           chat: { enabled: true, strategy: 'full' as const }
-        },
-        cacheState: {
-          itemsById: {},
-          currentCenter: '1,0:1,2'
         }
       }
 
-      // Should not throw validation error
+      // Should have correct structure
       expect(input).toBeDefined()
-      expect(input.centerCoordId).toBe('1,0:1,2')
+      expect(input.mapContext.center.coords).toBe('1,0:1,2')
       expect(input.messages).toHaveLength(1)
     })
 
@@ -355,7 +352,7 @@ describe('generateResponse endpoint with MCP tools', () => {
       const tools = mockCreateMCPTools(mockCtx)
 
       const result = await mockAgenticService.generateResponse({
-        centerCoordId: '1,0:1,2',
+        mapContext: createMockMapContext(),
         messages: [{ id: '1', type: 'user', content: 'Test' }],
         model: 'claude-sonnet-4-5-20250929',
         tools

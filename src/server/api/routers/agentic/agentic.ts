@@ -2,7 +2,8 @@ import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { createTRPCRouter, protectedProcedure, mappingServiceMiddleware, iamServiceMiddleware } from '~/server/api/trpc'
 import { verificationAwareRateLimit, verificationAwareAuthLimit } from '~/server/api/middleware'
-import { createAgenticService, type CompositionConfig, PreviewGeneratorService, OpenRouterRepository, type ChatMessageContract, type AIContextSnapshot } from '~/lib/domains/agentic'
+import { createAgenticService, type CompositionConfig, PreviewGeneratorService, OpenRouterRepository, type ChatMessageContract } from '~/lib/domains/agentic'
+import { ContextStrategies } from '~/lib/domains/mapping'
 import { EventBus as EventBusImpl } from '~/lib/utils/event-bus'
 import { env } from '~/env'
 import { db, schema } from '~/server/db'
@@ -50,28 +51,6 @@ const compositionConfigSchema = z.object({
   }).optional()
 })
 
-// Tile snapshot schema with coordinates
-const tileSnapshotSchema = z.object({
-  coordId: z.string(),
-  coordinates: z.object({
-    userId: z.number(),
-    groupId: z.number(),
-    path: z.array(z.number())
-  }),
-  title: z.string(),
-  content: z.string().optional(),
-  preview: z.string().optional()
-})
-
-// AI Context Snapshot schema - hierarchical structure with varying detail levels
-const aiContextSnapshotSchema = z.object({
-  centerCoordId: z.string().nullable(),
-  center: tileSnapshotSchema.optional(), // Center with full content
-  composed: z.array(tileSnapshotSchema), // Composed tiles (direction 0) with full content + preview
-  children: z.array(tileSnapshotSchema), // Children with preview
-  grandchildren: z.array(tileSnapshotSchema), // Grandchildren with just title
-  expandedTileIds: z.array(z.string())
-})
 
 export const agenticRouter = createTRPCRouter({
   generateResponse: protectedProcedure
@@ -86,10 +65,21 @@ export const agenticRouter = createTRPCRouter({
         temperature: z.number().min(0).max(2).optional(),
         maxTokens: z.number().min(1).max(8192).optional(),
         compositionConfig: compositionConfigSchema.optional(),
-        contextSnapshot: aiContextSnapshotSchema
       })
     )
     .mutation(async ({ input, ctx }) => {
+      // Fetch map context using mapping domain service
+      const canvasStrategy = input.compositionConfig?.canvas?.strategy ?? 'standard'
+      const contextStrategy = canvasStrategy === 'minimal' ? ContextStrategies.MINIMAL :
+                             canvasStrategy === 'extended' ? ContextStrategies.EXTENDED :
+                             canvasStrategy === 'focused' ? ContextStrategies.FOCUSED :
+                             ContextStrategies.STANDARD
+
+      const mapContext = await ctx.mappingService.context.getContextForCenter(
+        input.centerCoordId,
+        contextStrategy
+      )
+
       // Create a server-side event bus instance
       const eventBus = new EventBusImpl()
 
@@ -111,7 +101,6 @@ export const agenticRouter = createTRPCRouter({
           mcpApiKey // Pass MCP key from IAM domain
         },
         eventBus,
-        getContextSnapshot: () => input.contextSnapshot as unknown as AIContextSnapshot,
         useQueue,
         userId: ctx.session?.userId ?? 'anonymous'
       })
@@ -128,7 +117,7 @@ export const agenticRouter = createTRPCRouter({
 
       // Generate the response with MCP tools
       const response = await agenticService.generateResponse({
-        centerCoordId: input.centerCoordId,
+        mapContext,
         messages: input.messages as ChatMessageContract[],
         model: input.model,
         temperature: input.temperature,
@@ -169,10 +158,21 @@ export const agenticRouter = createTRPCRouter({
         temperature: z.number().min(0).max(2).optional(),
         maxTokens: z.number().min(1).max(8192).optional(),
         compositionConfig: compositionConfigSchema.optional(),
-        contextSnapshot: aiContextSnapshotSchema
       })
     )
     .mutation(async ({ input, ctx }) => {
+      // Fetch map context using mapping domain service
+      const canvasStrategy = input.compositionConfig?.canvas?.strategy ?? 'standard'
+      const contextStrategy = canvasStrategy === 'minimal' ? ContextStrategies.MINIMAL :
+                             canvasStrategy === 'extended' ? ContextStrategies.EXTENDED :
+                             canvasStrategy === 'focused' ? ContextStrategies.FOCUSED :
+                             ContextStrategies.STANDARD
+
+      const mapContext = await ctx.mappingService.context.getContextForCenter(
+        input.centerCoordId,
+        contextStrategy
+      )
+
       // Create a server-side event bus instance
       const eventBus = new EventBusImpl()
 
@@ -191,7 +191,6 @@ export const agenticRouter = createTRPCRouter({
           mcpApiKey // Pass MCP key from IAM domain
         },
         eventBus,
-        getContextSnapshot: () => input.contextSnapshot as unknown as AIContextSnapshot,
         useQueue: false, // Streaming doesn't use queue
         userId: ctx.session?.userId ?? 'anonymous'
       })
@@ -212,7 +211,7 @@ export const agenticRouter = createTRPCRouter({
       // Generate streaming response with MCP tools
       const response = await agenticService.generateStreamingResponse(
         {
-          centerCoordId: input.centerCoordId,
+          mapContext,
           messages: input.messages as ChatMessageContract[],
           model: input.model,
           temperature: input.temperature,
@@ -247,10 +246,7 @@ export const agenticRouter = createTRPCRouter({
           anthropicApiKey: env.ANTHROPIC_API_KEY ?? '',
           preferClaudeSDK: true // Use Claude Agent SDK when anthropicApiKey is available
         },
-        eventBus,
-        getContextSnapshot: () => {
-          throw new Error('Cache state not needed for listing models')
-        }
+        eventBus
       })
 
       if (!agenticService.isConfigured()) {

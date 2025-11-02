@@ -1,11 +1,12 @@
-import type { 
-  CompositionConfig, 
-  ComposedContext, 
+import type {
+  CompositionConfig,
+  ComposedContext,
   Context,
   CanvasContext,
   ChatContext,
   SerializationFormat
 } from '~/lib/domains/agentic/types'
+import type { MapContext } from '~/lib/domains/mapping'
 import type { CanvasContextBuilder } from '~/lib/domains/agentic/services/canvas-context-builder.service'
 import type { ChatContextBuilder } from '~/lib/domains/agentic/services/chat-context-builder.service'
 import type { TokenizerService } from '~/lib/domains/agentic/services/tokenizer.service'
@@ -19,16 +20,16 @@ export class ContextCompositionService {
   ) {}
 
   async composeContext(
-    centerCoordId: string,
+    mapContext: MapContext,
     messages: ChatMessageContract[],
     config: CompositionConfig
   ): Promise<ComposedContext> {
     const contexts: Context[] = []
-    
+
     // Build canvas context if enabled
     if (config.canvas?.enabled) {
       const canvasContext = await this.canvasBuilder.build(
-        centerCoordId,
+        mapContext,
         config.canvas.strategy,
         config.canvas.options
       )

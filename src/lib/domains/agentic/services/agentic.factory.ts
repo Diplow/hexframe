@@ -20,7 +20,7 @@ import { RecentChatStrategy } from '~/lib/domains/agentic/services/chat-strategi
 import { RelevantChatStrategy } from '~/lib/domains/agentic/services/chat-strategies/relevant.strategy'
 
 import type { EventBus } from '~/lib/utils/event-bus'
-import type { CanvasContextStrategy, ChatContextStrategy, AIContextSnapshot } from '~/lib/domains/agentic/types'
+import type { CanvasContextStrategy, ChatContextStrategy } from '~/lib/domains/agentic/types'
 import type { ICanvasStrategy } from '~/lib/domains/agentic/services/canvas-strategies/strategy.interface'
 import type { IChatStrategy } from '~/lib/domains/agentic/services/chat-strategies/strategy.interface'
 
@@ -34,13 +34,12 @@ export interface LLMConfig {
 export interface CreateAgenticServiceOptions {
   llmConfig: LLMConfig
   eventBus: EventBus
-  getContextSnapshot: () => AIContextSnapshot
   useQueue?: boolean
   userId?: string // Required when using queue for rate limiting
 }
 
 export function createAgenticService(options: CreateAgenticServiceOptions): AgenticService {
-  const { llmConfig, eventBus, getContextSnapshot, useQueue, userId } = options
+  const { llmConfig, eventBus, useQueue, userId } = options
   const { openRouterApiKey, anthropicApiKey, preferClaudeSDK, mcpApiKey } = llmConfig
 
   // Create repository - use queued version if configured
@@ -74,11 +73,11 @@ export function createAgenticService(options: CreateAgenticServiceOptions): Agen
   // Create tokenizer
   const tokenizer = new SimpleTokenizerService()
 
-  // Create canvas strategies
+  // Create canvas strategies (no longer need getContextSnapshot)
   const canvasStrategies = new Map<CanvasContextStrategy, ICanvasStrategy>([
-    ['standard', new StandardCanvasStrategy(getContextSnapshot)],
-    ['minimal', new MinimalCanvasStrategy(getContextSnapshot)],
-    ['extended', new ExtendedCanvasStrategy(getContextSnapshot)]
+    ['standard', new StandardCanvasStrategy()],
+    ['minimal', new MinimalCanvasStrategy()],
+    ['extended', new ExtendedCanvasStrategy()]
   ])
 
   // Create chat strategies

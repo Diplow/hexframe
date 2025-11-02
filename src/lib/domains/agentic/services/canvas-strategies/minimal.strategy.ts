@@ -1,24 +1,17 @@
 import type { ICanvasStrategy } from '~/lib/domains/agentic/services/canvas-strategies/strategy.interface'
-import type { CanvasContext, CanvasContextOptions, TileContextItem, AIContextSnapshot } from '~/lib/domains/agentic/types'
+import type { CanvasContext, CanvasContextOptions, TileContextItem } from '~/lib/domains/agentic/types'
+import type { MapContext } from '~/lib/domains/mapping'
 
 export class MinimalCanvasStrategy implements ICanvasStrategy {
-  constructor(private readonly getContextSnapshot: () => AIContextSnapshot) {}
-
   async build(
-    centerCoordId: string,
+    mapContext: MapContext,
     _options: CanvasContextOptions
   ): Promise<CanvasContext> {
-    const snapshot = this.getContextSnapshot()
-
     // Get only the center tile
-    if (!snapshot.center || snapshot.center.coordId !== centerCoordId) {
-      throw new Error(`Center tile not found: ${centerCoordId}`)
-    }
-
     const center: TileContextItem = {
-      coordId: snapshot.center.coordId,
-      title: snapshot.center.title,
-      content: snapshot.center.content ?? '',
+      coordId: mapContext.center.coords,
+      title: mapContext.center.title,
+      content: mapContext.center.content,
       depth: 0,
       hasChildren: false
     }

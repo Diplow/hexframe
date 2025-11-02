@@ -103,4 +103,29 @@ export interface MapItemRepository
       ref: MapItemRelatedItems["ref"];
     }>
   ): Promise<MapItemWithId[]>;
+
+  /**
+   * Optimized context fetch for a center tile in a single query
+   *
+   * Fetches parent, center, composed, children, and grandchildren tiles
+   * based on configuration, avoiding redundant queries and direction 0 issues.
+   *
+   * @param config - Configuration specifying which relationships to include
+   * @returns Grouped map items by relationship
+   */
+  getContextForCenter(config: {
+    centerPath: Coord["path"];
+    userId: number;
+    groupId: number;
+    includeParent: boolean;
+    includeComposed: boolean;
+    includeChildren: boolean;
+    includeGrandchildren: boolean;
+  }): Promise<{
+    parent: MapItemWithId | null;
+    center: MapItemWithId;
+    composed: MapItemWithId[];
+    children: MapItemWithId[];
+    grandchildren: MapItemWithId[];
+  }>;
 }

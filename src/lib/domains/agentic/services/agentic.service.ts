@@ -13,11 +13,12 @@ import type {
   LLMTool,
   ChatMessageContract,
 } from '~/lib/domains/agentic/types'
+import type { MapContext } from '~/lib/domains/mapping'
 // import type { Intent, ClassificationContext } from '../intent-classification/intent.types'
 import type { PromptTemplateName } from '~/lib/domains/agentic/prompts/prompts.constants'
 
 export interface GenerateResponseOptions {
-  centerCoordId: string
+  mapContext: MapContext
   messages: ChatMessageContract[]
   model: string
   temperature?: number
@@ -59,7 +60,7 @@ export class AgenticService {
 
     // Compose context from tile hierarchy and chat history
     const composedContext = await this.contextComposition.composeContext(
-      options.centerCoordId,
+      options.mapContext,
       options.messages,
       options.compositionConfig ?? this.getDefaultCompositionConfig()
     )
@@ -119,7 +120,7 @@ export class AgenticService {
 
     // Compose context
     const composedContext = await this.contextComposition.composeContext(
-      options.centerCoordId,
+      options.mapContext,
       options.messages,
       options.compositionConfig ?? this.getDefaultCompositionConfig()
     )

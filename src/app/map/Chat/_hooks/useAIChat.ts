@@ -5,7 +5,7 @@ import { MapCacheContext } from '~/app/map/Cache'
 import type { CompositionConfig } from '~/lib/domains/agentic'
 import { type GenerateResponseResult, _handleSuccessResponse, _handleErrorResponse } from '~/app/map/Chat/_hooks/_ai-response-handlers'
 import { _prepareMessagesForAI } from '~/app/map/Chat/_hooks/_ai-message-utils'
-import { convertChatMessagesToContracts, convertCacheStateToAISnapshot } from '~/app/map/_utils/contract-converters'
+import { convertChatMessagesToContracts } from '~/app/map/_utils/contract-converters'
 
 interface UseAIChatOptions {
   temperature?: number
@@ -64,8 +64,7 @@ export function useAIChat(options: UseAIChatOptions = {}) {
       model: 'claude-haiku-4-5-20251001', // Changed from deepseek to Claude model for SDK compatibility
       temperature: options.temperature,
       maxTokens: options.maxTokens,
-      compositionConfig: options.compositionConfig,
-      contextSnapshot: convertCacheStateToAISnapshot(cacheState)
+      compositionConfig: options.compositionConfig
     })
   }, [chatState, cacheState, generateResponseMutation, options])
 

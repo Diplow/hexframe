@@ -1,8 +1,9 @@
-import type { 
-  CanvasContext, 
-  CanvasContextOptions, 
-  CanvasContextStrategy 
+import type {
+  CanvasContext,
+  CanvasContextOptions,
+  CanvasContextStrategy
 } from '~/lib/domains/agentic/types'
+import type { MapContext } from '~/lib/domains/mapping'
 import type { ICanvasStrategy } from '~/lib/domains/agentic/services/canvas-strategies/strategy.interface'
 
 export class CanvasContextBuilder {
@@ -11,11 +12,11 @@ export class CanvasContextBuilder {
   ) {}
 
   async build(
-    centerCoordId: string,
+    mapContext: MapContext,
     strategy: CanvasContextStrategy,
     options?: CanvasContextOptions
   ): Promise<CanvasContext> {
     const strategyImpl = this.strategies.get(strategy) ?? this.strategies.get('standard')!
-    return strategyImpl.build(centerCoordId, options ?? {})
+    return strategyImpl.build(mapContext, options ?? {})
   }
 }
