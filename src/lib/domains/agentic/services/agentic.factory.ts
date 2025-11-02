@@ -19,12 +19,10 @@ import { FullChatStrategy } from '~/lib/domains/agentic/services/chat-strategies
 import { RecentChatStrategy } from '~/lib/domains/agentic/services/chat-strategies/recent.strategy'
 import { RelevantChatStrategy } from '~/lib/domains/agentic/services/chat-strategies/relevant.strategy'
 
-import type { EventBus } from '~/app/map'
-import type { CanvasContextStrategy, ChatContextStrategy } from '~/lib/domains/agentic/types'
+import type { EventBus } from '~/lib/utils/event-bus'
+import type { CanvasContextStrategy, ChatContextStrategy, AIContextSnapshot } from '~/lib/domains/agentic/types'
 import type { ICanvasStrategy } from '~/lib/domains/agentic/services/canvas-strategies/strategy.interface'
 import type { IChatStrategy } from '~/lib/domains/agentic/services/chat-strategies/strategy.interface'
-
-import type { CacheState } from '~/app/map'
 
 export interface LLMConfig {
   openRouterApiKey?: string
@@ -36,13 +34,13 @@ export interface LLMConfig {
 export interface CreateAgenticServiceOptions {
   llmConfig: LLMConfig
   eventBus: EventBus
-  getCacheState: () => CacheState
+  getContextSnapshot: () => AIContextSnapshot
   useQueue?: boolean
   userId?: string // Required when using queue for rate limiting
 }
 
 export function createAgenticService(options: CreateAgenticServiceOptions): AgenticService {
-  const { llmConfig, eventBus, getCacheState, useQueue, userId } = options
+  const { llmConfig, eventBus, getContextSnapshot, useQueue, userId } = options
   const { openRouterApiKey, anthropicApiKey, preferClaudeSDK, mcpApiKey } = llmConfig
 
   // Create repository - use queued version if configured
@@ -78,9 +76,9 @@ export function createAgenticService(options: CreateAgenticServiceOptions): Agen
 
   // Create canvas strategies
   const canvasStrategies = new Map<CanvasContextStrategy, ICanvasStrategy>([
-    ['standard', new StandardCanvasStrategy(getCacheState)],
-    ['minimal', new MinimalCanvasStrategy(getCacheState)],
-    ['extended', new ExtendedCanvasStrategy(getCacheState)]
+    ['standard', new StandardCanvasStrategy(getContextSnapshot)],
+    ['minimal', new MinimalCanvasStrategy(getContextSnapshot)],
+    ['extended', new ExtendedCanvasStrategy(getContextSnapshot)]
   ])
 
   // Create chat strategies

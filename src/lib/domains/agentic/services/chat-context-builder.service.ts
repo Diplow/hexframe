@@ -4,7 +4,7 @@ import type {
   ChatContextStrategy 
 } from '~/lib/domains/agentic/types'
 import type { IChatStrategy } from '~/lib/domains/agentic/services/chat-strategies/strategy.interface'
-import type { ChatMessage } from '~/app/map'
+import type { ChatMessageContract } from '~/lib/domains/agentic/types'
 
 export class ChatContextBuilder {
   constructor(
@@ -12,7 +12,7 @@ export class ChatContextBuilder {
   ) {}
 
   async build(
-    messages: ChatMessage[],
+    messages: ChatMessageContract[],
     strategy: ChatContextStrategy,
     options?: ChatContextOptions
   ): Promise<ChatContext> {

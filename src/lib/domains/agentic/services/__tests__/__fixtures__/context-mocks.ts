@@ -12,6 +12,7 @@ export const createMockCenterTile = (): TileContextItem => ({
 export const createMockCanvasContext = (): CanvasContext => ({
   type: 'canvas',
   center: createMockCenterTile(),
+  composed: [],
   children: [
     { coordId: 'child1', title: 'Child 1', content: 'Desc 1', position: 1, depth: 1, hasChildren: false },
     { coordId: 'child2', title: 'Child 2', content: 'Desc 2', position: 2, depth: 1, hasChildren: false }

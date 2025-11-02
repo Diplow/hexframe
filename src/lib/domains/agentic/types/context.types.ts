@@ -35,6 +35,7 @@ export type CanvasContextStrategy =
 export interface CanvasContext extends Context {
   type: 'canvas'
   center: TileContextItem
+  composed: TileContextItem[]  // Tiles with direction 0 (inside center)
   children: TileContextItem[]
   grandchildren: TileContextItem[]
   strategy: CanvasContextStrategy
@@ -106,3 +107,5 @@ export interface CompositionConfig {
     }
   }
 }
+// Type alias for internal use - maps contract to legacy name for compatibility
+export type { ChatMessageContract as ChatMessage } from '~/lib/domains/agentic/types/contracts'

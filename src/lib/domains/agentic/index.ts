@@ -42,6 +42,8 @@ export type {
   GenerateResponseInput as GenerateRequest,
   GenerateResponseOutput as GenerateResponse,
   ListModelsOutput as StreamGenerateRequest,
+  ChatMessageContract,
+  AIContextSnapshot,
 } from '~/lib/domains/agentic/types/contracts';
 
 export type {

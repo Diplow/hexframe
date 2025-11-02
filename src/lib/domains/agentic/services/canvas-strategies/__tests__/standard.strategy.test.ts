@@ -1,146 +1,134 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { StandardCanvasStrategy } from '~/lib/domains/agentic/services/canvas-strategies/standard.strategy'
-import type { CacheState } from '~/app/map'
-import type { TileData } from '~/app/map'
+import type { AIContextSnapshot } from '~/lib/domains/agentic/types'
 
 describe('StandardCanvasStrategy', () => {
-  let mockGetCacheState: () => CacheState
+  let mockGetContextSnapshot: () => AIContextSnapshot
   let strategy: StandardCanvasStrategy
-  
-  const createMockTile = (
-    coordId: string,
-    title: string,
-    path: number[]
-  ): TileData => ({
-    metadata: {
-      coordId,
-      coordinates: {
-        userId: 123,
-        groupId: 456,
-        path
+
+  // Mock AIContextSnapshot with hierarchical structure
+  const mockContextSnapshot: AIContextSnapshot = {
+    centerCoordId: 'user:123,group:456:1,2',
+    center: {
+      coordId: 'user:123,group:456:1,2',
+      coordinates: { userId: 123, groupId: 456, path: [1, 2] },
+      title: 'Center',
+      content: 'Description for Center'
+    },
+    composed: [],
+    children: [
+      {
+        coordId: 'user:123,group:456:1,2,1',
+        coordinates: { userId: 123, groupId: 456, path: [1, 2, 1] },
+        title: 'Child NW',
+        preview: 'Preview for Child NW'
       },
-      dbId: 'db-' + coordId,
-      parentId: path.length > 0 ? `user:123,group:456${path.length > 1 ? ':' + path.slice(0, -1).join(',') : ''}` : undefined,
-      depth: path.length,
-      ownerId: 'user:123'
-    },
-    data: {
-      title,
-      content: `Description for ${title}`,
-      link: '',
-      color: 'zinc',
-      preview: undefined
-    },
-    state: {
-      isDragged: false,
-      isHovered: false,
-      isSelected: false,
-      isExpanded: false,
-      isDragOver: false,
-      isHovering: false
-    }
-  } as unknown as TileData)
-  
-  const mockCacheState: CacheState = {
-    itemsById: {
-      'user:123,group:456:1,2': createMockTile('user:123,group:456:1,2', 'Center', [1, 2]),
-      'user:123,group:456:1,2,1': createMockTile('user:123,group:456:1,2,1', 'Child NW', [1, 2, 1]),
-      'user:123,group:456:1,2,2': createMockTile('user:123,group:456:1,2,2', 'Child NE', [1, 2, 2]),
-      'user:123,group:456:1,2,3': createMockTile('user:123,group:456:1,2,3', '', [1, 2, 3]), // Empty tile
-      'user:123,group:456:1,2,1,6': createMockTile('user:123,group:456:1,2,1,6', 'Grandchild 1', [1, 2, 1, 6]),
-      'user:123,group:456:1,2,1,5': createMockTile('user:123,group:456:1,2,1,5', 'Grandchild 2', [1, 2, 1, 5]),
-      'user:123,group:456:1,2,2,3': createMockTile('user:123,group:456:1,2,2,3', 'Grandchild 3', [1, 2, 2, 3]),
-      'user:123,group:456:1,2,1,6,2': createMockTile('user:123,group:456:1,2,1,6,2', 'Too Deep', [1, 2, 1, 6, 2]), // Too deep
-    },
-    currentCenter: 'user:123,group:456:1,2',
-    expandedItemIds: [],
-    isCompositionExpanded: false,
-    isLoading: false,
-    error: null,
-    lastUpdated: Date.now(),
-    cacheConfig: { maxAge: 300000, backgroundRefreshInterval: 60000, enableOptimisticUpdates: true, maxDepth: 5 },
-    regionMetadata: {}
+      {
+        coordId: 'user:123,group:456:1,2,2',
+        coordinates: { userId: 123, groupId: 456, path: [1, 2, 2] },
+        title: 'Child NE',
+        preview: 'Preview for Child NE'
+      }
+    ],
+    grandchildren: [
+      {
+        coordId: 'user:123,group:456:1,2,1,6',
+        coordinates: { userId: 123, groupId: 456, path: [1, 2, 1, 6] },
+        title: 'Grandchild 1'
+      },
+      {
+        coordId: 'user:123,group:456:1,2,1,5',
+        coordinates: { userId: 123, groupId: 456, path: [1, 2, 1, 5] },
+        title: 'Grandchild 2'
+      },
+      {
+        coordId: 'user:123,group:456:1,2,2,3',
+        coordinates: { userId: 123, groupId: 456, path: [1, 2, 2, 3] },
+        title: 'Grandchild 3'
+      }
+    ],
+    expandedTileIds: []
   }
-  
+
   beforeEach(() => {
-    mockGetCacheState = vi.fn(() => mockCacheState)
-    strategy = new StandardCanvasStrategy(mockGetCacheState)
+    mockGetContextSnapshot = vi.fn(() => mockContextSnapshot)
+    strategy = new StandardCanvasStrategy(mockGetContextSnapshot)
   })
-  
-  it('should build context with center tile and 2 generations', async () => {
+
+  it('should build context with proper hierarchy', async () => {
     const result = await strategy.build('user:123,group:456:1,2', {})
-    
+
     expect(result.type).toBe('canvas')
     expect(result.strategy).toBe('standard')
     expect(result.center.title).toBe('Center')
+    expect(result.center.content).toBe('Description for Center')
     expect(result.center.depth).toBe(0)
-    
-    // Check we got some children
-    expect(result.children.length).toBeGreaterThan(0)
+
+    // Should have 2 children with previews
+    expect(result.children.length).toBe(2)
     expect(result.children.map(c => c.title)).toContain('Child NW')
     expect(result.children.map(c => c.title)).toContain('Child NE')
-    
-    // Check we got some grandchildren
-    expect(result.grandchildren.length).toBeGreaterThan(0)
+    expect(result.children[0]?.content).toBe('Preview for Child NW')
+
+    // Should have 3 grandchildren with just titles
+    expect(result.grandchildren.length).toBe(3)
     expect(result.grandchildren.map(g => g.title)).toContain('Grandchild 1')
-    
-    // Should not include tiles that are too deep
-    expect(result.grandchildren.map(g => g.title)).not.toContain('Too Deep')
+    expect(result.grandchildren[0]?.content).toBe('') // No content for grandchildren
   })
-  
-  it('should filter empty tiles when includeEmptyTiles is false', async () => {
-    const result = await strategy.build('user:123,group:456:1,2', {
-      includeEmptyTiles: false
-    })
-    
-    // Should filter out the empty child
-    expect(result.children).toHaveLength(2)
-    expect(result.children.every(c => c.title.trim() !== '')).toBe(true)
-  })
-  
-  it('should include position information for children', async () => {
+
+  it('should use hierarchical structure from snapshot', async () => {
     const result = await strategy.build('user:123,group:456:1,2', {})
-    
-    const childNW = result.children.find(c => c.title === 'Child NW')
-    const childNE = result.children.find(c => c.title === 'Child NE')
-    
-    expect(childNW?.position).toBe(1) // Direction.NorthWest
-    expect(childNE?.position).toBe(2) // Direction.NorthEast
+
+    // Hierarchy is determined by frontend converter
+    expect(result.children.length).toBe(2)
+    expect(result.grandchildren.length).toBe(3)
   })
-  
+
+  it('should include position information from coordinates', async () => {
+    const result = await strategy.build('user:123,group:456:1,2', {})
+
+    const childNW = result.children.find(c => c.title === 'Child NW')
+
+    // Position is derived from coordinates
+    expect(childNW?.position).toBe(1) // Direction.NorthWest
+  })
+
   it('should handle missing center tile gracefully', async () => {
     await expect(
       strategy.build('user:123,group:456:99,99', {})
     ).rejects.toThrow('Center tile not found')
   })
-  
-  it('should set proper depth values', async () => {
+
+  it('should set proper depth values for hierarchy', async () => {
     const result = await strategy.build('user:123,group:456:1,2', {})
-    
+
     expect(result.center.depth).toBe(0)
     expect(result.children.every(c => c.depth === 1)).toBe(true)
     expect(result.grandchildren.every(g => g.depth === 2)).toBe(true)
   })
-  
-  it('should include descriptions when available', async () => {
-    const result = await strategy.build('user:123,group:456:1,2', {
-      includeDescriptions: true
-    })
-    
+
+  it('should include correct detail level per hierarchy', async () => {
+    const result = await strategy.build('user:123,group:456:1,2', {})
+
+    // Center: full content
     expect(result.center.content).toBe('Description for Center')
-    expect(result.children[0]?.content).toContain('Description for')
+
+    // Children: preview
+    expect(result.children[0]?.content).toBe('Preview for Child NW')
+
+    // Grandchildren: no content
+    expect(result.grandchildren[0]?.content).toBe('')
   })
-  
-  it('should serialize to structured format', async () => {
-    const result = await strategy.build('user:123,group:456:1,2', {
-      includeEmptyTiles: false
-    })
-    
+
+  it('should serialize to structured format with hierarchy', async () => {
+    const result = await strategy.build('user:123,group:456:1,2', {})
+
     const serialized = result.serialize({ type: 'structured' })
-    
+
     expect(serialized).toContain('Center: Center')
     expect(serialized).toContain('Children (2)')
     expect(serialized).toContain('Child NW')
     expect(serialized).toContain('Grandchildren (3)')
+    expect(serialized).toContain('Grandchild 1')
   })
 })

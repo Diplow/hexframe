@@ -2,7 +2,7 @@ import type { ILLMRepository } from '~/lib/domains/agentic/repositories/llm.repo
 import type { ContextCompositionService } from '~/lib/domains/agentic/services/context-composition.service'
 import { PromptTemplateService } from '~/lib/domains/agentic/services/prompt-template.service'
 // import { IntentClassifierService } from '../intent-classification/intent-classifier.service'
-import type { EventBus } from '~/app/map'
+import type { EventBus } from '~/lib/utils/event-bus'
 import type {
   CompositionConfig,
   LLMResponse,
@@ -10,15 +10,15 @@ import type {
   StreamChunk,
   ModelInfo,
   LLMMessage,
-  LLMTool
+  LLMTool,
+  ChatMessageContract,
 } from '~/lib/domains/agentic/types'
-import type { ChatMessage } from '~/app/map'
 // import type { Intent, ClassificationContext } from '../intent-classification/intent.types'
 import type { PromptTemplateName } from '~/lib/domains/agentic/prompts/prompts.constants'
 
 export interface GenerateResponseOptions {
   centerCoordId: string
-  messages: ChatMessage[]
+  messages: ChatMessageContract[]
   model: string
   temperature?: number
   maxTokens?: number
@@ -189,7 +189,7 @@ export class AgenticService {
 
   private buildLLMMessages(
     composedContext: ReturnType<ContextCompositionService['composeContext']> extends Promise<infer T> ? T : never,
-    chatMessages: ChatMessage[],
+    chatMessages: ChatMessageContract[],
     promptTemplateName: PromptTemplateName = 'system-prompt'
   ): LLMMessage[] {
     const messages: LLMMessage[] = []
@@ -206,19 +206,12 @@ export class AgenticService {
     })
 
     // Convert chat messages to LLM messages
+    // Note: ChatMessageContract.content is always a string (widgets are pre-serialized)
     for (const msg of chatMessages) {
-      if (typeof msg.content === 'string') {
-        messages.push({
-          role: msg.type,
-          content: msg.content
-        })
-      } else {
-        // Handle widget messages by extracting text representation
-        messages.push({
-          role: msg.type,
-          content: this.extractTextFromWidget(msg.content)
-        })
-      }
+      messages.push({
+        role: msg.type,
+        content: msg.content
+      })
     }
 
     return messages

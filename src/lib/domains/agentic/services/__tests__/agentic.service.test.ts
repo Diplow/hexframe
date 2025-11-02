@@ -2,9 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { AgenticService } from '~/lib/domains/agentic/services/agentic.service'
 import type { ILLMRepository } from '~/lib/domains/agentic/repositories/llm.repository.interface'
 import type { ContextCompositionService } from '~/lib/domains/agentic/services/context-composition.service'
-import type { EventBus } from '~/app/map'
-import type { ComposedContext, LLMResponse, StreamChunk } from '~/lib/domains/agentic/types'
-import type { ChatMessage } from '~/app/map'
+import type { EventBus } from '~/lib/utils/event-bus'
+import type { ComposedContext, LLMResponse, StreamChunk, ChatMessageContract } from '~/lib/domains/agentic/types'
 
 describe('AgenticService', () => {
   let mockLLMRepository: ILLMRepository
@@ -65,7 +64,7 @@ describe('AgenticService', () => {
   })
 
   describe('generateResponse', () => {
-    const mockMessages: ChatMessage[] = [
+    const mockMessages: ChatMessageContract[] = [
       {
         id: '1',
         type: 'user',
@@ -223,7 +222,7 @@ describe('AgenticService', () => {
   })
 
   describe('generateStreamingResponse', () => {
-    const mockMessages: ChatMessage[] = [
+    const mockMessages: ChatMessageContract[] = [
       {
         id: '1',
         type: 'user',
@@ -337,7 +336,7 @@ describe('AgenticService', () => {
   })
 
   describe('generateResponse with tools', () => {
-    const mockMessages: ChatMessage[] = [
+    const mockMessages: ChatMessageContract[] = [
       {
         id: '1',
         type: 'user',

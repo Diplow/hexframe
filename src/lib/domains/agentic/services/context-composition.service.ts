@@ -9,7 +9,7 @@ import type {
 import type { CanvasContextBuilder } from '~/lib/domains/agentic/services/canvas-context-builder.service'
 import type { ChatContextBuilder } from '~/lib/domains/agentic/services/chat-context-builder.service'
 import type { TokenizerService } from '~/lib/domains/agentic/services/tokenizer.service'
-import type { ChatMessage } from '~/app/map'
+import type { ChatMessageContract } from '~/lib/domains/agentic/types'
 
 export class ContextCompositionService {
   constructor(
@@ -20,7 +20,7 @@ export class ContextCompositionService {
 
   async composeContext(
     centerCoordId: string,
-    messages: ChatMessage[],
+    messages: ChatMessageContract[],
     config: CompositionConfig
   ): Promise<ComposedContext> {
     const contexts: Context[] = []

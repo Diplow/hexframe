@@ -2,10 +2,8 @@ import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { createTRPCRouter, protectedProcedure, mappingServiceMiddleware, iamServiceMiddleware } from '~/server/api/trpc'
 import { verificationAwareRateLimit, verificationAwareAuthLimit } from '~/server/api/middleware'
-import { createAgenticService, type CompositionConfig, PreviewGeneratorService, OpenRouterRepository } from '~/lib/domains/agentic'
+import { createAgenticService, type CompositionConfig, PreviewGeneratorService, OpenRouterRepository, type ChatMessageContract, type AIContextSnapshot } from '~/lib/domains/agentic'
 import { EventBus as EventBusImpl } from '~/lib/utils/event-bus'
-import type { CacheState } from '~/app/map'
-import type { ChatMessage } from '~/app/map'
 import { env } from '~/env'
 import { db, schema } from '~/server/db'
 const { llmJobResults } = schema
@@ -13,19 +11,13 @@ import { eq } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { createMCPTools } from '~/server/api/routers/map'
 
-// Message schema matching the Chat component
+// ChatMessage contract schema
 const chatMessageSchema = z.object({
   id: z.string(),
   type: z.enum(['user', 'assistant', 'system']),
-  content: z.union([
-    z.string(),
-    z.object({
-      type: z.enum(['tile', 'search', 'comparison', 'action', 'creation', 'login', 'confirm-delete', 'loading', 'error', 'ai-response']),
-      data: z.unknown()
-    })
-  ]),
+  content: z.string(), // Always string - widgets are pre-serialized by frontend
   metadata: z.object({
-    timestamp: z.date(),
+    timestamp: z.string().optional(), // ISO string
     tileId: z.string().optional()
   }).optional()
 })
@@ -58,30 +50,27 @@ const compositionConfigSchema = z.object({
   }).optional()
 })
 
-// Tile data schema for cache state
-const tileDataSchema = z.object({
-  metadata: z.object({
-    coordId: z.string(),
-    coordinates: z.object({
-      userId: z.number(),
-      groupId: z.number(),
-      path: z.array(z.number())
-    }),
-    parentId: z.string().optional(),
-    depth: z.number()
+// Tile snapshot schema with coordinates
+const tileSnapshotSchema = z.object({
+  coordId: z.string(),
+  coordinates: z.object({
+    userId: z.number(),
+    groupId: z.number(),
+    path: z.array(z.number())
   }),
-  data: z.object({
-    title: z.string(),
-    content: z.string(),
-    preview: z.string().optional(),
-    link: z.string(),
-    color: z.string()
-  })
+  title: z.string(),
+  content: z.string().optional(),
+  preview: z.string().optional()
 })
 
-const cacheStateSchema = z.object({
-  itemsById: z.record(z.string(), tileDataSchema),
-  currentCenter: z.string()
+// AI Context Snapshot schema - hierarchical structure with varying detail levels
+const aiContextSnapshotSchema = z.object({
+  centerCoordId: z.string().nullable(),
+  center: tileSnapshotSchema.optional(), // Center with full content
+  composed: z.array(tileSnapshotSchema), // Composed tiles (direction 0) with full content + preview
+  children: z.array(tileSnapshotSchema), // Children with preview
+  grandchildren: z.array(tileSnapshotSchema), // Grandchildren with just title
+  expandedTileIds: z.array(z.string())
 })
 
 export const agenticRouter = createTRPCRouter({
@@ -97,7 +86,7 @@ export const agenticRouter = createTRPCRouter({
         temperature: z.number().min(0).max(2).optional(),
         maxTokens: z.number().min(1).max(8192).optional(),
         compositionConfig: compositionConfigSchema.optional(),
-        cacheState: cacheStateSchema
+        contextSnapshot: aiContextSnapshotSchema
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -122,7 +111,7 @@ export const agenticRouter = createTRPCRouter({
           mcpApiKey // Pass MCP key from IAM domain
         },
         eventBus,
-        getCacheState: () => input.cacheState as unknown as CacheState,
+        getContextSnapshot: () => input.contextSnapshot as unknown as AIContextSnapshot,
         useQueue,
         userId: ctx.session?.userId ?? 'anonymous'
       })
@@ -140,7 +129,7 @@ export const agenticRouter = createTRPCRouter({
       // Generate the response with MCP tools
       const response = await agenticService.generateResponse({
         centerCoordId: input.centerCoordId,
-        messages: input.messages as ChatMessage[], // Type mismatch due to zod schema limitations
+        messages: input.messages as ChatMessageContract[],
         model: input.model,
         temperature: input.temperature,
         maxTokens: input.maxTokens,
@@ -180,7 +169,7 @@ export const agenticRouter = createTRPCRouter({
         temperature: z.number().min(0).max(2).optional(),
         maxTokens: z.number().min(1).max(8192).optional(),
         compositionConfig: compositionConfigSchema.optional(),
-        cacheState: cacheStateSchema
+        contextSnapshot: aiContextSnapshotSchema
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -202,7 +191,7 @@ export const agenticRouter = createTRPCRouter({
           mcpApiKey // Pass MCP key from IAM domain
         },
         eventBus,
-        getCacheState: () => input.cacheState as unknown as CacheState,
+        getContextSnapshot: () => input.contextSnapshot as unknown as AIContextSnapshot,
         useQueue: false, // Streaming doesn't use queue
         userId: ctx.session?.userId ?? 'anonymous'
       })
@@ -224,7 +213,7 @@ export const agenticRouter = createTRPCRouter({
       const response = await agenticService.generateStreamingResponse(
         {
           centerCoordId: input.centerCoordId,
-          messages: input.messages as ChatMessage[],
+          messages: input.messages as ChatMessageContract[],
           model: input.model,
           temperature: input.temperature,
           maxTokens: input.maxTokens,
@@ -259,7 +248,7 @@ export const agenticRouter = createTRPCRouter({
           preferClaudeSDK: true // Use Claude Agent SDK when anthropicApiKey is available
         },
         eventBus,
-        getCacheState: () => {
+        getContextSnapshot: () => {
           throw new Error('Cache state not needed for listing models')
         }
       })

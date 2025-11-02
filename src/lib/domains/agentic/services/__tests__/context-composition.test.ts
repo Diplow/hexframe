@@ -3,8 +3,7 @@ import { ContextCompositionService } from '~/lib/domains/agentic/services/contex
 import type { CanvasContextBuilder } from '~/lib/domains/agentic/services/canvas-context-builder.service'
 import type { ChatContextBuilder } from '~/lib/domains/agentic/services/chat-context-builder.service'
 import type { TokenizerService } from '~/lib/domains/agentic/services/tokenizer.service'
-import type { CompositionConfig } from '~/lib/domains/agentic/types'
-import type { ChatMessage } from '~/app/map'
+import type { CompositionConfig, ChatMessageContract } from '~/lib/domains/agentic/types'
 import { createMockCanvasContext, createMockChatContext } from '~/lib/domains/agentic/services/__tests__/__fixtures__/context-mocks'
 
 describe('ContextCompositionService', () => {
@@ -50,7 +49,7 @@ describe('ContextCompositionService', () => {
 
     const result = await service.composeContext(
       'user:123,group:456:1,2',
-      [] as ChatMessage[],
+      [] as ChatMessageContract[],
       config
     )
 
@@ -87,7 +86,7 @@ describe('ContextCompositionService', () => {
 
     const result = await service.composeContext(
       'user:123,group:456:1,2',
-      [] as ChatMessage[],
+      [] as ChatMessageContract[],
       config
     )
 
@@ -112,7 +111,7 @@ describe('ContextCompositionService', () => {
 
     const result = await service.composeContext(
       'user:123,group:456:1,2',
-      [] as ChatMessage[],
+      [] as ChatMessageContract[],
       configCanvasOnly
     )
 
@@ -140,7 +139,7 @@ describe('ContextCompositionService', () => {
 
     const result = await service.composeContext(
       'user:123,group:456:1,2',
-      [] as ChatMessage[],
+      [] as ChatMessageContract[],
       config
     )
 

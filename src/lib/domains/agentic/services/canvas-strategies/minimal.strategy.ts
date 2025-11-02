@@ -1,29 +1,32 @@
 import type { ICanvasStrategy } from '~/lib/domains/agentic/services/canvas-strategies/strategy.interface'
-import type { CanvasContext, CanvasContextOptions, TileContextItem } from '~/lib/domains/agentic/types'
-import type { CacheState } from '~/app/map'
-import type { TileData } from '~/app/map'
-import { CoordSystem } from '~/lib/domains/mapping/utils'
+import type { CanvasContext, CanvasContextOptions, TileContextItem, AIContextSnapshot } from '~/lib/domains/agentic/types'
 
 export class MinimalCanvasStrategy implements ICanvasStrategy {
-  constructor(private readonly getCacheState: () => CacheState) {}
-  
+  constructor(private readonly getContextSnapshot: () => AIContextSnapshot) {}
+
   async build(
     centerCoordId: string,
     _options: CanvasContextOptions
   ): Promise<CanvasContext> {
-    const state = this.getCacheState()
-    
+    const snapshot = this.getContextSnapshot()
+
     // Get only the center tile
-    const centerTile = state.itemsById[centerCoordId]
-    if (!centerTile) {
+    if (!snapshot.center || snapshot.center.coordId !== centerCoordId) {
       throw new Error(`Center tile not found: ${centerCoordId}`)
     }
-    
-    const center = this.toContextItem(centerTile, 0)
-    
+
+    const center: TileContextItem = {
+      coordId: snapshot.center.coordId,
+      title: snapshot.center.title,
+      content: snapshot.center.content ?? '',
+      depth: 0,
+      hasChildren: false
+    }
+
     return {
       type: 'canvas',
       center,
+      composed: [], // Minimal strategy doesn't include composed
       children: [],
       grandchildren: [],
       strategy: 'minimal',
@@ -31,21 +34,6 @@ export class MinimalCanvasStrategy implements ICanvasStrategy {
         computedAt: new Date()
       },
       serialize: (format) => this.serialize(center, format)
-    }
-  }
-  
-  private toContextItem(tile: TileData, depth: number): TileContextItem {
-    const position = depth > 0 
-      ? CoordSystem.getDirection(tile.metadata.coordinates)
-      : undefined
-      
-    return {
-      coordId: tile.metadata.coordId,
-      title: tile.data.title || '',
-      content: tile.data.content || '',
-      position,
-      depth,
-      hasChildren: false
     }
   }
   

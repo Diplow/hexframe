@@ -4,7 +4,6 @@
     "drizzle-orm",
     "inngest",
     "tiktoken",
-    "~/app/map",
     "~/env",
     "~/lib",
     "~/server/db"
