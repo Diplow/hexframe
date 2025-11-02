@@ -29,6 +29,7 @@ export type {
   StreamChunk,
   ModelInfo,
   LLMError,
+  LLMTool,
 } from '~/lib/domains/agentic/types/llm.types';
 
 export type {

@@ -6,7 +6,7 @@
 
 import type { MappingService } from '~/lib/domains/mapping'
 import type { IAMService } from '~/lib/domains/iam'
-import type { LLMTool } from '~/lib/domains/agentic/types'
+import type { LLMTool } from '~/lib/domains/agentic'
 
 interface ToolContext {
   mappingService: MappingService

@@ -9,7 +9,7 @@
 import type { Context } from '~/server/api/trpc'
 import type { MappingService } from '~/lib/domains/mapping'
 import type { IAMService } from '~/lib/domains/iam'
-import type { LLMTool } from '~/lib/domains/agentic/types'
+import type { LLMTool } from '~/lib/domains/agentic'
 import {
   _createGetItemByCoordsTool,
   _createAddItemTool,
