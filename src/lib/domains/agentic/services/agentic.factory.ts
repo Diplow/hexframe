@@ -30,6 +30,7 @@ export interface LLMConfig {
   openRouterApiKey?: string
   anthropicApiKey?: string
   preferClaudeSDK?: boolean // If true, use ClaudeAgentSDKRepository when anthropicApiKey is provided
+  mcpApiKey?: string // Internal MCP API key (fetched by API layer from IAM domain)
 }
 
 export interface CreateAgenticServiceOptions {
@@ -42,7 +43,7 @@ export interface CreateAgenticServiceOptions {
 
 export function createAgenticService(options: CreateAgenticServiceOptions): AgenticService {
   const { llmConfig, eventBus, getCacheState, useQueue, userId } = options
-  const { openRouterApiKey, anthropicApiKey, preferClaudeSDK } = llmConfig
+  const { openRouterApiKey, anthropicApiKey, preferClaudeSDK, mcpApiKey } = llmConfig
 
   // Create repository - use queued version if configured
   let llmRepository: ILLMRepository
@@ -52,13 +53,14 @@ export function createAgenticService(options: CreateAgenticServiceOptions): Agen
 
   if (preferClaudeSDK && anthropicApiKey) {
     // Use Claude Agent SDK repository when explicitly preferred
-    baseRepository = new ClaudeAgentSDKRepository(anthropicApiKey)
+    // Pass mcpApiKey for MCP tool access (fetched by API layer from IAM domain)
+    baseRepository = new ClaudeAgentSDKRepository(anthropicApiKey, mcpApiKey, userId)
   } else if (openRouterApiKey) {
     // Default to OpenRouter if available
     baseRepository = new OpenRouterRepository(openRouterApiKey)
   } else if (anthropicApiKey) {
     // Fall back to Claude SDK if only anthropic key is provided
-    baseRepository = new ClaudeAgentSDKRepository(anthropicApiKey)
+    baseRepository = new ClaudeAgentSDKRepository(anthropicApiKey, mcpApiKey, userId)
   } else {
     throw new Error('Either openRouterApiKey or anthropicApiKey must be provided')
   }

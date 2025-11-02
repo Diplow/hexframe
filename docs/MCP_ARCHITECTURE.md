@@ -60,7 +60,7 @@ const mcpServers = {
 ```
 
 **Environment Variables**:
-- `HEXFRAME_MCP_API_KEY` - API key for MCP authentication
+- `ENCRYPTION_KEY` - 32-byte encryption key (64 hex chars) for internal API keys
 - `HEXFRAME_API_BASE_URL` - Base URL (defaults to http://localhost:3000)
 
 ### 3. MCP Tools
@@ -89,38 +89,62 @@ const mcpServers = {
 ## Authentication Flow
 
 ```
-1. User makes AI chat request → tRPC endpoint
-2. tRPC creates Claude SDK repository with tools
-3. SDK spawns subprocess with MCP config
-4. Subprocess connects to /api/mcp with API key
-5. MCP server validates API key
-6. Tool executes within authenticated context
-7. Result returned to Claude → User
+1. User makes AI chat request → tRPC endpoint (with session/userId)
+2. tRPC creates Claude SDK repository with userId
+3. SDK fetches/creates user's encrypted internal MCP key
+4. SDK spawns subprocess with MCP config (using decrypted key)
+5. Subprocess connects to /api/mcp with internal API key
+6. MCP server validates internal key → gets userId
+7. Tool executes within user's authenticated context
+8. Result returned to Claude → User
 ```
+
+## Internal vs External API Keys
+
+**External API Keys** (better-auth `apikey` table):
+- Created by users via UI
+- Shown ONCE to user, then hashed in DB
+- Used for external tools, CLI, third-party integrations
+- Server validates by comparing hash(incoming_key) with stored hash
+
+**Internal API Keys** (`internal_api_key` table):
+- Auto-created when user first uses AI chat
+- NEVER shown to user (server-only)
+- Encrypted (not hashed) using `ENCRYPTION_KEY`
+- Server decrypts to get plaintext for MCP authentication
+- One key per (userId, purpose) pair
+
+**Security Model**:
+- Internal keys stored encrypted with AES-256-GCM
+- Only server can decrypt (needs `ENCRYPTION_KEY` from env)
+- Keys never leave server environment (DB → Backend → SDK subprocess → MCP endpoint)
+- Separate table prevents accidental exposure in API responses
 
 ## Development vs Production
 
 ### Development
 ```env
 HEXFRAME_API_BASE_URL=http://localhost:3000
-HEXFRAME_MCP_API_KEY=EqkuRencRFtJGaOQhgvjhpwKSKaiYgmAyERzZcZHzJPuDAmAtjkyKBlZAJDDhTWa
+ENCRYPTION_KEY=<64 hex chars - generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))">
 ```
 
 ### Production
 ```env
 HEXFRAME_API_BASE_URL=https://hexframe.ai
-HEXFRAME_MCP_API_KEY=wXhdqorFEuGQcosdgMfyGSYPAIzftFnUaFVHbbFmXlXuAJCmCSvnmNcFzEnvHmpf
+ENCRYPTION_KEY=<64 hex chars - DIFFERENT from dev, securely stored>
 ```
 
 ## Why This Architecture?
 
 ### ✅ Benefits
 
-1. **Proper Authentication**: API keys provide secure, scoped access
-2. **Same Server for All Clients**: Used by both Claude Code and Claude Agent SDK
-3. **Centralized Logic**: All tool logic in one place
-4. **Production Ready**: Works in serverless environments
-5. **Debuggable**: HTTP requests are easy to inspect
+1. **Per-User Isolation**: Each user has their own encrypted MCP key
+2. **Zero Cross-User Risk**: User A cannot access User B's tiles
+3. **Defense-in-Depth**: Keys encrypted at rest, only decrypted server-side
+4. **Auto-Managed**: Users don't see/manage these keys (created automatically)
+5. **Production Ready**: Works in serverless environments
+6. **Debuggable**: HTTP requests are easy to inspect
+7. **Secure by Default**: DB breach alone doesn't leak keys (needs ENCRYPTION_KEY too)
 
 ### ❌ What Doesn't Work
 
@@ -176,12 +200,13 @@ Expected response:
 
 ### "Authentication failed" Error
 
-**Cause**: Invalid or missing API key
+**Cause**: Invalid or missing internal API key
 
 **Solution**:
-1. Check `HEXFRAME_MCP_API_KEY` is set in `.env`
-2. Verify API key exists in database
-3. Check MCP server logs for validation errors
+1. Check `ENCRYPTION_KEY` is set in `.env` (64 hex chars)
+2. Verify user has an internal API key in `internal_api_key` table
+3. Check MCP server logs for validation/decryption errors
+4. Try rotating the key: call `rotateInternalApiKey(userId, 'mcp')`
 
 ### "Permission denied" Error
 
@@ -198,15 +223,18 @@ Expected response:
 
 **Solution**:
 1. Check `tools` parameter is passed to `generate()`
-2. Verify `HEXFRAME_MCP_API_KEY` is set
-3. Check server logs for MCP connection errors
-4. Test MCP endpoint directly with curl
+2. Verify `userId` is passed to ClaudeAgentSDKRepository constructor
+3. Check `ENCRYPTION_KEY` is set in `.env`
+4. Check server logs for MCP connection errors or key generation failures
+5. Test MCP endpoint directly with curl (use internal API key from DB)
 
 ## Related Files
 
 - `src/app/api/mcp/route.ts` - HTTP MCP server endpoint
 - `src/app/services/mcp/handlers/tools.ts` - Tool definitions
 - `src/app/services/mcp/services/map-items.ts` - Tool handlers
-- `src/app/services/mcp/services/api-helpers.ts` - tRPC client
 - `src/lib/utils/request-context.ts` - Request context management
 - `src/lib/domains/agentic/repositories/claude-agent-sdk.repository.ts` - SDK config
+- `src/lib/domains/iam/services/internal-api-key.service.ts` - Internal key management
+- `src/lib/domains/iam/infrastructure/encryption.ts` - AES-256-GCM encryption
+- `src/server/db/schema/_tables/auth/internal-api-keys.ts` - Database schema

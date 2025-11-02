@@ -35,17 +35,21 @@ function extractDeltaText(event: unknown): string | undefined {
 
 export class ClaudeAgentSDKRepository implements ILLMRepository {
   private readonly apiKey: string
+  private readonly mcpApiKey?: string
+  private readonly userId?: string
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, mcpApiKey?: string, userId?: string) {
     this.apiKey = apiKey
+    this.mcpApiKey = mcpApiKey
+    this.userId = userId
     // SDK subprocess reads ANTHROPIC_API_KEY from process.env, not from query options
     if (apiKey) {
       process.env.ANTHROPIC_API_KEY = apiKey
     }
     // Enable DEBUG mode to capture subprocess stderr for troubleshooting
-    if (process.env.NODE_ENV === 'development') {
-      process.env.DEBUG = '*'
-    }
+    // if (process.env.NODE_ENV === 'development') {
+    //   process.env.DEBUG = '*'
+    // }
   }
 
   async generate(params: LLMGenerationParams): Promise<LLMResponse> {
@@ -70,12 +74,14 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
       // In development: http://localhost:3000/api/mcp
       // In production: https://hexframe.ai/api/mcp
       const mcpBaseUrl = process.env.HEXFRAME_API_BASE_URL ?? 'http://localhost:3000'
-      const mcpApiKey = process.env.HEXFRAME_MCP_API_KEY ?? ''
+
+      // Use provided MCP API key (passed by API layer after orchestrating with IAM domain)
+      const mcpApiKey = this.mcpApiKey
 
       loggers.agentic('MCP Server Configuration', {
         hasTools: !!tools,
         toolCount: tools?.length ?? 0,
-        hasApiKey: !!mcpApiKey,
+        hasMcpApiKey: !!mcpApiKey,
         apiKeyPrefix: mcpApiKey?.substring(0, 10),
         mcpUrl: `${mcpBaseUrl}/api/mcp`,
         willCreateMcpServers: !!(tools && tools.length > 0 && mcpApiKey)
@@ -87,7 +93,8 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
               type: 'http' as const,
               url: `${mcpBaseUrl}/api/mcp`,
               headers: {
-                'x-api-key': mcpApiKey
+                'x-api-key': mcpApiKey,
+                ...(this.userId ? { 'x-user-id': this.userId } : {})
               }
             }
           }
@@ -173,12 +180,14 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
       // In development: http://localhost:3000/api/mcp
       // In production: https://hexframe.ai/api/mcp
       const mcpBaseUrl = process.env.HEXFRAME_API_BASE_URL ?? 'http://localhost:3000'
-      const mcpApiKey = process.env.HEXFRAME_MCP_API_KEY ?? ''
+
+      // Use provided MCP API key (passed by API layer after orchestrating with IAM domain)
+      const mcpApiKey = this.mcpApiKey
 
       loggers.agentic('MCP Server Configuration (Streaming)', {
         hasTools: !!tools,
         toolCount: tools?.length ?? 0,
-        hasApiKey: !!mcpApiKey,
+        hasMcpApiKey: !!mcpApiKey,
         apiKeyPrefix: mcpApiKey?.substring(0, 10),
         mcpUrl: `${mcpBaseUrl}/api/mcp`,
         willCreateMcpServers: !!(tools && tools.length > 0 && mcpApiKey)
@@ -190,7 +199,8 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
               type: 'http' as const,
               url: `${mcpBaseUrl}/api/mcp`,
               headers: {
-                'x-api-key': mcpApiKey
+                'x-api-key': mcpApiKey,
+                ...(this.userId ? { 'x-user-id': this.userId } : {})
               }
             }
           }

@@ -107,12 +107,19 @@ export const agenticRouter = createTRPCRouter({
       // Determine if we should use queue based on environment
       const useQueue = process.env.USE_QUEUE === 'true' || process.env.NODE_ENV === 'production'
 
+      // Get or create internal MCP API key for this user (orchestration with IAM domain)
+      const { getOrCreateInternalApiKey } = await import('~/lib/domains/iam')
+      const mcpApiKey = ctx.session?.userId
+        ? await getOrCreateInternalApiKey(ctx.session.userId, 'mcp')
+        : undefined
+
       // Create agentic service with Claude SDK (preferred) or OpenRouter fallback
       const agenticService = createAgenticService({
         llmConfig: {
           openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
           anthropicApiKey: env.ANTHROPIC_API_KEY ?? '',
-          preferClaudeSDK: true // Use Claude Agent SDK when anthropicApiKey is available
+          preferClaudeSDK: true, // Use Claude Agent SDK when anthropicApiKey is available
+          mcpApiKey // Pass MCP key from IAM domain
         },
         eventBus,
         getCacheState: () => input.cacheState as unknown as CacheState,
@@ -180,12 +187,19 @@ export const agenticRouter = createTRPCRouter({
       // Create a server-side event bus instance
       const eventBus = new EventBusImpl()
 
+      // Get or create internal MCP API key for this user (orchestration with IAM domain)
+      const { getOrCreateInternalApiKey } = await import('~/lib/domains/iam')
+      const mcpApiKey = ctx.session?.userId
+        ? await getOrCreateInternalApiKey(ctx.session.userId, 'mcp')
+        : undefined
+
       // Create agentic service with Claude SDK (preferred) or OpenRouter fallback
       const agenticService = createAgenticService({
         llmConfig: {
           openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
           anthropicApiKey: env.ANTHROPIC_API_KEY ?? '',
-          preferClaudeSDK: true // Use Claude Agent SDK when anthropicApiKey is available
+          preferClaudeSDK: true, // Use Claude Agent SDK when anthropicApiKey is available
+          mcpApiKey // Pass MCP key from IAM domain
         },
         eventBus,
         getCacheState: () => input.cacheState as unknown as CacheState,

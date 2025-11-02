@@ -38,3 +38,10 @@ export { loginAction, registerAction } from '~/lib/domains/iam/actions';
 
 // Infrastructure (for service instantiation)
 export { BetterAuthUserRepository } from '~/lib/domains/iam/infrastructure';
+
+// Internal API key management (server-only, for MCP and other internal services)
+export {
+  getOrCreateInternalApiKey,
+  rotateInternalApiKey,
+  validateInternalApiKey,
+} from '~/lib/domains/iam/services/internal-api-key.service';
