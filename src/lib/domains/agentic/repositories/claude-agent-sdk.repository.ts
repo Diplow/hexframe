@@ -50,7 +50,7 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
 
   async generate(params: LLMGenerationParams): Promise<LLMResponse> {
     try {
-      const { messages, model } = params
+      const { messages, model, tools } = params
 
       // Convert messages to SDK format
       const systemPrompt = extractSystemPrompt(messages)
@@ -62,8 +62,36 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
         hasSystemPrompt: Boolean(systemPrompt),
         systemPrompt: systemPrompt?.substring(0, 100),
         apiKeySet: !!process.env.ANTHROPIC_API_KEY,
-        apiKeyPrefix: process.env.ANTHROPIC_API_KEY?.substring(0, 10)
+        apiKeyPrefix: process.env.ANTHROPIC_API_KEY?.substring(0, 10),
+        toolCount: tools?.length ?? 0
       })
+
+      // Configure SDK to use HTTP MCP server
+      // In development: http://localhost:3000/api/mcp
+      // In production: https://hexframe.ai/api/mcp
+      const mcpBaseUrl = process.env.HEXFRAME_API_BASE_URL ?? 'http://localhost:3000'
+      const mcpApiKey = process.env.HEXFRAME_MCP_API_KEY ?? ''
+
+      loggers.agentic('MCP Server Configuration', {
+        hasTools: !!tools,
+        toolCount: tools?.length ?? 0,
+        hasApiKey: !!mcpApiKey,
+        apiKeyPrefix: mcpApiKey?.substring(0, 10),
+        mcpUrl: `${mcpBaseUrl}/api/mcp`,
+        willCreateMcpServers: !!(tools && tools.length > 0 && mcpApiKey)
+      })
+
+      const mcpServers = tools && tools.length > 0 && mcpApiKey
+        ? {
+            hexframe: {
+              type: 'http' as const,
+              url: `${mcpBaseUrl}/api/mcp`,
+              headers: {
+                'x-api-key': mcpApiKey
+              }
+            }
+          }
+        : undefined
 
       // Call SDK query function
       const queryResult = query({
@@ -71,7 +99,9 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
         options: {
           model,
           systemPrompt,
-          maxTurns: 1 // For non-streaming, we want a single response
+          maxTurns: 10, // Allow multiple turns for tool use and agentic workflows
+          mcpServers,
+          permissionMode: 'bypassPermissions' // Allow MCP tools without asking for permission
         }
       })
 
@@ -128,23 +158,53 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
     onChunk: (chunk: StreamChunk) => void
   ): Promise<LLMResponse> {
     try {
-      const { messages, model } = params
+      const { messages, model, tools } = params
 
       const systemPrompt = extractSystemPrompt(messages)
       const userPrompt = buildPrompt(messages)
 
       loggers.agentic('Claude Agent SDK Streaming Request', {
         model,
-        messageCount: messages.length
+        messageCount: messages.length,
+        toolCount: tools?.length ?? 0
       })
+
+      // Configure SDK to use HTTP MCP server
+      // In development: http://localhost:3000/api/mcp
+      // In production: https://hexframe.ai/api/mcp
+      const mcpBaseUrl = process.env.HEXFRAME_API_BASE_URL ?? 'http://localhost:3000'
+      const mcpApiKey = process.env.HEXFRAME_MCP_API_KEY ?? ''
+
+      loggers.agentic('MCP Server Configuration (Streaming)', {
+        hasTools: !!tools,
+        toolCount: tools?.length ?? 0,
+        hasApiKey: !!mcpApiKey,
+        apiKeyPrefix: mcpApiKey?.substring(0, 10),
+        mcpUrl: `${mcpBaseUrl}/api/mcp`,
+        willCreateMcpServers: !!(tools && tools.length > 0 && mcpApiKey)
+      })
+
+      const mcpServers = tools && tools.length > 0 && mcpApiKey
+        ? {
+            hexframe: {
+              type: 'http' as const,
+              url: `${mcpBaseUrl}/api/mcp`,
+              headers: {
+                'x-api-key': mcpApiKey
+              }
+            }
+          }
+        : undefined
 
       const queryResult = query({
         prompt: userPrompt,
         options: {
           model,
           systemPrompt,
-          maxTurns: 1,
-          includePartialMessages: true // Enable real-time streaming
+          maxTurns: 10, // Allow multiple turns for tool use and agentic workflows
+          includePartialMessages: true, // Enable real-time streaming
+          mcpServers,
+          permissionMode: 'bypassPermissions' // Allow MCP tools without asking for permission
         }
       })
 

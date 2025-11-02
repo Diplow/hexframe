@@ -6,7 +6,7 @@
 
 import type { MappingService } from '~/lib/domains/mapping'
 import type { IAMService } from '~/lib/domains/iam'
-import type { MCPTool } from '~/server/api/routers/map/_mcp-tools'
+import type { LLMTool } from '~/lib/domains/agentic/types'
 
 interface ToolContext {
   mappingService: MappingService
@@ -14,7 +14,7 @@ interface ToolContext {
   user?: { id: string } | null
 }
 
-export function _createGetItemsForRootItemTool(ctx: ToolContext): MCPTool {
+export function _createGetItemsForRootItemTool(ctx: ToolContext): LLMTool {
   return {
     name: 'getItemsForRootItem',
     description: 'Get all items in a hierarchical map structure',
@@ -48,7 +48,7 @@ export function _createGetItemsForRootItemTool(ctx: ToolContext): MCPTool {
   }
 }
 
-export function _createGetCurrentUserTool(ctx: ToolContext): MCPTool {
+export function _createGetCurrentUserTool(ctx: ToolContext): LLMTool {
   return {
     name: 'getCurrentUser',
     description: 'Get information about the currently authenticated user',

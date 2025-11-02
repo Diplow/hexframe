@@ -12,4 +12,3 @@ export { mapItemsRouter } from '~/server/api/routers/map/map-items';
 
 // Export MCP tools for agentic router
 export { createMCPTools } from '~/server/api/routers/map/_mcp-tools';
-export type { MCPTool } from '~/server/api/routers/map/_mcp-tools';

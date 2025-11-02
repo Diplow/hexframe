@@ -9,6 +9,7 @@
 import type { Context } from '~/server/api/trpc'
 import type { MappingService } from '~/lib/domains/mapping'
 import type { IAMService } from '~/lib/domains/iam'
+import type { LLMTool } from '~/lib/domains/agentic/types'
 import {
   _createGetItemByCoordsTool,
   _createAddItemTool,
@@ -28,18 +29,6 @@ interface MCPContext extends Context {
   iamService: IAMService
 }
 
-export interface MCPTool {
-  name: string
-  description: string
-  inputSchema: {
-    type: string
-    properties: Record<string, unknown>
-    required?: string[]
-  }
-  execute: (input: Record<string, unknown>) => Promise<unknown>
-  [key: string]: unknown // Allow additional properties for SDK compatibility
-}
-
 /**
  * Creates MCP tools from tRPC context
  *
@@ -49,7 +38,7 @@ export interface MCPTool {
  * @param ctx - tRPC context containing session and services
  * @returns Array of MCP tools
  */
-export function createMCPTools(ctx: MCPContext): MCPTool[] {
+export function createMCPTools(ctx: MCPContext): LLMTool[] {
   _validateContext(ctx)
 
   return [

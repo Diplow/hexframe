@@ -5,7 +5,9 @@ import type { LLMGenerationParams } from '~/lib/domains/agentic/types/llm.types'
 
 // Mock the Claude Agent SDK
 vi.mock('@anthropic-ai/claude-agent-sdk', () => ({
-  query: vi.fn()
+  query: vi.fn(),
+  createSdkMcpServer: vi.fn(),
+  tool: vi.fn()
 }))
 
 import { query } from '@anthropic-ai/claude-agent-sdk'
@@ -58,7 +60,7 @@ describe('ClaudeAgentSDKRepository', () => {
         prompt: expect.any(String),
         options: expect.objectContaining({
           model: 'claude-sonnet-4-5-20250929',
-          maxTurns: 1
+          maxTurns: 10
         })
       })
 
@@ -109,9 +111,12 @@ describe('ClaudeAgentSDKRepository', () => {
 
       mockQuery.mockReturnValueOnce(mockAsyncGenerator as ReturnType<typeof query>)
 
-      const mockTools = [
-        { name: 'search', description: 'Search tool' }
-      ]
+      const mockTools = [{
+        name: 'search',
+        description: 'Search tool',
+        inputSchema: { type: 'object', properties: {} },
+        execute: async () => ({ result: 'test' })
+      }]
 
       const params: LLMGenerationParams = {
         messages: [{ role: 'user', content: 'Search for something' }],
@@ -233,7 +238,12 @@ describe('ClaudeAgentSDKRepository', () => {
 
       mockQuery.mockReturnValueOnce(mockAsyncGenerator as ReturnType<typeof query>)
 
-      const mockTools = [{ name: 'tool1', description: 'Test tool' }]
+      const mockTools = [{
+        name: 'tool1',
+        description: 'Test tool',
+        inputSchema: { type: 'object', properties: {} },
+        execute: async () => ({ result: 'test' })
+      }]
 
       const params: LLMGenerationParams = {
         messages: [{ role: 'user', content: 'Hello!' }],

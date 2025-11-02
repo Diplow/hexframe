@@ -347,8 +347,18 @@ describe('AgenticService', () => {
 
     it('should pass tools to LLM repository when provided', async () => {
       const mockTools = [
-        { name: 'search', description: 'Search the knowledge base' },
-        { name: 'calculate', description: 'Perform calculations' }
+        {
+          name: 'search',
+          description: 'Search the knowledge base',
+          inputSchema: { type: 'object', properties: {} },
+          execute: async () => ({ result: 'test' })
+        },
+        {
+          name: 'calculate',
+          description: 'Perform calculations',
+          inputSchema: { type: 'object', properties: {} },
+          execute: async () => ({ result: 42 })
+        }
       ]
 
       await service.generateResponse({

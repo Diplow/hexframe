@@ -3,13 +3,14 @@ import type { ContextCompositionService } from '~/lib/domains/agentic/services/c
 import { PromptTemplateService } from '~/lib/domains/agentic/services/prompt-template.service'
 // import { IntentClassifierService } from '../intent-classification/intent-classifier.service'
 import type { EventBus } from '~/app/map'
-import type { 
-  CompositionConfig, 
-  LLMResponse, 
+import type {
+  CompositionConfig,
+  LLMResponse,
   LLMGenerationParams,
   StreamChunk,
   ModelInfo,
-  LLMMessage
+  LLMMessage,
+  LLMTool
 } from '~/lib/domains/agentic/types'
 import type { ChatMessage } from '~/app/map'
 // import type { Intent, ClassificationContext } from '../intent-classification/intent.types'
@@ -26,7 +27,7 @@ export interface GenerateResponseOptions {
   isOwnSystem?: boolean
   systemBriefDescription?: string
   specialContext?: 'onboarding' | 'importing'
-  tools?: Array<{ name: string; description: string; [key: string]: unknown }>
+  tools?: LLMTool[]
 }
 
 export interface SubagentConfig {

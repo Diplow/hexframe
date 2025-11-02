@@ -138,7 +138,7 @@ export const agenticRouter = createTRPCRouter({
         temperature: input.temperature,
         maxTokens: input.maxTokens,
         compositionConfig: input.compositionConfig as CompositionConfig, // Type mismatch due to zod schema limitations
-        tools: mcpTools as Array<{ name: string; description: string; [key: string]: unknown }>
+        tools: mcpTools // Now properly typed as LLMTool[]
       })
 
       // Handle queued responses differently
@@ -215,7 +215,7 @@ export const agenticRouter = createTRPCRouter({
           temperature: input.temperature,
           maxTokens: input.maxTokens,
           compositionConfig: input.compositionConfig as CompositionConfig,
-          tools: mcpTools as Array<{ name: string; description: string; [key: string]: unknown }>
+          tools: mcpTools // Now properly typed as LLMTool[]
         },
         (chunk) => {
           chunks.push(chunk)
