@@ -1,5 +1,5 @@
 import type { TileContextItem, CanvasContext, ChatContextMessage, ChatContext } from '~/lib/domains/agentic/types'
-import type { MapContext } from '~/lib/domains/mapping'
+import type { MapContext } from '~/lib/domains/mapping/utils'
 import { vi } from 'vitest'
 
 export const createMockCenterTile = (): TileContextItem => ({

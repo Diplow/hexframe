@@ -13,7 +13,7 @@ import type {
   LLMTool,
   ChatMessageContract,
 } from '~/lib/domains/agentic/types'
-import type { MapContext } from '~/lib/domains/mapping'
+import type { MapContext } from '~/lib/domains/mapping/utils'
 // import type { Intent, ClassificationContext } from '../intent-classification/intent.types'
 import type { PromptTemplateName } from '~/lib/domains/agentic/prompts/prompts.constants'
 

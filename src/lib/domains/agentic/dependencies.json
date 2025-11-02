@@ -6,7 +6,6 @@
     "tiktoken",
     "~/env",
     "~/lib",
-    "~/lib/domains/mapping",
     "~/server/db"
   ],
   "subsystems": [

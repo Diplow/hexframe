@@ -1,6 +1,6 @@
 import type { ICanvasStrategy } from '~/lib/domains/agentic/services/canvas-strategies/strategy.interface'
 import type { CanvasContext, CanvasContextOptions, TileContextItem } from '~/lib/domains/agentic/types'
-import type { MapContext } from '~/lib/domains/mapping'
+import type { MapContext } from '~/lib/domains/mapping/utils'
 import { CoordSystem } from '~/lib/domains/mapping/utils'
 
 export class StandardCanvasStrategy implements ICanvasStrategy {
