@@ -11,7 +11,7 @@ import { db, schema } from '~/server/db'
 const { llmJobResults } = schema
 import { eq } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
-import { createMCPTools } from '~/server/api/routers/map/_mcp-tools'
+import { createMCPTools } from '~/server/api/routers/map'
 
 // Message schema matching the Chat component
 const chatMessageSchema = z.object({

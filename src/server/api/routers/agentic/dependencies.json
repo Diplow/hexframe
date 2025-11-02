@@ -9,6 +9,7 @@
     "~/lib/domains/agentic",
     "~/lib/utils/event-bus",
     "~/server/api/middleware",
+    "~/server/api/routers/map",
     "~/server/api/trpc",
     "~/server/db"
   ],
