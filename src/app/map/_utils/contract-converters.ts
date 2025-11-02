@@ -5,8 +5,8 @@
  * This decouples frontend implementation from backend API contracts.
  */
 
-import type { CacheState } from '~/app/map/Cache/State/types'
-import type { ChatMessage } from '~/app/map/Chat/types'
+import type { CacheState } from '~/app/map/Cache'
+import type { ChatMessage } from '~/app/map/Chat'
 import type { AIContextSnapshot, ChatMessageContract } from '~/lib/domains/agentic'
 
 /**

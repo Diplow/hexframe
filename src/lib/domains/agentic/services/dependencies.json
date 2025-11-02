@@ -5,6 +5,7 @@
     "~/lib/domains/agentic/infrastructure",
     "~/lib/domains/agentic/repositories",
     "~/lib/domains/agentic/types",
+    "~/lib/domains/mapping",
     "~/lib/utils/event-bus",
     "~/server/db"
   ],
