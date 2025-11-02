@@ -45,6 +45,17 @@ export function estimateUsage(
 export function getClaudeModels(): ModelInfo[] {
   return [
     {
+      id: 'claude-haiku-4-5-20251001',
+      name: 'Claude Haiku 4.5',
+      provider: 'anthropic',
+      contextWindow: 200000,
+      maxOutput: 8192,
+      pricing: {
+        prompt: 0.8,
+        completion: 4.0
+      }
+    },
+    {
       id: 'claude-sonnet-4-5-20250929',
       name: 'Claude Sonnet 4.5',
       provider: 'anthropic',
@@ -56,14 +67,14 @@ export function getClaudeModels(): ModelInfo[] {
       }
     },
     {
-      id: 'claude-haiku-4-5-20250611',
-      name: 'Claude Haiku 4.5',
+      id: 'claude-opus-4-1-20250805',
+      name: 'Claude Opus 4.1',
       provider: 'anthropic',
       contextWindow: 200000,
       maxOutput: 8192,
       pricing: {
-        prompt: 0.8,
-        completion: 4.0
+        prompt: 15.0,
+        completion: 75.0
       }
     },
     {
@@ -78,8 +89,30 @@ export function getClaudeModels(): ModelInfo[] {
       }
     },
     {
-      id: 'claude-haiku-4-20250228',
-      name: 'Claude Haiku 4',
+      id: 'claude-sonnet-4-20250514',
+      name: 'Claude Sonnet 4',
+      provider: 'anthropic',
+      contextWindow: 200000,
+      maxOutput: 8192,
+      pricing: {
+        prompt: 3.0,
+        completion: 15.0
+      }
+    },
+    {
+      id: 'claude-3-7-sonnet-20250219',
+      name: 'Claude Sonnet 3.7',
+      provider: 'anthropic',
+      contextWindow: 200000,
+      maxOutput: 8192,
+      pricing: {
+        prompt: 3.0,
+        completion: 15.0
+      }
+    },
+    {
+      id: 'claude-3-5-haiku-20241022',
+      name: 'Claude Haiku 3.5',
       provider: 'anthropic',
       contextWindow: 200000,
       maxOutput: 8192,
@@ -89,14 +122,25 @@ export function getClaudeModels(): ModelInfo[] {
       }
     },
     {
-      id: 'claude-3-5-sonnet-20241022',
-      name: 'Claude 3.5 Sonnet',
+      id: 'claude-3-haiku-20240307',
+      name: 'Claude Haiku 3',
       provider: 'anthropic',
       contextWindow: 200000,
       maxOutput: 8192,
       pricing: {
-        prompt: 3.0,
-        completion: 15.0
+        prompt: 0.8,
+        completion: 4.0
+      }
+    },
+    {
+      id: 'claude-3-opus-20240229',
+      name: 'Claude Opus 3',
+      provider: 'anthropic',
+      contextWindow: 200000,
+      maxOutput: 8192,
+      pricing: {
+        prompt: 15.0,
+        completion: 75.0
       }
     }
   ]
