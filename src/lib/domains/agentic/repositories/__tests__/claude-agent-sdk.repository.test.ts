@@ -273,7 +273,7 @@ describe('ClaudeAgentSDKRepository', () => {
 
     it('should support multiple Claude model variants', async () => {
       const opusInfo = await repository.getModelInfo('claude-opus-4-20250514')
-      const haikuInfo = await repository.getModelInfo('claude-haiku-4-20250228')
+      const haikuInfo = await repository.getModelInfo('claude-haiku-4-5-20251001')
 
       expect(opusInfo).not.toBeNull()
       expect(haikuInfo).not.toBeNull()

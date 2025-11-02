@@ -61,10 +61,11 @@ export function useAIChat(options: UseAIChatOptions = {}) {
     setIsGenerating(true)
     
     // Generate AI response (user message is already in chat)
+    // Note: When using Claude Agent SDK, must use Claude models (not OpenRouter models)
     generateResponseMutation.mutate({
       centerCoordId,
       messages,
-      model: 'deepseek/deepseek-r1-0528',
+      model: 'claude-haiku-4-5-20251001', // Changed from deepseek to Claude model for SDK compatibility
       temperature: options.temperature,
       maxTokens: options.maxTokens,
       compositionConfig: options.compositionConfig,

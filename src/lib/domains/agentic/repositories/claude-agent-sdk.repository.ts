@@ -38,6 +38,14 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
 
   constructor(apiKey: string) {
     this.apiKey = apiKey
+    // SDK subprocess reads ANTHROPIC_API_KEY from process.env, not from query options
+    if (apiKey) {
+      process.env.ANTHROPIC_API_KEY = apiKey
+    }
+    // Enable DEBUG mode to capture subprocess stderr for troubleshooting
+    if (process.env.NODE_ENV === 'development') {
+      process.env.DEBUG = '*'
+    }
   }
 
   async generate(params: LLMGenerationParams): Promise<LLMResponse> {
@@ -52,7 +60,9 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
         model,
         messageCount: messages.length,
         hasSystemPrompt: Boolean(systemPrompt),
-        systemPrompt: systemPrompt?.substring(0, 100)
+        systemPrompt: systemPrompt?.substring(0, 100),
+        apiKeySet: !!process.env.ANTHROPIC_API_KEY,
+        apiKeyPrefix: process.env.ANTHROPIC_API_KEY?.substring(0, 10)
       })
 
       // Call SDK query function
@@ -61,10 +71,7 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
         options: {
           model,
           systemPrompt,
-          maxTurns: 1, // For non-streaming, we want a single response
-          env: {
-            ANTHROPIC_API_KEY: this.apiKey
-          }
+          maxTurns: 1 // For non-streaming, we want a single response
         }
       })
 
@@ -81,6 +88,12 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
           }
         } else if (msg.type === 'result' && msg.subtype === 'success') {
           fullContent = msg.result
+        } else if (msg.type === 'result' && (msg.subtype === 'error_during_execution' || msg.subtype === 'error_max_turns' || msg.subtype === 'error_max_budget_usd')) {
+          loggers.agentic.error('SDK result error', {
+            subtype: msg.subtype,
+            fullMsg: msg
+          })
+          throw this.createError('UNKNOWN', `SDK returned error: ${msg.subtype}`, msg)
         }
       }
 
@@ -131,10 +144,7 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
           model,
           systemPrompt,
           maxTurns: 1,
-          includePartialMessages: true, // Enable real-time streaming
-          env: {
-            ANTHROPIC_API_KEY: this.apiKey
-          }
+          includePartialMessages: true // Enable real-time streaming
         }
       })
 
@@ -152,6 +162,12 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
           }
         } else if (msg.type === 'result' && msg.subtype === 'success') {
           fullContent = msg.result
+        } else if (msg.type === 'result' && (msg.subtype === 'error_during_execution' || msg.subtype === 'error_max_turns' || msg.subtype === 'error_max_budget_usd')) {
+          loggers.agentic.error('SDK streaming result error', {
+            subtype: msg.subtype,
+            fullMsg: msg
+          })
+          throw this.createError('UNKNOWN', `SDK streaming returned error: ${msg.subtype}`, msg)
         }
       }
 
