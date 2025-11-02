@@ -107,11 +107,12 @@ export const agenticRouter = createTRPCRouter({
       // Determine if we should use queue based on environment
       const useQueue = process.env.USE_QUEUE === 'true' || process.env.NODE_ENV === 'production'
 
-      // Create agentic service with OpenRouter API key from environment
+      // Create agentic service with Claude SDK (preferred) or OpenRouter fallback
       const agenticService = createAgenticService({
         llmConfig: {
           openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
-          anthropicApiKey: env.ANTHROPIC_API_KEY ?? ''
+          anthropicApiKey: env.ANTHROPIC_API_KEY ?? '',
+          preferClaudeSDK: true // Use Claude Agent SDK when anthropicApiKey is available
         },
         eventBus,
         getCacheState: () => input.cacheState as unknown as CacheState,
@@ -179,11 +180,12 @@ export const agenticRouter = createTRPCRouter({
       // Create a server-side event bus instance
       const eventBus = new EventBusImpl()
 
-      // Create agentic service
+      // Create agentic service with Claude SDK (preferred) or OpenRouter fallback
       const agenticService = createAgenticService({
         llmConfig: {
           openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
-          anthropicApiKey: env.ANTHROPIC_API_KEY ?? ''
+          anthropicApiKey: env.ANTHROPIC_API_KEY ?? '',
+          preferClaudeSDK: true // Use Claude Agent SDK when anthropicApiKey is available
         },
         eventBus,
         getCacheState: () => input.cacheState as unknown as CacheState,
@@ -239,7 +241,8 @@ export const agenticRouter = createTRPCRouter({
       const agenticService = createAgenticService({
         llmConfig: {
           openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
-          anthropicApiKey: env.ANTHROPIC_API_KEY ?? ''
+          anthropicApiKey: env.ANTHROPIC_API_KEY ?? '',
+          preferClaudeSDK: true // Use Claude Agent SDK when anthropicApiKey is available
         },
         eventBus,
         getCacheState: () => {
