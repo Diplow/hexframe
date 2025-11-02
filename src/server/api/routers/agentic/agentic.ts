@@ -93,7 +93,7 @@ export const agenticRouter = createTRPCRouter({
       z.object({
         centerCoordId: z.string(),
         messages: z.array(chatMessageSchema),
-        model: z.string().default('deepseek/deepseek-r1-0528'),
+        model: z.string().default('claude-sonnet-4-20250514'),
         temperature: z.number().min(0).max(2).optional(),
         maxTokens: z.number().min(1).max(8192).optional(),
         compositionConfig: compositionConfigSchema.optional(),
@@ -169,7 +169,7 @@ export const agenticRouter = createTRPCRouter({
       z.object({
         centerCoordId: z.string(),
         messages: z.array(chatMessageSchema),
-        model: z.string().default('deepseek/deepseek-r1-0528'),
+        model: z.string().default('claude-sonnet-4-20250514'),
         temperature: z.number().min(0).max(2).optional(),
         maxTokens: z.number().min(1).max(8192).optional(),
         compositionConfig: compositionConfigSchema.optional(),
