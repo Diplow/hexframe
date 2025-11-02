@@ -56,6 +56,17 @@ export function getClaudeModels(): ModelInfo[] {
       }
     },
     {
+      id: 'claude-haiku-4-5-20250611',
+      name: 'Claude Haiku 4.5',
+      provider: 'anthropic',
+      contextWindow: 200000,
+      maxOutput: 8192,
+      pricing: {
+        prompt: 0.8,
+        completion: 4.0
+      }
+    },
+    {
       id: 'claude-opus-4-20250514',
       name: 'Claude Opus 4',
       provider: 'anthropic',
