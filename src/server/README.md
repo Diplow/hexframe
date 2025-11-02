@@ -10,7 +10,12 @@ This subdirectory houses the tRPC API implementation. tRPC allows for building t
 
 - **`root.ts`**: This is the main entry point for the tRPC API, where all the individual routers are combined into a single `appRouter`.
 - **`trpc.ts`**: Contains the core tRPC setup, including context creation (e.g., `createTRPCContext`), middleware (like timing or service-specific middleware such as `mappingServiceMiddleware`), and procedure helpers (`publicProcedure`, `protectedProcedure`).
-- **`routers/`**: This directory holds the specific routers for different parts of your API. For example, `map.ts` defines routes related to map operations (creating, fetching, updating maps and map items).
+- **`routers/`**: This directory holds the specific routers for different parts of your API. For example:
+  - `map.ts` - Map operations, tile management, and MCP tools for Claude Agent SDK
+  - `agentic.ts` - AI chat, response generation with MCP tool integration
+  - `auth.ts` - Authentication endpoints
+  - `user.ts` - User profile and settings
+  - `mcp/` - MCP API key management for external tool access
 - **`types/`**: Includes API-specific type definitions and adapters. For instance, `contracts.ts` provides functions to adapt domain layer contract types to API response types (e.g., `mapItemContractToApiAdapter`, `mapContractToApiAdapter`).
 - **`CACHING.md`**: A markdown file detailing the caching strategies employed for the HexMap application, particularly focusing on tRPC middleware and route handler caching.
 
@@ -83,6 +88,47 @@ export const userRouter = createTRPCRouter({
 - **Testability**: Test domain logic and orchestration logic separately
 - **Maintainability**: Changes to workflows don't affect domain logic
 - **Scalability**: Domains can be split into separate services if needed
+
+### MCP Tools Integration (Claude Agent SDK)
+
+The server layer bridges the Agentic and Mapping domains through **MCP (Model Context Protocol) tools**. These tools enable Claude Agent SDK to interact with the hexagonal map while preserving domain independence:
+
+```typescript
+// Example: Agentic router using MCP tools from map router
+import { createMCPTools } from '~/server/api/routers/map'
+
+export const agenticRouter = createTRPCRouter({
+  generateResponse: protectedProcedure
+    .use(mappingServiceMiddleware)
+    .use(iamServiceMiddleware)
+    .mutation(async ({ ctx, input }) => {
+      // Create MCP tools from context (wraps MappingService + IAMService)
+      const mcpTools = createMCPTools(ctx)
+
+      // Pass to agentic service
+      const response = await agenticService.generateResponse({
+        tools: mcpTools,
+        // ... other params
+      })
+
+      return response
+    })
+})
+```
+
+#### MCP Tools Architecture:
+
+1. **Domain Independence**: MCP tools are created in `map` router but consume both domains
+2. **Context Wrapping**: Tools wrap `MappingService` and `IAMService` from middleware context
+3. **Type Safety**: Full type safety from tRPC context through to SDK tool definitions
+4. **Testability**: Tools can be tested independently with mocked services
+
+#### Available MCP Tools:
+
+- **Query Tools**: `getItemsForRootItem`, `getItemByCoords`, `getCurrentUser`
+- **Item Tools**: `addItem`, `updateItem`, `deleteItem`, `moveItem`
+
+See `src/server/api/routers/map/_mcp-tools/` for implementation details.
 
 ### Service Architecture
 
