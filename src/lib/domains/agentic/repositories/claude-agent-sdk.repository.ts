@@ -61,7 +61,10 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
         options: {
           model,
           systemPrompt,
-          maxTurns: 1 // For non-streaming, we want a single response
+          maxTurns: 1, // For non-streaming, we want a single response
+          env: {
+            ANTHROPIC_API_KEY: this.apiKey
+          }
         }
       })
 
@@ -128,7 +131,10 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
           model,
           systemPrompt,
           maxTurns: 1,
-          includePartialMessages: true // Enable real-time streaming
+          includePartialMessages: true, // Enable real-time streaming
+          env: {
+            ANTHROPIC_API_KEY: this.apiKey
+          }
         }
       })
 
