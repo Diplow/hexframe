@@ -1,30 +1,23 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
-import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc'
+import { createTRPCRouter, protectedProcedure, mappingServiceMiddleware, iamServiceMiddleware } from '~/server/api/trpc'
 import { verificationAwareRateLimit, verificationAwareAuthLimit } from '~/server/api/middleware'
-import { createAgenticService, type CompositionConfig, PreviewGeneratorService, OpenRouterRepository } from '~/lib/domains/agentic'
+import { createAgenticService, type CompositionConfig, PreviewGeneratorService, OpenRouterRepository, type ChatMessageContract } from '~/lib/domains/agentic'
+import { ContextStrategies } from '~/lib/domains/mapping/utils'
 import { EventBus as EventBusImpl } from '~/lib/utils/event-bus'
-import type { CacheState } from '~/app/map'
-import type { ChatMessage } from '~/app/map'
 import { env } from '~/env'
 import { db, schema } from '~/server/db'
 const { llmJobResults } = schema
 import { eq } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 
-// Message schema matching the Chat component
+// ChatMessage contract schema
 const chatMessageSchema = z.object({
   id: z.string(),
   type: z.enum(['user', 'assistant', 'system']),
-  content: z.union([
-    z.string(),
-    z.object({
-      type: z.enum(['tile', 'search', 'comparison', 'action', 'creation', 'login', 'confirm-delete', 'loading', 'error', 'ai-response']),
-      data: z.unknown()
-    })
-  ]),
+  content: z.string(), // Always string - widgets are pre-serialized by frontend
   metadata: z.object({
-    timestamp: z.date(),
+    timestamp: z.string().optional(), // ISO string
     tileId: z.string().optional()
   }).optional()
 })
@@ -57,58 +50,56 @@ const compositionConfigSchema = z.object({
   }).optional()
 })
 
-// Tile data schema for cache state
-const tileDataSchema = z.object({
-  metadata: z.object({
-    coordId: z.string(),
-    coordinates: z.object({
-      userId: z.number(),
-      groupId: z.number(),
-      path: z.array(z.number())
-    }),
-    parentId: z.string().optional(),
-    depth: z.number()
-  }),
-  data: z.object({
-    title: z.string(),
-    content: z.string(),
-    preview: z.string().optional(),
-    link: z.string(),
-    color: z.string()
-  })
-})
-
-const cacheStateSchema = z.object({
-  itemsById: z.record(z.string(), tileDataSchema),
-  currentCenter: z.string()
-})
 
 export const agenticRouter = createTRPCRouter({
   generateResponse: protectedProcedure
     .use(verificationAwareRateLimit) // Rate limit: 10 req/5min for verified, 3 req/5min for unverified
+    .use(mappingServiceMiddleware) // Add mapping service to context
+    .use(iamServiceMiddleware) // Add IAM service to context
     .input(
       z.object({
         centerCoordId: z.string(),
         messages: z.array(chatMessageSchema),
-        model: z.string().default('deepseek/deepseek-r1-0528'),
+        model: z.string().default('claude-haiku-4-5-20251001'),
         temperature: z.number().min(0).max(2).optional(),
         maxTokens: z.number().min(1).max(8192).optional(),
         compositionConfig: compositionConfigSchema.optional(),
-        cacheState: cacheStateSchema
       })
     )
     .mutation(async ({ input, ctx }) => {
+      // Fetch map context using mapping domain service
+      const canvasStrategy = input.compositionConfig?.canvas?.strategy ?? 'standard'
+      const contextStrategy = canvasStrategy === 'minimal' ? ContextStrategies.MINIMAL :
+                             canvasStrategy === 'extended' ? ContextStrategies.EXTENDED :
+                             canvasStrategy === 'focused' ? ContextStrategies.FOCUSED :
+                             ContextStrategies.STANDARD
+
+      const mapContext = await ctx.mappingService.context.getContextForCenter(
+        input.centerCoordId,
+        contextStrategy
+      )
+
       // Create a server-side event bus instance
       const eventBus = new EventBusImpl()
-      
+
       // Determine if we should use queue based on environment
       const useQueue = process.env.USE_QUEUE === 'true' || process.env.NODE_ENV === 'production'
 
-      // Create agentic service with OpenRouter API key from environment
+      // Get or create internal MCP API key for this user (orchestration with IAM domain)
+      const { getOrCreateInternalApiKey } = await import('~/lib/domains/iam')
+      const mcpApiKey = ctx.session?.userId
+        ? await getOrCreateInternalApiKey(ctx.session.userId, 'mcp')
+        : undefined
+
+      // Create agentic service with Claude SDK (preferred) or OpenRouter fallback
       const agenticService = createAgenticService({
-        openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
+        llmConfig: {
+          openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
+          anthropicApiKey: env.ANTHROPIC_API_KEY ?? '',
+          preferClaudeSDK: true, // Use Claude Agent SDK when anthropicApiKey is available
+          mcpApiKey // Pass MCP key from IAM domain
+        },
         eventBus,
-        getCacheState: () => input.cacheState as unknown as CacheState,
         useQueue,
         userId: ctx.session?.userId ?? 'anonymous'
       })
@@ -121,9 +112,10 @@ export const agenticRouter = createTRPCRouter({
       }
 
       // Generate the response
+      // MCP tools are provided by the HTTP MCP server at /api/mcp
       const response = await agenticService.generateResponse({
-        centerCoordId: input.centerCoordId,
-        messages: input.messages as ChatMessage[], // Type mismatch due to zod schema limitations
+        mapContext,
+        messages: input.messages as ChatMessageContract[],
         model: input.model,
         temperature: input.temperature,
         maxTokens: input.maxTokens,
@@ -152,38 +144,102 @@ export const agenticRouter = createTRPCRouter({
 
   generateStreamingResponse: protectedProcedure
     .use(verificationAwareRateLimit) // Rate limit: 10 req/5min for verified, 3 req/5min for unverified
+    .use(mappingServiceMiddleware) // Add mapping service to context
+    .use(iamServiceMiddleware) // Add IAM service to context
     .input(
       z.object({
         centerCoordId: z.string(),
         messages: z.array(chatMessageSchema),
-        model: z.string().default('deepseek/deepseek-r1-0528'),
+        model: z.string().default('claude-haiku-4-5-20251001'),
         temperature: z.number().min(0).max(2).optional(),
         maxTokens: z.number().min(1).max(8192).optional(),
         compositionConfig: compositionConfigSchema.optional(),
-        cacheState: cacheStateSchema
       })
     )
-    .mutation(async () => {
-      // TODO: Implement streaming functionality
-      // This will require:
-      // 1. WebSocket or Server-Sent Events infrastructure
-      // 2. Stream handling in the OpenRouter repository
-      // 3. Progressive token emission to the client
-      // For now, return a simple error since streaming requires different infrastructure
-      throw new Error('Streaming not yet implemented. Use generateResponse for now.')
+    .mutation(async ({ input, ctx }) => {
+      // Fetch map context using mapping domain service
+      const canvasStrategy = input.compositionConfig?.canvas?.strategy ?? 'standard'
+      const contextStrategy = canvasStrategy === 'minimal' ? ContextStrategies.MINIMAL :
+                             canvasStrategy === 'extended' ? ContextStrategies.EXTENDED :
+                             canvasStrategy === 'focused' ? ContextStrategies.FOCUSED :
+                             ContextStrategies.STANDARD
+
+      const mapContext = await ctx.mappingService.context.getContextForCenter(
+        input.centerCoordId,
+        contextStrategy
+      )
+
+      // Create a server-side event bus instance
+      const eventBus = new EventBusImpl()
+
+      // Get or create internal MCP API key for this user (orchestration with IAM domain)
+      const { getOrCreateInternalApiKey } = await import('~/lib/domains/iam')
+      const mcpApiKey = ctx.session?.userId
+        ? await getOrCreateInternalApiKey(ctx.session.userId, 'mcp')
+        : undefined
+
+      // Create agentic service with Claude SDK (preferred) or OpenRouter fallback
+      const agenticService = createAgenticService({
+        llmConfig: {
+          openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
+          anthropicApiKey: env.ANTHROPIC_API_KEY ?? '',
+          preferClaudeSDK: true, // Use Claude Agent SDK when anthropicApiKey is available
+          mcpApiKey // Pass MCP key from IAM domain
+        },
+        eventBus,
+        useQueue: false, // Streaming doesn't use queue
+        userId: ctx.session?.userId ?? 'anonymous'
+      })
+
+      if (!agenticService.isConfigured()) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'API key not configured. Please set OPENROUTER_API_KEY or ANTHROPIC_API_KEY environment variable.',
+        })
+      }
+
+      // Handle SDK async generator for streaming
+      const chunks: Array<{ content: string; isFinished: boolean }> = []
+
+      // Generate streaming response
+      // MCP tools are provided by the HTTP MCP server at /api/mcp
+      const response = await agenticService.generateStreamingResponse(
+        {
+          mapContext,
+          messages: input.messages as ChatMessageContract[],
+          model: input.model,
+          temperature: input.temperature,
+          maxTokens: input.maxTokens,
+          compositionConfig: input.compositionConfig as CompositionConfig
+        },
+        (chunk) => {
+          chunks.push(chunk)
+        }
+      )
+
+      // Return complete response with accumulated chunks
+      return {
+        id: response.id,
+        content: response.content,
+        model: response.model,
+        usage: response.usage,
+        finishReason: response.finishReason,
+        chunks
+      }
     }),
 
   getAvailableModels: protectedProcedure
     .use(verificationAwareAuthLimit) // Rate limit: 100 req/min for verified, 20 req/min for unverified
     .query(async () => {
       const eventBus = new EventBusImpl()
-      
+
       const agenticService = createAgenticService({
-        openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
-        eventBus,
-        getCacheState: () => {
-          throw new Error('Cache state not needed for listing models')
-        }
+        llmConfig: {
+          openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
+          anthropicApiKey: env.ANTHROPIC_API_KEY ?? '',
+          preferClaudeSDK: true // Use Claude Agent SDK when anthropicApiKey is available
+        },
+        eventBus
       })
 
       if (!agenticService.isConfigured()) {

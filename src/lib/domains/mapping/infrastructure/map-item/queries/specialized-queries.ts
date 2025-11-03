@@ -1,4 +1,4 @@
-import { eq, type SQL, sql, and, like, gte, lte } from "drizzle-orm";
+import { eq, type SQL, sql, and, like, gte, lte, notLike, or } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { schema as schemaImport } from "~/server/db";
 const { mapItems, baseItems } = schemaImport;
@@ -7,6 +7,21 @@ import { MapItemType } from "~/lib/domains/mapping/_objects/map-item";
 import type { Direction } from "~/lib/domains/mapping/utils";
 import type { DbMapItemWithBase } from "~/lib/domains/mapping/infrastructure/map-item/types";
 import { pathToString } from "~/lib/domains/mapping/infrastructure/map-item/mappers";
+
+/**
+ * Field selection configuration for optimized queries
+ */
+export type FieldSelection = 'minimal' | 'standard' | 'full';
+
+export interface ContextQueryConfig {
+  centerPath: Direction[];
+  userId: number;
+  groupId: number;
+  includeParent: boolean;
+  includeComposed: boolean;
+  includeChildren: boolean;
+  includeGrandchildren: boolean;
+}
 
 export class SpecializedQueries {
   constructor(private db: PostgresJsDatabase<typeof schemaImport>) {}
@@ -192,4 +207,245 @@ export class SpecializedQueries {
 
     return conditions;
   }
+
+  /**
+   * Optimized context fetch with per-level field selection
+   * Uses 3 queries to minimize data transfer:
+   * - Query 1: Center/Parent/Composed with full content (AI needs it)
+   * - Query 2: Children with title+preview only (overview)
+   * - Query 3: Grandchildren with title only (structure awareness)
+   */
+  async fetchContextForCenter(
+    config: ContextQueryConfig
+  ): Promise<{
+    parent: DbMapItemWithBase | null;
+    center: DbMapItemWithBase;
+    composed: DbMapItemWithBase[];
+    children: DbMapItemWithBase[];
+    grandchildren: DbMapItemWithBase[];
+  }> {
+    const { centerPath, userId, groupId } = config;
+    const centerPathString = pathToString(centerPath);
+    const centerDepth = centerPath.length;
+
+    // QUERY 1: Center + Parent + Composed (FULL content - needed for AI)
+    const fullContentConditions: SQL[] = [];
+
+    // Always fetch center
+    fullContentConditions.push(eq(mapItems.path, centerPathString));
+
+    // Parent (if requested and not root)
+    if (config.includeParent && centerPath.length > 0) {
+      const parentPath = centerPath.slice(0, -1);
+      const parentPathString = pathToString(parentPath);
+      fullContentConditions.push(eq(mapItems.path, parentPathString));
+    }
+
+    // Composed tiles (if requested)
+    if (config.includeComposed) {
+      const composedPattern = centerPathString ? `${centerPathString},0,%` : '0,%';
+      fullContentConditions.push(
+        and(
+          like(mapItems.path, composedPattern),
+          lte(
+            sql`array_length(string_to_array(${mapItems.path}, ','), 1)`,
+            centerDepth + 2
+          )
+        )!
+      );
+    }
+
+    const fullContentResults = await this.db
+      .select({
+        map_items: {
+          id: mapItems.id,
+          coord_user_id: mapItems.coord_user_id,
+          coord_group_id: mapItems.coord_group_id,
+          path: mapItems.path,
+          item_type: mapItems.item_type,
+          parentId: mapItems.parentId,
+          refItemId: mapItems.refItemId,
+          createdAt: mapItems.createdAt,
+          updatedAt: mapItems.updatedAt,
+        },
+        base_items: {
+          id: baseItems.id,
+          title: baseItems.title,
+          content: baseItems.content,      // ← FULL content
+          preview: baseItems.preview,
+          link: baseItems.link,
+          originId: baseItems.originId,
+          createdAt: baseItems.createdAt,
+          updatedAt: baseItems.updatedAt,
+        },
+      })
+      .from(mapItems)
+      .leftJoin(baseItems, eq(mapItems.refItemId, baseItems.id))
+      .where(
+        and(
+          eq(mapItems.coord_user_id, userId),
+          eq(mapItems.coord_group_id, groupId),
+          or(...fullContentConditions)
+        )
+      );
+
+    // QUERY 2: Children (title + preview, NO content)
+    let childrenResults: Array<{ map_items: unknown; base_items: unknown }> = [];
+    if (config.includeChildren) {
+      const childPattern = centerPathString ? `${centerPathString},%` : '%';
+      childrenResults = await this.db
+        .select({
+          map_items: {
+            id: mapItems.id,
+            coord_user_id: mapItems.coord_user_id,
+            coord_group_id: mapItems.coord_group_id,
+            path: mapItems.path,
+            item_type: mapItems.item_type,
+            parentId: mapItems.parentId,
+            refItemId: mapItems.refItemId,
+            createdAt: mapItems.createdAt,
+            updatedAt: mapItems.updatedAt,
+          },
+          base_items: {
+            id: baseItems.id,
+            title: baseItems.title,
+            content: sql<string>`''`.as('content'),  // ← Empty string (don't fetch)
+            preview: baseItems.preview,
+            link: baseItems.link,
+            originId: baseItems.originId,
+            createdAt: baseItems.createdAt,
+            updatedAt: baseItems.updatedAt,
+          },
+        })
+        .from(mapItems)
+        .leftJoin(baseItems, eq(mapItems.refItemId, baseItems.id))
+        .where(
+          and(
+            eq(mapItems.coord_user_id, userId),
+            eq(mapItems.coord_group_id, groupId),
+            like(mapItems.path, childPattern),
+            eq(
+              sql`array_length(string_to_array(${mapItems.path}, ','), 1)`,
+              centerDepth + 1
+            ),
+            notLike(mapItems.path, '%,0,%')
+          )
+        );
+    }
+
+    // QUERY 3: Grandchildren (title only, NO content or preview)
+    let grandchildrenResults: Array<{ map_items: unknown; base_items: unknown }> = [];
+    if (config.includeGrandchildren) {
+      const grandchildPattern = centerPathString ? `${centerPathString},%` : '%';
+      grandchildrenResults = await this.db
+        .select({
+          map_items: {
+            id: mapItems.id,
+            coord_user_id: mapItems.coord_user_id,
+            coord_group_id: mapItems.coord_group_id,
+            path: mapItems.path,
+            item_type: mapItems.item_type,
+            parentId: mapItems.parentId,
+            refItemId: mapItems.refItemId,
+            createdAt: mapItems.createdAt,
+            updatedAt: mapItems.updatedAt,
+          },
+          base_items: {
+            id: baseItems.id,
+            title: baseItems.title,
+            content: sql<string>`''`.as('content'),         // ← Empty
+            preview: sql<string | null>`NULL`.as('preview'), // ← NULL
+            link: baseItems.link,
+            originId: baseItems.originId,
+            createdAt: baseItems.createdAt,
+            updatedAt: baseItems.updatedAt,
+          },
+        })
+        .from(mapItems)
+        .leftJoin(baseItems, eq(mapItems.refItemId, baseItems.id))
+        .where(
+          and(
+            eq(mapItems.coord_user_id, userId),
+            eq(mapItems.coord_group_id, groupId),
+            like(mapItems.path, grandchildPattern),
+            eq(
+              sql`array_length(string_to_array(${mapItems.path}, ','), 1)`,
+              centerDepth + 2
+            ),
+            notLike(mapItems.path, '%,0,%')
+          )
+        );
+    }
+
+    // Extract from full content results
+    const center = fullContentResults.find((r) => r.map_items.path === centerPathString);
+    if (!center?.map_items || !center?.base_items) {
+      throw new Error(`Center tile not found at path: ${centerPathString}`);
+    }
+
+    const parent = config.includeParent && centerPath.length > 0
+      ? this._findParent(fullContentResults, centerPath)
+      : null;
+
+    const composed = config.includeComposed
+      ? this._filterComposed(fullContentResults, centerPathString, centerDepth)
+      : [];
+
+    // Filter children and grandchildren from their respective queries
+    const children = childrenResults.filter((r) => {
+      if (!r.map_items || typeof r.map_items !== 'object') return false;
+      if (!('path' in r.map_items) || typeof r.map_items.path !== 'string') return false;
+      return r.base_items !== null;
+    }) as DbMapItemWithBase[];
+
+    const grandchildren = grandchildrenResults.filter((r) => {
+      if (!r.map_items || typeof r.map_items !== 'object') return false;
+      if (!('path' in r.map_items) || typeof r.map_items.path !== 'string') return false;
+      return r.base_items !== null;
+    }) as DbMapItemWithBase[];
+
+    return {
+      parent,
+      center: center as DbMapItemWithBase,
+      composed,
+      children,
+      grandchildren,
+    };
+  }
+
+  private _findParent(
+    results: Array<{ map_items: unknown; base_items: unknown }>,
+    centerPath: Direction[]
+  ): DbMapItemWithBase | null {
+    const parentPath = centerPath.slice(0, -2);
+    const parentPathString = pathToString(parentPath);
+    const parent = results.find((r) => {
+      if (!r.map_items || typeof r.map_items !== 'object') return false;
+      if (!('path' in r.map_items)) return false;
+      return r.map_items.path === parentPathString;
+    });
+    return parent?.map_items && parent?.base_items
+      ? (parent as DbMapItemWithBase)
+      : null;
+  }
+
+  private _filterComposed(
+    results: Array<{ map_items: unknown; base_items: unknown }>,
+    centerPathString: string,
+    centerDepth: number
+  ): DbMapItemWithBase[] {
+    const composedPattern = centerPathString ? `${centerPathString},0,` : '0,';
+    return results.filter((r) => {
+      // Type guard
+      if (!r.map_items || typeof r.map_items !== 'object') return false;
+      if (!('path' in r.map_items) || typeof r.map_items.path !== 'string') return false;
+      if (!r.base_items) return false;
+
+      const path = r.map_items.path;
+      if (!path.startsWith(composedPattern)) return false;
+      const depth = path.split(',').length;
+      return depth <= centerDepth + 2;
+    }) as DbMapItemWithBase[];
+  }
+
 }

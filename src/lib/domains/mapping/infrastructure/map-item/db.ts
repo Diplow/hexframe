@@ -315,4 +315,30 @@ export class DbMapItemRepository implements MapItemRepository {
       refItemId: attrs.ref.itemId,
     };
   }
+
+  async getContextForCenter(config: {
+    centerPath: Direction[];
+    userId: number;
+    groupId: number;
+    includeParent: boolean;
+    includeComposed: boolean;
+    includeChildren: boolean;
+    includeGrandchildren: boolean;
+  }): Promise<{
+    parent: MapItemWithId | null;
+    center: MapItemWithId;
+    composed: MapItemWithId[];
+    children: MapItemWithId[];
+    grandchildren: MapItemWithId[];
+  }> {
+    const dbResults = await this.specializedQueries.fetchContextForCenter(config);
+
+    return {
+      parent: dbResults.parent ? mapJoinedDbToDomain(dbResults.parent, []) : null,
+      center: mapJoinedDbToDomain(dbResults.center, []),
+      composed: dbResults.composed.map((item) => mapJoinedDbToDomain(item, [])),
+      children: dbResults.children.map((item) => mapJoinedDbToDomain(item, [])),
+      grandchildren: dbResults.grandchildren.map((item) => mapJoinedDbToDomain(item, [])),
+    };
+  }
 }

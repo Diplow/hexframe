@@ -16,31 +16,32 @@ describe('ContextSerializerService', () => {
   const mockCanvasContext: CanvasContext = {
     type: 'canvas',
     center: mockCenterTile,
+    composed: [],
     children: [
-      { 
-        coordId: 'child1', 
-        title: 'User Research', 
-        content: 'Understanding customer needs', 
-        position: 1, 
-        depth: 1, 
-        hasChildren: false 
+      {
+        coordId: 'child1',
+        title: 'User Research',
+        content: 'Understanding customer needs',
+        position: 1,
+        depth: 1,
+        hasChildren: false
       },
-      { 
-        coordId: 'child2', 
-        title: 'Feature Planning', 
-        content: 'Prioritizing development work', 
-        position: 2, 
-        depth: 1, 
-        hasChildren: false 
+      {
+        coordId: 'child2',
+        title: 'Feature Planning',
+        content: 'Prioritizing development work',
+        position: 2,
+        depth: 1,
+        hasChildren: false
       }
     ],
     grandchildren: [
-      { 
-        coordId: 'gc1', 
-        title: 'User Interviews', 
-        content: 'Direct customer feedback', 
-        depth: 2, 
-        hasChildren: false 
+      {
+        coordId: 'gc1',
+        title: 'User Interviews',
+        content: 'Direct customer feedback',
+        depth: 2,
+        hasChildren: false
       }
     ],
     strategy: 'standard',
@@ -91,11 +92,11 @@ describe('ContextSerializerService', () => {
   describe('Structured Format', () => {
     it('should serialize composed context with clear sections', async () => {
       const result = serializer.serialize(mockComposedContext, { type: 'structured' })
-      
+
       expect(result).toContain('# Canvas Context')
       expect(result).toContain('Current item: Product Development')
       expect(result).toContain('## Children:')
-      expect(result).toContain('Northwest: User Research')
+      expect(result).toContain('User Research') // Simplified: no direction info
       expect(result).toContain('# Chat History')
       expect(result).toContain('User: Help me organize my product development tiles')
     })

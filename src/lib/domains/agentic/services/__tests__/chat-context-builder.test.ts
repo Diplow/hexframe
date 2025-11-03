@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ChatContextBuilder } from '~/lib/domains/agentic/services/chat-context-builder.service'
 import type { IChatStrategy } from '~/lib/domains/agentic/services/chat-strategies/strategy.interface'
-import type { ChatContextOptions, ChatContextMessage, ChatContextStrategy } from '~/lib/domains/agentic/types'
-import type { ChatMessage } from '~/app/map'
+import type { ChatContextOptions, ChatContextMessage, ChatContextStrategy, ChatMessageContract } from '~/lib/domains/agentic/types'
 
 describe('ChatContextBuilder', () => {
   let mockFullStrategy: IChatStrategy
@@ -11,13 +10,13 @@ describe('ChatContextBuilder', () => {
   let strategies: Map<ChatContextStrategy, IChatStrategy>
   let builder: ChatContextBuilder
 
-  const mockMessages: ChatMessage[] = [
+  const mockMessages: ChatMessageContract[] = [
     {
       id: '1',
       type: 'user',
       content: 'Hello, can you help me?',
       metadata: {
-        timestamp: new Date('2024-01-01T10:00:00Z'),
+        timestamp: '2024-01-01T10:00:00.000Z',
         tileId: 'tile-123'
       }
     },
@@ -26,7 +25,7 @@ describe('ChatContextBuilder', () => {
       type: 'assistant',
       content: 'Of course! What do you need help with?',
       metadata: {
-        timestamp: new Date('2024-01-01T10:01:00Z')
+        timestamp: '2024-01-01T10:01:00.000Z'
       }
     },
     {
@@ -34,7 +33,7 @@ describe('ChatContextBuilder', () => {
       type: 'user',
       content: 'I need to organize my tiles',
       metadata: {
-        timestamp: new Date('2024-01-01T10:02:00Z'),
+        timestamp: '2024-01-01T10:02:00.000Z',
         tileId: 'tile-456'
       }
     },
@@ -43,18 +42,17 @@ describe('ChatContextBuilder', () => {
       type: 'system',
       content: 'System notification',
       metadata: {
-        timestamp: new Date('2024-01-01T10:03:00Z')
+        timestamp: '2024-01-01T10:03:00.000Z'
       }
     }
   ]
 
   const mockContextMessages: ChatContextMessage[] = mockMessages.map(msg => ({
     role: msg.type,
-    content: typeof msg.content === 'string' ? msg.content : '[widget]',
-    timestamp: msg.metadata?.timestamp ?? new Date(),
+    content: msg.content,
+    timestamp: msg.metadata?.timestamp ? new Date(msg.metadata.timestamp) : new Date(),
     metadata: {
-      tileId: msg.metadata?.tileId,
-      model: msg.type === 'assistant' ? (msg.metadata as { model?: string })?.model : undefined
+      tileId: msg.metadata?.tileId
     }
   }))
 

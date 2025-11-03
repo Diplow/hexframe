@@ -11,6 +11,7 @@ app/map/Chat/_state/_events/event.validators.ts:15 # Event validation requires o
 commons/trpc/react.tsx:12 # tRPC client setup requires multiple React hooks and providers
 app/map/Chat/_state/_selectors/widget-selectors.ts:12 # Widget state management requires multiple selector functions for performance
 app/map/Chat/_state/_events/tile-event-transformers.ts:10 # Event transformation requires one transformer per event type
+server/api/routers/map/_mcp-tools/_item-tools.ts:10 # MCP tool definition collection - one factory function per tool type for SDK integration
 
 # Chat subsystem - Parser false positives (counts callbacks and inline components as functions)
 app/map/Chat/Timeline/Widgets/TileWidget/_internals/_form-utils.ts:20 # Form utility helpers module - collection of related form processing functions

@@ -3,6 +3,17 @@ export interface LLMMessage {
   content: string
 }
 
+export interface LLMTool {
+  name: string
+  description: string
+  inputSchema: {
+    type: string
+    properties: Record<string, unknown>
+    required?: string[]
+  }
+  execute: (input: Record<string, unknown>) => Promise<unknown>
+}
+
 export interface LLMGenerationParams {
   messages: LLMMessage[]
   model: string
@@ -13,6 +24,7 @@ export interface LLMGenerationParams {
   frequencyPenalty?: number
   presencePenalty?: number
   stop?: string[]
+  tools?: LLMTool[]
 }
 
 export interface LLMResponse {

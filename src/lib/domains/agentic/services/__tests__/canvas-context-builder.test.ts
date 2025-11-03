@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { CanvasContextBuilder } from '~/lib/domains/agentic/services/canvas-context-builder.service'
+import { createMockMapContext } from '~/lib/domains/agentic/services/__tests__/__fixtures__/context-mocks'
 import type { ICanvasStrategy } from '~/lib/domains/agentic/services/canvas-strategies/strategy.interface'
 import type { CanvasContextOptions, TileContextItem, CanvasContextStrategy } from '~/lib/domains/agentic/types'
 
@@ -96,9 +97,10 @@ describe('CanvasContextBuilder', () => {
 
   describe('build', () => {
     it('should use standard strategy by default', async () => {
-      const result = await builder.build('center:123', 'standard')
+      const mapContext = createMockMapContext()
+      const result = await builder.build(mapContext, 'standard')
 
-      expect(mockStandardStrategy.build).toHaveBeenCalledWith('center:123', {})
+      expect(mockStandardStrategy.build).toHaveBeenCalledWith(mapContext, {})
       expect(result.strategy).toBe('standard')
       expect(result.center).toEqual(mockCenterTile)
       expect(result.children).toHaveLength(2)
@@ -111,13 +113,14 @@ describe('CanvasContextBuilder', () => {
         includeDescriptions: true
       }
 
-      await builder.build('center:123', 'standard', options)
+      const mapContext = createMockMapContext()
+      await builder.build(mapContext, 'standard', options)
 
-      expect(mockStandardStrategy.build).toHaveBeenCalledWith('center:123', options)
+      expect(mockStandardStrategy.build).toHaveBeenCalledWith(mapContext, options)
     })
 
     it('should use minimal strategy when specified', async () => {
-      const result = await builder.build('center:123', 'minimal')
+      const result = await builder.build(createMockMapContext(), 'minimal')
 
       expect(mockMinimalStrategy.build).toHaveBeenCalled()
       expect(result.strategy).toBe('minimal')
@@ -126,14 +129,14 @@ describe('CanvasContextBuilder', () => {
     })
 
     it('should use extended strategy when specified', async () => {
-      const result = await builder.build('center:123', 'extended')
+      const result = await builder.build(createMockMapContext(), 'extended')
 
       expect(mockExtendedStrategy.build).toHaveBeenCalled()
       expect(result.strategy).toBe('extended')
     })
 
     it('should fallback to standard strategy for unknown strategy', async () => {
-      const result = await builder.build('center:123', 'unknown' as 'standard')
+      const result = await builder.build(createMockMapContext(), 'unknown' as 'standard')
 
       expect(mockStandardStrategy.build).toHaveBeenCalled()
       expect(result.strategy).toBe('standard')
@@ -150,7 +153,7 @@ describe('CanvasContextBuilder', () => {
     })
     
     it('should include position information for children', async () => {
-      const result = await builder.build('center:123', 'standard')
+      const result = await builder.build(createMockMapContext(), 'standard')
       
       expect(result.children[0]?.position).toBe(1) // Direction.NorthWest
       expect(result.children[1]?.position).toBe(2) // Direction.NorthEast
@@ -163,7 +166,7 @@ describe('CanvasContextBuilder', () => {
   
   describe('MinimalStrategy', () => {
     it('should return only center tile', async () => {
-      const result = await builder.build('center:123', 'minimal')
+      const result = await builder.build(createMockMapContext(), 'minimal')
       
       expect(result.center).toEqual(mockCenterTile)
       expect(result.children).toHaveLength(0)

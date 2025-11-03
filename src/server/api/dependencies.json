@@ -7,10 +7,10 @@
     "~/env",
     "~/lib/domains",
     "~/lib/utils/event-bus",
+    "~/lib/utils/request-context",
     "~/server/auth",
     "~/server/db",
-    "~/lib/debug/debug-logger",
-    "~/app/map"
+    "~/lib/debug/debug-logger"
   ],
   "subsystems": [
     "./middleware",

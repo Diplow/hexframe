@@ -19,7 +19,7 @@ export { ContextSerializerService } from '~/lib/domains/agentic/services/context
 export type { TokenizerService } from '~/lib/domains/agentic/services/tokenizer.service';
 
 // Repository implementations (for service instantiation)
-export { OpenRouterRepository, QueuedLLMRepository } from '~/lib/domains/agentic/repositories';
+export { OpenRouterRepository, ClaudeAgentSDKRepository, QueuedLLMRepository } from '~/lib/domains/agentic/repositories';
 export type { ILLMRepository } from '~/lib/domains/agentic/repositories';
 
 // Domain types
@@ -29,6 +29,7 @@ export type {
   StreamChunk,
   ModelInfo,
   LLMError,
+  LLMTool,
 } from '~/lib/domains/agentic/types/llm.types';
 
 export type {
@@ -41,6 +42,8 @@ export type {
   GenerateResponseInput as GenerateRequest,
   GenerateResponseOutput as GenerateResponse,
   ListModelsOutput as StreamGenerateRequest,
+  ChatMessageContract,
+  AIContextSnapshot,
 } from '~/lib/domains/agentic/types/contracts';
 
 export type {

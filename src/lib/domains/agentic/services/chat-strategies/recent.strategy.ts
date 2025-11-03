@@ -1,19 +1,18 @@
 import type { IChatStrategy } from '~/lib/domains/agentic/services/chat-strategies/strategy.interface'
-import type { ChatContext, ChatContextOptions, ChatContextMessage } from '~/lib/domains/agentic/types'
-import type { ChatMessage, ChatWidget } from '~/app/map'
+import type { ChatContext, ChatContextOptions, ChatContextMessage, ChatMessageContract } from '~/lib/domains/agentic/types'
 
 export class RecentChatStrategy implements IChatStrategy {
   async build(
-    messages: ChatMessage[],
+    messages: ChatMessageContract[],
     options: ChatContextOptions
   ): Promise<ChatContext> {
     const maxMessages = options.maxMessages ?? 10
     const recentMessages = messages.slice(-maxMessages)
-    
+
     const contextMessages = recentMessages.map(msg => ({
       role: msg.type,
-      content: this.extractTextContent(msg.content),
-      timestamp: msg.metadata?.timestamp ?? new Date(),
+      content: msg.content, // Already a string - no extraction needed
+      timestamp: msg.metadata?.timestamp ? new Date(msg.metadata.timestamp) : new Date(),
       metadata: {
         tileId: msg.metadata?.tileId,
         model: msg.type === 'assistant' ? 'assistant' : undefined
@@ -30,28 +29,6 @@ export class RecentChatStrategy implements IChatStrategy {
       serialize: (format) => this.serialize(contextMessages, format)
     }
   }
-  
-  private extractTextContent(content: string | ChatWidget): string {
-    if (typeof content === 'string') return content
-    
-    // Handle widget content extraction
-    switch (content.type) {
-      case 'tile':
-        const tileData = content.data as { title?: string; content?: string }
-        return `[Tile Widget: ${tileData.title ?? 'Untitled'}]`
-      case 'creation':
-        return '[Creation Widget]'
-      case 'error':
-        const errorData = content.data as { message?: string }
-        return `[Error: ${errorData.message ?? 'Unknown error'}]`
-      case 'loading':
-        const loadingData = content.data as { message?: string }
-        return `[Loading: ${loadingData.message ?? 'Loading...'}]`
-      default:
-        return `[${content.type} widget]`
-    }
-  }
-  
   private serialize(
     messages: ChatContextMessage[],
     format: { type: string; includeMetadata?: boolean }

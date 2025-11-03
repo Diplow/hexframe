@@ -1,169 +1,110 @@
 import type { ICanvasStrategy } from '~/lib/domains/agentic/services/canvas-strategies/strategy.interface'
 import type { CanvasContext, CanvasContextOptions, TileContextItem } from '~/lib/domains/agentic/types'
-import type { CacheState } from '~/app/map'
-import type { TileData } from '~/app/map'
+import type { MapContext } from '~/lib/domains/mapping/utils'
 import { CoordSystem } from '~/lib/domains/mapping/utils'
 
 export class ExtendedCanvasStrategy implements ICanvasStrategy {
-  constructor(private readonly getCacheState: () => CacheState) {}
-  
   async build(
-    centerCoordId: string,
-    options: CanvasContextOptions
+    mapContext: MapContext,
+    _options: CanvasContextOptions
   ): Promise<CanvasContext> {
-    const state = this.getCacheState()
-    
-    // Get all tiles within 3 generations
-    const regionTiles = this.getRegionItems(state, centerCoordId, 3)
-    
-    // Find center tile
-    const centerTile = regionTiles.find(t => t.metadata.coordId === centerCoordId)
-    if (!centerTile) {
-      throw new Error(`Center tile not found: ${centerCoordId}`)
+    // Convert center with full content
+    const center: TileContextItem = {
+      coordId: mapContext.center.coords,
+      title: mapContext.center.title,
+      content: mapContext.center.content,
+      depth: 0,
+      hasChildren: mapContext.children.length > 0 || mapContext.composed.length > 0
     }
-    
-    // Group tiles by depth
-    const centerDepth = centerTile.metadata.coordinates.path.length
-    const children: TileData[] = []
-    const grandchildren: TileData[] = []
-    const greatGrandchildren: TileData[] = []
-    
-    regionTiles.forEach(tile => {
-      if (tile.metadata.coordId === centerCoordId) return
-      
-      const tileDepth = tile.metadata.coordinates.path.length
-      const relativeDepth = tileDepth - centerDepth
-      
-      if (relativeDepth === 1) {
-        children.push(tile)
-      } else if (relativeDepth === 2) {
-        grandchildren.push(tile)
-      } else if (relativeDepth === 3) {
-        greatGrandchildren.push(tile)
-      }
-    })
-    
-    // Convert to context items
-    const center = this.toContextItem(centerTile, 0)
-    const childrenItems = this.filterAndConvert(children, options, 1)
-    const grandchildrenItems = this.filterAndConvert(grandchildren, options, 2)
-    
-    // For extended strategy, include great-grandchildren in the grandchildren array
-    const allDescendants = [
-      ...grandchildrenItems,
-      ...this.filterAndConvert(greatGrandchildren, options, 3)
-    ]
-    
+
+    // Convert composed tiles (direction 0) with full content
+    const composed: TileContextItem[] = mapContext.composed.map(comp => ({
+      coordId: comp.coords,
+      title: comp.title,
+      content: comp.content,
+      position: CoordSystem.getDirection(CoordSystem.parseId(comp.coords)),
+      depth: 0.5,
+      hasChildren: false
+    }))
+
+    // For extended: include children with FULL content (not just preview)
+    const children: TileContextItem[] = mapContext.children.map(child => ({
+      coordId: child.coords,
+      title: child.title,
+      content: child.content, // Full content for extended strategy
+      position: CoordSystem.getDirection(CoordSystem.parseId(child.coords)),
+      depth: 1,
+      hasChildren: mapContext.grandchildren.some(gc => {
+        const childCoords = CoordSystem.parseId(child.coords)
+        const gcCoords = CoordSystem.parseId(gc.coords)
+        return gcCoords.path.length === childCoords.path.length + 2 &&
+               gcCoords.path.slice(0, -2).every((v, i) => v === childCoords.path[i])
+      })
+    }))
+
+    // Extended also includes grandchildren with preview
+    const grandchildren: TileContextItem[] = mapContext.grandchildren.map(gc => ({
+      coordId: gc.coords,
+      title: gc.title,
+      content: gc.preview ?? '', // Include preview for grandchildren
+      position: CoordSystem.getDirection(CoordSystem.parseId(gc.coords)),
+      depth: 2,
+      hasChildren: false
+    }))
+
     return {
       type: 'canvas',
       center,
-      children: childrenItems,
-      grandchildren: allDescendants, // Includes 2nd and 3rd generation
+      composed,
+      children,
+      grandchildren,
       strategy: 'extended',
       metadata: {
         computedAt: new Date()
       },
       serialize: (format) => this.serialize(
-        { center, children: childrenItems, grandchildren: allDescendants }, 
+        { center, composed, children, grandchildren },
         format
       )
     }
   }
-  
-  private filterAndConvert(
-    tiles: TileData[], 
-    options: CanvasContextOptions,
-    depth: number
-  ): TileContextItem[] {
-    let filtered = tiles
-    
-    if (!options.includeEmptyTiles) {
-      filtered = tiles.filter(t => t.data.title?.trim())
-    }
-    
-    return filtered.map(t => this.toContextItem(t, depth))
-  }
-  
-  private toContextItem(tile: TileData, depth: number): TileContextItem {
-    const position = depth > 0 
-      ? CoordSystem.getDirection(tile.metadata.coordinates)
-      : undefined
-      
-    return {
-      coordId: tile.metadata.coordId,
-      title: tile.data.title || '',
-      content: tile.data.content || '',
-      position,
-      depth,
-      hasChildren: false
-    }
-  }
-  
-  private getRegionItems(state: CacheState, centerCoordId: string, maxDepth: number): TileData[] {
-    const regionItems: TileData[] = []
-    const centerItem = state.itemsById[centerCoordId]
-    
-    if (!centerItem) return regionItems
-    
-    // Add center item
-    regionItems.push(centerItem)
-    
-    // Get center coordinates for hierarchy calculation
-    const centerCoords = centerItem.metadata.coordinates
-    const centerDepth = centerCoords.path.length
-    
-    // Add items within the specified depth from center
-    Object.values(state.itemsById).forEach((item) => {
-      if (item.metadata.coordId === centerCoordId) return // Skip center (already added)
-      
-      const itemCoords = item.metadata.coordinates
-      
-      // Check if item belongs to the same coordinate tree
-      if (
-        itemCoords.userId !== centerCoords.userId ||
-        itemCoords.groupId !== centerCoords.groupId
-      ) {
-        return
-      }
-      
-      // Calculate relative depth from center
-      const itemDepth = itemCoords.path.length
-      const relativeDepth = itemDepth - centerDepth
-      
-      // Include items within maxDepth generations from center
-      if (relativeDepth > 0 && relativeDepth <= maxDepth) {
-        // Check if item is descendant of center
-        const isDescendant = centerCoords.path.every(
-          (coord, index) => itemCoords.path[index] === coord
-        )
-        
-        if (isDescendant) {
-          regionItems.push(item)
-        }
-      }
-    })
-    
-    return regionItems
-  }
-  
+
   private serialize(
-    context: { 
+    context: {
       center: TileContextItem
+      composed: TileContextItem[]
       children: TileContextItem[]
-      grandchildren: TileContextItem[] 
+      grandchildren: TileContextItem[]
     },
     format: { type: string; includeMetadata?: boolean }
   ): string {
     if (format.type === 'structured') {
-      const depth2 = context.grandchildren.filter(g => g.depth === 2)
-      const depth3 = context.grandchildren.filter(g => g.depth === 3)
+      let result = `# Center: ${context.center.title}\n${context.center.content}\n`
 
-      return `Center: ${context.center.title}
-Children (${context.children.length}): ${context.children.map(c => c.title).join(', ')}
-Grandchildren (${depth2.length}): ${depth2.map(g => g.title).join(', ')}
-Great-grandchildren (${depth3.length}): ${depth3.map(g => g.title).join(', ')}`
+      if (context.composed.length > 0) {
+        result += `\n## Composed Tiles (${context.composed.length})\n`
+        context.composed.forEach(c => {
+          result += `### ${c.title}\n${c.content}\n`
+        })
+      }
+
+      if (context.children.length > 0) {
+        result += `\n## Children (${context.children.length})\n`
+        context.children.forEach(c => {
+          result += `### ${c.title} (Position: ${c.position})\n${c.content}\n`
+        })
+      }
+
+      if (context.grandchildren.length > 0) {
+        result += `\n## Grandchildren (${context.grandchildren.length})\n`
+        context.grandchildren.forEach(g => {
+          result += `- ${g.title}${g.content ? `: ${g.content}` : ''}\n`
+        })
+      }
+
+      return result
     }
-    
+
     return JSON.stringify(context)
   }
 }
