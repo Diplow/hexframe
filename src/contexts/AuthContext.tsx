@@ -66,13 +66,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []); // Empty dependency array ensures this effect runs only once on mount and unmount
 
-  // Log errors if any during session fetching (but ignore empty error objects)
-  if (authState.error?.message) {
-    console.error("Error fetching session for AuthProvider:", {
-      error: authState.error,
-      errorMessage: authState.error.message,
-    });
-  }
+  // Log errors in useEffect to avoid logging during render
+  useEffect(() => {
+    if (authState.error && authState.error.message) {
+      console.error("Error fetching session for AuthProvider:", {
+        error: authState.error,
+        errorMessage: authState.error.message,
+      });
+    }
+  }, [authState.error]);
 
   // The user object is typically at authState.data.user
   const user = authState.data?.user;
