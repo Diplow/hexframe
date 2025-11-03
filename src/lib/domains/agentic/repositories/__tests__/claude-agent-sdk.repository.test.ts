@@ -111,13 +111,6 @@ describe('ClaudeAgentSDKRepository', () => {
 
       mockQuery.mockReturnValueOnce(mockAsyncGenerator as ReturnType<typeof query>)
 
-      const mockTools = [{
-        name: 'search',
-        description: 'Search tool',
-        inputSchema: { type: 'object', properties: {} },
-        execute: async () => ({ result: 'test' })
-      }]
-
       const params: LLMGenerationParams = {
         messages: [{ role: 'user', content: 'Search for something' }],
         model: 'claude-sonnet-4-5-20250929'
@@ -236,13 +229,6 @@ describe('ClaudeAgentSDKRepository', () => {
       })()
 
       mockQuery.mockReturnValueOnce(mockAsyncGenerator as ReturnType<typeof query>)
-
-      const mockTools = [{
-        name: 'tool1',
-        description: 'Test tool',
-        inputSchema: { type: 'object', properties: {} },
-        execute: async () => ({ result: 'test' })
-      }]
 
       const params: LLMGenerationParams = {
         messages: [{ role: 'user', content: 'Hello!' }],

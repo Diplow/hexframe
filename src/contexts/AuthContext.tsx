@@ -68,7 +68,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Log errors in useEffect to avoid logging during render
   useEffect(() => {
-    if (authState.error && authState.error.message) {
+    if (authState.error?.message) {
       console.error("Error fetching session for AuthProvider:", {
         error: authState.error,
         errorMessage: authState.error.message,
