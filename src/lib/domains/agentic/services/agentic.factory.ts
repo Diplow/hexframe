@@ -1,5 +1,6 @@
 import { OpenRouterRepository } from '~/lib/domains/agentic/repositories/openrouter.repository'
 import { ClaudeAgentSDKRepository } from '~/lib/domains/agentic/repositories/claude-agent-sdk.repository'
+import { ClaudeAgentSDKSandboxRepository } from '~/lib/domains/agentic/repositories/claude-agent-sdk-sandbox.repository'
 import { QueuedLLMRepository } from '~/lib/domains/agentic/repositories/queued-llm.repository'
 import { CanvasContextBuilder } from '~/lib/domains/agentic/services/canvas-context-builder.service'
 import { ChatContextBuilder } from '~/lib/domains/agentic/services/chat-context-builder.service'
@@ -28,6 +29,7 @@ export interface LLMConfig {
   openRouterApiKey?: string
   anthropicApiKey?: string
   preferClaudeSDK?: boolean // If true, use ClaudeAgentSDKRepository when anthropicApiKey is provided
+  useSandbox?: boolean // If true, use ClaudeAgentSDKSandboxRepository (requires VERCEL_TOKEN)
   mcpApiKey?: string // Internal MCP API key (fetched by API layer from IAM domain)
 }
 
@@ -40,7 +42,7 @@ export interface CreateAgenticServiceOptions {
 
 export function createAgenticService(options: CreateAgenticServiceOptions): AgenticService {
   const { llmConfig, eventBus, useQueue, userId } = options
-  const { openRouterApiKey, anthropicApiKey, preferClaudeSDK, mcpApiKey } = llmConfig
+  const { openRouterApiKey, anthropicApiKey, preferClaudeSDK, useSandbox, mcpApiKey } = llmConfig
 
   // Normalize API keys to empty strings if missing
   const normalizedAnthropicKey = anthropicApiKey ?? ''
@@ -54,15 +56,25 @@ export function createAgenticService(options: CreateAgenticServiceOptions): Agen
   let baseRepository: ILLMRepository
 
   if (preferClaudeSDK && normalizedAnthropicKey) {
-    // Use Claude Agent SDK repository when explicitly preferred
+    // Use Claude Agent SDK repository (sandbox or direct)
     // Pass mcpApiKey for MCP tool access (fetched by API layer from IAM domain)
-    baseRepository = new ClaudeAgentSDKRepository(normalizedAnthropicKey, mcpApiKey, userId)
+    if (useSandbox) {
+      // Use Vercel Sandbox for production-safe isolated execution
+      baseRepository = new ClaudeAgentSDKSandboxRepository(normalizedAnthropicKey, mcpApiKey, userId)
+    } else {
+      // Use direct SDK for development (not safe for production on Vercel)
+      baseRepository = new ClaudeAgentSDKRepository(normalizedAnthropicKey, mcpApiKey, userId)
+    }
   } else if (normalizedOpenRouterKey) {
     // Default to OpenRouter if available
     baseRepository = new OpenRouterRepository(normalizedOpenRouterKey)
   } else if (normalizedAnthropicKey) {
     // Fall back to Claude SDK if only anthropic key is provided
-    baseRepository = new ClaudeAgentSDKRepository(normalizedAnthropicKey, mcpApiKey, userId)
+    if (useSandbox) {
+      baseRepository = new ClaudeAgentSDKSandboxRepository(normalizedAnthropicKey, mcpApiKey, userId)
+    } else {
+      baseRepository = new ClaudeAgentSDKRepository(normalizedAnthropicKey, mcpApiKey, userId)
+    }
   } else {
     // No keys provided - create OpenRouter with empty key, let isConfigured() return false
     baseRepository = new OpenRouterRepository(normalizedOpenRouterKey)

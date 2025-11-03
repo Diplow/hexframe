@@ -21,6 +21,8 @@ export const env = createEnv({
     LLM_PROVIDER: z.enum(["openrouter", "claude-agent-sdk"]).default("openrouter"),
     OPENROUTER_API_KEY: z.string().optional(),
     ANTHROPIC_API_KEY: z.string().optional(),
+    USE_SANDBOX: z.enum(["true", "false"]).optional(), // Enable Vercel Sandbox for Claude Agent SDK
+    VERCEL_OIDC_TOKEN: z.string().optional(), // Vercel OIDC token for Sandbox API (from vercel env pull)
     AUTH_SECRET: z.string().min(1),
     BETTER_AUTH_URL: z.string().url(),
     // Email provider API keys (optional, one should be provided in production)
@@ -60,6 +62,8 @@ export const env = createEnv({
     LLM_PROVIDER: process.env.LLM_PROVIDER,
     OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+    USE_SANDBOX: process.env.USE_SANDBOX,
+    VERCEL_OIDC_TOKEN: process.env.VERCEL_OIDC_TOKEN,
     AUTH_SECRET: process.env.AUTH_SECRET,
     BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
     NEXT_PUBLIC_BETTER_AUTH_URL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,

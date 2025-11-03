@@ -97,6 +97,7 @@ export const agenticRouter = createTRPCRouter({
           openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
           anthropicApiKey: env.ANTHROPIC_API_KEY ?? '',
           preferClaudeSDK: true, // Use Claude Agent SDK when anthropicApiKey is available
+          useSandbox: env.USE_SANDBOX === 'true', // Use Vercel Sandbox in production
           mcpApiKey // Pass MCP key from IAM domain
         },
         eventBus,
@@ -184,6 +185,7 @@ export const agenticRouter = createTRPCRouter({
           openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
           anthropicApiKey: env.ANTHROPIC_API_KEY ?? '',
           preferClaudeSDK: true, // Use Claude Agent SDK when anthropicApiKey is available
+          useSandbox: env.USE_SANDBOX === 'true', // Use Vercel Sandbox in production
           mcpApiKey // Pass MCP key from IAM domain
         },
         eventBus,
@@ -237,7 +239,8 @@ export const agenticRouter = createTRPCRouter({
         llmConfig: {
           openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
           anthropicApiKey: env.ANTHROPIC_API_KEY ?? '',
-          preferClaudeSDK: true // Use Claude Agent SDK when anthropicApiKey is available
+          preferClaudeSDK: true, // Use Claude Agent SDK when anthropicApiKey is available
+          useSandbox: env.USE_SANDBOX === 'true' // Use Vercel Sandbox in production
         },
         eventBus
       })
