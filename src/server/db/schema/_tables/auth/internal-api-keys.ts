@@ -3,7 +3,9 @@ import {
   text,
   timestamp,
   boolean,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { users } from "~/server/db/schema/_tables/auth/users";
 
 /**
@@ -19,7 +21,7 @@ import { users } from "~/server/db/schema/_tables/auth/users";
  * - Keys stored encrypted with ENCRYPTION_KEY env var
  * - Never returned in tRPC responses
  * - Only used server-side to authenticate with internal services
- * - One key per (userId, purpose) pair
+ * - One active key per (userId, purpose) pair enforced by DB constraint
  */
 export const internalApiKeys = pgTable("internal_api_key", {
   id: text("id").primaryKey(),
@@ -39,7 +41,13 @@ export const internalApiKeys = pgTable("internal_api_key", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   lastUsedAt: timestamp("last_used_at"),
   expiresAt: timestamp("expires_at"),
-});
+}, (table) => ({
+  // Partial unique index: only one active key per (userId, purpose)
+  // This allows keeping inactive keys for auditing while preventing duplicates
+  uniqueActiveKeyPerUserPurpose: uniqueIndex("unique_active_key_per_user_purpose")
+    .on(table.userId, table.purpose)
+    .where(sql`${table.isActive} = true`),
+}));
 
 export type InternalApiKey = typeof internalApiKeys.$inferSelect;
 export type NewInternalApiKey = typeof internalApiKeys.$inferInsert;

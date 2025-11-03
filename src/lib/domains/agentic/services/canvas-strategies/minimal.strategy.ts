@@ -13,7 +13,7 @@ export class MinimalCanvasStrategy implements ICanvasStrategy {
       title: mapContext.center.title,
       content: mapContext.center.content,
       depth: 0,
-      hasChildren: false
+      hasChildren: Boolean(mapContext.children && mapContext.children.length > 0)
     }
 
     return {

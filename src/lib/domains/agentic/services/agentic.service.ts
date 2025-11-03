@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto'
 import type { ILLMRepository } from '~/lib/domains/agentic/repositories/llm.repository.interface'
 import type { ContextCompositionService } from '~/lib/domains/agentic/services/context-composition.service'
 import { PromptTemplateService } from '~/lib/domains/agentic/services/prompt-template.service'
@@ -10,7 +11,6 @@ import type {
   StreamChunk,
   ModelInfo,
   LLMMessage,
-  LLMTool,
   ChatMessageContract,
 } from '~/lib/domains/agentic/types'
 import type { MapContext } from '~/lib/domains/mapping/utils'
@@ -28,7 +28,6 @@ export interface GenerateResponseOptions {
   isOwnSystem?: boolean
   systemBriefDescription?: string
   specialContext?: 'onboarding' | 'importing'
-  tools?: LLMTool[]
 }
 
 export interface SubagentConfig {
@@ -78,8 +77,7 @@ export class AgenticService {
         model: options.model,
         temperature: options.temperature ?? 0.7,
         maxTokens: options.maxTokens ?? 2048,
-        stream: false,
-        ...(options.tools && { tools: options.tools })
+        stream: false
       }
 
       const response = await this.llmRepository.generate(llmParams)
@@ -148,8 +146,7 @@ export class AgenticService {
         model: options.model,
         temperature: options.temperature ?? 0.7,
         maxTokens: options.maxTokens ?? 2048,
-        stream: true,
-        ...(options.tools && { tools: options.tools })
+        stream: true
       }
 
       const response = await this.llmRepository.generateStream(llmParams, onChunk)
@@ -251,7 +248,7 @@ export class AgenticService {
    * @returns Unique identifier for the created subagent
    */
   createSubagent(config: SubagentConfig): string {
-    const subagentId = `subagent-${crypto.randomUUID()}`
+    const subagentId = `subagent-${randomUUID()}`
     this.subagents.set(subagentId, config)
     return subagentId
   }

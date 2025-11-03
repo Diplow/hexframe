@@ -16,6 +16,15 @@ The types directory is like a "type library" or "contract catalog" - a centraliz
 - Context building logic → See `../services/README.md`
 - Prompt templates → See `../prompts/`
 
+## Subsystems
+- **llm.types.ts**: Core LLM interaction types - messages, generation parameters, responses, models, tools, errors
+- **sdk.types.ts**: Claude Agent SDK-specific types - query options, stream events, result types
+- **context.types.ts**: Context composition and serialization contracts - canvas/chat contexts, strategies, serialization formats
+- **contracts.ts**: External domain contracts - chat message types shared with other domains
+- **job.types.ts**: Job queue and async processing types - generation job states, queue configurations
+- **errors.ts**: Error definitions and error handling types
+- **index.ts**: Central export point - re-exports all types for domain-wide consumption
+
 ## Interface
 **Exports**: See `index.ts` for the complete public API. Key type exports:
 - `LLMMessage`, `LLMGenerationParams`, `LLMResponse`: Core LLM interaction types

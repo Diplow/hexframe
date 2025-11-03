@@ -96,7 +96,7 @@ describe('ContextSerializerService', () => {
       expect(result).toContain('# Canvas Context')
       expect(result).toContain('Current item: Product Development')
       expect(result).toContain('## Children:')
-      expect(result).toContain('User Research') // Simplified: no direction info
+      expect(result).toContain('User Research')
       expect(result).toContain('# Chat History')
       expect(result).toContain('User: Help me organize my product development tiles')
     })

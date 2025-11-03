@@ -1,6 +1,6 @@
 import "server-only"
 import { eq, and } from "drizzle-orm"
-import { randomBytes } from "crypto"
+import { randomBytes, randomUUID } from "crypto"
 import { db, schema } from "~/server/db"
 import { encrypt, decrypt } from "~/lib/domains/iam/infrastructure/encryption"
 
@@ -59,7 +59,7 @@ export async function getOrCreateInternalApiKey(
   const encryptedKey = encrypt(plaintextKey)
 
   await db.insert(internalApiKeys).values({
-    id: crypto.randomUUID(),
+    id: randomUUID(),
     userId,
     purpose,
     encryptedKey,

@@ -65,8 +65,7 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
         messageCount: messages.length,
         hasSystemPrompt: Boolean(systemPrompt),
         systemPrompt: systemPrompt?.substring(0, 100),
-        apiKeySet: !!process.env.ANTHROPIC_API_KEY,
-        apiKeyPrefix: process.env.ANTHROPIC_API_KEY?.substring(0, 10)
+        apiKeySet: !!process.env.ANTHROPIC_API_KEY
       })
 
       // Configure SDK to use HTTP MCP server
@@ -79,7 +78,6 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
 
       loggers.agentic('MCP Server Configuration', {
         hasMcpApiKey: !!mcpApiKey,
-        apiKeyPrefix: mcpApiKey?.substring(0, 10),
         mcpUrl: `${mcpBaseUrl}/api/mcp`,
         willCreateMcpServers: !!mcpApiKey
       })
@@ -184,7 +182,6 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
 
       loggers.agentic('MCP Server Configuration (Streaming)', {
         hasMcpApiKey: !!mcpApiKey,
-        apiKeyPrefix: mcpApiKey?.substring(0, 10),
         mcpUrl: `${mcpBaseUrl}/api/mcp`,
         willCreateMcpServers: !!mcpApiKey
       })

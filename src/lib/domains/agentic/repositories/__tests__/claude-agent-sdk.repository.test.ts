@@ -120,8 +120,7 @@ describe('ClaudeAgentSDKRepository', () => {
 
       const params: LLMGenerationParams = {
         messages: [{ role: 'user', content: 'Search for something' }],
-        model: 'claude-sonnet-4-5-20250929',
-        tools: mockTools
+        model: 'claude-sonnet-4-5-20250929'
       }
 
       await repository.generate(params)
@@ -247,8 +246,7 @@ describe('ClaudeAgentSDKRepository', () => {
 
       const params: LLMGenerationParams = {
         messages: [{ role: 'user', content: 'Hello!' }],
-        model: 'claude-sonnet-4-5-20250929',
-        tools: mockTools
+        model: 'claude-sonnet-4-5-20250929'
       }
 
       await repository.generateStream(params, vi.fn())

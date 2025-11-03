@@ -42,24 +42,30 @@ export function createAgenticService(options: CreateAgenticServiceOptions): Agen
   const { llmConfig, eventBus, useQueue, userId } = options
   const { openRouterApiKey, anthropicApiKey, preferClaudeSDK, mcpApiKey } = llmConfig
 
+  // Normalize API keys to empty strings if missing
+  const normalizedAnthropicKey = anthropicApiKey ?? ''
+  const normalizedOpenRouterKey = openRouterApiKey ?? ''
+
   // Create repository - use queued version if configured
   let llmRepository: ILLMRepository
 
   // Choose base repository based on available API keys and preferences
+  // Always construct a repository so isConfigured() can determine readiness
   let baseRepository: ILLMRepository
 
-  if (preferClaudeSDK && anthropicApiKey) {
+  if (preferClaudeSDK && normalizedAnthropicKey) {
     // Use Claude Agent SDK repository when explicitly preferred
     // Pass mcpApiKey for MCP tool access (fetched by API layer from IAM domain)
-    baseRepository = new ClaudeAgentSDKRepository(anthropicApiKey, mcpApiKey, userId)
-  } else if (openRouterApiKey) {
+    baseRepository = new ClaudeAgentSDKRepository(normalizedAnthropicKey, mcpApiKey, userId)
+  } else if (normalizedOpenRouterKey) {
     // Default to OpenRouter if available
-    baseRepository = new OpenRouterRepository(openRouterApiKey)
-  } else if (anthropicApiKey) {
+    baseRepository = new OpenRouterRepository(normalizedOpenRouterKey)
+  } else if (normalizedAnthropicKey) {
     // Fall back to Claude SDK if only anthropic key is provided
-    baseRepository = new ClaudeAgentSDKRepository(anthropicApiKey, mcpApiKey, userId)
+    baseRepository = new ClaudeAgentSDKRepository(normalizedAnthropicKey, mcpApiKey, userId)
   } else {
-    throw new Error('Either openRouterApiKey or anthropicApiKey must be provided')
+    // No keys provided - create OpenRouter with empty key, let isConfigured() return false
+    baseRepository = new OpenRouterRepository(normalizedOpenRouterKey)
   }
 
   if (useQueue && userId) {
