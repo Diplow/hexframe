@@ -10,9 +10,7 @@
     "~/lib/utils/request-context",
     "~/server/auth",
     "~/server/db",
-    "~/lib/debug/debug-logger",
-    "~/app/map",
-    "~/app/services/mcp"
+    "~/lib/debug/debug-logger"
   ],
   "subsystems": [
     "./middleware",

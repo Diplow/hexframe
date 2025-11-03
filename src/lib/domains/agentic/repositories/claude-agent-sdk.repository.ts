@@ -54,7 +54,7 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
 
   async generate(params: LLMGenerationParams): Promise<LLMResponse> {
     try {
-      const { messages, model, tools } = params
+      const { messages, model } = params
 
       // Convert messages to SDK format
       const systemPrompt = extractSystemPrompt(messages)
@@ -66,8 +66,7 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
         hasSystemPrompt: Boolean(systemPrompt),
         systemPrompt: systemPrompt?.substring(0, 100),
         apiKeySet: !!process.env.ANTHROPIC_API_KEY,
-        apiKeyPrefix: process.env.ANTHROPIC_API_KEY?.substring(0, 10),
-        toolCount: tools?.length ?? 0
+        apiKeyPrefix: process.env.ANTHROPIC_API_KEY?.substring(0, 10)
       })
 
       // Configure SDK to use HTTP MCP server
@@ -79,15 +78,15 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
       const mcpApiKey = this.mcpApiKey
 
       loggers.agentic('MCP Server Configuration', {
-        hasTools: !!tools,
-        toolCount: tools?.length ?? 0,
         hasMcpApiKey: !!mcpApiKey,
         apiKeyPrefix: mcpApiKey?.substring(0, 10),
         mcpUrl: `${mcpBaseUrl}/api/mcp`,
-        willCreateMcpServers: !!(tools && tools.length > 0 && mcpApiKey)
+        willCreateMcpServers: !!mcpApiKey
       })
 
-      const mcpServers = tools && tools.length > 0 && mcpApiKey
+      // Always enable MCP server when API key is available
+      // The HTTP MCP server at /api/mcp already has all tool definitions
+      const mcpServers = mcpApiKey
         ? {
             hexframe: {
               type: 'http' as const,
@@ -165,15 +164,14 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
     onChunk: (chunk: StreamChunk) => void
   ): Promise<LLMResponse> {
     try {
-      const { messages, model, tools } = params
+      const { messages, model } = params
 
       const systemPrompt = extractSystemPrompt(messages)
       const userPrompt = buildPrompt(messages)
 
       loggers.agentic('Claude Agent SDK Streaming Request', {
         model,
-        messageCount: messages.length,
-        toolCount: tools?.length ?? 0
+        messageCount: messages.length
       })
 
       // Configure SDK to use HTTP MCP server
@@ -185,15 +183,15 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
       const mcpApiKey = this.mcpApiKey
 
       loggers.agentic('MCP Server Configuration (Streaming)', {
-        hasTools: !!tools,
-        toolCount: tools?.length ?? 0,
         hasMcpApiKey: !!mcpApiKey,
         apiKeyPrefix: mcpApiKey?.substring(0, 10),
         mcpUrl: `${mcpBaseUrl}/api/mcp`,
-        willCreateMcpServers: !!(tools && tools.length > 0 && mcpApiKey)
+        willCreateMcpServers: !!mcpApiKey
       })
 
-      const mcpServers = tools && tools.length > 0 && mcpApiKey
+      // Always enable MCP server when API key is available
+      // The HTTP MCP server at /api/mcp already has all tool definitions
+      const mcpServers = mcpApiKey
         ? {
             hexframe: {
               type: 'http' as const,

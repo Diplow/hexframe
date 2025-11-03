@@ -10,7 +10,6 @@ import { db, schema } from '~/server/db'
 const { llmJobResults } = schema
 import { eq } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
-import { createMCPTools } from '~/server/api/routers/map'
 
 // ChatMessage contract schema
 const chatMessageSchema = z.object({
@@ -112,18 +111,15 @@ export const agenticRouter = createTRPCRouter({
         })
       }
 
-      // Create MCP tools from context for Claude Agent SDK
-      const mcpTools = createMCPTools(ctx)
-
-      // Generate the response with MCP tools
+      // Generate the response
+      // MCP tools are provided by the HTTP MCP server at /api/mcp
       const response = await agenticService.generateResponse({
         mapContext,
         messages: input.messages as ChatMessageContract[],
         model: input.model,
         temperature: input.temperature,
         maxTokens: input.maxTokens,
-        compositionConfig: input.compositionConfig as CompositionConfig, // Type mismatch due to zod schema limitations
-        tools: mcpTools // Now properly typed as LLMTool[]
+        compositionConfig: input.compositionConfig as CompositionConfig // Type mismatch due to zod schema limitations
       })
 
       // Handle queued responses differently
@@ -202,13 +198,11 @@ export const agenticRouter = createTRPCRouter({
         })
       }
 
-      // Create MCP tools from context for Claude Agent SDK
-      const mcpTools = createMCPTools(ctx)
-
       // Handle SDK async generator for streaming
       const chunks: Array<{ content: string; isFinished: boolean }> = []
 
-      // Generate streaming response with MCP tools
+      // Generate streaming response
+      // MCP tools are provided by the HTTP MCP server at /api/mcp
       const response = await agenticService.generateStreamingResponse(
         {
           mapContext,
@@ -216,8 +210,7 @@ export const agenticRouter = createTRPCRouter({
           model: input.model,
           temperature: input.temperature,
           maxTokens: input.maxTokens,
-          compositionConfig: input.compositionConfig as CompositionConfig,
-          tools: mcpTools // Now properly typed as LLMTool[]
+          compositionConfig: input.compositionConfig as CompositionConfig
         },
         (chunk) => {
           chunks.push(chunk)
