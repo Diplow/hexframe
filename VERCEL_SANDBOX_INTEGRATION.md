@@ -84,7 +84,8 @@ Hexframe now supports Vercel Sandbox for safe production deployment of the Claud
 |----------|-------|-------------|
 | `USE_SANDBOX` | `"true"` | Enable Vercel Sandbox (required for production) |
 | `VERCEL_TOKEN` | `<token>` | Vercel access token (get from vercel.com/account/tokens) |
-| `ANTHROPIC_API_KEY` | `sk-ant-...` | Anthropic API key for Claude models |
+| `ANTHROPIC_API_KEY` | `sk-ant-...` | Anthropic API key (used by proxy, never exposed to sandbox) |
+| `INTERNAL_PROXY_SECRET` | `<random-secret>` | Secret for authenticating internal proxy requests |
 | `LLM_PROVIDER` | `"claude-agent-sdk"` | Enable Claude SDK provider |
 
 ### Development Setup

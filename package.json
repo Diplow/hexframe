@@ -14,7 +14,7 @@
     "db:setup": "drizzle-kit push --config=./config/drizzle.config.ts",
     "db:create-placeholder-user": "dotenv -e .env -e .env.local -- tsx scripts/create-placeholder-user.ts",
     "db:delete": "tsx scripts/delete-database.ts",
-    "dev": "next dev",
+    "dev": "next dev -H 0.0.0.0",
     "format:check": "prettier --config ./config/prettier.config.js --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "format:write": "prettier --config ./config/prettier.config.js --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "init-db": "tsx scripts/init-db.ts",

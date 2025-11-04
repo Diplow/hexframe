@@ -107,26 +107,96 @@ export class ClaudeAgentSDKSandboxRepository implements ILLMRepository {
         })
       : 'undefined'
 
+    // Check if we should use proxy
+    const useProxy = process.env.USE_ANTHROPIC_PROXY === 'true'
+    const internalProxySecret = process.env.INTERNAL_PROXY_SECRET ?? 'change-me-in-production'
+    const proxyUrl = `${mcpBaseUrl}/api/anthropic-proxy`
+
+    // Determine API key to use
+    const apiKeyToUse = useProxy ? internalProxySecret : this.apiKey
+    const baseUrlToUse = useProxy ? proxyUrl : undefined
+
     const executionScript = `
 const { query } = require('@anthropic-ai/claude-agent-sdk');
 
 // Set environment variables
-process.env.ANTHROPIC_API_KEY = ${JSON.stringify(this.apiKey)};
+${baseUrlToUse ? `process.env.ANTHROPIC_BASE_URL = ${JSON.stringify(baseUrlToUse)};` : ''}
+process.env.ANTHROPIC_API_KEY = ${JSON.stringify(apiKeyToUse)};
+
+// NETWORK INTERCEPTOR: Install fetch interceptor inside sandbox to catch hardcoded URLs
+${useProxy ? `
+const originalFetch = globalThis.fetch;
+globalThis.fetch = async (input, init) => {
+  const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+
+  // Check for bypass flag (set by proxy)
+  const headers = init?.headers;
+  const isBypass = headers && (
+    (headers instanceof Headers && headers.get('x-bypass-interceptor') === 'true') ||
+    (typeof headers === 'object' && 'x-bypass-interceptor' in headers && headers['x-bypass-interceptor'] === 'true')
+  );
+
+  if (isBypass) {
+    return originalFetch(input, init);
+  }
+
+  // Don't intercept proxy URLs
+  if (url.includes('/api/anthropic-proxy')) {
+    return originalFetch(input, init);
+  }
+
+  // Intercept Anthropic API calls
+  if (url.includes('api.anthropic.com')) {
+    const anthropicUrl = new URL(url);
+    const apiPath = anthropicUrl.pathname + anthropicUrl.search;
+    const proxyUrl = ${JSON.stringify(proxyUrl)} + apiPath;
+
+    const newHeaders = new Headers(init?.headers);
+    newHeaders.set('x-api-key', ${JSON.stringify(internalProxySecret)});
+    newHeaders.delete('authorization');
+
+    return originalFetch(proxyUrl, { ...init, headers: newHeaders });
+  }
+
+  return originalFetch(input, init);
+};
+` : ''}
 
 async function runAgent() {
-  const queryResult = query({
-    prompt: ${JSON.stringify(userPrompt)},
-    options: {
-      model: ${JSON.stringify(model)},
-      systemPrompt: ${systemPrompt ? JSON.stringify(systemPrompt) : 'undefined'},
-      maxTurns: 10,
-      ${streaming ? 'includePartialMessages: true,' : ''}
-      mcpServers: ${mcpServers},
-      permissionMode: 'bypassPermissions'
-    }
-  });
+  let queryResult;
+  try {
+    // Set up a working directory for SDK files
+    const fs = require('fs');
+    const os = require('os');
+    const path = require('path');
+
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'claude-sdk-'));
+
+    // Find the Claude Code CLI executable
+    const cliPath = path.join(process.cwd(), 'node_modules', '@anthropic-ai', 'claude-agent-sdk', 'cli.js');
+
+    queryResult = query({
+      prompt: ${JSON.stringify(userPrompt)},
+      options: {
+        model: ${JSON.stringify(model)},
+        systemPrompt: ${systemPrompt ? JSON.stringify(systemPrompt) : 'undefined'},
+        maxTurns: 10,
+        maxBudgetUsd: 1.0, // Strict budget limit per request
+        ${streaming ? 'includePartialMessages: true,' : ''}
+        mcpServers: ${mcpServers},
+        permissionMode: 'bypassPermissions',
+        cwd: tmpDir, // Set working directory for SDK
+        pathToClaudeCodeExecutable: cliPath, // Point to the bundled CLI
+        executable: 'node' // Use node to run the CLI
+      }
+    });
+  } catch (err) {
+    console.error('Error starting query:', err.message);
+    throw err;
+  }
 
   let fullContent = '';
+
   for await (const msg of queryResult) {
     if (!msg) continue;
 
@@ -137,8 +207,11 @@ async function runAgent() {
       }
     } else if (msg.type === 'result' && msg.subtype === 'success') {
       fullContent = msg.result;
+      break; // Exit loop after success
     } else if (msg.type === 'result' && (msg.subtype === 'error_during_execution' || msg.subtype === 'error_max_turns' || msg.subtype === 'error_max_budget_usd')) {
-      throw new Error(\`SDK error: \${msg.subtype}\`);
+      const errorMsg = \`SDK error: \${msg.subtype}\${msg.errors ? ' - ' + JSON.stringify(msg.errors) : ''}\`;
+      console.error(errorMsg);
+      throw new Error(errorMsg);
     }
   }
 
@@ -146,12 +219,16 @@ async function runAgent() {
 }
 
 runAgent().catch(error => {
+  console.error('Fatal error in runAgent:', error.message);
+  console.error('Stack:', error.stack);
   console.error(JSON.stringify({ error: error.message }));
   process.exit(1);
 });
 `
 
     // Execute the script in the sandbox
+    loggers.agentic('Executing SDK in sandbox', { userId: this.userId, model })
+
     const runResult = await this.sandbox.runCommand({
       cmd: 'node',
       args: ['-e', executionScript]
@@ -161,11 +238,8 @@ runAgent().catch(error => {
     const stderr = await runResult.stderr()
 
     if (runResult.exitCode !== 0) {
-      loggers.agentic.error('Sandbox execution failed', {
-        exitCode: runResult.exitCode,
-        stderr
-      })
-      throw this.createError('UNKNOWN', `Sandbox execution failed: ${stderr}`)
+      loggers.agentic.error('Sandbox execution failed', { exitCode: runResult.exitCode })
+      throw this.createError('UNKNOWN', `Sandbox execution failed: ${JSON.stringify({ error: stderr || stdout })}`)
     }
 
     // Parse the output

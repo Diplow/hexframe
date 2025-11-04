@@ -1,4 +1,5 @@
-import { query } from '@anthropic-ai/claude-agent-sdk'
+// DON'T import query at module level - it reads env vars on import!
+// import { query } from '@anthropic-ai/claude-agent-sdk'
 import type { ILLMRepository } from '~/lib/domains/agentic/repositories/llm.repository.interface'
 import type {
   LLMGenerationParams,
@@ -14,6 +15,7 @@ import {
   estimateUsage,
   getClaudeModels
 } from '~/lib/domains/agentic/repositories/_helpers/sdk-helpers'
+import { installAnthropicNetworkInterceptor } from '~/lib/domains/agentic/repositories/_helpers/network-interceptor'
 
 // Helper function to safely extract delta text from SDK events
 function extractDeltaText(event: unknown): string | undefined {
@@ -42,10 +44,56 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
     this.apiKey = apiKey
     this.mcpApiKey = mcpApiKey
     this.userId = userId
-    // SDK subprocess reads ANTHROPIC_API_KEY from process.env, not from query options
-    if (apiKey) {
-      process.env.ANTHROPIC_API_KEY = apiKey
+
+    // SECURITY: Use proxy to prevent API key exposure
+    const useProxy = process.env.USE_ANTHROPIC_PROXY === 'true'
+
+    if (useProxy) {
+      const mcpBaseUrl = process.env.HEXFRAME_API_BASE_URL ?? 'http://localhost:3000'
+      const internalProxySecret = process.env.INTERNAL_PROXY_SECRET ?? 'change-me-in-production'
+
+      // CRITICAL: Save the original API key before we overwrite it
+      // The proxy needs the real key to call Anthropic
+      if (!process.env.ANTHROPIC_API_KEY_ORIGINAL) {
+        process.env.ANTHROPIC_API_KEY_ORIGINAL = process.env.ANTHROPIC_API_KEY
+      }
+
+      // Set base URL to proxy (SDK will append /v1/messages)
+      const proxyBaseUrl = `${mcpBaseUrl}/api/anthropic-proxy`
+
+      loggers.agentic('Using Anthropic proxy', {
+        userId,
+        proxyUrl: proxyBaseUrl,
+        internalSecretLength: internalProxySecret.length,
+        internalSecretPrefix: internalProxySecret.substring(0, 10)
+      })
+
+      // NETWORK-LEVEL INTERCEPTION
+      // Install a global fetch interceptor that catches ALL requests to api.anthropic.com
+      // This ensures that even hardcoded URLs in the SDK get redirected through our proxy
+      installAnthropicNetworkInterceptor({
+        proxyBaseUrl,
+        proxySecret: internalProxySecret
+      })
+
+      // CRITICAL: Use the proxy secret as the API key
+      // The Anthropic SDK will send this in the x-api-key header
+      // Our proxy will validate it matches INTERNAL_PROXY_SECRET
+      // Then use the real ANTHROPIC_API_KEY to call Anthropic
+      process.env.ANTHROPIC_BASE_URL = proxyBaseUrl
+      process.env.ANTHROPIC_API_KEY = internalProxySecret
+
+      loggers.agentic('Proxy env vars set', {
+        baseUrl: process.env.ANTHROPIC_BASE_URL,
+        apiKeyPrefix: process.env.ANTHROPIC_API_KEY?.substring(0, 10)
+      })
+    } else {
+      // Direct API key usage (legacy mode)
+      if (apiKey) {
+        process.env.ANTHROPIC_API_KEY = apiKey
+      }
     }
+
     // Enable DEBUG mode to capture subprocess stderr for troubleshooting
     // if (process.env.NODE_ENV === 'development') {
     //   process.env.DEBUG = '*'
@@ -98,6 +146,16 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
         : undefined
 
       // Call SDK query function
+      loggers.agentic('About to call SDK query', {
+        anthropicBaseUrl: process.env.ANTHROPIC_BASE_URL,
+        anthropicApiKeyPrefix: process.env.ANTHROPIC_API_KEY?.substring(0, 15),
+        anthropicApiKeyLength: process.env.ANTHROPIC_API_KEY?.length
+      })
+
+      // CRITICAL: Dynamic import AFTER setting env vars
+      // The SDK reads ANTHROPIC_BASE_URL on import, so we must import after setting it
+      const { query } = await import('@anthropic-ai/claude-agent-sdk')
+
       const queryResult = query({
         prompt: userPrompt,
         options: {
@@ -200,6 +258,10 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
             }
           }
         : undefined
+
+      // CRITICAL: Dynamic import AFTER setting env vars
+      // The SDK reads ANTHROPIC_BASE_URL on import, so we must import after setting it
+      const { query } = await import('@anthropic-ai/claude-agent-sdk')
 
       const queryResult = query({
         prompt: userPrompt,
