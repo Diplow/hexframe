@@ -26,7 +26,7 @@ export async function handleRegisterFlow({ email, password, username }: Register
 
     // Registration successful - email verification required
     return {
-      shouldClearForm: false,
+      shouldClearForm: true,
       shouldSwitchToLogin: false,
       successMessage: '✅ Registration successful! Please check your email to verify your account before logging in.',
     };
