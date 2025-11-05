@@ -38,6 +38,14 @@ export async function getOrCreateInternalApiKey(
   purpose: string,
   ttlMinutes?: number
 ): Promise<string> {
+  // Validate inputs
+  if (typeof userId !== 'string' || !userId.trim()) {
+    throw new TypeError('userId must be a non-empty string')
+  }
+  if (typeof purpose !== 'string' || !purpose.trim()) {
+    throw new TypeError('purpose must be a non-empty string')
+  }
+
   // Try to find existing active key
   const existing = await db.query.internalApiKeys.findFirst({
     where: and(
@@ -98,6 +106,14 @@ export async function rotateInternalApiKey(
   userId: string,
   purpose: string
 ): Promise<string> {
+  // Validate inputs
+  if (typeof userId !== 'string' || !userId.trim()) {
+    throw new TypeError('userId must be a non-empty string')
+  }
+  if (typeof purpose !== 'string' || !purpose.trim()) {
+    throw new TypeError('purpose must be a non-empty string')
+  }
+
   // Deactivate old key
   await db.update(internalApiKeys)
     .set({ isActive: false })
