@@ -16,6 +16,8 @@ const QUICK_MODELS = [
   'gpt-4o-mini',
   'gpt-3.5-turbo',
   'claude-3-haiku',
+  'claude-haiku-4-5', // Claude Haiku 4.5
+  'claude-3-5-haiku', // Claude 3.5 Haiku
   'deepseek/deepseek-chat',
   'mistral/mistral-small',
   'gemini/gemini-flash'
@@ -28,6 +30,8 @@ const SLOW_MODELS = [
   'o1-preview',
   'o1-mini',
   'claude-3-opus',
+  'claude-opus-4', // Claude Opus 4 variants
+  'claude-sonnet-4', // Claude Sonnet 4 variants (slower than Haiku)
   'gpt-4-turbo'
 ]
 

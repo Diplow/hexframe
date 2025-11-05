@@ -88,7 +88,7 @@ export function useMapPageSetup({ searchParams }: UseMapPageSetupProps): MapPage
   const { data: userMapResponse, isLoading: isUserMapLoading } = api.map.getUserMap.useQuery(
     undefined,
     {
-      enabled: mounted && (!params.center || !!centerError),
+      enabled: mounted && (!params.center || !!centerError) && !!mappingUserId,
       refetchOnWindowFocus: false,
     }
   );

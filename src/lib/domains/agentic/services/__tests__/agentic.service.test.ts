@@ -2,9 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { AgenticService } from '~/lib/domains/agentic/services/agentic.service'
 import type { ILLMRepository } from '~/lib/domains/agentic/repositories/llm.repository.interface'
 import type { ContextCompositionService } from '~/lib/domains/agentic/services/context-composition.service'
-import type { EventBus } from '~/app/map'
-import type { ComposedContext, LLMResponse, StreamChunk } from '~/lib/domains/agentic/types'
-import type { ChatMessage } from '~/app/map'
+import type { EventBus } from '~/lib/utils/event-bus'
+import type { ComposedContext, LLMResponse, StreamChunk, ChatMessageContract } from '~/lib/domains/agentic/types'
+import { createMockMapContext } from '~/lib/domains/agentic/services/__tests__/__fixtures__/context-mocks'
 
 describe('AgenticService', () => {
   let mockLLMRepository: ILLMRepository
@@ -65,7 +65,7 @@ describe('AgenticService', () => {
   })
 
   describe('generateResponse', () => {
-    const mockMessages: ChatMessage[] = [
+    const mockMessages: ChatMessageContract[] = [
       {
         id: '1',
         type: 'user',
@@ -75,14 +75,26 @@ describe('AgenticService', () => {
 
     it('should generate a response with composed context', async () => {
       const result = await service.generateResponse({
-        centerCoordId: 'user:123,group:456:1,2',
+        mapContext: createMockMapContext(),
         messages: mockMessages,
         model: 'openai/gpt-3.5-turbo'
       })
 
-      // Should compose context
+      // Should compose context with MapContext
       expect(mockContextComposition.composeContext).toHaveBeenCalledWith(
-        'user:123,group:456:1,2',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        expect.objectContaining({
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          center: expect.any(Object),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          parent: expect.any(Object),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          composed: expect.any(Array),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          children: expect.any(Array),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          grandchildren: expect.any(Array)
+        }),
         mockMessages,
         {
           canvas: {
@@ -146,7 +158,7 @@ describe('AgenticService', () => {
 
     it('should use custom generation options', async () => {
       await service.generateResponse({
-        centerCoordId: 'user:123,group:456:1,2',
+        mapContext: createMockMapContext(),
         messages: mockMessages,
         model: 'anthropic/claude-3-opus',
         temperature: 0.5,
@@ -163,8 +175,21 @@ describe('AgenticService', () => {
         }
       })
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       expect(mockContextComposition.composeContext).toHaveBeenCalledWith(
-        'user:123,group:456:1,2',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        expect.objectContaining({
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          center: expect.any(Object),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          parent: expect.any(Object),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          composed: expect.any(Array),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          children: expect.any(Array),
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          grandchildren: expect.any(Array)
+        }),
         mockMessages,
         {
           canvas: {
@@ -178,6 +203,7 @@ describe('AgenticService', () => {
         }
       )
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       expect(mockLLMRepository.generate).toHaveBeenCalledWith(
         expect.objectContaining({
           model: 'anthropic/claude-3-opus',
@@ -193,7 +219,7 @@ describe('AgenticService', () => {
 
       await expect(
         service.generateResponse({
-          centerCoordId: 'user:123,group:456:1,2',
+          mapContext: createMockMapContext(),
           messages: mockMessages,
           model: 'openai/gpt-3.5-turbo'
         })
@@ -214,7 +240,7 @@ describe('AgenticService', () => {
 
       await expect(
         service.generateResponse({
-          centerCoordId: 'user:123,group:456:1,2',
+          mapContext: createMockMapContext(),
           messages: mockMessages,
           model: 'openai/gpt-3.5-turbo'
         })
@@ -223,7 +249,7 @@ describe('AgenticService', () => {
   })
 
   describe('generateStreamingResponse', () => {
-    const mockMessages: ChatMessage[] = [
+    const mockMessages: ChatMessageContract[] = [
       {
         id: '1',
         type: 'user',
@@ -249,7 +275,7 @@ describe('AgenticService', () => {
       const receivedChunks: StreamChunk[] = []
       const result = await service.generateStreamingResponse(
         {
-          centerCoordId: 'user:123,group:456:1,2',
+          mapContext: createMockMapContext(),
           messages: mockMessages,
           model: 'openai/gpt-3.5-turbo'
         },
@@ -289,7 +315,7 @@ describe('AgenticService', () => {
       await expect(
         service.generateStreamingResponse(
           {
-            centerCoordId: 'user:123,group:456:1,2',
+            mapContext: createMockMapContext(),
             messages: mockMessages,
             model: 'openai/gpt-3.5-turbo'
           },
@@ -333,6 +359,70 @@ describe('AgenticService', () => {
     it('should delegate to repository', () => {
       expect(service.isConfigured()).toBe(true)
       expect(mockLLMRepository.isConfigured).toHaveBeenCalled()
+    })
+  })
+
+
+  describe('createSubagent', () => {
+    const mockSubagentConfig = {
+      description: 'A test subagent for data analysis',
+      tools: ['search', 'calculate'],
+      prompt: 'You are a data analysis expert. Help users analyze their data.'
+    }
+
+    it('should create a subagent with the provided configuration', () => {
+      const subagentId = service.createSubagent(mockSubagentConfig)
+
+      expect(subagentId).toEqual(expect.stringMatching(/^subagent-[a-z0-9-]+$/))
+    })
+
+    it('should store subagent configuration for later use', () => {
+      const subagentId = service.createSubagent(mockSubagentConfig)
+      const config = service.getSubagentConfig(subagentId)
+
+      expect(config).toEqual(mockSubagentConfig)
+    })
+
+    it('should generate unique IDs for multiple subagents', () => {
+      const id1 = service.createSubagent(mockSubagentConfig)
+      const id2 = service.createSubagent(mockSubagentConfig)
+      const id3 = service.createSubagent(mockSubagentConfig)
+
+      expect(id1).not.toBe(id2)
+      expect(id2).not.toBe(id3)
+      expect(id1).not.toBe(id3)
+    })
+
+    it('should create subagent with minimal configuration', () => {
+      const minimalConfig = {
+        description: 'Minimal subagent',
+        prompt: 'Help the user'
+      }
+
+      const subagentId = service.createSubagent(minimalConfig)
+      const config = service.getSubagentConfig(subagentId)
+
+      expect(config).toEqual(minimalConfig)
+    })
+
+    it('should create subagent with all optional fields', () => {
+      const fullConfig = {
+        description: 'Full featured subagent',
+        tools: ['tool1', 'tool2'],
+        disallowedTools: ['dangerous-tool'],
+        prompt: 'Advanced prompt',
+        model: 'sonnet' as const
+      }
+
+      const subagentId = service.createSubagent(fullConfig)
+      const config = service.getSubagentConfig(subagentId)
+
+      expect(config).toEqual(fullConfig)
+    })
+
+    it('should throw error when retrieving non-existent subagent', () => {
+      expect(() => service.getSubagentConfig('non-existent-id'))
+        .toThrow('Subagent not found: non-existent-id')
     })
   })
 })

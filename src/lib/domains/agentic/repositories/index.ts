@@ -9,4 +9,6 @@ export type { ILLMRepository } from '~/lib/domains/agentic/repositories/llm.repo
 
 // Repository implementations
 export { OpenRouterRepository } from '~/lib/domains/agentic/repositories/openrouter.repository';
+export { ClaudeAgentSDKRepository } from '~/lib/domains/agentic/repositories/claude-agent-sdk.repository';
+export { ClaudeAgentSDKSandboxRepository } from '~/lib/domains/agentic/repositories/claude-agent-sdk-sandbox.repository';
 export { QueuedLLMRepository } from '~/lib/domains/agentic/repositories/queued-llm.repository';

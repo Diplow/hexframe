@@ -79,7 +79,7 @@ export const mapItemsRouter = createTRPCRouter({
       const coords = input.coords as Coord;
       const currentUserId = await _getUserId(ctx.user);
       const currentUserIdString = String(currentUserId);
-      
+
       // If creating a root item, ensure it's in user's own space
       if (coords.path.length === 0 && coords.userId !== currentUserId) {
         throw new TRPCError({
@@ -87,7 +87,7 @@ export const mapItemsRouter = createTRPCRouter({
           message: "You can only create root items in your own space",
         });
       }
-      
+
       // If creating a child item, check parent ownership
       const hasExplicitParent = input.parentId !== null && input.parentId !== undefined;
       if (hasExplicitParent) {
@@ -111,7 +111,7 @@ export const mapItemsRouter = createTRPCRouter({
           });
         }
       }
-      
+
       const mapItem = await ctx.mappingService.items.crud.addItemToMap({
         parentId: input.parentId ?? null,
         coords: coords,

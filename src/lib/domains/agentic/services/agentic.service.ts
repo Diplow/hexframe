@@ -1,23 +1,25 @@
+import { randomUUID } from 'crypto'
 import type { ILLMRepository } from '~/lib/domains/agentic/repositories/llm.repository.interface'
 import type { ContextCompositionService } from '~/lib/domains/agentic/services/context-composition.service'
 import { PromptTemplateService } from '~/lib/domains/agentic/services/prompt-template.service'
 // import { IntentClassifierService } from '../intent-classification/intent-classifier.service'
-import type { EventBus } from '~/app/map'
-import type { 
-  CompositionConfig, 
-  LLMResponse, 
+import type { EventBus } from '~/lib/utils/event-bus'
+import type {
+  CompositionConfig,
+  LLMResponse,
   LLMGenerationParams,
   StreamChunk,
   ModelInfo,
-  LLMMessage
+  LLMMessage,
+  ChatMessageContract,
 } from '~/lib/domains/agentic/types'
-import type { ChatMessage } from '~/app/map'
+import type { MapContext } from '~/lib/domains/mapping/utils'
 // import type { Intent, ClassificationContext } from '../intent-classification/intent.types'
 import type { PromptTemplateName } from '~/lib/domains/agentic/prompts/prompts.constants'
 
 export interface GenerateResponseOptions {
-  centerCoordId: string
-  messages: ChatMessage[]
+  mapContext: MapContext
+  messages: ChatMessageContract[]
   model: string
   temperature?: number
   maxTokens?: number
@@ -28,8 +30,17 @@ export interface GenerateResponseOptions {
   specialContext?: 'onboarding' | 'importing'
 }
 
+export interface SubagentConfig {
+  description: string
+  tools?: string[]
+  disallowedTools?: string[]
+  prompt: string
+  model?: 'sonnet' | 'opus' | 'haiku' | 'inherit'
+}
+
 export class AgenticService {
   private promptTemplate: PromptTemplateService
+  private subagents: Map<string, SubagentConfig>
   // private intentClassifier: IntentClassifierService
 
   constructor(
@@ -38,6 +49,7 @@ export class AgenticService {
     private readonly eventBus: EventBus
   ) {
     this.promptTemplate = new PromptTemplateService()
+    this.subagents = new Map()
   }
 
   async generateResponse(options: GenerateResponseOptions): Promise<LLMResponse> {
@@ -47,7 +59,7 @@ export class AgenticService {
 
     // Compose context from tile hierarchy and chat history
     const composedContext = await this.contextComposition.composeContext(
-      options.centerCoordId,
+      options.mapContext,
       options.messages,
       options.compositionConfig ?? this.getDefaultCompositionConfig()
     )
@@ -106,7 +118,7 @@ export class AgenticService {
 
     // Compose context
     const composedContext = await this.contextComposition.composeContext(
-      options.centerCoordId,
+      options.mapContext,
       options.messages,
       options.compositionConfig ?? this.getDefaultCompositionConfig()
     )
@@ -175,7 +187,7 @@ export class AgenticService {
 
   private buildLLMMessages(
     composedContext: ReturnType<ContextCompositionService['composeContext']> extends Promise<infer T> ? T : never,
-    chatMessages: ChatMessage[],
+    chatMessages: ChatMessageContract[],
     promptTemplateName: PromptTemplateName = 'system-prompt'
   ): LLMMessage[] {
     const messages: LLMMessage[] = []
@@ -192,19 +204,12 @@ export class AgenticService {
     })
 
     // Convert chat messages to LLM messages
+    // Note: ChatMessageContract.content is always a string (widgets are pre-serialized)
     for (const msg of chatMessages) {
-      if (typeof msg.content === 'string') {
-        messages.push({
-          role: msg.type,
-          content: msg.content
-        })
-      } else {
-        // Handle widget messages by extracting text representation
-        messages.push({
-          role: msg.type,
-          content: this.extractTextFromWidget(msg.content)
-        })
-      }
+      messages.push({
+        role: msg.type,
+        content: msg.content
+      })
     }
 
     return messages
@@ -235,6 +240,33 @@ export class AgenticService {
   }
 
   // Intent classification methods temporarily removed due to missing dependencies
+
+  /**
+   * Create a subagent with the specified configuration
+   *
+   * @param config - Subagent configuration including description, prompt, and optional tools
+   * @returns Unique identifier for the created subagent
+   */
+  createSubagent(config: SubagentConfig): string {
+    const subagentId = `subagent-${randomUUID()}`
+    this.subagents.set(subagentId, config)
+    return subagentId
+  }
+
+  /**
+   * Get the configuration for a specific subagent
+   *
+   * @param subagentId - The unique identifier of the subagent
+   * @returns The subagent configuration
+   * @throws Error if subagent not found
+   */
+  getSubagentConfig(subagentId: string): SubagentConfig {
+    const config = this.subagents.get(subagentId)
+    if (!config) {
+      throw new Error(`Subagent not found: ${subagentId}`)
+    }
+    return config
+  }
 
   private getDefaultCompositionConfig(): CompositionConfig {
     return {

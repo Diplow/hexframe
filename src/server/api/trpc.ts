@@ -27,7 +27,10 @@ import type { IncomingHttpHeaders } from "http";
 /**
  * Helper function to extract API key from headers
  */
-function getApiKeyFromHeaders(headers: IncomingHttpHeaders): string | undefined {
+function getApiKeyFromHeaders(headers: IncomingHttpHeaders | Headers): string | undefined {
+  if (headers instanceof Headers) {
+    return headers.get('x-api-key') ?? undefined;
+  }
   const apiKey = headers["x-api-key"];
   return Array.isArray(apiKey) ? apiKey[0] : apiKey;
 }
@@ -79,25 +82,37 @@ export const createContext = async (opts: CreateNextContextOptions) => {
     sessionAPIAcceptableHeaders = convertToHeaders(req.headers);
   }
 
-  const sessionData = await auth.api.getSession({
-    headers: sessionAPIAcceptableHeaders,
-    // `request` property removed as it's not accepted by getSession according to linter
-  });
-  
-  loggers.api(`TRPC CONTEXT: Session data from better-auth`, {
-    hasSessionData: !!sessionData,
-    hasSession: !!sessionData?.session,
-    hasUser: !!sessionData?.user,
-  });
+  try {
+    const sessionData = await auth.api.getSession({
+      headers: sessionAPIAcceptableHeaders,
+      // `request` property removed as it's not accepted by getSession according to linter
+    });
 
-  return {
-    req,
-    res,
-    db,
-    session: sessionData ? sessionData.session : null,
-    user: sessionData ? sessionData.user : null,
-    headers: req.headers, // Keep original IncomingHttpHeaders for other parts of context if needed
-  };
+    loggers.api(`TRPC CONTEXT: Session data from better-auth`, {
+      hasSessionData: !!sessionData,
+      hasSession: !!sessionData?.session,
+      hasUser: !!sessionData?.user,
+    });
+
+    return {
+      req,
+      res,
+      db,
+      session: sessionData ? sessionData.session : null,
+      user: sessionData ? sessionData.user : null,
+      headers: req.headers, // Keep original IncomingHttpHeaders for other parts of context if needed
+    };
+  } catch {
+    // If session retrieval fails, continue with null session (API key auth can still work)
+    return {
+      req,
+      res,
+      db,
+      session: null,
+      user: null,
+      headers: req.headers,
+    };
+  }
 };
 
 /**
@@ -248,49 +263,78 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
 
 /**
  * MCP API Key authenticated procedure
- * 
+ *
  * This procedure authenticates requests using API keys from the x-api-key header.
- * Used by the MCP server to authenticate write operations.
+ * Supports both:
+ * - External API keys (user-created, hashed) for third-party integrations
+ * - Internal API keys (system-created, encrypted) for MCP server-to-server auth
  */
 export const mcpAuthProcedure = t.procedure.use(async ({ ctx, next }) => {
   const apiKey = getApiKeyFromHeaders(ctx.headers);
-  
+
   if (!apiKey) {
-    throw new TRPCError({ 
+    throw new TRPCError({
       code: "UNAUTHORIZED",
-      message: "API key required" 
+      message: "API key required"
     });
   }
 
   try {
-    // Use better-auth's API key validation
-    const result = await auth.api.verifyApiKey({ 
-      body: { key: apiKey } 
-    });
-    
-    if (!result.valid) {
-      throw new TRPCError({ 
-        code: "UNAUTHORIZED",
-        message: "Invalid API key" 
+    // Try internal API key first (from IAM domain, for MCP server-to-server auth)
+    const { validateInternalApiKey } = await import('~/lib/domains/iam');
+    const userIdHint = ctx.headers instanceof Headers
+      ? ctx.headers.get('x-user-id') ?? undefined
+      : (Array.isArray(ctx.headers['x-user-id']) ? ctx.headers['x-user-id'][0] : ctx.headers['x-user-id']);
+    const internalResult = await validateInternalApiKey(apiKey, userIdHint);
+
+    if (internalResult) {
+      // Internal key validated - create user context
+      const user = { id: internalResult.userId };
+
+      return next({
+        ctx: {
+          ...ctx,
+          user,
+          session: null,
+          apiKeyAuth: true,
+          internalApiKey: true, // Flag to indicate this is internal key
+        },
       });
     }
 
-    // Create a mock user context from the API key
+    // Fall back to external API key validation (better-auth)
+    const result = await auth.api.verifyApiKey({
+      body: { key: apiKey }
+    });
+
+    if (!result.valid) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "Invalid API key"
+      });
+    }
+
+    // Create a user context from the external API key
     const user = { id: result.key?.userId ?? "" };
-    
+
     return next({
       ctx: {
         ...ctx,
         user,
-        session: null, // API key auth doesn't have sessions
-        apiKeyAuth: true, // Flag to indicate this is API key auth
+        session: null,
+        apiKeyAuth: true,
+        internalApiKey: false, // External key
       },
     });
   } catch (error) {
-    console.error("API key validation error:", error);
-    throw new TRPCError({ 
+    // Re-throw TRPC errors as-is, wrap others
+    if (error instanceof TRPCError) {
+      throw error;
+    }
+
+    throw new TRPCError({
       code: "UNAUTHORIZED",
-      message: "API key validation failed" 
+      message: "API key validation failed"
     });
   }
 });
@@ -316,15 +360,37 @@ export const dualAuthProcedure = t.procedure.use(async ({ ctx, next }) => {
 
   // Fall back to API key auth
   const apiKey = getApiKeyFromHeaders(ctx.headers);
-  
+
   if (!apiKey) {
-    throw new TRPCError({ 
+    throw new TRPCError({
       code: "UNAUTHORIZED",
-      message: "Authentication required - provide session or API key" 
+      message: "Authentication required - provide session or API key"
     });
   }
 
   try {
+    // Try internal API key first (from IAM domain)
+    const { validateInternalApiKey } = await import('~/lib/domains/iam');
+    const userIdHint = ctx.headers instanceof Headers
+      ? ctx.headers.get('x-user-id') ?? undefined
+      : (Array.isArray(ctx.headers['x-user-id']) ? ctx.headers['x-user-id'][0] : ctx.headers['x-user-id']);
+    const internalResult = await validateInternalApiKey(apiKey, userIdHint);
+
+    if (internalResult) {
+      const user = { id: internalResult.userId };
+
+      return next({
+        ctx: {
+          ...ctx,
+          user,
+          session: null,
+          apiKeyAuth: true,
+          internalApiKey: true,
+        },
+      });
+    }
+
+    // Fall back to external API key (better-auth)
     const result = await auth.api.verifyApiKey({
       body: { key: apiKey }
     });
@@ -341,17 +407,22 @@ export const dualAuthProcedure = t.procedure.use(async ({ ctx, next }) => {
       throw new TRPCError({ code: "UNAUTHORIZED", message: "API key not linked to a user" });
     }
     const user = { id: userId };
-    
+
     return next({
       ctx: {
         ...ctx,
         user,
         session: null,
         apiKeyAuth: true,
+        internalApiKey: false,
       },
     });
   } catch (error) {
-    console.error("Authentication error:", error);
+    // Re-throw TRPC errors as-is
+    if (error instanceof TRPCError) {
+      throw error;
+    }
+
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "Authentication failed"

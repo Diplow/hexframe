@@ -24,3 +24,10 @@ export type {
 
 // MapItem type enum
 export { MapItemType } from '~/lib/domains/mapping/_objects';
+
+// Context types for AI operations
+export {
+  type ContextStrategy,
+  type MapContext,
+  ContextStrategies,
+} from '~/lib/domains/mapping/utils/context';

@@ -29,12 +29,18 @@ export class StructuredContextSerializer {
     const lines: string[] = [
       '# Canvas Context',
       '',
-      `Current item: ${context.center.title}`
+      `Current item: ${context.center.title} (${context.center.coordId})`,
+      ''
     ]
 
     if (context.center.content) {
       lines.push(`Content: ${context.center.content}`)
+      lines.push('')
     }
+
+    // Add coordinate format explanation
+    lines.push('**Coordinate Format**: Each tile has coordinates like "1,0:2" meaning {userId: 1, groupId: 0, path: [2]}.')
+    lines.push('To create/modify tiles, parse this string format into the coordinate object structure.')
 
     if (context.children.length === 0) {
       lines.push('No child items')
@@ -43,7 +49,7 @@ export class StructuredContextSerializer {
       lines.push('## Children:')
       for (const child of context.children) {
         const posLabel = this.getPositionLabel(child.position)
-        lines.push(`- ${posLabel}: ${child.title}`)
+        lines.push(`- ${posLabel} (${child.coordId}): ${child.title}`)
       }
     }
 

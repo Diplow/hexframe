@@ -1,4 +1,5 @@
 import { mcpTools } from '~/app/services/mcp';
+import { validateInternalApiKey } from '~/lib/domains/iam';
 import { auth } from '~/server/auth';
 import { runWithRequestContext } from '~/lib/utils/request-context';
 
@@ -40,6 +41,13 @@ async function validateApiKey(request: Request): Promise<{ apiKey: string; userI
       return null;
     }
 
+    // Try internal API key first (from IAM domain, for MCP server-to-server auth)
+    const internalResult = await validateInternalApiKey(apiKey);
+    if (internalResult) {
+      return { apiKey, userId: internalResult.userId };
+    }
+
+    // Fall back to regular API key validation (for external tools)
     const result = await auth.api.verifyApiKey({
       body: { key: apiKey }
     });
@@ -48,8 +56,7 @@ async function validateApiKey(request: Request): Promise<{ apiKey: string; userI
       return null;
     }
 
-    const userId = result.key.userId;
-    return { apiKey, userId };
+    return { apiKey, userId: result.key.userId };
   } catch {
     return null;
   }
@@ -146,6 +153,13 @@ export async function POST(request: Request): Promise<Response> {
 
         return Response.json(response);
       } catch (error) {
+        // Log the error for debugging
+        console.error('[MCP] Tool execution error:', {
+          tool: toolName,
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
+        });
+
         const errorResponse: JsonRpcResponse = {
           jsonrpc: '2.0',
           id: jsonRpcRequest.id,
@@ -154,7 +168,7 @@ export async function POST(request: Request): Promise<Response> {
             message: error instanceof Error ? error.message : 'Unknown error'
           }
         };
-        return Response.json(errorResponse);
+        return Response.json(errorResponse, { status: 500 });
       }
     }
 
@@ -188,7 +202,13 @@ export async function POST(request: Request): Promise<Response> {
     };
     return Response.json(errorResponse);
 
-  } catch {
+  } catch (error) {
+    // Log the error for debugging
+    console.error('[MCP] Request processing error:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
+
     const errorResponse: JsonRpcResponse = {
       jsonrpc: '2.0',
       id: null,

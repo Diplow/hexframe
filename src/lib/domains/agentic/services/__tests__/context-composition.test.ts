@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ContextCompositionService } from '~/lib/domains/agentic/services/context-composition.service'
+import { createMockMapContext } from '~/lib/domains/agentic/services/__tests__/__fixtures__/context-mocks'
 import type { CanvasContextBuilder } from '~/lib/domains/agentic/services/canvas-context-builder.service'
 import type { ChatContextBuilder } from '~/lib/domains/agentic/services/chat-context-builder.service'
 import type { TokenizerService } from '~/lib/domains/agentic/services/tokenizer.service'
-import type { CompositionConfig } from '~/lib/domains/agentic/types'
-import type { ChatMessage } from '~/app/map'
+import type { CompositionConfig, ChatMessageContract } from '~/lib/domains/agentic/types'
 import { createMockCanvasContext, createMockChatContext } from '~/lib/domains/agentic/services/__tests__/__fixtures__/context-mocks'
 
 describe('ContextCompositionService', () => {
@@ -49,8 +49,8 @@ describe('ContextCompositionService', () => {
     }
 
     const result = await service.composeContext(
-      'user:123,group:456:1,2',
-      [] as ChatMessage[],
+      createMockMapContext(),
+      [] as ChatMessageContract[],
       config
     )
 
@@ -86,8 +86,8 @@ describe('ContextCompositionService', () => {
       .mockReturnValueOnce(700) // Chat exceeds allocation
 
     const result = await service.composeContext(
-      'user:123,group:456:1,2',
-      [] as ChatMessage[],
+      createMockMapContext(),
+      [] as ChatMessageContract[],
       config
     )
 
@@ -111,8 +111,8 @@ describe('ContextCompositionService', () => {
     }
 
     const result = await service.composeContext(
-      'user:123,group:456:1,2',
-      [] as ChatMessage[],
+      createMockMapContext(),
+      [] as ChatMessageContract[],
       configCanvasOnly
     )
 
@@ -139,8 +139,8 @@ describe('ContextCompositionService', () => {
     mockTokenizer.count = vi.fn().mockReturnValue(100) // Each context is 100 tokens
 
     const result = await service.composeContext(
-      'user:123,group:456:1,2',
-      [] as ChatMessage[],
+      createMockMapContext(),
+      [] as ChatMessageContract[],
       config
     )
 

@@ -17,9 +17,14 @@ export const env = createEnv({
       .default("development"),
     MISTRAL_API_KEY: z.string().optional(),
     YOUTUBE_API_KEY: z.string().optional(),
-    OPENROUTER_API_KEY: isTestEnv
-      ? z.string().optional()
-      : z.string().min(1, "OPENROUTER_API_KEY is required in non-test environments"),
+    // LLM Provider configuration
+    LLM_PROVIDER: z.enum(["openrouter", "claude-agent-sdk"]).default("openrouter"),
+    OPENROUTER_API_KEY: z.string().optional(),
+    ANTHROPIC_API_KEY: z.string().optional(),
+    USE_SANDBOX: z.enum(["true", "false"]).optional(), // Enable Vercel Sandbox for Claude Agent SDK
+    USE_ANTHROPIC_PROXY: z.enum(["true", "false"]).optional(), // Use Anthropic proxy (for testing without sandbox)
+    VERCEL_OIDC_TOKEN: z.string().optional(), // Vercel OIDC token for Sandbox API (from vercel env pull)
+    INTERNAL_PROXY_SECRET: z.string().optional(), // Secret for authenticating internal proxy requests
     AUTH_SECRET: z.string().min(1),
     BETTER_AUTH_URL: z.string().url(),
     // Email provider API keys (optional, one should be provided in production)
@@ -56,7 +61,13 @@ export const env = createEnv({
     TEST_DATABASE_URL: process.env.TEST_DATABASE_URL,
     MISTRAL_API_KEY: process.env.MISTRAL_API_KEY,
     YOUTUBE_API_KEY: process.env.YOUTUBE_API_KEY,
+    LLM_PROVIDER: process.env.LLM_PROVIDER,
     OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
+    ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+    USE_SANDBOX: process.env.USE_SANDBOX,
+    USE_ANTHROPIC_PROXY: process.env.USE_ANTHROPIC_PROXY,
+    VERCEL_OIDC_TOKEN: process.env.VERCEL_OIDC_TOKEN,
+    INTERNAL_PROXY_SECRET: process.env.INTERNAL_PROXY_SECRET,
     AUTH_SECRET: process.env.AUTH_SECRET,
     BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
     NEXT_PUBLIC_BETTER_AUTH_URL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,

@@ -4,6 +4,8 @@
     "@trpc/server",
     "zod",
     "~/lib/domains/mapping",
+    "~/lib/domains/iam",
+    "~/lib/domains/agentic",
     "~/server/api/services",
     "~/server/api/trpc",
     "~/server/api/types/contracts"

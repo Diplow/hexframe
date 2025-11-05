@@ -1,0 +1,101 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { StandardCanvasStrategy } from '~/lib/domains/agentic/services/canvas-strategies/standard.strategy'
+import type { AIContextSnapshot } from '~/lib/domains/agentic/types'
+
+describe('StandardCanvasStrategy', () => {
+  let mockGetContextSnapshot: () => AIContextSnapshot
+  let strategy: StandardCanvasStrategy
+  
+  // Mock AIContextSnapshot - simpler than CacheState
+  const mockContextSnapshot: AIContextSnapshot = {
+    centerCoordId: 'user:123,group:456:1,2',
+    visibleTiles: [
+      { coordId: 'user:123,group:456:1,2', title: 'Center', content: 'Description for Center' },
+      { coordId: 'user:123,group:456:1,2,1', title: 'Child NW', content: 'Description for Child NW' },
+      { coordId: 'user:123,group:456:1,2,2', title: 'Child NE', content: 'Description for Child NE' },
+      { coordId: 'user:123,group:456:1,2,3', title: '', content: '' }, // Empty tile
+      { coordId: 'user:123,group:456:1,2,1,6', title: 'Grandchild 1', content: 'Description for Grandchild 1' },
+      { coordId: 'user:123,group:456:1,2,1,5', title: 'Grandchild 2', content: 'Description for Grandchild 2' },
+      { coordId: 'user:123,group:456:1,2,2,3', title: 'Grandchild 3', content: 'Description for Grandchild 3' },
+    ],
+    expandedTileIds: []
+  }
+
+  beforeEach(() => {
+    mockGetContextSnapshot = vi.fn(() => mockContextSnapshot)
+    strategy = new StandardCanvasStrategy(mockGetContextSnapshot)
+  })
+  
+  it('should build context with center tile and visible tiles', async () => {
+    const result = await strategy.build('user:123,group:456:1,2', {})
+
+    expect(result.type).toBe('canvas')
+    expect(result.strategy).toBe('standard')
+    expect(result.center.title).toBe('Center')
+    expect(result.center.depth).toBe(0)
+
+    // Simplified: all non-center visible tiles become children
+    expect(result.children.length).toBeGreaterThan(0)
+    expect(result.children.map(c => c.title)).toContain('Child NW')
+    expect(result.children.map(c => c.title)).toContain('Child NE')
+    expect(result.children.map(c => c.title)).toContain('Grandchild 1')
+
+    // Simplified: no grandchildren separation
+    expect(result.grandchildren.length).toBe(0)
+  })
+  
+  it('should use frontend-provided tiles (no filtering)', async () => {
+    const result = await strategy.build('user:123,group:456:1,2', {
+      includeEmptyTiles: false
+    })
+
+    // Simplified: frontend decides which tiles to send, backend doesn't filter
+    // All visible tiles from snapshot are included
+    expect(result.children.length).toBeGreaterThan(0)
+  })
+  
+  it('should create simplified structure without positions', async () => {
+    const result = await strategy.build('user:123,group:456:1,2', {})
+
+    const childNW = result.children.find(c => c.title === 'Child NW')
+
+    // Simplified: no position info (frontend already organized tiles)
+    expect(childNW?.position).toBeUndefined()
+  })
+  
+  it('should handle missing center tile gracefully', async () => {
+    await expect(
+      strategy.build('user:123,group:456:99,99', {})
+    ).rejects.toThrow('Center tile not found')
+  })
+  
+  it('should set simplified depth values', async () => {
+    const result = await strategy.build('user:123,group:456:1,2', {})
+
+    expect(result.center.depth).toBe(0)
+    // Simplified: all non-center tiles have depth 1
+    expect(result.children.every(c => c.depth === 1)).toBe(true)
+    expect(result.grandchildren.length).toBe(0)
+  })
+  
+  it('should include descriptions when available', async () => {
+    const result = await strategy.build('user:123,group:456:1,2', {
+      includeDescriptions: true
+    })
+    
+    expect(result.center.content).toBe('Description for Center')
+    expect(result.children[0]?.content).toContain('Description for')
+  })
+  
+  it('should serialize to structured format', async () => {
+    const result = await strategy.build('user:123,group:456:1,2', {
+      includeEmptyTiles: false
+    })
+
+    const serialized = result.serialize({ type: 'structured' })
+
+    expect(serialized).toContain('Center: Center')
+    expect(serialized).toContain('Children')
+    expect(serialized).toContain('Child NW')
+  })
+})

@@ -12,12 +12,14 @@ Like a telephone switchboard operator, connecting frontend map requests to the r
 - Expose composition queries (getComposedChildren, hasComposition) for direction 0 child tiles
 - Expose version history queries (getItemHistory, getItemVersion) with pagination support
 - Expose deep copy operation (copyMapItem) with ownership validation for copying items and their subtrees
+- Provide MCP (Model Context Protocol) tools for AI agent integration via Claude Agent SDK
 
 ## Non-Responsibilities
 - Business logic and domain rules → See `~/lib/domains/mapping/README.md`
 - Database operations and persistence → See `~/lib/domains/mapping/README.md`
 - User authentication and session management → See `~/server/api/trpc/README.md`
 - Response caching and performance optimization → See `~/server/api/services/README.md`
+- MCP tool definitions and SDK integration → See `./_mcp-tools/README.md`
 
 ## Interface
 *See `index.ts` for the public API - the ONLY exports other subsystems can use*

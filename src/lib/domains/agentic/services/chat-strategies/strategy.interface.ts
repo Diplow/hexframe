@@ -1,5 +1,5 @@
 import type { ChatContext, ChatContextOptions } from '~/lib/domains/agentic/types'
-import type { ChatMessage } from '~/app/map'
+import type { ChatMessageContract as ChatMessage } from '~/lib/domains/agentic/types'
 
 export interface IChatStrategy {
   build(

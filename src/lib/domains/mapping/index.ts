@@ -21,6 +21,7 @@ export {
   ItemCrudService,
   ItemQueryService,
   ItemHistoryService,
+  ItemContextService,
   MappingUtils,
 } from '~/lib/domains/mapping/services';
 

@@ -3,7 +3,7 @@ import type {
   BaseItemRepository,
 } from "~/lib/domains/mapping/_repositories";
 import { MapManagementService } from "~/lib/domains/mapping/services/_map-management.service";
-import { ItemManagementService } from "~/lib/domains/mapping/services/_item-services";
+import { ItemManagementService, ItemContextService } from "~/lib/domains/mapping/services/_item-services";
 
 /**
  * Main coordinating service for mapping operations.
@@ -12,10 +12,12 @@ import { ItemManagementService } from "~/lib/domains/mapping/services/_item-serv
  * Usage:
  * - For map-level operations: service.maps.methodName()
  * - For item-level operations: service.items.methodName()
+ * - For AI context operations: service.context.methodName()
  */
 export class MappingService {
   public readonly maps: MapManagementService;
   public readonly items: ItemManagementService;
+  public readonly context: ItemContextService;
 
   constructor(repositories: {
     mapItem: MapItemRepository;
@@ -23,5 +25,6 @@ export class MappingService {
   }) {
     this.maps = new MapManagementService(repositories);
     this.items = new ItemManagementService(repositories);
+    this.context = new ItemContextService(repositories);
   }
 }
