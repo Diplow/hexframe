@@ -10,6 +10,20 @@ import { db, schema } from '~/server/db'
 const { llmJobResults } = schema
 import { eq } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
+import type { MappingService } from '~/lib/domains/mapping'
+
+function getMapContextFromConfig(
+  canvasStrategy: string | undefined,
+  mappingService: MappingService,
+  centerCoordId: string
+) {
+  const contextStrategy = canvasStrategy === 'minimal' ? ContextStrategies.MINIMAL :
+                         canvasStrategy === 'extended' ? ContextStrategies.EXTENDED :
+                         canvasStrategy === 'focused' ? ContextStrategies.FOCUSED :
+                         ContextStrategies.STANDARD
+
+  return mappingService.context.getContextForCenter(centerCoordId, contextStrategy)
+}
 
 // ChatMessage contract schema
 const chatMessageSchema = z.object({
@@ -68,15 +82,10 @@ export const agenticRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       // Fetch map context using mapping domain service
-      const canvasStrategy = input.compositionConfig?.canvas?.strategy ?? 'standard'
-      const contextStrategy = canvasStrategy === 'minimal' ? ContextStrategies.MINIMAL :
-                             canvasStrategy === 'extended' ? ContextStrategies.EXTENDED :
-                             canvasStrategy === 'focused' ? ContextStrategies.FOCUSED :
-                             ContextStrategies.STANDARD
-
-      const mapContext = await ctx.mappingService.context.getContextForCenter(
-        input.centerCoordId,
-        contextStrategy
+      const mapContext = await getMapContextFromConfig(
+        input.compositionConfig?.canvas?.strategy ?? 'standard',
+        ctx.mappingService,
+        input.centerCoordId
       )
 
       // Create a server-side event bus instance
@@ -160,15 +169,10 @@ export const agenticRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       // Fetch map context using mapping domain service
-      const canvasStrategy = input.compositionConfig?.canvas?.strategy ?? 'standard'
-      const contextStrategy = canvasStrategy === 'minimal' ? ContextStrategies.MINIMAL :
-                             canvasStrategy === 'extended' ? ContextStrategies.EXTENDED :
-                             canvasStrategy === 'focused' ? ContextStrategies.FOCUSED :
-                             ContextStrategies.STANDARD
-
-      const mapContext = await ctx.mappingService.context.getContextForCenter(
-        input.centerCoordId,
-        contextStrategy
+      const mapContext = await getMapContextFromConfig(
+        input.compositionConfig?.canvas?.strategy ?? 'standard',
+        ctx.mappingService,
+        input.centerCoordId
       )
 
       // Create a server-side event bus instance
