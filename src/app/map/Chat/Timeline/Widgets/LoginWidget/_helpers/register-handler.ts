@@ -24,11 +24,11 @@ export async function handleRegisterFlow({ email, password, username }: Register
       throw new Error(registerResponse.error.message ?? 'Registration failed');
     }
 
-    // Registration successful
+    // Registration successful - email verification required
     return {
-      shouldClearForm: true,
-      shouldSwitchToLogin: true,
-      successMessage: '✅ Registration successful! You can now log in with your credentials.',
+      shouldClearForm: false,
+      shouldSwitchToLogin: false,
+      successMessage: '✅ Registration successful! Please check your email to verify your account before logging in.',
     };
   } catch (registerError: unknown) {
     let errorMessage = 'Registration failed';

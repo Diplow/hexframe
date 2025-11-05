@@ -14,12 +14,30 @@ import { useMessageHandling } from '~/app/map/Chat/Input/_hooks/messages/useMess
 import { loggers } from '~/lib/debug/debug-logger';
 import { InputForm } from '~/app/map/Chat/Input/_components/InputForm';
 import { useMapCache } from '~/app/map/Cache';
+import { useUnifiedAuth } from '~/contexts/UnifiedAuthContext';
+import { useEventBus } from '~/app/map/Services';
 
 
 export function Input() {
   const [message, setMessage] = useState('');
   const chatState = useChatState();
   const { center } = useMapCache();
+  const { user } = useUnifiedAuth();
+  const eventBus = useEventBus();
+
+  // Show login widget when user is not logged in
+  useEffect(() => {
+    if (!user) {
+      eventBus.emit({
+        type: 'auth.required',
+        payload: {
+          reason: 'Please log in to use the chat'
+        },
+        source: 'chat_cache',
+        timestamp: new Date()
+      });
+    }
+  }, [user, eventBus]);
   
   // Debug logging for Input component renders
   useEffect(() => {
@@ -93,6 +111,7 @@ export function Input() {
       suggestions={suggestions}
       selectedSuggestionIndex={selectedSuggestionIndex}
       textareaRef={textareaRef}
+      isDisabled={!user}
       onMessageChange={handleMessageChange}
       onKeyDown={(e) => handleKeyDownWithAutocomplete(e, suggestions)}
       onSend={() => handleSend(message)}
