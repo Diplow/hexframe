@@ -241,13 +241,14 @@ export class SpecializedQueries {
       fullContentConditions.push(eq(mapItems.path, parentPathString));
     }
 
-    // Composed tiles (if requested)
+    // Composed tiles (if requested) - only the children under the container, not the container itself
+    // For center at path "1", fetch "1,0,1", "1,0,2", etc. (NOT "1,0" which is just a transition)
     if (config.includeComposed) {
-      const composedPattern = centerPathString ? `${centerPathString},0,%` : '0,%';
+      const composedChildrenPattern = centerPathString ? `${centerPathString},0,%` : '0,%';
       fullContentConditions.push(
         and(
-          like(mapItems.path, composedPattern),
-          lte(
+          like(mapItems.path, composedChildrenPattern),
+          eq(
             sql`array_length(string_to_array(${mapItems.path}, ','), 1)`,
             centerDepth + 2
           )
@@ -293,6 +294,10 @@ export class SpecializedQueries {
     let childrenResults: Array<{ map_items: unknown; base_items: unknown }> = [];
     if (config.includeChildren) {
       const childPattern = centerPathString ? `${centerPathString},%` : '%';
+      // Exclude composition containers: paths that end with ,0 AFTER the center path
+      // For center "1,0,1", exclude "1,0,1,0" but allow "1,0,1,3"
+      const composedContainerPattern = centerPathString ? `${centerPathString},0` : '0';
+
       childrenResults = await this.db
         .select({
           map_items: {
@@ -328,7 +333,8 @@ export class SpecializedQueries {
               sql`array_length(string_to_array(${mapItems.path}, ','), 1)`,
               centerDepth + 1
             ),
-            notLike(mapItems.path, '%,0,%')
+            // Exclude the composition container (e.g., "1,0,1,0" when center is "1,0,1")
+            notLike(mapItems.path, composedContainerPattern)
           )
         );
     }
@@ -337,6 +343,11 @@ export class SpecializedQueries {
     let grandchildrenResults: Array<{ map_items: unknown; base_items: unknown }> = [];
     if (config.includeGrandchildren) {
       const grandchildPattern = centerPathString ? `${centerPathString},%` : '%';
+      // Exclude composition-related paths at grandchild level
+      // For center "1", exclude paths like "1,X,0" (where X is any child)
+      // This means excluding paths that have ,0 as the LAST segment
+      const compositionGrandchildPattern = centerPathString ? `${centerPathString},%,0` : '%,0';
+
       grandchildrenResults = await this.db
         .select({
           map_items: {
@@ -372,7 +383,8 @@ export class SpecializedQueries {
               sql`array_length(string_to_array(${mapItems.path}, ','), 1)`,
               centerDepth + 2
             ),
-            notLike(mapItems.path, '%,0,%')
+            // Exclude grandchildren that are composition containers (ending with ,0)
+            notLike(mapItems.path, compositionGrandchildPattern)
           )
         );
     }
@@ -417,7 +429,7 @@ export class SpecializedQueries {
     results: Array<{ map_items: unknown; base_items: unknown }>,
     centerPath: Direction[]
   ): DbMapItemWithBase | null {
-    const parentPath = centerPath.slice(0, -2);
+    const parentPath = centerPath.slice(0, -1);
     const parentPathString = pathToString(parentPath);
     const parent = results.find((r) => {
       if (!r.map_items || typeof r.map_items !== 'object') return false;
@@ -434,7 +446,10 @@ export class SpecializedQueries {
     centerPathString: string,
     centerDepth: number
   ): DbMapItemWithBase[] {
-    const composedPattern = centerPathString ? `${centerPathString},0,` : '0,';
+    // Match only the actual composed children (e.g., "1,0,1", "1,0,2")
+    // NOT the container itself (e.g., "1,0")
+    const composedPrefix = centerPathString ? `${centerPathString},0,` : '0,';
+
     return results.filter((r) => {
       // Type guard
       if (!r.map_items || typeof r.map_items !== 'object') return false;
@@ -442,9 +457,10 @@ export class SpecializedQueries {
       if (!r.base_items) return false;
 
       const path = r.map_items.path;
-      if (!path.startsWith(composedPattern)) return false;
+      // Only match children under the composition container
+      if (!path.startsWith(composedPrefix)) return false;
       const depth = path.split(',').length;
-      return depth <= centerDepth + 2;
+      return depth === centerDepth + 2;
     }) as DbMapItemWithBase[];
   }
 
