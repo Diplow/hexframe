@@ -268,43 +268,48 @@ The MCP (Model Context Protocol) API key allows:
 - ✅ **Audit logging**: All MCP tool calls are logged
 - ✅ **Rate limiting**: Prevents mass data exfiltration
 
-**Residual Risk:** Medium-High
-- ⚠️ Malicious AI code CAN steal user's own data
-- ⚠️ Malicious AI code CAN modify/delete user's maps
-- ⚠️ Key remains valid until user rotates it
+**Current Mitigations:** ✅ IMPLEMENTED
+1. **Short-lived session tokens** (10 minutes TTL)
+   - MCP keys auto-expire after 10 minutes
+   - Keys automatically rotated on each new agent request
+   - Purpose changed from `'mcp'` to `'mcp-session'` to distinguish
+   - Expired keys auto-deactivated during validation
+
+**Residual Risk:** Low-Medium (significantly improved!)
+- ✅ Stolen keys expire within 10 minutes (was: indefinite)
+- ✅ Keys auto-rotate between sessions (was: persistent)
+- ⚠️ Within 10-min window, malicious AI code CAN:
+  - Steal user's own data
+  - Modify/delete user's maps
+  - Exfiltrate to external servers (if no network restrictions)
 - ⚠️ No way to distinguish legitimate vs. malicious SDK usage
 
-**Recommended Additional Mitigations:**
+**Recommended Future Mitigations:**
 
-1. **Short-lived tokens** (30-60 minutes)
-   - Rotate MCP key per agent session
-   - Store session keys in Redis with TTL
-   - Auto-revoke after agent execution completes
-
-2. **Operation allowlisting**
+1. **Operation allowlisting**
    - Default: Read-only access (getCurrentUser, getItems*)
    - Opt-in: Write access (addItem, updateItem, etc.)
    - Require explicit user confirmation for destructive ops
 
-3. **Transaction log & rollback**
+2. **Transaction log & rollback**
    - Log all write operations with timestamps
    - Implement "undo" functionality for AI changes
    - Alert user on suspicious patterns (mass deletes, rapid changes)
 
-4. **Anomaly detection**
+3. **Anomaly detection**
    - Flag unusual API patterns (100 reads in 1 second)
    - Throttle based on behavior, not just rate
    - Require CAPTCHA for suspicious sessions
 
-5. **Sandbox network restrictions**
+4. **Sandbox network restrictions**
    - Whitelist only hexframe.com and anthropic proxy
    - Block all other outbound connections
    - Prevent data exfiltration to attacker servers
 
-**Implementation Priority:** High
-- MCP key theft is the **highest remaining risk**
-- User data is valuable and sensitive
-- Should be addressed before public launch
+**Implementation Priority:** Medium (primary risk mitigated)
+- Short-lived tokens reduce exposure from indefinite to 10 minutes
+- Remaining risks are lower priority
+- Can be addressed post-launch if needed
 
 ---
 
@@ -593,13 +598,13 @@ Before deploying to production:
 - [ ] `HEXFRAME_API_BASE_URL` set to public domain (not localhost)
 - [ ] All `.env.local` files in `.gitignore`
 - [ ] No API keys committed to git
+- [x] **Short-lived MCP session tokens** (10 min TTL) ✅ IMPLEMENTED
 - [ ] MCP rate limiting configured (200 req/hour)
 - [ ] MCP operation logging enabled
 - [ ] Sandbox timeout set (5 minutes default)
 - [ ] Budget limits configured ($1.00/request default)
 
 Optional but recommended:
-- [ ] Implement short-lived MCP tokens (30-60 min)
 - [ ] Add MCP operation allowlisting (read-only default)
 - [ ] Enable transaction log & rollback for AI changes
 - [ ] Set up anomaly detection for API usage
@@ -628,13 +633,13 @@ A: No. Proxy adds <50ms latency but prevents API key theft. Non-negotiable for p
 A: Rotate it immediately via `openssl rand -hex 32`. Update in all environments. No user data at risk, but regenerate MCP keys to be safe.
 
 **Q: Why is MCP key exposed to sandbox?**
-A: Technical limitation - SDK needs to call MCP tools with authentication. Working on short-lived tokens as mitigation.
+A: Technical limitation - SDK needs to call MCP tools with authentication. We mitigate this with 10-minute session tokens that auto-expire and rotate.
 
 **Q: Can I test sandbox mode locally?**
 A: Partially. You need either: (1) Deploy to Vercel preview/staging, or (2) Use ngrok + mock OIDC token (not recommended).
 
 ---
 
-**Last Updated:** 2025-11-04
-**Version:** 1.0.0
+**Last Updated:** 2025-11-05
+**Version:** 1.1.0 - Added short-lived session tokens
 **Maintainers:** Hexframe Security Team

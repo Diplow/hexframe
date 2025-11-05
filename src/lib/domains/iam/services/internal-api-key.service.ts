@@ -25,15 +25,18 @@ function generateApiKey(): string {
 /**
  * Get or create an internal API key for a user and purpose
  *
- * This is idempotent - calling multiple times returns the same key.
+ * Supports short-lived tokens with TTL for enhanced security.
+ * When TTL is specified, expired keys are automatically rotated.
  *
  * @param userId - The user ID
- * @param purpose - The purpose identifier (e.g., 'mcp')
+ * @param purpose - The purpose identifier (e.g., 'mcp', 'mcp-session')
+ * @param ttlMinutes - Optional: TTL in minutes for short-lived tokens (default: no expiry)
  * @returns Plaintext API key
  */
 export async function getOrCreateInternalApiKey(
   userId: string,
-  purpose: string
+  purpose: string,
+  ttlMinutes?: number
 ): Promise<string> {
   // Try to find existing active key
   const existing = await db.query.internalApiKeys.findFirst({
@@ -45,18 +48,29 @@ export async function getOrCreateInternalApiKey(
   })
 
   if (existing) {
-    // Update last used timestamp
-    await db.update(internalApiKeys)
-      .set({ lastUsedAt: new Date() })
-      .where(eq(internalApiKeys.id, existing.id))
+    // Check if key is expired
+    if (existing.expiresAt && existing.expiresAt <= new Date()) {
+      // Key expired, deactivate it (will create new one below)
+      await db.update(internalApiKeys)
+        .set({ isActive: false })
+        .where(eq(internalApiKeys.id, existing.id))
+    } else {
+      // Key still valid, update last used and return
+      await db.update(internalApiKeys)
+        .set({ lastUsedAt: new Date() })
+        .where(eq(internalApiKeys.id, existing.id))
 
-    // Decrypt and return
-    return decrypt(existing.encryptedKey)
+      return decrypt(existing.encryptedKey)
+    }
   }
 
-  // Create new key
+  // Create new key with optional expiry
   const plaintextKey = generateApiKey()
   const encryptedKey = encrypt(plaintextKey)
+
+  const expiresAt = ttlMinutes
+    ? new Date(Date.now() + ttlMinutes * 60 * 1000)
+    : undefined
 
   await db.insert(internalApiKeys).values({
     id: randomUUID(),
@@ -65,6 +79,7 @@ export async function getOrCreateInternalApiKey(
     encryptedKey,
     isActive: true,
     createdAt: new Date(),
+    expiresAt,
   })
 
   return plaintextKey
@@ -98,6 +113,8 @@ export async function rotateInternalApiKey(
 /**
  * Validate an internal API key and return the user ID
  *
+ * Checks if key is active AND not expired.
+ *
  * @param plaintextKey - The plaintext API key to validate
  * @param userId - Optional userId hint to optimize lookup (only checks this user's keys)
  * @returns User ID and purpose if valid, null otherwise
@@ -106,6 +123,8 @@ export async function validateInternalApiKey(
   plaintextKey: string,
   userId?: string
 ): Promise<{ userId: string; purpose: string } | null> {
+  const now = new Date()
+
   // If userId provided, use fast path: only check this user's keys
   if (userId) {
     const userKeys = await db.query.internalApiKeys.findMany({
@@ -116,6 +135,15 @@ export async function validateInternalApiKey(
     })
 
     for (const key of userKeys) {
+      // Check if key is expired
+      if (key.expiresAt && key.expiresAt <= now) {
+        // Auto-deactivate expired key
+        await db.update(internalApiKeys)
+          .set({ isActive: false })
+          .where(eq(internalApiKeys.id, key.id))
+        continue
+      }
+
       try {
         const decrypted = decrypt(key.encryptedKey)
 
@@ -146,6 +174,15 @@ export async function validateInternalApiKey(
   })
 
   for (const key of allKeys) {
+    // Check if key is expired
+    if (key.expiresAt && key.expiresAt <= now) {
+      // Auto-deactivate expired key
+      await db.update(internalApiKeys)
+        .set({ isActive: false })
+        .where(eq(internalApiKeys.id, key.id))
+      continue
+    }
+
     try {
       const decrypted = decrypt(key.encryptedKey)
 
