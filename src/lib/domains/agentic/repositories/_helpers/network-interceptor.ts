@@ -43,30 +43,49 @@ export function installAnthropicNetworkInterceptor(config: FetchInterceptorConfi
       return originalFetch(input, init)
     }
 
+    // Parse URL once for security validation
+    let parsedUrl: URL
+    try {
+      parsedUrl = new URL(url)
+    } catch {
+      // Invalid URL, pass through to original fetch
+      return originalFetch(input, init)
+    }
+
+    const hostname = parsedUrl.hostname.toLowerCase()
+
     // CRITICAL: Don't intercept if this is already going through our proxy!
     // This prevents infinite loops
-    if (url.includes('/api/anthropic-proxy') || url.includes('localhost:3000/api/anthropic-proxy')) {
+    if (parsedUrl.pathname.includes('/api/anthropic-proxy')) {
       return originalFetch(input, init)
     }
 
     // Check if this is a direct Anthropic API call
-    if (url.includes('api.anthropic.com')) {
+    // SECURITY: Compare exact hostname to prevent malicious domains like "api.anthropic.com.evil.com"
+    if (hostname === 'api.anthropic.com') {
       // Extract the path from the Anthropic URL
       // e.g., "https://api.anthropic.com/v1/messages" -> "/v1/messages"
-      const anthropicUrl = new URL(url)
-      const apiPath = anthropicUrl.pathname + anthropicUrl.search
+      const apiPath = parsedUrl.pathname + parsedUrl.search
 
       // Build proxy URL
       const proxyUrl = `${config.proxyBaseUrl}${apiPath}`
 
-      // Replace headers with proxy secret
-      const headers = new Headers(init?.headers)
+      // Preserve method and body from original Request if present
+      const originalRequest = input instanceof Request ? input : undefined
+      const baseInit: RequestInit = {
+        ...init,
+        method: init?.method ?? originalRequest?.method,
+        body:
+          init?.body ??
+          (originalRequest?.body ? await originalRequest.clone().arrayBuffer() : undefined)
+      }
+
+      const headers = new Headers(init?.headers ?? originalRequest?.headers)
       headers.set('x-api-key', config.proxySecret)
       headers.delete('authorization') // Remove any Bearer tokens
 
-      // Make the proxied request using ORIGINAL fetch
       return originalFetch(proxyUrl, {
-        ...init,
+        ...baseInit,
         headers
       })
     }

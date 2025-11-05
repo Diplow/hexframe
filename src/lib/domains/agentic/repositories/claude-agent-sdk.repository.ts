@@ -49,8 +49,13 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
     const useProxy = process.env.USE_ANTHROPIC_PROXY === 'true'
 
     if (useProxy) {
+      // SECURITY: Require INTERNAL_PROXY_SECRET when proxy is enabled
+      if (!process.env.INTERNAL_PROXY_SECRET) {
+        throw new Error('INTERNAL_PROXY_SECRET environment variable is required when USE_ANTHROPIC_PROXY=true')
+      }
+
       const mcpBaseUrl = process.env.HEXFRAME_API_BASE_URL ?? 'http://localhost:3000'
-      const internalProxySecret = process.env.INTERNAL_PROXY_SECRET ?? 'change-me-in-production'
+      const internalProxySecret = process.env.INTERNAL_PROXY_SECRET
 
       // CRITICAL: Save the original API key before we overwrite it
       // The proxy needs the real key to call Anthropic
@@ -64,8 +69,7 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
       loggers.agentic('Using Anthropic proxy', {
         userId,
         proxyUrl: proxyBaseUrl,
-        internalSecretLength: internalProxySecret.length,
-        internalSecretPrefix: internalProxySecret.substring(0, 10)
+        proxySecretConfigured: true
       })
 
       // NETWORK-LEVEL INTERCEPTION
@@ -85,7 +89,7 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
 
       loggers.agentic('Proxy env vars set', {
         baseUrl: process.env.ANTHROPIC_BASE_URL,
-        apiKeyPrefix: process.env.ANTHROPIC_API_KEY?.substring(0, 10)
+        apiKeyConfigured: !!process.env.ANTHROPIC_API_KEY
       })
     } else {
       // Direct API key usage (legacy mode)
@@ -148,8 +152,7 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
       // Call SDK query function
       loggers.agentic('About to call SDK query', {
         anthropicBaseUrl: process.env.ANTHROPIC_BASE_URL,
-        anthropicApiKeyPrefix: process.env.ANTHROPIC_API_KEY?.substring(0, 15),
-        anthropicApiKeyLength: process.env.ANTHROPIC_API_KEY?.length
+        anthropicApiKeyConfigured: !!process.env.ANTHROPIC_API_KEY
       })
 
       // CRITICAL: Dynamic import AFTER setting env vars

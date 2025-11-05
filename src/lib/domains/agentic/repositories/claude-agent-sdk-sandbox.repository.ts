@@ -81,6 +81,7 @@ export class ClaudeAgentSDKSandboxRepository implements ILLMRepository {
    * Execute Claude Agent SDK query inside the sandbox
    */
   private async _executeInSandbox(
+    messages: LLMGenerationParams['messages'],
     userPrompt: string,
     systemPrompt: string | undefined,
     model: string,
@@ -109,11 +110,20 @@ export class ClaudeAgentSDKSandboxRepository implements ILLMRepository {
 
     // Check if we should use proxy
     const useProxy = process.env.USE_ANTHROPIC_PROXY === 'true'
-    const internalProxySecret = process.env.INTERNAL_PROXY_SECRET ?? 'change-me-in-production'
+
+    // SECURITY: Require INTERNAL_PROXY_SECRET when proxy is enabled
+    if (useProxy && !process.env.INTERNAL_PROXY_SECRET) {
+      throw this.createError(
+        'UNKNOWN',
+        'INTERNAL_PROXY_SECRET environment variable is required when USE_ANTHROPIC_PROXY=true'
+      )
+    }
+
+    const internalProxySecret = useProxy ? process.env.INTERNAL_PROXY_SECRET! : undefined
     const proxyUrl = `${mcpBaseUrl}/api/anthropic-proxy`
 
     // Determine API key to use
-    const apiKeyToUse = useProxy ? internalProxySecret : this.apiKey
+    const apiKeyToUse = useProxy ? internalProxySecret! : this.apiKey
     const baseUrlToUse = useProxy ? proxyUrl : undefined
 
     const executionScript = `
@@ -140,22 +150,39 @@ globalThis.fetch = async (input, init) => {
     return originalFetch(input, init);
   }
 
+  // Parse URL once for security validation
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(url);
+  } catch {
+    return originalFetch(input, init);
+  }
+
+  const hostname = parsedUrl.hostname.toLowerCase();
+
   // Don't intercept proxy URLs
-  if (url.includes('/api/anthropic-proxy')) {
+  if (parsedUrl.pathname.includes('/api/anthropic-proxy')) {
     return originalFetch(input, init);
   }
 
   // Intercept Anthropic API calls
-  if (url.includes('api.anthropic.com')) {
-    const anthropicUrl = new URL(url);
-    const apiPath = anthropicUrl.pathname + anthropicUrl.search;
+  // SECURITY: Compare exact hostname to prevent malicious domains like "api.anthropic.com.evil.com"
+  if (hostname === 'api.anthropic.com') {
+    const apiPath = parsedUrl.pathname + parsedUrl.search;
     const proxyUrl = ${JSON.stringify(proxyUrl)} + apiPath;
 
-    const newHeaders = new Headers(init?.headers);
+    const originalRequest = input instanceof Request ? input : undefined;
+    const baseInit = {
+      ...init,
+      method: init?.method ?? originalRequest?.method,
+      body: init?.body ?? (originalRequest?.body ? await originalRequest.clone().arrayBuffer() : undefined)
+    };
+
+    const newHeaders = new Headers(init?.headers ?? originalRequest?.headers);
     newHeaders.set('x-api-key', ${JSON.stringify(internalProxySecret)});
     newHeaders.delete('authorization');
 
-    return originalFetch(proxyUrl, { ...init, headers: newHeaders });
+    return originalFetch(proxyUrl, { ...baseInit, headers: newHeaders });
   }
 
   return originalFetch(input, init);
@@ -255,7 +282,7 @@ runAgent().catch(error => {
 
       return {
         content: result.content,
-        usage: estimateUsage([], result.content)
+        usage: estimateUsage(messages, result.content)
       }
     } catch (parseError) {
       loggers.agentic.error('Failed to parse sandbox output', {
@@ -280,6 +307,7 @@ runAgent().catch(error => {
       })
 
       const { content, usage } = await this._executeInSandbox(
+        messages,
         userPrompt,
         systemPrompt,
         model,
