@@ -16,6 +16,15 @@ export function useAuthStateCoordinator(widgets: Widget[]) {
   useEffect(() => {
     if (!user) return;
 
+    // Check if user's email is verified
+    // During registration, better-auth might create a session with emailVerified: false
+    // We should only navigate if email is verified
+    const userWithEmail = user as typeof user & { emailVerified?: boolean };
+    if (userWithEmail.emailVerified === false) {
+      console.log('[AuthCoordinator] User has unverified email, keeping login widget open');
+      return;
+    }
+
     const loginWidget = widgets.find(w => w.type === 'login');
     if (!loginWidget) return;
 
