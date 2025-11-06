@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle, Loader2 } from 'lucide-react';
 import { api } from '~/commons/trpc/react';
@@ -10,10 +10,12 @@ export default function VerifySuccessPage() {
   const [countdown, setCountdown] = useState(5);
   const [isInitializing, setIsInitializing] = useState(true);
   const [initError, setInitError] = useState<string | null>(null);
+  const [createdMapId, setCreatedMapId] = useState<number | null>(null);
+  const initializationAttempted = useRef(false);
 
   // Query user map to check if it exists
   const { data: userMapResponse, isLoading: isLoadingMap } = api.map.getUserMap.useQuery(undefined, {
-    enabled: isInitializing,
+    enabled: isInitializing && !initializationAttempted.current,
     retry: 1,
   });
 
@@ -22,9 +24,13 @@ export default function VerifySuccessPage() {
 
   useEffect(() => {
     async function initializeUserMap() {
-      if (!isInitializing || isLoadingMap) return;
+      // Prevent multiple initialization attempts
+      if (initializationAttempted.current || isLoadingMap) return;
 
       try {
+        // Mark that we've attempted initialization
+        initializationAttempted.current = true;
+
         // If user already has a map, we're done
         if (userMapResponse?.success && userMapResponse.map?.id) {
           setIsInitializing(false);
@@ -38,6 +44,7 @@ export default function VerifySuccessPage() {
           throw new Error('Failed to create user map');
         }
 
+        setCreatedMapId(createResult.mapId);
         setIsInitializing(false);
       } catch (error) {
         console.error('Failed to initialize user map:', error);
@@ -47,7 +54,8 @@ export default function VerifySuccessPage() {
     }
 
     void initializeUserMap();
-  }, [isInitializing, isLoadingMap, userMapResponse, createMapMutation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mutation object is stable in tRPC; exclude from deps to avoid unnecessary re-runs
+  }, [isLoadingMap, userMapResponse]);
 
   useEffect(() => {
     // Only start countdown after initialization is complete
@@ -68,7 +76,7 @@ export default function VerifySuccessPage() {
     // Navigate when countdown reaches 0
     if (countdown === 0 && !isInitializing && !initError) {
       // Navigate to user's map with center parameter
-      const mapId = userMapResponse?.map?.id ?? createMapMutation.data?.mapId;
+      const mapId = userMapResponse?.map?.id ?? createdMapId;
       if (mapId) {
         router.push(`/map?center=${mapId}`);
       } else {
@@ -76,7 +84,7 @@ export default function VerifySuccessPage() {
         router.push('/map');
       }
     }
-  }, [countdown, router, isInitializing, initError, userMapResponse, createMapMutation.data]);
+  }, [countdown, router, isInitializing, initError, userMapResponse, createdMapId]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-primary-950 dark:to-secondary-950">
@@ -108,7 +116,7 @@ export default function VerifySuccessPage() {
 
               <button
                 onClick={() => {
-                  const mapId = userMapResponse?.map?.id ?? createMapMutation.data?.mapId;
+                  const mapId = userMapResponse?.map?.id ?? createdMapId;
                   if (mapId) {
                     router.push(`/map?center=${mapId}`);
                   } else {
