@@ -54,7 +54,8 @@ export default function VerifySuccessPage() {
     }
 
     void initializeUserMap();
-  }, [isLoadingMap, userMapResponse, createMapMutation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mutation object is stable in tRPC; exclude from deps to avoid unnecessary re-runs
+  }, [isLoadingMap, userMapResponse]);
 
   useEffect(() => {
     // Only start countdown after initialization is complete
