@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { cn } from '~/lib/utils';
-import { useChatState, ChatProvider } from '~/app/map/Chat/_state';
+import { useChatState } from '~/app/map/Chat';
 import { Timeline } from '~/app/map/Chat/Timeline';
 import { Input } from '~/app/map/Chat/Input';
 import { ThemeToggle } from '~/components/ThemeToggle';
@@ -21,12 +21,10 @@ interface ChatPanelProps {
 
 export function ChatPanel({ className }: ChatPanelProps) {
   return (
-    <ChatProvider>
-      <div data-testid="chat-panel" className={cn('flex flex-col h-full bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border-r border-[color:var(--stroke-color-950)]', className)}>
-        <ChatHeader />
-        <ChatContent />
-      </div>
-    </ChatProvider>
+    <div data-testid="chat-panel" className={cn('flex flex-col h-full bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border-r border-[color:var(--stroke-color-950)]', className)}>
+      <ChatHeader />
+      <ChatContent />
+    </div>
   );
 }
 

@@ -313,12 +313,25 @@ function _createWidgetsFromStates(events: ChatEvent[], widgetStates: Map<string,
  * Widgets are derived from events that require user interaction
  */
 export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
+  console.log('[WidgetSelectors] deriveActiveWidgets called', { eventCount: events.length });
 
   // Process events to determine widget states
   const { widgetStates } = _processWidgetStates(events);
 
+  // Log widget states
+  const widgetStatesArray = Array.from(widgetStates.entries());
+  console.log('[WidgetSelectors] Widget states after processing', {
+    totalStates: widgetStatesArray.length,
+    states: widgetStatesArray,
+    loginWidgetState: widgetStates.get('login-widget')
+  });
+
   // Convert active widget states to widget objects
   const widgets = _createWidgetsFromStates(events, widgetStates);
+  console.log('[WidgetSelectors] Widgets created from states', {
+    widgetCount: widgets.length,
+    widgetTypes: widgets.map(w => ({ id: w.id, type: w.type }))
+  });
 
   // Return only the most recent widget of each type (except AI responses which should all persist)
   const latestWidgets = new Map<string, Widget>();
@@ -339,6 +352,11 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
   const result = Array.from(latestWidgets.values()).sort((a, b) =>
     b.timestamp.getTime() - a.timestamp.getTime()
   );
+
+  console.log('[WidgetSelectors] Final widgets returned', {
+    count: result.length,
+    widgets: result.map(w => ({ id: w.id, type: w.type }))
+  });
 
   return result;
 }
