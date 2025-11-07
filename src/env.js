@@ -26,7 +26,8 @@ export const env = createEnv({
     VERCEL_OIDC_TOKEN: z.string().optional(), // Vercel OIDC token for Sandbox API (from vercel env pull)
     INTERNAL_PROXY_SECRET: z.string().optional(), // Secret for authenticating internal proxy requests
     AUTH_SECRET: z.string().min(1),
-    BETTER_AUTH_URL: z.string().url(),
+    BETTER_AUTH_URL: z.string().url().optional(),
+    VERCEL_URL: z.string().optional(), // Vercel system variable
     // Email provider API keys (optional, one should be provided in production)
     BREVO_API_KEY: z.string().optional(),
     RESEND_API_KEY: z.string().optional(),
@@ -70,6 +71,7 @@ export const env = createEnv({
     INTERNAL_PROXY_SECRET: process.env.INTERNAL_PROXY_SECRET,
     AUTH_SECRET: process.env.AUTH_SECRET,
     BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
+    VERCEL_URL: process.env.VERCEL_URL,
     NEXT_PUBLIC_BETTER_AUTH_URL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
     NEXT_PUBLIC_REQUIRE_EMAIL_VERIFICATION: process.env.NEXT_PUBLIC_REQUIRE_EMAIL_VERIFICATION,
     BREVO_API_KEY: process.env.BREVO_API_KEY,
@@ -91,3 +93,21 @@ export const env = createEnv({
    */
   emptyStringAsUndefined: true,
 });
+
+/**
+ * Get the auth URL, falling back to VERCEL_URL if BETTER_AUTH_URL is not set
+ * This is useful for preview deployments where we want to use the deployment URL
+ */
+export function getAuthUrl() {
+  if (env.BETTER_AUTH_URL) {
+    return env.BETTER_AUTH_URL;
+  }
+
+  // Vercel preview deployments
+  if (env.VERCEL_URL) {
+    return `https://${env.VERCEL_URL}`;
+  }
+
+  // Local development fallback
+  return "http://localhost:3000";
+}
