@@ -41,6 +41,7 @@ if [[ "$PHASE" == "phase1" ]] || [[ "$PHASE" == "all" ]]; then
   echo "Phase 1: Main test suite (excluding React component and isolated integration tests)..."
   # Temporarily disable exit-on-error to collect exit codes without aborting
   set +e
+  # Run tests with output to both terminal and log file
   pnpm vitest run --config vitest.config.ts \
     --exclude "**/base.test.tsx" \
     --exclude "**/auth-tile.test.tsx" \
@@ -73,9 +74,9 @@ if [[ "$PHASE" == "phase1" ]] || [[ "$PHASE" == "all" ]]; then
     --exclude "**/base-item-repository-bulk-methods.test.ts" \
     --exclude "**/map-item-repository-bulk-methods.test.ts" \
     --exclude "**/item-deep-copy.integration.test.ts" \
-    "${STORYBOOK_EXCLUDE[@]}" 2>test-results/main-suite.log
+    "${STORYBOOK_EXCLUDE[@]}" 2>&1 | tee test-results/main-suite.log
 
-  MAIN_EXIT_CODE=$?
+  MAIN_EXIT_CODE=${PIPESTATUS[0]}
   mv test-results/vitest-results.json test-results/main.tmp.json 2>>test-results/main-suite.log || true
 else
   MAIN_EXIT_CODE=0
@@ -124,8 +125,9 @@ do
 done
 
   if [ -n "$REACT_TEST_FILES" ]; then
-    pnpm vitest run --config vitest.config.ts --pool=forks --poolOptions.forks.singleFork $REACT_TEST_FILES 2>test-results/react-components.log
-    REACT_EXIT_CODE=$?
+    # Run tests with output to both terminal and log file
+    pnpm vitest run --config vitest.config.ts --pool=forks --poolOptions.forks.singleFork $REACT_TEST_FILES 2>&1 | tee test-results/react-components.log
+    REACT_EXIT_CODE=${PIPESTATUS[0]}
     mv test-results/vitest-results.json test-results/react.tmp.json 2>>test-results/react-components.log || true
   else
     REACT_EXIT_CODE=0
