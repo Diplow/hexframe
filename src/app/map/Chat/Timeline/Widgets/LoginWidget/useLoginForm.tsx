@@ -25,28 +25,41 @@ export function useLoginForm() {
 
     try {
       if (mode === 'login') {
+        console.log('[useLoginForm] Starting login flow');
         await handleLoginFlow({ email, password, router, eventBus });
+        console.log('[useLoginForm] Login flow completed');
       } else {
+        console.log('[useLoginForm] Starting registration flow');
         const result = await handleRegisterFlow({ email, password, username });
+        console.log('[useLoginForm] Registration flow completed', {
+          shouldClearForm: result.shouldClearForm,
+          shouldSwitchToLogin: result.shouldSwitchToLogin
+        });
 
         // Handle successful registration
         setError('');
         setSuccess(result.successMessage);
+        console.log('[useLoginForm] Set success message');
 
         if (result.shouldClearForm) {
+          console.log('[useLoginForm] Clearing form fields');
           setEmail('');
           setPassword('');
           setUsername('');
         }
 
         if (result.shouldSwitchToLogin) {
+          console.log('[useLoginForm] Switching to login mode');
           setMode('login');
         }
+        console.log('[useLoginForm] Registration handling complete');
       }
     } catch (err) {
+      console.error('[useLoginForm] Error during submit:', err);
       setError(err instanceof Error ? err.message : 'An unexpected server error occurred.');
     } finally {
       setIsLoading(false);
+      console.log('[useLoginForm] Submit completed, isLoading set to false');
     }
   };
 

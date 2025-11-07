@@ -99,6 +99,7 @@ function _processWidgetStates(events: ChatEvent[]): {
       }
 
       case 'auth_required': {
+        console.log('[WidgetSelectors] auth_required event, setting login-widget to active', { eventId: event.id });
         widgetStates.set('login-widget', 'active');
         break;
       }
@@ -112,6 +113,7 @@ function _processWidgetStates(events: ChatEvent[]): {
       case 'widget_created': {
         const payload = event.payload as { widget: Widget };
         if (payload && typeof payload === 'object' && 'widget' in payload && payload.widget && typeof payload.widget === 'object' && 'id' in payload.widget) {
+          console.log('[WidgetSelectors] widget_created event', { widgetId: payload.widget.id, widgetType: payload.widget.type });
           widgetStates.set(payload.widget.id, 'active');
         }
         break;
@@ -120,6 +122,7 @@ function _processWidgetStates(events: ChatEvent[]): {
       case 'widget_resolved': {
         const payload = event.payload as { widgetId: string; action: string };
         if (payload && typeof payload === 'object' && 'widgetId' in payload && typeof payload.widgetId === 'string') {
+          console.log('[WidgetSelectors] widget_resolved event', { widgetId: payload.widgetId, action: payload.action });
           widgetStates.set(payload.widgetId, 'completed');
         }
         break;
@@ -128,6 +131,7 @@ function _processWidgetStates(events: ChatEvent[]): {
       case 'widget_closed': {
         const payload = event.payload as { widgetId: string };
         if (payload && typeof payload === 'object' && 'widgetId' in payload && typeof payload.widgetId === 'string') {
+          console.log('[WidgetSelectors] widget_closed event', { widgetId: payload.widgetId });
           widgetStates.set(payload.widgetId, 'completed');
         }
         break;
@@ -162,9 +166,18 @@ function _createTileWidget(event: ChatEvent, widgetStates: Map<string, 'active' 
  * Create login widget from auth required event
  */
 function _createLoginWidget(event: ChatEvent, widgetStates: Map<string, 'active' | 'completed'>): Widget | null {
-  if (widgetStates.get('login-widget') === 'active') {
+  const widgetState = widgetStates.get('login-widget');
+  console.log('[WidgetSelectors] Creating login widget', {
+    eventType: event.type,
+    widgetState,
+    eventId: event.id,
+    timestamp: event.timestamp
+  });
+
+  if (widgetState === 'active') {
     const payload = event.payload as AuthRequiredPayload;
     if (payload && typeof payload === 'object') {
+      console.log('[WidgetSelectors] Login widget created successfully', { reason: payload.reason });
       return {
         id: 'login-widget',
         type: 'login' as const,
@@ -174,6 +187,7 @@ function _createLoginWidget(event: ChatEvent, widgetStates: Map<string, 'active'
       };
     }
   }
+  console.log('[WidgetSelectors] Login widget NOT created (state not active or invalid payload)');
   return null;
 }
 

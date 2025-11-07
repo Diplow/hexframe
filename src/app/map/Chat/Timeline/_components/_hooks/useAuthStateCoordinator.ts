@@ -14,22 +14,46 @@ export function useAuthStateCoordinator(widgets: Widget[]) {
   const eventBus = useEventBus();
 
   useEffect(() => {
-    if (!user) return;
+    console.log('[AuthCoordinator] Effect triggered', {
+      hasUser: !!user,
+      userId: user?.id,
+      widgetCount: widgets.length,
+      widgetTypes: widgets.map(w => w.type)
+    });
+
+    if (!user) {
+      console.log('[AuthCoordinator] No user, skipping');
+      return;
+    }
 
     // Check if user's email is verified
     // During registration, better-auth might create a session with emailVerified: false
     // We should only navigate if email is verified
     const userWithEmail = user as typeof user & { emailVerified?: boolean };
+    console.log('[AuthCoordinator] User email verification status:', {
+      emailVerified: userWithEmail.emailVerified,
+      userEmail: user.email
+    });
+
     if (userWithEmail.emailVerified === false) {
       console.log('[AuthCoordinator] User has unverified email, keeping login widget open');
       return;
     }
 
     const loginWidget = widgets.find(w => w.type === 'login');
-    if (!loginWidget) return;
+    console.log('[AuthCoordinator] Login widget status:', {
+      hasLoginWidget: !!loginWidget,
+      loginWidgetId: loginWidget?.id
+    });
+
+    if (!loginWidget) {
+      console.log('[AuthCoordinator] No login widget found, skipping navigation');
+      return;
+    }
 
     // Handle user authentication - widget resolution handled by chat state
     // Pre-fetch user map data and navigate
+    console.log('[AuthCoordinator] Calling handleUserMapNavigation');
     void handleUserMapNavigation({
       userId: user.id,
       router,
