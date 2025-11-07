@@ -1,16 +1,36 @@
-import { useUnifiedAuth } from '~/contexts/UnifiedAuthContext';
+import { useState, useEffect } from 'react';
 import { api } from '~/commons/trpc/react';
 import { useMapCache } from '~/app/map/Cache';
 import { useEventBus } from '~/app/map/Services';
+import { authClient } from '~/lib/auth';
 
 export function useUserClickHandler() {
-  const { user } = useUnifiedAuth();
+  const [userName, setUserName] = useState<string | null>(null);
   const { navigateToItem } = useMapCache();
   const eventBus = useEventBus();
   const trpcUtils = api.useUtils();
 
+  // Track user name via EventBus
+  useEffect(() => {
+    void authClient.getSession().then(session => {
+      setUserName(session?.data?.user?.name ?? null);
+    });
+
+    const unsubscribe = eventBus.on('auth.*', (event) => {
+      if (event.type === 'auth.login') {
+        const payload = event.payload as { userId?: string; userName?: string };
+        setUserName(payload.userName ?? null);
+      }
+      if (event.type === 'auth.logout') {
+        setUserName(null);
+      }
+    });
+
+    return unsubscribe;
+  }, [eventBus]);
+
   const _navigateToUserMap = async (map: { id: number; name?: string }) => {
-    const mapName = map.name ?? user?.name ?? 'Your Map';
+    const mapName = map.name ?? userName ?? 'Your Map';
     
     try {
       await navigateToItem(String(map.id));
@@ -29,7 +49,7 @@ export function useUserClickHandler() {
   };
 
   const handleUserClick = async () => {
-    if (!user) {
+    if (!userName) {
       eventBus.emit({
         type: 'auth.required',
         payload: {

@@ -1,19 +1,39 @@
-import { useUnifiedAuth } from '~/contexts/UnifiedAuthContext';
 import type { Message } from '~/app/map/Chat/_state';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { loggers } from '~/lib/debug/debug-logger';
 import { TimestampRenderer } from '~/app/map/Chat/Timeline/_components/TimestampRenderer';
 import { useUserClickHandler } from '~/app/map/Chat/Timeline/_utils/UserClickHandler';
 import { MarkdownRenderer } from '~/app/map/Chat/Timeline/_components/MarkdownRenderer';
 import { CopyButton } from '~/app/map/Chat/Timeline/_components/CopyButton';
+import { authClient } from '~/lib/auth';
+import { useEventBus } from '~/app/map/Services';
 
 interface MessageActorRendererProps {
   message: Message;
 }
 
 export function MessageActorRenderer({ message }: MessageActorRendererProps) {
-  const { user } = useUnifiedAuth();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const eventBus = useEventBus();
   const { handleUserClick } = useUserClickHandler();
+
+  // Track authentication state via EventBus
+  useEffect(() => {
+    void authClient.getSession().then(session => {
+      setIsAuthenticated(!!session?.data?.user);
+    });
+
+    const unsubscribe = eventBus.on('auth.*', (event) => {
+      if (event.type === 'auth.login') {
+        setIsAuthenticated(true);
+      }
+      if (event.type === 'auth.logout') {
+        setIsAuthenticated(false);
+      }
+    });
+
+    return unsubscribe;
+  }, [eventBus]);
   
   // Debug logging for MessageActorRenderer renders
   useEffect(() => {
@@ -21,7 +41,7 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
       messageId: message.id,
       actor: message.actor,
       contentLength: message.content.length,
-      hasUser: !!user
+      isAuthenticated
     });
   });
 
@@ -32,7 +52,7 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
           onClick={handleUserClick}
           className="font-bold text-secondary hover:underline focus:outline-none"
         >
-          {user ? 'You' : 'Guest'}
+          {isAuthenticated ? 'You' : 'Guest'}
         </button>
       );
     }

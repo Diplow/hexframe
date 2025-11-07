@@ -4,8 +4,6 @@ import type { DragEvent } from 'react';
 import { TilePreview } from '~/app/map/Chat/Timeline/Widgets/_shared/TilePreview';
 import type { TileCursor } from '~/app/map/Canvas';
 import { useMapCache } from '~/app/map/Cache';
-import { canDragTile } from '~/app/map/Services';
-import { useUnifiedAuth } from '~/contexts/UnifiedAuthContext';
 
 interface DraggableTilePreviewProps {
   tileId: string;
@@ -23,17 +21,17 @@ export function DraggableTilePreview({
   cursor = "cursor-pointer"
 }: DraggableTilePreviewProps) {
   const { getItem, startDrag } = useMapCache();
-  const { mappingUserId } = useUnifiedAuth();
 
-  // Get the tile data to check if it can be dragged
+  // Get the tile data - permissions will be checked by the drag service
   const tileData = getItem(tileId);
-  const isDraggable = tileData ? canDragTile(tileData, mappingUserId) : false;
+  const isDraggable = !!tileData;
 
   const handleDragStart = (event: DragEvent<HTMLDivElement>) => {
     if (!isDraggable || !tileData) {
       event.preventDefault();
       return;
     }
+    // DragService will validate permissions and show appropriate error if needed
     startDrag(tileId, event.nativeEvent);
   };
 

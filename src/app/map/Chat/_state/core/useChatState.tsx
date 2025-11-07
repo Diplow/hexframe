@@ -78,9 +78,27 @@ interface ChatProviderProps {
   initialEvents?: ChatEvent[];
 }
 
+// Singleton to preserve events across remounts
+let globalEventsStore: ChatEvent[] = [];
+
 export function ChatProvider({ children, initialEvents = [] }: ChatProviderProps) {
+  // Use ref to preserve across rerenders
+  const isFirstMount = useRef(true);
+
+  // On first mount, initialize from global store or initialEvents
+  const effectiveInitialEvents = isFirstMount.current
+    ? (globalEventsStore.length > 0 ? globalEventsStore : initialEvents)
+    : [];
+
+  isFirstMount.current = false;
+
   // Create a single instance of chat state
-  const chatState = useChatStateInternal(initialEvents);
+  const chatState = useChatStateInternal(effectiveInitialEvents);
+
+  // Sync events to global store whenever they change
+  useEffect(() => {
+    globalEventsStore = chatState.events;
+  }, [chatState.events]);
 
   return (
     <ChatContext.Provider value={chatState}>

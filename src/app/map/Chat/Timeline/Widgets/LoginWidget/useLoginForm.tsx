@@ -14,52 +14,28 @@ export function useLoginForm() {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
     setIsLoading(true);
 
     try {
       if (mode === 'login') {
-        console.log('[useLoginForm] Starting login flow');
         await handleLoginFlow({ email, password, router, eventBus });
-        console.log('[useLoginForm] Login flow completed');
       } else {
-        console.log('[useLoginForm] Starting registration flow');
         const result = await handleRegisterFlow({ email, password, username });
-        console.log('[useLoginForm] Registration flow completed', {
-          shouldClearForm: result.shouldClearForm,
-          shouldSwitchToLogin: result.shouldSwitchToLogin
-        });
 
-        // Handle successful registration
-        setError('');
-        setSuccess(result.successMessage);
-        console.log('[useLoginForm] Set success message');
-
-        if (result.shouldClearForm) {
-          console.log('[useLoginForm] Clearing form fields');
-          setEmail('');
-          setPassword('');
-          setUsername('');
+        // Handle successful registration - redirect to verification page
+        if (result.shouldRedirect && result.redirectUrl) {
+          router.push(result.redirectUrl);
         }
-
-        if (result.shouldSwitchToLogin) {
-          console.log('[useLoginForm] Switching to login mode');
-          setMode('login');
-        }
-        console.log('[useLoginForm] Registration handling complete');
       }
     } catch (err) {
-      console.error('[useLoginForm] Error during submit:', err);
       setError(err instanceof Error ? err.message : 'An unexpected server error occurred.');
     } finally {
       setIsLoading(false);
-      console.log('[useLoginForm] Submit completed, isLoading set to false');
     }
   };
 
@@ -69,7 +45,6 @@ export function useLoginForm() {
     setPassword('');
     setUsername('');
     setError('');
-    setSuccess('');
     setMode('login');
   };
 
@@ -83,7 +58,6 @@ export function useLoginForm() {
     username,
     setUsername,
     error,
-    success,
     isLoading,
     handleSubmit,
     handleCancel,

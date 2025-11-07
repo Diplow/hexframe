@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { User } from 'lucide-react';
 import { FormFields } from '~/app/map/Chat/Timeline/Widgets/LoginWidget/FormFields';
 import { StatusMessages } from '~/app/map/Chat/Timeline/Widgets/LoginWidget/StatusMessages';
@@ -25,32 +25,10 @@ export function LoginWidget({ message, onClose }: LoginWidgetProps) {
     username,
     setUsername,
     error,
-    success,
     isLoading,
     handleSubmit,
     handleCancel,
   } = useLoginForm();
-
-  // Log when component mounts/unmounts
-  useEffect(() => {
-    console.log('[LoginWidget] Component mounted', { message, hasOnClose: !!onClose });
-    return () => {
-      console.log('[LoginWidget] Component unmounting');
-    };
-  }, [message, onClose]);
-
-  // Log state changes
-  useEffect(() => {
-    console.log('[LoginWidget] State changed', {
-      mode,
-      hasError: !!error,
-      hasSuccess: !!success,
-      isLoading,
-      isCollapsed,
-      email: email ? '(set)' : '(empty)',
-      password: password ? '(set)' : '(empty)'
-    });
-  }, [mode, error, success, isLoading, isCollapsed, email, password]);
 
   return (
     <BaseWidget className="w-full">
@@ -88,7 +66,7 @@ export function LoginWidget({ message, onClose }: LoginWidgetProps) {
             }}
           />
 
-          <StatusMessages error={error} success={success} />
+          <StatusMessages error={error} />
 
           <div className="flex justify-end">
             <FormActions

@@ -99,7 +99,6 @@ function _processWidgetStates(events: ChatEvent[]): {
       }
 
       case 'auth_required': {
-        console.log('[WidgetSelectors] auth_required event, setting login-widget to active', { eventId: event.id });
         widgetStates.set('login-widget', 'active');
         break;
       }
@@ -113,7 +112,6 @@ function _processWidgetStates(events: ChatEvent[]): {
       case 'widget_created': {
         const payload = event.payload as { widget: Widget };
         if (payload && typeof payload === 'object' && 'widget' in payload && payload.widget && typeof payload.widget === 'object' && 'id' in payload.widget) {
-          console.log('[WidgetSelectors] widget_created event', { widgetId: payload.widget.id, widgetType: payload.widget.type });
           widgetStates.set(payload.widget.id, 'active');
         }
         break;
@@ -122,7 +120,6 @@ function _processWidgetStates(events: ChatEvent[]): {
       case 'widget_resolved': {
         const payload = event.payload as { widgetId: string; action: string };
         if (payload && typeof payload === 'object' && 'widgetId' in payload && typeof payload.widgetId === 'string') {
-          console.log('[WidgetSelectors] widget_resolved event', { widgetId: payload.widgetId, action: payload.action });
           widgetStates.set(payload.widgetId, 'completed');
         }
         break;
@@ -131,7 +128,6 @@ function _processWidgetStates(events: ChatEvent[]): {
       case 'widget_closed': {
         const payload = event.payload as { widgetId: string };
         if (payload && typeof payload === 'object' && 'widgetId' in payload && typeof payload.widgetId === 'string') {
-          console.log('[WidgetSelectors] widget_closed event', { widgetId: payload.widgetId });
           widgetStates.set(payload.widgetId, 'completed');
         }
         break;
@@ -167,17 +163,10 @@ function _createTileWidget(event: ChatEvent, widgetStates: Map<string, 'active' 
  */
 function _createLoginWidget(event: ChatEvent, widgetStates: Map<string, 'active' | 'completed'>): Widget | null {
   const widgetState = widgetStates.get('login-widget');
-  console.log('[WidgetSelectors] Creating login widget', {
-    eventType: event.type,
-    widgetState,
-    eventId: event.id,
-    timestamp: event.timestamp
-  });
 
   if (widgetState === 'active') {
     const payload = event.payload as AuthRequiredPayload;
     if (payload && typeof payload === 'object') {
-      console.log('[WidgetSelectors] Login widget created successfully', { reason: payload.reason });
       return {
         id: 'login-widget',
         type: 'login' as const,
@@ -187,7 +176,6 @@ function _createLoginWidget(event: ChatEvent, widgetStates: Map<string, 'active'
       };
     }
   }
-  console.log('[WidgetSelectors] Login widget NOT created (state not active or invalid payload)');
   return null;
 }
 
@@ -313,25 +301,11 @@ function _createWidgetsFromStates(events: ChatEvent[], widgetStates: Map<string,
  * Widgets are derived from events that require user interaction
  */
 export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
-  console.log('[WidgetSelectors] deriveActiveWidgets called', { eventCount: events.length });
-
   // Process events to determine widget states
   const { widgetStates } = _processWidgetStates(events);
 
-  // Log widget states
-  const widgetStatesArray = Array.from(widgetStates.entries());
-  console.log('[WidgetSelectors] Widget states after processing', {
-    totalStates: widgetStatesArray.length,
-    states: widgetStatesArray,
-    loginWidgetState: widgetStates.get('login-widget')
-  });
-
   // Convert active widget states to widget objects
   const widgets = _createWidgetsFromStates(events, widgetStates);
-  console.log('[WidgetSelectors] Widgets created from states', {
-    widgetCount: widgets.length,
-    widgetTypes: widgets.map(w => ({ id: w.id, type: w.type }))
-  });
 
   // Return only the most recent widget of each type (except AI responses which should all persist)
   const latestWidgets = new Map<string, Widget>();
@@ -352,11 +326,6 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
   const result = Array.from(latestWidgets.values()).sort((a, b) =>
     b.timestamp.getTime() - a.timestamp.getTime()
   );
-
-  console.log('[WidgetSelectors] Final widgets returned', {
-    count: result.length,
-    widgets: result.map(w => ({ id: w.id, type: w.type }))
-  });
 
   return result;
 }

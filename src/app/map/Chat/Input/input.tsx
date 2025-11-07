@@ -14,7 +14,7 @@ import { useMessageHandling } from '~/app/map/Chat/Input/_hooks/messages/useMess
 import { loggers } from '~/lib/debug/debug-logger';
 import { InputForm } from '~/app/map/Chat/Input/_components/InputForm';
 import { useMapCache } from '~/app/map/Cache';
-import { useUnifiedAuth } from '~/contexts/UnifiedAuthContext';
+import { authClient } from '~/lib/auth';
 import { useEventBus } from '~/app/map/Services';
 
 
@@ -22,12 +22,32 @@ export function Input() {
   const [message, setMessage] = useState('');
   const chatState = useChatState();
   const { center } = useMapCache();
-  const { user } = useUnifiedAuth();
   const eventBus = useEventBus();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Track authentication state via EventBus
+  useEffect(() => {
+    // Get initial auth state
+    void authClient.getSession().then(session => {
+      setIsAuthenticated(!!session?.data?.user);
+    });
+
+    // Subscribe to auth events
+    const unsubscribe = eventBus.on('auth.*', (event) => {
+      if (event.type === 'auth.login') {
+        setIsAuthenticated(true);
+      }
+      if (event.type === 'auth.logout') {
+        setIsAuthenticated(false);
+      }
+    });
+
+    return unsubscribe;
+  }, [eventBus]);
 
   // Show login widget when user is not logged in
   useEffect(() => {
-    if (!user) {
+    if (!isAuthenticated) {
       eventBus.emit({
         type: 'auth.required',
         payload: {
@@ -37,7 +57,7 @@ export function Input() {
         timestamp: new Date()
       });
     }
-  }, [user, eventBus]);
+  }, [isAuthenticated, eventBus]);
   
   // Debug logging for Input component renders
   useEffect(() => {
@@ -111,7 +131,7 @@ export function Input() {
       suggestions={suggestions}
       selectedSuggestionIndex={selectedSuggestionIndex}
       textareaRef={textareaRef}
-      isDisabled={!user}
+      isDisabled={!isAuthenticated}
       onMessageChange={handleMessageChange}
       onKeyDown={(e) => handleKeyDownWithAutocomplete(e, suggestions)}
       onSend={() => handleSend(message)}

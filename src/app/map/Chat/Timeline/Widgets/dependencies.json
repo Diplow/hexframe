@@ -3,7 +3,6 @@
   "allowedChildren": [],
   "allowed": [
     "~/app/map/Services",
-    "~/contexts/UnifiedAuthContext",
     "~/lib/auth",
     "~/lib/debug/debug-logger",
     "~/lib/domains/agentic"
