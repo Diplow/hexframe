@@ -1,4 +1,5 @@
 import { createAuthClient } from "better-auth/client";
+import { env } from "~/env";
 import { loggers } from "~/lib/debug/debug-logger";
 
 // Create a wrapper around fetch to add logging
@@ -52,8 +53,8 @@ const loggingFetch: typeof fetch = async (input, init) => {
  * 3. http://localhost:3000 (fallback for server-side rendering)
  */
 function getAuthClientBaseUrl(): string {
-  if (process.env.NEXT_PUBLIC_BETTER_AUTH_URL) {
-    return process.env.NEXT_PUBLIC_BETTER_AUTH_URL;
+  if (env.NEXT_PUBLIC_BETTER_AUTH_URL) {
+    return env.NEXT_PUBLIC_BETTER_AUTH_URL;
   }
 
   // Use current origin for preview deployments
