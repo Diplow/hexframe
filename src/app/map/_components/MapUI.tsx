@@ -1,10 +1,10 @@
 "use client";
 
+import React from 'react';
 import { DynamicMapCanvas, MapLoadingSpinner } from "~/app/map/Canvas";
 import type { TileData } from "~/app/map/types/tile-data";
 import { ParentHierarchy } from "~/app/map/Hierarchy";
 import { TileActionsProvider } from "~/app/map/Canvas";
-import { ChatPanel } from "~/app/map/Chat";
 import { useTileSelectForChat } from "~/app/map/_hooks/use-tile-select-for-chat";
 import { useMapCache, type MapCacheHook } from '~/app/map/Cache';
 import { useRouter } from "next/navigation";
@@ -213,18 +213,10 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
       isCompositionExpanded={isCompositionExpandedForTile}
       canShowComposition={canShowComposition}
     >
-      <div className="h-full w-full relative">
+      <>
         {/* Canvas layer - extends full width, positioned behind chat panel */}
         <div className="absolute inset-0 pr-[130px] overflow-hidden" style={{ zIndex: 1 }}>
           {_renderMapContent(isLoading, centerCoordinate, loadingError, params)}
-        </div>
-
-        {/* Chat panel - positioned over the canvas */}
-        <div className="absolute left-0 top-0 bottom-0 w-[40%] min-w-[40%]" style={{ zIndex: 10 }}>
-          <ChatPanel
-            className="h-full"
-            // No drag service prop needed
-          />
         </div>
 
         {/* Parent hierarchy - positioned over everything on the right */}
@@ -242,7 +234,7 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
             }}
           />
         </div>
-      </div>
+      </>
     </TileActionsProvider>
   );
 }

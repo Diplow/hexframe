@@ -5,7 +5,7 @@
   ],
   "allowed": [
     "remark-gfm",
-    "~/contexts/UnifiedAuthContext",
+    "~/components/ui/button",
     "~/lib/auth",
     "~/lib/debug/debug-logger",
     "~/lib/domains/agentic"

@@ -2,14 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { cn } from '~/lib/utils';
-import { useChatState, ChatProvider } from '~/app/map/Chat/_state';
+import { useChatState, ChatProvider } from '~/app/map/Chat';
 import { Timeline } from '~/app/map/Chat/Timeline';
 import { Input } from '~/app/map/Chat/Input';
 import { ThemeToggle } from '~/components/ThemeToggle';
 import { Logo } from '~/components/ui/logo';
 import { Button } from '~/components/ui/button';
 import { LogOut, LogIn } from 'lucide-react';
-import { useUnifiedAuth } from '~/contexts/UnifiedAuthContext';
 import { authClient } from '~/lib/auth';
 import { loggers } from '~/lib/debug/debug-logger';
 import { useEventBus } from '~/app/map/Services';
@@ -35,9 +34,27 @@ function ChatContent() {
   const chatState = useChatState();
   const messages = chatState.messages;
   const widgets = chatState.widgets;
+  const eventBus = useEventBus();
 
   // Enable AI chat integration
   const { isGeneratingAI } = useAIChatIntegration();
+
+  // Check auth status on mount and emit auth_required if not authenticated
+  useEffect(() => {
+    void authClient.getSession().then(session => {
+      if (!session?.data?.user) {
+        // User is not authenticated, show login widget
+        eventBus.emit({
+          type: 'auth.required' as const,
+          payload: {
+            reason: 'Please sign in to use HexFrame'
+          },
+          source: 'auth' as const,
+          timestamp: new Date()
+        });
+      }
+    });
+  }, [eventBus]);
 
   return (
     <>
@@ -58,15 +75,39 @@ function ChatContent() {
 }
 
 function ChatHeader() {
-  const { user } = useUnifiedAuth();
   const eventBus = useEventBus();
   const [mounted, setMounted] = useState(false);
-  
+  const [user, setUser] = useState<{ id: string; name?: string | null } | null>(null);
+
   // Prevent hydration mismatch by checking if component is mounted
   useEffect(() => {
     setMounted(true);
+
+    // Get initial auth state
+    void authClient.getSession().then(session => {
+      setUser(session?.data?.user ?? null);
+    });
   }, []);
-  
+
+  // Subscribe to auth events via EventBus
+  useEffect(() => {
+    const unsubscribe = eventBus.on('auth.*', (event) => {
+      if (event.type === 'auth.login') {
+        // Update user from login event
+        const payload = event.payload as { userId?: string; userName?: string };
+        setUser({
+          id: payload.userId ?? '',
+          name: payload.userName
+        });
+      }
+      if (event.type === 'auth.logout') {
+        setUser(null);
+      }
+    });
+
+    return unsubscribe;
+  }, [eventBus]);
+
   // Debug logging for ChatHeader renders
   useEffect(() => {
     loggers.render.chat('ChatHeader rendered', {
@@ -74,7 +115,7 @@ function ChatHeader() {
       userName: user?.name
     });
   });
-  
+
   const handleAuthClick = async () => {
     if (user) {
       await authClient.signOut();
@@ -83,9 +124,10 @@ function ChatHeader() {
       eventBus.emit({
         type: 'auth.logout',
         payload: {},
-        source: 'auth' as const, // Changed to match schema expectations
+        source: 'auth' as const,
         timestamp: new Date(),
       });
+      // Local state will update via event listener above
     } else {
       // Emit auth.required event to show login widget
       eventBus.emit({

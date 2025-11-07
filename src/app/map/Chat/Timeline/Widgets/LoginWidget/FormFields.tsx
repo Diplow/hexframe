@@ -40,6 +40,7 @@ export function FormFields({
         onChange={onChange.email}
         isLoading={isLoading}
         autoFocus={mode === 'login'}
+        mode={mode}
       />
 
       <PasswordFieldInput

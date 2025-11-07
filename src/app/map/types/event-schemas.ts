@@ -220,7 +220,7 @@ export const authLogoutEventSchema = baseEventSchema.extend({
 
 export const authRequiredEventSchema = baseEventSchema.extend({
   type: z.literal('auth.required'),
-  source: z.enum(['map_cache', 'chat_cache', 'sync']),
+  source: z.enum(['map_cache', 'chat_cache', 'sync', 'auth']),
   payload: authRequiredPayloadSchema,
 });
 

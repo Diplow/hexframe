@@ -8,6 +8,7 @@ import { MapCacheProvider } from '~/app/map/Cache';
 import { EventBusProvider, eventBus } from '~/app/map/Services';
 import { MapLoadingUI } from '~/app/map/_components/MapLoadingUI';
 import { MapUI } from '~/app/map/_components/MapUI';
+import { ChatPanel } from '~/app/map/Chat';
 import { useMapPageSetup } from '~/app/map/_hooks/useMapPageSetup';
 
 interface MapPageProps {
@@ -29,7 +30,7 @@ export default function MapPage({ searchParams }: MapPageProps) {
   );
 }
 
-function MapPageWithProviders({ searchParams }: { 
+function MapPageWithProviders({ searchParams }: {
   searchParams: Promise<{
     center?: string;
     scale?: string;
@@ -38,14 +39,22 @@ function MapPageWithProviders({ searchParams }: {
   }>
 }) {
   const setup = useMapPageSetup({ searchParams });
-  
+
   return (
     <MapCacheProvider {...setup.cacheProviderProps}>
-      {!setup.isReady ? (
-        <MapLoadingUI message={setup.loadingMessage} />
-      ) : (
-        <MapUI centerParam={setup.centerParam} />
-      )}
+      <div className="h-full w-full relative overflow-hidden">
+        {/* Chat panel - persists across loading states */}
+        <div className="absolute left-0 top-0 bottom-0 w-[40%] min-w-[40%]" style={{ zIndex: 10 }}>
+          <ChatPanel className="h-full overflow-hidden" />
+        </div>
+
+        {/* Main content - switches between loading and ready states */}
+        {!setup.isReady ? (
+          <MapLoadingUI message={setup.loadingMessage} />
+        ) : (
+          <MapUI centerParam={setup.centerParam} />
+        )}
+      </div>
     </MapCacheProvider>
   );
 }

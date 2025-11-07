@@ -162,7 +162,9 @@ function _createTileWidget(event: ChatEvent, widgetStates: Map<string, 'active' 
  * Create login widget from auth required event
  */
 function _createLoginWidget(event: ChatEvent, widgetStates: Map<string, 'active' | 'completed'>): Widget | null {
-  if (widgetStates.get('login-widget') === 'active') {
+  const widgetState = widgetStates.get('login-widget');
+
+  if (widgetState === 'active') {
     const payload = event.payload as AuthRequiredPayload;
     if (payload && typeof payload === 'object') {
       return {
@@ -299,7 +301,6 @@ function _createWidgetsFromStates(events: ChatEvent[], widgetStates: Map<string,
  * Widgets are derived from events that require user interaction
  */
 export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
-
   // Process events to determine widget states
   const { widgetStates } = _processWidgetStates(events);
 

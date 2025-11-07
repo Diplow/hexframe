@@ -7,11 +7,7 @@ import type { ChatEvent } from '~/app/map/Chat/_state/_events/event.types';
 export function eventsReducer(events: ChatEvent[], newEvent: ChatEvent): ChatEvent[] {
   // Handle special events
   if (newEvent.type === 'clear_chat') {
-    // Clear all events except the welcome message, then add logout message
-    const welcomeEvent = events.find(e => e.id === 'welcome-message');
-    const baseEvents = welcomeEvent ? [welcomeEvent] : [];
-    
-    // Add logout message after clearing
+    // Clear all events and add logout message
     const logoutMessage: ChatEvent = {
       id: `logout-message-${Date.now()}`,
       type: 'system_message',
@@ -22,8 +18,8 @@ export function eventsReducer(events: ChatEvent[], newEvent: ChatEvent): ChatEve
       timestamp: new Date(),
       actor: 'system',
     };
-    
-    return [...baseEvents, logoutMessage];
+
+    return [logoutMessage];
   }
   
   // Simply append the new event to the log

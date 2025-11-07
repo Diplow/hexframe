@@ -3,6 +3,7 @@
   "allowed": [
     "~/app/map/Cache",
     "~/app/map/Canvas",
+    "~/components/ui/logo",
     "~/contexts/UnifiedAuthContext",
     "~/lib/debug/debug-logger"
   ],

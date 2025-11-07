@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useReducer, useMemo, useCallback, useRef, type ReactNode } from 'react';
+import { createContext, useContext, useReducer, useMemo, useCallback, type ReactNode } from 'react';
 import type { ChatEvent, ChatUIState } from '~/app/map/Chat/_state/_events/event.types';
 import { eventsReducer } from '~/app/map/Chat/_state/_reducers/events.reducer';
 import { deriveVisibleMessages, deriveActiveWidgets } from '~/app/map/Chat/_state/_selectors/message.selectors';
@@ -13,8 +13,6 @@ import { useEventSubscriptions } from '~/app/map/Chat/_state/_hooks/useEventSubs
  * @internal - exported for testing only
  */
 export function useChatStateInternal(initialEvents: ChatEvent[] = []) {
-  const hasAddedWelcomeMessage = useRef(false);
-  
   // Use reducer to manage event log
   const [events, dispatchEvent] = useReducer(eventsReducer, initialEvents);
 
@@ -34,22 +32,6 @@ export function useChatStateInternal(initialEvents: ChatEvent[] = []) {
     };
     dispatchEvent(fullEvent);
   }, []);
-
-  // Add welcome message after mount (client-side only to avoid hydration mismatch)
-  useEffect(() => {
-    if (!hasAddedWelcomeMessage.current && initialEvents.length === 0) {
-      hasAddedWelcomeMessage.current = true;
-      dispatch({
-        type: 'message',
-        payload: {
-          text: 'Welcome to **HexFrame**! Navigate the map by clicking on tiles. Your messages will be sent to AI to help you explore and build your tile hierarchy.',
-        },
-        id: 'welcome-message',
-        timestamp: new Date(),
-        actor: 'assistant' as const,
-      });
-    }
-  }, [dispatch, initialEvents.length]);
 
   // Subscribe to event bus
   useEventSubscriptions(dispatch);

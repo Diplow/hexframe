@@ -1,7 +1,7 @@
 {
   "$schema": "../../../../../scripts/checks/architecture/dependencies.schema.json",
   "allowed": [
-    "~/contexts/UnifiedAuthContext",
+    "~/components/ui/button",
     "~/lib/auth",
     "~/lib/debug/debug-logger"
   ],

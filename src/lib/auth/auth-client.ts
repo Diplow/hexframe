@@ -1,4 +1,5 @@
 import { createAuthClient } from "better-auth/client";
+import { env } from "~/env";
 import { loggers } from "~/lib/debug/debug-logger";
 
 // Create a wrapper around fetch to add logging
@@ -44,27 +45,29 @@ const loggingFetch: typeof fetch = async (input, init) => {
   }
 };
 
-export const authClient = createAuthClient({
-  /**
-   * The base URL of the auth server.
-   * This should match the BETTER_AUTH_URL environment variable used in the backend.
-   * It's optional if the auth server is on the same domain as the client.
-   * However, explicitly setting it is good practice.
-   */
-  baseURL:
-    process.env.NEXT_PUBLIC_BETTER_AUTH_URL ??
-    (process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : undefined) ??
-    (typeof window !== 'undefined' ? window.location.origin : "http://localhost:3000"),
-  basePath: "/api/auth", // Must match the server configuration
-  // Use our logging fetch wrapper
-  fetch: loggingFetch,
-  // Client-side configuration if any based on better-auth documentation.
-  // For example, if your backend is hosted on a different URL:
-  // serverUrl: process.env.NEXT_PUBLIC_AUTH_SERVER_URL,
-});
+/**
+ * Get the base URL for the auth client.
+ * Priority:
+ * 1. NEXT_PUBLIC_BETTER_AUTH_URL (explicit configuration)
+ * 2. window.location.origin (for browser/preview deployments)
+ * 3. http://localhost:3000 (fallback for server-side rendering)
+ */
+function getAuthClientBaseUrl(): string {
+  if (env.NEXT_PUBLIC_BETTER_AUTH_URL) {
+    return env.NEXT_PUBLIC_BETTER_AUTH_URL;
+  }
 
-// Note: We use `process.env.NEXT_PUBLIC_BETTER_AUTH_URL` for the client-side baseURL.
-// You'll need to ensure this environment variable is available to the client
-// (prefixed with NEXT_PUBLIC_). If BETTER_AUTH_URL is already set in .env,
-// you can create a corresponding NEXT_PUBLIC_BETTER_AUTH_URL or use NEXT_PUBLIC_VERCEL_URL if applicable.
-// For local development, defaulting to "http://localhost:3000" is a fallback.
+  // Use current origin for preview deployments
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+
+  // SSR fallback
+  return "http://localhost:3000";
+}
+
+export const authClient = createAuthClient({
+  baseURL: getAuthClientBaseUrl(),
+  basePath: "/api/auth", // Must match the server configuration
+  fetch: loggingFetch,
+});

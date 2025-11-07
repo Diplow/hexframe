@@ -5,7 +5,7 @@ import { apiKey } from "better-auth/plugins";
 import { db } from "~/server/db";
 import { schema } from "~/server/db"; // Import all schemas
 import { sendEmail, generateVerificationEmail } from "~/server/email"; // Email sender functions
-import { env } from "~/env";
+import { env, getAuthUrl } from "~/env";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -32,7 +32,7 @@ export const auth = betterAuth({
     autoSignInAfterVerification: true, // Auto sign in after email verification
     sendVerificationEmail: async ({ user, token }: { user: { email: string; name?: string | null }, token: string }) => {
       // Build proper verification URL with callback to redirect after verification
-      const baseUrl = env.BETTER_AUTH_URL;
+      const baseUrl = getAuthUrl();
       const callbackUrl = encodeURIComponent(`${baseUrl}/auth/verify-success`); // Redirect to success page
       const verificationUrl = `${baseUrl}/api/auth/verify-email?token=${token}&callbackURL=${callbackUrl}`;
       await sendEmail({
@@ -44,13 +44,12 @@ export const auth = betterAuth({
   },
   secret: env.AUTH_SECRET,
   basePath: "/api/auth", // Standard Next.js API route
-  trustedOrigins: env.NODE_ENV === "production" 
+  trustedOrigins: env.NODE_ENV === "production"
     ? [
-        env.BETTER_AUTH_URL,
+        getAuthUrl(), // Dynamic URL based on environment
+        "https://hexframe.ai",
         "https://www.hexframe.ai", // Add www subdomain
-        // Add any Vercel preview URLs if needed
-        ...(process.env.VERCEL_URL ? [`https://${process.env.VERCEL_URL}`] : [])
-      ] 
+      ]
     : ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"],
   plugins: [
     nextCookies(),

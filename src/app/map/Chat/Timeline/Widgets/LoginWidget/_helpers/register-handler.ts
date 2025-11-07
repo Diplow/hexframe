@@ -7,9 +7,8 @@ interface RegisterParams {
 }
 
 interface RegisterResult {
-  shouldClearForm: boolean;
-  shouldSwitchToLogin: boolean;
-  successMessage: string;
+  shouldRedirect: boolean;
+  redirectUrl?: string;
 }
 
 export async function handleRegisterFlow({ email, password, username }: RegisterParams): Promise<RegisterResult> {
@@ -24,33 +23,13 @@ export async function handleRegisterFlow({ email, password, username }: Register
       throw new Error(registerResponse.error.message ?? 'Registration failed');
     }
 
-    // Check if a session was created (it shouldn't be, but better-auth might)
-    const session = await authClient.getSession();
-    if (session?.data?.user) {
-      console.warn('[Registration] Unexpected session created after registration:', session.data.user);
-      // Sign out to prevent the widget from closing
-      await authClient.signOut({
-        fetchOptions: {
-          onSuccess: () => {
-            console.log('[Registration] Signed out unwanted session');
-          }
-        }
-      });
-    }
-
-    // Registration successful - email verification required
+    // Registration successful - redirect to email verification page
     return {
-      shouldClearForm: true,
-      shouldSwitchToLogin: false,
-      successMessage: '✅ Registration successful! Please check your email to verify your account before logging in.',
+      shouldRedirect: true,
+      redirectUrl: '/auth/check-verification-email',
     };
   } catch (registerError: unknown) {
-    let errorMessage = 'Registration failed';
-
-    if (registerError instanceof Error) {
-      errorMessage = registerError.message;
-    }
-
+    const errorMessage = registerError instanceof Error ? registerError.message : 'Registration failed';
     throw new Error(errorMessage);
   }
 }

@@ -14,13 +14,11 @@ export function useLoginForm() {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
     setIsLoading(true);
 
     try {
@@ -29,18 +27,9 @@ export function useLoginForm() {
       } else {
         const result = await handleRegisterFlow({ email, password, username });
 
-        // Handle successful registration
-        setError('');
-        setSuccess(result.successMessage);
-
-        if (result.shouldClearForm) {
-          setEmail('');
-          setPassword('');
-          setUsername('');
-        }
-
-        if (result.shouldSwitchToLogin) {
-          setMode('login');
+        // Handle successful registration - redirect to verification page
+        if (result.shouldRedirect && result.redirectUrl) {
+          router.push(result.redirectUrl);
         }
       }
     } catch (err) {
@@ -56,7 +45,6 @@ export function useLoginForm() {
     setPassword('');
     setUsername('');
     setError('');
-    setSuccess('');
     setMode('login');
   };
 
@@ -70,7 +58,6 @@ export function useLoginForm() {
     username,
     setUsername,
     error,
-    success,
     isLoading,
     handleSubmit,
     handleCancel,
