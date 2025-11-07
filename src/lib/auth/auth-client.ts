@@ -49,7 +49,7 @@ const loggingFetch: typeof fetch = async (input, init) => {
  * Get the base URL for the auth client.
  * Priority:
  * 1. NEXT_PUBLIC_BETTER_AUTH_URL (explicit configuration)
- * 2. window.location.origin (for preview deployments and SSR)
+ * 2. window.location.origin (for browser/preview deployments)
  * 3. http://localhost:3000 (fallback for server-side rendering)
  */
 function getAuthClientBaseUrl(): string {
