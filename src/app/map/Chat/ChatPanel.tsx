@@ -34,9 +34,27 @@ function ChatContent() {
   const chatState = useChatState();
   const messages = chatState.messages;
   const widgets = chatState.widgets;
+  const eventBus = useEventBus();
 
   // Enable AI chat integration
   const { isGeneratingAI } = useAIChatIntegration();
+
+  // Check auth status on mount and emit auth_required if not authenticated
+  useEffect(() => {
+    void authClient.getSession().then(session => {
+      if (!session?.data?.user) {
+        // User is not authenticated, show login widget
+        eventBus.emit({
+          type: 'auth.required' as const,
+          payload: {
+            reason: 'Please sign in to use HexFrame'
+          },
+          source: 'auth' as const,
+          timestamp: new Date()
+        });
+      }
+    });
+  }, [eventBus]);
 
   return (
     <>

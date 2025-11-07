@@ -5,6 +5,7 @@
   ],
   "allowed": [
     "remark-gfm",
+    "~/components/ui/button",
     "~/lib/auth",
     "~/lib/debug/debug-logger",
     "~/lib/domains/agentic"

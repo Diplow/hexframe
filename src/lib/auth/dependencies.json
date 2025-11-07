@@ -5,6 +5,7 @@
     "@better-auth/next",
     "react",
     "next",
+    "~/env",
     "~/lib/debug/debug-logger"
   ],
   "exceptions": {}

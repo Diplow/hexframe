@@ -1,6 +1,7 @@
 {
   "$schema": "../../../../../scripts/checks/architecture/dependencies.schema.json",
   "allowed": [
+    "~/components/ui/button",
     "~/lib/auth",
     "~/lib/debug/debug-logger"
   ],

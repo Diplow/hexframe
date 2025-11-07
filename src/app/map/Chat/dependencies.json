@@ -10,6 +10,7 @@
     "~/commons/trpc/react",
     "~/components/ThemeToggle",
     "~/components/ui/button",
+    "~/components/ui/logo",
     "~/lib/auth",
     "~/lib/debug/debug-logger",
     "~/lib/domains/agentic"

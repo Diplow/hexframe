@@ -2,6 +2,7 @@
 
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { BaseWidget, WidgetHeader, WidgetContent } from '~/app/map/Chat/Timeline/Widgets/_shared';
+import { FormButton } from '~/app/components';
 
 interface ErrorWidgetProps {
   message: string;
@@ -62,28 +63,22 @@ export function ErrorWidget({ message, error, operation, retry, onDismiss }: Err
 
         <div className="flex justify-end gap-2">
           {retry && (
-            <button
+            <FormButton
               type="button"
+              variant="primary"
               onClick={retry}
-              className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md
-                       hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary
-                       transition-colors flex items-center gap-1.5"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               Retry
-            </button>
+            </FormButton>
           )}
-          <button
+          <FormButton
             type="button"
+            variant="secondary"
             onClick={handleDismiss}
-            className="px-4 py-2 text-sm font-medium text-secondary dark:text-secondary-foreground
-                     bg-background dark:bg-neutral-700 border border-border
-                     rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-600
-                     focus:outline-none focus:ring-2 focus:ring-secondary
-                     transition-colors"
           >
             Dismiss
-          </button>
+          </FormButton>
         </div>
       </WidgetContent>
     </BaseWidget>

@@ -7,6 +7,7 @@ import { StatusMessages } from '~/app/map/Chat/Timeline/Widgets/LoginWidget/Stat
 import { FormActions } from '~/app/map/Chat/Timeline/Widgets/LoginWidget/FormActions';
 import { useLoginForm } from '~/app/map/Chat/Timeline/Widgets/LoginWidget/useLoginForm';
 import { BaseWidget, WidgetHeader, WidgetContent } from '~/app/map/Chat/Timeline/Widgets/_shared';
+import { InfoBanner } from '~/app/components/InfoBanner';
 
 interface LoginWidgetProps {
   message?: string;
@@ -44,16 +45,16 @@ export function LoginWidget({ message, onClose }: LoginWidgetProps) {
 
       <WidgetContent isCollapsed={isCollapsed}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex items-center justify-between mb-4">
+          <InfoBanner>
             <button
               type="button"
               onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
-              className="text-sm text-primary hover:underline"
+              className="text-sm text-primary hover:underline font-medium"
               disabled={isLoading}
             >
               {mode === 'login' ? 'Need an account? Sign up' : 'Have an account? Sign in'}
             </button>
-          </div>
+          </InfoBanner>
 
           <FormFields
             mode={mode}

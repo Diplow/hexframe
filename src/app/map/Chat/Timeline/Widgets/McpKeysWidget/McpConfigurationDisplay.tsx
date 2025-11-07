@@ -53,7 +53,7 @@ export function McpConfigurationDisplay({ apiKey, serverName = 'hexframe' }: Mcp
           className={`absolute top-2 right-2 p-1.5 border rounded transition-colors ${
             copyFeedback
               ? 'text-success-600 dark:text-success-400 bg-success/10 dark:bg-success/20 border-success/30 dark:border-success/30'
-              : 'text-neutral-600 dark:text-neutral-400 bg-neutral-100/80 dark:bg-neutral-700/80 border-neutral-300 dark:border-neutral-600 hover:bg-neutral-200 dark:hover:bg-neutral-600'
+              : 'text-neutral-600 dark:text-neutral-400 bg-neutral-100/80 dark:bg-neutral-700/80 border-neutral-300 dark:border-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600'
           }`}
           aria-label={copyFeedback ? "Copied to clipboard" : "Copy configuration"}
         >
