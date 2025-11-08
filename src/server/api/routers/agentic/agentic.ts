@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
-import { createTRPCRouter, protectedProcedure, mappingServiceMiddleware, iamServiceMiddleware } from '~/server/api/trpc'
+import { createTRPCRouter, protectedProcedure, publicProcedure, mappingServiceMiddleware, iamServiceMiddleware } from '~/server/api/trpc'
 import { verificationAwareRateLimit, verificationAwareAuthLimit } from '~/server/api/middleware'
 import { createAgenticService, type CompositionConfig, PreviewGeneratorService, OpenRouterRepository, type ChatMessageContract } from '~/lib/domains/agentic'
 import { ContextStrategies } from '~/lib/domains/mapping/utils'
@@ -459,6 +459,118 @@ export const agenticRouter = createTRPCRouter({
         preview: result.preview,
         usedAI: result.usedAI,
         queued: false
+      }
+    }),
+
+  // Execute a task with orchestrator guidance
+  hexecute: publicProcedure
+    .use(mappingServiceMiddleware)
+    .input(
+      z.object({
+        taskCoords: z.string(),
+        orchestratorCoords: z.string().default('1,0:1,1')
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const { taskCoords, orchestratorCoords } = input
+
+      // Import utilities
+      const { CoordSystem } = await import('~/lib/domains/mapping/utils')
+      const { executePrompt } = await import('~/lib/domains/agentic')
+
+      // Parse coordinates
+      let taskCoord
+      let orchestratorCoord
+
+      try {
+        taskCoord = CoordSystem.parseId(taskCoords)
+        orchestratorCoord = CoordSystem.parseId(orchestratorCoords)
+      } catch (error) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `Invalid coordinate format: ${error instanceof Error ? error.message : 'Unknown error'}`
+        })
+      }
+
+      // Read orchestrator tile
+      let orchestratorTile
+      try {
+        orchestratorTile = await ctx.mappingService.items.crud.getItem({
+          coords: orchestratorCoord
+        })
+      } catch (error) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: `Orchestrator tile not found at ${orchestratorCoords}`,
+          cause: error
+        })
+      }
+
+      // Read task center tile
+      let taskCenterTile
+      try {
+        taskCenterTile = await ctx.mappingService.items.crud.getItem({
+          coords: taskCoord
+        })
+      } catch (error) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: `Task tile not found at ${taskCoords}`,
+          cause: error
+        })
+      }
+
+      // Get task context (includes children and composed tiles)
+      const taskContext = await ctx.mappingService.context.getContextForCenter(
+        taskCoords,
+        ContextStrategies.STANDARD
+      )
+
+      // Get ancestry for task tile
+      const taskItemId = parseInt(taskCenterTile.id, 10)
+      const ancestry = await ctx.mappingService.items.query.getAncestors({
+        itemId: taskItemId
+      })
+
+      // Get siblings using CoordSystem utility
+      const siblingCoordIds = CoordSystem.getSiblingsFromId(taskCoords)
+
+      const siblings = await Promise.all(
+        siblingCoordIds.map(async (coordId) => {
+          try {
+            const coord = CoordSystem.parseId(coordId)
+            return await ctx.mappingService.items.crud.getItem({ coords: coord })
+          } catch {
+            // Sibling doesn't exist, return null
+            return null
+          }
+        })
+      )
+
+      // Filter out null values (non-existent siblings)
+      const existingSiblings = siblings.filter((sibling): sibling is NonNullable<typeof sibling> => sibling !== null)
+
+      // Separate composed children (direction 0) from regular children (directions 1-6)
+      const composedChildren = taskContext.composed
+      const regularChildren = taskContext.children
+
+      // Build task hierarchy data for executePrompt
+      const taskData = {
+        center: taskCenterTile,
+        ancestry,
+        siblings: existingSiblings,
+        composedChildren,
+        regularChildren
+      }
+
+      // Execute prompt with orchestrator content and task data
+      const promptResult = executePrompt({
+        orchestratorContent: orchestratorTile.content,
+        taskData
+      })
+
+      return {
+        prompt: promptResult
       }
     })
 })
