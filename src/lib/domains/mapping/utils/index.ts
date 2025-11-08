@@ -31,3 +31,10 @@ export {
   type MapContext,
   ContextStrategies,
 } from '~/lib/domains/mapping/utils/context';
+
+// Contract types for API boundaries
+export type {
+  MapItemContract,
+  MapContract,
+  BaseItemContract,
+} from '~/lib/domains/mapping/types/contracts';
