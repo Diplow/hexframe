@@ -404,6 +404,61 @@ Ensure both old and new coordinates are correct. The user must own both the item
       return await moveItemHandler(oldCoords, newCoords);
     },
   },
+
+  {
+    name: "hexecute",
+    description: `Generate execution-ready prompt by merging System Orchestration Tile (SOT) with task tile hierarchy.
+
+WORKFLOW: This tool reads a task tile and its hierarchy, then combines it with an orchestration template to produce an XML prompt for AI agent execution.
+
+TYPICAL USAGE:
+1. Identify a task tile at specific coordinates (e.g., "1,0:6")
+2. Call hexecute with taskCoords to get an AI-ready prompt
+3. Use the returned XML prompt to guide AI execution
+
+COORDINATES FORMAT: "userId,groupId:path" (e.g., "1,0:6" or "1,0:1,1")
+
+ORCHESTRATOR: The SOT (System Orchestration Tile) contains templates and guidance for how to structure execution prompts. Default location is "1,0:1,1".
+
+Returns an XML-formatted prompt string ready for AI agent consumption.`,
+    inputSchema: {
+      type: "object",
+      properties: {
+        taskCoords: {
+          type: "string",
+          description: "Coordinates of task tile to execute (format: 'userId,groupId:path' e.g. '1,0:6')"
+        },
+        orchestratorCoords: {
+          type: "string",
+          description: "Coordinates of SOT template (default: '1,0:1,1')",
+          default: "1,0:1,1"
+        }
+      },
+      required: ["taskCoords"],
+    },
+    handler: async (args: unknown) => {
+      const argsObj = args as Record<string, unknown>;
+      const taskCoords = argsObj?.taskCoords as string;
+      const orchestratorCoords = (argsObj?.orchestratorCoords as string | undefined) ?? "1,0:1,1";
+
+      if (!taskCoords) {
+        throw new Error("taskCoords parameter is required");
+      }
+
+      const { callTrpcEndpoint } = await import("~/app/services/mcp/services/api-helpers");
+
+      const result = await callTrpcEndpoint<{ prompt: string }>(
+        "agentic.hexecute",
+        {
+          taskCoords,
+          orchestratorCoords
+        },
+        { requireAuth: false }
+      );
+
+      return result;
+    },
+  },
 ];
 
 /**
