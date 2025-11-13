@@ -321,9 +321,9 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
       expect(result.success).toBe(true);
     });
 
-    it("should work with COMPOSITION items", () => {
+    it("should work with BASE items at composition (direction 0)", () => {
       const params: CreateMapItemParams = {
-        itemType: MapItemType.COMPOSITION,
+        itemType: MapItemType.BASE,
         coords: {
           userId: 1,
           groupId: 0,
