@@ -10,7 +10,7 @@ describe('executePrompt', () => {
   const createMockItem = (overrides: Partial<MapItemContract> = {}): MapItemContract => ({
     id: '1',
     ownerId: '1',
-    coords: '1-0-0',
+    coords: '1,0',
     title: 'Test Title',
     content: 'Test content',
     preview: 'Test preview',
@@ -22,242 +22,341 @@ describe('executePrompt', () => {
     ...overrides
   })
 
-  const createBasicTaskData = (): TaskHierarchyData => ({
+  const createSimpleTaskData = (): TaskHierarchyData => ({
     center: createMockItem({
-      title: 'Center Task',
-      content: 'This is the center task'
+      title: 'Simple Task',
+      content: 'Do something simple',
+      coords: '1,0'
     }),
-    ancestry: [],
-    siblings: [],
-    composedChildren: [],
-    regularChildren: []
+    composedChildren: []
   })
 
-  it('should generate valid XML with orchestrator content and basic task data', () => {
-    const params: ExecutePromptParams = {
-      orchestratorContent: '<system>You are an AI assistant</system>',
-      taskData: createBasicTaskData()
-    }
-
-    const result = executePrompt(params)
-
-    expect(result).toContain('<system>You are an AI assistant</system>')
-    expect(result).toContain('<goal>')
-    expect(result).toContain('<title>Center Task</title>')
-    expect(result).toContain('<content>This is the center task</content>')
-    expect(result).toContain('</goal>')
-  })
-
-  it('should handle empty arrays by omitting sections', () => {
-    const params: ExecutePromptParams = {
-      orchestratorContent: '<system>Test</system>',
-      taskData: createBasicTaskData()
-    }
-
-    const result = executePrompt(params)
-
-    expect(result).not.toContain('<ancestry>')
-    expect(result).not.toContain('<siblings>')
-    expect(result).not.toContain('<context>')
-    expect(result).not.toContain('<plan>')
-  })
-
-  it('should include ancestry when provided', () => {
-    const taskData = createBasicTaskData()
-    taskData.ancestry = [
+  const createTaskWithComposedChildren = (): TaskHierarchyData => ({
+    center: createMockItem({
+      title: 'Complex Task',
+      content: 'Do something complex',
+      coords: '1,0'
+    }),
+    composedChildren: [
       createMockItem({
-        title: 'Parent Task',
-        preview: 'Parent preview',
-        depth: 1
+        title: 'Prompt Preparation',
+        content: 'You are preparing the execution.\n\n## Step 1: Read\nRead the task...'
       }),
       createMockItem({
-        title: 'Grandparent Task',
-        preview: 'Grandparent preview',
-        depth: 2
+        title: 'Generic Context Builder',
+        content: 'Use MCP tools to gather context when needed.'
       })
     ]
-
-    const params: ExecutePromptParams = {
-      orchestratorContent: '<system>Test</system>',
-      taskData
-    }
-
-    const result = executePrompt(params)
-
-    expect(result).toContain('<ancestry>')
-    expect(result).toContain('<ancestor depth="1"><title>Parent Task</title>')
-    expect(result).toContain('<preview>Parent preview</preview>')
-    expect(result).toContain('<ancestor depth="2"><title>Grandparent Task</title>')
-    expect(result).toContain('</ancestry>')
   })
 
-  it('should include siblings when provided', () => {
-    const taskData = createBasicTaskData()
-    taskData.siblings = [
-      createMockItem({
-        coords: '1-0-1',
-        title: 'Sibling 1',
-        preview: 'Sibling 1 preview'
-      }),
-      createMockItem({
-        coords: '1-0-2',
-        title: 'Sibling 2',
-        preview: 'Sibling 2 preview'
-      })
-    ]
+  describe('basic structure', () => {
+    it('should wrap everything in hexframe-session tags', () => {
+      const params: ExecutePromptParams = {
+        taskData: createSimpleTaskData()
+      }
 
-    const params: ExecutePromptParams = {
-      orchestratorContent: '<system>Test</system>',
-      taskData
-    }
+      const result = executePrompt(params)
 
-    const result = executePrompt(params)
-
-    expect(result).toContain('<siblings>')
-    expect(result).toContain('<sibling direction="1"><title>Sibling 1</title>')
-    expect(result).toContain('<sibling direction="2"><title>Sibling 2</title>')
-    expect(result).toContain('</siblings>')
-  })
-
-  it('should include context section for composed children', () => {
-    const taskData = createBasicTaskData()
-    taskData.composedChildren = [
-      createMockItem({
-        title: 'Context Item 1',
-        content: 'Context content 1'
-      }),
-      createMockItem({
-        title: 'Context Item 2',
-        content: 'Context content 2'
-      })
-    ]
-
-    const params: ExecutePromptParams = {
-      orchestratorContent: '<system>Test</system>',
-      taskData
-    }
-
-    const result = executePrompt(params)
-
-    expect(result).toContain('<context>')
-    expect(result).toContain('<item><title>Context Item 1</title><content>Context content 1</content></item>')
-    expect(result).toContain('<item><title>Context Item 2</title><content>Context content 2</content></item>')
-    expect(result).toContain('</context>')
-  })
-
-  it('should include plan section for regular children', () => {
-    const taskData = createBasicTaskData()
-    taskData.regularChildren = [
-      createMockItem({
-        coords: '1-0-0-1',
-        title: 'Subtask 1',
-        preview: 'Subtask 1 preview'
-      }),
-      createMockItem({
-        coords: '1-0-0-2',
-        title: 'Subtask 2',
-        preview: 'Subtask 2 preview'
-      })
-    ]
-
-    const params: ExecutePromptParams = {
-      orchestratorContent: '<system>Test</system>',
-      taskData
-    }
-
-    const result = executePrompt(params)
-
-    expect(result).toContain('<plan>')
-    expect(result).toContain('<subtask coords="1-0-0-1" direction="1"><title>Subtask 1</title>')
-    expect(result).toContain('<subtask coords="1-0-0-2" direction="2"><title>Subtask 2</title>')
-    expect(result).toContain('</plan>')
-  })
-
-  it('should escape XML special characters', () => {
-    const taskData = createBasicTaskData()
-    taskData.center = createMockItem({
-      title: 'Task with <tags> & "quotes"',
-      content: "Content with 'apostrophes' & <special> characters"
+      expect(result).toMatch(/^<hexframe-session>/)
+      expect(result).toMatch(/<\/hexframe-session>$/)
     })
 
-    const params: ExecutePromptParams = {
-      orchestratorContent: '<system>Test</system>',
-      taskData
-    }
+    it('should include task section', () => {
+      const params: ExecutePromptParams = {
+        taskData: createSimpleTaskData()
+      }
 
-    const result = executePrompt(params)
+      const result = executePrompt(params)
 
-    expect(result).toContain('Task with &lt;tags&gt; &amp; &quot;quotes&quot;')
-    expect(result).toContain('Content with &apos;apostrophes&apos; &amp; &lt;special&gt; characters')
-    expect(result).not.toContain('Task with <tags>')
-  })
-
-  it('should handle null/undefined content gracefully', () => {
-    const taskData = createBasicTaskData()
-    taskData.center = createMockItem({
-      title: 'Task without content',
-      content: undefined as unknown as string
+      expect(result).toContain('<task>')
+      expect(result).toContain('<title>Simple Task</title>')
+      expect(result).toContain('<content>Do something simple</content>')
+      expect(result).toContain('<coordinates>1,0</coordinates>')
+      expect(result).toContain('</task>')
     })
-    taskData.composedChildren = [
-      createMockItem({
-        title: 'Item without content',
-        content: null as unknown as string
-      })
-    ]
 
-    const params: ExecutePromptParams = {
-      orchestratorContent: '<system>Test</system>',
-      taskData
-    }
+    it('should include execution context section', () => {
+      const params: ExecutePromptParams = {
+        taskData: createSimpleTaskData(),
+        instruction: 'Test instruction'
+      }
 
-    const result = executePrompt(params)
+      const result = executePrompt(params)
 
-    // Should not crash and should handle empty content
-    expect(result).toContain('<title>Task without content</title>')
-    expect(result).not.toContain('<content>undefined</content>')
+      expect(result).toContain('<execution-context>')
+      expect(result).toContain('<storage-location>1,0,0,0</storage-location>')
+      expect(result).toContain('<current-instruction>Test instruction</current-instruction>')
+      expect(result).toContain('</execution-context>')
+    })
   })
 
-  it('should generate well-formed XML that can be parsed', () => {
-    const taskData = createBasicTaskData()
-    taskData.ancestry = [createMockItem({ title: 'Ancestor', depth: 1 })]
-    taskData.siblings = [createMockItem({ coords: '1-0-1', title: 'Sibling' })]
-    taskData.composedChildren = [createMockItem({ title: 'Context' })]
-    taskData.regularChildren = [createMockItem({ coords: '1-0-0-1', title: 'Subtask' })]
+  describe('composed children concatenation', () => {
+    it('should not include composed children sections when empty', () => {
+      const params: ExecutePromptParams = {
+        taskData: createSimpleTaskData()
+      }
 
-    const params: ExecutePromptParams = {
-      orchestratorContent: '<system>Test</system>',
-      taskData
-    }
+      const result = executePrompt(params)
 
-    const result = executePrompt(params)
+      expect(result).not.toContain('<prompt-preparation>')
+      expect(result).not.toContain('<generic-context-builder>')
+    })
 
-    // Verify XML structure is valid (basic check)
-    const goalRegex = /<goal>[\s\S]*<\/goal>/
-    const goalMatch = goalRegex.exec(result)
-    expect(goalMatch).toBeTruthy()
+    it('should concatenate composed children as simple sections', () => {
+      const params: ExecutePromptParams = {
+        taskData: createTaskWithComposedChildren()
+      }
 
-    const contextRegex = /<context>[\s\S]*<\/context>/
-    const contextMatch = contextRegex.exec(result)
-    expect(contextMatch).toBeTruthy()
+      const result = executePrompt(params)
 
-    const planRegex = /<plan>[\s\S]*<\/plan>/
-    const planMatch = planRegex.exec(result)
-    expect(planMatch).toBeTruthy()
+      expect(result).toContain('<prompt-preparation>')
+      expect(result).toContain('You are preparing the execution.')
+      expect(result).toContain('## Step 1: Read')
+      expect(result).toContain('</prompt-preparation>')
+
+      expect(result).toContain('<generic-context-builder>')
+      expect(result).toContain('Use MCP tools to gather context when needed.')
+      expect(result).toContain('</generic-context-builder>')
+    })
+
+    it('should convert composed child titles to section names', () => {
+      const taskData = createSimpleTaskData()
+      taskData.composedChildren = [
+        createMockItem({
+          title: 'Generic System Orchestrator',
+          content: 'Orchestrator content here'
+        })
+      ]
+
+      const params: ExecutePromptParams = {
+        taskData
+      }
+
+      const result = executePrompt(params)
+
+      expect(result).toContain('<generic-system-orchestrator>')
+      expect(result).toContain('Orchestrator content here')
+      expect(result).toContain('</generic-system-orchestrator>')
+    })
+
+    it('should skip composed children with empty content', () => {
+      const taskData = createSimpleTaskData()
+      taskData.composedChildren = [
+        createMockItem({
+          title: 'Empty Tile',
+          content: ''
+        }),
+        createMockItem({
+          title: 'Valid Tile',
+          content: 'Valid content'
+        })
+      ]
+
+      const params: ExecutePromptParams = {
+        taskData
+      }
+
+      const result = executePrompt(params)
+
+      expect(result).not.toContain('<empty-tile>')
+      expect(result).toContain('<valid-tile>')
+      expect(result).toContain('Valid content')
+    })
   })
 
-  it('should preserve orchestrator content exactly', () => {
-    const orchestratorContent = `<system role="assistant">
-You are a helpful AI assistant.
-Use the context below.
-</system>`
+  describe('execution context', () => {
+    it('should calculate storage location correctly', () => {
+      const taskData = createSimpleTaskData()
+      taskData.center.coords = '23,0:6'
 
-    const params: ExecutePromptParams = {
-      orchestratorContent,
-      taskData: createBasicTaskData()
-    }
+      const params: ExecutePromptParams = {
+        taskData
+      }
 
-    const result = executePrompt(params)
+      const result = executePrompt(params)
 
-    expect(result.startsWith(orchestratorContent)).toBe(true)
+      expect(result).toContain('<storage-location>23,0:6,0,0</storage-location>')
+    })
+
+    it('should include instruction when provided', () => {
+      const params: ExecutePromptParams = {
+        taskData: createSimpleTaskData(),
+        instruction: 'Create a new feature'
+      }
+
+      const result = executePrompt(params)
+
+      expect(result).toContain('<current-instruction>Create a new feature</current-instruction>')
+    })
+
+    it('should not include instruction tag when not provided', () => {
+      const params: ExecutePromptParams = {
+        taskData: createSimpleTaskData()
+      }
+
+      const result = executePrompt(params)
+
+      expect(result).not.toContain('<current-instruction>')
+    })
+
+    it('should include execution history when provided', () => {
+      const params: ExecutePromptParams = {
+        taskData: createSimpleTaskData(),
+        executionHistoryContent: '## State\n- mcp_server: debughexframe\n\n## Log\n[10:00] Started'
+      }
+
+      const result = executePrompt(params)
+
+      expect(result).toContain('<history>')
+      expect(result).toContain('## State')
+      expect(result).toContain('- mcp_server: debughexframe')
+      expect(result).toContain('## Log')
+      expect(result).toContain('[10:00] Started')
+      expect(result).toContain('</history>')
+    })
+
+    it('should include default history message when not provided', () => {
+      const params: ExecutePromptParams = {
+        taskData: createSimpleTaskData()
+      }
+
+      const result = executePrompt(params)
+
+      expect(result).toContain('<history>No execution history yet - this is the first execution.</history>')
+    })
+  })
+
+  describe('XML escaping', () => {
+    it('should escape XML special characters in task title', () => {
+      const taskData = createSimpleTaskData()
+      taskData.center.title = 'Task with <tags> & "quotes"'
+
+      const params: ExecutePromptParams = {
+        taskData
+      }
+
+      const result = executePrompt(params)
+
+      expect(result).toContain('Task with &lt;tags&gt; &amp; &quot;quotes&quot;')
+      expect(result).not.toContain('Task with <tags> & "quotes"')
+    })
+
+    it('should escape XML special characters in task content', () => {
+      const taskData = createSimpleTaskData()
+      taskData.center.content = "Content with 'apostrophes' & <special> characters"
+
+      const params: ExecutePromptParams = {
+        taskData
+      }
+
+      const result = executePrompt(params)
+
+      expect(result).toContain("Content with &apos;apostrophes&apos; &amp; &lt;special&gt; characters")
+    })
+
+    it('should escape XML special characters in composed children content', () => {
+      const taskData = createSimpleTaskData()
+      taskData.composedChildren = [
+        createMockItem({
+          title: 'Test Tile',
+          content: 'Content with <xml> & "special" characters'
+        })
+      ]
+
+      const params: ExecutePromptParams = {
+        taskData
+      }
+
+      const result = executePrompt(params)
+
+      expect(result).toContain('Content with &lt;xml&gt; &amp; &quot;special&quot; characters')
+    })
+
+    it('should escape XML special characters in instruction', () => {
+      const params: ExecutePromptParams = {
+        taskData: createSimpleTaskData(),
+        instruction: 'Use <component> & "props"'
+      }
+
+      const result = executePrompt(params)
+
+      expect(result).toContain('Use &lt;component&gt; &amp; &quot;props&quot;')
+    })
+  })
+
+  describe('edge cases', () => {
+    it('should handle task without content', () => {
+      const taskData = createSimpleTaskData()
+      taskData.center.content = ''
+
+      const params: ExecutePromptParams = {
+        taskData
+      }
+
+      const result = executePrompt(params)
+
+      expect(result).toContain('<task>')
+      expect(result).toContain('<title>Simple Task</title>')
+      expect(result).toContain('<coordinates>1,0</coordinates>')
+      expect(result).not.toContain('<content>')
+      expect(result).toContain('</task>')
+    })
+
+    it('should handle task with whitespace-only content', () => {
+      const taskData = createSimpleTaskData()
+      taskData.center.content = '   \n\t  '
+
+      const params: ExecutePromptParams = {
+        taskData
+      }
+
+      const result = executePrompt(params)
+
+      expect(result).not.toContain('<content>')
+    })
+
+    it('should handle composed child with special characters in title', () => {
+      const taskData = createSimpleTaskData()
+      taskData.composedChildren = [
+        createMockItem({
+          title: 'Context Builder (v2.0) - NEW!',
+          content: 'Builder content'
+        })
+      ]
+
+      const params: ExecutePromptParams = {
+        taskData
+      }
+
+      const result = executePrompt(params)
+
+      // Should strip special characters from section name (consecutive hyphens preserved)
+      expect(result).toContain('<context-builder-v20---new>')
+      expect(result).toContain('Builder content')
+      expect(result).toContain('</context-builder-v20---new>')
+    })
+  })
+
+  describe('section ordering', () => {
+    it('should order sections correctly', () => {
+      const params: ExecutePromptParams = {
+        taskData: createTaskWithComposedChildren(),
+        instruction: 'Test instruction',
+        executionHistoryContent: '## State\nTest state'
+      }
+
+      const result = executePrompt(params)
+
+      const sessionIndex = result.indexOf('<hexframe-session>')
+      const taskIndex = result.indexOf('<task>')
+      const composedIndex = result.indexOf('<prompt-preparation>')
+      const contextIndex = result.indexOf('<execution-context>')
+      const sessionEndIndex = result.indexOf('</hexframe-session>')
+
+      expect(sessionIndex).toBeLessThan(taskIndex)
+      expect(taskIndex).toBeLessThan(composedIndex)
+      expect(composedIndex).toBeLessThan(contextIndex)
+      expect(contextIndex).toBeLessThan(sessionEndIndex)
+    })
   })
 })

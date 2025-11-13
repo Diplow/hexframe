@@ -35,9 +35,9 @@ Example: "You're in the execution phase working on Priority 0 (Establish baselin
 Hexframe transforms visions into living systems through AI-powered hexagonal maps.
 
 ### Core Documentation
-- **Mission & Vision**: `company/MISSION.md` - Why Hexframe exists
-- **Culture & Values**: `company/CULTURE.md` - The tensions that guide us  
-- **Target User**: `company/TARGET_USER.md` - Who we serve (system thinkers)
+- **Mission & Vision**: `docs/company/MISSION.md` - Why Hexframe exists
+- **Culture & Values**: `docs/company/CULTURE.md` - The tensions that guide us  
+- **Target User**: `docs/company/TARGET_USER.md` - Who we serve (system thinkers)
 - **Main page**: `src/app/map/README.md` - The interface (web page) to the HexFrame system
 - **Domain Model**: `src/lib/domains/README.md` - Core domain structure
 - **System Philosophy**: `src/app/SYSTEM.md` - What systems mean in Hexframe

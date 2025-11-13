@@ -406,19 +406,324 @@ Ensure both old and new coordinates are correct. The user must own both the item
   },
 
   {
-    name: "hexecute",
-    description: `Generate execution-ready prompt by merging System Orchestration Tile (SOT) with task tile hierarchy.
+    name: "getAncestry",
+    description: "Get all ancestor tiles from a given tile up to the root. Returns array of tiles in order from immediate parent to root.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        coords: {
+          type: "object",
+          description: "The coordinates of the tile to get ancestry for",
+          properties: {
+            userId: { type: "number" },
+            groupId: { type: "number" },
+            path: {
+              type: "array",
+              items: { type: "number" },
+              description: "Array of directions from root"
+            }
+          },
+          required: ["userId", "groupId", "path"]
+        },
+        fields: {
+          type: "array",
+          items: {
+            type: "string",
+            enum: ["title", "content", "preview", "link", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
+          },
+          description: "Fields to include in response. Default: ['title', 'coordinates']",
+          default: ["title", "coordinates"]
+        }
+      },
+      required: ["coords"],
+    },
+    handler: async (args: unknown) => {
+      const argsObj = args as Record<string, unknown>;
+      const coords = normalizeCoordinates(argsObj?.coords);
+      const fields = argsObj?.fields as string[] | undefined;
 
-WORKFLOW: This tool reads a task tile and its hierarchy, then combines it with an orchestration template to produce an XML prompt for AI agent execution.
+      const { callTrpcEndpoint } = await import("~/app/services/mcp/services/api-helpers");
+
+      // Get ancestry by walking up the path
+      const ancestry = [];
+      for (let i = coords.path.length - 1; i >= 0; i--) {
+        const ancestorCoords = {
+          userId: coords.userId,
+          groupId: coords.groupId,
+          path: coords.path.slice(0, i)
+        };
+
+        try {
+          const ancestor = await getItemByCoordsHandler(ancestorCoords, fields);
+          if (ancestor) {
+            ancestry.push(ancestor);
+          }
+        } catch {
+          // Ancestor doesn't exist, skip
+        }
+      }
+
+      return ancestry;
+    },
+  },
+
+  {
+    name: "getSiblings",
+    description: "Get all sibling tiles (tiles at the same depth sharing the same parent) for a given tile.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        coords: {
+          type: "object",
+          description: "The coordinates of the tile to get siblings for",
+          properties: {
+            userId: { type: "number" },
+            groupId: { type: "number" },
+            path: {
+              type: "array",
+              items: { type: "number" },
+              description: "Array of directions from root"
+            }
+          },
+          required: ["userId", "groupId", "path"]
+        },
+        fields: {
+          type: "array",
+          items: {
+            type: "string",
+            enum: ["title", "content", "preview", "link", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
+          },
+          description: "Fields to include in response. Default: ['title', 'preview', 'coordinates']",
+          default: ["title", "preview", "coordinates"]
+        }
+      },
+      required: ["coords"],
+    },
+    handler: async (args: unknown) => {
+      const argsObj = args as Record<string, unknown>;
+      const coords = normalizeCoordinates(argsObj?.coords);
+      const fields = argsObj?.fields as string[] | undefined;
+
+      if (coords.path.length === 0) {
+        // Root has no siblings
+        return [];
+      }
+
+      const { CoordSystem } = await import("~/lib/domains/mapping/utils");
+      const coordId = CoordSystem.createId(coords);
+      const siblingCoordIds = CoordSystem.getSiblingsFromId(coordId);
+
+      const siblings = [];
+      for (const siblingCoordId of siblingCoordIds) {
+        try {
+          const siblingCoords = CoordSystem.parseId(siblingCoordId);
+          const sibling = await getItemByCoordsHandler(siblingCoords, fields);
+          if (sibling) {
+            siblings.push(sibling);
+          }
+        } catch {
+          // Sibling doesn't exist, skip
+        }
+      }
+
+      return siblings;
+    },
+  },
+
+  {
+    name: "getComposedChildren",
+    description: "Get all composed children (children at direction 0 and their descendants) for a given tile. These are 'inside' the tile - reference materials, tools, templates.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        coords: {
+          type: "object",
+          description: "The coordinates of the tile to get composed children for",
+          properties: {
+            userId: { type: "number" },
+            groupId: { type: "number" },
+            path: {
+              type: "array",
+              items: { type: "number" },
+              description: "Array of directions from root"
+            }
+          },
+          required: ["userId", "groupId", "path"]
+        },
+        fields: {
+          type: "array",
+          items: {
+            type: "string",
+            enum: ["title", "content", "preview", "link", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
+          },
+          description: "Fields to include in response. Default: ['title', 'content', 'coordinates']",
+          default: ["title", "content", "coordinates"]
+        }
+      },
+      required: ["coords"],
+    },
+    handler: async (args: unknown) => {
+      const argsObj = args as Record<string, unknown>;
+      const coords = normalizeCoordinates(argsObj?.coords);
+      const fields = argsObj?.fields as string[] | undefined;
+
+      // Get children at direction 0
+      const compositionCoords = {
+        ...coords,
+        path: [...coords.path, 0]
+      };
+
+      try {
+        // Try to get the composition tile itself (might not exist)
+        await getItemByCoordsHandler(compositionCoords, ['id']);
+      } catch {
+        // No composition tile, no composed children
+        return [];
+      }
+
+      // Get all children of the composition tile (directions 1-6)
+      const composedChildren = [];
+      for (let dir = 1; dir <= 6; dir++) {
+        const childCoords = {
+          ...coords,
+          path: [...coords.path, 0, dir]
+        };
+
+        try {
+          const child = await getItemByCoordsHandler(childCoords, fields);
+          if (child) {
+            composedChildren.push(child);
+          }
+        } catch {
+          // Child doesn't exist, skip
+        }
+      }
+
+      return composedChildren;
+    },
+  },
+
+  {
+    name: "getRegularChildren",
+    description: "Get regular children (directions 1-6) for a given tile. These are subtasks or next steps.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        coords: {
+          type: "object",
+          description: "The coordinates of the tile to get children for",
+          properties: {
+            userId: { type: "number" },
+            groupId: { type: "number" },
+            path: {
+              type: "array",
+              items: { type: "number" },
+              description: "Array of directions from root"
+            }
+          },
+          required: ["userId", "groupId", "path"]
+        },
+        fields: {
+          type: "array",
+          items: {
+            type: "string",
+            enum: ["title", "content", "preview", "link", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
+          },
+          description: "Fields to include in response. Default: ['title', 'preview', 'coordinates']",
+          default: ["title", "preview", "coordinates"]
+        },
+        recursive: {
+          type: "boolean",
+          description: "If true, recursively fetch all descendants and return flattened in post-order. Default: false",
+          default: false
+        }
+      },
+      required: ["coords"],
+    },
+    handler: async (args: unknown) => {
+      const argsObj = args as Record<string, unknown>;
+      const coords = normalizeCoordinates(argsObj?.coords);
+      const fields = argsObj?.fields as string[] | undefined;
+      const recursive = argsObj?.recursive as boolean | undefined;
+
+      if (!recursive) {
+        // Simple case: just get direct children
+        const children = [];
+        for (let dir = 1; dir <= 6; dir++) {
+          const childCoords = {
+            ...coords,
+            path: [...coords.path, dir]
+          };
+
+          try {
+            const child = await getItemByCoordsHandler(childCoords, fields);
+            if (child) {
+              children.push(child);
+            }
+          } catch {
+            // Child doesn't exist, skip
+          }
+        }
+        return children;
+      }
+
+      // Recursive case: fetch all descendants and flatten in post-order
+      type ItemWithChildren = { children: ItemWithChildren[] } & Awaited<ReturnType<typeof getItemByCoordsHandler>>;
+
+      async function fetchDescendants(parentCoords: typeof coords): Promise<ItemWithChildren[]> {
+        const children: ItemWithChildren[] = [];
+        for (let dir = 1; dir <= 6; dir++) {
+          const childCoords = {
+            ...parentCoords,
+            path: [...parentCoords.path, dir]
+          };
+
+          try {
+            const child = await getItemByCoordsHandler(childCoords, fields);
+            if (child) {
+              const grandchildren = await fetchDescendants(childCoords);
+              children.push({ ...child, children: grandchildren });
+            }
+          } catch {
+            // Child doesn't exist, skip
+          }
+        }
+        return children;
+      }
+
+      function flattenPostOrder(items: ItemWithChildren[]): unknown[] {
+        const result: unknown[] = [];
+        for (const item of items) {
+          result.push(...flattenPostOrder(item.children));
+          const { children, ...itemWithoutChildren } = item;
+          result.push(itemWithoutChildren);
+        }
+        return result;
+      }
+
+      const childrenWithDescendants = await fetchDescendants(coords);
+      return flattenPostOrder(childrenWithDescendants);
+    },
+  },
+
+  {
+    name: "hexecute",
+    description: `Generate execution-ready prompt from a task tile and its composed children.
+
+WORKFLOW: This tool reads a task tile and its composed children, then produces an XML prompt for AI agent execution. An agent session is opened with guidance from the task tile's title/content and all composed children's titles/contents.
 
 TYPICAL USAGE:
-1. Identify a task tile at specific coordinates (e.g., "1,0:6")
+1. Identify a task tile at specific coordinates (e.g., "23,0:6")
 2. Call hexecute with taskCoords to get an AI-ready prompt
-3. Use the returned XML prompt to guide AI execution
+3. Optionally provide an instruction string for additional context
+4. Use the returned XML prompt to spawn an agent session
+5. The agent follows guidance from the task and its composed children
 
-COORDINATES FORMAT: "userId,groupId:path" (e.g., "1,0:6" or "1,0:1,1")
+COORDINATES FORMAT: "userId,groupId:path" (e.g., "23,0:6" or "1,0:1,1")
 
-ORCHESTRATOR: The SOT (System Orchestration Tile) contains templates and guidance for how to structure execution prompts. Default location is "1,0:1,1".
+COMPOSED CHILDREN: The task's direction 0 children contain reference materials that guide execution. What these children contain is up to the tile author - they define the orchestration, context gathering, state management, or any other guidance the agent needs.
+
+EXECUTION HISTORY: If an execution history exists at direction 0,0, its content is included in the prompt to provide continuity across sessions.
 
 Returns an XML-formatted prompt string ready for AI agent consumption.`,
     inputSchema: {
@@ -426,12 +731,11 @@ Returns an XML-formatted prompt string ready for AI agent consumption.`,
       properties: {
         taskCoords: {
           type: "string",
-          description: "Coordinates of task tile to execute (format: 'userId,groupId:path' e.g. '1,0:6')"
+          description: "Coordinates of task tile to execute (format: 'userId,groupId:path' e.g. '23,0:6')"
         },
-        orchestratorCoords: {
+        instruction: {
           type: "string",
-          description: "Coordinates of SOT template (default: '1,0:1,1')",
-          default: "1,0:1,1"
+          description: "Optional instruction to add to execution history section"
         }
       },
       required: ["taskCoords"],
@@ -439,7 +743,7 @@ Returns an XML-formatted prompt string ready for AI agent consumption.`,
     handler: async (args: unknown) => {
       const argsObj = args as Record<string, unknown>;
       const taskCoords = argsObj?.taskCoords as string;
-      const orchestratorCoords = (argsObj?.orchestratorCoords as string | undefined) ?? "1,0:1,1";
+      const instruction = argsObj?.instruction as string | undefined;
 
       if (!taskCoords) {
         throw new Error("taskCoords parameter is required");
@@ -451,7 +755,7 @@ Returns an XML-formatted prompt string ready for AI agent consumption.`,
         "agentic.hexecute",
         {
           taskCoords,
-          orchestratorCoords
+          instruction
         },
         { requireAuth: false }
       );

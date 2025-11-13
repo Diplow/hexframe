@@ -32,9 +32,8 @@ export function buildAncestorXML(ancestor: MapItemContract): string {
  * Builds XML for a sibling item
  */
 export function buildSiblingXML(sibling: MapItemContract): string {
-  const direction = extractDirection(sibling.coords)
   const preview = sibling.preview ?? ''
-  return `    <sibling direction="${direction}"><title>${escapeXML(sibling.title)}</title><preview>${escapeXML(preview)}</preview></sibling>`
+  return `    <sibling coords="${sibling.coords}"><title>${escapeXML(sibling.title)}</title><preview>${escapeXML(preview)}</preview></sibling>`
 }
 
 /**
@@ -42,14 +41,49 @@ export function buildSiblingXML(sibling: MapItemContract): string {
  */
 export function buildContextItemXML(item: MapItemContract): string {
   const content = item.content ?? ''
-  return `  <item><title>${escapeXML(item.title)}</title><content>${escapeXML(content)}</content></item>`
+  return `  <contextItem>\n    <title>${escapeXML(item.title)}</title>\n    <content>${escapeXML(content)}</content>\n  </contextItem>`
 }
 
 /**
  * Builds XML for a subtask item
+ * Each subtask should be executed in a subagent using hexecute with the child tile coordinates
  */
 export function buildSubtaskXML(item: MapItemContract): string {
-  const direction = extractDirection(item.coords)
   const preview = item.preview ?? ''
-  return `  <subtask coords="${item.coords}" direction="${direction}"><title>${escapeXML(item.title)}</title><preview>${escapeXML(preview)}</preview></subtask>`
+  return `  <subtask coords="${item.coords}"><title>${escapeXML(item.title)}</title><preview>${escapeXML(preview)}</preview></subtask>`
+}
+
+/**
+ * Flattens a tree of items into post-order (leaves first, then parents)
+ *
+ * Example tree:
+ * - A (has children A1, A2)
+ * - B (has children B1, B2)
+ *
+ * Returns: [A1, A2, A, B1, B2, B]
+ *
+ * This enables "flatten TODO" workflow where leaf tasks are executed first,
+ * then parent tasks finalize after their children complete.
+ */
+export function flattenToPostOrder(items: MapItemContract[]): MapItemContract[] {
+  const result: MapItemContract[] = []
+
+  function traverse(item: MapItemContract) {
+    // First, recursively process children (if they have a 'children' property)
+    const children = (item as MapItemContract & { children?: MapItemContract[] }).children
+    if (children && children.length > 0) {
+      for (const child of children) {
+        traverse(child)
+      }
+    }
+
+    // Then add the item itself (post-order: children before parent)
+    result.push(item)
+  }
+
+  for (const item of items) {
+    traverse(item)
+  }
+
+  return result
 }

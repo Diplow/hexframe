@@ -462,17 +462,17 @@ export const agenticRouter = createTRPCRouter({
       }
     }),
 
-  // Execute a task with orchestrator guidance
+  // Execute a task using its composed children for guidance (orchestrator, context builder, state manager)
   hexecute: publicProcedure
     .use(mappingServiceMiddleware)
     .input(
       z.object({
         taskCoords: z.string(),
-        orchestratorCoords: z.string().default('1,0:1,1')
+        instruction: z.string().optional()
       })
     )
     .query(async ({ input, ctx }) => {
-      const { taskCoords, orchestratorCoords } = input
+      let { taskCoords, instruction } = input
 
       // Import utilities
       const { CoordSystem } = await import('~/lib/domains/mapping/utils')
@@ -480,29 +480,12 @@ export const agenticRouter = createTRPCRouter({
 
       // Parse coordinates
       let taskCoord
-      let orchestratorCoord
-
       try {
         taskCoord = CoordSystem.parseId(taskCoords)
-        orchestratorCoord = CoordSystem.parseId(orchestratorCoords)
       } catch (error) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: `Invalid coordinate format: ${error instanceof Error ? error.message : 'Unknown error'}`
-        })
-      }
-
-      // Read orchestrator tile
-      let orchestratorTile
-      try {
-        orchestratorTile = await ctx.mappingService.items.crud.getItem({
-          coords: orchestratorCoord
-        })
-      } catch (error) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: `Orchestrator tile not found at ${orchestratorCoords}`,
-          cause: error
         })
       }
 
@@ -520,53 +503,67 @@ export const agenticRouter = createTRPCRouter({
         })
       }
 
-      // Get task context (includes children and composed tiles)
-      const taskContext = await ctx.mappingService.context.getContextForCenter(
+      // Check if there's a meta-task at direction [0]
+      // If yes, redirect to execute the meta-task instead of the parent
+      let actualTaskTile = taskCenterTile
+      let parentTaskInfo: { title: string; preview: string | undefined; coords: string } | undefined
+
+      try {
+        const metaTask = await ctx.mappingService.items.crud.getItem({
+          coords: { ...taskCoord, path: [...taskCoord.path, 0] }
+        })
+
+        // If meta-task exists with content, redirect execution to it
+        if (metaTask && metaTask.content && metaTask.content.trim().length > 0) {
+          // Store parent info for context
+          parentTaskInfo = {
+            title: taskCenterTile.title,
+            preview: taskCenterTile.preview || undefined,
+            coords: taskCoords
+          }
+
+          // Redirect: execute the meta-task instead
+          actualTaskTile = metaTask
+          taskCoords = CoordSystem.createId({
+            ...taskCoord,
+            path: [...taskCoord.path, 0]
+          })
+          taskCoord = { ...taskCoord, path: [...taskCoord.path, 0] }
+        }
+      } catch {
+        // No meta-task at [0], continue with original task
+      }
+
+      // Fetch composed children for the actual task (either meta-task or original)
+      const { composed: composedChildren } = await ctx.mappingService.context.getContextForCenter(
         taskCoords,
         ContextStrategies.STANDARD
       )
 
-      // Get ancestry for task tile
-      const taskItemId = parseInt(taskCenterTile.id, 10)
-      const ancestry = await ctx.mappingService.items.query.getAncestors({
-        itemId: taskItemId
-      })
-
-      // Get siblings using CoordSystem utility
-      const siblingCoordIds = CoordSystem.getSiblingsFromId(taskCoords)
-
-      const siblings = await Promise.all(
-        siblingCoordIds.map(async (coordId) => {
-          try {
-            const coord = CoordSystem.parseId(coordId)
-            return await ctx.mappingService.items.crud.getItem({ coords: coord })
-          } catch {
-            // Sibling doesn't exist, return null
-            return null
-          }
-        })
-      )
-
-      // Filter out null values (non-existent siblings)
-      const existingSiblings = siblings.filter((sibling): sibling is NonNullable<typeof sibling> => sibling !== null)
-
-      // Separate composed children (direction 0) from regular children (directions 1-6)
-      const composedChildren = taskContext.composed
-      const regularChildren = taskContext.children
-
-      // Build task hierarchy data for executePrompt
+      // Build minimal task data for executePrompt
       const taskData = {
-        center: taskCenterTile,
-        ancestry,
-        siblings: existingSiblings,
+        center: actualTaskTile,
         composedChildren,
-        regularChildren
+        parentTask: parentTaskInfo
       }
 
-      // Execute prompt with orchestrator content and task data
+      // Fetch execution history content if it exists (at direction 0,0)
+      let executionHistoryContent: string | undefined
+      try {
+        const executionHistoryTile = await ctx.mappingService.items.crud.getItem({
+          coords: { ...taskCoord, path: [...taskCoord.path, 0, 0] }
+        })
+        executionHistoryContent = executionHistoryTile.content || undefined
+      } catch {
+        // Execution history tile doesn't exist yet, that's fine
+        executionHistoryContent = undefined
+      }
+
+      // Execute prompt with task data, instruction, and execution history
       const promptResult = executePrompt({
-        orchestratorContent: orchestratorTile.content,
-        taskData
+        taskData,
+        instruction,
+        executionHistoryContent
       })
 
       return {
