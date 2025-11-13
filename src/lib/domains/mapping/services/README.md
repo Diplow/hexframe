@@ -90,11 +90,12 @@ Handles basic CRUD operations:
 Handles complex queries and operations:
 
 - **Get descendants**: Retrieve all child items of a given item
-  - Optional `includeComposition` parameter to include/exclude direction 0 subtrees
+  - Optional `includeComposition` parameter to include/exclude composed children
   - Default behavior excludes composition (backwards compatible)
-- **Composition queries**: Query direction 0 (composed) children
-  - `hasComposition(coordId)`: Check if a tile has direction 0 child
-  - `getComposedChildren(coordId)`: Get composition container and its children
+  - Filters out both negative directions (new model) and direction 0 (legacy model)
+- **Composition queries**: Query composed children (negative directions -1 to -6)
+  - `hasComposition(coordId)`: Check if a tile has composed children
+  - `getComposedChildren(coordId)`: Get all composed children directly
 - **Move items**: Move items to new coordinates (with swapping support)
 - **Get by ID**: Retrieve items by their database ID
 
@@ -135,17 +136,28 @@ interface HexCoord {
 - All items maintain parent-child relationships
 - Movement operations preserve hierarchical relationships
 
-### Composition Pattern (Direction 0)
+### Composition Pattern (Negative Directions)
 
-Items can have "composed" children positioned at direction 0, which represent internal details or components:
+Items can have "composed" children positioned using negative directions (-1 to -6), which represent internal details or components:
 
-- **Direction 0**: Reserved for composition containers
+- **Negative Directions (-1 to -6)**: Reserved for composed children (new model)
+  - ComposedNorthWest = -1
+  - ComposedNorthEast = -2
+  - ComposedEast = -3
+  - ComposedSouthEast = -4
+  - ComposedSouthWest = -5
+  - ComposedWest = -6
+- **Direction 0 (Legacy)**: Old composition model using Direction.Center container
+  - Still supported for backward compatibility
+  - Filters handle both negative directions and direction 0
 - **Directions 1-6**: Regular structural children
 - **Filtering**: API-level queries exclude composition by default for backwards compatibility
 - **Internal operations**: Move, delete, and other internal operations ALWAYS include composition
 
 **Important**: There are two layers of `getDescendants`:
 1. **Service Layer** (`ItemQueryService.getDescendants`): Filters composition by default, used by API consumers
+   - Excludes items with negative directions (new model)
+   - Excludes items with direction 0 in path (legacy model)
 2. **Action Layer** (`MapItemActions.getDescendants`): Always includes composition, used by internal operations
 
 This ensures that operations like move and delete correctly handle all descendants, including composed children, while API consumers can opt-in to composition data when needed.
@@ -206,12 +218,12 @@ const allDescendants = await service.items.query.getDescendants({
   includeComposition: true,
 });
 
-// Check if a tile has composition
+// Check if a tile has composed children (negative directions)
 const hasComp = await service.items.query.hasComposition({
   coordId: "1,0:2",
 });
 
-// Get composed children (direction 0 container and its children)
+// Get composed children directly (negative directions -1 to -6)
 const composedItems = await service.items.query.getComposedChildren({
   coordId: "1,0:2",
 });
@@ -247,7 +259,12 @@ The `__tests__/` folder contains comprehensive integration tests that demonstrat
 - **Item CRUD tests**: Basic operations on individual items
 - **Item movement tests**: Moving items and handling collisions
 - **Item relationships tests**: Testing hierarchical structures
-- **Composition query tests**: Testing direction 0 children queries and filtering
+- **Composition query tests**: Testing composed children queries with negative directions and filtering
+  - `item-query-composition.integration.test.ts`: Legacy tests using direction 0
+  - `item-query-composition-negative-directions.test.ts`: New tests using negative directions
+- **Deep copy tests**: Testing deep copy with composed children
+  - `item-deep-copy.integration.test.ts`: Basic deep copy tests
+  - `item-deep-copy-negative-directions.test.ts`: Deep copy with negative directions
 - **Item history tests**: Testing version history queries and pagination
 
 ## Dependencies
