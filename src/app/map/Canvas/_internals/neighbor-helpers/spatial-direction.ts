@@ -30,6 +30,7 @@ export function calculateSpatialDirection(centerCoordId: string, targetCoordId: 
 
 function _calculateRelativeDirection(centerDir: Direction, targetDir: Direction): Direction {
   // Map the hexagonal layout relationships
+  // Composed children (negative directions) behave the same as structural children
   const hexLayout: Record<Direction, Partial<Record<Direction, Direction>>> = {
     [Direction.Center]: {},
     [Direction.NorthWest]: {
@@ -62,6 +63,13 @@ function _calculateRelativeDirection(centerDir: Direction, targetDir: Direction)
       [Direction.Center]: Direction.East,
       [Direction.NorthWest]: Direction.NorthEast,
     },
+    // Composed children use empty partial records (not used in neighbor positioning)
+    [Direction.ComposedNorthWest]: {},
+    [Direction.ComposedNorthEast]: {},
+    [Direction.ComposedEast]: {},
+    [Direction.ComposedSouthEast]: {},
+    [Direction.ComposedSouthWest]: {},
+    [Direction.ComposedWest]: {},
   };
 
   return hexLayout[centerDir]?.[targetDir] ?? Direction.Center;

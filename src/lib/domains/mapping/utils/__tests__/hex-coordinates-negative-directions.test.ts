@@ -326,8 +326,8 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
 
       expect(children).toHaveLength(6);
       expect(children.every((child) => {
-        const lastDir = child.path[child.path.length - 1];
-        return lastDir && lastDir >= 1 && lastDir <= 6;
+        const lastDir = child.path[child.path.length - 1] as number | undefined;
+        return lastDir !== undefined && lastDir >= 1 && lastDir <= 6;
       })).toBe(true);
     });
 
@@ -336,8 +336,8 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
       const children = CoordSystem.getChildCoords(parent);
 
       expect(children.every((child) => {
-        const lastDir = child.path[child.path.length - 1];
-        return lastDir && lastDir > 0;
+        const lastDir = child.path[child.path.length - 1] as number | undefined;
+        return lastDir !== undefined && lastDir > 0;
       })).toBe(true);
     });
   });
