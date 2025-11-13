@@ -8,6 +8,8 @@ Like a specialized database driver that translates between domain objects (MapIt
 - Translate between domain entities and database row models using mappers
 - Coordinate database transactions for atomic multi-table operations
 - Compose and optimize complex queries for hexagonal map hierarchies
+- Handle negative direction values (-1 to -6) for composed children in all SQL queries
+- Support bulk operations (createMany) with both positive and negative direction paths
 - Manage database connections and transaction contexts
 - Automatically create version snapshots when baseItems are updated (version history tracking)
 
