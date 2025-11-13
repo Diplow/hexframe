@@ -203,7 +203,7 @@ describe("MapItemRepository - bulk createMany method", () => {
         },
         relatedItems: {
           ref: baseItems[0]!,
-          parent: rootMapItem,
+          parent: null,
         },
         relatedLists: {
           neighbors: [],
@@ -347,7 +347,7 @@ describe("MapItemRepository - bulk createMany method", () => {
         },
         relatedItems: {
           ref: parentBaseItem,
-          parent: rootMap,
+          parent: null,
         },
         relatedLists: {
           neighbors: [],
@@ -492,7 +492,7 @@ describe("MapItemRepository - bulk createMany method", () => {
         },
         relatedItems: {
           ref: parentBaseItem,
-          parent: rootMap,
+          parent: null,
         },
         relatedLists: {
           neighbors: [],
@@ -554,7 +554,7 @@ describe("MapItemRepository - bulk createMany method", () => {
       );
       const uniqueDirections = new Set(negativeDirections);
       expect(uniqueDirections.size).toBe(6);
-      expect(Array.from(uniqueDirections).sort((a, b) => a - b)).toEqual([-6, -5, -4, -3, -2, -1]);
+      expect(Array.from(uniqueDirections).sort((a, b) => (a ?? 0) - (b ?? 0))).toEqual([-6, -5, -4, -3, -2, -1]);
     });
 
     it("should handle mixed structural and composed children in bulk", async () => {
@@ -589,7 +589,7 @@ describe("MapItemRepository - bulk createMany method", () => {
         },
         relatedItems: {
           ref: parentBaseItem,
-          parent: rootMap,
+          parent: null,
         },
         relatedLists: {
           neighbors: [],
@@ -722,7 +722,7 @@ describe("MapItemRepository - bulk createMany method", () => {
         },
         relatedItems: {
           ref: level1BaseItem,
-          parent: rootMap,
+          parent: null,
         },
         relatedLists: {
           neighbors: [],
@@ -756,7 +756,7 @@ describe("MapItemRepository - bulk createMany method", () => {
         },
         relatedItems: {
           ref: level2BaseItem,
-          parent: level1Item,
+          parent: null,
         },
         relatedLists: {
           neighbors: [],
