@@ -432,7 +432,7 @@ describe("MapItemRepository - bulk createMany method", () => {
       expect(composedMapItems).toHaveLength(3);
 
       // Verify they all have negative directions
-      composedMapItems.forEach((item, index) => {
+      composedMapItems.forEach((item) => {
         expect(item.attrs.coords.path).toHaveLength(2);
         const lastDirection = item.attrs.coords.path[item.attrs.coords.path.length - 1];
         expect(lastDirection).toBeLessThan(0);
