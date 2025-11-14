@@ -95,6 +95,32 @@ Use `pnpm check:deadcode [path]` to identify unused exports, files, and transiti
 - Migrations in `/drizzle/migrations/`
 - localStorage for performance caching
 
+## Composition System Architecture
+
+Hexframe uses a **negative direction** approach for storing composed children:
+
+### Direction Values
+- **Positive 1-6**: Structural children (normal hierarchy)
+- **Negative -1 to -6**: Composed children (combined functionality)
+- **Direction 0**: Reserved for future meta-orchestration
+
+### Key Characteristics
+- Tiles can have BOTH structural and composed children simultaneously
+- Path example: `[1, -3, 4]` = NW → ComposedE → SE (mixed hierarchy)
+- Composed children stored as direct children with negative direction values
+- UX: Composition expansion controlled by boolean toggle (not per-tile)
+- Storage detail: Negative directions are internal implementation, not exposed in UI
+
+### Implementation Layers
+All layers support negative directions consistently:
+- **Utils**: Direction enum includes negative values (-1 to -6)
+- **Types**: Parameter schemas validate negative directions
+- **Services**: Composition queries filter by negative direction
+- **Repositories**: Database queries handle negative path values
+- **Infrastructure**: PostgreSQL stores negative integers in path arrays
+
+See `UBIQUITOUS.md` for complete terminology and `src/lib/domains/mapping/README.md` for domain implementation details.
+
 ## Important Notes
 - Always use `pnpm` (not npm or yarn)
 - Tests use Vitest (not Jest)

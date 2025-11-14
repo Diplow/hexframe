@@ -57,8 +57,9 @@ Tiles adjacent to each other in a Frame. Neighbors share natural connections and
 
 ### Direction
 
-The six possible positions around a CenterTile in pointy-top hexagonal layout:
+The seven possible positions around a CenterTile in pointy-top hexagonal layout:
 
+**Structural Directions (Positive 1-6):**
 - 1 = NW (Northwest)
 - 2 = NE (Northeast)
 - 3 = E (East)
@@ -66,13 +67,28 @@ The six possible positions around a CenterTile in pointy-top hexagonal layout:
 - 5 = SW (Southwest)
 - 6 = W (West)
 
-**Direction 0** has special meaning: it indicates composition. When a Tile has 0 in its Path, it means this position contains a composed System (result of drag-and-drop composition) rather than a simple Tile.
+**Composed Directions (Negative -1 to -6):**
+- -1 = ComposedNW (Composed Northwest)
+- -2 = ComposedNE (Composed Northeast)
+- -3 = ComposedE (Composed East)
+- -4 = ComposedSE (Composed Southeast)
+- -5 = ComposedSW (Composed Southwest)
+- -6 = ComposedW (Composed West)
+
+**Meta Orchestration (Direction 0):**
+- 0 = Center (Reserved for future meta-orchestration - tiles that define how to execute a task)
+
+Positive directions represent structural hierarchy (regular children). Negative directions represent composition (tiles combined to create new functionality). The negative direction values are a storage implementation detail - UX-wise, composed children appear in the same hexagonal positions as structural children.
 
 Best practice: Use string representations (NW, NE, etc.) in user interfaces and documentation for clarity, while using integers internally for Path calculations.
 
 ### Path
 
-An array of direction integers representing a Tile's position in the hierarchy. Example: [1, 2, 3] means: from root, go to NW child, then its NE child, then its E child.
+An array of direction integers representing a Tile's position in the hierarchy. Examples:
+- [1, 2, 3] means: from root, go to NW child, then its NE child, then its E child (all structural)
+- [1, -3, 4] means: from root, go to NW child, then its ComposedE child, then its SE child (mixed structural and composed)
+
+Negative values in the path indicate composed children at that level of the hierarchy.
 
 ## Composition System
 
@@ -98,10 +114,17 @@ A Tile containing a prompt template with parameters. When composed with an LLM T
 
 ### Composition
 
-The act of combining Tiles to create new functionality. Primary methods:
+The act of combining Tiles to create new functionality stored using negative direction values. When you compose tiles (e.g., via drag-and-drop), the composed children are stored as direct children of their parent using negative directions (-1 to -6), allowing a tile to have both structural children (directions 1-6) and composed children (directions -1 to -6) simultaneously.
 
-- **Drag to Center**: Creates a new System with composed behavior
-- **Drag to Neighbor**: Augments a Tile with additional capabilities
+**Storage Implementation:**
+- Structural children: Stored at positive directions (1-6)
+- Composed children: Stored at negative directions (-1 to -6)
+- Direction 0: Reserved for future meta-orchestration functionality
+
+**User Experience:**
+- The negative direction values are an internal storage detail
+- UX-wise, users see composed children appear in the same hexagonal positions
+- Composition expansion is controlled by a boolean toggle, not individual tile selection
 
 ### CollaborativeMap
 
