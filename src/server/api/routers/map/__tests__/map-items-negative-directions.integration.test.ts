@@ -167,15 +167,15 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
 
       // API contract should include all expected fields
       expect(item).toMatchObject({
-        id: expect.any(String),
-        coords: expect.stringContaining("-5"), // ComposedSouthWest = -5
+        id: expect.any(String) as string,
+        coords: expect.stringContaining("-5") as string, // ComposedSouthWest = -5
         title: "Composed Child",
         content: "Content",
         preview: "Preview",
         link: "https://example.com",
         parentId: parentItem.id,
         itemType: "base",
-        ownerId: expect.any(String),
+        ownerId: expect.any(String) as string,
       });
     });
   });
@@ -463,7 +463,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.East],
       };
 
-      const parent2Item = await testEnv.service.items.crud.addItemToMap({
+      await testEnv.service.items.crud.addItemToMap({
         coords: parent2Coord,
         title: "Parent 2",
         parentId: rootMap.id,
