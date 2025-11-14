@@ -7,6 +7,7 @@ import {
   _transformTileDeletedEvent,
   _transformTilesSwappedEvent,
   _transformTileMovedEvent,
+  _transformItemCopiedEvent,
   _transformNavigationEvent,
 } from '~/app/map/Chat/_state/_events/tile-event-transformers';
 import {
@@ -51,6 +52,8 @@ export function createChatEventFromMapEvent(mapEvent: AppEvent): ChatEvent | nul
       return _transformTilesSwappedEvent(baseEvent, mapEvent.payload)
     case 'map.tile_moved':
       return _transformTileMovedEvent(baseEvent, mapEvent.payload)
+    case 'map.item_copied':
+      return _transformItemCopiedEvent(baseEvent, mapEvent.payload)
     case 'map.navigation':
       return _transformNavigationEvent(baseEvent, mapEvent.payload)
     case 'auth.required':

@@ -17,7 +17,8 @@ export function handleOperationMessages(event: ChatEvent, messages: Message[], s
         (payload.operation === 'delete' && settings.messages.tile.delete) ||
         (payload.operation === 'move' && settings.messages.tile.move) ||
         (payload.operation === 'swap' && settings.messages.tile.swap) ||
-        (!['update', 'create', 'delete', 'move', 'swap'].includes(payload.operation))
+        (payload.operation === 'copy' && settings.messages.tile.move) ||
+        (!['update', 'create', 'delete', 'move', 'swap', 'copy'].includes(payload.operation))
       );
 
       if (shouldShow) {
@@ -25,22 +26,21 @@ export function handleOperationMessages(event: ChatEvent, messages: Message[], s
 
         if (payload.tileId) {
           if (payload.operation === 'create') {
-            const regex = /Created tile "(.+)"/;
+            const regex = /Created "(.+)"/;
             const match = regex.exec(payload.message);
             if (match?.[1]) {
               const tileName = match[1];
               const truncatedName = tileName.length > 25 ? tileName.slice(0, 25) + '...' : tileName;
               const navigationLink = `[**${truncatedName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
-              content = `Created tile ${navigationLink}`;
+              content = `Created ${navigationLink}`;
             }
           } else if (payload.operation === 'delete') {
-            const regex = /Deleted tile "(.+)"/;
+            const regex = /Deleted "(.+)"/;
             const match = regex.exec(payload.message);
             if (match?.[1]) {
               const tileName = match[1];
               const truncatedName = tileName.length > 25 ? tileName.slice(0, 25) + '...' : tileName;
-              const navigationLink = `[**${truncatedName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
-              content = `Deleted tile ${navigationLink}`;
+              content = `Deleted **${truncatedName}**`;
             }
           } else if (payload.operation === 'move') {
             const regex = /Moved "(.+)"/;
@@ -51,14 +51,23 @@ export function handleOperationMessages(event: ChatEvent, messages: Message[], s
               const navigationLink = `[**${truncatedName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
               content = `Moved ${navigationLink}`;
             }
-          } else if (payload.operation === 'update') {
-            const regex = /Updated tile "(.+)"/;
+          } else if (payload.operation === 'copy') {
+            const regex = /Copied "(.+)"/;
             const match = regex.exec(payload.message);
             if (match?.[1]) {
               const tileName = match[1];
               const truncatedName = tileName.length > 25 ? tileName.slice(0, 25) + '...' : tileName;
               const navigationLink = `[**${truncatedName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
-              content = `Updated tile ${navigationLink}`;
+              content = `Copied ${navigationLink}`;
+            }
+          } else if (payload.operation === 'update') {
+            const regex = /Updated "(.+)"/;
+            const match = regex.exec(payload.message);
+            if (match?.[1]) {
+              const tileName = match[1];
+              const truncatedName = tileName.length > 25 ? tileName.slice(0, 25) + '...' : tileName;
+              const navigationLink = `[**${truncatedName}**](command:navigate:${payload.tileId}:${encodeURIComponent(tileName)})`;
+              content = `Updated ${navigationLink}`;
             }
           }
         }

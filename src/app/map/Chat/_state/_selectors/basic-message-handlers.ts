@@ -57,14 +57,26 @@ export function handleNavigationMessages(event: ChatEvent, messages: Message[]) 
     if (!payload || typeof payload !== 'object' || !('toTileId' in payload) || !('toTileName' in payload)) {
       return;
     }
-    const fromText = payload.fromTileName ? `from "${payload.fromTileName}" ` : '';
-    const truncatedTileName = payload.toTileName.length > 25
+
+    // Format "from" tile name if present
+    let fromText = '';
+    if (payload.fromTileName && payload.fromTileId) {
+      const truncatedFromName = payload.fromTileName.length > 25
+        ? payload.fromTileName.slice(0, 25) + '...'
+        : payload.fromTileName;
+      const fromLink = `[${truncatedFromName}](command:navigate:${payload.fromTileId}:${encodeURIComponent(payload.fromTileName)})`;
+      fromText = `from **${fromLink}** `;
+    }
+
+    // Format "to" tile name
+    const truncatedToName = payload.toTileName.length > 25
       ? payload.toTileName.slice(0, 25) + '...'
       : payload.toTileName;
-    const navigationLink = `[${truncatedTileName}](command:navigate:${payload.toTileId}:${encodeURIComponent(payload.toTileName)})`;
+    const toLink = `[${truncatedToName}](command:navigate:${payload.toTileId}:${encodeURIComponent(payload.toTileName)})`;
+
     messages.push({
       id: event.id,
-      content: `📍 Navigated ${fromText}to **${navigationLink}**`,
+      content: `📍 Navigated ${fromText}to **${toLink}**`,
       actor: 'system',
       timestamp: event.timestamp,
     });

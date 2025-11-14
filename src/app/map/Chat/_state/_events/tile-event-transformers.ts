@@ -101,15 +101,33 @@ export function _transformTileMovedEvent(baseEvent: Omit<ChatEvent, 'type' | 'pa
 }
 
 /**
+ * Transform item copy events to chat operation completed events
+ */
+export function _transformItemCopiedEvent(baseEvent: Omit<ChatEvent, 'type' | 'payload'>, payload: unknown): ChatEvent {
+  const typedPayload = payload as { destinationId: string; sourceName: string }
+  return {
+    ...baseEvent,
+    type: 'operation_completed' as const,
+    payload: {
+      operation: 'copy',
+      tileId: typedPayload.destinationId,
+      result: 'success',
+      message: `Copied "${typedPayload.sourceName}"`,
+    } as OperationCompletedPayload,
+  }
+}
+
+/**
  * Transform navigation events to chat navigation events
  */
 export function _transformNavigationEvent(baseEvent: Omit<ChatEvent, 'type' | 'payload'>, payload: unknown): ChatEvent {
-  const typedPayload = payload as { fromCenterId?: string; toCenterId: string; toCenterName: string }
+  const typedPayload = payload as { fromCenterId?: string; fromCenterName?: string; toCenterId: string; toCenterName: string }
   return {
     ...baseEvent,
     type: 'navigation' as const,
     payload: {
       fromTileId: typedPayload.fromCenterId,
+      fromTileName: typedPayload.fromCenterName,
       toTileId: typedPayload.toCenterId,
       toTileName: typedPayload.toCenterName,
     } as NavigationPayload,

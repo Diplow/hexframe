@@ -129,11 +129,16 @@ export async function handleNavigationWithoutItem(
   dispatch(cacheActions.setCenter(loadedCoordId));
 
   if (eventBus) {
+    const fromCenter = getState().currentCenter;
+    const sourceItem = fromCenter ? getState().itemsById[fromCenter] : null;
+    const fromCenterName = sourceItem?.data.title;
+
     eventBus.emit({
       type: 'map.navigation',
       source: 'map_cache',
       payload: {
-        fromCenterId: getState().currentCenter ?? '',
+        fromCenterId: fromCenter ?? undefined,
+        fromCenterName,
         toCenterId: itemIdentifier,
         toCenterName: 'Your Map'
       }
