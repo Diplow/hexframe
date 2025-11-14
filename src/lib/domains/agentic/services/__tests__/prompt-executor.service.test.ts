@@ -330,10 +330,147 @@ describe('executePrompt', () => {
 
       const result = executePrompt(params)
 
-      // Should strip special characters from section name (consecutive hyphens preserved)
-      expect(result).toContain('<context-builder-v20---new>')
+      // Should strip special characters from section name (periods and hyphens preserved)
+      expect(result).toContain('<context-builder-v2.0---new>')
       expect(result).toContain('Builder content')
-      expect(result).toContain('</context-builder-v20---new>')
+      expect(result).toContain('</context-builder-v2.0---new>')
+    })
+
+    it('should use fallback section name for title with only special characters', () => {
+      const taskData = createSimpleTaskData()
+      taskData.composedChildren = [
+        createMockItem({
+          title: '!!!',
+          content: 'Content for special chars tile'
+        })
+      ]
+
+      const params: ExecutePromptParams = {
+        taskData
+      }
+
+      const result = executePrompt(params)
+
+      // Should use fallback name since sanitized result is empty
+      expect(result).toContain('<section-1>')
+      expect(result).toContain('Content for special chars tile')
+      expect(result).toContain('</section-1>')
+    })
+
+    it('should use fallback section name for title starting with digits', () => {
+      const taskData = createSimpleTaskData()
+      taskData.composedChildren = [
+        createMockItem({
+          title: '123',
+          content: 'Content for numeric tile'
+        })
+      ]
+
+      const params: ExecutePromptParams = {
+        taskData
+      }
+
+      const result = executePrompt(params)
+
+      // Should use fallback name since XML names cannot start with digits
+      expect(result).toContain('<section-1>')
+      expect(result).toContain('Content for numeric tile')
+      expect(result).toContain('</section-1>')
+    })
+
+    it('should use fallback section name for title starting with hyphen', () => {
+      const taskData = createSimpleTaskData()
+      taskData.composedChildren = [
+        createMockItem({
+          title: ' -foo',
+          content: 'Content for hyphen-prefixed tile'
+        })
+      ]
+
+      const params: ExecutePromptParams = {
+        taskData
+      }
+
+      const result = executePrompt(params)
+
+      // Should use fallback name since sanitized result starts with hyphen (invalid XML name start)
+      expect(result).toContain('<section-1>')
+      expect(result).toContain('Content for hyphen-prefixed tile')
+      expect(result).toContain('</section-1>')
+    })
+
+    it('should use sequential fallback names for multiple invalid tiles', () => {
+      const taskData = createSimpleTaskData()
+      taskData.composedChildren = [
+        createMockItem({
+          title: '!!!',
+          content: 'First invalid tile'
+        }),
+        createMockItem({
+          title: 'Valid Name',
+          content: 'Valid tile'
+        }),
+        createMockItem({
+          title: '123',
+          content: 'Second invalid tile'
+        })
+      ]
+
+      const params: ExecutePromptParams = {
+        taskData
+      }
+
+      const result = executePrompt(params)
+
+      // First invalid tile gets section-1
+      expect(result).toContain('<section-1>')
+      expect(result).toContain('First invalid tile')
+      expect(result).toContain('</section-1>')
+
+      // Valid tile gets its sanitized name
+      expect(result).toContain('<valid-name>')
+      expect(result).toContain('Valid tile')
+      expect(result).toContain('</valid-name>')
+
+      // Second invalid tile gets section-3 (index in filtered array)
+      expect(result).toContain('<section-3>')
+      expect(result).toContain('Second invalid tile')
+      expect(result).toContain('</section-3>')
+    })
+
+    it('should produce well-formed XML with invalid tile names', () => {
+      const taskData = createSimpleTaskData()
+      taskData.composedChildren = [
+        createMockItem({
+          title: '!!!',
+          content: 'Test content 1'
+        }),
+        createMockItem({
+          title: '---',
+          content: 'Test content 2'
+        })
+      ]
+
+      const params: ExecutePromptParams = {
+        taskData
+      }
+
+      const result = executePrompt(params)
+
+      // Verify well-formed XML structure
+      expect(result).toMatch(/<section-1>[\s\S]*?<\/section-1>/)
+      expect(result).toMatch(/<section-2>[\s\S]*?<\/section-2>/)
+
+      // Verify matching opening and closing tags
+      const section1Open = result.indexOf('<section-1>')
+      const section1Close = result.indexOf('</section-1>')
+      const section2Open = result.indexOf('<section-2>')
+      const section2Close = result.indexOf('</section-2>')
+
+      expect(section1Open).toBeGreaterThan(-1)
+      expect(section1Close).toBeGreaterThan(section1Open)
+      expect(section2Open).toBeGreaterThan(section1Close)
+      expect(section2Close).toBeGreaterThan(section2Open)
     })
   })
 

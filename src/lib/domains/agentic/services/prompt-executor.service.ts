@@ -72,6 +72,31 @@ function buildTaskSection(center: MapItemContract): string {
 }
 
 /**
+ * Validate and sanitize a string to be a valid XML element name.
+ * XML names must start with a letter or underscore, and can contain letters, digits, hyphens, underscores, and periods.
+ * @param name - The proposed element name
+ * @param fallback - Fallback name if validation fails
+ * @returns A valid XML element name
+ */
+function toValidXMLName(name: string, fallback: string): string {
+  // First sanitize: lowercase, replace spaces with hyphens, remove invalid chars
+  const sanitized = name.toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-_.]/g, '')
+
+  // Validate against XML name rules: must start with letter or underscore
+  // and contain only letters, digits, hyphens, underscores, and periods
+  const xmlNamePattern = /^[a-z_][a-z0-9_.-]*$/
+
+  if (sanitized && xmlNamePattern.test(sanitized)) {
+    return sanitized
+  }
+
+  // If validation fails (empty or invalid start/characters), use fallback
+  return fallback
+}
+
+/**
  * Build sections for all composed children.
  * Each composed child becomes its own section - simple concatenation.
  */
@@ -91,11 +116,12 @@ function buildComposedChildrenSections(composedChildren: MapItemContract[]): str
 
   const sections: string[] = []
 
-  for (const child of validChildren) {
-    // Determine section name based on tile title
-    const sectionName = child.title.toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9-]/g, '')
+  for (let i = 0; i < validChildren.length; i++) {
+    const child = validChildren[i]
+    if (!child) continue
+
+    // Determine section name based on tile title with fallback
+    const sectionName = toValidXMLName(child.title, `section-${i + 1}`)
 
     sections.push(`<${sectionName}>`)
     sections.push(escapeXML(child.content))
