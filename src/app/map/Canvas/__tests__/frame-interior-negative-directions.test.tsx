@@ -3,12 +3,12 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render } from '@testing-library/react';
 import { DynamicFrameCore } from '~/app/map/Canvas/DynamicFrameCore';
 import type { TileData } from '~/app/map/types/tile-data';
-import { Direction } from '~/app/map/constants';
 import { CoordSystem } from '~/lib/domains/mapping/utils';
+import type { URLInfo } from '~/app/map/types/url-info';
 
 // Mock canvas theme context
 vi.mock('~/app/map/Canvas', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('~/app/map/Canvas')>();
+  const actual = await importOriginal();
   return {
     ...actual,
     useCanvasTheme: () => ({ isDarkMode: false }),
@@ -49,7 +49,7 @@ function createMockTileData(coordId: string, title: string): TileData {
 }
 
 describe('FrameInterior - Negative Direction Child Positioning', () => {
-  let mockUrlInfo: any;
+  let mockUrlInfo: URLInfo;
 
   beforeEach(() => {
     mockUrlInfo = {

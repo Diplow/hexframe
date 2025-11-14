@@ -3,12 +3,12 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { DynamicFrameCore } from '~/app/map/Canvas/DynamicFrameCore';
 import type { TileData } from '~/app/map/types/tile-data';
-import { Direction } from '~/app/map/constants';
 import { CoordSystem } from '~/lib/domains/mapping/utils';
+import type { URLInfo } from '~/app/map/types/url-info';
 
 // Mock canvas theme context
 vi.mock('~/app/map/Canvas', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('~/app/map/Canvas')>();
+  const actual = await importOriginal();
   return {
     ...actual,
     useCanvasTheme: () => ({ isDarkMode: false }),
@@ -50,10 +50,10 @@ function createMockTileData(coordId: string, title: string, overrides?: Partial<
 }
 
 describe('Canvas - Composition with Negative Directions', () => {
-  let mockUrlInfo: any;
-  let mockOnNavigate: any;
-  let mockOnToggleExpansion: any;
-  let mockOnCreateRequested: any;
+  let mockUrlInfo: URLInfo;
+  let mockOnNavigate: (coordId: string) => void;
+  let mockOnToggleExpansion: (itemId: string, coordId: string) => void;
+  let mockOnCreateRequested: (payload: { coordId: string; parentName?: string; parentId?: string; parentCoordId?: string }) => void;
 
   beforeEach(() => {
     mockUrlInfo = {
@@ -339,8 +339,6 @@ describe('Canvas - Composition with Negative Directions', () => {
     it('should handle coordinate IDs with invalid negative directions gracefully', () => {
       const parentCoordId = '1,0:2';
       const compositionCoordId = '1,0:2,0';
-      // Invalid negative direction (< -6)
-      const invalidCoordId = '1,0:2,0,-7';
 
       const mapItems: Record<string, TileData> = {
         [parentCoordId]: createMockTileData(parentCoordId, 'Parent'),

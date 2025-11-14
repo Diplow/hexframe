@@ -8,7 +8,7 @@
 import { DynamicItemTile, getColorFromItem, DynamicBaseTileLayout, DynamicEmptyTile } from "~/app/map/Canvas/Tile";
 import type { TileScale } from "~/app/map/Canvas/Tile";
 import type { TileData } from "~/app/map/types/tile-data";
-import { CoordSystem } from "~/lib/domains/mapping/utils";
+import { CoordSystem, Direction } from "~/lib/domains/mapping/utils";
 import type { URLInfo } from "~/app/map/types/url-info";
 import { useCanvasTheme } from "~/app/map/Canvas";
 import { useEffect } from "react";
@@ -256,9 +256,17 @@ const FrameInterior = (props: {
 
   // Get child coordinates from the centerCoordId (which may be a virtual composition container)
   const centerCoord = CoordSystem.parseId(centerCoordId);
-  const childCoordIds = CHILD_INDICES.map(idx =>
-    CoordSystem.createId({ ...centerCoord, path: [...centerCoord.path, idx] })
-  );
+
+  // Check if this is a composition container (path ends with Direction.Center = 0)
+  const isCompositionContainer = centerCoord.path[centerCoord.path.length - 1] === Direction.Center;
+
+  // For composition containers, use composed children (negative directions)
+  // For regular tiles, use structural children (positive directions)
+  const childCoordIds = isCompositionContainer
+    ? CoordSystem.getComposedChildCoordsFromId(centerCoordId)
+    : CHILD_INDICES.map(idx =>
+        CoordSystem.createId({ ...centerCoord, path: [...centerCoord.path, idx] })
+      );
 
   // Create position map
   const positionMap: Record<string, string | undefined> = {
