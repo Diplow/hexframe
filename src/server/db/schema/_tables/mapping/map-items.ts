@@ -13,6 +13,28 @@ import { createTable } from "~/server/db/schema/_utils";
 import { baseItems } from "~/server/db/schema/_tables/mapping/base-items";
 import { type MapItemType } from "~/lib/domains/mapping";
 
+/**
+ * Map Items table - stores hexagonal coordinate references to base items
+ *
+ * Path Column Format:
+ * - Stored as varchar(255) containing comma-separated integers
+ * - Empty string ("") represents the root coordinate
+ * - Positive directions (1-6): Structural children around a hex
+ *   - 1=NorthWest, 2=NorthEast, 3=East, 4=SouthEast, 5=SouthWest, 6=West
+ * - Zero direction (0): Composition container (center of a hex)
+ * - Negative directions (-1 to -6): Composed children within a hex
+ *   - -1=ComposedNorthWest, -2=ComposedNorthEast, -3=ComposedEast,
+ *   - -4=ComposedSouthEast, -5=ComposedSouthWest, -6=ComposedWest
+ *
+ * Examples:
+ * - "": root coordinate (user's center hex)
+ * - "1,2,3": path through NorthWest → NorthEast → East
+ * - "1,0,-3": NorthWest → Composition → ComposedEast (zoomed into composition)
+ * - "1,-3,2": NorthWest → ComposedEast → NorthEast (mixed structural and composed)
+ *
+ * The varchar(255) length supports paths with ~50-80 directions depending on
+ * the number of negative directions (which require 2-3 chars each including comma).
+ */
 export const mapItems = createTable(
   "map_items",
   {
