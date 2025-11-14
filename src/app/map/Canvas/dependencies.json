@@ -11,7 +11,6 @@
     "~/lib/test-logger"
   ],
   "subsystems": [
-    "./Tile",
-    "./CoordinateResolver"
+    "./Tile"
   ]
 }
