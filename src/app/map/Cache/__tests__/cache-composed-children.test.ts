@@ -212,7 +212,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
 
       // Simulate loading region
       const state2 = cacheReducer(state1, {
-        type: "LOAD_REGION_SUCCESS",
+        type: "LOAD_REGION",
         payload: {
           centerCoordId: "1,0",
           items: [],
@@ -231,7 +231,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
 
       // Initial state with region loaded
       const state1 = cacheReducer(initialCacheState, {
-        type: "LOAD_REGION_SUCCESS",
+        type: "LOAD_REGION",
         payload: {
           centerCoordId: parentCoordId,
           items: [],
@@ -255,7 +255,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
     test("should invalidate all cache when composition structure changes significantly", () => {
       // Setup state with multiple regions
       const state1 = cacheReducer(initialCacheState, {
-        type: "LOAD_REGION_SUCCESS",
+        type: "LOAD_REGION",
         payload: {
           centerCoordId: "1,0",
           items: [],
@@ -264,7 +264,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
       });
 
       const state2 = cacheReducer(state1, {
-        type: "LOAD_REGION_SUCCESS",
+        type: "LOAD_REGION",
         payload: {
           centerCoordId: "1,0:1",
           items: [],
@@ -299,8 +299,12 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
       };
 
       const state = cacheReducer(initialCacheState, {
-        type: "UPDATE_ITEMS",
-        payload: [composedChild],
+        type: "LOAD_REGION",
+        payload: {
+          items: [composedChild],
+          centerCoordId: "1,0:2",
+          maxDepth: 2,
+        },
       });
 
       const cachedItem = state.itemsById["1,0:2,-1"];
@@ -343,8 +347,12 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
       ];
 
       const state = cacheReducer(initialCacheState, {
-        type: "UPDATE_ITEMS",
-        payload: mixedChildren,
+        type: "LOAD_REGION",
+        payload: {
+          items: mixedChildren,
+          centerCoordId: "1,0:1",
+          maxDepth: 2,
+        },
       });
 
       // Structural child should have positive direction
@@ -403,8 +411,12 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
       ];
 
       const state = cacheReducer(initialCacheState, {
-        type: "UPDATE_ITEMS",
-        payload: mixedItems,
+        type: "LOAD_REGION",
+        payload: {
+          items: mixedItems,
+          centerCoordId: "1,0",
+          maxDepth: 2,
+        },
       });
 
       // All items should be in cache
@@ -479,12 +491,16 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
       expect(result.success).toBe(true);
       expect(mockDispatch).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: "UPDATE_ITEMS",
-          payload: expect.arrayContaining([
-            expect.objectContaining({ coordinates: "1,0" }),
-            expect.objectContaining({ coordinates: "1,0:1" }),
-            expect.objectContaining({ coordinates: "1,0:-1" }),
-          ]),
+          type: "LOAD_REGION",
+          payload: expect.objectContaining({
+            centerCoordId: "1,0",
+            maxDepth: 2,
+            items: expect.arrayContaining([
+              expect.objectContaining({ coordinates: "1,0" }),
+              expect.objectContaining({ coordinates: "1,0:1" }),
+              expect.objectContaining({ coordinates: "1,0:-1" }),
+            ]),
+          }),
         })
       );
     });
@@ -507,8 +523,12 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
       };
 
       const state = cacheReducer(initialCacheState, {
-        type: "UPDATE_ITEMS",
-        payload: [deepComposedChild],
+        type: "LOAD_REGION",
+        payload: {
+          items: [deepComposedChild],
+          centerCoordId: "1,0:1",
+          maxDepth: 5,
+        },
       });
 
       const cached = state.itemsById["1,0:1,2,-3,4,-1"];
@@ -533,8 +553,12 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
       };
 
       const state = cacheReducer(initialCacheState, {
-        type: "UPDATE_ITEMS",
-        payload: [rootComposition],
+        type: "LOAD_REGION",
+        payload: {
+          items: [rootComposition],
+          centerCoordId: "1,0",
+          maxDepth: 1,
+        },
       });
 
       const cached = state.itemsById["1,0:-1"];
@@ -545,38 +569,46 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
     test("should preserve negative directions during cache updates", () => {
       // Initial load
       const state1 = cacheReducer(initialCacheState, {
-        type: "UPDATE_ITEMS",
-        payload: [{
-          id: "1",
-          coordinates: "1,0:-1",
-          title: "Original",
-          content: "Original content",
-          preview: undefined,
-          depth: 1,
-          link: "",
-          parentId: "0",
-          itemType: MapItemType.BASE,
-          ownerId: "1",
-          originId: null,
-        }],
+        type: "LOAD_REGION",
+        payload: {
+          items: [{
+            id: "1",
+            coordinates: "1,0:-1",
+            title: "Original",
+            content: "Original content",
+            preview: undefined,
+            depth: 1,
+            link: "",
+            parentId: "0",
+            itemType: MapItemType.BASE,
+            ownerId: "1",
+            originId: null,
+          }],
+          centerCoordId: "1,0",
+          maxDepth: 1,
+        },
       });
 
       // Update the same item
       const state2 = cacheReducer(state1, {
-        type: "UPDATE_ITEMS",
-        payload: [{
-          id: "1",
-          coordinates: "1,0:-1",
-          title: "Updated",
-          content: "Updated content",
-          preview: undefined,
-          depth: 1,
-          link: "",
-          parentId: "0",
-          itemType: MapItemType.BASE,
-          ownerId: "1",
-          originId: null,
-        }],
+        type: "LOAD_REGION",
+        payload: {
+          items: [{
+            id: "1",
+            coordinates: "1,0:-1",
+            title: "Updated",
+            content: "Updated content",
+            preview: undefined,
+            depth: 1,
+            link: "",
+            parentId: "0",
+            itemType: MapItemType.BASE,
+            ownerId: "1",
+            originId: null,
+          }],
+          centerCoordId: "1,0",
+          maxDepth: 1,
+        },
       });
 
       const cached = state2.itemsById["1,0:-1"];

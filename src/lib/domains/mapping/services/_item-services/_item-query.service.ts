@@ -130,7 +130,7 @@ export class ItemQueryService {
         // - Legacy model: Direction.Center (0) in path
         const path = desc.attrs.coords.path;
         const hasNegativeDirection = path.some((dir) => (dir as number) < 0);
-        const hasCenter = path.some((dir) => dir === 0);
+        const hasCenter = path.some((dir) => (dir as number) === 0);
         return !hasNegativeDirection && !hasCenter;
       });
     }

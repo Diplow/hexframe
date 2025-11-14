@@ -48,7 +48,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.East],
       });
-      const childItem = await testEnv.service.items.crud.addItemToMap({
+      await testEnv.service.items.crud.addItemToMap({
         parentId: parseInt(parentItem.id),
         coords: childCoords,
         title: "Child Tile",

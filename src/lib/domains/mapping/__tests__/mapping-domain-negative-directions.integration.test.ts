@@ -5,7 +5,6 @@ import {
   _createTestEnvironment,
   _createUniqueTestParams,
   _setupBasicMap,
-  _createTestCoordinates,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { Direction, CoordSystem } from "~/lib/domains/mapping/utils";
 import type { Coord } from "~/lib/domains/mapping/utils";
@@ -66,15 +65,18 @@ describe("Mapping Domain - Negative Direction Integration", () => {
 
       // LAYER 3: Services - Create composed children through service layer
       // This validates Types layer (parameter validation) automatically
-      const composedChild1 = await testEnv.service.items.crud.addItemToMap({
-        coords: composedCoords[0]!,
+      const [composedCoord1, composedCoord2] = composedCoords;
+      if (!composedCoord1 || !composedCoord2) throw new Error("Expected composed coords");
+
+      await testEnv.service.items.crud.addItemToMap({
+        coords: composedCoord1,
         title: "Composed Child 1",
         content: "First composed child",
         parentId: parseInt(parentItem.id),
       });
 
-      const composedChild2 = await testEnv.service.items.crud.addItemToMap({
-        coords: composedCoords[1]!,
+      await testEnv.service.items.crud.addItemToMap({
+        coords: composedCoord2,
         title: "Composed Child 2",
         content: "Second composed child",
         parentId: parseInt(parentItem.id),
@@ -105,7 +107,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
       // getComposedChildren already hit the database through the full stack
       // Now verify the coords were stored correctly with negative directions
       const child1FromDb = await testEnv.repositories.mapItem.getOneByIdr({
-        idr: { attrs: { coords: composedCoords[0]! } }
+        idr: { attrs: { coords: composedCoords[0] } }
       });
       expect(child1FromDb).toBeDefined();
       expect(child1FromDb.attrs.coords).toEqual(composedCoords[0]);
@@ -167,7 +169,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
 
       // Verify structural children don't include composed
       const descendants = await testEnv.service.items.query.getDescendants({
-        coordId: parentCoordsId,
+        itemId: parseInt(parentItem.id),
         includeComposition: false,
       });
       expect(descendants.map(d => d.title)).toContain("Structural Child");
@@ -182,7 +184,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
 
       // Verify includeComposition flag works
       const allDescendants = await testEnv.service.items.query.getDescendants({
-        coordId: parentCoordsId,
+        itemId: parseInt(parentItem.id),
         includeComposition: true,
       });
       expect(allDescendants.map(d => d.title)).toContain("Structural Child");
@@ -551,9 +553,8 @@ describe("Mapping Domain - Negative Direction Integration", () => {
       }
 
       // Verify structural children work as before
-      const parentCoordsId = CoordSystem.createId(parentCoord);
       const descendants = await testEnv.service.items.query.getDescendants({
-        coordId: parentCoordsId,
+        itemId: parseInt(parentItem.id),
         includeComposition: false,
       });
 
@@ -570,6 +571,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
       );
 
       // Verify no composed children exist
+      const parentCoordsId = CoordSystem.createId(parentCoord);
       const composed = await testEnv.service.items.query.getComposedChildren({
         coordId: parentCoordsId,
       });
