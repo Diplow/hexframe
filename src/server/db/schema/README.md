@@ -25,6 +25,10 @@ The schema layer is like a "blueprint architect" that defines the structure of a
 - `baseItems`: Core content storage table
 - `baseItemVersions`: Version history for baseItems (snapshots of content changes)
 - `mapItems`: Hexagonal coordinate references to baseItems
+  - **Path column**: varchar(255) storing comma-separated integers (positive, zero, and negative)
+  - Supports structural children (1-6), composition (0), and composed children (-1 to -6)
+  - Examples: "1,2,3" (structural), "1,0,-3" (composition + composed), "1,-3,2" (mixed)
+  - See inline documentation in `_tables/mapping/map-items.ts` for full path format details
 - `baseItemRelations`: Drizzle relations for baseItems (includes versions)
 - `baseItemVersionsRelations`: Drizzle relations for version history
 - Auth tables: users, accounts, sessions, verificationTokens, apiKeys
