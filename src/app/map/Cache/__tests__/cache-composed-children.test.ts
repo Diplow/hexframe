@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach, vi } from "vitest";
 import { Direction } from "~/lib/domains/mapping/utils";
 import type { MapItemAPIContract } from "~/server/api/types/contracts";
 import { MapItemType } from "~/lib/domains/mapping/utils";
-import { createDataHandlerWithMockableService } from "~/app/map/Cache/Handlers/DataHandler/data-handler";
+import { createDataHandler, type DataHandlerServices } from "~/app/map/Cache/Handlers/DataHandler/data-handler";
 import { cacheReducer, initialCacheState } from "~/app/map/Cache/State/reducer";
 import type { CacheState } from "~/app/map/Cache/State/types";
 
@@ -64,9 +64,9 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
       ...initialCacheState,
       cacheConfig: {
         maxAge: 300000,
+        backgroundRefreshInterval: 60000,
+        enableOptimisticUpdates: true,
         maxDepth: 3,
-        enablePrefetch: true,
-        prefetchRadius: 1,
       },
     };
   });
@@ -107,7 +107,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
       mockUtils.map.getComposedChildren.fetch.mockResolvedValue(composedChildren);
 
       // Act: fetch composed children
-      const result = await mockUtils.map.getComposedChildren.fetch({ coordId: parentCoordId });
+      const result = await mockUtils.map.getComposedChildren.fetch({ coordId: parentCoordId }) as MapItemAPIContract[];
 
       // Assert
       expect(mockUtils.map.getComposedChildren.fetch).toHaveBeenCalledWith({ coordId: parentCoordId });
@@ -121,7 +121,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
       const parentCoordId = "1,0:3";
       mockUtils.map.getComposedChildren.fetch.mockResolvedValue([]);
 
-      const result = await mockUtils.map.getComposedChildren.fetch({ coordId: parentCoordId });
+      const result = await mockUtils.map.getComposedChildren.fetch({ coordId: parentCoordId }) as MapItemAPIContract[];
 
       expect(result).toEqual([]);
       expect(result).toHaveLength(0);
@@ -140,10 +140,10 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
 
       mockUtils.map.getComposedChildren.fetch.mockResolvedValue(allComposedChildren);
 
-      const result = await mockUtils.map.getComposedChildren.fetch({ coordId: parentCoordId });
+      const result = await mockUtils.map.getComposedChildren.fetch({ coordId: parentCoordId }) as MapItemAPIContract[];
 
       expect(result).toHaveLength(6);
-      expect(result.map(item => item.coordinates)).toEqual([
+      expect(result.map((item: MapItemAPIContract) => item.coordinates)).toEqual([
         "1,0:1,-1",
         "1,0:1,-2",
         "1,0:1,-3",
@@ -159,7 +159,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
       const coordId = "1,0:2";
       mockUtils.map.hasComposition.fetch.mockResolvedValue({ hasComposition: true });
 
-      const result = await mockUtils.map.hasComposition.fetch({ coordId });
+      const result = await mockUtils.map.hasComposition.fetch({ coordId }) as { hasComposition: boolean };
 
       expect(result.hasComposition).toBe(true);
       expect(mockUtils.map.hasComposition.fetch).toHaveBeenCalledWith({ coordId });
@@ -169,7 +169,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
       const coordId = "1,0:3";
       mockUtils.map.hasComposition.fetch.mockResolvedValue({ hasComposition: false });
 
-      const result = await mockUtils.map.hasComposition.fetch({ coordId });
+      const result = await mockUtils.map.hasComposition.fetch({ coordId }) as { hasComposition: boolean };
 
       expect(result.hasComposition).toBe(false);
     });
@@ -178,7 +178,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
       const coordId = "1,0";
       mockUtils.map.hasComposition.fetch.mockResolvedValue({ hasComposition: false });
 
-      const result = await mockUtils.map.hasComposition.fetch({ coordId });
+      const result = await mockUtils.map.hasComposition.fetch({ coordId }) as { hasComposition: boolean };
 
       expect(result.hasComposition).toBe(false);
     });
@@ -477,24 +477,32 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
         },
       ];
 
-      mockUtils.map.getItemsForRootItem.fetch.mockResolvedValue(itemsWithComposition);
+      // Create data handler with mock services directly
+      const mockServices: DataHandlerServices = {
+        server: {
+          fetchItemsForCoordinate: vi.fn().mockResolvedValue(itemsWithComposition),
+        },
+      };
 
-      const dataHandler = createDataHandlerWithMockableService(
-        mockDispatch,
-        () => mockState,
-        mockUtils,
-        { retryAttempts: 1 }
-      );
+      const dataHandler = createDataHandler({
+        dispatch: mockDispatch,
+        services: mockServices,
+        getState: () => mockState,
+      });
 
       const result = await dataHandler.loadRegion(centerCoordId, 2);
 
       expect(result.success).toBe(true);
+      // Verify LOAD_REGION was dispatched with correct payload
       expect(mockDispatch).toHaveBeenCalledWith(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         expect.objectContaining({
           type: "LOAD_REGION",
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           payload: expect.objectContaining({
             centerCoordId: "1,0",
             maxDepth: 2,
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             items: expect.arrayContaining([
               expect.objectContaining({ coordinates: "1,0" }),
               expect.objectContaining({ coordinates: "1,0:1" }),

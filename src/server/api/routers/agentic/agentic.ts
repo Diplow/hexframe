@@ -472,7 +472,8 @@ export const agenticRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-      let { taskCoords, instruction } = input
+      const { instruction } = input
+      let { taskCoords } = input
 
       // Import utilities
       const { CoordSystem } = await import('~/lib/domains/mapping/utils')
@@ -514,11 +515,11 @@ export const agenticRouter = createTRPCRouter({
         })
 
         // If meta-task exists with content, redirect execution to it
-        if (metaTask && metaTask.content && metaTask.content.trim().length > 0) {
+        if (metaTask?.content && metaTask.content.trim().length > 0) {
           // Store parent info for context
           parentTaskInfo = {
             title: taskCenterTile.title,
-            preview: taskCenterTile.preview || undefined,
+            preview: taskCenterTile.preview ?? undefined,
             coords: taskCoords
           }
 
