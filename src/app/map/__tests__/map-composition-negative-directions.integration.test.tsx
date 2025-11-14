@@ -21,7 +21,8 @@ describe('Map Composition Integration with Negative Directions', () => {
 
   describe('URL Parameter Parsing', () => {
     it('should parse composition=true as boolean true', () => {
-      const params = { composition: 'true' };
+      type ParamsType = { composition?: string };
+      const params: ParamsType = { composition: 'true' };
       const initialCompositionExpanded = params.composition === 'true';
 
       expect(initialCompositionExpanded).toBe(true);
@@ -29,14 +30,16 @@ describe('Map Composition Integration with Negative Directions', () => {
     });
 
     it('should parse composition=false as boolean false', () => {
-      const params = { composition: 'false' };
+      type ParamsType = { composition?: string };
+      const params: ParamsType = { composition: 'false' };
       const initialCompositionExpanded = params.composition === 'true';
 
       expect(initialCompositionExpanded).toBe(false);
     });
 
     it('should default to false when composition parameter is missing', () => {
-      const params = {};
+      type ParamsType = { composition?: string };
+      const params: ParamsType = {};
       const initialCompositionExpanded = params.composition === 'true';
 
       expect(initialCompositionExpanded).toBe(false);
@@ -55,7 +58,6 @@ describe('Map Composition Integration with Negative Directions', () => {
 
     it('should NOT use string array for composition expansion', () => {
       // This verifies we KEEP the boolean type and reject the previous wrong approach
-      // @ts-expect-error - Intentionally showing wrong type
       const wrongValue: string[] = ['1,0:1', '1,0:2'];
 
       expect(typeof wrongValue).toBe('object');

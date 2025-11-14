@@ -442,8 +442,6 @@ Ensure both old and new coordinates are correct. The user must own both the item
       const coords = normalizeCoordinates(argsObj?.coords);
       const fields = argsObj?.fields as string[] | undefined;
 
-      const { callTrpcEndpoint } = await import("~/app/services/mcp/services/api-helpers");
-
       // Get ancestry by walking up the path
       const ancestry = [];
       for (let i = coords.path.length - 1; i >= 0; i--) {
@@ -695,6 +693,7 @@ Ensure both old and new coordinates are correct. The user must own both the item
         const result: unknown[] = [];
         for (const item of items) {
           result.push(...flattenPostOrder(item.children));
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { children, ...itemWithoutChildren } = item;
           result.push(itemWithoutChildren);
         }

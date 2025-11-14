@@ -8,7 +8,8 @@ import type { URLInfo } from '~/app/map/types/url-info';
 
 // Mock canvas theme context
 vi.mock('~/app/map/Canvas', async (importOriginal) => {
-  const actual = await importOriginal();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const actual = await importOriginal<any>();
   return {
     ...actual,
     useCanvasTheme: () => ({ isDarkMode: false }),
@@ -53,9 +54,9 @@ describe('FrameInterior - Negative Direction Child Positioning', () => {
 
   beforeEach(() => {
     mockUrlInfo = {
+      pathname: '/map/root-id',
+      searchParamsString: '',
       rootItemId: 'root-id',
-      userId: 1,
-      groupId: 0,
     };
   });
 
