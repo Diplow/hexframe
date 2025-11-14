@@ -281,9 +281,15 @@ export class SpecializedQueries {
       fullContentConditions.push(eq(mapItems.path, parentPathString));
     }
 
-    // Composed tiles (if requested) - direct children with negative directions
-    // For center at path "1", fetch "1,-1", "1,-2", etc.
+    // Composed tiles (if requested) - direction 0 + children with negative directions
+    // For center at path "1", fetch "1,0" (orchestration) and "1,-1", "1,-2", etc. (composed children)
     if (config.includeComposed) {
+      // Fetch direction 0 (orchestration tile)
+      const direction0Path = [...centerPath, 0];
+      const direction0PathString = pathToString(direction0Path);
+      fullContentConditions.push(eq(mapItems.path, direction0PathString));
+
+      // Fetch composed children (negative directions)
       fullContentConditions.push(
         and(
           this._pathStartsWith(centerPathString),

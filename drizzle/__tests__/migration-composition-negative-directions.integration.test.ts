@@ -587,6 +587,279 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
     });
   });
 
+  describe("Migration: Content Preservation", () => {
+    it("should preserve container with meaningful content and no children", async () => {
+      // Arrange - create container with meaningful content but no children
+      const parentBase = await db.insert(schema.baseItems).values({
+        title: "Parent",
+        content: "Parent content",
+        link: "",
+      }).returning();
+
+      const parent = await db.insert(schema.mapItems).values({
+        coord_user_id: 1,
+        coord_group_id: 0,
+        path: "1",
+        item_type: MapItemType.BASE,
+        refItemId: parentBase[0]!.id,
+      }).returning();
+
+      const containerBase = await db.insert(schema.baseItems).values({
+        title: "Important Documentation",
+        content: "This is important documentation that should not be deleted",
+        preview: "Important docs",
+        link: "",
+      }).returning();
+
+      const container = await db.insert(schema.mapItems).values({
+        coord_user_id: 1,
+        coord_group_id: 0,
+        path: "1,0",
+        item_type: MapItemType.BASE,
+        parentId: parent[0]!.id,
+        refItemId: containerBase[0]!.id,
+      }).returning();
+
+      // Act - run migration
+      await _runMigrationScript();
+
+      // Assert - container should be preserved
+      const containerAfter = await db.query.mapItems.findFirst({
+        where: eq(schema.mapItems.id, container[0]!.id),
+      });
+
+      expect(containerAfter).toBeDefined();
+      expect(containerAfter!.path).toBe("1,0"); // Path unchanged
+      expect(containerAfter!.parentId).toBe(parent[0]!.id); // Parent unchanged
+    });
+
+    it("should preserve container with meaningful content even with children", async () => {
+      // Arrange - create container with both content AND children
+      const parentBase = await db.insert(schema.baseItems).values({
+        title: "Parent",
+        content: "Parent content",
+        link: "",
+      }).returning();
+
+      const parent = await db.insert(schema.mapItems).values({
+        coord_user_id: 1,
+        coord_group_id: 0,
+        path: "1",
+        item_type: MapItemType.BASE,
+        refItemId: parentBase[0]!.id,
+      }).returning();
+
+      const containerBase = await db.insert(schema.baseItems).values({
+        title: "Orchestration Instructions",
+        content: "These are orchestration instructions that explain how to use the composed children",
+        link: "",
+      }).returning();
+
+      const container = await db.insert(schema.mapItems).values({
+        coord_user_id: 1,
+        coord_group_id: 0,
+        path: "1,0",
+        item_type: MapItemType.BASE,
+        parentId: parent[0]!.id,
+        refItemId: containerBase[0]!.id,
+      }).returning();
+
+      const childBase = await db.insert(schema.baseItems).values({
+        title: "Composed Child",
+        content: "Child content",
+        link: "",
+      }).returning();
+
+      const child = await db.insert(schema.mapItems).values({
+        coord_user_id: 1,
+        coord_group_id: 0,
+        path: "1,0,1",
+        item_type: MapItemType.BASE,
+        parentId: container[0]!.id,
+        refItemId: childBase[0]!.id,
+      }).returning();
+
+      // Act - run migration
+      await _runMigrationScript();
+
+      // Assert - both container and migrated child should exist
+      const containerAfter = await db.query.mapItems.findFirst({
+        where: eq(schema.mapItems.id, container[0]!.id),
+      });
+      const childAfter = await db.query.mapItems.findFirst({
+        where: eq(schema.mapItems.id, child[0]!.id),
+      });
+
+      expect(containerAfter).toBeDefined();
+      expect(containerAfter!.path).toBe("1,0"); // Container preserved
+      expect(childAfter).toBeDefined();
+      expect(childAfter!.path).toBe("1,-1"); // Child migrated to negative direction
+      expect(childAfter!.parentId).toBe(parent[0]!.id); // Child's parent updated
+    });
+
+    it("should delete container with only placeholder content", async () => {
+      // Arrange - create container with generic placeholder content
+      const parentBase = await db.insert(schema.baseItems).values({
+        title: "Parent",
+        content: "Parent content",
+        link: "",
+      }).returning();
+
+      const parent = await db.insert(schema.mapItems).values({
+        coord_user_id: 1,
+        coord_group_id: 0,
+        path: "1",
+        item_type: MapItemType.BASE,
+        refItemId: parentBase[0]!.id,
+      }).returning();
+
+      const containerBase = await db.insert(schema.baseItems).values({
+        title: "Container",
+        content: "Content",
+        link: "",
+      }).returning();
+
+      const container = await db.insert(schema.mapItems).values({
+        coord_user_id: 1,
+        coord_group_id: 0,
+        path: "1,0",
+        item_type: MapItemType.BASE,
+        parentId: parent[0]!.id,
+        refItemId: containerBase[0]!.id,
+      }).returning();
+
+      const childBase = await db.insert(schema.baseItems).values({
+        title: "Child",
+        content: "Child content",
+        link: "",
+      }).returning();
+
+      const child = await db.insert(schema.mapItems).values({
+        coord_user_id: 1,
+        coord_group_id: 0,
+        path: "1,0,1",
+        item_type: MapItemType.BASE,
+        parentId: container[0]!.id,
+        refItemId: childBase[0]!.id,
+      }).returning();
+
+      // Act - run migration
+      await _runMigrationScript();
+
+      // Assert - container deleted, child migrated
+      const containerAfter = await db.query.mapItems.findFirst({
+        where: eq(schema.mapItems.id, container[0]!.id),
+      });
+      const childAfter = await db.query.mapItems.findFirst({
+        where: eq(schema.mapItems.id, child[0]!.id),
+      });
+
+      expect(containerAfter).toBeUndefined(); // Container deleted
+      expect(childAfter).toBeDefined();
+      expect(childAfter!.path).toBe("1,-1");
+    });
+
+    it("should clean up orphaned base_item when deleting placeholder container", async () => {
+      // Arrange - create container with placeholder content
+      const parentBase = await db.insert(schema.baseItems).values({
+        title: "Parent",
+        content: "Parent content",
+        link: "",
+      }).returning();
+
+      const parent = await db.insert(schema.mapItems).values({
+        coord_user_id: 1,
+        coord_group_id: 0,
+        path: "1",
+        item_type: MapItemType.BASE,
+        refItemId: parentBase[0]!.id,
+      }).returning();
+
+      const containerBase = await db.insert(schema.baseItems).values({
+        title: "Empty Container",
+        content: "Content",
+        link: "",
+      }).returning();
+
+      const container = await db.insert(schema.mapItems).values({
+        coord_user_id: 1,
+        coord_group_id: 0,
+        path: "1,0",
+        item_type: MapItemType.BASE,
+        parentId: parent[0]!.id,
+        refItemId: containerBase[0]!.id,
+      }).returning();
+
+      const childBase = await db.insert(schema.baseItems).values({
+        title: "Child",
+        content: "Child content",
+        link: "",
+      }).returning();
+
+      const child = await db.insert(schema.mapItems).values({
+        coord_user_id: 1,
+        coord_group_id: 0,
+        path: "1,0,1",
+        item_type: MapItemType.BASE,
+        parentId: container[0]!.id,
+        refItemId: childBase[0]!.id,
+      }).returning();
+
+      // Act - run migration
+      await _runMigrationScript();
+
+      // Assert - orphaned base_item should be deleted
+      const orphanedBaseItem = await db.query.baseItems.findFirst({
+        where: eq(schema.baseItems.id, containerBase[0]!.id),
+      });
+
+      expect(orphanedBaseItem).toBeUndefined(); // Orphaned base_item cleaned up
+    });
+
+    it("should detect content via link field", async () => {
+      // Arrange - container with only a link (no preview or custom content)
+      const parentBase = await db.insert(schema.baseItems).values({
+        title: "Parent",
+        content: "Parent content",
+        link: "",
+      }).returning();
+
+      const parent = await db.insert(schema.mapItems).values({
+        coord_user_id: 1,
+        coord_group_id: 0,
+        path: "1",
+        item_type: MapItemType.BASE,
+        refItemId: parentBase[0]!.id,
+      }).returning();
+
+      const containerBase = await db.insert(schema.baseItems).values({
+        title: "Container",
+        content: "Content",
+        link: "https://example.com/important-resource",
+      }).returning();
+
+      const container = await db.insert(schema.mapItems).values({
+        coord_user_id: 1,
+        coord_group_id: 0,
+        path: "1,0",
+        item_type: MapItemType.BASE,
+        parentId: parent[0]!.id,
+        refItemId: containerBase[0]!.id,
+      }).returning();
+
+      // Act - run migration
+      await _runMigrationScript();
+
+      // Assert - container preserved due to link
+      const containerAfter = await db.query.mapItems.findFirst({
+        where: eq(schema.mapItems.id, container[0]!.id),
+      });
+
+      expect(containerAfter).toBeDefined();
+      expect(containerAfter!.path).toBe("1,0");
+    });
+  });
+
   describe("Migration: Data Integrity", () => {
     it("should preserve grandchild relationships after migration", async () => {
       // Arrange - create: parent → 0 → 1 → 2 (composed child with its own child)
@@ -778,18 +1051,21 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
   }
 
   async function _runMigrationScript() {
-    // Execute the migration SQL script
+    // Execute the migration SQL script (same as the actual migration file)
     await db.execute(sql`
       DO $$
       DECLARE
         container_record RECORD;
         child_record RECORD;
         descendant_record RECORD;
+        base_item_record RECORD;
         new_path TEXT;
         parent_path TEXT;
         child_direction INTEGER;
         old_path_prefix TEXT;
         new_path_prefix TEXT;
+        has_meaningful_content BOOLEAN;
+        has_children BOOLEAN;
       BEGIN
         -- Find all composition containers (paths containing ',0')
         -- Process from deepest to shallowest to avoid parent-child conflicts
@@ -798,6 +1074,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
             id,
             path,
             parent_id,
+            ref_item_id,
             coord_user_id,
             coord_group_id,
             array_length(string_to_array(path, ','), 1) as depth
@@ -805,6 +1082,50 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
           WHERE path LIKE '%,0' OR path = '0'
           ORDER BY depth DESC NULLS LAST
         LOOP
+          -- Check if container has children
+          SELECT EXISTS(
+            SELECT 1 FROM vde_map_items WHERE parent_id = container_record.id
+          ) INTO has_children;
+
+          -- Check if container has meaningful content (if it has a base_item reference)
+          has_meaningful_content := FALSE;
+          IF container_record.ref_item_id IS NOT NULL THEN
+            SELECT
+              bi.title,
+              bi.content,
+              bi.preview,
+              bi.link
+            INTO base_item_record
+            FROM vde_base_items bi
+            WHERE bi.id = container_record.ref_item_id;
+
+            -- Consider content meaningful if:
+            -- 1. Content is not empty/placeholder text
+            -- 2. Title is not a generic placeholder
+            -- 3. Has preview or link
+            IF base_item_record.content IS NOT NULL
+               AND base_item_record.content != ''
+               AND base_item_record.content NOT IN ('Container Content', 'Content', 'Composition Container')
+            THEN
+              has_meaningful_content := TRUE;
+            END IF;
+
+            IF base_item_record.preview IS NOT NULL AND base_item_record.preview != '' THEN
+              has_meaningful_content := TRUE;
+            END IF;
+
+            IF base_item_record.link IS NOT NULL AND base_item_record.link != '' THEN
+              has_meaningful_content := TRUE;
+            END IF;
+
+            -- Also check title for non-placeholder content
+            IF base_item_record.title IS NOT NULL
+               AND base_item_record.title NOT IN ('Container', 'Composition Container', 'Empty Container', 'Root Container')
+            THEN
+              has_meaningful_content := TRUE;
+            END IF;
+          END IF;
+
           -- Get parent path (everything before ',0')
           IF container_record.path = '0' THEN
             parent_path := '';
@@ -831,6 +1152,12 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
             child_direction := CAST(
               substring(child_record.path from '[^,]+$') AS INTEGER
             );
+
+            -- Skip direction-0 children (nested composition containers)
+            -- These will be processed in their own iteration
+            IF child_direction = 0 THEN
+              CONTINUE;
+            END IF;
 
             -- Build new path: parent_path + negative_direction
             IF parent_path = '' THEN
@@ -863,8 +1190,27 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
             END LOOP;
           END LOOP;
 
-          -- Delete the container after all children are migrated
-          DELETE FROM vde_map_items WHERE id = container_record.id;
+          -- Decision: Delete container or preserve it?
+          IF has_meaningful_content AND NOT has_children THEN
+            -- Container has content but no children - keep it as direction 0
+            NULL; -- No action, preserve container
+          ELSIF has_meaningful_content AND has_children THEN
+            -- Container has both content and children - preserve content
+            NULL; -- No action, preserve container
+          ELSE
+            -- Container is empty/placeholder - safe to delete
+            DELETE FROM vde_map_items WHERE id = container_record.id;
+
+            -- Optionally clean up orphaned base_item if it exists and is a placeholder
+            IF container_record.ref_item_id IS NOT NULL THEN
+              -- Check if this base_item is still referenced by other map_items
+              IF NOT EXISTS(
+                SELECT 1 FROM vde_map_items WHERE ref_item_id = container_record.ref_item_id
+              ) THEN
+                DELETE FROM vde_base_items WHERE id = container_record.ref_item_id;
+              END IF;
+            END IF;
+          END IF;
         END LOOP;
       END $$;
     `);

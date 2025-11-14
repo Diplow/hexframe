@@ -82,10 +82,11 @@ WORKFLOW: First use getCurrentUser to get the user's mappingId, then use that as
 
 HEXFRAME CONTEXT: You're working with a hexagonal knowledge mapping system where:
 - Tiles are hexagonal units organized hierarchically around a center
-- Coordinates: {userId: 1, groupId: 0, path: [0,1]} where path=directions from root
-- Directions: 0=Center, 1=NorthWest, 2=NorthEast, 3=East, 4=SouthEast, 5=SouthWest, 6=West
+- Coordinates: {userId: 1, groupId: 0, path: [1,-2]} where path=directions from root
+- Structural directions (1-6): 1=NorthWest, 2=NorthEast, 3=East, 4=SouthEast, 5=SouthWest, 6=West
+- Composed directions (-1 to -6): Children "inside" the parent tile, mapping to same spatial positions as 1-6
 - Empty path=[] means root/center tile
-- Each tile can have up to 6 children in different directions
+- Each tile can have up to 6 structural children (1-6) and up to 6 composed children (-1 to -6)
 
 This tool returns nested structure with children[] arrays showing the knowledge hierarchy.
 Use 'fields' parameter for progressive disclosure: ["name", "preview"] for overview, ["name", "content"] for full content.`,
@@ -196,7 +197,12 @@ Use 'fields' parameter for progressive disclosure: ["name", "preview"] for overv
 
   {
     name: "addItem",
-    description: "Create a new Hexframe tile at specified coordinates. The tile will be created as a child of the parent at the given direction. For root tiles, use empty path=[].",
+    description: `Create a new Hexframe tile at specified coordinates. The tile will be created as a child of the parent at the given direction. For root tiles, use empty path=[].
+
+DIRECTION USAGE:
+- Structural children (1-6): Regular hierarchy, visible in navigation
+- Composed children (-1 to -6): Content "inside" the parent, like reference materials or tools
+- Use negative directions when creating composition children (e.g., path: [1, -2] creates a composed child at NorthEast inside tile at direction 1)`,
     inputSchema: {
       type: "object",
       properties: {
@@ -209,7 +215,7 @@ Use 'fields' parameter for progressive disclosure: ["name", "preview"] for overv
             path: {
               type: "array",
               items: { type: "number" },
-              description: "Array of directions from root"
+              description: "Array of directions from root (can include negative values -1 to -6 for composed children)"
             }
           },
           required: ["userId", "groupId", "path"]
@@ -530,7 +536,7 @@ Ensure both old and new coordinates are correct. The user must own both the item
 
   {
     name: "getComposedChildren",
-    description: "Get all composed children (children at direction 0 and their descendants) for a given tile. These are 'inside' the tile - reference materials, tools, templates.",
+    description: "Get all composed children (children with negative directions -1 to -6) for a given tile. These are 'inside' the tile - reference materials, tools, templates.",
     inputSchema: {
       type: "object",
       properties: {
@@ -565,26 +571,12 @@ Ensure both old and new coordinates are correct. The user must own both the item
       const coords = normalizeCoordinates(argsObj?.coords);
       const fields = argsObj?.fields as string[] | undefined;
 
-      // Get children at direction 0
-      const compositionCoords = {
-        ...coords,
-        path: [...coords.path, 0]
-      };
-
-      try {
-        // Try to get the composition tile itself (might not exist)
-        await getItemByCoordsHandler(compositionCoords, ['id']);
-      } catch {
-        // No composition tile, no composed children
-        return [];
-      }
-
-      // Get all children of the composition tile (directions 1-6)
+      // Get composed children at negative directions (-1 to -6)
       const composedChildren = [];
-      for (let dir = 1; dir <= 6; dir++) {
+      for (let dir = -1; dir >= -6; dir--) {
         const childCoords = {
           ...coords,
-          path: [...coords.path, 0, dir]
+          path: [...coords.path, dir]
         };
 
         try {
@@ -720,9 +712,9 @@ TYPICAL USAGE:
 
 COORDINATES FORMAT: "userId,groupId:path" (e.g., "23,0:6" or "1,0:1,1")
 
-COMPOSED CHILDREN: The task's direction 0 children contain reference materials that guide execution. What these children contain is up to the tile author - they define the orchestration, context gathering, state management, or any other guidance the agent needs.
+COMPOSED CHILDREN: The task's composed children (negative directions -1 to -6) contain reference materials that guide execution. What these children contain is up to the tile author - they define the orchestration, context gathering, state management, or any other guidance the agent needs.
 
-EXECUTION HISTORY: If an execution history exists at direction 0,0, its content is included in the prompt to provide continuity across sessions.
+EXECUTION HISTORY: If an execution history exists at direction -1 with path ending in [0,-1], its content is included in the prompt to provide continuity across sessions.
 
 Returns an XML-formatted prompt string ready for AI agent consumption.`,
     inputSchema: {

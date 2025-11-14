@@ -594,17 +594,7 @@ export class MutationCoordinator {
     if (!parentCoords) return null;
 
     const parentCoordId = CoordSystem.createId(parentCoords);
-    let parentItem = this.config.getState().itemsById[parentCoordId];
-
-    // Handle virtual composition containers (ending in ,0)
-    // If parent doesn't exist and is a composition container, use grandparent
-    if (!parentItem && parentCoordId.endsWith(',0')) {
-      const grandparentCoords = CoordSystem.getParentCoord(parentCoords);
-      if (grandparentCoords) {
-        const grandparentCoordId = CoordSystem.createId(grandparentCoords);
-        parentItem = this.config.getState().itemsById[grandparentCoordId];
-      }
-    }
+    const parentItem = this.config.getState().itemsById[parentCoordId];
 
     return parentItem ? String(parentItem.metadata.dbId) : null;
   }
@@ -652,6 +642,25 @@ export class MutationCoordinator {
     changeId: string
   ): Promise<void> {
     this.config.dispatch(cacheActions.loadRegion([result], coordId, 1));
+
+    // Check if this is a composition child (direction 0 or negative direction)
+    const coords = CoordSystem.parseId(coordId);
+    const lastDirection = coords.path[coords.path.length - 1];
+    const isCompositionChild = lastDirection !== undefined && (lastDirection as number) <= 0;
+
+    if (isCompositionChild) {
+      // Refresh parent's composition data so the new child appears
+      const parentCoords = CoordSystem.getParentCoord(coords);
+      if (parentCoords) {
+        const parentCoordId = CoordSystem.createId(parentCoords);
+        try {
+          await this.config.dataOperations.fetchCompositionChildren?.(parentCoordId);
+        } catch (error) {
+          console.warn('Failed to fetch parent composition children:', error);
+        }
+      }
+    }
+
     try {
       await this.config.storageService.save(`item:${result.id}`, result);
     } catch (e) {

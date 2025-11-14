@@ -147,19 +147,19 @@ describe("ItemQueryService - Composition with Negative Directions [Integration -
   });
 
   describe("getDescendants - composition filtering with negative directions", () => {
-    it("should exclude composition (negative directions) by default", async () => {
+    it("should include composition (negative directions) by default", async () => {
       const setup = await _setupMixedStructureWithNegativeDirections();
 
       const descendants = await testEnv.service.items.query.getDescendants({
         itemId: setup.rootMapId,
       });
 
-      // Should return only structural children (directions 1-6), not composed children
+      // Should return both structural and composed children by default
       const titles = descendants.map(d => d.title);
       expect(titles).toContain("Structural Child 1");
       expect(titles).toContain("Structural Child 2");
-      expect(titles).not.toContain("Composed Child 1");
-      expect(titles).not.toContain("Composed Child 2");
+      expect(titles).toContain("Composed Child 1");
+      expect(titles).toContain("Composed Child 2");
     });
 
     it("should include composition when requested", async () => {
@@ -178,17 +178,17 @@ describe("ItemQueryService - Composition with Negative Directions [Integration -
       expect(titles).toContain("Composed Child 2");
     });
 
-    it("should filter nested composition correctly", async () => {
+    it("should include nested composition by default", async () => {
       const setup = await _setupNestedCompositionWithNegativeDirections();
 
       const descendants = await testEnv.service.items.query.getDescendants({
         itemId: setup.rootMapId,
       });
 
-      // Should exclude composition at all levels
+      // Should include composition at all levels by default
       const titles = descendants.map(d => d.title);
       expect(titles).toContain("Structural Child");
-      expect(titles).not.toContain("Nested Composed Item");
+      expect(titles).toContain("Nested Composed Item");
     });
 
     it("should include nested composition when requested", async () => {

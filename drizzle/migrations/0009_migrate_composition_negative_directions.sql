@@ -12,17 +12,24 @@
 -- 4 (SouthEast) → -4 (ComposedSouthEast)
 -- 5 (SouthWest) → -5 (ComposedSouthWest)
 -- 6 (West) → -6 (ComposedWest)
+--
+-- Content Preservation:
+-- Containers with meaningful content are preserved as direction 0 children
+-- Only placeholder/empty containers are deleted
 
 DO $$
 DECLARE
   container_record RECORD;
   child_record RECORD;
   descendant_record RECORD;
+  base_item_record RECORD;
   new_path TEXT;
   parent_path TEXT;
   child_direction INTEGER;
   old_path_prefix TEXT;
   new_path_prefix TEXT;
+  has_meaningful_content BOOLEAN;
+  has_children BOOLEAN;
 BEGIN
   -- Find all composition containers (paths containing ',0')
   -- Process from deepest to shallowest to avoid parent-child conflicts
@@ -31,6 +38,7 @@ BEGIN
       id,
       path,
       parent_id,
+      ref_item_id,
       coord_user_id,
       coord_group_id,
       array_length(string_to_array(path, ','), 1) as depth
@@ -39,6 +47,52 @@ BEGIN
     ORDER BY depth DESC NULLS LAST
   LOOP
     RAISE NOTICE 'Processing container: id=%, path=%', container_record.id, container_record.path;
+
+    -- Check if container has children
+    SELECT EXISTS(
+      SELECT 1 FROM vde_map_items WHERE parent_id = container_record.id
+    ) INTO has_children;
+
+    -- Check if container has meaningful content (if it has a base_item reference)
+    has_meaningful_content := FALSE;
+    IF container_record.ref_item_id IS NOT NULL THEN
+      SELECT
+        bi.title,
+        bi.content,
+        bi.preview,
+        bi.link
+      INTO base_item_record
+      FROM vde_base_items bi
+      WHERE bi.id = container_record.ref_item_id;
+
+      -- Consider content meaningful if:
+      -- 1. Content is not empty/placeholder text
+      -- 2. Title is not a generic placeholder
+      -- 3. Has preview or link
+      IF base_item_record.content IS NOT NULL
+         AND base_item_record.content != ''
+         AND base_item_record.content NOT IN ('Container Content', 'Content', 'Composition Container')
+      THEN
+        has_meaningful_content := TRUE;
+      END IF;
+
+      IF base_item_record.preview IS NOT NULL AND base_item_record.preview != '' THEN
+        has_meaningful_content := TRUE;
+      END IF;
+
+      IF base_item_record.link IS NOT NULL AND base_item_record.link != '' THEN
+        has_meaningful_content := TRUE;
+      END IF;
+
+      -- Also check title for non-placeholder content
+      IF base_item_record.title IS NOT NULL
+         AND base_item_record.title NOT IN ('Container', 'Composition Container', 'Empty Container', 'Root Container')
+      THEN
+        has_meaningful_content := TRUE;
+      END IF;
+    END IF;
+
+    RAISE NOTICE '  Has children: %, Has meaningful content: %', has_children, has_meaningful_content;
 
     -- Get parent path (everything before ',0')
     IF container_record.path = '0' THEN
@@ -67,12 +121,19 @@ BEGIN
       RAISE NOTICE '  Processing child: id=%, path=%', child_record.id, child_record.path;
 
       -- Extract the direction from child's path (last element)
-      -- Child path format: parent,0,X where X is direction 1-6
+      -- Child path format: parent,0,X where X is direction 1-6 or 0 (nested)
       child_direction := CAST(
         substring(child_record.path from '[^,]+$') AS INTEGER
       );
 
       RAISE NOTICE '    Child direction: %', child_direction;
+
+      -- Skip direction-0 children (nested composition containers)
+      -- These will be processed in their own iteration
+      IF child_direction = 0 THEN
+        RAISE NOTICE '    Skipping nested direction-0 child (will be processed separately)';
+        CONTINUE;
+      END IF;
 
       -- Build new path: parent_path + negative_direction
       IF parent_path = '' THEN
@@ -114,9 +175,32 @@ BEGIN
       END LOOP;
     END LOOP;
 
-    -- Delete the container after all children are migrated
-    DELETE FROM vde_map_items WHERE id = container_record.id;
-    RAISE NOTICE '  Deleted container: id=%', container_record.id;
+    -- Decision: Delete container or preserve it?
+    IF has_meaningful_content AND NOT has_children THEN
+      -- Container has content but no children - keep it as direction 0
+      RAISE NOTICE '  Preserving container with content: id=%, path=%', container_record.id, container_record.path;
+    ELSIF has_meaningful_content AND has_children THEN
+      -- Container has both content and children - this is unusual but preserve content
+      -- by keeping the direction 0 node
+      RAISE NOTICE '  Preserving container with content and children: id=%, path=%', container_record.id, container_record.path;
+    ELSE
+      -- Container is empty/placeholder - safe to delete
+      RAISE NOTICE '  Deleting empty container: id=%', container_record.id;
+
+      -- Delete the container map item
+      DELETE FROM vde_map_items WHERE id = container_record.id;
+
+      -- Optionally clean up orphaned base_item if it exists and is a placeholder
+      IF container_record.ref_item_id IS NOT NULL THEN
+        -- Check if this base_item is still referenced by other map_items
+        IF NOT EXISTS(
+          SELECT 1 FROM vde_map_items WHERE ref_item_id = container_record.ref_item_id
+        ) THEN
+          RAISE NOTICE '  Deleting orphaned base_item: id=%', container_record.ref_item_id;
+          DELETE FROM vde_base_items WHERE id = container_record.ref_item_id;
+        END IF;
+      END IF;
+    END IF;
 
   END LOOP;
 

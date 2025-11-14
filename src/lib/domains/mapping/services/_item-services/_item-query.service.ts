@@ -4,7 +4,7 @@ import type {
 } from "~/lib/domains/mapping/_repositories";
 import { MapItemActions } from "~/lib/domains/mapping/_actions";
 import { adapt } from "~/lib/domains/mapping/types/contracts";
-import { CoordSystem, type Coord } from "~/lib/domains/mapping/utils";
+import { CoordSystem, Direction, type Coord } from "~/lib/domains/mapping/utils";
 import type { MapItemContract } from "~/lib/domains/mapping/types/contracts";
 
 export class ItemQueryService {
@@ -70,7 +70,7 @@ export class ItemQueryService {
   }
 
   /**
-   * Get composed children for a tile (children with negative directions)
+   * Get composed children for a tile (direction 0 + children with negative directions)
    */
   async getComposedChildren({
     coordId,
@@ -80,12 +80,35 @@ export class ItemQueryService {
     // Parse parent coord
     const parentCoord = CoordSystem.parseId(coordId);
 
-    // Get all possible composed child coordinates (negative directions)
+    // Get all possible composed child coordinates (direction 0 + negative directions)
     const composedChildCoords = CoordSystem.getComposedChildCoords(parentCoord);
+
+    // Also include direction 0 (orchestration tile)
+    const direction0Coord: Coord = {
+      ...parentCoord,
+      path: [...parentCoord.path, Direction.Center],
+    };
 
     // Fetch existing composed children
     const composedChildren: MapItemContract[] = [];
 
+    // Try to fetch direction 0 first
+    try {
+      const direction0Child = await this.actions.getMapItem({
+        coords: direction0Coord,
+      });
+
+      const direction0Contract = adapt.mapItem(
+        direction0Child,
+        direction0Child.attrs.coords.userId
+      );
+
+      composedChildren.push(direction0Contract);
+    } catch {
+      // Direction 0 doesn't exist, skip it
+    }
+
+    // Then fetch negative direction children
     for (const childCoord of composedChildCoords) {
       try {
         const child = await this.actions.getMapItem({
@@ -111,7 +134,7 @@ export class ItemQueryService {
    */
   async getDescendants({
     itemId,
-    includeComposition = false,
+    includeComposition = true,
   }: {
     itemId: number;
     includeComposition?: boolean;
