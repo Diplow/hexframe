@@ -3,6 +3,7 @@ import { db } from "~/server/db";
 import { schema } from "~/server/db";
 import { _cleanupDatabase } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { DbBaseItemRepository } from "~/lib/domains/mapping/infrastructure/base-item/db";
+import { MapItemType } from "~/lib/domains/mapping";
 
 /**
  * Integration tests verifying that the map_items.path varchar(255) column
@@ -31,6 +32,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
       attrs: {
         title: "Test Item",
         content: "Test content",
+        link: "",
       },
       relatedItems: {},
       relatedLists: {},
@@ -44,7 +46,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
         coord_user_id: 1,
         coord_group_id: 0,
         path: "",
-        item_type: "USER",
+        item_type: MapItemType.USER,
         refItemId: testBaseItemId,
         parentId: null,
       })
@@ -64,7 +66,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
           coord_user_id: 1,
           coord_group_id: 0,
           path: pathWithNegative,
-          item_type: "BASE",
+          item_type: MapItemType.BASE,
           refItemId: testBaseItemId,
           parentId: testUserId,
         })
@@ -98,7 +100,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
             coord_user_id: 1,
             coord_group_id: 0,
             path: path,
-            item_type: "BASE",
+            item_type: MapItemType.BASE,
             refItemId: testBaseItemId,
             parentId: testUserId,
           })
@@ -144,7 +146,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
           coord_user_id: 1,
           coord_group_id: 0,
           path: complexPath,
-          item_type: "BASE",
+          item_type: MapItemType.BASE,
           refItemId: testBaseItemId,
           parentId: testUserId,
         })
@@ -173,7 +175,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
           coord_user_id: 1,
           coord_group_id: 0,
           path: negativeOnlyPath,
-          item_type: "BASE",
+          item_type: MapItemType.BASE,
           refItemId: testBaseItemId,
           parentId: testUserId,
         })
@@ -202,7 +204,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
           coord_user_id: 1,
           coord_group_id: 0,
           path: mixedPath,
-          item_type: "BASE",
+          item_type: MapItemType.BASE,
           refItemId: testBaseItemId,
           parentId: testUserId,
         })
@@ -228,7 +230,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
           coord_user_id: 1,
           coord_group_id: 0,
           path: pathWithZero,
-          item_type: "BASE",
+          item_type: MapItemType.BASE,
           refItemId: testBaseItemId,
           parentId: testUserId,
         })
@@ -264,7 +266,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
           coord_user_id: 1,
           coord_group_id: 0,
           path: deepPath,
-          item_type: "BASE",
+          item_type: MapItemType.BASE,
           refItemId: testBaseItemId,
           parentId: testUserId,
         })
@@ -290,7 +292,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
           coord_user_id: 2, // Different user to avoid USER type conflict
           coord_group_id: 0,
           path: emptyPath,
-          item_type: "USER",
+          item_type: MapItemType.USER,
           refItemId: testBaseItemId,
           parentId: null,
         })
@@ -311,7 +313,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
           coord_user_id: 1,
           coord_group_id: 0,
           path: path,
-          item_type: "BASE",
+          item_type: MapItemType.BASE,
           refItemId: testBaseItemId,
           parentId: testUserId,
         });
@@ -339,7 +341,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
           coord_user_id: 1,
           coord_group_id: 0,
           path: parentPath,
-          item_type: "BASE",
+          item_type: MapItemType.BASE,
           refItemId: testBaseItemId,
           parentId: testUserId,
         },
@@ -347,7 +349,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
           coord_user_id: 1,
           coord_group_id: 0,
           path: childPath,
-          item_type: "BASE",
+          item_type: MapItemType.BASE,
           refItemId: testBaseItemId,
           parentId: testUserId,
         },
@@ -355,7 +357,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
           coord_user_id: 1,
           coord_group_id: 0,
           path: grandchildPath,
-          item_type: "BASE",
+          item_type: MapItemType.BASE,
           refItemId: testBaseItemId,
           parentId: testUserId,
         },
@@ -363,7 +365,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
           coord_user_id: 1,
           coord_group_id: 0,
           path: unrelatedPath,
-          item_type: "BASE",
+          item_type: MapItemType.BASE,
           refItemId: testBaseItemId,
           parentId: testUserId,
         },
@@ -395,7 +397,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
         coord_user_id: 1,
         coord_group_id: 0,
         path: duplicatePath,
-        item_type: "BASE",
+        item_type: MapItemType.BASE,
         refItemId: testBaseItemId,
         parentId: testUserId,
       });
@@ -406,7 +408,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
           coord_user_id: 1,
           coord_group_id: 0,
           path: duplicatePath,
-          item_type: "BASE",
+          item_type: MapItemType.BASE,
           refItemId: testBaseItemId,
           parentId: testUserId,
         }),
@@ -425,7 +427,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
             coord_user_id: 1,
             coord_group_id: 0,
             path: samePath,
-            item_type: "BASE",
+            item_type: MapItemType.BASE,
             refItemId: testBaseItemId,
             parentId: testUserId,
           },
@@ -433,7 +435,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
             coord_user_id: 1,
             coord_group_id: 1, // Different group
             path: samePath,
-            item_type: "BASE",
+            item_type: MapItemType.BASE,
             refItemId: testBaseItemId,
             parentId: testUserId,
           },
@@ -441,7 +443,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
             coord_user_id: 2, // Different user
             coord_group_id: 0,
             path: samePath,
-            item_type: "BASE",
+            item_type: MapItemType.BASE,
             refItemId: testBaseItemId,
             parentId: testUserId,
           },
