@@ -17,7 +17,7 @@ export function handleOperationMessages(event: ChatEvent, messages: Message[], s
         (payload.operation === 'delete' && settings.messages.tile.delete) ||
         (payload.operation === 'move' && settings.messages.tile.move) ||
         (payload.operation === 'swap' && settings.messages.tile.swap) ||
-        (payload.operation === 'copy' && settings.messages.tile.move) ||
+        (payload.operation === 'copy' && settings.messages.tile.copy) ||
         (!['update', 'create', 'delete', 'move', 'swap', 'copy'].includes(payload.operation))
       );
 

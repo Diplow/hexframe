@@ -11,6 +11,7 @@ export interface ChatSettings {
       delete: boolean;
       move: boolean;
       swap: boolean;
+      copy: boolean;
     };
     debug: boolean;
   };
@@ -26,6 +27,7 @@ const defaultSettings: ChatSettings = {
       delete: true,
       move: true,
       swap: true,
+      copy: true,
     },
     debug: false,
   },
@@ -111,6 +113,13 @@ export class ChatSettingsManager {
     this.saveSettings();
     this.notifyListeners();
     return this.settings.messages.tile.swap;
+  }
+
+  toggleTileCopy(): boolean {
+    this.settings.messages.tile.copy = !this.settings.messages.tile.copy;
+    this.saveSettings();
+    this.notifyListeners();
+    return this.settings.messages.tile.copy;
   }
 
   toggleDebug(): boolean {
