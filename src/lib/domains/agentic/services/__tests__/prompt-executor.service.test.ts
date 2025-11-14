@@ -432,7 +432,7 @@ describe('executePrompt', () => {
       expect(result).toContain('Valid tile')
       expect(result).toContain('</valid-name>')
 
-      // Second invalid tile gets section-3 (index in filtered array)
+      // Second invalid tile gets section-3 (1-based index from original array: 2 + 1)
       expect(result).toContain('<section-3>')
       expect(result).toContain('Second invalid tile')
       expect(result).toContain('</section-3>')
