@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
-import { createTRPCRouter, protectedProcedure, mappingServiceMiddleware, iamServiceMiddleware } from '~/server/api/trpc'
+import { createTRPCRouter, protectedProcedure, publicProcedure, mappingServiceMiddleware, iamServiceMiddleware } from '~/server/api/trpc'
 import { verificationAwareRateLimit, verificationAwareAuthLimit } from '~/server/api/middleware'
 import { createAgenticService, type CompositionConfig, PreviewGeneratorService, OpenRouterRepository, type ChatMessageContract } from '~/lib/domains/agentic'
 import { ContextStrategies } from '~/lib/domains/mapping/utils'
@@ -459,6 +459,116 @@ export const agenticRouter = createTRPCRouter({
         preview: result.preview,
         usedAI: result.usedAI,
         queued: false
+      }
+    }),
+
+  // Execute a task using its composed children for guidance (orchestrator, context builder, state manager)
+  hexecute: publicProcedure
+    .use(mappingServiceMiddleware)
+    .input(
+      z.object({
+        taskCoords: z.string(),
+        instruction: z.string().optional()
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const { instruction } = input
+      let { taskCoords } = input
+
+      // Import utilities
+      const { CoordSystem } = await import('~/lib/domains/mapping/utils')
+      const { executePrompt } = await import('~/lib/domains/agentic')
+
+      // Parse coordinates
+      let taskCoord
+      try {
+        taskCoord = CoordSystem.parseId(taskCoords)
+      } catch (error) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `Invalid coordinate format: ${error instanceof Error ? error.message : 'Unknown error'}`
+        })
+      }
+
+      // Read task center tile
+      let taskCenterTile
+      try {
+        taskCenterTile = await ctx.mappingService.items.crud.getItem({
+          coords: taskCoord
+        })
+      } catch (error) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: `Task tile not found at ${taskCoords}`,
+          cause: error
+        })
+      }
+
+      // Check if there's a meta-task at direction [0]
+      // If yes, redirect to execute the meta-task instead of the parent
+      let actualTaskTile = taskCenterTile
+      let parentTaskInfo: { title: string; preview: string | undefined; coords: string } | undefined
+
+      try {
+        const metaTask = await ctx.mappingService.items.crud.getItem({
+          coords: { ...taskCoord, path: [...taskCoord.path, 0] }
+        })
+
+        // If meta-task exists with content, redirect execution to it
+        if (metaTask?.content && metaTask.content.trim().length > 0) {
+          // Store parent info for context
+          parentTaskInfo = {
+            title: taskCenterTile.title,
+            preview: taskCenterTile.preview ?? undefined,
+            coords: taskCoords
+          }
+
+          // Redirect: execute the meta-task instead
+          actualTaskTile = metaTask
+          taskCoords = CoordSystem.createId({
+            ...taskCoord,
+            path: [...taskCoord.path, 0]
+          })
+          taskCoord = { ...taskCoord, path: [...taskCoord.path, 0] }
+        }
+      } catch {
+        // No meta-task at [0], continue with original task
+      }
+
+      // Fetch composed children for the actual task (either meta-task or original)
+      const { composed: composedChildren } = await ctx.mappingService.context.getContextForCenter(
+        taskCoords,
+        ContextStrategies.STANDARD
+      )
+
+      // Build minimal task data for executePrompt
+      const taskData = {
+        center: actualTaskTile,
+        composedChildren,
+        parentTask: parentTaskInfo
+      }
+
+      // Fetch execution history content if it exists (at direction 0,0)
+      let executionHistoryContent: string | undefined
+      try {
+        const executionHistoryTile = await ctx.mappingService.items.crud.getItem({
+          coords: { ...taskCoord, path: [...taskCoord.path, 0, 0] }
+        })
+        executionHistoryContent = executionHistoryTile.content || undefined
+      } catch {
+        // Execution history tile doesn't exist yet, that's fine
+        executionHistoryContent = undefined
+      }
+
+      // Execute prompt with task data, instruction, and execution history
+      const promptResult = executePrompt({
+        taskData,
+        instruction,
+        executionHistoryContent
+      })
+
+      return {
+        prompt: promptResult
       }
     })
 })

@@ -11,6 +11,7 @@ The Types subsystem is the "translation layer between internal and external repr
 - Hide internal database IDs and foreign keys from external consumers
 - Ensure timestamps are properly serialized (Date objects in contracts)
 - Define input parameter types and validation schemas for operations
+- Validate coordinate paths support all Direction values: positive (1-6), zero (Center), and negative (-1 to -6 for composed children)
 - Export all type definitions and validators via centralized index.ts
 
 ## Non-Responsibilities
@@ -40,7 +41,10 @@ The Types subsystem is the "translation layer between internal and external repr
 **Input Types:**
 - `CreateMapInput`, `CreateItemInput`, `UpdateItemInput`
 - `MoveItemInput`, `SwapItemsInput`
-- Parameter validation schemas and functions
+- `CreateMapItemParams`: Validated parameters with coordinate paths supporting directions -6 to 6
+- `UpdateMapItemAttrs`: Validated parameters for updating map item attributes
+- Parameter validation schemas (`CreateMapItemParamsSchema`, `UpdateMapItemAttrsSchema`)
+- Validation functions (`validateCreateMapItemParams`, `validateUpdateMapItemAttrs`)
 
 **Other:**
 - `DatabaseTransaction`: Type for database transaction objects

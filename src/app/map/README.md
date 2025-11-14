@@ -10,6 +10,7 @@ Like the main cockpit of a spacecraft - the central command center that orchestr
 - Manages page-level state transitions between loading, ready, and error states
 - Coordinates authentication state and user session integration
 - Provides infrastructure (tRPC client, EventBus, providers) for child components to access version history features
+- Parses URL composition parameter (`composition=true/false`) and passes it to Cache as boolean state for composition expansion
 
 ## Non-Responsibilities
 - Tile data management and caching → See `./Cache/README.md`

@@ -41,7 +41,7 @@ export class ItemQueryService {
   }
 
   /**
-   * Check if a tile has composition (direction 0 child)
+   * Check if a tile has composition (children with negative directions)
    */
   async hasComposition({
     coordId,
@@ -51,22 +51,26 @@ export class ItemQueryService {
     // Parse parent coord
     const parentCoord = CoordSystem.parseId(coordId);
 
-    // Generate composition container coord (direction 0)
-    const compositionCoord = CoordSystem.getCompositionCoord(parentCoord);
+    // Get composed children (negative directions)
+    const composedChildCoords = CoordSystem.getComposedChildCoords(parentCoord);
 
-    // Check if composition container exists
-    try {
-      await this.actions.getMapItem({
-        coords: compositionCoord,
-      });
-      return true;
-    } catch {
-      return false;
+    // Check if any composed child exists
+    for (const childCoord of composedChildCoords) {
+      try {
+        await this.actions.getMapItem({
+          coords: childCoord,
+        });
+        return true; // Found at least one composed child
+      } catch {
+        // This composed child doesn't exist, continue checking
+      }
     }
+
+    return false; // No composed children found
   }
 
   /**
-   * Get composed children for a tile (direction 0 container and its children)
+   * Get composed children for a tile (direction 0 + children with negative directions)
    */
   async getComposedChildren({
     coordId,
@@ -76,40 +80,53 @@ export class ItemQueryService {
     // Parse parent coord
     const parentCoord = CoordSystem.parseId(coordId);
 
-    // Generate composition container coord (direction 0)
-    const compositionCoord = CoordSystem.getCompositionCoord(parentCoord);
+    // Get all possible composed child coordinates (direction 0 + negative directions)
+    const composedChildCoords = CoordSystem.getComposedChildCoords(parentCoord);
 
-    // Try to fetch composition container
-    let compositionContainer;
+    // Also include direction 0 (orchestration tile)
+    const direction0Coord: Coord = {
+      ...parentCoord,
+      path: [...parentCoord.path, Direction.Center],
+    };
+
+    // Fetch existing composed children
+    const composedChildren: MapItemContract[] = [];
+
+    // Try to fetch direction 0 first
     try {
-      compositionContainer = await this.actions.getMapItem({
-        coords: compositionCoord,
+      const direction0Child = await this.actions.getMapItem({
+        coords: direction0Coord,
       });
+
+      const direction0Contract = adapt.mapItem(
+        direction0Child,
+        direction0Child.attrs.coords.userId
+      );
+
+      composedChildren.push(direction0Contract);
     } catch {
-      // If no composition exists, return empty array
-      return [];
+      // Direction 0 doesn't exist, skip it
     }
 
-    // Fetch direct children of composition container (directions 1-6)
-    const composedChildren = await this.actions.mapItems.getDescendantsWithDepth({
-      parentPath: compositionCoord.path,
-      parentUserId: compositionCoord.userId,
-      parentGroupId: compositionCoord.groupId,
-      maxGenerations: 1,
-    });
+    // Then fetch negative direction children
+    for (const childCoord of composedChildCoords) {
+      try {
+        const child = await this.actions.getMapItem({
+          coords: childCoord,
+        });
 
-    // Convert to contracts
-    const containerContract = adapt.mapItem(
-      compositionContainer,
-      compositionContainer.attrs.coords.userId
-    );
+        const childContract = adapt.mapItem(
+          child,
+          child.attrs.coords.userId
+        );
 
-    const childrenContracts = composedChildren.map((child) =>
-      adapt.mapItem(child, child.attrs.coords.userId)
-    );
+        composedChildren.push(childContract);
+      } catch {
+        // This composed child doesn't exist, skip it
+      }
+    }
 
-    // Return container + children
-    return [containerContract, ...childrenContracts];
+    return composedChildren;
   }
 
   /**
@@ -117,7 +134,7 @@ export class ItemQueryService {
    */
   async getDescendants({
     itemId,
-    includeComposition = false,
+    includeComposition = true,
   }: {
     itemId: number;
     includeComposition?: boolean;
@@ -131,8 +148,13 @@ export class ItemQueryService {
     // Filter out composition if not requested
     if (!includeComposition) {
       descendants = descendants.filter((desc) => {
-        // Remove items with direction 0 in their path
-        return !desc.attrs.coords.path.includes(Direction.Center);
+        // Remove items that are composed children:
+        // - New model: negative directions in path
+        // - Legacy model: Direction.Center (0) in path
+        const path = desc.attrs.coords.path;
+        const hasNegativeDirection = path.some((dir) => (dir as number) < 0);
+        const hasCenter = path.some((dir) => (dir as number) === 0);
+        return !hasNegativeDirection && !hasCenter;
       });
     }
 

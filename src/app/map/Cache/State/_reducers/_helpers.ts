@@ -1,7 +1,6 @@
 import type { TileData } from "~/app/map/types";
 import type { MapItemAPIContract } from "~/server/api";
 import { adapt } from "~/app/map/types";
-import { Direction } from "~/app/map/constants";
 
 export const formatItems = (items: MapItemAPIContract[]): TileData[] => {
   return items
@@ -15,12 +14,9 @@ export const formatItems = (items: MapItemAPIContract[]): TileData[] => {
     })
     .filter((item): item is TileData => {
       if (!item) return false;
-      // Filter out virtual composition containers (paths ending with Direction.Center)
-      // BUT keep composition children (paths like [3,0,1] where 0 is second-to-last)
-      const path = item.metadata.coordinates.path;
-      if (path.length === 0) return true; // Keep root items
-      const lastElement = path[path.length - 1];
-      return lastElement !== Direction.Center; // Filter out only if path ENDS with Direction.Center
+      // In the new composition system, direction 0 is a regular tile (orchestration tile)
+      // We no longer filter out direction 0 - all tiles are valid
+      return true;
     });
 };
 

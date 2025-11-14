@@ -11,6 +11,7 @@ The DragAndDrop subsystem is like a "physical moving company" for hexagonal tile
 - Validation of drag operations based on business rules
 - Registration and management of draggable tile elements
 - Visual feedback through CSS classes during drag operations (blue for copy, existing for move)
+- Composition-aware validation for tiles with negative direction children
 
 ## Non-Responsibilities
 - Tile rendering → See `../../Canvas/README.md`
@@ -69,3 +70,32 @@ The GlobalDragService supports two operation types controlled by the ctrl key:
 - Operation type updates dynamically during dragover events (can switch mid-drag)
 - Final operation type read from drop target element at drop time
 - No React state involved - purely DOM-based tracking for performance
+
+### Composition Support (Negative Directions)
+
+The DragAndDrop service fully supports the composition model with negative directions:
+
+**What is Composition?**
+- Tiles can have "composed children" at negative direction positions (-1 through -6)
+- These represent logical content that is "inside" or "part of" the parent tile
+- Distinct from structural children (positive directions 1-6) which are "around" the tile
+
+**Drag Operations with Composition**
+- Parent tiles with composed children can be dragged normally
+- Composed children themselves can be dragged independently
+- Dropping on composed positions is validated same as structural positions
+- All negative direction values (-1 through -6) are supported
+- Mixed hierarchies (both structural and composed elements) work correctly
+
+**Validation Rules**
+- Ownership rules apply equally to composed and structural children
+- Cannot drag composed children not owned by the user
+- Can swap between composed children if user owns both
+- Can move tiles between structural and composed positions
+- Deep composition hierarchies (e.g., 1,0:2,3,-1,4) are supported
+
+**Implementation**
+- Uses CoordSystem utilities for coordinate parsing and validation
+- Negative directions detected via `CoordSystem.isComposedChildId()`
+- No special handling required - validation works uniformly across all direction types
+- All drag validators transparently support negative directions

@@ -5,9 +5,11 @@ Like a smart library circulation desk that keeps track of which books are curren
 
 ## Responsibilities
 - Provides centralized client-side state management for hexagonal map data as single source of truth
+- Stores and retrieves tiles with both structural (positive directions 1-6) and composed children (negative directions -1 to -6)
 - Implements optimistic update coordination with rollback capabilities for seamless user experience
 - Manages region-based data loading, prefetching, and invalidation strategies for performance
 - Coordinates navigation state synchronization between cache state and URL parameters
+- Tracks composition expansion state (isCompositionExpanded) for controlling composed children visibility
 - Emits events for cross-system communication when cache operations complete
 
 ## Non-Responsibilities

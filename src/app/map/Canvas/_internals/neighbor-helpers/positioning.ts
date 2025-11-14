@@ -16,6 +16,7 @@ export function calculateNeighborPositions(baseHexSize: number, scale: number) {
   // For proper edge-sharing in hexagonal grid:
   // - East/West: full tile width horizontally
   // - NW/NE/SW/SE: 0.5 tile width horizontally, 1.5 scaled base size vertically
+  // Composed children (negative directions) use the same positions as structural children
   return {
     [Direction.Center]: { x: 0, y: 0 },
     [Direction.NorthWest]: { x: -0.5 * tileWidth, y: -1.5 * scaledBaseSize },
@@ -24,5 +25,12 @@ export function calculateNeighborPositions(baseHexSize: number, scale: number) {
     [Direction.SouthEast]: { x: 0.5 * tileWidth, y: 1.5 * scaledBaseSize },
     [Direction.SouthWest]: { x: -0.5 * tileWidth, y: 1.5 * scaledBaseSize },
     [Direction.West]: { x: -tileWidth, y: 0 },
+    // Composed children use same positions as their structural counterparts
+    [Direction.ComposedNorthWest]: { x: -0.5 * tileWidth, y: -1.5 * scaledBaseSize },
+    [Direction.ComposedNorthEast]: { x: 0.5 * tileWidth, y: -1.5 * scaledBaseSize },
+    [Direction.ComposedEast]: { x: tileWidth, y: 0 },
+    [Direction.ComposedSouthEast]: { x: 0.5 * tileWidth, y: 1.5 * scaledBaseSize },
+    [Direction.ComposedSouthWest]: { x: -0.5 * tileWidth, y: 1.5 * scaledBaseSize },
+    [Direction.ComposedWest]: { x: -tileWidth, y: 0 },
   };
 }

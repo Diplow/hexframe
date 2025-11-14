@@ -9,6 +9,13 @@ export enum Direction {
   SouthEast = 4,
   SouthWest = 5,
   West = 6,
+  // Negative directions for composed children
+  ComposedNorthWest = -1,
+  ComposedNorthEast = -2,
+  ComposedEast = -3,
+  ComposedSouthEast = -4,
+  ComposedSouthWest = -5,
+  ComposedWest = -6,
 }
 
 // Represents a hex's position in the hierarchy
@@ -55,10 +62,16 @@ export class CoordSystem {
     if (!parentId) {
       return []; // If there's no parent, there are no siblings
     }
-    // Now parentId is guaranteed to be a string
-    return CoordSystem.getChildCoordsFromId(parentId).filter(
-      (c) => c !== coordId,
-    );
+
+    // Check if this is a composed child (has negative direction)
+    const isComposed = CoordSystem.isComposedChildId(coordId);
+
+    // Get siblings: either composed children or structural children
+    const siblings = isComposed
+      ? CoordSystem.getComposedChildCoordsFromId(parentId)
+      : CoordSystem.getChildCoordsFromId(parentId);
+
+    return siblings.filter((c) => c !== coordId);
   }
 
   static areCoordsEqual(coord1: Coord, coord2: Coord): boolean {
@@ -237,6 +250,40 @@ export class CoordSystem {
   static isAncestor(parentId: string, childId: string): boolean {
     // An ancestor check is just the inverse of descendant
     return CoordSystem.isDescendant(childId, parentId);
+  }
+
+  static getComposedChildCoords(
+    parent: Coord,
+  ): [Coord, Coord, Coord, Coord, Coord, Coord] {
+    const composedChildren: [Coord, Coord, Coord, Coord, Coord, Coord] = [
+      { ...parent, path: [...parent.path, Direction.ComposedNorthWest] },
+      { ...parent, path: [...parent.path, Direction.ComposedNorthEast] },
+      { ...parent, path: [...parent.path, Direction.ComposedEast] },
+      { ...parent, path: [...parent.path, Direction.ComposedSouthEast] },
+      { ...parent, path: [...parent.path, Direction.ComposedSouthWest] },
+      { ...parent, path: [...parent.path, Direction.ComposedWest] },
+    ];
+
+    return composedChildren;
+  }
+
+  static getComposedChildCoordsFromId(
+    parentId: string,
+  ): [string, string, string, string, string, string] {
+    const parentCoord = CoordSystem.parseId(parentId);
+    const coords = CoordSystem.getComposedChildCoords(parentCoord);
+    return coords.map((coord) =>
+      CoordSystem.createId(coord),
+    ) as [string, string, string, string, string, string];
+  }
+
+  static isComposedChild(coord: Coord): boolean {
+    return coord.path.some((direction) => (direction as number) < 0);
+  }
+
+  static isComposedChildId(id: string): boolean {
+    const coord = CoordSystem.parseId(id);
+    return CoordSystem.isComposedChild(coord);
   }
 }
 

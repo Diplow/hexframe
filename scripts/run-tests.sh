@@ -74,6 +74,16 @@ if [[ "$PHASE" == "phase1" ]] || [[ "$PHASE" == "all" ]]; then
     --exclude "**/base-item-repository-bulk-methods.test.ts" \
     --exclude "**/map-item-repository-bulk-methods.test.ts" \
     --exclude "**/item-deep-copy.integration.test.ts" \
+    --exclude "**/item-deep-copy-negative-directions.test.ts" \
+    --exclude "**/migration-composition-negative-directions.integration.test.ts" \
+    --exclude "**/map-item-repository-negative-directions.test.ts" \
+    --exclude "**/item-query-composition-negative-directions.test.ts" \
+    --exclude "**/context-for-center.test.ts" \
+    --exclude "**/map-items-composition.integration.test.ts" \
+    --exclude "**/map-items-copy.integration.test.ts" \
+    --exclude "**/map-items-negative-directions.integration.test.ts" \
+    --exclude "**/composition-negative-directions.test.tsx" \
+    --exclude "**/frame-interior-negative-directions.test.tsx" \
     "${STORYBOOK_EXCLUDE[@]}" 2>&1 | tee test-results/main-suite.log
 
   MAIN_EXIT_CODE=${PIPESTATUS[0]}
@@ -117,7 +127,17 @@ for file in \
   src/lib/domains/mapping/__tests__/mapping-domain-version-history.integration.test.ts \
   src/lib/domains/mapping/_repositories/__tests__/base-item-repository-bulk-methods.test.ts \
   src/lib/domains/mapping/_repositories/__tests__/map-item-repository-bulk-methods.test.ts \
-  src/lib/domains/mapping/services/__tests__/item-deep-copy.integration.test.ts
+  src/lib/domains/mapping/services/__tests__/item-deep-copy.integration.test.ts \
+  src/lib/domains/mapping/services/__tests__/item-deep-copy-negative-directions.test.ts \
+  drizzle/__tests__/migration-composition-negative-directions.integration.test.ts \
+  src/lib/domains/mapping/_repositories/__tests__/map-item-repository-negative-directions.test.ts \
+  src/lib/domains/mapping/services/__tests__/item-query-composition-negative-directions.test.ts \
+  src/lib/domains/mapping/infrastructure/map-item/queries/__tests__/context-for-center.test.ts \
+  src/server/api/routers/map/__tests__/map-items-composition.integration.test.ts \
+  src/server/api/routers/map/__tests__/map-items-copy.integration.test.ts \
+  src/server/api/routers/map/__tests__/map-items-negative-directions.integration.test.ts \
+  src/app/map/Canvas/__tests__/composition-negative-directions.test.tsx \
+  src/app/map/Canvas/__tests__/frame-interior-negative-directions.test.tsx
 do
   if [ -f "$file" ]; then
     REACT_TEST_FILES="$REACT_TEST_FILES $file"

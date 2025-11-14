@@ -76,6 +76,7 @@ export interface DataOperations {
   prefetchRegion: (centerCoordId: string) => Promise<LoadResult>;
   invalidateRegion: (regionKey: string) => void;
   invalidateAll: () => void;
+  fetchCompositionChildren?: (parentCoordId: string) => Promise<void>;
 }
 
 export interface NavigationOperations {

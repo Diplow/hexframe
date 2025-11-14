@@ -203,7 +203,7 @@ describe("MapItemRepository - bulk createMany method", () => {
         },
         relatedItems: {
           ref: baseItems[0]!,
-          parent: rootMapItem,
+          parent: null,
         },
         relatedLists: {
           neighbors: [],
@@ -311,6 +311,509 @@ describe("MapItemRepository - bulk createMany method", () => {
       // Verify first and last
       expect(createdMapItems[0]!.ref.attrs.title).toBe("Bulk Item 1");
       expect(createdMapItems[itemCount - 1]!.ref.attrs.title).toBe(`Bulk Item ${itemCount}`);
+    });
+  });
+
+  describe("createMany with negative directions", () => {
+    it("should create multiple composed children with negative directions in bulk", async () => {
+      const setupParams = _createUniqueTestParams();
+      const rootMap = await _setupBasicMap(testEnv.service, setupParams);
+
+      // Create parent tile
+      const parentCoords = _createTestCoordinates({
+        userId: setupParams.userId,
+        groupId: setupParams.groupId,
+        path: [Direction.NorthEast],
+      });
+      const parentBaseItem = await testEnv.repositories.baseItem.create({
+        attrs: {
+          title: "Parent",
+          content: "Parent content",
+          link: "",
+          preview: undefined,
+        },
+        relatedItems: {},
+        relatedLists: {},
+      });
+      const parentItem = await mapItemRepo.create({
+        attrs: {
+          parentId: rootMap.id,
+          coords: parentCoords,
+          ref: {
+            itemType: MapItemType.BASE,
+            itemId: parentBaseItem.id,
+          },
+          itemType: MapItemType.BASE,
+        },
+        relatedItems: {
+          ref: parentBaseItem,
+          parent: null,
+        },
+        relatedLists: {
+          neighbors: [],
+        },
+      });
+
+      // Create base items for composed children
+      const composedBaseItems = await testEnv.repositories.baseItem.createMany([
+        {
+          title: "Composed NW",
+          content: "Northwest composed content",
+          link: "",
+          preview: undefined,
+        },
+        {
+          title: "Composed NE",
+          content: "Northeast composed content",
+          link: "",
+          preview: undefined,
+        },
+        {
+          title: "Composed E",
+          content: "East composed content",
+          link: "",
+          preview: undefined,
+        },
+      ]);
+
+      // Create composed children in bulk with negative directions
+      const composedMapItems = await mapItemRepo.createMany([
+        {
+          attrs: {
+            parentId: parentItem.id,
+            coords: _createTestCoordinates({
+              userId: setupParams.userId,
+              groupId: setupParams.groupId,
+              path: [Direction.NorthEast, Direction.ComposedNorthWest],
+            }),
+            ref: {
+              itemType: MapItemType.BASE,
+              itemId: composedBaseItems[0]!.id,
+            },
+            itemType: MapItemType.BASE,
+          },
+          ref: composedBaseItems[0]!,
+        },
+        {
+          attrs: {
+            parentId: parentItem.id,
+            coords: _createTestCoordinates({
+              userId: setupParams.userId,
+              groupId: setupParams.groupId,
+              path: [Direction.NorthEast, Direction.ComposedNorthEast],
+            }),
+            ref: {
+              itemType: MapItemType.BASE,
+              itemId: composedBaseItems[1]!.id,
+            },
+            itemType: MapItemType.BASE,
+          },
+          ref: composedBaseItems[1]!,
+        },
+        {
+          attrs: {
+            parentId: parentItem.id,
+            coords: _createTestCoordinates({
+              userId: setupParams.userId,
+              groupId: setupParams.groupId,
+              path: [Direction.NorthEast, Direction.ComposedEast],
+            }),
+            ref: {
+              itemType: MapItemType.BASE,
+              itemId: composedBaseItems[2]!.id,
+            },
+            itemType: MapItemType.BASE,
+          },
+          ref: composedBaseItems[2]!,
+        },
+      ]);
+
+      // Verify all 3 composed children were created
+      expect(composedMapItems).toHaveLength(3);
+
+      // Verify they all have negative directions
+      composedMapItems.forEach((item) => {
+        expect(item.attrs.coords.path).toHaveLength(2);
+        const lastDirection = item.attrs.coords.path[item.attrs.coords.path.length - 1];
+        expect(lastDirection).toBeLessThan(0);
+        expect(lastDirection).toBeGreaterThanOrEqual(-6);
+        expect(item.attrs.parentId).toBe(parentItem.id);
+      });
+
+      // Verify titles match
+      expect(composedMapItems[0]!.ref.attrs.title).toBe("Composed NW");
+      expect(composedMapItems[1]!.ref.attrs.title).toBe("Composed NE");
+      expect(composedMapItems[2]!.ref.attrs.title).toBe("Composed E");
+
+      // Verify paths are correctly serialized
+      expect(composedMapItems[0]!.attrs.coords.path).toEqual([
+        Direction.NorthEast,
+        Direction.ComposedNorthWest,
+      ]);
+      expect(composedMapItems[1]!.attrs.coords.path).toEqual([
+        Direction.NorthEast,
+        Direction.ComposedNorthEast,
+      ]);
+      expect(composedMapItems[2]!.attrs.coords.path).toEqual([
+        Direction.NorthEast,
+        Direction.ComposedEast,
+      ]);
+    });
+
+    it("should create all 6 composed children with negative directions in one bulk operation", async () => {
+      const setupParams = _createUniqueTestParams();
+      const rootMap = await _setupBasicMap(testEnv.service, setupParams);
+
+      // Create parent tile
+      const parentCoords = _createTestCoordinates({
+        userId: setupParams.userId,
+        groupId: setupParams.groupId,
+        path: [Direction.West],
+      });
+      const parentBaseItem = await testEnv.repositories.baseItem.create({
+        attrs: {
+          title: "Hexagon Parent",
+          content: "Parent with full composition",
+          link: "",
+          preview: undefined,
+        },
+        relatedItems: {},
+        relatedLists: {},
+      });
+      const parentItem = await mapItemRepo.create({
+        attrs: {
+          parentId: rootMap.id,
+          coords: parentCoords,
+          ref: {
+            itemType: MapItemType.BASE,
+            itemId: parentBaseItem.id,
+          },
+          itemType: MapItemType.BASE,
+        },
+        relatedItems: {
+          ref: parentBaseItem,
+          parent: null,
+        },
+        relatedLists: {
+          neighbors: [],
+        },
+      });
+
+      // Create base items for all 6 composed children
+      const composedDirections = [
+        { dir: Direction.ComposedNorthWest, label: "NW" },
+        { dir: Direction.ComposedNorthEast, label: "NE" },
+        { dir: Direction.ComposedEast, label: "E" },
+        { dir: Direction.ComposedSouthEast, label: "SE" },
+        { dir: Direction.ComposedSouthWest, label: "SW" },
+        { dir: Direction.ComposedWest, label: "W" },
+      ];
+
+      const composedBaseItems = await testEnv.repositories.baseItem.createMany(
+        composedDirections.map(({ label }) => ({
+          title: `Composed ${label}`,
+          content: `${label} content`,
+          link: "",
+          preview: undefined,
+        }))
+      );
+
+      // Create all 6 composed children in one bulk operation
+      const composedMapItems = await mapItemRepo.createMany(
+        composedDirections.map(({ dir }, index) => ({
+          attrs: {
+            parentId: parentItem.id,
+            coords: _createTestCoordinates({
+              userId: setupParams.userId,
+              groupId: setupParams.groupId,
+              path: [Direction.West, dir],
+            }),
+            ref: {
+              itemType: MapItemType.BASE,
+              itemId: composedBaseItems[index]!.id,
+            },
+            itemType: MapItemType.BASE,
+          },
+          ref: composedBaseItems[index]!,
+        }))
+      );
+
+      // Verify all 6 were created
+      expect(composedMapItems).toHaveLength(6);
+
+      // Verify all have negative directions
+      composedMapItems.forEach((item) => {
+        const lastDirection = item.attrs.coords.path[item.attrs.coords.path.length - 1];
+        expect(lastDirection).toBeLessThan(0);
+        expect(lastDirection).toBeGreaterThanOrEqual(-6);
+      });
+
+      // Verify unique negative directions (-1 through -6)
+      const negativeDirections = composedMapItems.map(
+        (item) => item.attrs.coords.path[item.attrs.coords.path.length - 1]
+      );
+      const uniqueDirections = new Set(negativeDirections);
+      expect(uniqueDirections.size).toBe(6);
+      expect(Array.from(uniqueDirections).sort((a, b) => (a ?? 0) - (b ?? 0))).toEqual([-6, -5, -4, -3, -2, -1]);
+    });
+
+    it("should handle mixed structural and composed children in bulk", async () => {
+      const setupParams = _createUniqueTestParams();
+      const rootMap = await _setupBasicMap(testEnv.service, setupParams);
+
+      // Create parent tile
+      const parentCoords = _createTestCoordinates({
+        userId: setupParams.userId,
+        groupId: setupParams.groupId,
+        path: [Direction.SouthEast],
+      });
+      const parentBaseItem = await testEnv.repositories.baseItem.create({
+        attrs: {
+          title: "Parent with Mixed Children",
+          content: "Has both structural and composed children",
+          link: "",
+          preview: undefined,
+        },
+        relatedItems: {},
+        relatedLists: {},
+      });
+      const parentItem = await mapItemRepo.create({
+        attrs: {
+          parentId: rootMap.id,
+          coords: parentCoords,
+          ref: {
+            itemType: MapItemType.BASE,
+            itemId: parentBaseItem.id,
+          },
+          itemType: MapItemType.BASE,
+        },
+        relatedItems: {
+          ref: parentBaseItem,
+          parent: null,
+        },
+        relatedLists: {
+          neighbors: [],
+        },
+      });
+
+      // Create base items for mixed children
+      const baseItems = await testEnv.repositories.baseItem.createMany([
+        { title: "Structural NE", content: "Structural", link: "", preview: undefined },
+        { title: "Composed NW", content: "Composed", link: "", preview: undefined },
+        { title: "Structural E", content: "Structural", link: "", preview: undefined },
+        { title: "Composed SE", content: "Composed", link: "", preview: undefined },
+      ]);
+
+      // Create mixed structural and composed children in bulk
+      const mixedMapItems = await mapItemRepo.createMany([
+        {
+          attrs: {
+            parentId: parentItem.id,
+            coords: _createTestCoordinates({
+              userId: setupParams.userId,
+              groupId: setupParams.groupId,
+              path: [Direction.SouthEast, Direction.NorthEast], // Structural: positive
+            }),
+            ref: {
+              itemType: MapItemType.BASE,
+              itemId: baseItems[0]!.id,
+            },
+            itemType: MapItemType.BASE,
+          },
+          ref: baseItems[0]!,
+        },
+        {
+          attrs: {
+            parentId: parentItem.id,
+            coords: _createTestCoordinates({
+              userId: setupParams.userId,
+              groupId: setupParams.groupId,
+              path: [Direction.SouthEast, Direction.ComposedNorthWest], // Composed: negative
+            }),
+            ref: {
+              itemType: MapItemType.BASE,
+              itemId: baseItems[1]!.id,
+            },
+            itemType: MapItemType.BASE,
+          },
+          ref: baseItems[1]!,
+        },
+        {
+          attrs: {
+            parentId: parentItem.id,
+            coords: _createTestCoordinates({
+              userId: setupParams.userId,
+              groupId: setupParams.groupId,
+              path: [Direction.SouthEast, Direction.East], // Structural: positive
+            }),
+            ref: {
+              itemType: MapItemType.BASE,
+              itemId: baseItems[2]!.id,
+            },
+            itemType: MapItemType.BASE,
+          },
+          ref: baseItems[2]!,
+        },
+        {
+          attrs: {
+            parentId: parentItem.id,
+            coords: _createTestCoordinates({
+              userId: setupParams.userId,
+              groupId: setupParams.groupId,
+              path: [Direction.SouthEast, Direction.ComposedSouthEast], // Composed: negative
+            }),
+            ref: {
+              itemType: MapItemType.BASE,
+              itemId: baseItems[3]!.id,
+            },
+            itemType: MapItemType.BASE,
+          },
+          ref: baseItems[3]!,
+        },
+      ]);
+
+      // Verify all 4 were created
+      expect(mixedMapItems).toHaveLength(4);
+
+      // Verify structural children have positive directions
+      expect(mixedMapItems[0]!.attrs.coords.path[1]).toBeGreaterThan(0);
+      expect(mixedMapItems[2]!.attrs.coords.path[1]).toBeGreaterThan(0);
+
+      // Verify composed children have negative directions
+      expect(mixedMapItems[1]!.attrs.coords.path[1]).toBeLessThan(0);
+      expect(mixedMapItems[3]!.attrs.coords.path[1]).toBeLessThan(0);
+
+      // Verify titles
+      expect(mixedMapItems[0]!.ref.attrs.title).toBe("Structural NE");
+      expect(mixedMapItems[1]!.ref.attrs.title).toBe("Composed NW");
+      expect(mixedMapItems[2]!.ref.attrs.title).toBe("Structural E");
+      expect(mixedMapItems[3]!.ref.attrs.title).toBe("Composed SE");
+    });
+
+    it("should handle deeply nested composed children in bulk", async () => {
+      const setupParams = _createUniqueTestParams();
+      const rootMap = await _setupBasicMap(testEnv.service, setupParams);
+
+      // Create deep hierarchy
+      const level1Coords = _createTestCoordinates({
+        userId: setupParams.userId,
+        groupId: setupParams.groupId,
+        path: [Direction.NorthWest],
+      });
+      const level1BaseItem = await testEnv.repositories.baseItem.create({
+        attrs: {
+          title: "Level 1",
+          content: "First level",
+          link: "",
+          preview: undefined,
+        },
+        relatedItems: {},
+        relatedLists: {},
+      });
+      const level1Item = await mapItemRepo.create({
+        attrs: {
+          parentId: rootMap.id,
+          coords: level1Coords,
+          ref: {
+            itemType: MapItemType.BASE,
+            itemId: level1BaseItem.id,
+          },
+          itemType: MapItemType.BASE,
+        },
+        relatedItems: {
+          ref: level1BaseItem,
+          parent: null,
+        },
+        relatedLists: {
+          neighbors: [],
+        },
+      });
+
+      const level2Coords = _createTestCoordinates({
+        userId: setupParams.userId,
+        groupId: setupParams.groupId,
+        path: [Direction.NorthWest, Direction.East],
+      });
+      const level2BaseItem = await testEnv.repositories.baseItem.create({
+        attrs: {
+          title: "Level 2",
+          content: "Second level",
+          link: "",
+          preview: undefined,
+        },
+        relatedItems: {},
+        relatedLists: {},
+      });
+      const level2Item = await mapItemRepo.create({
+        attrs: {
+          parentId: level1Item.id,
+          coords: level2Coords,
+          ref: {
+            itemType: MapItemType.BASE,
+            itemId: level2BaseItem.id,
+          },
+          itemType: MapItemType.BASE,
+        },
+        relatedItems: {
+          ref: level2BaseItem,
+          parent: null,
+        },
+        relatedLists: {
+          neighbors: [],
+        },
+      });
+
+      // Create multiple composed children at deep level in bulk
+      const deepComposedBaseItems = await testEnv.repositories.baseItem.createMany([
+        { title: "Deep Composed W", content: "Deep W", link: "", preview: undefined },
+        { title: "Deep Composed SW", content: "Deep SW", link: "", preview: undefined },
+      ]);
+
+      const deepComposedMapItems = await mapItemRepo.createMany([
+        {
+          attrs: {
+            parentId: level2Item.id,
+            coords: _createTestCoordinates({
+              userId: setupParams.userId,
+              groupId: setupParams.groupId,
+              path: [Direction.NorthWest, Direction.East, Direction.ComposedWest],
+            }),
+            ref: {
+              itemType: MapItemType.BASE,
+              itemId: deepComposedBaseItems[0]!.id,
+            },
+            itemType: MapItemType.BASE,
+          },
+          ref: deepComposedBaseItems[0]!,
+        },
+        {
+          attrs: {
+            parentId: level2Item.id,
+            coords: _createTestCoordinates({
+              userId: setupParams.userId,
+              groupId: setupParams.groupId,
+              path: [Direction.NorthWest, Direction.East, Direction.ComposedSouthWest],
+            }),
+            ref: {
+              itemType: MapItemType.BASE,
+              itemId: deepComposedBaseItems[1]!.id,
+            },
+            itemType: MapItemType.BASE,
+          },
+          ref: deepComposedBaseItems[1]!,
+        },
+      ]);
+
+      // Verify deep composed children
+      expect(deepComposedMapItems).toHaveLength(2);
+      expect(deepComposedMapItems[0]!.attrs.coords.path).toHaveLength(3);
+      expect(deepComposedMapItems[1]!.attrs.coords.path).toHaveLength(3);
+
+      // Verify negative directions at depth
+      expect(deepComposedMapItems[0]!.attrs.coords.path[2]).toBe(Direction.ComposedWest);
+      expect(deepComposedMapItems[1]!.attrs.coords.path[2]).toBe(Direction.ComposedSouthWest);
+      expect(deepComposedMapItems[0]!.attrs.coords.path[2]).toBeLessThan(0);
+      expect(deepComposedMapItems[1]!.attrs.coords.path[2]).toBeLessThan(0);
     });
   });
 });
