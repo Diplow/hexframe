@@ -266,7 +266,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
         path: [Direction.NorthWest],
       };
 
-      await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await testEnv.service.items.crud.addItemToMap({
         coords: parentCoord,
         title: "Parent Tile",
         content: "Parent content",
@@ -289,6 +289,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
           coords: composedCoords[i]!,
           title: `Composed Child ${i + 1}`,
           content: `Child in direction ${expectedDirections[i]}`,
+          parentId: parseInt(parentItem.id),
         });
       }
 
@@ -517,7 +518,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
         path: [Direction.NorthWest],
       };
 
-      await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await testEnv.service.items.crud.addItemToMap({
         coords: parentCoord,
         title: "Parent",
         content: "Parent content",
@@ -545,6 +546,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
           coords: childCoord,
           title: `Structural Child ${i + 1}`,
           content: `Child in direction ${structuralDirections[i]}`,
+          parentId: parseInt(parentItem.id),
         });
       }
 
