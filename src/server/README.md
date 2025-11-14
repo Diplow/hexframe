@@ -31,6 +31,67 @@ This subdirectory is responsible for all database-related concerns, primarily us
   - **`index.ts`**: Serves as the central export point for all schema components (tables and relations).
   - **`types.ts`**: (Potentially, or managed within individual table files) Exports TypeScript types inferred from the Drizzle schemas, allowing for type-safe database interactions throughout the application.
 
+## Hexagonal Coordinate System
+
+The server layer fully supports the hexagonal coordinate system including **negative directions** for composed children:
+
+### Direction Types
+
+**Structural Children (Positive Directions 1-6):**
+- Standard hexagonal neighbors around a tile
+- Directions: 1=NorthWest, 2=NorthEast, 3=East, 4=SouthEast, 5=SouthWest, 6=West
+
+**Composition Center (Direction 0):**
+- Represents the "zoomed-in" view of a tile
+- Only one composition allowed per parent tile
+
+**Composed Children (Negative Directions -1 to -6):**
+- Children within a composition (when zoomed into a tile)
+- Directions: -1=ComposedNorthWest, -2=ComposedNorthEast, -3=ComposedEast, -4=ComposedSouthEast, -5=ComposedSouthWest, -6=ComposedWest
+- Mirror the same hexagonal layout as structural children
+
+### Database Schema Support
+
+The `map_items.path` column (varchar 255) stores comma-separated integers supporting all direction types:
+
+```sql
+-- Examples:
+path = ""           -- Root coordinate
+path = "1,2,3"      -- Structural path: NorthWest → NorthEast → East
+path = "1,0,-3"     -- Mixed: NorthWest → Composition → ComposedEast
+path = "1,-3,2"     -- Composed child with structural descendant
+```
+
+See `src/server/db/schema/README.md` for schema details.
+
+### API Validation
+
+The tRPC API schemas validate coordinates including negative directions:
+
+```typescript
+// hexCoordSchema accepts any number in path array (positive, zero, negative)
+export const hexCoordSchema = z.object({
+  userId: z.number(),
+  groupId: z.number(),
+  path: z.array(z.number()), // Accepts negative directions
+});
+```
+
+### Testing Coverage
+
+Comprehensive integration tests verify negative direction support:
+- **Schema Layer**: `src/server/db/schema/__tests__/path-column-negative-directions.integration.test.ts`
+  - Tests varchar column storage/retrieval of negative directions
+  - Validates schema constraints with negative paths
+- **API Layer**: `src/server/api/routers/map/__tests__/map-items-negative-directions.integration.test.ts`
+  - Tests tRPC endpoints with negative direction coordinates
+  - Verifies composition queries (getComposedChildren, hasComposition)
+  - Tests CRUD operations preserve negative directions
+
+See child subsystem READMEs for implementation details:
+- Database schema: `src/server/db/schema/README.md`
+- API routers: `src/server/api/routers/map/README.md`
+
 ## Overall Architecture:
 
 The server is built following a typical Next.js backend structure, enhanced with tRPC for robust API development and Drizzle for modern database management. The API layer serves as a Backend-for-Frontend (BFF), directly providing data in the shape needed by the frontend components.
