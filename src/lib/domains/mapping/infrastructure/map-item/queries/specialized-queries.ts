@@ -26,6 +26,46 @@ export interface ContextQueryConfig {
 export class SpecializedQueries {
   constructor(private db: PostgresJsDatabase<typeof schemaImport>) {}
 
+  /**
+   * Helper: Get the depth (number of directions) in a path
+   */
+  private _pathDepth() {
+    return sql`array_length(string_to_array(${mapItems.path}, ','), 1)`;
+  }
+
+  /**
+   * Helper: Get the last direction value from a path
+   */
+  private _lastDirection() {
+    return sql`CAST(
+      NULLIF(
+        SPLIT_PART(${mapItems.path}, ',', array_length(string_to_array(${mapItems.path}, ','), 1)),
+        ''
+      ) AS INTEGER
+    )`;
+  }
+
+  /**
+   * Helper: Check if path starts with a prefix (or match all if prefix is empty)
+   */
+  private _pathStartsWith(pathPrefix: string): SQL {
+    return pathPrefix ? like(mapItems.path, `${pathPrefix},%`) : sql`TRUE`;
+  }
+
+  /**
+   * Helper: Check if last direction is negative (composed child)
+   */
+  private _isNegativeDirection(): SQL {
+    return sql`${this._lastDirection()} < 0`;
+  }
+
+  /**
+   * Helper: Check if last direction is positive (structural child)
+   */
+  private _isPositiveDirection(): SQL {
+    return sql`${this._lastDirection()} > 0`;
+  }
+
   async fetchRootItem(
     userId: number,
     groupId: number,
@@ -195,10 +235,10 @@ export class SpecializedQueries {
     // maxElements should be parentCount + maxGenerations to get exact generations
     const maxElements = parentCount + maxGenerations;
 
-    conditions.push(gte(sql`array_length(string_to_array(${mapItems.path}, ','), 1)`, minElements));
+    conditions.push(gte(this._pathDepth(), minElements));
 
     if (maxGenerations > 0) {
-      conditions.push(lte(sql`array_length(string_to_array(${mapItems.path}, ','), 1)`, maxElements));
+      conditions.push(lte(this._pathDepth(), maxElements));
     }
 
     if (parentPathString !== "") {
@@ -241,41 +281,15 @@ export class SpecializedQueries {
       fullContentConditions.push(eq(mapItems.path, parentPathString));
     }
 
-    // Composed tiles (if requested) - supports both negative directions (new model) and Direction.Center (legacy)
-    // New model: For center at path "1", fetch "1,-1", "1,-2", etc. (negative directions)
-    // Legacy model: For center at path "1", fetch "1,0,1", "1,0,2", etc. (Direction.Center container)
+    // Composed tiles (if requested) - direct children with negative directions
+    // For center at path "1", fetch "1,-1", "1,-2", etc.
     if (config.includeComposed) {
-      // NEW MODEL: Query for direct children with negative directions
-      const negativeDirectionCondition = and(
-        // Must start with center path
-        centerPathString ? like(mapItems.path, `${centerPathString},%`) : sql`TRUE`,
-        // Must be exactly one level deeper than center
-        eq(
-          sql`array_length(string_to_array(${mapItems.path}, ','), 1)`,
-          centerDepth + 1
-        ),
-        // Last direction must be negative
-        sql`CAST(
-          NULLIF(
-            SPLIT_PART(${mapItems.path}, ',', array_length(string_to_array(${mapItems.path}, ','), 1)),
-            ''
-          ) AS INTEGER
-        ) < 0`
-      )!;
-
-      // LEGACY MODEL: Query for children under Direction.Center (0) container
-      const composedChildrenPattern = centerPathString ? `${centerPathString},0,%` : '0,%';
-      const legacyDirectionZeroCondition = and(
-        like(mapItems.path, composedChildrenPattern),
-        eq(
-          sql`array_length(string_to_array(${mapItems.path}, ','), 1)`,
-          centerDepth + 2
-        )
-      )!;
-
-      // Support both models during transition
       fullContentConditions.push(
-        or(negativeDirectionCondition, legacyDirectionZeroCondition)!
+        and(
+          this._pathStartsWith(centerPathString),
+          eq(this._pathDepth(), centerDepth + 1),
+          this._isNegativeDirection()
+        )!
       );
     }
 
@@ -349,17 +363,8 @@ export class SpecializedQueries {
             eq(mapItems.coord_user_id, userId),
             eq(mapItems.coord_group_id, groupId),
             like(mapItems.path, childPattern),
-            eq(
-              sql`array_length(string_to_array(${mapItems.path}, ','), 1)`,
-              centerDepth + 1
-            ),
-            // Exclude composed children (negative directions) and legacy composition containers (direction 0)
-            sql`CAST(
-              NULLIF(
-                SPLIT_PART(${mapItems.path}, ',', array_length(string_to_array(${mapItems.path}, ','), 1)),
-                ''
-              ) AS INTEGER
-            ) > 0`
+            eq(this._pathDepth(), centerDepth + 1),
+            this._isPositiveDirection()
           )
         );
     }
@@ -400,17 +405,8 @@ export class SpecializedQueries {
             eq(mapItems.coord_user_id, userId),
             eq(mapItems.coord_group_id, groupId),
             like(mapItems.path, grandchildPattern),
-            eq(
-              sql`array_length(string_to_array(${mapItems.path}, ','), 1)`,
-              centerDepth + 2
-            ),
-            // Exclude composed grandchildren (negative directions) and legacy containers (direction 0)
-            sql`CAST(
-              NULLIF(
-                SPLIT_PART(${mapItems.path}, ',', array_length(string_to_array(${mapItems.path}, ','), 1)),
-                ''
-              ) AS INTEGER
-            ) > 0`
+            eq(this._pathDepth(), centerDepth + 2),
+            this._isPositiveDirection()
           )
         );
     }
@@ -472,41 +468,28 @@ export class SpecializedQueries {
     centerPathString: string,
     centerDepth: number
   ): DbMapItemWithBase[] {
-    // Match composed children supporting both new (negative directions) and legacy (Direction.Center) models
-    // New model: Direct children with negative directions (e.g., "1,-1", "1,-2")
-    // Legacy model: Children under Direction.Center container (e.g., "1,0,1", "1,0,2")
-
+    // Match composed children - direct children with negative directions
+    // E.g., for center "1", match "1,-1", "1,-2", etc.
     return results.filter((r) => {
-      // Type guard
       if (!r.map_items || typeof r.map_items !== 'object') return false;
       if (!('path' in r.map_items) || typeof r.map_items.path !== 'string') return false;
       if (!r.base_items) return false;
 
       const path = r.map_items.path;
       const pathParts = path.split(',').filter(Boolean);
-      const depth = pathParts.length;
 
-      // NEW MODEL: Check if it's a direct child with negative direction
-      if (depth === centerDepth + 1) {
-        // Must start with center path (or be at root level if center is root)
-        if (centerPathString && !path.startsWith(centerPathString)) return false;
+      // Must be exactly one level deeper than center
+      if (pathParts.length !== centerDepth + 1) return false;
 
-        // Last direction must be negative
-        const lastDirection = pathParts[pathParts.length - 1];
-        if (!lastDirection) return false;
+      // Must start with center path (or be at root level if center is root)
+      if (centerPathString && !path.startsWith(centerPathString)) return false;
 
-        const directionValue = parseInt(lastDirection, 10);
-        if (directionValue < 0) return true; // Match: negative direction child
-      }
+      // Last direction must be negative
+      const lastDirection = pathParts[pathParts.length - 1];
+      if (!lastDirection) return false;
 
-      // LEGACY MODEL: Check if it's a child under Direction.Center (0) container
-      if (depth === centerDepth + 2) {
-        // Must match pattern: centerPath,0,X (children under the composition container)
-        const composedPrefix = centerPathString ? `${centerPathString},0,` : '0,';
-        if (path.startsWith(composedPrefix)) return true; // Match: legacy Direction.Center child
-      }
-
-      return false;
+      const directionValue = parseInt(lastDirection, 10);
+      return directionValue < 0;
     }) as DbMapItemWithBase[];
   }
 

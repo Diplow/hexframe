@@ -361,7 +361,7 @@ describe("getContextForCenter [Integration - DB]", () => {
   });
 
   describe("Composed children retrieval", () => {
-    it("should return composition container and its children", async () => {
+    it("should return composed children with negative directions", async () => {
       const testParams = _createUniqueTestParams();
       const { userId, groupId } = testParams;
       const rootMap = await _setupBasicMap(testEnv.service, testParams);
@@ -378,26 +378,14 @@ describe("getContextForCenter [Integration - DB]", () => {
         title: "Parent Tile",
       });
 
-      // Create composition container (direction 0)
-      const composedContainerCoords = _createTestCoordinates({
-        userId,
-        groupId,
-        path: [Direction.NorthEast, Direction.Center],
-      });
-      const composedContainer = await testEnv.service.items.crud.addItemToMap({
-        parentId: parseInt(parentItem.id),
-        coords: composedContainerCoords,
-        title: "Composition Container",
-      });
-
-      // Create composed children
+      // Create composed children directly with negative directions (no container)
       const composed1Coords = _createTestCoordinates({
         userId,
         groupId,
-        path: [Direction.NorthEast, Direction.Center, Direction.NorthWest],
+        path: [Direction.NorthEast, Direction.ComposedNorthWest],
       });
       await testEnv.service.items.crud.addItemToMap({
-        parentId: parseInt(composedContainer.id),
+        parentId: parseInt(parentItem.id),
         coords: composed1Coords,
         title: "Composed Child 1",
       });
@@ -405,10 +393,10 @@ describe("getContextForCenter [Integration - DB]", () => {
       const composed2Coords = _createTestCoordinates({
         userId,
         groupId,
-        path: [Direction.NorthEast, Direction.Center, Direction.East],
+        path: [Direction.NorthEast, Direction.ComposedEast],
       });
       await testEnv.service.items.crud.addItemToMap({
-        parentId: parseInt(composedContainer.id),
+        parentId: parseInt(parentItem.id),
         coords: composed2Coords,
         title: "Composed Child 2",
       });
@@ -424,20 +412,19 @@ describe("getContextForCenter [Integration - DB]", () => {
         includeGrandchildren: false,
       });
 
-      // Should return only 2 composed children (NOT the container itself)
-      // The container at "1,0" is just a transition, composed children are "1,0,1", "1,0,2", etc.
+      // Should return 2 composed children
       expect(context.composed).toHaveLength(2);
 
-      // Verify composed children (depth = centerDepth + 2)
+      // Verify composed children titles
       const composedTitles = context.composed
         .map((c) => c.ref.attrs.title)
         .sort();
       expect(composedTitles).toEqual(["Composed Child 1", "Composed Child 2"]);
 
-      // Verify they are at the correct depth
+      // Verify they have negative directions at depth 2
       context.composed.forEach((item) => {
-        expect(item.attrs.coords.path).toHaveLength(3); // center=1, container=2, child=3
-        expect(item.attrs.coords.path[1]).toBe(Direction.Center); // Second element is 0
+        expect(item.attrs.coords.path).toHaveLength(2); // center=1, composed=2
+        expect(item.attrs.coords.path[1]).toBeLessThan(0); // Second element is negative
       });
     });
 
