@@ -14,10 +14,17 @@ export function escapeXML(text: string): string {
 
 /**
  * Extracts the direction from a coordinate string
+ * Preserves negative signs for composed children (directions -1 to -6)
  */
 export function extractDirection(coords: string): string {
-  const lastDash = coords.lastIndexOf('-')
-  return lastDash >= 0 ? coords.substring(lastDash + 1) : '0'
+  const parts = coords.split(':')
+  if (parts.length < 2 || !parts[1]) return '0'
+
+  const pathSegments = parts[1].split(',').filter((s) => s !== '')
+  if (pathSegments.length === 0) return '0'
+
+  const lastSegment = pathSegments[pathSegments.length - 1]
+  return lastSegment ?? '0'
 }
 
 /**
