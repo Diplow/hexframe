@@ -135,6 +135,13 @@ BEGIN
         CONTINUE;
       END IF;
 
+      -- Skip children that are already negative (already migrated)
+      -- This prevents double-negation when nested containers are involved
+      IF child_direction < 0 THEN
+        RAISE NOTICE '    Skipping already-negative child (already migrated): direction=%', child_direction;
+        CONTINUE;
+      END IF;
+
       -- Build new path: parent_path + negative_direction
       IF parent_path = '' THEN
         new_path := CAST(-child_direction AS TEXT);
