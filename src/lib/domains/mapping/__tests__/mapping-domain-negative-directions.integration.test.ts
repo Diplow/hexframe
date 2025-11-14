@@ -208,7 +208,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
         coords: sourceCoord,
         title: "Source Tile",
         content: "Source content",
-        parentId: rootItem.id,
+        parentId: parseInt(rootItem.id),
       });
 
       // Add composed child
@@ -235,7 +235,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
       await testEnv.service.items.deepCopyMapItem({
         sourceCoords: sourceCoord,
         destinationCoords: destCoord,
-        destinationParentId: rootItem.id,
+        destinationParentId: parseInt(rootItem.id),
       });
 
       // Verify composed child was copied
@@ -272,7 +272,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
         coords: parentCoord,
         title: "Parent Tile",
         content: "Parent content",
-        parentId: rootItem.id,
+        parentId: parseInt(rootItem.id),
       });
 
       // Create all 6 composed children
@@ -341,7 +341,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
         coords: parentCoord,
         title: "Parent",
         content: "Parent content",
-        parentId: rootItem.id,
+        parentId: parseInt(rootItem.id),
       });
 
       // Level 2: Composed child of parent
@@ -465,7 +465,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
         coords: parentCoord,
         title: "Parent",
         content: "Parent content",
-        parentId: rootItem.id,
+        parentId: parseInt(rootItem.id),
       });
 
       const composedCoord: Coord = {
@@ -524,7 +524,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
         coords: parentCoord,
         title: "Parent",
         content: "Parent content",
-        parentId: rootItem.id,
+        parentId: parseInt(rootItem.id),
       });
 
       // Create structural children (traditional behavior)
