@@ -378,7 +378,7 @@ describe('Drag Validators - Composition Detection (Negative Directions)', () => 
       const isComposed = CoordSystem.isComposedChildId(structuralCoordId);
 
       expect(isComposed).toBe(false);
-      expect(structuralTile.metadata.coordinates.path.every(d => d > 0)).toBe(true);
+      expect(structuralTile.metadata.coordinates.path.every(d => (d as number) > 0)).toBe(true);
     });
 
     it('should handle mixed paths with both positive and negative directions', () => {
