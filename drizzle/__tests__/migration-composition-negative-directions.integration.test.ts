@@ -778,17 +778,95 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
   }
 
   async function _runMigrationScript() {
-    // This function will execute the actual migration SQL
-    // For now, it's a placeholder that will be implemented in the next phase
-    // The migration should:
-    // 1. Find all containers (paths ending with ,0)
-    // 2. For each container, find its children
-    // 3. Transform children's paths: replace parent,0,X with parent,-X
-    // 4. Update children's parentId to container's parentId
-    // 5. Delete the container
-    // 6. Be idempotent (only process items not already migrated)
+    // Execute the migration SQL script
+    await db.execute(sql`
+      DO $$
+      DECLARE
+        container_record RECORD;
+        child_record RECORD;
+        descendant_record RECORD;
+        new_path TEXT;
+        parent_path TEXT;
+        child_direction INTEGER;
+        old_path_prefix TEXT;
+        new_path_prefix TEXT;
+      BEGIN
+        -- Find all composition containers (paths containing ',0')
+        -- Process from deepest to shallowest to avoid parent-child conflicts
+        FOR container_record IN
+          SELECT
+            id,
+            path,
+            parent_id,
+            coord_user_id,
+            coord_group_id,
+            array_length(string_to_array(path, ','), 1) as depth
+          FROM vde_map_items
+          WHERE path LIKE '%,0' OR path = '0'
+          ORDER BY depth DESC NULLS LAST
+        LOOP
+          -- Get parent path (everything before ',0')
+          IF container_record.path = '0' THEN
+            parent_path := '';
+          ELSE
+            parent_path := substring(container_record.path from '^(.+),0$');
+          END IF;
 
-    // Placeholder - will implement actual SQL migration logic
-    await db.execute(sql`SELECT 1`);
+          -- Process all children of this container
+          FOR child_record IN
+            SELECT
+              id,
+              path,
+              parent_id,
+              ref_item_id,
+              item_type,
+              coord_user_id,
+              coord_group_id,
+              created_at,
+              updated_at
+            FROM vde_map_items
+            WHERE parent_id = container_record.id
+          LOOP
+            -- Extract the direction from child's path (last element)
+            child_direction := CAST(
+              substring(child_record.path from '[^,]+$') AS INTEGER
+            );
+
+            -- Build new path: parent_path + negative_direction
+            IF parent_path = '' THEN
+              new_path := CAST(-child_direction AS TEXT);
+            ELSE
+              new_path := parent_path || ',' || CAST(-child_direction AS TEXT);
+            END IF;
+
+            -- Store old and new path prefixes for descendants
+            old_path_prefix := child_record.path;
+            new_path_prefix := new_path;
+
+            -- Update child: new path, new parent
+            UPDATE vde_map_items
+            SET
+              path = new_path,
+              parent_id = container_record.parent_id
+            WHERE id = child_record.id;
+
+            -- Update all descendants: replace old path prefix with new path prefix
+            -- This handles grandchildren and deeper descendants
+            FOR descendant_record IN
+              SELECT id, path
+              FROM vde_map_items
+              WHERE path LIKE old_path_prefix || ',%'
+            LOOP
+              UPDATE vde_map_items
+              SET path = new_path_prefix || substring(descendant_record.path from length(old_path_prefix) + 1)
+              WHERE id = descendant_record.id;
+            END LOOP;
+          END LOOP;
+
+          -- Delete the container after all children are migrated
+          DELETE FROM vde_map_items WHERE id = container_record.id;
+        END LOOP;
+      END $$;
+    `);
   }
 });
