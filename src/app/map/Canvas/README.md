@@ -13,6 +13,8 @@ Like a digital art canvas - provides the interactive surface where hexagonal til
 - Orchestrates the hexagonal coordinate system and tile positioning
 - Wires composition handlers from Cache to UI layer (MapUI integration)
 - Manages composition state visibility (hasComposition, isCompositionExpanded, canShowComposition)
+- Renders composed children with negative directions (-1 to -6) in composition frames
+- Displays virtual composition containers (tile,0) as center with composed children arranged hexagonally around them
 
 ## Non-Responsibilities
 - Individual tile rendering and behavior → See `./Tile/README.md`
