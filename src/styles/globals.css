@@ -201,6 +201,17 @@
   --color-w-depth-7: theme(colors.rose.900);
   --color-w-depth-8: theme(colors.rose.950);
 
+  /* Orchestration (Neutral) */
+  --color-orchestration-depth-0: var(--color-neutral-300);
+  --color-orchestration-depth-1: var(--color-neutral-300);
+  --color-orchestration-depth-2: var(--color-neutral-400);
+  --color-orchestration-depth-3: var(--color-neutral-500);
+  --color-orchestration-depth-4: var(--color-neutral-600);
+  --color-orchestration-depth-5: var(--color-neutral-700);
+  --color-orchestration-depth-6: var(--color-neutral-800);
+  --color-orchestration-depth-7: var(--color-neutral-900);
+  --color-orchestration-depth-8: var(--color-neutral-950);
+
   /* ================================
      UI Theme Variables
      ================================ */
@@ -439,6 +450,17 @@
   --color-w-depth-7: theme(colors.rose.100);
   --color-w-depth-8: theme(colors.rose.50);
 
+  /* Orchestration (Neutral) - Dark mode */
+  --color-orchestration-depth-0: var(--color-neutral-600);
+  --color-orchestration-depth-1: var(--color-neutral-600);
+  --color-orchestration-depth-2: var(--color-neutral-500);
+  --color-orchestration-depth-3: var(--color-neutral-400);
+  --color-orchestration-depth-4: var(--color-neutral-300);
+  --color-orchestration-depth-5: var(--color-neutral-200);
+  --color-orchestration-depth-6: var(--color-neutral-100);
+  --color-orchestration-depth-7: var(--color-neutral-50);
+  --color-orchestration-depth-8: var(--color-neutral-50);
+
   /* Tile stroke colors - Dark mode */
   --stroke-color-950: rgba(248, 249, 250, 0.4); /* neutral-50 with reduced opacity */
   --stroke-color-900: rgba(233, 236, 239, 0.35); /* neutral-100 with reduced opacity */
@@ -639,12 +661,12 @@
    Orchestration Tile (Direction 0)
    ================================ */
 
-/* Light mode - lighter neutral gray */
+/* Light mode - lighter neutral gray (for backward compatibility) */
 .fill-orchestration {
   fill: theme(colors.zinc.300);
 }
 
-/* Dark mode - darker neutral gray */
+/* Dark mode - darker neutral gray (for backward compatibility) */
 .dark .fill-orchestration {
   fill: theme(colors.zinc.600);
 }

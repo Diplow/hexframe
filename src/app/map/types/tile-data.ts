@@ -23,16 +23,32 @@ function getColor(coordinates: Coord): string {
     return getSemanticColorClass(Direction.Center, 0);
   }
 
-  // Direction 0 orchestration tile - use neutral color
   const lastDirection = coordinates.path[coordinates.path.length - 1];
-  if (lastDirection === Direction.Center) {
-    return "orchestration"; // Custom class with dark mode support (zinc-300 light, zinc-600 dark)
-  }
-
-  // Get direction from first path element
-  const direction = coordinates.path[0]!;
   const depth = coordinates.path.length;
 
+  // Direction 0 orchestration tile or its children
+  if (lastDirection === Direction.Center) {
+    // This is an orchestration tile itself - use depth-based orchestration color
+    return `orchestration-depth-${Math.min(depth, 8)}`;
+  }
+
+  // Check if this is a child of an orchestration tile
+  // If path contains a 0 (Direction.Center), we need to check if it's in the hierarchy
+  if (coordinates.path.includes(Direction.Center)) {
+    // Find the last orchestration tile in the path
+    const lastOrchestrationIndex = coordinates.path.lastIndexOf(Direction.Center);
+
+    // If the orchestration is not at the end, this tile is a child of an orchestration tile
+    // Use orchestration color scheme with depth relative to the orchestration tile
+    if (lastOrchestrationIndex < coordinates.path.length - 1) {
+      // Depth is relative to the orchestration tile
+      const depthFromOrchestration = coordinates.path.length - lastOrchestrationIndex - 1;
+      return `orchestration-depth-${Math.min(depthFromOrchestration + 1, 8)}`;
+    }
+  }
+
+  // Get direction from first path element (normal hierarchy)
+  const direction = coordinates.path[0]!;
   return getSemanticColorClass(direction, depth);
 }
 
