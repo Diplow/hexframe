@@ -59,7 +59,7 @@ export const selectRegionItemsOptimized = (
 
   // Check cache
   const cached = regionItemsCache.get(cacheKey);
-  if (cached && cached.checksum === itemsChecksum) {
+  if (cached?.checksum === itemsChecksum) {
     return cached.items;
   }
 

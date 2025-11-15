@@ -22,8 +22,7 @@ export function useAIChatIntegration() {
     const latestMessage = chatState.messages[chatState.messages.length - 1]
     
     // Only process user messages that haven't been processed yet
-    if (!latestMessage || 
-        latestMessage.actor !== 'user' || 
+    if (latestMessage?.actor !== 'user' || 
         lastProcessedMessageId.current === latestMessage.id) {
       return
     }

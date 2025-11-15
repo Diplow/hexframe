@@ -51,9 +51,7 @@ export function UnifiedTimeline({ items }: UnifiedTimelineProps) {
     return items.reduce((acc, item) => {
       const date = new Date(item.timestamp);
       const dateKey = date.toLocaleDateString();
-      if (!acc[dateKey]) {
-        acc[dateKey] = [];
-      }
+      acc[dateKey] ??= [];
       acc[dateKey].push(item);
       return acc;
     }, {} as Record<string, TimelineItem[]>);

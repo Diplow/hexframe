@@ -34,9 +34,7 @@ class GlobalDragService {
   }
 
   static getInstance(): GlobalDragService {
-    if (!GlobalDragService.instance) {
-      GlobalDragService.instance = new GlobalDragService();
-    }
+    GlobalDragService.instance ??= new GlobalDragService();
     return GlobalDragService.instance;
   }
 

@@ -70,7 +70,7 @@ export const testLogger = {
   // Log server-side only (for debugging server components)
   server: (message: string, data?: unknown) => {
     if (isServerTestEnvironment) {
-      console.log(`\n🔵 [SERVER-LOG] ${message}`, data ? data : '');
+      console.log(`\n🔵 [SERVER-LOG] ${message}`, data ?? '');
     }
   }
 };
