@@ -21,6 +21,7 @@ export const env = createEnv({
     LLM_PROVIDER: z.enum(["openrouter", "claude-agent-sdk"]).default("openrouter"),
     OPENROUTER_API_KEY: z.string().optional(),
     ANTHROPIC_API_KEY: z.string().optional(),
+    GENERATE_PREVIEW_MODEL: z.string().default("gpt-4o-mini"),
     USE_SANDBOX: z.enum(["true", "false"]).optional(), // Enable Vercel Sandbox for Claude Agent SDK
     USE_ANTHROPIC_PROXY: z.enum(["true", "false"]).optional(), // Use Anthropic proxy (for testing without sandbox)
     VERCEL_OIDC_TOKEN: z.string().optional(), // Vercel OIDC token for Sandbox API (from vercel env pull)
@@ -65,6 +66,7 @@ export const env = createEnv({
     LLM_PROVIDER: process.env.LLM_PROVIDER,
     OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+    GENERATE_PREVIEW_MODEL: process.env.GENERATE_PREVIEW_MODEL,
     USE_SANDBOX: process.env.USE_SANDBOX,
     USE_ANTHROPIC_PROXY: process.env.USE_ANTHROPIC_PROXY,
     VERCEL_OIDC_TOKEN: process.env.VERCEL_OIDC_TOKEN,

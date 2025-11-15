@@ -64,7 +64,7 @@ export class OpenRouterRepository implements ILLMRepository {
         stop: params.stop,
         stream: false
       }
-      
+
       // Debug log the full request to OpenRouter
       loggers.agentic('OpenRouter API Request', {
         url: `${this.baseUrl}/chat/completions`,
@@ -73,7 +73,7 @@ export class OpenRouterRepository implements ILLMRepository {
         messageCount: params.messages.length,
         fullRequest: JSON.stringify(requestBody, null, 2)
       })
-      
+
       const response = await fetch(`${this.baseUrl}/chat/completions`, {
         method: 'POST',
         headers: this.getHeaders(),
@@ -85,7 +85,7 @@ export class OpenRouterRepository implements ILLMRepository {
       }
 
       const data = await response.json() as OpenRouterCompletionResponse
-      
+
       // Debug log the response
       loggers.agentic('OpenRouter API Response', {
         model: data.model,

@@ -243,7 +243,9 @@ export const generatePreview = inngest.createFunction(
     // Step 2: Generate preview
     const result = await step.run('generate-preview', async () => {
       try {
-        const repository = _createLLMRepository()
+        // Always use OpenRouter for preview generation (simple, fast model call)
+        // Don't use Claude Agent SDK as it spawns processes unnecessarily
+        const repository = new OpenRouterRepository(env.OPENROUTER_API_KEY ?? '')
         const previewService = new PreviewGeneratorService(repository)
 
         loggers.agentic('Generating preview', { jobId, titleLength: title.length, contentLength: content.length })
@@ -260,7 +262,8 @@ export const generatePreview = inngest.createFunction(
       } catch (error) {
         loggers.agentic.error('Preview generation failed', {
           jobId,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined
         })
         throw error
       }

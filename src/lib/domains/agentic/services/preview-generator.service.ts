@@ -1,6 +1,7 @@
 import type { ILLMRepository } from '~/lib/domains/agentic/repositories/llm.repository.interface'
 import { PromptTemplateService } from '~/lib/domains/agentic/services/prompt-template.service'
 import type { LLMGenerationParams } from '~/lib/domains/agentic/types'
+import { env } from '~/env'
 
 const MAX_PREVIEW_LENGTH = 250
 
@@ -48,7 +49,7 @@ export class PreviewGeneratorService {
           content: prompt
         }
       ],
-      model: 'gpt-4o-mini', // Use fast, cheap model for preview generation
+      model: env.GENERATE_PREVIEW_MODEL, // Use fast, cheap model for preview generation
       temperature: 0.3, // Low temperature for consistent, focused outputs
       maxTokens: 100, // ~250 chars = ~60-80 tokens, add buffer
       stream: false
