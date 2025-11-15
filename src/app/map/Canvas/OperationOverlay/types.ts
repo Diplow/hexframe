@@ -1,4 +1,4 @@
-import type { TileScale } from '~/app/map/Canvas/Tile/Base';
+import type { TileScale } from '~/app/map/Canvas/Tile';
 
 export type OperationType = 'create' | 'update' | 'delete' | 'move' | 'copy';
 

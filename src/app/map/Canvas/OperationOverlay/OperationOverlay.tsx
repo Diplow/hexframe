@@ -3,10 +3,9 @@
 import { memo, useState, useEffect } from 'react';
 import { OperationMarker } from '~/app/map/Canvas/OperationOverlay/_components/OperationMarker';
 import { useOperationPositions } from '~/app/map/Canvas/OperationOverlay/_hooks/useOperationPositions';
-import { calculateTileDimensions } from '~/app/map/Canvas/Tile/_internals/utils/dimensions';
+import { calculateTileDimensions, type TileScale } from '~/app/map/Canvas/Tile';
 import { CoordSystem } from '~/lib/domains/mapping/utils';
 import type { OperationOverlayProps } from '~/app/map/Canvas/OperationOverlay/types';
-import type { TileScale } from '~/app/map/Canvas/Tile/Base';
 
 /**
  * Calculate the scale for a tile based on its depth and the canvas scale
