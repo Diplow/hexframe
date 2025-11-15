@@ -15,8 +15,6 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
-    MISTRAL_API_KEY: z.string().optional(),
-    YOUTUBE_API_KEY: z.string().optional(),
     // LLM Provider configuration
     LLM_PROVIDER: z.enum(["openrouter", "claude-agent-sdk"]).default("openrouter"),
     OPENROUTER_API_KEY: z.string().optional(),
@@ -31,8 +29,6 @@ export const env = createEnv({
     VERCEL_URL: z.string().optional(), // Vercel system variable
     // Email provider API keys (optional, one should be provided in production)
     BREVO_API_KEY: z.string().optional(),
-    RESEND_API_KEY: z.string().optional(),
-    SENDGRID_API_KEY: z.string().optional(),
     EMAIL_FROM: z.string().email().optional(),
     // Inngest configuration
     INNGEST_EVENT_KEY: z.string().optional(),
@@ -61,8 +57,6 @@ export const env = createEnv({
     DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
     TEST_DATABASE_URL: process.env.TEST_DATABASE_URL,
-    MISTRAL_API_KEY: process.env.MISTRAL_API_KEY,
-    YOUTUBE_API_KEY: process.env.YOUTUBE_API_KEY,
     LLM_PROVIDER: process.env.LLM_PROVIDER,
     OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
@@ -77,8 +71,6 @@ export const env = createEnv({
     NEXT_PUBLIC_BETTER_AUTH_URL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
     NEXT_PUBLIC_REQUIRE_EMAIL_VERIFICATION: process.env.NEXT_PUBLIC_REQUIRE_EMAIL_VERIFICATION,
     BREVO_API_KEY: process.env.BREVO_API_KEY,
-    RESEND_API_KEY: process.env.RESEND_API_KEY,
-    SENDGRID_API_KEY: process.env.SENDGRID_API_KEY,
     EMAIL_FROM: process.env.EMAIL_FROM,
     INNGEST_EVENT_KEY: process.env.INNGEST_EVENT_KEY,
     INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY,
