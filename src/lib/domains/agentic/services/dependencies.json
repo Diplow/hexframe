@@ -2,6 +2,7 @@
   "$schema": "../../../../../scripts/checks/architecture/dependencies.schema.json",
   "allowed": [
     "tiktoken",
+    "~/env",
     "~/lib/domains/agentic/infrastructure",
     "~/lib/domains/agentic/repositories",
     "~/lib/domains/agentic/types",
