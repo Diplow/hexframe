@@ -19,8 +19,6 @@ const server = new Server(
   {
     name: "hexframe-mcp-server",
     version: "1.0.0",
-    description: "Hexframe MCP Server - Access hierarchical knowledge maps",
-        preview: undefined,
   },
   {
     capabilities: {

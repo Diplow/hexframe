@@ -59,9 +59,7 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
 
       // CRITICAL: Save the original API key before we overwrite it
       // The proxy needs the real key to call Anthropic
-      if (!process.env.ANTHROPIC_API_KEY_ORIGINAL) {
-        process.env.ANTHROPIC_API_KEY_ORIGINAL = process.env.ANTHROPIC_API_KEY
-      }
+      process.env.ANTHROPIC_API_KEY_ORIGINAL ??= process.env.ANTHROPIC_API_KEY
 
       // Set base URL to proxy (SDK will append /v1/messages)
       const proxyBaseUrl = `${mcpBaseUrl}/api/anthropic-proxy`

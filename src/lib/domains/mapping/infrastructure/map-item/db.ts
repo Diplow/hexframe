@@ -341,4 +341,17 @@ export class DbMapItemRepository implements MapItemRepository {
       grandchildren: dbResults.grandchildren.map((item) => mapJoinedDbToDomain(item, [])),
     };
   }
+
+  /**
+   * Batch update moved item AND all its descendants in a single atomic operation.
+   * This is the preferred method as it avoids conflicts from two-step updates.
+   */
+  async batchUpdateItemAndDescendants(params: {
+    movedItemId: number;
+    oldCoords: { userId: number; groupId: number; path: Direction[] };
+    newCoords: { userId: number; groupId: number; path: Direction[] };
+    newParentId: number | null;
+  }): Promise<number> {
+    return this.writeQueries.batchUpdateItemAndDescendants(params);
+  }
 }

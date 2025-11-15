@@ -377,7 +377,7 @@ describe('SDK Types', () => {
 
       expect(contentDeltas).toHaveLength(1)
       const firstDelta = contentDeltas[0]
-      if (firstDelta && firstDelta.event.type === 'content_block_delta') {
+      if (firstDelta?.event.type === 'content_block_delta') {
         const deltaEvent = firstDelta.event as { type: 'content_block_delta'; delta: SDKContentBlockDelta }
         expect(deltaEvent.delta.text).toBe('Hi')
       }

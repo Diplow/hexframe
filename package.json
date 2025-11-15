@@ -14,6 +14,8 @@
     "db:setup": "drizzle-kit push --config=./config/drizzle.config.ts",
     "db:create-placeholder-user": "dotenv -e .env -e .env.local -- tsx scripts/create-placeholder-user.ts",
     "db:delete": "tsx scripts/delete-database.ts",
+    "db:find-orphans": "dotenv -e .env -e .env.local -- tsx scripts/find-orphan-items.ts",
+    "db:cleanup-orphans": "dotenv -e .env -e .env.local -- tsx scripts/cleanup-orphan-items.ts",
     "dev": "next dev -H 0.0.0.0",
     "format:check": "prettier --config ./config/prettier.config.js --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "format:write": "prettier --config ./config/prettier.config.js --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
@@ -116,9 +118,9 @@
     "@typescript-eslint/eslint-plugin": "^8.25.0",
     "@typescript-eslint/parser": "^8.1.0",
     "@vitejs/plugin-react": "^4.3.4",
-    "@vitest/browser": "3.0.7",
-    "@vitest/coverage-v8": "3.0.7",
-    "@vitest/ui": "^3.0.7",
+    "@vitest/browser": "^2.1.9",
+    "@vitest/coverage-v8": "^2.1.9",
+    "@vitest/ui": "^2.1.9",
     "dotenv-cli": "^7.0.0",
     "drizzle-kit": "^0.24.0",
     "esbuild": "^0.25.7",
@@ -139,8 +141,8 @@
     "tailwindcss": "^3.4.3",
     "tsx": "^4.20.2",
     "typescript": "^5.5.3",
-    "vite": "6.3.5",
-    "vitest": "^3.0.7"
+    "vite": "^5.4.21",
+    "vitest": "^2.1.9"
   },
   "ct3aMetadata": {
     "initVersion": "7.38.1"
@@ -150,10 +152,9 @@
     "overrides": {
       "esbuild@<=0.24.2": ">=0.25.0",
       "@babel/runtime@<7.26.10": ">=7.26.10",
-      "vite@>=6.0.0 <=6.3.5": ">=6.3.6",
       "better-auth@<1.3.26": ">=1.3.26",
-      "vite@>=6.0.0 <=6.4.0": ">=6.4.1",
-      "js-yaml@<4.1.1": ">=4.1.1"
+      "js-yaml@<4.1.1": ">=4.1.1",
+      "vite@>=6.0.0": "5.4.21"
     }
   }
 }

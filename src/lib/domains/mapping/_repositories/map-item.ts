@@ -128,4 +128,21 @@ export interface MapItemRepository
     children: MapItemWithId[];
     grandchildren: MapItemWithId[];
   }>;
+
+  /**
+   * Batch update moved item AND all its descendants in a single atomic operation.
+   * This prevents duplicate key conflicts from two-step updates.
+   *
+   * @param movedItemId - ID of the item being moved
+   * @param oldCoords - Original coordinates of the moved item
+   * @param newCoords - New coordinates of the moved item
+   * @param newParentId - New parent ID for the moved item
+   * @returns Number of items updated
+   */
+  batchUpdateItemAndDescendants(params: {
+    movedItemId: number;
+    oldCoords: Coord;
+    newCoords: Coord;
+    newParentId: number | null;
+  }): Promise<number>;
 }

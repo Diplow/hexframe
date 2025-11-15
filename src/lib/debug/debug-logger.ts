@@ -211,8 +211,8 @@ export class DebugLogger {
         const serverMatch = /^TRPC SERVER\s+\w+:\s+(.+)/.exec(message);
         if (serverMatch?.[1]) {
           const apiPath = serverMatch[1];
-          if (data?.rawInput || data?.input) {
-            const input = data.rawInput || data.input;
+          if (data?.rawInput ?? data?.input) {
+            const input = data.rawInput ?? data.input;
             const inputStr = typeof input === 'object' && input !== null ? 
               Object.keys(input).slice(0, 2).join(',') : 
               String(input).slice(0, 10);

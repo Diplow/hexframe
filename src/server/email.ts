@@ -72,53 +72,10 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
       throw new Error(`Brevo email error: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
-  
-  // Fallback to other providers if Brevo is not configured
-  // Example with Resend (uncomment and configure):
-  /*
-  if (!env.RESEND_API_KEY) {
-    throw new Error("RESEND_API_KEY is required for sending emails in production");
-  }
-  
-  const resend = new Resend(env.RESEND_API_KEY);
-  
-  const { error } = await resend.emails.send({
-    from,
-    to,
-    subject,
-    html,
-  });
-  
-  if (error) {
-    loggers.api(`Email send failed`, { error, to, subject });
-    throw new Error(`Failed to send email: ${error.message}`);
-  }
-  */
 
-  // Example with SendGrid (uncomment and configure):
-  /*
-  if (!env.SENDGRID_API_KEY) {
-    throw new Error("SENDGRID_API_KEY is required for sending emails in production");
-  }
-  
-  sgMail.setApiKey(env.SENDGRID_API_KEY);
-  
-  try {
-    await sgMail.send({
-      to,
-      from,
-      subject,
-      html,
-    });
-  } catch (error) {
-    loggers.api(`Email send failed`, { error, to, subject });
-    throw error;
-  }
-  */
-
-  // For now, throw an error if we're in production without email configuration
+  // Brevo is required for email sending in production
   throw new Error(
-    "Email sending is not configured. Please set up an email provider (Resend, SendGrid, etc.) in src/server/email.ts"
+    "Email sending is not configured. Please set BREVO_API_KEY in your environment variables."
   );
 }
 
