@@ -72,20 +72,10 @@ class GlobalTilePositionService {
     const tileCenterX = tileRect.left + tileRect.width / 2;
     const tileCenterY = tileRect.top + tileRect.height / 2;
 
-    const position = {
+    return {
       x: tileCenterX - canvasCenterX,
       y: tileCenterY - canvasCenterY,
     };
-
-    // DEBUG: Log the calculation
-    console.log('[TilePositionService] Position calculation for', coordId);
-    console.log('  Canvas rect:', { left: canvasRect.left, top: canvasRect.top, width: canvasRect.width, height: canvasRect.height });
-    console.log('  Canvas center:', { x: canvasCenterX, y: canvasCenterY });
-    console.log('  Tile rect:', { left: tileRect.left, top: tileRect.top, width: tileRect.width, height: tileRect.height });
-    console.log('  Tile center:', { x: tileCenterX, y: tileCenterY });
-    console.log('  Relative position:', position);
-
-    return position;
   }
 
   /**
