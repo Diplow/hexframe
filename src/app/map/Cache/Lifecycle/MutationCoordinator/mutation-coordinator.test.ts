@@ -121,7 +121,7 @@ describe("MutationCoordinator Event Emissions", () => {
 
     coordinator = new MutationCoordinator({
       dispatch: mockDispatch,
-      getState: () => ({ itemsById: mockState.itemsById }),
+      getState: () => ({ itemsById: mockState.itemsById, pendingOperations: {} }),
       dataOperations: mockDataOperations,
       storageService: mockStorageService,
       eventBus: mockEventBus,
@@ -175,7 +175,7 @@ describe("MutationCoordinator Event Emissions", () => {
       // Create coordinator without event bus
       const coordinatorWithoutEventBus = new MutationCoordinator({
         dispatch: mockDispatch,
-        getState: () => ({ itemsById: mockState.itemsById }),
+        getState: () => ({ itemsById: mockState.itemsById, pendingOperations: {} }),
         dataOperations: mockDataOperations,
         storageService: mockStorageService,
         mapContext: {
@@ -200,8 +200,9 @@ describe("MutationCoordinator Event Emissions", () => {
 
       await expect(coordinator.moveItem("1,2", "2,3")).rejects.toThrow("Move failed");
 
-      // Should not emit any events on failure
-      expect(mockEventBus.emit).not.toHaveBeenCalled();
+      // Should emit operation_started event but not completion event
+      expect(mockEventBus.emit).toHaveBeenCalledTimes(1);
+      expect(mockEventBus.emittedEvents[0]?.type).toBe('map.operation_started');
     });
   });
 
@@ -214,7 +215,9 @@ describe("MutationCoordinator Event Emissions", () => {
 
       await coordinator.moveItem("1,2", "3,4");
 
-      const emittedEvent = mockEventBus.emittedEvents[0];
+      // Should emit operation_started followed by tile_moved
+      expect(mockEventBus.emit).toHaveBeenCalledTimes(2);
+      const emittedEvent = mockEventBus.emittedEvents[1]; // Second event is the completion event
       expect(emittedEvent).toBeDefined();
       expect(emittedEvent?.type).toBe('map.tile_moved');
       expect(emittedEvent?.source).toBe('map_cache');
@@ -234,7 +237,9 @@ describe("MutationCoordinator Event Emissions", () => {
 
       await coordinator.moveItem("1,2", "1,3");
 
-      const emittedEvent = mockEventBus.emittedEvents[0];
+      // Should emit operation_started followed by tiles_swapped
+      expect(mockEventBus.emit).toHaveBeenCalledTimes(2);
+      const emittedEvent = mockEventBus.emittedEvents[1]; // Second event is the completion event
       expect(emittedEvent).toBeDefined();
       expect(emittedEvent?.type).toBe('map.tiles_swapped');
       expect(emittedEvent?.source).toBe('map_cache');

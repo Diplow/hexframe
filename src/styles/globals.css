@@ -3,6 +3,51 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ================================
+   Pending Operation Animations
+   ================================ */
+
+@keyframes operation-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8),
+                0 0 20px 5px rgba(239, 68, 68, 0.6),
+                0 0 40px 10px rgba(239, 68, 68, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0.4),
+                0 0 30px 15px rgba(239, 68, 68, 0.3),
+                0 0 60px 20px rgba(239, 68, 68, 0.2);
+    transform: scale(1.05);
+  }
+}
+
+/* Apply pulse animation to tiles with pending operations */
+[data-pending-operation] {
+  animation: operation-pulse 2s ease-in-out infinite;
+  position: relative;
+  z-index: 100 !important;
+}
+
+/* Debug: Make it super obvious */
+[data-pending-operation]::before {
+  content: attr(data-pending-operation);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 20px;
+  text-transform: uppercase;
+  z-index: 1000;
+  pointer-events: none;
+  border: 3px solid yellow;
+}
+
 :root {
   /* ================================
      Base Theme Variables
@@ -588,9 +633,21 @@
    Operation Pending Visual Feedback
    ================================ */
 
+@keyframes tile-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.015);
+  }
+}
+
 .operation-pending {
   position: relative;
   cursor: not-allowed;
+  animation: tile-pulse 1.5s ease-in-out infinite;
 }
 
 .operation-pending::before {
@@ -671,3 +728,5 @@
   fill: theme(colors.zinc.600);
 }
 
+
+@import "../app/map/Canvas/OperationOverlay/_styles/overlay.css";

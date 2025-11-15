@@ -70,12 +70,11 @@ export const DynamicItemTile = (props: DynamicItemTileProps) => {
     <>
       <div
         ref={state.tileRef}
-        className={`group relative select-none ${state.hasOperationPending ? 'operation-pending' : ''}`}
+        className="group relative select-none"
         data-testid={state.testId}
         style={{
           width,
           height,
-          opacity: state.hasOperationPending ? 0.7 : 1,
           // Container has no pointer events - hexagon shapes handle all interactions
           pointerEvents: 'none'
         }}

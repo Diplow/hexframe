@@ -2,6 +2,7 @@ import type { AppEvent } from '~/app/map/types';
 import type { ChatEvent } from '~/app/map/Chat/_state/_events/event.types';
 import {
   _transformTileSelectedEvent,
+  _transformOperationStartedEvent,
   _transformTileCreatedEvent,
   _transformTileUpdatedEvent,
   _transformTileDeletedEvent,
@@ -42,6 +43,8 @@ export function createChatEventFromMapEvent(mapEvent: AppEvent): ChatEvent | nul
   switch (mapEvent.type) {
     case 'map.tile_selected':
       return _transformTileSelectedEvent(baseEvent, mapEvent.payload)
+    case 'map.operation_started':
+      return _transformOperationStartedEvent(baseEvent, mapEvent.payload)
     case 'map.tile_created':
       return _transformTileCreatedEvent(baseEvent, mapEvent.payload)
     case 'map.tile_updated':

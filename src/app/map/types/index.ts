@@ -46,6 +46,7 @@ export {
   mapTilesSwappedEventSchema,
   mapTileMovedEventSchema,
   mapItemCopiedEventSchema,
+  mapOperationStartedEventSchema,
   mapNavigationEventSchema,
   mapExpansionChangedEventSchema,
   mapImportCompletedEventSchema,

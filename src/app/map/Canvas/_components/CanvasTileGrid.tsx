@@ -1,8 +1,12 @@
 import type { ReactNode } from "react";
+import { useRef, useEffect } from "react";
 import { DynamicFrame } from "~/app/map/Canvas/frame";
 import type { TileScale } from "~/app/map/Canvas/Tile";
 import type { URLInfo } from "~/app/map/types/url-info";
 import type { TileData } from "~/app/map/types/tile-data";
+import { OperationOverlay } from "~/app/map/Canvas/OperationOverlay";
+import { useMapCache } from "~/app/map/Cache";
+import { globalTilePositionService } from "~/app/map/Services";
 
 interface CanvasTileGridProps {
   centerInfo: string;
@@ -44,9 +48,19 @@ export function CanvasTileGrid({
   onCreateRequested,
   children,
 }: CanvasTileGridProps) {
+  const { pendingOperations } = useMapCache();
+  const canvasRef = useRef<HTMLDivElement>(null);
+
+  // Set canvas reference for position service
+  useEffect(() => {
+    globalTilePositionService.setCanvasElement(canvasRef.current);
+    return () => globalTilePositionService.setCanvasElement(null);
+  }, []);
+
   return (
     <div className="relative flex h-full w-full flex-col">
       <div
+        ref={canvasRef}
         data-canvas-id={centerInfo}
         className="pointer-events-auto grid flex-grow py-4 overflow-visible"
         style={{
@@ -73,6 +87,13 @@ export function CanvasTileGrid({
           onCreateRequested={onCreateRequested}
         />
       </div>
+      <OperationOverlay
+        pendingOperations={pendingOperations}
+        getTilePosition={globalTilePositionService.getTilePosition.bind(globalTilePositionService)}
+        baseHexSize={baseHexSize}
+        scale={scale}
+        canvasRef={canvasRef}
+      />
       {children}
     </div>
   );

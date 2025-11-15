@@ -28,6 +28,7 @@ export const initialCacheState: CacheState = {
   currentCenter: null,
   expandedItemIds: [],
   isCompositionExpanded: false,
+  pendingOperations: {},
   isLoading: false,
   error: null,
   lastUpdated: 0,
@@ -86,6 +87,24 @@ export function cacheReducer(
 
     case ACTION_TYPES.UPDATE_ITEMS:
       return handleUpdateItems(state, action);
+
+    case ACTION_TYPES.SET_PENDING_OPERATION:
+      return {
+        ...state,
+        pendingOperations: {
+          ...state.pendingOperations,
+          [action.payload.coordId]: action.payload.operation,
+        },
+      };
+
+    case ACTION_TYPES.CLEAR_PENDING_OPERATION: {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { [action.payload]: _, ...remaining } = state.pendingOperations;
+      return {
+        ...state,
+        pendingOperations: remaining,
+      };
+    }
 
     default: {
       // TypeScript exhaustiveness check

@@ -8,6 +8,7 @@ import {
   mapTilesSwappedEventSchema,
   mapTileMovedEventSchema,
   mapItemCopiedEventSchema,
+  mapOperationStartedEventSchema,
   mapNavigationEventSchema,
   authRequiredEventSchema,
   errorOccurredEventSchema,
@@ -158,22 +159,41 @@ function _transformNavigationEvent(validEvent: AppEvent, baseEvent: Partial<Chat
 }
 
 /**
+ * Transform operation started events to chat operation started events
+ */
+function _transformOperationStartedEvent(validEvent: AppEvent, baseEvent: Partial<ChatEvent>): ChatEvent {
+  const payload = mapOperationStartedEventSchema.parse(validEvent).payload;
+  return {
+    ...baseEvent,
+    type: 'operation_started',
+    payload: {
+      operation: payload.operation,
+      tileId: payload.tileId,
+      data: { tileName: payload.tileName },
+    },
+  } as ChatEvent;
+}
+
+/**
  * Transform map tile events to chat events using focused event transformers
  */
 function _transformTileEvents(validEvent: AppEvent, baseEvent: Partial<ChatEvent>): ChatEvent | null {
   switch (validEvent.type) {
     case 'map.tile_selected':
       return _transformTileSelectedEvent(validEvent, baseEvent);
-    
+
+    case 'map.operation_started':
+      return _transformOperationStartedEvent(validEvent, baseEvent);
+
     case 'map.tile_created':
       return _transformTileCreatedEvent(validEvent, baseEvent);
-    
+
     case 'map.tile_updated':
       return _transformTileUpdatedEvent(validEvent, baseEvent);
-    
+
     case 'map.tile_deleted':
       return _transformTileDeletedEvent(validEvent, baseEvent);
-    
+
     case 'map.tiles_swapped':
       return _transformTilesSwappedEvent(validEvent, baseEvent);
 
@@ -270,29 +290,43 @@ function _transformOperationEvents(validEvent: AppEvent, baseEvent: Partial<Chat
 
     case 'map.delete_requested': {
       const payload = mapDeleteRequestedEventSchema.parse(validEvent).payload;
+      // Create delete widget (not operation_started - that comes from MutationCoordinator)
       return {
         ...baseEvent,
-        type: 'operation_started',
+        type: 'widget_created',
         payload: {
-          operation: 'delete',
-          tileId: payload.tileId,
-          data: { tileName: payload.tileName },
+          widget: {
+            id: `delete-${Date.now()}`,
+            type: 'delete',
+            data: {
+              tileId: payload.tileId,
+              tileName: payload.tileName,
+            },
+            priority: 'action',
+            timestamp: baseEvent.timestamp,
+          },
         },
       } as ChatEvent;
     }
 
     case 'map.create_requested': {
       const payload = mapCreateRequestedEventSchema.parse(validEvent).payload;
+      // Create creation widget (not operation_started - that comes from MutationCoordinator)
       return {
         ...baseEvent,
-        type: 'operation_started',
+        type: 'widget_created',
         payload: {
-          operation: 'create',
-          data: {
-            coordId: payload.coordId,
-            parentName: payload.parentName,
-            parentId: payload.parentId,
-            parentCoordId: payload.parentCoordId,
+          widget: {
+            id: `creation-${Date.now()}`,
+            type: 'creation',
+            data: {
+              coordId: payload.coordId,
+              parentName: payload.parentName,
+              parentId: payload.parentId,
+              parentCoordId: payload.parentCoordId,
+            },
+            priority: 'action',
+            timestamp: baseEvent.timestamp,
           },
         },
       } as ChatEvent;
@@ -309,9 +343,25 @@ function _transformOperationEvents(validEvent: AppEvent, baseEvent: Partial<Chat
  */
 export function validateAndTransformMapEvent(mapEvent: AppEvent): ChatEvent | null {
   const validationResult = safeValidateEvent(mapEvent);
-  
+
   if (!validationResult.success) {
-    return null;
+    console.error('[validateAndTransformMapEvent] ❌ VALIDATION FAILED for event type:', mapEvent.type);
+    console.error('[validateAndTransformMapEvent] Event data:', mapEvent);
+    console.error('[validateAndTransformMapEvent] Validation error:', validationResult.error);
+    console.error('[validateAndTransformMapEvent] Error issues:', validationResult.error.issues);
+
+    // Transform to error event to make validation failures visible
+    return {
+      id: `chat-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      type: 'error_occurred',
+      payload: {
+        error: `Event validation failed for ${mapEvent.type}`,
+        context: validationResult.error.issues,
+        retryable: false,
+      },
+      timestamp: new Date(),
+      actor: 'system',
+    } as ChatEvent;
   }
 
   const validEvent = validationResult.data;

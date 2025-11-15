@@ -1,0 +1,9 @@
+{
+  "$schema": "../../../../../scripts/checks/architecture/dependencies.schema.json",
+  "allowedChildren": [],
+  "allowed": [
+    "vitest",
+    "@testing-library/react"
+  ],
+  "subsystems": []
+}
