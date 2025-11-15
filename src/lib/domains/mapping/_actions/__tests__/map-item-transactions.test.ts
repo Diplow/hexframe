@@ -40,6 +40,7 @@ describe("MapItemActions - Transaction Support", () => {
       getDescendantsByParent: vi.fn(),
       getDescendantsWithDepth: vi.fn(),
       getContextForCenter: vi.fn(),
+      batchUpdateItemAndDescendants: vi.fn(),
     };
     
     mapItemRepo = {

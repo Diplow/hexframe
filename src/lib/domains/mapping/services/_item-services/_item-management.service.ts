@@ -8,12 +8,16 @@ import { ItemHistoryService } from "~/lib/domains/mapping/services/_item-service
 import type { Coord } from "~/lib/domains/mapping/utils";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 import type { MapItemContract } from "~/lib/domains/mapping/types/contracts";
-import { MapItemType } from "~/lib/domains/mapping/_objects";
+import { MapItemType, type MapItemWithId, type BaseItemWithId } from "~/lib/domains/mapping/_objects";
 import {
   _prepareBaseItemsForCopy,
   _prepareMapItemsForCopy,
   _createCopyMapping,
 } from "~/lib/domains/mapping/_actions/_map-item-copy-helpers";
+import {
+  MAX_HIERARCHY_DEPTH,
+  MAX_DESCENDANTS_FOR_OPERATION,
+} from "~/lib/domains/mapping/constants";
 
 /**
  * Coordinating service for item-level operations.
@@ -94,6 +98,9 @@ export class ItemManagementService {
     // Include source item + all descendants
     const allSourceItems = [sourceItem, ...descendants];
 
+    // 3.5. Validate hierarchy limits
+    this._validateHierarchyLimits(allSourceItems, sourceCoords);
+
     // 4. Prepare BaseItems for copying
     const baseItemsToCopy = allSourceItems.map((mi) => mi.ref);
     const preparedBaseItems = _prepareBaseItemsForCopy(baseItemsToCopy);
@@ -113,67 +120,13 @@ export class ItemManagementService {
       destinationParentId
     );
 
-    // 8. Create MapItems sequentially to resolve parent IDs correctly
-    const copiedMapItems = [];
-    const sourceToNewMapItemId = new Map<number, number>();
-
-    // Sort by depth to ensure parents are created before children
-    const sortedPrepared = [...preparedMapItems].sort(
-      (a, b) => a.coords.path.length - b.coords.path.length
+    // 8. Create MapItems in batches by depth level
+    // This allows us to batch-insert all items at the same depth while maintaining parent dependencies
+    const copiedMapItems = await this._batchCreateByDepth(
+      preparedMapItems,
+      baseItemMapping,
+      copiedBaseItems
     );
-
-    for (const prepared of sortedPrepared) {
-      // Resolve parent ID if this is a child
-      let finalParentId = prepared.parentId;
-      if (prepared.sourceParentId !== null) {
-        const resolvedParentId = sourceToNewMapItemId.get(prepared.sourceParentId);
-        if (resolvedParentId !== undefined) {
-          finalParentId = resolvedParentId;
-        }
-      }
-
-      // Get the copied BaseItem ID
-      const copiedBaseItemId = baseItemMapping.get(prepared.sourceRefId);
-      if (copiedBaseItemId === undefined) {
-        throw new Error(
-          `Failed to find copied BaseItem for source ref ${prepared.sourceRefId}`
-        );
-      }
-
-      const copiedBaseItem = copiedBaseItems.find(
-        (item) => item.id === copiedBaseItemId
-      );
-      if (!copiedBaseItem) {
-        throw new Error(
-          `Failed to find copied BaseItem with ID ${copiedBaseItemId}`
-        );
-      }
-
-      // Create MapItem with resolved parent ID
-      const createdMapItem = await this.repositories.mapItem.create({
-        attrs: {
-          coords: prepared.coords,
-          parentId: finalParentId,
-          ref: {
-            itemType: MapItemType.BASE,
-            itemId: copiedBaseItemId,
-          },
-          itemType: MapItemType.BASE,
-        },
-        relatedItems: {
-          ref: copiedBaseItem,
-          parent: null, // Will be resolved by repository
-        },
-        relatedLists: {
-          neighbors: [], // No neighbors yet
-        },
-      });
-
-      copiedMapItems.push(createdMapItem);
-
-      // Store mapping for children
-      sourceToNewMapItemId.set(prepared.sourceMapItemId, createdMapItem.id);
-    }
 
     // 10. Return the root copied item as a contract
     const rootCopiedItem = copiedMapItems[0];
@@ -198,5 +151,140 @@ export class ItemManagementService {
         ? String(rootCopiedItem.ref.attrs.originId)
         : null,
     };
+  }
+
+  /**
+   * Create MapItems in batches grouped by depth level.
+   * Items at the same depth can be created in parallel since they only depend on parents.
+   *
+   * Strategy:
+   * 1. Group items by depth
+   * 2. For each depth level (starting from shallowest):
+   *    a. Resolve parent IDs from previous level
+   *    b. Batch insert all items at this depth
+   *    c. Store ID mappings for next level
+   */
+  private async _batchCreateByDepth(
+    preparedMapItems: Array<{
+      coords: Coord;
+      parentId: number | null;
+      sourceParentId: number | null;
+      sourceMapItemId: number;
+      sourceRefId: number;
+    }>,
+    baseItemMapping: Map<number, number>,
+    copiedBaseItems: BaseItemWithId[]
+  ): Promise<MapItemWithId[]> {
+    // Group items by depth
+    const itemsByDepth = new Map<number, typeof preparedMapItems>();
+    for (const item of preparedMapItems) {
+      const depth = item.coords.path.length;
+      if (!itemsByDepth.has(depth)) {
+        itemsByDepth.set(depth, []);
+      }
+      itemsByDepth.get(depth)!.push(item);
+    }
+
+    // Sort depths to process shallowest first
+    const depths = Array.from(itemsByDepth.keys()).sort((a, b) => a - b);
+
+    const allCopiedItems: MapItemWithId[] = [];
+    const sourceToNewMapItemId = new Map<number, number>();
+
+    // Process each depth level
+    for (const depth of depths) {
+      const itemsAtDepth = itemsByDepth.get(depth)!;
+
+      // Prepare batch create data
+      const createDataArray = itemsAtDepth.map((prepared) => {
+        // Resolve parent ID from previous level
+        let finalParentId = prepared.parentId;
+        if (prepared.sourceParentId !== null) {
+          const resolvedParentId = sourceToNewMapItemId.get(prepared.sourceParentId);
+          if (resolvedParentId !== undefined) {
+            finalParentId = resolvedParentId;
+          }
+        }
+
+        // Get copied BaseItem ID
+        const copiedBaseItemId = baseItemMapping.get(prepared.sourceRefId);
+        if (copiedBaseItemId === undefined) {
+          throw new Error(
+            `Failed to find copied BaseItem for source ref ${prepared.sourceRefId}`
+          );
+        }
+
+        const copiedBaseItem = copiedBaseItems.find(
+          (item) => item.id === copiedBaseItemId
+        );
+        if (!copiedBaseItem) {
+          throw new Error(
+            `Failed to find copied BaseItem with ID ${copiedBaseItemId}`
+          );
+        }
+
+        return {
+          prepared,
+          attrs: {
+            coords: prepared.coords,
+            parentId: finalParentId,
+            ref: {
+              itemType: MapItemType.BASE,
+              itemId: copiedBaseItemId,
+            },
+            itemType: MapItemType.BASE,
+          },
+          ref: copiedBaseItem,
+        };
+      });
+
+      // Batch create all items at this depth
+      const createdItems = await this.repositories.mapItem.createMany(
+        createDataArray.map(({ attrs, ref }) => ({
+          attrs,
+          ref,
+        }))
+      );
+
+      // Store mappings for next level
+      for (let i = 0; i < createDataArray.length; i++) {
+        const { prepared } = createDataArray[i]!;
+        const createdItem = createdItems[i]!;
+        sourceToNewMapItemId.set(prepared.sourceMapItemId, createdItem.id);
+        allCopiedItems.push(createdItem);
+      }
+    }
+
+    return allCopiedItems;
+  }
+
+  /**
+   * Validate that a hierarchy doesn't exceed safety limits.
+   * Prevents memory exhaustion and timeouts on extremely large operations.
+   */
+  private _validateHierarchyLimits(
+    items: Array<{ attrs: { coords: Coord } }>,
+    rootCoords: Coord
+  ): void {
+    // Check total item count
+    if (items.length > MAX_DESCENDANTS_FOR_OPERATION) {
+      throw new Error(
+        `Operation would affect ${items.length} items, which exceeds the maximum of ${MAX_DESCENDANTS_FOR_OPERATION}. ` +
+        `Please break this into smaller operations or contact support for bulk operations.`
+      );
+    }
+
+    // Check maximum depth
+    const maxDepth = items.reduce((max, item) => {
+      const depth = item.attrs.coords.path.length - rootCoords.path.length;
+      return Math.max(max, depth);
+    }, 0);
+
+    if (maxDepth > MAX_HIERARCHY_DEPTH) {
+      throw new Error(
+        `Hierarchy depth of ${maxDepth} exceeds the maximum of ${MAX_HIERARCHY_DEPTH}. ` +
+        `Please restructure your hierarchy to be shallower.`
+      );
+    }
   }
 }

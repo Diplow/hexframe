@@ -73,13 +73,13 @@ export class MapItemMovementHelpers {
     item: MapItemWithId,
     newCoords: Coord,
     newParent: MapItemWithId | null,
-    getDescendants: (parentId: number) => Promise<MapItemWithId[]>,
+    _getDescendants: (parentId: number) => Promise<MapItemWithId[]>,
   ) {
     const oldCoords: Coord = item.attrs.coords;
-    const descendants = await getDescendants(item.id);
 
-    await this._updateItemCoordinates(item, newCoords, newParent);
-    await this._updateDescendantCoordinates(descendants, oldCoords, newCoords);
+    // Use single atomic update for both the item and all its descendants
+    // This avoids duplicate key conflicts from updating in two steps
+    await this._batchUpdateItemAndDescendants(item.id, oldCoords, newCoords, newParent);
   }
 
   private async _validateUserItemConstraints(
@@ -177,31 +177,21 @@ export class MapItemMovementHelpers {
     });
   }
 
-  private async _updateDescendantCoordinates(
-    descendants: MapItemWithId[],
+  /**
+   * Batch update the moved item AND all its descendants in a single atomic operation.
+   * This prevents duplicate key conflicts from two-step updates.
+   */
+  private async _batchUpdateItemAndDescendants(
+    movedItemId: number,
     oldCoords: Coord,
     newCoords: Coord,
-  ) {
-    const sortedDescendants = descendants.sort(
-      (a, b) => a.attrs.coords.path.length - b.attrs.coords.path.length,
-    );
-
-    for (const descendant of sortedDescendants) {
-      const descendantPath = descendant.attrs.coords.path;
-      const pathSuffix: Direction[] = descendantPath.slice(
-        oldCoords.path.length,
-      );
-      const newPath: Direction[] = [...newCoords.path, ...pathSuffix];
-      const newDescendantCoords: Coord = {
-        userId: newCoords.userId,
-        groupId: newCoords.groupId,
-        path: newPath,
-      };
-
-      await this.mapItems.updateByIdr({
-        idr: { id: descendant.id },
-        attrs: { coords: newDescendantCoords },
-      });
-    }
+    newParent: MapItemWithId | null,
+  ): Promise<void> {
+    await this.mapItems.batchUpdateItemAndDescendants({
+      movedItemId,
+      oldCoords,
+      newCoords,
+      newParentId: newParent?.id ?? null,
+    });
   }
 }

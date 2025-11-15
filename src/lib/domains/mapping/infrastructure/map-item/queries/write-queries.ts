@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { schema as schemaImport } from "~/server/db";
 const { mapItems } = schemaImport;
@@ -9,6 +9,7 @@ import type {
 } from "~/lib/domains/mapping/_objects/map-item";
 import type { CreateMapItemDbAttrs, UpdateMapItemDbAttrs } from "~/lib/domains/mapping/infrastructure/map-item/types";
 import { pathToString } from "~/lib/domains/mapping/infrastructure/map-item/mappers";
+import type { Coord } from "~/lib/domains/mapping/utils";
 
 export class WriteQueries {
   constructor(private db: PostgresJsDatabase<typeof schemaImport>) {}
@@ -113,4 +114,66 @@ export class WriteQueries {
 
     return result.length > 0;
   }
+
+  /**
+   * Batch update moved item AND all its descendants in a single atomic operation.
+   * Treats the moved item exactly the same as descendants - just path rewriting.
+   *
+   * @param movedItemId - ID of the item being moved (only used to update its parentId separately)
+   * @param oldCoords - Original coordinates of the moved item
+   * @param newCoords - New coordinates of the moved item
+   * @param newParentId - New parent ID for the moved item
+   * @returns Number of items updated
+   */
+  async batchUpdateItemAndDescendants(params: {
+    movedItemId: number;
+    oldCoords: Coord;
+    newCoords: Coord;
+    newParentId: number | null;
+  }): Promise<number> {
+    const { movedItemId, oldCoords, newCoords, newParentId } = params;
+    const oldPathString = pathToString(oldCoords.path);
+    const newPathString = pathToString(newCoords.path);
+
+    // For moving from "3" to "2":
+    // - Item at "3" should become "2"
+    // - Item at "3,1" should become "2,1"
+    // The pattern is: replace the prefix
+
+    try {
+      // Single UPDATE that handles everything uniformly
+      const result = await this.db
+        .update(mapItems)
+        .set({
+          // Uniform path transformation for all items (parent and descendants)
+          path: sql`
+            ${sql.raw(`'${newPathString}'`)} ||
+            SUBSTRING(path FROM ${sql.raw(`${oldPathString.length + 1}`)})
+          `,
+          // Only update parentId for the moved item itself
+          parentId: sql`
+            CASE
+              WHEN ${mapItems.id} = ${movedItemId} THEN ${newParentId}
+              ELSE ${mapItems.parentId}
+            END
+          `,
+          coord_user_id: newCoords.userId,
+          coord_group_id: newCoords.groupId,
+        })
+        .where(
+          and(
+            eq(mapItems.coord_user_id, oldCoords.userId),
+            eq(mapItems.coord_group_id, oldCoords.groupId),
+            // Match items where path equals oldPath OR starts with oldPath
+            sql`(${mapItems.path} = ${oldPathString} OR ${mapItems.path} LIKE ${sql.raw(`'${oldPathString},%'`)})`
+          )
+        )
+        .returning({ id: mapItems.id });
+
+      return result.length;
+    } catch (error) {
+      throw error;
+    }
+  }
+
 }
