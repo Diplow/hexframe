@@ -9,6 +9,13 @@ export const directionToClassAbbr: Record<Direction, string> = {
   [Direction.SouthEast]: 'se',
   [Direction.SouthWest]: 'sw',
   [Direction.West]: 'w',
+  // Composed children use same abbreviations as their structural counterparts
+  [Direction.ComposedNorthWest]: 'nw',
+  [Direction.ComposedNorthEast]: 'ne',
+  [Direction.ComposedEast]: 'e',
+  [Direction.ComposedSouthEast]: 'se',
+  [Direction.ComposedSouthWest]: 'sw',
+  [Direction.ComposedWest]: 'w',
 };
 
 // Get semantic color class for a given direction and depth

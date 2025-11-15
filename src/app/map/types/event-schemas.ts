@@ -54,8 +54,17 @@ const mapTileMovedPayloadSchema = z.object({
   toCoordId: z.string(),
 });
 
+const mapItemCopiedPayloadSchema = z.object({
+  sourceId: z.string(),
+  sourceName: z.string(),
+  destinationId: z.string(),
+  fromCoordId: z.string(),
+  toCoordId: z.string(),
+});
+
 const mapNavigationPayloadSchema = z.object({
   fromCenterId: z.string().optional(),
+  fromCenterName: z.string().optional(),
   toCenterId: z.string(),
   toCenterName: z.string(),
 });
@@ -164,6 +173,12 @@ export const mapTileMovedEventSchema = baseEventSchema.extend({
   payload: mapTileMovedPayloadSchema,
 });
 
+export const mapItemCopiedEventSchema = baseEventSchema.extend({
+  type: z.literal('map.item_copied'),
+  source: z.literal('map_cache'),
+  payload: mapItemCopiedPayloadSchema,
+});
+
 export const mapNavigationEventSchema = baseEventSchema.extend({
   type: z.literal('map.navigation'),
   source: z.literal('map_cache'),
@@ -258,6 +273,7 @@ export const appEventSchema = z.discriminatedUnion('type', [
   mapTileDeletedEventSchema,
   mapTilesSwappedEventSchema,
   mapTileMovedEventSchema,
+  mapItemCopiedEventSchema,
   mapNavigationEventSchema,
   mapExpansionChangedEventSchema,
   mapImportCompletedEventSchema,

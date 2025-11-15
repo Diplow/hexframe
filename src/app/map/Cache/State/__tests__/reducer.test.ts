@@ -142,14 +142,14 @@ describe("Cache Reducer", () => {
       expect(result.lastUpdated).toBeGreaterThan(0);
     });
 
-    test("filters out items with zero in path", () => {
+    test("accepts items with zero in path (Direction.Center now valid)", () => {
       const itemsWithZero: MapItemAPIContract[] = [
         ...mockItems,
         {
           id: "3",
-          coordinates: "1,2:0", // This should be filtered out (0 in path = Direction.Center)
-          title: "Invalid Item",
-          content: "Should be filtered",
+          coordinates: "1,2:0", // Direction.Center (0) is now valid for meta-orchestration
+          title: "Meta Item",
+          content: "Direction 0 is valid",
           preview: undefined,
           depth: 1,
           link: "",
@@ -171,9 +171,10 @@ describe("Cache Reducer", () => {
 
       const result = cacheReducer(initialCacheState, action);
 
-      // Should only have 2 items, not 3
-      expect(Object.keys(result.itemsById)).toHaveLength(2);
-      expect(result.itemsById["1,2:0"]).toBeUndefined();
+      // Should have all 3 items (Direction.Center is now valid)
+      expect(Object.keys(result.itemsById)).toHaveLength(3);
+      expect(result.itemsById["1,2:0"]).toBeDefined();
+      expect(result.itemsById["1,2:0"]?.data.title).toBe("Meta Item");
     });
 
     test("updates existing items when loading region", () => {

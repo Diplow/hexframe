@@ -8,9 +8,11 @@ The Utils subsystem is the "coordinate calculator" for the hexagonal mapping sys
 
 - Generate child coordinates for all 6 structural directions (NorthWest, NorthEast, East, SouthEast, SouthWest, West)
 - Generate composition coordinates (direction 0 / Center) for any parent tile
+- Generate composed child coordinates with negative directions (-1 to -6) for composed children
 - Parse and serialize coordinates between object format (Coord) and string format (coordId)
-- Check ancestor/descendant relationships between coordinates
-- Calculate coordinate properties (depth, direction, parent)
+- Handle negative directions in all coordinate operations (parsing, serialization, queries)
+- Check ancestor/descendant relationships between coordinates (including composed children)
+- Calculate coordinate properties (depth, direction, parent) for all direction types
 - Validate coordinate structure (userId, groupId, path format)
 - Provide both Coord-based and ID-based APIs for all operations
 
@@ -28,11 +30,16 @@ The Utils subsystem is the "coordinate calculator" for the hexagonal mapping sys
 
 **Core Types:**
 - `Coord`: Coordinate object with userId, groupId, and path
-- `Direction`: Enum for all 7 directions (Center=0, NorthWest=1, ..., West=6)
+- `Direction`: Enum for all 13 directions:
+  - Structural: NorthWest=1, NorthEast=2, East=3, SouthEast=4, SouthWest=5, West=6
+  - Composition: Center=0
+  - Composed: ComposedNorthWest=-1, ComposedNorthEast=-2, ComposedEast=-3, ComposedSouthEast=-4, ComposedSouthWest=-5, ComposedWest=-6
 
 **Coordinate Generation:**
 - `CoordSystem.getCompositionCoord(parent)`: Generate composition coordinate (direction 0)
 - `CoordSystem.getCompositionCoordFromId(parentId)`: ID-based composition generation
+- `CoordSystem.getComposedChildCoords(parent)`: Generate 6 composed child coordinates (negative directions)
+- `CoordSystem.getComposedChildCoordsFromId(parentId)`: ID-based composed child generation
 - `CoordSystem.getChildCoords(parent, includeComposition?)`: Get 6 structural children, or 7 with composition
 - `CoordSystem.getChildCoordsFromId(parentId, includeComposition?)`: ID-based version
 
@@ -44,10 +51,13 @@ The Utils subsystem is the "coordinate calculator" for the hexagonal mapping sys
 
 **Coordinate Queries:**
 - `CoordSystem.getParentCoord(coord)`: Get parent coordinate
-- `CoordSystem.getDirection(coord)`: Get last direction in path
-- `CoordSystem.isDescendant(childId, parentId)`: Check descendant relationship
-- `CoordSystem.isAncestor(parentId, childId)`: Check ancestor relationship
+- `CoordSystem.getDirection(coord)`: Get last direction in path (supports negative directions)
+- `CoordSystem.getSiblingsFromId(coordId)`: Get sibling coordinates (returns composed siblings for composed children)
+- `CoordSystem.isDescendant(childId, parentId)`: Check descendant relationship (supports negative directions)
+- `CoordSystem.isAncestor(parentId, childId)`: Check ancestor relationship (supports negative directions)
 - `CoordSystem.isCenter(coord)`: Check if root tile (empty path)
+- `CoordSystem.isComposedChild(coord)`: Check if coordinate contains negative direction
+- `CoordSystem.isComposedChildId(id)`: ID-based check for composed child
 
 **Dependencies**: This is a leaf subsystem with minimal dependencies:
 - Error types from `~/lib/domains/mapping/types/errors`

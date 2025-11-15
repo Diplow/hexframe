@@ -14,6 +14,13 @@ export const DEFAULT_MAP_COLORS: Record<Direction, string> = {
   [Direction.SouthEast]: "indigo",
   [Direction.SouthWest]: "purple",
   [Direction.West]: "rose",
+  // Composed children (negative directions) use slightly different shades
+  [Direction.ComposedNorthWest]: "amber",
+  [Direction.ComposedNorthEast]: "green",
+  [Direction.ComposedEast]: "cyan",
+  [Direction.ComposedSouthEast]: "indigo",
+  [Direction.ComposedSouthWest]: "purple",
+  [Direction.ComposedWest]: "rose",
 } as const;
 
 // Hierarchy tile sizing constants

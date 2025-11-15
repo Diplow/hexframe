@@ -1,12 +1,13 @@
 import type { AppEvent } from '~/app/map/types';
 import type { ChatEvent } from '~/app/map/Chat/_state/_events/event.types';
-import { 
+import {
   mapTileSelectedEventSchema,
   mapTileCreatedEventSchema,
   mapTileUpdatedEventSchema,
   mapTileDeletedEventSchema,
   mapTilesSwappedEventSchema,
   mapTileMovedEventSchema,
+  mapItemCopiedEventSchema,
   mapNavigationEventSchema,
   authRequiredEventSchema,
   errorOccurredEventSchema,
@@ -123,6 +124,23 @@ function _transformTileMovedEvent(validEvent: AppEvent, baseEvent: Partial<ChatE
 }
 
 /**
+ * Transform item copy events to chat operation completed events
+ */
+function _transformItemCopiedEvent(validEvent: AppEvent, baseEvent: Partial<ChatEvent>): ChatEvent {
+  const payload = mapItemCopiedEventSchema.parse(validEvent).payload;
+  return {
+    ...baseEvent,
+    type: 'operation_completed',
+    payload: {
+      operation: 'copy',
+      result: 'success',
+      tileId: payload.destinationId,
+      message: `Copied "${payload.sourceName}"`,
+    },
+  } as ChatEvent;
+}
+
+/**
  * Transform navigation events to chat navigation events
  */
 function _transformNavigationEvent(validEvent: AppEvent, baseEvent: Partial<ChatEvent>): ChatEvent {
@@ -131,9 +149,10 @@ function _transformNavigationEvent(validEvent: AppEvent, baseEvent: Partial<Chat
     ...baseEvent,
     type: 'navigation',
     payload: {
+      fromTileId: payload.fromCenterId,
+      fromTileName: payload.fromCenterName,
       toTileId: payload.toCenterId,
       toTileName: payload.toCenterName,
-      fromTileName: payload.fromCenterId,
     },
   } as ChatEvent;
 }
@@ -157,13 +176,16 @@ function _transformTileEvents(validEvent: AppEvent, baseEvent: Partial<ChatEvent
     
     case 'map.tiles_swapped':
       return _transformTilesSwappedEvent(validEvent, baseEvent);
-    
+
     case 'map.tile_moved':
       return _transformTileMovedEvent(validEvent, baseEvent);
-    
+
+    case 'map.item_copied':
+      return _transformItemCopiedEvent(validEvent, baseEvent);
+
     case 'map.navigation':
       return _transformNavigationEvent(validEvent, baseEvent);
-    
+
     default:
       return null;
   }

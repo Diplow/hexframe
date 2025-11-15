@@ -188,6 +188,7 @@ describe("Navigation Handler", () => {
       // Should emit map.navigation event
       expectEventEmitted(mockEventBus, 'map.navigation', {
         fromCenterId: "0,0",  // Current center from mockState
+        fromCenterName: "Current Item",
         toCenterId: "123",
         toCenterName: "Test Item"
       });

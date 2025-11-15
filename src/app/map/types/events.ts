@@ -12,6 +12,7 @@ export type {
   MapTileDeletedEvent,
   MapTilesSwappedEvent,
   MapTileMovedEvent,
+  MapItemCopiedEvent,
   MapNavigationEvent,
   MapExpansionChangedEvent,
   MapImportCompletedEvent,

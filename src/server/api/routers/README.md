@@ -45,14 +45,27 @@ The API is structured around two main domains:
 
 #### Map Items (`map-items.ts`)
 
+**CRUD Operations:**
 - `getRootItemById` - Get map by ID
-- `getItemByCoords` - Get item at specific hexagonal coordinates
+- `getItemByCoords` - Get item at specific hexagonal coordinates (supports negative directions)
 - `getItemsForRootItem` - Get all items in a map
-- `addItem` - Add new item to map
+- `addItem` - Add new item to map (supports negative directions for composed children)
 - `removeItem` - Delete item from map
-- `updateItem` - Modify item properties
-- `moveMapItem` - Move item to new coordinates
-- `getDescendants` - Get all child items
+- `updateItem` - Modify item properties (preserves negative directions)
+- `moveMapItem` - Move item to new coordinates (supports moving composed children)
+- `copyMapItem` - Deep copy item and subtree (preserves composed children)
+
+**Relationship Queries:**
+- `getDescendants` - Get all child items (with optional composition filtering)
+- `getAncestors` - Get all parent items in path
+
+**Composition Queries:**
+- `getComposedChildren` - Get only composed children (negative directions) for a tile
+- `hasComposition` - Check if tile has composed children
+
+**History:**
+- `getItemHistory` - Get version history for a tile
+- `getItemVersion` - Get specific historical version
 
 ## Coordinate System
 
@@ -62,8 +75,40 @@ The mapping system uses hexagonal coordinates represented by:
 {
   userId: number,
   groupId: number,
-  path: number[]
+  path: number[]  // Array of directions (positive for structural, negative for composed)
 }
+```
+
+### Direction System
+
+The coordinate path supports both **structural children** (positive directions 1-6) and **composed children** (negative directions -1 to -6):
+
+**Structural Directions (1-6):**
+- `1` - NorthWest: Regular child in northwest position
+- `2` - NorthEast: Regular child in northeast position
+- `3` - East: Regular child in east position
+- `4` - SouthEast: Regular child in southeast position
+- `5` - SouthWest: Regular child in southwest position
+- `6` - West: Regular child in west position
+
+**Composed Directions (-1 to -6):**
+- `-1` - ComposedNorthWest: Composed child in northwest position
+- `-2` - ComposedNorthEast: Composed child in northeast position
+- `-3` - ComposedEast: Composed child in east position
+- `-4` - ComposedSouthEast: Composed child in southeast position
+- `-5` - ComposedSouthWest: Composed child in southwest position
+- `-6` - ComposedWest: Composed child in west position
+
+**Examples:**
+```typescript
+// Structural child (regular hierarchy)
+{ userId: 1, groupId: 0, path: [1, 3] }  // NorthWest → East
+
+// Composed child (behavioral modifier)
+{ userId: 1, groupId: 0, path: [1, -3] }  // NorthWest → ComposedEast
+
+// Mixed hierarchy
+{ userId: 1, groupId: 0, path: [1, -3, 2] }  // Structural → Composed → Structural
 ```
 
 ## Authentication & Authorization
@@ -103,7 +148,53 @@ const maps = await trpc.map.user.getMyRootItems.query({
 
 // Get specific item
 const item = await trpc.map.items.getItemByCoords.query({
-  coords: { userId: 1, groupId: 0, path: [0] },
+  coords: { userId: 1, groupId: 0, path: [1] },
+});
+
+// Get composed child (negative direction)
+const composedChild = await trpc.map.items.getItemByCoords.query({
+  coords: { userId: 1, groupId: 0, path: [1, -3] },  // Parent → ComposedEast
+});
+```
+
+### Working with Composition
+
+```typescript
+// Check if tile has composed children
+const hasComp = await trpc.map.items.hasComposition.query({
+  coordId: "1,0:1",  // Check tile at path [1]
+});
+
+if (hasComp) {
+  // Get all composed children for tile
+  const composed = await trpc.map.items.getComposedChildren.query({
+    coordId: "1,0:1",
+  });
+
+  // Each composed item has negative direction in path
+  composed.forEach(item => {
+    console.log(item.coords);  // e.g., "1,0:1,-3" (NorthWest → ComposedEast)
+  });
+}
+
+// Add composed child
+const composedItem = await trpc.map.items.addItem.mutate({
+  parentId: parentItem.id,
+  coords: { userId: 1, groupId: 0, path: [1, -3] },  // Negative direction
+  title: "Behavioral Modifier",
+  content: "This modifies parent behavior",
+});
+
+// Get descendants excluding composition
+const structuralOnly = await trpc.map.items.getDescendants.query({
+  itemId: parentItem.id,
+  includeComposition: false,  // Excludes negative directions
+});
+
+// Get all descendants including composition
+const allDescendants = await trpc.map.items.getDescendants.query({
+  itemId: parentItem.id,
+  includeComposition: true,  // Includes negative directions
 });
 ```
 

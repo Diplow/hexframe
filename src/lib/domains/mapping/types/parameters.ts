@@ -3,11 +3,12 @@ import { MapItemType } from "~/lib/domains/mapping/_objects";
 
 /**
  * Shared coordinate schema
+ * Supports positive directions (1-6), zero (Center), and negative directions (-1 to -6) for composed children
  */
 const CoordsSchema = z.object({
   userId: z.number().positive(),
   groupId: z.number().min(0),
-  path: z.array(z.number().min(0).max(6)),
+  path: z.array(z.number().min(-6).max(6)),
 });
 
 /**

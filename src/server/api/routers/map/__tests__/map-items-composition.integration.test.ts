@@ -18,7 +18,7 @@ describe("tRPC Map Items Router - Composition Queries [Integration - DB]", () =>
   });
 
   describe("getComposedChildren", () => {
-    it("should return composition container and children for tile with composition", async () => {
+    it("should return composed children for tile with composition", async () => {
       const setup = await _setupTileWithComposition();
 
       // Query via domain service (simulating tRPC call)
@@ -26,13 +26,11 @@ describe("tRPC Map Items Router - Composition Queries [Integration - DB]", () =>
         coordId: setup.parentCoordsId,
       });
 
-      // Should return container + 2 children = 3 items
-      expect(composedItems.length).toBe(3);
-      expect(composedItems[0]!.coords).toBe(setup.compositionContainerCoordsId);
-      expect(composedItems[0]!.title).toBe("Composition Container");
+      // Should return 2 children (no container in new system)
+      expect(composedItems.length).toBe(2);
 
       // Verify children
-      const childTitles = composedItems.slice(1).map((item) => item.title);
+      const childTitles = composedItems.map((item) => item.title);
       expect(childTitles).toContain("Composed Child 1");
       expect(childTitles).toContain("Composed Child 2");
     });
@@ -47,15 +45,14 @@ describe("tRPC Map Items Router - Composition Queries [Integration - DB]", () =>
       expect(composedItems.length).toBe(0);
     });
 
-    it("should return only container when composition has no children", async () => {
-      const setup = await _setupCompositionContainerOnly();
+    it("should return empty array when parent exists but has no composed children", async () => {
+      const setup = await _setupTileWithoutComposition();
 
       const composedItems = await testEnv.service.items.query.getComposedChildren({
         coordId: setup.parentCoordsId,
       });
 
-      expect(composedItems.length).toBe(1);
-      expect(composedItems[0]!.title).toBe("Composition Container");
+      expect(composedItems.length).toBe(0);
     });
 
     it("should handle root tile composition", async () => {
@@ -64,41 +61,45 @@ describe("tRPC Map Items Router - Composition Queries [Integration - DB]", () =>
       const rootItem = rootMap.items[0];
       if (!rootItem) throw new Error("Root item not found");
 
-      // Create composition for root tile
+      // Create composed child for root tile
       const rootCoords = CoordSystem.parseId(rootItem.coords);
-      const compositionCoords = CoordSystem.getCompositionCoord(rootCoords);
+      const composedChildCoord: Coord = {
+        ...rootCoords,
+        path: [Direction.ComposedNorthWest],
+      };
 
       await testEnv.service.items.crud.addItemToMap({
         parentId: parseInt(rootItem.id),
-        coords: compositionCoords,
-        title: "Root Composition Container",
+        coords: composedChildCoord,
+        title: "Root Composed Child",
       });
 
       const composedItems = await testEnv.service.items.query.getComposedChildren({
         coordId: rootItem.coords,
       });
 
-      expect(composedItems.length).toBeGreaterThanOrEqual(1);
-      expect(composedItems[0]!.title).toBe("Root Composition Container");
+      expect(composedItems.length).toBe(1);
+      expect(composedItems[0]!.title).toBe("Root Composed Child");
     });
 
-    it("should only return direct children of composition container", async () => {
+    it("should only return direct composed children, not grandchildren", async () => {
       const setup = await _setupNestedComposition();
 
       const composedItems = await testEnv.service.items.query.getComposedChildren({
         coordId: setup.parentCoordsId,
       });
 
-      // Should not include grandchildren
-      expect(composedItems.length).toBe(2); // Container + 1 direct child
+      // Should only return the direct composed child, not its structural child
+      expect(composedItems.length).toBe(1);
+      expect(composedItems[0]!.title).toBe("Composed Child");
       expect(composedItems.map((item) => item.title)).not.toContain(
-        "Nested Grandchild"
+        "Nested Structural Child"
       );
     });
   });
 
   describe("hasComposition", () => {
-    it("should return true when tile has composition container", async () => {
+    it("should return true when tile has composed children", async () => {
       const setup = await _setupTileWithComposition();
 
       const hasComp = await testEnv.service.items.query.hasComposition({
@@ -108,7 +109,7 @@ describe("tRPC Map Items Router - Composition Queries [Integration - DB]", () =>
       expect(hasComp).toBe(true);
     });
 
-    it("should return false when tile has no composition", async () => {
+    it("should return false when tile has no composed children", async () => {
       const setup = await _setupTileWithoutComposition();
 
       const hasComp = await testEnv.service.items.query.hasComposition({
@@ -131,19 +132,22 @@ describe("tRPC Map Items Router - Composition Queries [Integration - DB]", () =>
       expect(hasComp).toBe(false);
     });
 
-    it("should return true for root tile with composition", async () => {
+    it("should return true for root tile with composed children", async () => {
       const testParams = _createUniqueTestParams();
       const rootMap = await _setupBasicMap(testEnv.service, testParams);
       const rootItem = rootMap.items[0];
       if (!rootItem) throw new Error("Root item not found");
 
-      // Add composition container
+      // Add composed child (negative direction)
       const rootCoords = CoordSystem.parseId(rootItem.coords);
-      const compositionCoords = CoordSystem.getCompositionCoord(rootCoords);
+      const composedChildCoord: Coord = {
+        ...rootCoords,
+        path: [Direction.ComposedEast],
+      };
 
       await testEnv.service.items.crud.addItemToMap({
         parentId: parseInt(rootItem.id),
-        coords: compositionCoords,
+        coords: composedChildCoord,
         title: "Root Composition",
       });
 
@@ -173,26 +177,14 @@ describe("tRPC Map Items Router - Composition Queries [Integration - DB]", () =>
       title: "Parent Tile",
     });
 
-    // Create composition container (direction 0)
-    const compositionCoords: Coord = _createTestCoordinates({
-      userId,
-      groupId,
-      path: [Direction.NorthEast, Direction.Center],
-    });
-    const containerItem = await testEnv.service.items.crud.addItemToMap({
-      parentId: parseInt(parentItem.id),
-      coords: compositionCoords,
-      title: "Composition Container",
-    });
-
-    // Create composed children
+    // Create composed children directly with negative directions (no container)
     const child1Coords: Coord = _createTestCoordinates({
       userId,
       groupId,
-      path: [Direction.NorthEast, Direction.Center, Direction.NorthWest],
+      path: [Direction.NorthEast, Direction.ComposedNorthWest],
     });
     await testEnv.service.items.crud.addItemToMap({
-      parentId: parseInt(containerItem.id),
+      parentId: parseInt(parentItem.id),
       coords: child1Coords,
       title: "Composed Child 1",
     });
@@ -200,17 +192,16 @@ describe("tRPC Map Items Router - Composition Queries [Integration - DB]", () =>
     const child2Coords: Coord = _createTestCoordinates({
       userId,
       groupId,
-      path: [Direction.NorthEast, Direction.Center, Direction.East],
+      path: [Direction.NorthEast, Direction.ComposedEast],
     });
     await testEnv.service.items.crud.addItemToMap({
-      parentId: parseInt(containerItem.id),
+      parentId: parseInt(parentItem.id),
       coords: child2Coords,
       title: "Composed Child 2",
     });
 
     return {
       parentCoordsId: CoordSystem.createId(parentCoords),
-      compositionContainerCoordsId: CoordSystem.createId(compositionCoords),
     };
   }
 
@@ -236,40 +227,6 @@ describe("tRPC Map Items Router - Composition Queries [Integration - DB]", () =>
     };
   }
 
-  async function _setupCompositionContainerOnly() {
-    const testParams = _createUniqueTestParams();
-    const { userId, groupId } = testParams;
-    const rootMap = await _setupBasicMap(testEnv.service, testParams);
-
-    // Create parent tile
-    const parentCoords: Coord = _createTestCoordinates({
-      userId,
-      groupId,
-      path: [Direction.West],
-    });
-    const parentItem = await testEnv.service.items.crud.addItemToMap({
-      parentId: rootMap.id,
-      coords: parentCoords,
-      title: "Parent Tile",
-    });
-
-    // Create composition container without children
-    const compositionCoords: Coord = _createTestCoordinates({
-      userId,
-      groupId,
-      path: [Direction.West, Direction.Center],
-    });
-    await testEnv.service.items.crud.addItemToMap({
-      parentId: parseInt(parentItem.id),
-      coords: compositionCoords,
-      title: "Composition Container",
-    });
-
-    return {
-      parentCoordsId: CoordSystem.createId(parentCoords),
-    };
-  }
-
   async function _setupNestedComposition() {
     const testParams = _createUniqueTestParams();
     const { userId, groupId } = testParams;
@@ -287,40 +244,28 @@ describe("tRPC Map Items Router - Composition Queries [Integration - DB]", () =>
       title: "Parent Tile",
     });
 
-    // Create composition container
-    const compositionCoords: Coord = _createTestCoordinates({
-      userId,
-      groupId,
-      path: [Direction.SouthEast, Direction.Center],
-    });
-    const containerItem = await testEnv.service.items.crud.addItemToMap({
-      parentId: parseInt(parentItem.id),
-      coords: compositionCoords,
-      title: "Composition Container",
-    });
-
-    // Create composed child
+    // Create composed child with negative direction
     const childCoords: Coord = _createTestCoordinates({
       userId,
       groupId,
-      path: [Direction.SouthEast, Direction.Center, Direction.NorthWest],
+      path: [Direction.SouthEast, Direction.ComposedNorthWest],
     });
     const childItem = await testEnv.service.items.crud.addItemToMap({
-      parentId: parseInt(containerItem.id),
+      parentId: parseInt(parentItem.id),
       coords: childCoords,
       title: "Composed Child",
     });
 
-    // Create nested grandchild (should NOT be returned)
+    // Create structural child of the composed child (should NOT be returned by getComposedChildren of parent)
     const grandchildCoords: Coord = _createTestCoordinates({
       userId,
       groupId,
-      path: [Direction.SouthEast, Direction.Center, Direction.NorthWest, Direction.East],
+      path: [Direction.SouthEast, Direction.ComposedNorthWest, Direction.East],
     });
     await testEnv.service.items.crud.addItemToMap({
       parentId: parseInt(childItem.id),
       coords: grandchildCoords,
-      title: "Nested Grandchild",
+      title: "Nested Structural Child",
     });
 
     return {

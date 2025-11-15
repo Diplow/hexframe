@@ -227,7 +227,10 @@ export class MutationCoordinator {
       
       // Finalize with real data
       await this._finalizeCreate(coordId, result, changeId);
-      
+
+      // Emit create event
+      this._emitCreateEvent(result, coordId, parentId);
+
       return { success: true, data: result };
     } catch (error) {
       await this._rollbackCreate(coordId, changeId);
@@ -256,7 +259,10 @@ export class MutationCoordinator {
       
       // Finalize with real data
       await this._finalizeUpdate(coordId, result, changeId);
-      
+
+      // Emit update event
+      this._emitUpdateEvent(result, coordId);
+
       return { success: true, data: result };
     } catch (error) {
       this._rollbackToPreviousData(changeId);
@@ -268,26 +274,29 @@ export class MutationCoordinator {
     // deleteItem called with coordId
     const changeId = this.tracker.generateChangeId();
     // Generated change ID
-    
+
     const existingItem = this._getExistingItem(coordId);
     // Found existing item
-    
+
     try {
       // Apply optimistic removal
       const previousData = this._reconstructApiData(existingItem);
       // Applying optimistic delete
       this._applyOptimisticDelete(coordId, previousData, changeId);
-      
+
       // Make server call
       const coords = CoordSystem.parseId(coordId);
       // Making server delete call
       await this.config.deleteItemMutation.mutateAsync({ coords });
       // Server delete successful
-      
+
       // Finalize deletion
       await this._finalizeDelete(String(existingItem.metadata.dbId), changeId);
       // Delete finalized
-      
+
+      // Emit delete event
+      this._emitDeleteEvent(existingItem);
+
       return { success: true };
     } catch (error) {
       // Delete failed
@@ -594,17 +603,7 @@ export class MutationCoordinator {
     if (!parentCoords) return null;
 
     const parentCoordId = CoordSystem.createId(parentCoords);
-    let parentItem = this.config.getState().itemsById[parentCoordId];
-
-    // Handle virtual composition containers (ending in ,0)
-    // If parent doesn't exist and is a composition container, use grandparent
-    if (!parentItem && parentCoordId.endsWith(',0')) {
-      const grandparentCoords = CoordSystem.getParentCoord(parentCoords);
-      if (grandparentCoords) {
-        const grandparentCoordId = CoordSystem.createId(grandparentCoords);
-        parentItem = this.config.getState().itemsById[grandparentCoordId];
-      }
-    }
+    const parentItem = this.config.getState().itemsById[parentCoordId];
 
     return parentItem ? String(parentItem.metadata.dbId) : null;
   }
@@ -652,6 +651,25 @@ export class MutationCoordinator {
     changeId: string
   ): Promise<void> {
     this.config.dispatch(cacheActions.loadRegion([result], coordId, 1));
+
+    // Check if this is a composition child (direction 0 or negative direction)
+    const coords = CoordSystem.parseId(coordId);
+    const lastDirection = coords.path[coords.path.length - 1];
+    const isCompositionChild = lastDirection !== undefined && (lastDirection as number) <= 0;
+
+    if (isCompositionChild) {
+      // Refresh parent's composition data so the new child appears
+      const parentCoords = CoordSystem.getParentCoord(coords);
+      if (parentCoords) {
+        const parentCoordId = CoordSystem.createId(parentCoords);
+        try {
+          await this.config.dataOperations.fetchCompositionChildren?.(parentCoordId);
+        } catch (error) {
+          console.warn('Failed to fetch parent composition children:', error);
+        }
+      }
+    }
+
     try {
       await this.config.storageService.save(`item:${result.id}`, result);
     } catch (e) {
@@ -1089,6 +1107,50 @@ export class MutationCoordinator {
         destinationId: copiedItem.id,
         fromCoordId: sourceCoordId,
         toCoordId: destinationCoordId
+      }
+    });
+  }
+
+  private _emitDeleteEvent(deletedItem: TileData): void {
+    if (!this.config.eventBus) return;
+
+    this.config.eventBus.emit({
+      type: 'map.tile_deleted',
+      source: 'map_cache',
+      payload: {
+        tileId: String(deletedItem.metadata.dbId),
+        tileName: deletedItem.data.title,
+        coordId: deletedItem.metadata.coordId
+      }
+    });
+  }
+
+  private _emitCreateEvent(createdItem: MapItemAPIContract, coordId: string, parentId: string | null): void {
+    if (!this.config.eventBus) return;
+
+    this.config.eventBus.emit({
+      type: 'map.tile_created',
+      source: 'map_cache',
+      payload: {
+        tileId: createdItem.id,
+        tileName: createdItem.title,
+        coordId,
+        parentId: parentId ?? undefined
+      }
+    });
+  }
+
+  private _emitUpdateEvent(updatedItem: MapItemAPIContract, coordId: string): void {
+    if (!this.config.eventBus) return;
+
+    this.config.eventBus.emit({
+      type: 'map.tile_updated',
+      source: 'map_cache',
+      payload: {
+        tileId: updatedItem.id,
+        tileName: updatedItem.title,
+        coordId,
+        changes: {}
       }
     });
   }

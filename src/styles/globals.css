@@ -635,3 +635,17 @@
   border-color: rgba(96, 165, 250, 0.7);
 }
 
+/* ================================
+   Orchestration Tile (Direction 0)
+   ================================ */
+
+/* Light mode - lighter neutral gray */
+.fill-orchestration {
+  fill: theme(colors.zinc.300);
+}
+
+/* Dark mode - darker neutral gray */
+.dark .fill-orchestration {
+  fill: theme(colors.zinc.600);
+}
+

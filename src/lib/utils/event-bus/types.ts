@@ -68,11 +68,24 @@ export interface MapTileMovedEvent extends AppEvent {
   };
 }
 
+export interface MapItemCopiedEvent extends AppEvent {
+  type: 'map.item_copied';
+  source: 'map_cache';
+  payload: {
+    sourceId: string;
+    sourceName: string;
+    destinationId: string;
+    fromCoordId: string;
+    toCoordId: string;
+  };
+}
+
 export interface MapNavigationEvent extends AppEvent {
   type: 'map.navigation';
   source: 'map_cache';
   payload: {
     fromCenterId?: string;
+    fromCenterName?: string;
     toCenterId: string;
     toCenterName: string;
   };
@@ -137,6 +150,7 @@ export type SpecificAppEvent =
   | MapTileDeletedEvent
   | MapTilesSwappedEvent
   | MapTileMovedEvent
+  | MapItemCopiedEvent
   | MapNavigationEvent
   | MapExpansionChangedEvent
   | MapImportCompletedEvent

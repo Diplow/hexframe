@@ -10,6 +10,7 @@ Repository interfaces are like "job descriptions for data access workers" - they
 - Define type-safe method signatures using TypeScript generics
 - Ensure consistent repository patterns across all domain entities
 - Document expected behavior through method signatures and JSDoc
+- Support composition queries using negative directions (-1 to -6) with backward compatibility for legacy Direction.Center (0) pattern
 
 ## Non-Responsibilities
 - Actual database queries → See `../infrastructure/README.md`
@@ -24,10 +25,16 @@ Repository interfaces are like "job descriptions for data access workers" - they
 - `MapItemRepository`: Interface for MapItem data access with coordinate-based queries
 - `MapItemIdr`: Identifier type for MapItem queries
 
-**Key Methods Added (Version History):**
+**Key Methods (Version History):**
 - `getVersionHistory(baseItemId, options?)`: Query all versions with pagination support
 - `getVersionByNumber(baseItemId, versionNumber)`: Retrieve specific version by number
 - `getLatestVersion(baseItemId)`: Get most recent version
+
+**Key Methods (Composition with Negative Directions):**
+- `getContextForCenter(config)`: Optimized context fetch supporting both negative direction (-1 to -6) and legacy Direction.Center (0) composed children
+  - `includeComposed: true`: Returns children with negative directions OR under Direction.Center container
+  - `includeChildren: true`: Returns only structural children (positive directions 1-6), excluding composed children
+  - Backward compatible during transition from Direction.Center to negative directions model
 
 **Dependencies**: Repository interfaces have no runtime dependencies. They are consumed by:
 - Infrastructure implementations: `../infrastructure/base-item/db.ts`, `../infrastructure/map-item/db.ts`

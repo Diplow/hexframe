@@ -22,11 +22,17 @@ function getColor(coordinates: Coord): string {
   if (coordinates.path.length < 1) {
     return getSemanticColorClass(Direction.Center, 0);
   }
-  
+
+  // Direction 0 orchestration tile - use neutral color
+  const lastDirection = coordinates.path[coordinates.path.length - 1];
+  if (lastDirection === Direction.Center) {
+    return "orchestration"; // Custom class with dark mode support (zinc-300 light, zinc-600 dark)
+  }
+
   // Get direction from first path element
   const direction = coordinates.path[0]!;
   const depth = coordinates.path.length;
-  
+
   return getSemanticColorClass(direction, depth);
 }
 

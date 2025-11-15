@@ -35,9 +35,9 @@ Example: "You're in the execution phase working on Priority 0 (Establish baselin
 Hexframe transforms visions into living systems through AI-powered hexagonal maps.
 
 ### Core Documentation
-- **Mission & Vision**: `company/MISSION.md` - Why Hexframe exists
-- **Culture & Values**: `company/CULTURE.md` - The tensions that guide us  
-- **Target User**: `company/TARGET_USER.md` - Who we serve (system thinkers)
+- **Mission & Vision**: `docs/company/MISSION.md` - Why Hexframe exists
+- **Culture & Values**: `docs/company/CULTURE.md` - The tensions that guide us  
+- **Target User**: `docs/company/TARGET_USER.md` - Who we serve (system thinkers)
 - **Main page**: `src/app/map/README.md` - The interface (web page) to the HexFrame system
 - **Domain Model**: `src/lib/domains/README.md` - Core domain structure
 - **System Philosophy**: `src/app/SYSTEM.md` - What systems mean in Hexframe
@@ -94,6 +94,32 @@ Use `pnpm check:deadcode [path]` to identify unused exports, files, and transiti
 - **Drizzle ORM + PostgreSQL**
 - Migrations in `/drizzle/migrations/`
 - localStorage for performance caching
+
+## Composition System Architecture
+
+Hexframe uses a **negative direction** approach for storing composed children:
+
+### Direction Values
+- **Positive 1-6**: Structural children (normal hierarchy)
+- **Negative -1 to -6**: Composed children (combined functionality)
+- **Direction 0**: Reserved for future meta-orchestration
+
+### Key Characteristics
+- Tiles can have BOTH structural and composed children simultaneously
+- Path example: `[1, -3, 4]` = NW → ComposedE → SE (mixed hierarchy)
+- Composed children stored as direct children with negative direction values
+- UX: Composition expansion controlled by boolean toggle (not per-tile)
+- Storage detail: Negative directions are internal implementation, not exposed in UI
+
+### Implementation Layers
+All layers support negative directions consistently:
+- **Utils**: Direction enum includes negative values (-1 to -6)
+- **Types**: Parameter schemas validate negative directions
+- **Services**: Composition queries filter by negative direction
+- **Repositories**: Database queries handle negative path values
+- **Infrastructure**: PostgreSQL stores negative integers in path arrays
+
+See `UBIQUITOUS.md` for complete terminology and `src/lib/domains/mapping/README.md` for domain implementation details.
 
 ## Important Notes
 - Always use `pnpm` (not npm or yarn)

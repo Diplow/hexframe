@@ -82,10 +82,11 @@ WORKFLOW: First use getCurrentUser to get the user's mappingId, then use that as
 
 HEXFRAME CONTEXT: You're working with a hexagonal knowledge mapping system where:
 - Tiles are hexagonal units organized hierarchically around a center
-- Coordinates: {userId: 1, groupId: 0, path: [0,1]} where path=directions from root
-- Directions: 0=Center, 1=NorthWest, 2=NorthEast, 3=East, 4=SouthEast, 5=SouthWest, 6=West
+- Coordinates: {userId: 1, groupId: 0, path: [1,-2]} where path=directions from root
+- Structural directions (1-6): 1=NorthWest, 2=NorthEast, 3=East, 4=SouthEast, 5=SouthWest, 6=West
+- Composed directions (-1 to -6): Children "inside" the parent tile, mapping to same spatial positions as 1-6
 - Empty path=[] means root/center tile
-- Each tile can have up to 6 children in different directions
+- Each tile can have up to 6 structural children (1-6) and up to 6 composed children (-1 to -6)
 
 This tool returns nested structure with children[] arrays showing the knowledge hierarchy.
 Use 'fields' parameter for progressive disclosure: ["name", "preview"] for overview, ["name", "content"] for full content.`,
@@ -196,7 +197,12 @@ Use 'fields' parameter for progressive disclosure: ["name", "preview"] for overv
 
   {
     name: "addItem",
-    description: "Create a new Hexframe tile at specified coordinates. The tile will be created as a child of the parent at the given direction. For root tiles, use empty path=[].",
+    description: `Create a new Hexframe tile at specified coordinates. The tile will be created as a child of the parent at the given direction. For root tiles, use empty path=[].
+
+DIRECTION USAGE:
+- Structural children (1-6): Regular hierarchy, visible in navigation
+- Composed children (-1 to -6): Content "inside" the parent, like reference materials or tools
+- Use negative directions when creating composition children (e.g., path: [1, -2] creates a composed child at NorthEast inside tile at direction 1)`,
     inputSchema: {
       type: "object",
       properties: {
@@ -209,7 +215,7 @@ Use 'fields' parameter for progressive disclosure: ["name", "preview"] for overv
             path: {
               type: "array",
               items: { type: "number" },
-              description: "Array of directions from root"
+              description: "Array of directions from root (can include negative values -1 to -6 for composed children)"
             }
           },
           required: ["userId", "groupId", "path"]
@@ -402,6 +408,350 @@ Ensure both old and new coordinates are correct. The user must own both the item
       const oldCoords = normalizeCoordinates(argsObj?.oldCoords);
       const newCoords = normalizeCoordinates(argsObj?.newCoords);
       return await moveItemHandler(oldCoords, newCoords);
+    },
+  },
+
+  {
+    name: "getAncestry",
+    description: "Get all ancestor tiles from a given tile up to the root. Returns array of tiles in order from immediate parent to root.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        coords: {
+          type: "object",
+          description: "The coordinates of the tile to get ancestry for",
+          properties: {
+            userId: { type: "number" },
+            groupId: { type: "number" },
+            path: {
+              type: "array",
+              items: { type: "number" },
+              description: "Array of directions from root"
+            }
+          },
+          required: ["userId", "groupId", "path"]
+        },
+        fields: {
+          type: "array",
+          items: {
+            type: "string",
+            enum: ["title", "content", "preview", "link", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
+          },
+          description: "Fields to include in response. Default: ['title', 'coordinates']",
+          default: ["title", "coordinates"]
+        }
+      },
+      required: ["coords"],
+    },
+    handler: async (args: unknown) => {
+      const argsObj = args as Record<string, unknown>;
+      const coords = normalizeCoordinates(argsObj?.coords);
+      const fields = argsObj?.fields as string[] | undefined;
+
+      // Get ancestry by walking up the path
+      const ancestry = [];
+      for (let i = coords.path.length - 1; i >= 0; i--) {
+        const ancestorCoords = {
+          userId: coords.userId,
+          groupId: coords.groupId,
+          path: coords.path.slice(0, i)
+        };
+
+        try {
+          const ancestor = await getItemByCoordsHandler(ancestorCoords, fields);
+          if (ancestor) {
+            ancestry.push(ancestor);
+          }
+        } catch {
+          // Ancestor doesn't exist, skip
+        }
+      }
+
+      return ancestry;
+    },
+  },
+
+  {
+    name: "getSiblings",
+    description: "Get all sibling tiles (tiles at the same depth sharing the same parent) for a given tile.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        coords: {
+          type: "object",
+          description: "The coordinates of the tile to get siblings for",
+          properties: {
+            userId: { type: "number" },
+            groupId: { type: "number" },
+            path: {
+              type: "array",
+              items: { type: "number" },
+              description: "Array of directions from root"
+            }
+          },
+          required: ["userId", "groupId", "path"]
+        },
+        fields: {
+          type: "array",
+          items: {
+            type: "string",
+            enum: ["title", "content", "preview", "link", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
+          },
+          description: "Fields to include in response. Default: ['title', 'preview', 'coordinates']",
+          default: ["title", "preview", "coordinates"]
+        }
+      },
+      required: ["coords"],
+    },
+    handler: async (args: unknown) => {
+      const argsObj = args as Record<string, unknown>;
+      const coords = normalizeCoordinates(argsObj?.coords);
+      const fields = argsObj?.fields as string[] | undefined;
+
+      if (coords.path.length === 0) {
+        // Root has no siblings
+        return [];
+      }
+
+      const { CoordSystem } = await import("~/lib/domains/mapping/utils");
+      const coordId = CoordSystem.createId(coords);
+      const siblingCoordIds = CoordSystem.getSiblingsFromId(coordId);
+
+      const siblings = [];
+      for (const siblingCoordId of siblingCoordIds) {
+        try {
+          const siblingCoords = CoordSystem.parseId(siblingCoordId);
+          const sibling = await getItemByCoordsHandler(siblingCoords, fields);
+          if (sibling) {
+            siblings.push(sibling);
+          }
+        } catch {
+          // Sibling doesn't exist, skip
+        }
+      }
+
+      return siblings;
+    },
+  },
+
+  {
+    name: "getComposedChildren",
+    description: "Get all composed children (children with negative directions -1 to -6) for a given tile. These are 'inside' the tile - reference materials, tools, templates.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        coords: {
+          type: "object",
+          description: "The coordinates of the tile to get composed children for",
+          properties: {
+            userId: { type: "number" },
+            groupId: { type: "number" },
+            path: {
+              type: "array",
+              items: { type: "number" },
+              description: "Array of directions from root"
+            }
+          },
+          required: ["userId", "groupId", "path"]
+        },
+        fields: {
+          type: "array",
+          items: {
+            type: "string",
+            enum: ["title", "content", "preview", "link", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
+          },
+          description: "Fields to include in response. Default: ['title', 'content', 'coordinates']",
+          default: ["title", "content", "coordinates"]
+        }
+      },
+      required: ["coords"],
+    },
+    handler: async (args: unknown) => {
+      const argsObj = args as Record<string, unknown>;
+      const coords = normalizeCoordinates(argsObj?.coords);
+      const fields = argsObj?.fields as string[] | undefined;
+
+      // Get composed children at negative directions (-1 to -6)
+      const composedChildren = [];
+      for (let dir = -1; dir >= -6; dir--) {
+        const childCoords = {
+          ...coords,
+          path: [...coords.path, dir]
+        };
+
+        try {
+          const child = await getItemByCoordsHandler(childCoords, fields);
+          if (child) {
+            composedChildren.push(child);
+          }
+        } catch {
+          // Child doesn't exist, skip
+        }
+      }
+
+      return composedChildren;
+    },
+  },
+
+  {
+    name: "getRegularChildren",
+    description: "Get regular children (directions 1-6) for a given tile. These are subtasks or next steps.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        coords: {
+          type: "object",
+          description: "The coordinates of the tile to get children for",
+          properties: {
+            userId: { type: "number" },
+            groupId: { type: "number" },
+            path: {
+              type: "array",
+              items: { type: "number" },
+              description: "Array of directions from root"
+            }
+          },
+          required: ["userId", "groupId", "path"]
+        },
+        fields: {
+          type: "array",
+          items: {
+            type: "string",
+            enum: ["title", "content", "preview", "link", "id", "coordinates", "depth", "parentId", "itemType", "ownerId"]
+          },
+          description: "Fields to include in response. Default: ['title', 'preview', 'coordinates']",
+          default: ["title", "preview", "coordinates"]
+        },
+        recursive: {
+          type: "boolean",
+          description: "If true, recursively fetch all descendants and return flattened in post-order. Default: false",
+          default: false
+        }
+      },
+      required: ["coords"],
+    },
+    handler: async (args: unknown) => {
+      const argsObj = args as Record<string, unknown>;
+      const coords = normalizeCoordinates(argsObj?.coords);
+      const fields = argsObj?.fields as string[] | undefined;
+      const recursive = argsObj?.recursive as boolean | undefined;
+
+      if (!recursive) {
+        // Simple case: just get direct children
+        const children = [];
+        for (let dir = 1; dir <= 6; dir++) {
+          const childCoords = {
+            ...coords,
+            path: [...coords.path, dir]
+          };
+
+          try {
+            const child = await getItemByCoordsHandler(childCoords, fields);
+            if (child) {
+              children.push(child);
+            }
+          } catch {
+            // Child doesn't exist, skip
+          }
+        }
+        return children;
+      }
+
+      // Recursive case: fetch all descendants and flatten in post-order
+      type ItemWithChildren = { children: ItemWithChildren[] } & Awaited<ReturnType<typeof getItemByCoordsHandler>>;
+
+      async function fetchDescendants(parentCoords: typeof coords): Promise<ItemWithChildren[]> {
+        const children: ItemWithChildren[] = [];
+        for (let dir = 1; dir <= 6; dir++) {
+          const childCoords = {
+            ...parentCoords,
+            path: [...parentCoords.path, dir]
+          };
+
+          try {
+            const child = await getItemByCoordsHandler(childCoords, fields);
+            if (child) {
+              const grandchildren = await fetchDescendants(childCoords);
+              children.push({ ...child, children: grandchildren });
+            }
+          } catch {
+            // Child doesn't exist, skip
+          }
+        }
+        return children;
+      }
+
+      function flattenPostOrder(items: ItemWithChildren[]): unknown[] {
+        const result: unknown[] = [];
+        for (const item of items) {
+          result.push(...flattenPostOrder(item.children));
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { children, ...itemWithoutChildren } = item;
+          result.push(itemWithoutChildren);
+        }
+        return result;
+      }
+
+      const childrenWithDescendants = await fetchDescendants(coords);
+      return flattenPostOrder(childrenWithDescendants);
+    },
+  },
+
+  {
+    name: "hexecute",
+    description: `Generate execution-ready prompt from a task tile and its composed children.
+
+WORKFLOW: This tool reads a task tile and its composed children, then produces an XML prompt for AI agent execution. An agent session is opened with guidance from the task tile's title/content and all composed children's titles/contents.
+
+TYPICAL USAGE:
+1. Identify a task tile at specific coordinates (e.g., "23,0:6")
+2. Call hexecute with taskCoords to get an AI-ready prompt
+3. Optionally provide an instruction string for additional context
+4. Use the returned XML prompt to spawn an agent session
+5. The agent follows guidance from the task and its composed children
+
+COORDINATES FORMAT: "userId,groupId:path" (e.g., "23,0:6" or "1,0:1,1")
+
+COMPOSED CHILDREN: The task's composed children (negative directions -1 to -6) contain reference materials that guide execution. What these children contain is up to the tile author - they define the orchestration, context gathering, state management, or any other guidance the agent needs.
+
+EXECUTION HISTORY: If an execution history exists at direction -1 with path ending in [0,-1], its content is included in the prompt to provide continuity across sessions.
+
+Returns an XML-formatted prompt string ready for AI agent consumption.`,
+    inputSchema: {
+      type: "object",
+      properties: {
+        taskCoords: {
+          type: "string",
+          description: "Coordinates of task tile to execute (format: 'userId,groupId:path' e.g. '23,0:6')"
+        },
+        instruction: {
+          type: "string",
+          description: "Optional instruction to add to execution history section"
+        }
+      },
+      required: ["taskCoords"],
+    },
+    handler: async (args: unknown) => {
+      const argsObj = args as Record<string, unknown>;
+      const taskCoords = argsObj?.taskCoords as string;
+      const instruction = argsObj?.instruction as string | undefined;
+
+      if (!taskCoords) {
+        throw new Error("taskCoords parameter is required");
+      }
+
+      const { callTrpcEndpoint } = await import("~/app/services/mcp/services/api-helpers");
+
+      const result = await callTrpcEndpoint<{ prompt: string }>(
+        "agentic.hexecute",
+        {
+          taskCoords,
+          instruction
+        },
+        { requireAuth: false }
+      );
+
+      return result;
     },
   },
 ];

@@ -10,6 +10,8 @@ export { createAgenticService as AgenticFactory } from '~/lib/domains/agentic/se
 export { createAgenticService } from '~/lib/domains/agentic/services';
 export { PreviewGeneratorService } from '~/lib/domains/agentic/services/preview-generator.service';
 export type { GeneratePreviewInput, GeneratePreviewResult } from '~/lib/domains/agentic/services/preview-generator.service';
+export { executePrompt } from '~/lib/domains/agentic/services/prompt-executor.service';
+export type { ExecutePromptParams, TaskHierarchyData } from '~/lib/domains/agentic/services/prompt-executor.service';
 
 // Context builders
 export { CanvasContextBuilder } from '~/lib/domains/agentic/services/canvas-context-builder.service';

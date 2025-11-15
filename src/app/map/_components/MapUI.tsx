@@ -168,9 +168,9 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
 
   // Composition state checkers
   const hasComposition = (coordId: string): boolean => {
-    // Check if tile has a composition child (direction 0)
-    const compositionCoordId = CoordSystem.getCompositionCoordFromId(coordId);
-    return !!mapItems[compositionCoordId];
+    // Check if tile has any composed children (negative directions)
+    const composedChildCoordIds = CoordSystem.getComposedChildCoordsFromId(coordId);
+    return composedChildCoordIds.some(childCoordId => !!mapItems[childCoordId]);
   };
 
   const isCompositionExpandedForTile = (coordId: string): boolean => {

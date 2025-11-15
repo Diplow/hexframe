@@ -78,13 +78,13 @@ export interface NavigationPayload {
 }
 
 export interface OperationStartedPayload {
-  operation: 'create' | 'update' | 'delete' | 'move' | 'swap';
+  operation: 'create' | 'update' | 'delete' | 'move' | 'swap' | 'copy';
   tileId?: string;
   data?: unknown;
 }
 
 export interface OperationCompletedPayload {
-  operation: 'create' | 'update' | 'delete' | 'move' | 'swap';
+  operation: 'create' | 'update' | 'delete' | 'move' | 'swap' | 'copy';
   tileId?: string;
   result: 'success' | 'failure';
   message: string;
