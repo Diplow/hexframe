@@ -246,6 +246,9 @@ export const generatePreview = inngest.createFunction(
         // Always use OpenRouter for preview generation (simple, fast model call)
         // Don't use Claude Agent SDK as it spawns processes unnecessarily
         const repository = new OpenRouterRepository(env.OPENROUTER_API_KEY ?? '')
+        if (!repository.isConfigured()) {
+          throw new Error('OPENROUTER_API_KEY is required for preview generation')
+        }
         const previewService = new PreviewGeneratorService(repository)
 
         loggers.agentic('Generating preview', { jobId, titleLength: title.length, contentLength: content.length })
