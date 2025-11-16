@@ -144,3 +144,55 @@ function _buildPublicAPI(deps: CacheAPIDependencies): MapCacheHook {
     updateConfig,
   };
 }
+
+/**
+ * Hook that returns only the center coordinate
+ * Use this to avoid rerenders when other cache state changes
+ */
+export function useMapCacheCenter() {
+  const context = useContext(MapCacheContext);
+  if (!context) {
+    throw new Error("useMapCacheCenter must be used within a MapCacheProvider");
+  }
+  return context.state.currentCenter;
+}
+
+/**
+ * Hook that returns only pending operations
+ * Use this to avoid rerenders when other cache state changes
+ */
+export function useMapCachePendingOps() {
+  const context = useContext(MapCacheContext);
+  if (!context) {
+    throw new Error("useMapCachePendingOps must be used within a MapCacheProvider");
+  }
+  return context.state.pendingOperations;
+}
+
+/**
+ * Hook that returns only query methods (no state)
+ * Use this to avoid rerenders when cache state changes
+ */
+export function useMapCacheQuery() {
+  const context = useContext(MapCacheContext);
+  if (!context) {
+    throw new Error("useMapCacheQuery must be used within a MapCacheProvider");
+  }
+  const selectors = useMemo(() => cacheSelectors(context.state), [context.state]);
+  return useMemo(() => createQueryCallbacks(selectors), [selectors]);
+}
+
+/**
+ * Hook that returns only navigation methods (no state)
+ * Use this to avoid rerenders when cache state changes
+ */
+export function useMapCacheNavigation() {
+  const context = useContext(MapCacheContext);
+  if (!context) {
+    throw new Error("useMapCacheNavigation must be used within a MapCacheProvider");
+  }
+  return useMemo(
+    () => createNavigationCallbacks(context.navigationOperations),
+    [context.navigationOperations]
+  );
+}

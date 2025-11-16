@@ -5,7 +5,7 @@ import type { TileScale } from "~/app/map/Canvas/Tile";
 import type { URLInfo } from "~/app/map/types/url-info";
 import type { TileData } from "~/app/map/types/tile-data";
 import { OperationOverlay } from "~/app/map/Canvas/OperationOverlay";
-import { useMapCache } from "~/app/map/Cache";
+import { useMapCachePendingOps } from "~/app/map/Cache";
 import { globalTilePositionService } from "~/app/map/Services";
 
 interface CanvasTileGridProps {
@@ -48,7 +48,7 @@ export function CanvasTileGrid({
   onCreateRequested,
   children,
 }: CanvasTileGridProps) {
-  const { pendingOperations } = useMapCache();
+  const pendingOperations = useMapCachePendingOps();
   const canvasRef = useRef<HTMLDivElement>(null);
 
   // Set canvas reference for position service
