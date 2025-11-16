@@ -13,7 +13,7 @@ import { useAutocompleteLogic } from '~/app/map/Chat/Input/_hooks/autocomplete/u
 import { useMessageHandling } from '~/app/map/Chat/Input/_hooks/messages/useMessageHandling';
 import { loggers } from '~/lib/debug/debug-logger';
 import { InputForm } from '~/app/map/Chat/Input/_components/InputForm';
-import { useMapCache } from '~/app/map/Cache';
+import { useMapCacheCenter } from '~/app/map/Cache';
 import { authClient } from '~/lib/auth';
 import { useEventBus } from '~/app/map/Services';
 
@@ -21,7 +21,7 @@ import { useEventBus } from '~/app/map/Services';
 export function Input() {
   const [message, setMessage] = useState('');
   const chatState = useChatState();
-  const { center } = useMapCache();
+  const center = useMapCacheCenter();
   const eventBus = useEventBus();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 

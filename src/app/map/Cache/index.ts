@@ -17,6 +17,12 @@ export { MapCacheContext } from '~/app/map/Cache/provider'
 // Main cache hook providing all operations
 export { useMapCache } from '~/app/map/Cache/use-map-cache'
 
+// Specialized hooks for performance optimization
+export { useMapCacheCenter } from '~/app/map/Cache/use-map-cache'
+export { useMapCachePendingOps } from '~/app/map/Cache/use-map-cache'
+export { useMapCacheQuery } from '~/app/map/Cache/use-map-cache'
+export { useMapCacheNavigation } from '~/app/map/Cache/use-map-cache'
+
 // Type for the hook return value
 export type { MapCacheHook } from '~/app/map/Cache/types'
 

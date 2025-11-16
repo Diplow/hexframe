@@ -1,11 +1,11 @@
 import { useCallback } from 'react';
 import { useEventBus } from '~/app/map';
-import { useMapCache } from '~/app/map/Cache';
+import { useMapCacheQuery } from '~/app/map/Cache';
 import type { TileData } from '~/app/map/types/tile-data';
 
 export function useTileSelectForChat() {
   const eventBus = useEventBus();
-  const { getItem } = useMapCache();
+  const { getItem } = useMapCacheQuery();
   
   const handleTileSelect = useCallback((tileData: TileData, options?: { openInEditMode?: boolean }) => {
     // Get the full tile data from cache
