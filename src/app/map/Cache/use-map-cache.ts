@@ -146,8 +146,16 @@ function _buildPublicAPI(deps: CacheAPIDependencies): MapCacheHook {
 }
 
 /**
- * Hook that returns only the center coordinate
- * Use this to avoid rerenders when other cache state changes
+ * Hook that returns only the center coordinate.
+ *
+ * NOTE: This does NOT prevent rerenders - components still rerender on every
+ * MapCacheContext update. This is an organizational helper that provides
+ * cleaner access to a single value.
+ *
+ * Validate actual render behavior with React DevTools Profiler.
+ *
+ * Phase 2: To prevent rerenders, use context splitting, use-context-selector,
+ * or custom subscription pattern.
  */
 export function useMapCacheCenter() {
   const context = useContext(MapCacheContext);
@@ -158,8 +166,16 @@ export function useMapCacheCenter() {
 }
 
 /**
- * Hook that returns only pending operations
- * Use this to avoid rerenders when other cache state changes
+ * Hook that returns only pending operations.
+ *
+ * NOTE: This does NOT prevent rerenders - components still rerender on every
+ * MapCacheContext update. This is an organizational helper that provides
+ * cleaner access to a single value.
+ *
+ * Validate actual render behavior with React DevTools Profiler.
+ *
+ * Phase 2: To prevent rerenders, use context splitting, use-context-selector,
+ * or custom subscription pattern.
  */
 export function useMapCachePendingOps() {
   const context = useContext(MapCacheContext);
@@ -170,8 +186,16 @@ export function useMapCachePendingOps() {
 }
 
 /**
- * Hook that returns only query methods (no state)
- * Use this to avoid rerenders when cache state changes
+ * Hook that returns only query methods (getItem, hasItem, etc.).
+ *
+ * NOTE: This does NOT prevent rerenders - components still rerender on every
+ * MapCacheContext update. This is an organizational helper that groups related
+ * query methods together.
+ *
+ * Validate actual render behavior with React DevTools Profiler.
+ *
+ * Phase 2: To prevent rerenders, use context splitting, use-context-selector,
+ * or custom subscription pattern.
  */
 export function useMapCacheQuery() {
   const context = useContext(MapCacheContext);
@@ -183,8 +207,16 @@ export function useMapCacheQuery() {
 }
 
 /**
- * Hook that returns only navigation methods (no state)
- * Use this to avoid rerenders when cache state changes
+ * Hook that returns only navigation methods (navigateToItem, updateCenter, etc.).
+ *
+ * NOTE: This does NOT prevent rerenders - components still rerender on every
+ * MapCacheContext update. This is an organizational helper that groups related
+ * navigation methods together.
+ *
+ * Validate actual render behavior with React DevTools Profiler.
+ *
+ * Phase 2: To prevent rerenders, use context splitting, use-context-selector,
+ * or custom subscription pattern.
  */
 export function useMapCacheNavigation() {
   const context = useContext(MapCacheContext);
