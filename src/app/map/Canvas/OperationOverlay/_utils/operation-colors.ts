@@ -31,6 +31,7 @@ export function getOperationColors(operation: OperationType): OperationColorSche
       };
     case 'move':
     case 'copy':
+    case 'swap':
       return {
         stroke: 'rgb(168, 85, 247)', // purple-500
         fill: 'rgba(168, 85, 247, 0.1)',
@@ -65,6 +66,7 @@ export function getDarkModeOperationColors(operation: OperationType): OperationC
       };
     case 'move':
     case 'copy':
+    case 'swap':
       return {
         stroke: 'rgb(192, 132, 252)', // purple-400
         fill: 'rgba(192, 132, 252, 0.15)',

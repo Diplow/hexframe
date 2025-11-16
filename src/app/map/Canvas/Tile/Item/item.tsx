@@ -7,7 +7,7 @@ import { useItemState } from "~/app/map/Canvas/Tile/Item/_internals/hooks";
 import { ItemTileContent } from "~/app/map/Canvas/Tile/Item/_components/item-tile-content";
 import { useEffect } from "react";
 import { loggers } from "~/lib/debug/debug-logger";
-import { calculateTileDimensions } from "~/app/map/Canvas/Tile/_internals/utils/dimensions";
+import { calculateTileDimensions } from "~/app/map/Canvas/Tile/utils/dimensions";
 
 export interface DynamicItemTileProps {
   item: TileData;

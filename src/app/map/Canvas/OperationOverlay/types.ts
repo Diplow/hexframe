@@ -1,6 +1,12 @@
 import type { TileScale } from '~/app/map/Canvas/Tile';
 
-export type OperationType = 'create' | 'update' | 'delete' | 'move' | 'copy';
+export type OperationType =
+  | 'create'
+  | 'update'
+  | 'delete'
+  | 'move'
+  | 'copy'
+  | 'swap';
 
 export interface OperationOverlayProps {
   pendingOperations: Record<string, OperationType>;

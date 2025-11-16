@@ -303,3 +303,27 @@ export function coordToString(coord: Coord): string {
 export function stringToCoord(coordId: string): Coord {
   return CoordSystem.parseId(coordId);
 }
+
+/**
+ * Validates that a coordinate ID is safe for use in CSS selectors
+ *
+ * Valid coordId format: "userId,groupId" or "userId,groupId:path"
+ * where userId and groupId are positive integers,
+ * and path is comma-separated integers (can be negative for composed children)
+ *
+ * @param coordId - The coordinate ID to validate
+ * @returns true if coordId is safe for CSS selectors
+ *
+ * @example
+ * isValidCoordId("1,0") // true
+ * isValidCoordId("1,0:1,2,3") // true
+ * isValidCoordId("1,0:1,-2,3") // true (composed child)
+ * isValidCoordId("1,0:1'];alert('xss')") // false
+ */
+export function isValidCoordId(coordId: string): boolean {
+  // Valid format: userId,groupId or userId,groupId:path
+  // userId and groupId must be non-negative integers
+  // path is comma-separated integers (can be negative)
+  const coordIdPattern = /^[0-9]+,[0-9]+(?::[-0-9,]+)?$/;
+  return coordIdPattern.test(coordId);
+}

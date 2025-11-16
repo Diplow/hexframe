@@ -9,6 +9,8 @@
  * - Works for any visible tile (center, neighbors, expanded children)
  */
 
+import { isValidCoordId } from '~/lib/domains/mapping/utils';
+
 export interface TilePosition {
   x: number;
   y: number;
@@ -53,6 +55,12 @@ class GlobalTilePositionService {
       return null;
     }
 
+    // Validate coordId to prevent CSS selector injection
+    if (!isValidCoordId(coordId)) {
+      console.error(`Invalid coordinate ID for CSS selector: ${coordId}`);
+      return null;
+    }
+
     // Find tile element using data-tile-id attribute (same as GlobalDragService)
     const tileElement = this.canvasElement.querySelector<HTMLElement>(
       `[data-tile-id="${coordId}"]`
@@ -88,6 +96,13 @@ class GlobalTilePositionService {
     if (!this.canvasElement) {
       return false;
     }
+
+    // Validate coordId to prevent CSS selector injection
+    if (!isValidCoordId(coordId)) {
+      console.error(`Invalid coordinate ID for CSS selector: ${coordId}`);
+      return false;
+    }
+
     return this.canvasElement.querySelector(`[data-tile-id="${coordId}"]`) !== null;
   }
 

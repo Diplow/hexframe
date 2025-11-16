@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import "../app/map/Canvas/OperationOverlay/_styles/overlay.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -727,6 +728,3 @@
 .dark .fill-orchestration {
   fill: theme(colors.zinc.600);
 }
-
-
-@import "../app/map/Canvas/OperationOverlay/_styles/overlay.css";
