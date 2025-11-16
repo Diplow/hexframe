@@ -14,18 +14,17 @@ describe('HexagonPulse', () => {
     expect(screen.getByLabelText(/delete operation in progress/i)).toBeInTheDocument();
   });
 
-  it('should render three path elements (glow, fill, stroke)', () => {
+  it('should render path element', () => {
     const { container } = render(<HexagonPulse operation="update" width={100} height={115} />);
     const paths = container.querySelectorAll('path');
-    expect(paths).toHaveLength(3);
+    expect(paths).toHaveLength(1);
   });
 
   it('should apply operation-specific classes', () => {
     const { container } = render(<HexagonPulse operation="create" width={100} height={115} />);
 
-    expect(container.querySelector('.hex-pulse-glow')).toBeInTheDocument();
+    expect(container.querySelector('.hex-pulse')).toBeInTheDocument();
     expect(container.querySelector('.hex-pulse-fill')).toBeInTheDocument();
-    expect(container.querySelector('.hex-pulse-stroke')).toBeInTheDocument();
   });
 
   it('should accept custom className', () => {

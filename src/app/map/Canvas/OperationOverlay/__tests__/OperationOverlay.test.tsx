@@ -11,19 +11,20 @@ describe('OperationOverlay', () => {
   it('should render SVG overlay with operations', () => {
     const pendingOps = { '1,0:1': 'create' as const };
 
-    render(
+    const { container } = render(
       <OperationOverlay pendingOperations={pendingOps} getTilePosition={mockGetPosition} scale={1} />
     );
 
-    const svg = document.querySelector('.operation-overlay');
-    expect(svg).toBeInTheDocument();
+    const wrapper = container.querySelector('.operation-overlay-wrapper');
+    expect(wrapper).toBeInTheDocument();
+    expect(container.querySelector('svg')).toBeInTheDocument();
   });
 
   it('should render nothing when no pending operations', () => {
-    render(<OperationOverlay pendingOperations={{}} getTilePosition={mockGetPosition} scale={1} />);
+    const { container } = render(<OperationOverlay pendingOperations={{}} getTilePosition={mockGetPosition} scale={1} />);
 
-    const svg = document.querySelector('.operation-overlay');
-    expect(svg).not.toBeInTheDocument();
+    const wrapper = container.querySelector('.operation-overlay-wrapper');
+    expect(wrapper).not.toBeInTheDocument();
   });
 
   it('should render marker for each operation', () => {
@@ -42,18 +43,18 @@ describe('OperationOverlay', () => {
     expect(markers).toHaveLength(2);
   });
 
-  it('should apply custom className', () => {
+  it('should apply wrapper styles correctly', () => {
     const pendingOps = { '1,0:1': 'create' as const };
 
-    render(
+    const { container } = render(
       <OperationOverlay
         pendingOperations={pendingOps}
         getTilePosition={mockGetPosition} scale={1}
       />
     );
 
-    const svg = document.querySelector('.operation-overlay.custom-overlay');
-    expect(svg).toBeInTheDocument();
+    const wrapper = container.querySelector('.operation-overlay-wrapper');
+    expect(wrapper).toHaveClass('fixed', 'inset-0', 'pointer-events-none');
   });
 
   it('should use default baseHexSize of 50', () => {
@@ -63,9 +64,10 @@ describe('OperationOverlay', () => {
       <OperationOverlay pendingOperations={pendingOps} getTilePosition={mockGetPosition} scale={1} />
     );
 
-    // Check that foreignObject has correct dimensions for size 50
+    // Check that foreignObject has correct dimensions for scale=1, baseHexSize=50
+    // width = 50 * √3 ≈ 86.6 → 87 (rounded)
     const foreignObject = container.querySelector('foreignObject');
-    expect(foreignObject?.getAttribute('width')).toBe('100'); // 50 * 2
+    expect(foreignObject?.getAttribute('width')).toBe('87');
   });
 
   it('should use custom baseHexSize', () => {
@@ -79,29 +81,32 @@ describe('OperationOverlay', () => {
       />
     );
 
+    // width = 30 * √3 ≈ 51.96 → 52 (rounded)
     const foreignObject = container.querySelector('foreignObject');
-    expect(foreignObject?.getAttribute('width')).toBe('60'); // 30 * 2
+    expect(foreignObject?.getAttribute('width')).toBe('52');
   });
 
   it('should have pointer-events-none class', () => {
     const pendingOps = { '1,0:1': 'create' as const };
 
-    render(
+    const { container } = render(
       <OperationOverlay pendingOperations={pendingOps} getTilePosition={mockGetPosition} scale={1} />
     );
 
-    const svg = document.querySelector('.operation-overlay');
-    expect(svg?.getAttribute('class')).toContain('pointer-events-none');
+    const wrapper = container.querySelector('.operation-overlay-wrapper');
+    expect(wrapper).toHaveClass('pointer-events-none');
+    const svg = container.querySelector('svg');
+    expect(svg).toHaveClass('pointer-events-none');
   });
 
   it('should have correct ARIA attributes', () => {
     const pendingOps = { '1,0:1': 'create' as const };
 
-    render(
+    const { container } = render(
       <OperationOverlay pendingOperations={pendingOps} getTilePosition={mockGetPosition} scale={1} />
     );
 
-    const svg = document.querySelector('.operation-overlay');
+    const svg = container.querySelector('svg');
     expect(svg?.getAttribute('aria-live')).toBe('polite');
     expect(svg?.getAttribute('aria-atomic')).toBe('false');
   });

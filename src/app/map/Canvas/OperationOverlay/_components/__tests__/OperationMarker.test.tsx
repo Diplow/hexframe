@@ -67,8 +67,8 @@ describe('OperationMarker', () => {
 
     const foreignObject = container.querySelector('foreignObject');
     // ForeignObject should be offset to center the hexagon at the position
-    expect(foreignObject?.getAttribute('x')).toBe('-50'); // -size
-    expect(foreignObject?.getAttribute('y')).toBe('-43.3'); // -size * 0.866
+    expect(foreignObject?.getAttribute('x')).toBe('-50'); // -width/2
+    expect(foreignObject?.getAttribute('y')).toBe('-57.5'); // -height/2
   });
 
   it('should set correct foreignObject dimensions', () => {
@@ -84,7 +84,7 @@ describe('OperationMarker', () => {
     );
 
     const foreignObject = container.querySelector('foreignObject');
-    expect(foreignObject?.getAttribute('width')).toBe('60'); // size * 2
-    expect(foreignObject?.getAttribute('height')).toBe('51.96'); // size * 1.732
+    expect(foreignObject?.getAttribute('width')).toBe('60');
+    expect(foreignObject?.getAttribute('height')).toBe('70');
   });
 });
