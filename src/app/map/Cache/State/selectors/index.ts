@@ -13,6 +13,7 @@ const createDefaultSelectors = () => {
     currentCenter: null,
     expandedItemIds: [],
     isCompositionExpanded: false,
+    pendingOperations: {},
     isLoading: false,
     error: null,
     lastUpdated: 0,

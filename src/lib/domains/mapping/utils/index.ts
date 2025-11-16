@@ -13,6 +13,7 @@ export {
   isValidCoord,
   coordToString,
   stringToCoord,
+  isValidCoordId,
 } from '~/lib/domains/mapping/utils/hex-coordinates';
 
 // MapItem attribute types (canonical source of truth)

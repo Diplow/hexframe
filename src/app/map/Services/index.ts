@@ -32,4 +32,10 @@ export {
   type ValidationHandler
 } from '~/app/map/Services/DragAndDrop';
 
+// TilePosition Service - Global tile position lookup
+export {
+  globalTilePositionService,
+  type TilePosition
+} from '~/app/map/Services/TilePosition';
+
 // External consumers must import types directly from ~/app/map/types - no reexports

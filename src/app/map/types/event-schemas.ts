@@ -62,6 +62,12 @@ const mapItemCopiedPayloadSchema = z.object({
   toCoordId: z.string(),
 });
 
+const mapOperationStartedPayloadSchema = z.object({
+  operation: z.enum(['create', 'update', 'delete', 'move', 'swap', 'copy']),
+  tileId: z.string().optional(),
+  tileName: z.string().optional(),
+});
+
 const mapNavigationPayloadSchema = z.object({
   fromCenterId: z.string().optional(),
   fromCenterName: z.string().optional(),
@@ -179,6 +185,12 @@ export const mapItemCopiedEventSchema = baseEventSchema.extend({
   payload: mapItemCopiedPayloadSchema,
 });
 
+export const mapOperationStartedEventSchema = baseEventSchema.extend({
+  type: z.literal('map.operation_started'),
+  source: z.literal('map_cache'),
+  payload: mapOperationStartedPayloadSchema,
+});
+
 export const mapNavigationEventSchema = baseEventSchema.extend({
   type: z.literal('map.navigation'),
   source: z.literal('map_cache'),
@@ -268,6 +280,7 @@ export const mapCreateRequestedEventSchema = baseEventSchema.extend({
 export const appEventSchema = z.discriminatedUnion('type', [
   // Notification events
   mapTileSelectedEventSchema,
+  mapOperationStartedEventSchema,
   mapTileCreatedEventSchema,
   mapTileUpdatedEventSchema,
   mapTileDeletedEventSchema,

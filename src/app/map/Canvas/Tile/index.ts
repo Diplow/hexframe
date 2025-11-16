@@ -33,8 +33,9 @@ export { DynamicEmptyTile } from '~/app/map/Canvas/Tile/Empty/empty'
 // Specialized tile components (used by external systems)
 // ErrorTile removed - was unused dead code
 
-// Tile utilities (frequently needed by external systems and internal subsystems)  
+// Tile utilities (frequently needed by external systems and internal subsystems)
 export { getColorFromItem } from '~/app/map/Canvas/Tile/Item/_internals/utils/color'
+export { calculateTileDimensions } from '~/app/map/Canvas/Tile/utils/dimensions'
 
 // NOTE: MapCache reexports removed - Tile components now use callbacks
 // Canvas should import MapCache directly and pass handlers as props

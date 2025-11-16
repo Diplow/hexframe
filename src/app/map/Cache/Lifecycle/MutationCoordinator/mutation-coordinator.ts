@@ -12,7 +12,7 @@ import { MapItemType } from "~/lib/domains/mapping";
 
 export interface MutationCoordinatorConfig {
   dispatch: Dispatch<CacheAction>;
-  getState: () => { itemsById: Record<string, TileData> };
+  getState: () => { itemsById: Record<string, TileData>; pendingOperations: Record<string, 'create' | 'update' | 'delete' | 'move' | 'copy'> };
   dataOperations: DataOperations;
   storageService: StorageService;
   mapContext?: {
@@ -89,17 +89,20 @@ export class MutationCoordinator {
 
   /**
    * Check if an operation is currently pending for the given tile
+   * Reads from cache state for reactive updates
    */
   isOperationPending(coordId: string): boolean {
-    return this.pendingOperations.has(coordId);
+    const state = this.config.getState();
+    return coordId in state.pendingOperations;
   }
 
   /**
    * Get pending operation type for a tile, if any
+   * Reads from cache state for reactive updates
    */
   getPendingOperationType(coordId: string): 'create' | 'update' | 'delete' | 'move' | 'copy' | null {
-    const operation = this.pendingOperations.get(coordId);
-    return operation?.type ?? null;
+    const state = this.config.getState();
+    return state.pendingOperations[coordId] ?? null;
   }
 
   /**
@@ -130,12 +133,24 @@ export class MutationCoordinator {
       startTime: Date.now()
     });
 
+    // Dispatch to cache state for reactive UI updates
+    this.config.dispatch({
+      type: 'SET_PENDING_OPERATION',
+      payload: { coordId, operation: type },
+    });
+
     try {
       const result = await promise;
       return result;
     } finally {
       // Always clean up, even if operation fails
       this.pendingOperations.delete(coordId);
+
+      // Clear from cache state
+      this.config.dispatch({
+        type: 'CLEAR_PENDING_OPERATION',
+        payload: coordId,
+      });
     }
   }
 
@@ -177,6 +192,15 @@ export class MutationCoordinator {
     this.pendingOperations.set(sourceCoordId, sourceOperationData);
     this.pendingOperations.set(targetCoordId, targetOperationData);
 
+    // Dispatch to cache state for reactive UI updates
+    this.config.dispatch({
+      type: 'SET_PENDING_OPERATION',
+      payload: { coordId: sourceCoordId, operation: 'move' },
+    });
+    this.config.dispatch({
+      type: 'SET_PENDING_OPERATION',
+      payload: { coordId: targetCoordId, operation: 'move' },
+    });
 
     try {
       const result = await promise;
@@ -191,118 +215,168 @@ export class MutationCoordinator {
 
       if (sourceOp?.operationId === operationId) {
         this.pendingOperations.delete(sourceCoordId);
+        this.config.dispatch({
+          type: 'CLEAR_PENDING_OPERATION',
+          payload: sourceCoordId,
+        });
       }
 
       if (targetOp?.operationId === operationId) {
         this.pendingOperations.delete(targetCoordId);
+        this.config.dispatch({
+          type: 'CLEAR_PENDING_OPERATION',
+          payload: targetCoordId,
+        });
       }
 
     }
   }
 
   async createItem(coordId: string, data: MapItemCreateAttributes & { parentId?: number }): Promise<MutationResult> {
-    const changeId = this.tracker.generateChangeId();
+    return this.trackOperation(coordId, 'create', async () => {
+      const changeId = this.tracker.generateChangeId();
 
-    try {
-      const coords = CoordSystem.parseId(coordId);
-      const parentId = await this._resolveParentId(coords, data.parentId);
+      try {
+        const coords = CoordSystem.parseId(coordId);
+        const parentId = await this._resolveParentId(coords, data.parentId);
 
-      // Apply optimistic update
-      const optimisticItem = this._createOptimisticItem(coordId, coords, data, parentId);
-      this._applyOptimisticCreate(coordId, optimisticItem, changeId);
-      
-      // Make server call — safely convert parentId (omit when unknown)
-      const parentIdNumber = parentId !== null ? Number(parentId) : undefined;
-      if (parentId !== null && !Number.isFinite(parentIdNumber)) {
-        throw new Error(`Invalid parentId from cache: ${parentId}`);
+        // Emit operation started event
+        this.config.eventBus?.emit({
+          type: 'map.operation_started',
+          payload: {
+            operation: 'create',
+            tileId: coordId,
+            tileName: data.title ?? 'New tile',
+          },
+          source: 'map_cache',
+          timestamp: new Date(),
+        });
+
+        // Apply optimistic update
+        const optimisticItem = this._createOptimisticItem(coordId, coords, data, parentId);
+        this._applyOptimisticCreate(coordId, optimisticItem, changeId);
+
+        // Make server call — safely convert parentId (omit when unknown)
+        const parentIdNumber = parentId !== null ? Number(parentId) : undefined;
+        if (parentId !== null && !Number.isFinite(parentIdNumber)) {
+          throw new Error(`Invalid parentId from cache: ${parentId}`);
+        }
+        const result = await this.config.addItemMutation.mutateAsync({
+          coords,
+          ...(parentIdNumber !== undefined ? { parentId: parentIdNumber } : {}),
+          title: data.title,
+          content: data.content,
+          preview: data.preview,
+          url: data.link,
+        });
+
+        // Finalize with real data
+        await this._finalizeCreate(coordId, result, changeId);
+
+        // Emit create event
+        this._emitCreateEvent(result, coordId, parentId);
+
+        return { success: true, data: result };
+      } catch (error) {
+        await this._rollbackCreate(coordId, changeId);
+        throw error;
       }
-      const result = await this.config.addItemMutation.mutateAsync({
-        coords,
-        ...(parentIdNumber !== undefined ? { parentId: parentIdNumber } : {}),
-        title: data.title,
-        content: data.content,
-        preview: data.preview,
-        url: data.link,
-      });
-      
-      // Finalize with real data
-      await this._finalizeCreate(coordId, result, changeId);
-
-      // Emit create event
-      this._emitCreateEvent(result, coordId, parentId);
-
-      return { success: true, data: result };
-    } catch (error) {
-      await this._rollbackCreate(coordId, changeId);
-      throw error;
-    }
+    });
   }
 
   async updateItem(coordId: string, data: MapItemUpdateAttributes): Promise<MutationResult> {
-    const changeId = this.tracker.generateChangeId();
-    const existingItem = this._getExistingItem(coordId);
+    return this.trackOperation(coordId, 'update', async () => {
+      const changeId = this.tracker.generateChangeId();
+      const existingItem = this._getExistingItem(coordId);
 
-    try {
-      // Apply optimistic update
-      const { optimisticItem, previousData } = this._prepareOptimisticUpdate(existingItem, data);
-      this._applyOptimisticUpdate(coordId, optimisticItem, previousData, changeId);
+      try {
+        // Emit operation started event
+        this.config.eventBus?.emit({
+          type: 'map.operation_started',
+          payload: {
+            operation: 'update',
+            tileId: coordId,
+            tileName: data.title ?? existingItem.data.title,
+          },
+          source: 'map_cache',
+          timestamp: new Date(),
+        });
 
-      // Make server call
-      const coords = CoordSystem.parseId(coordId);
-      const result = await this.config.updateItemMutation.mutateAsync({
-        coords,
-        title: data.title,
-        content: data.content,
-        preview: data.preview,
-        url: data.link,
-      });
-      
-      // Finalize with real data
-      await this._finalizeUpdate(coordId, result, changeId);
+        // Apply optimistic update
+        const { optimisticItem, previousData } = this._prepareOptimisticUpdate(existingItem, data);
+        this._applyOptimisticUpdate(coordId, optimisticItem, previousData, changeId);
 
-      // Emit update event
-      this._emitUpdateEvent(result, coordId);
+        // Make server call
+        const coords = CoordSystem.parseId(coordId);
+        const result = await this.config.updateItemMutation.mutateAsync({
+          coords,
+          title: data.title,
+          content: data.content,
+          preview: data.preview,
+          url: data.link,
+        });
 
-      return { success: true, data: result };
-    } catch (error) {
-      this._rollbackToPreviousData(changeId);
-      throw error;
-    }
+        // Finalize with real data
+        await this._finalizeUpdate(coordId, result, changeId);
+
+        // Emit update event
+        this._emitUpdateEvent(result, coordId);
+
+        return { success: true, data: result };
+      } catch (error) {
+        this._rollbackToPreviousData(changeId);
+        throw error;
+      }
+    });
   }
 
   async deleteItem(coordId: string): Promise<MutationResult> {
-    // deleteItem called with coordId
-    const changeId = this.tracker.generateChangeId();
-    // Generated change ID
+    return this.trackOperation(coordId, 'delete', async () => {
+      // deleteItem called with coordId
+      const changeId = this.tracker.generateChangeId();
+      // Generated change ID
 
-    const existingItem = this._getExistingItem(coordId);
-    // Found existing item
+      const existingItem = this._getExistingItem(coordId);
+      // Found existing item
 
-    try {
-      // Apply optimistic removal
-      const previousData = this._reconstructApiData(existingItem);
-      // Applying optimistic delete
-      this._applyOptimisticDelete(coordId, previousData, changeId);
+      try {
+        // Emit operation started event
+        this.config.eventBus?.emit({
+          type: 'map.operation_started',
+          payload: {
+            operation: 'delete',
+            tileId: coordId,
+            tileName: existingItem.data.title,
+          },
+          source: 'map_cache',
+          timestamp: new Date(),
+        });
 
-      // Make server call
-      const coords = CoordSystem.parseId(coordId);
-      // Making server delete call
-      await this.config.deleteItemMutation.mutateAsync({ coords });
-      // Server delete successful
+        // Apply optimistic removal
+        const previousData = this._reconstructApiData(existingItem);
+        // Applying optimistic delete
+        this._applyOptimisticDelete(coordId, previousData, changeId);
 
-      // Finalize deletion
-      await this._finalizeDelete(String(existingItem.metadata.dbId), changeId);
-      // Delete finalized
+        // Make server call
+        const coords = CoordSystem.parseId(coordId);
+        // Making server delete call
+        await this.config.deleteItemMutation.mutateAsync({ coords });
+        // Server delete successful
 
-      // Emit delete event
-      this._emitDeleteEvent(existingItem);
+        // Finalize deletion
+        await this._finalizeDelete(String(existingItem.metadata.dbId), changeId);
+        // Delete finalized
 
-      return { success: true };
-    } catch (error) {
-      // Delete failed
-      this._rollbackToPreviousData(changeId);
-      throw error;
-    }
+        // Emit delete event
+        this._emitDeleteEvent(existingItem);
+
+        return { success: true };
+      } catch (error) {
+        // Delete failed
+        this._rollbackToPreviousData(changeId);
+        throw error;
+      }
+    });
   }
 
   async moveItem(sourceCoordId: string, targetCoordId: string): Promise<MutationResult & { isSwap?: boolean }> {
@@ -318,6 +392,18 @@ export class MutationCoordinator {
       const moveParams = this._prepareMoveOperation(sourceCoordId, targetCoordId, changeId);
 
       try {
+        // Emit operation started event
+        this.config.eventBus?.emit({
+          type: 'map.operation_started',
+          payload: {
+            operation: moveParams.isSwap ? 'swap' : 'move',
+            tileId: sourceCoordId,
+            tileName: moveParams.sourceItem.data.title,
+          },
+          source: 'map_cache',
+          timestamp: new Date(),
+        });
+
         // Apply optimistic changes
         this._applyOptimisticChange(moveParams);
 
@@ -353,6 +439,18 @@ export class MutationCoordinator {
       const optimisticCoordIds: string[] = [];
 
       try {
+        // Emit operation started event
+        this.config.eventBus?.emit({
+          type: 'map.operation_started',
+          payload: {
+            operation: 'copy',
+            tileId: sourceCoordId,
+            tileName: sourceItem.data.title,
+          },
+          source: 'map_cache',
+          timestamp: new Date(),
+        });
+
         // Get all descendants of source item
         const currentState = this.config.getState();
         const descendants = this._getAllDescendants(sourceCoordId, currentState.itemsById);

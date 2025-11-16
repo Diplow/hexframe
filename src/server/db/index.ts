@@ -42,11 +42,14 @@ const getDatabase = () => {
   // Check if SSL is required based on connection string
   const requiresSsl = connectionString.includes('sslmode=require');
 
+  const isTest = process.env.NODE_ENV === "test" || process.env.VITEST;
   const client = postgres(connectionString, {
     // Neon-recommended settings for serverless
-    max: isProduction ? 1 : 10, // Single connection in production
-    idle_timeout: isProduction ? 20 : undefined, // Close idle connections quickly
+    // Keep pool size small since each test file fork creates its own pool
+    max: isProduction ? 1 : (isTest ? 2 : 10), // 2 connections per test file to avoid exhausting pool
+    idle_timeout: isProduction ? 20 : (isTest ? 5 : undefined), // Close idle connections quickly in tests
     connect_timeout: 10, // Fast timeout for serverless
+    max_lifetime: isTest ? 30 : undefined, // Recycle connections in tests to avoid leaks
 
     // Disable prepared statements for serverless environments
     // This is recommended by Neon for better connection pooling

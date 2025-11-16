@@ -2,11 +2,53 @@ import type { ChatEvent, Widget, OperationStartedPayload, OperationCompletedPayl
 import { chatSettings } from '~/app/map/Chat/_settings/chat-settings';
 
 /**
+ * PERFORMANCE OPTIMIZATION:
+ *
+ * Indexed widget tracking prevents O(n²) performance degradation during concurrent operations.
+ *
+ * Previous approach: Iterated ALL widgets on every operation completion to find matching prefixes
+ * - With N widgets and M operations: O(N × M) worst case
+ * - Example: 50 widgets × 10 concurrent ops = 500 iterations per completion
+ *
+ * Current approach: Maintain separate indices for widget types that need bulk operations
+ * - loadingWidgets: Set of all active loading widgets (O(1) add, O(k) close where k = # loading widgets)
+ * - deleteWidgets: Set of all active delete widgets (O(1) add, O(k) close where k = # delete widgets)
+ *
+ * Performance gain: O(N × M) → O(N + k) where k << N (only specific widget types, not all widgets)
+ *
+ * @see useChatStateInternal - Uses useMemo to prevent recalculation when events unchanged
+ */
+interface WidgetStateIndex {
+  states: Map<string, 'active' | 'completed'>;
+  loadingWidgets: Set<string>;
+  deleteWidgets: Set<string>;
+}
+
+/**
+ * Add widget to indexed state
+ */
+function _addToIndex(index: WidgetStateIndex, widgetId: string, state: 'active' | 'completed') {
+  index.states.set(widgetId, state);
+
+  if (state === 'active') {
+    if (widgetId.startsWith('loading-')) {
+      index.loadingWidgets.add(widgetId);
+    } else if (widgetId.startsWith('delete-')) {
+      index.deleteWidgets.add(widgetId);
+    }
+  } else {
+    // Remove from indices when marked completed
+    index.loadingWidgets.delete(widgetId);
+    index.deleteWidgets.delete(widgetId);
+  }
+}
+
+/**
  * Handle operation completion events for widget states
  */
 function _handleOperationCompleted(
   event: ChatEvent,
-  widgetStates: Map<string, 'active' | 'completed'>,
+  index: WidgetStateIndex,
   activeOperations: Set<string>
 ) {
   const payload = event.payload as OperationCompletedPayload;
@@ -18,26 +60,27 @@ function _handleOperationCompleted(
     // Close tile widget for this tile if operation was delete
     if (payload.operation === 'delete') {
       const tileWidgetId = `tile-${payload.tileId}`;
-      widgetStates.set(tileWidgetId, 'completed');
+      _addToIndex(index, tileWidgetId, 'completed');
     }
   }
 
-  // For delete operations, we need to find and close ALL delete widgets
-  // since we can't reliably match by tileId in the operation ID
+  // For delete operations, close ALL delete widgets - O(n) but only for delete widgets
   if (payload.operation === 'delete') {
-    // Find all delete widgets and mark them as completed
-    for (const [widgetId, state] of widgetStates) {
-      if (widgetId.startsWith('delete-') && state === 'active') {
-        widgetStates.set(widgetId, 'completed');
-      }
+    for (const widgetId of index.deleteWidgets) {
+      _addToIndex(index, widgetId, 'completed');
     }
+  }
+
+  // Close ALL loading widgets - O(n) but only for loading widgets
+  for (const widgetId of index.loadingWidgets) {
+    _addToIndex(index, widgetId, 'completed');
   }
 
   // Prefer exact match by event id
   const opIdFromEvent = `op-${event.id}`;
   if (activeOperations.delete(opIdFromEvent)) {
     if (payload.operation === 'create') {
-      widgetStates.set(`creation-${event.id}`, 'completed');
+      _addToIndex(index, `creation-${event.id}`, 'completed');
     }
   } else if (typeof payload.tileId === 'string' && payload.tileId.length > 0) {
     // Fallback: prune any ops that embed the tileId
@@ -45,7 +88,7 @@ function _handleOperationCompleted(
       if (opId.includes(payload.tileId)) {
         activeOperations.delete(opId);
         if (payload.operation === 'create') {
-          widgetStates.set(`creation-${opId.replace('op-', '')}`, 'completed');
+          _addToIndex(index, `creation-${opId.replace('op-', '')}`, 'completed');
         }
       }
     }
@@ -60,7 +103,11 @@ function _processWidgetStates(events: ChatEvent[]): {
   activeOperations: Set<string>;
 } {
   const activeOperations = new Set<string>();
-  const widgetStates = new Map<string, 'active' | 'completed'>();
+  const index: WidgetStateIndex = {
+    states: new Map<string, 'active' | 'completed'>(),
+    loadingWidgets: new Set<string>(),
+    deleteWidgets: new Set<string>(),
+  };
 
   // Process events in order to determine widget states
   for (const event of events) {
@@ -69,7 +116,7 @@ function _processWidgetStates(events: ChatEvent[]): {
         const payload = event.payload as TileSelectedPayload;
         if (payload && typeof payload === 'object' && 'tileId' in payload && typeof payload.tileId === 'string') {
           const widgetId = `tile-${payload.tileId}`;
-          widgetStates.set(widgetId, 'active');
+          _addToIndex(index, widgetId, 'active');
         }
         break;
       }
@@ -80,39 +127,37 @@ function _processWidgetStates(events: ChatEvent[]): {
           const operationId = `op-${event.id}`;
           activeOperations.add(operationId);
 
-          if (payload.operation === 'create') {
-            const widgetId = `creation-${event.id}`;
-            widgetStates.set(widgetId, 'active');
-          }
+          // Create loading widget for all operations
+          const loadingWidgetId = `loading-${event.id}`;
+          _addToIndex(index, loadingWidgetId, 'active');
 
-          if (payload.operation === 'delete') {
-            const widgetId = `delete-${event.id}`;
-            widgetStates.set(widgetId, 'active');
-          }
+          // Note: We don't create new creation/delete widgets here
+          // Those widgets are already created by map.create_requested/map.delete_requested events
+          // operation_started is just for tracking the operation and showing loading state
         }
         break;
       }
 
       case 'operation_completed': {
-        _handleOperationCompleted(event, widgetStates, activeOperations);
+        _handleOperationCompleted(event, index, activeOperations);
         break;
       }
 
       case 'auth_required': {
-        widgetStates.set('login-widget', 'active');
+        _addToIndex(index, 'login-widget', 'active');
         break;
       }
 
       case 'error_occurred': {
         const widgetId = `error-${event.id}`;
-        widgetStates.set(widgetId, 'active');
+        _addToIndex(index, widgetId, 'active');
         break;
       }
 
       case 'widget_created': {
         const payload = event.payload as { widget: Widget };
         if (payload && typeof payload === 'object' && 'widget' in payload && payload.widget && typeof payload.widget === 'object' && 'id' in payload.widget) {
-          widgetStates.set(payload.widget.id, 'active');
+          _addToIndex(index, payload.widget.id, 'active');
         }
         break;
       }
@@ -120,7 +165,7 @@ function _processWidgetStates(events: ChatEvent[]): {
       case 'widget_resolved': {
         const payload = event.payload as { widgetId: string; action: string };
         if (payload && typeof payload === 'object' && 'widgetId' in payload && typeof payload.widgetId === 'string') {
-          widgetStates.set(payload.widgetId, 'completed');
+          _addToIndex(index, payload.widgetId, 'completed');
         }
         break;
       }
@@ -128,14 +173,14 @@ function _processWidgetStates(events: ChatEvent[]): {
       case 'widget_closed': {
         const payload = event.payload as { widgetId: string };
         if (payload && typeof payload === 'object' && 'widgetId' in payload && typeof payload.widgetId === 'string') {
-          widgetStates.set(payload.widgetId, 'completed');
+          _addToIndex(index, payload.widgetId, 'completed');
         }
         break;
       }
     }
   }
 
-  return { widgetStates, activeOperations };
+  return { widgetStates: index.states, activeOperations };
 }
 
 /**
@@ -200,43 +245,57 @@ function _createErrorWidget(event: ChatEvent, widgetStates: Map<string, 'active'
 }
 
 /**
+ * Get loading message for an operation
+ */
+function _getLoadingMessage(operation: 'create' | 'update' | 'delete' | 'move' | 'swap' | 'copy', tileName?: string): string {
+  const name = tileName ? ` "${tileName}"` : '';
+  switch (operation) {
+    case 'create':
+      return `Creating${name}...`;
+    case 'update':
+      return `Updating${name}...`;
+    case 'delete':
+      return `Deleting${name}...`;
+    case 'move':
+      return `Moving${name}...`;
+    case 'swap':
+      return `Swapping${name}...`;
+    case 'copy':
+      return `Copying${name}...`;
+  }
+}
+
+/**
  * Create operation widgets from operation started event
  */
 function _createOperationWidgets(event: ChatEvent, widgetStates: Map<string, 'active' | 'completed'>): Widget[] {
   const widgets: Widget[] = [];
   const payload = event.payload as OperationStartedPayload;
-  
+
   if (payload && typeof payload === 'object' && 'operation' in payload) {
-    if (payload.operation === 'create') {
-      const widgetId = `creation-${event.id}`;
-      if (widgetStates.get(widgetId) === 'active') {
-        widgets.push({
-          id: widgetId,
-          type: 'creation',
-          data: payload.data,
-          priority: 'action',
-          timestamp: event.timestamp,
-        });
-      }
+    // Create loading widget for all operations
+    const loadingWidgetId = `loading-${event.id}`;
+    const widgetState = widgetStates.get(loadingWidgetId);
+    if (widgetState === 'active') {
+      const tileName = (payload.data as { tileName?: string })?.tileName;
+      const loadingWidget: Widget = {
+        id: loadingWidgetId,
+        type: 'loading' as const,
+        data: {
+          message: _getLoadingMessage(payload.operation, tileName),
+          operation: payload.operation,
+        },
+        priority: 'info' as const,
+        timestamp: event.timestamp,
+      };
+      widgets.push(loadingWidget);
     }
 
-    if (payload.operation === 'delete') {
-      const widgetId = `delete-${event.id}`;
-      if (widgetStates.get(widgetId) === 'active') {
-        widgets.push({
-          id: widgetId,
-          type: 'delete',
-          data: {
-            tileId: payload.tileId,
-            tileName: (payload.data as { tileName?: string })?.tileName ?? 'item',
-          },
-          priority: 'action',
-          timestamp: event.timestamp,
-        });
-      }
-    }
+    // Note: We don't create creation/delete widgets here
+    // Those are created by map.create_requested/map.delete_requested events
+    // operation_started only creates loading widgets
   }
-  
+
   return widgets;
 }
 

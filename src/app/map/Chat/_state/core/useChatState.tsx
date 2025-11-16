@@ -17,6 +17,8 @@ export function useChatStateInternal(initialEvents: ChatEvent[] = []) {
   const [events, dispatchEvent] = useReducer(eventsReducer, initialEvents);
 
   // Derive UI state from events
+  // PERFORMANCE: This useMemo ensures widget/message derivation only runs when events change
+  // Combined with indexed widget states, this prevents unnecessary recalculations
   const state = useMemo<ChatUIState>(() => ({
     events,
     visibleMessages: deriveVisibleMessages(events),

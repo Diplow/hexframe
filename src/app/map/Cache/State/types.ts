@@ -22,6 +22,9 @@ export interface CacheState {
   expandedItemIds: string[];
   isCompositionExpanded: boolean;
 
+  // Operation tracking for visual feedback (pulse animations, etc.)
+  pendingOperations: Record<string, 'create' | 'update' | 'delete' | 'move' | 'copy'>; // Key: coordId
+
   // Error handling and loading states
   isLoading: boolean;
   error: Error | null;
@@ -72,6 +75,8 @@ export const ACTION_TYPES = {
   UPDATE_CACHE_CONFIG: "UPDATE_CACHE_CONFIG",
   REMOVE_ITEM: "REMOVE_ITEM",
   UPDATE_ITEMS: "UPDATE_ITEMS",
+  SET_PENDING_OPERATION: "SET_PENDING_OPERATION",
+  CLEAR_PENDING_OPERATION: "CLEAR_PENDING_OPERATION",
 } as const;
 
 // Action types using ACTION_TYPES constants for better type safety
@@ -98,9 +103,17 @@ export type CacheAction =
       payload: UpdateCacheConfigPayload;
     }
   | { type: typeof ACTION_TYPES.REMOVE_ITEM; payload: string }
-  | { 
-      type: typeof ACTION_TYPES.UPDATE_ITEMS; 
+  | {
+      type: typeof ACTION_TYPES.UPDATE_ITEMS;
       payload: Record<string, TileData | undefined>;
+    }
+  | {
+      type: typeof ACTION_TYPES.SET_PENDING_OPERATION;
+      payload: { coordId: string; operation: 'create' | 'update' | 'delete' | 'move' | 'copy' };
+    }
+  | {
+      type: typeof ACTION_TYPES.CLEAR_PENDING_OPERATION;
+      payload: string; // coordId
     };
 
 // Action creators moved to actions.ts for better separation of concerns

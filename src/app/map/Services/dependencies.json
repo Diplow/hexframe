@@ -8,6 +8,7 @@
   ],
   "subsystems": [
     "./EventBus",
-    "./DragAndDrop"
+    "./DragAndDrop",
+    "./TilePosition"
   ]
 }

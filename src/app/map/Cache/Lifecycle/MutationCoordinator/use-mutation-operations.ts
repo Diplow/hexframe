@@ -37,7 +37,10 @@ export function useMutationOperations(config: MutationOperationsConfig): Mutatio
   // Use ref to provide current state to coordinator
   const stateRef = useRef(config.state);
   stateRef.current = config.state;
-  const getState = useCallback(() => ({ itemsById: stateRef.current.itemsById }), []);
+  const getState = useCallback(() => ({
+    itemsById: stateRef.current.itemsById,
+    pendingOperations: stateRef.current.pendingOperations
+  }), []);
 
   // Wrap mutations to match expected interface
   const wrappedMutations = useMemo(() => _wrapTRPCMutations({

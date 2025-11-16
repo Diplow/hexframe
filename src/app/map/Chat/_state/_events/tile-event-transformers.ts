@@ -1,4 +1,4 @@
-import type { ChatEvent, TileSelectedPayload, OperationCompletedPayload, NavigationPayload } from '~/app/map/Chat/_state/_events/event.types';
+import type { ChatEvent, TileSelectedPayload, OperationCompletedPayload, OperationStartedPayload, NavigationPayload } from '~/app/map/Chat/_state/_events/event.types';
 
 /**
  * Transform tile selection events to chat events
@@ -13,6 +13,22 @@ export function _transformTileSelectedEvent(baseEvent: Omit<ChatEvent, 'type' | 
       tileData: typedPayload.tileData,
       openInEditMode: typedPayload.openInEditMode,
     } as TileSelectedPayload,
+  }
+}
+
+/**
+ * Transform operation started events to chat operation started events
+ */
+export function _transformOperationStartedEvent(baseEvent: Omit<ChatEvent, 'type' | 'payload'>, payload: unknown): ChatEvent {
+  const typedPayload = payload as { operation: 'create' | 'update' | 'delete' | 'move' | 'swap' | 'copy'; tileId?: string; tileName?: string }
+  return {
+    ...baseEvent,
+    type: 'operation_started' as const,
+    payload: {
+      operation: typedPayload.operation,
+      tileId: typedPayload.tileId,
+      data: { tileName: typedPayload.tileName },
+    } as OperationStartedPayload,
   }
 }
 

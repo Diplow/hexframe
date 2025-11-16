@@ -55,6 +55,7 @@ export interface MapCacheHook {
   center: string | null;
   expandedItems: string[];
   isCompositionExpanded: boolean;
+  pendingOperations: Record<string, 'create' | 'update' | 'delete' | 'move' | 'copy'>;
   isLoading: boolean;
   error: Error | null;
   lastUpdated: number;

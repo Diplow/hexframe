@@ -33,18 +33,8 @@ export function createCreationHandlers(
         parentId: creationData.parentId ? parseInt(creationData.parentId, 10) : undefined
       });
 
-      eventBus?.emit({
-        type: 'map.tile_created',
-        payload: {
-          tileId: creationData.coordId!,
-          parentId: creationData.parentId ?? null,
-          title: name,
-          preview: preview,
-          content: content
-        },
-        source: 'chat_cache',
-        timestamp: new Date(),
-      });
+      // Note: map.tile_created event is already emitted by MutationCoordinator
+      // No need to emit it here to avoid duplicate events
 
       chatState.closeWidget(widget.id);
       focusChatInput();

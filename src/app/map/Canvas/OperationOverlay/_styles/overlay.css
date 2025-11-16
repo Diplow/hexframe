@@ -1,0 +1,78 @@
+/* ================================
+   Operation Overlay Animations
+   ================================ */
+
+/* Hexagon stroke pulse */
+@keyframes hex-pulse-stroke {
+  0%,
+  100% {
+    stroke-opacity: 0.8;
+    stroke-width: 3px;
+  }
+  50% {
+    stroke-opacity: 0.4;
+    stroke-width: 5px;
+  }
+}
+
+/* Hexagon fill pulse */
+@keyframes hex-pulse-fill {
+  0%,
+  100% {
+    fill-opacity: 0.1;
+  }
+  50% {
+    fill-opacity: 0.25;
+  }
+}
+
+/* Hexagon glow pulse */
+@keyframes hex-pulse-glow {
+  0%,
+  100% {
+    opacity: 0.3;
+    filter: blur(8px);
+  }
+  50% {
+    opacity: 0.6;
+    filter: blur(12px);
+  }
+}
+
+/* Apply animations to hex pulse elements */
+.hex-pulse-stroke {
+  animation: hex-pulse-stroke 1.5s ease-in-out infinite;
+}
+
+.hex-pulse-fill {
+  animation: hex-pulse-fill 1.5s ease-in-out infinite;
+}
+
+.hex-pulse-glow {
+  animation: hex-pulse-glow 1.5s ease-in-out infinite;
+}
+
+/* Overlay container */
+.operation-overlay {
+  /* Ensure overlay doesn't interfere with interactions */
+  pointer-events: none;
+
+  /* Smooth appearance */
+  opacity: 1;
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* Dark mode adjustments */
+.dark .hex-pulse-glow {
+  filter: blur(10px);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .hex-pulse-stroke,
+  .hex-pulse-fill,
+  .hex-pulse-glow {
+    animation: none;
+    opacity: 0.6;
+  }
+}

@@ -10,7 +10,7 @@ import type {
 import { getDefaultStroke, getStrokeHexColor } from "~/app/map/Canvas/Tile/utils/stroke";
 import { CoordSystem, type Direction } from "~/lib/domains/mapping/utils";
 import { renderTileGradient } from "~/app/map/Canvas/Tile/Base/gradient";
-import { calculateTileDimensions } from "~/app/map/Canvas/Tile/_internals/utils/dimensions";
+import { calculateTileDimensions } from "~/app/map/Canvas/Tile/utils/dimensions";
 
 export interface DynamicBaseTileLayoutProps {
   coordId: string;

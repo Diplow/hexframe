@@ -128,7 +128,7 @@ describe("MutationCoordinator - copyItem", () => {
 
     coordinator = new MutationCoordinator({
       dispatch: mockDispatch,
-      getState: () => ({ itemsById: mockState.itemsById }),
+      getState: () => ({ itemsById: mockState.itemsById, pendingOperations: {} }),
       dataOperations: mockDataOperations,
       storageService: mockStorageService,
       eventBus: mockEventBus,
@@ -408,7 +408,9 @@ describe("MutationCoordinator - copyItem", () => {
         coordinator.copyItem("1,0:1", "1,0:3", "1")
       ).rejects.toThrow("Server copy failed");
 
-      expect(mockEventBus.emit).not.toHaveBeenCalled();
+      // Should emit operation_started event but not completion event
+      expect(mockEventBus.emit).toHaveBeenCalledTimes(1);
+      expect(mockEventBus.emittedEvents[0]?.type).toBe('map.operation_started');
     });
 
     test("should preserve source items after rollback", async () => {
