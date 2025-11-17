@@ -1,0 +1,8 @@
+{
+  "$schema": "../../../../../scripts/checks/architecture/dependencies.schema.json",
+  "allowed": [],
+  "subsystems": [
+    "./docs"
+  ],
+  "exceptions": {}
+}
