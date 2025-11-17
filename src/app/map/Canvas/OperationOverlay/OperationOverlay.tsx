@@ -5,6 +5,7 @@ import { OperationMarker } from '~/app/map/Canvas/OperationOverlay/_components/O
 import { useOperationPositions } from '~/app/map/Canvas/OperationOverlay/_hooks/useOperationPositions';
 import { calculateTileDimensions, type TileScale } from '~/app/map/Canvas/Tile';
 import { CoordSystem } from '~/lib/domains/mapping/utils';
+import { usePendingOperations } from '~/app/map/Services/Operations';
 import type { OperationOverlayProps } from '~/app/map/Canvas/OperationOverlay/types';
 
 /**
@@ -26,22 +27,23 @@ function getTileScale(coordId: string, canvasScale: TileScale): TileScale {
  * Overlay canvas that displays hexagonal pulse animations
  * for pending operations at their canvas positions
  *
+ * Autonomous component that subscribes to pending operations internally.
+ *
  * @example
  * ```tsx
  * <OperationOverlay
- *   pendingOperations={cache.pendingOperations}
  *   getTilePosition={layout.getPosition}
  *   scale={3}
  * />
  * ```
  */
 export const OperationOverlay = memo(function OperationOverlay({
-  pendingOperations,
   getTilePosition,
   baseHexSize = 50,
   scale,
   canvasRef,
 }: OperationOverlayProps) {
+  const pendingOperations = usePendingOperations();
   const operations = useOperationPositions(pendingOperations, getTilePosition);
   const [canvasCenter, setCanvasCenter] = useState({ x: 0, y: 0 });
 

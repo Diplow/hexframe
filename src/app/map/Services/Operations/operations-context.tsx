@@ -1,8 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { useEventBus } from '~/app/map/Services';
-import type { PendingOperations, OperationType, CacheOperationEvent } from '~/app/map/Operations/types';
+import { useEventBus } from '~/app/map/Services/EventBus';
+import type { PendingOperations, OperationType, CacheOperationEvent } from '~/app/map/Services/Operations/types';
 
 /**
  * Context value for operations tracking
@@ -39,13 +39,13 @@ export function OperationsProvider({ children }: { children: React.ReactNode }) 
 
       if (event.type === 'cache.operation.started') {
         // Add pending operation
-        setPendingOperations(prev => ({
+        setPendingOperations((prev: PendingOperations) => ({
           ...prev,
           [coordId]: operationType,
         }));
       } else if (event.type === 'cache.operation.completed') {
         // Remove completed operation
-        setPendingOperations(prev => {
+        setPendingOperations((prev: PendingOperations) => {
           const next = { ...prev };
           delete next[coordId];
           return next;

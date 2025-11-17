@@ -9,7 +9,6 @@ export type OperationType =
   | 'swap';
 
 export interface OperationOverlayProps {
-  pendingOperations: Record<string, OperationType>;
   getTilePosition: (coordId: string) => { x: number; y: number } | null;
   baseHexSize?: number;
   scale: TileScale;

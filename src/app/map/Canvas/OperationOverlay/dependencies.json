@@ -4,7 +4,11 @@
   "allowed": [
     "react",
     "@testing-library/react",
-    "vitest"
+    "vitest",
+    "~/app/map/Services/Operations"
   ],
+  "exceptions": {
+    "~/app/map/Services/Operations": "ARCHITECTURAL: Direct subsystem imports preferred over parent index for explicit dependency tracking"
+  },
   "subsystems": []
 }

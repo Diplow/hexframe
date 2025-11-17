@@ -38,4 +38,14 @@ export {
   type TilePosition
 } from '~/app/map/Services/TilePosition';
 
+// Operations Service - Pending cache operations tracking
+export {
+  OperationsProvider,
+  useOperations,
+  usePendingOperations,
+  type PendingOperations,
+  type OperationType,
+  type CacheOperationEvent
+} from '~/app/map/Services/Operations';
+
 // External consumers must import types directly from ~/app/map/types - no reexports

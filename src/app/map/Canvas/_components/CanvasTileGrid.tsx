@@ -5,8 +5,7 @@ import type { TileScale } from "~/app/map/Canvas/Tile";
 import type { URLInfo } from "~/app/map/types/url-info";
 import type { TileData } from "~/app/map/types/tile-data";
 import { OperationOverlay } from "~/app/map/Canvas/OperationOverlay";
-import { usePendingOperations } from "~/app/map/Operations";
-import { globalTilePositionService } from "~/app/map/Services";
+import { globalTilePositionService } from "~/app/map/Services/TilePosition";
 
 interface CanvasTileGridProps {
   centerInfo: string;
@@ -48,7 +47,6 @@ export function CanvasTileGrid({
   onCreateRequested,
   children,
 }: CanvasTileGridProps) {
-  const pendingOperations = usePendingOperations();
   const canvasRef = useRef<HTMLDivElement>(null);
 
   // Set canvas reference for position service
@@ -88,7 +86,6 @@ export function CanvasTileGrid({
         />
       </div>
       <OperationOverlay
-        pendingOperations={pendingOperations}
         getTilePosition={globalTilePositionService.getTilePosition.bind(globalTilePositionService)}
         baseHexSize={baseHexSize}
         scale={scale}
