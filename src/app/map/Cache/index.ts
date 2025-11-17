@@ -19,7 +19,6 @@ export { useMapCache } from '~/app/map/Cache/use-map-cache'
 
 // Specialized hooks for performance optimization
 export { useMapCacheCenter } from '~/app/map/Cache/use-map-cache'
-export { useMapCachePendingOps } from '~/app/map/Cache/use-map-cache'
 export { useMapCacheQuery } from '~/app/map/Cache/use-map-cache'
 export { useMapCacheNavigation } from '~/app/map/Cache/use-map-cache'
 

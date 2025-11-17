@@ -109,7 +109,6 @@ function _buildPublicAPI(deps: CacheAPIDependencies): MapCacheHook {
     center: state.currentCenter,
     expandedItems: state.expandedItemIds,
     isCompositionExpanded: state.isCompositionExpanded,
-    pendingOperations: state.pendingOperations,
     isLoading: state.isLoading,
     error: state.error,
     lastUpdated: state.lastUpdated,
@@ -165,25 +164,6 @@ export function useMapCacheCenter() {
   return context.state.currentCenter;
 }
 
-/**
- * Hook that returns only pending operations.
- *
- * NOTE: This does NOT prevent rerenders - components still rerender on every
- * MapCacheContext update. This is an organizational helper that provides
- * cleaner access to a single value.
- *
- * Validate actual render behavior with React DevTools Profiler.
- *
- * Phase 2: To prevent rerenders, use context splitting, use-context-selector,
- * or custom subscription pattern.
- */
-export function useMapCachePendingOps() {
-  const context = useContext(MapCacheContext);
-  if (!context) {
-    throw new Error("useMapCachePendingOps must be used within a MapCacheProvider");
-  }
-  return context.state.pendingOperations;
-}
 
 /**
  * Hook that returns only query methods (getItem, hasItem, etc.).

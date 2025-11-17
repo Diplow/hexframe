@@ -38,8 +38,7 @@ export function useMutationOperations(config: MutationOperationsConfig): Mutatio
   const stateRef = useRef(config.state);
   stateRef.current = config.state;
   const getState = useCallback(() => ({
-    itemsById: stateRef.current.itemsById,
-    pendingOperations: stateRef.current.pendingOperations
+    itemsById: stateRef.current.itemsById
   }), []);
 
   // Wrap mutations to match expected interface

@@ -55,7 +55,6 @@ export interface MapCacheHook {
   center: string | null;
   expandedItems: string[];
   isCompositionExpanded: boolean;
-  pendingOperations: Record<string, 'create' | 'update' | 'delete' | 'move' | 'copy'>;
   isLoading: boolean;
   error: Error | null;
   lastUpdated: number;
@@ -112,11 +111,6 @@ export interface MapCacheHook {
     coordId: string;
     timestamp: number;
   }>;
-
-  // Operation tracking methods for preventing race conditions
-  isOperationPending: (coordId: string) => boolean;
-  getPendingOperationType: (coordId: string) => 'create' | 'update' | 'delete' | 'move' | 'copy' | null;
-  getTilesWithPendingOperations: () => string[];
 
   // Drag and drop operations
   startDrag: (tileId: string, event: globalThis.DragEvent) => void;

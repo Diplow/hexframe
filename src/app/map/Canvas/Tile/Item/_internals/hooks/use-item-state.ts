@@ -7,6 +7,7 @@ import { useItemInteraction } from "~/app/map/Canvas/Tile/Item/_internals/hooks/
 import { generateTileTestId } from "~/app/map/Canvas/Tile/Item/_internals/utils";
 import { canEditTile } from "~/app/map/Canvas/Tile/Item/_internals/validators";
 import { useMapCache } from "~/app/map/Cache";
+import { useOperations } from "~/app/map/Operations";
 import { testLogger } from "~/lib/test-logger";
 import { canDragTile } from "~/app/map/Services";
 
@@ -43,7 +44,8 @@ export function useItemState({
   scale,
 }: ItemStateProps) {
   const interaction = useItemInteraction(item.metadata.coordId);
-  const { isOperationPending, getPendingOperationType, startDrag } = useMapCache();
+  const { startDrag } = useMapCache();
+  const { isOperationPending, getPendingOperationType } = useOperations();
   const tileRef = useRef<HTMLDivElement>(null);
 
   const canEdit = canEditTile(currentUserId, item.metadata.ownerId);
