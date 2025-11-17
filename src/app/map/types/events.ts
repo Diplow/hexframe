@@ -19,6 +19,8 @@ export type {
   ChatMessageEvent,
   ChatWidgetEvent,
   AuthStateChangedEvent,
+  CacheOperationStartedEvent,
+  CacheOperationCompletedEvent,
   SpecificAppEvent,
   EventListener,
   EventBusService
