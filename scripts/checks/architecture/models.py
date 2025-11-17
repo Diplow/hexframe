@@ -31,6 +31,45 @@ class Severity(Enum):
     WARNING = "warning"
 
 
+class RecommendationType(Enum):
+    """Types of recommendations for fixing architecture errors."""
+    # Documentation
+    CREATE_README = "Create README documentation"
+    CREATE_SUBSYSTEM_FILES = "Create missing subsystem files"
+
+    # Dependencies
+    ADD_ALLOWED_DEPENDENCY = "Add to allowed dependencies"
+    ADD_ALLOWED_CHILDREN = "Add to allowedChildren"
+    REMOVE_REDUNDANT_DEPENDENCY = "Remove redundant dependency"
+    REMOVE_FORBIDDEN_DEPENDENCY = "Remove forbidden dependency"
+    FIX_DEPENDENCY_PATH_FORMAT = "Fix dependency path format"
+
+    # Subsystems
+    CREATE_OR_REMOVE_SUBSYSTEM = "Create or remove subsystem declaration"
+    REMOVE_INVALID_SUBSYSTEM = "Remove invalid subsystem declaration"
+    CREATE_SUBSYSTEM_INDEX = "Create subsystem index"
+    CREATE_DEPENDENCIES_JSON = "Create dependencies.json file"
+
+    # Imports
+    USE_SUBSYSTEM_INTERFACE = "Use subsystem interface"
+    USE_UTILS_INTERFACE = "Use utils interface"
+    USE_SPECIFIC_CHILD = "Use specific child subsystem (not router index)"
+    REMOVE_CROSS_DOMAIN_IMPORT = "Remove cross-domain import"
+    MOVE_SHARED_CODE = "Move shared code to appropriate location"
+
+    # Service layer
+    MOVE_SERVICE_TO_API = "Move service to API layer"
+    FIX_DOMAIN_SERVICE_IMPORT = "Fix domain service import"
+
+    # Structural
+    RESOLVE_FILE_FOLDER_CONFLICT = "Resolve file/folder conflict"
+    FIX_UPWARD_REEXPORT = "Fix upward reexport"
+    FIX_REEXPORT_BOUNDARY = "Fix reexport boundary"
+
+    # Fallback
+    OTHER = "Other"
+
+
 @dataclass
 class FileInfo:
     """Information about a TypeScript file."""
@@ -62,6 +101,7 @@ class ArchError:
     file_path: Optional[str] = None
     line_number: Optional[int] = None
     recommendation: Optional[str] = None
+    recommendation_type: Optional[RecommendationType] = None
     metadata: Optional[Dict] = field(default_factory=dict)
     
     @classmethod
@@ -72,7 +112,8 @@ class ArchError:
         subsystem: Optional[str] = None,
         file_path: Optional[str] = None,
         line_number: Optional[int] = None,
-        recommendation: Optional[str] = None
+        recommendation: Optional[str] = None,
+        recommendation_type: Optional[RecommendationType] = None
     ) -> "ArchError":
         """Create an error with ERROR severity."""
         return cls(
@@ -82,7 +123,8 @@ class ArchError:
             subsystem=subsystem,
             file_path=file_path,
             line_number=line_number,
-            recommendation=recommendation
+            recommendation=recommendation,
+            recommendation_type=recommendation_type
         )
     
     @classmethod
@@ -93,7 +135,8 @@ class ArchError:
         subsystem: Optional[str] = None,
         file_path: Optional[str] = None,
         line_number: Optional[int] = None,
-        recommendation: Optional[str] = None
+        recommendation: Optional[str] = None,
+        recommendation_type: Optional[RecommendationType] = None
     ) -> "ArchError":
         """Create an error with WARNING severity."""
         return cls(
@@ -103,7 +146,8 @@ class ArchError:
             subsystem=subsystem,
             file_path=file_path,
             line_number=line_number,
-            recommendation=recommendation
+            recommendation=recommendation,
+            recommendation_type=recommendation_type
         )
     
     def to_dict(self) -> Dict:
@@ -115,13 +159,14 @@ class ArchError:
             "subsystem": self.subsystem,
             "file": self.file_path,
             "line": self.line_number,
-            "recommendation": self.recommendation
+            "recommendation": self.recommendation,
+            "recommendation_type": self.recommendation_type.value if self.recommendation_type else None
         }
-        
+
         # Add metadata if present
         if self.metadata:
             result.update(self.metadata)
-        
+
         return result
 
 
@@ -166,7 +211,7 @@ class CheckResults:
         summary = {}
         for issue in self.get_all_issues():
             if issue.recommendation:
-                rec_type = self._categorize_recommendation(issue.recommendation)
+                rec_type = self._categorize_recommendation(issue.recommendation, issue)
                 summary[rec_type] = summary.get(rec_type, 0) + 1
         return summary
     
@@ -196,8 +241,13 @@ class CheckResults:
         sorted_recommendations = sorted(exact_summary.items(), key=lambda x: x[1], reverse=True)
         return sorted_recommendations[:limit]
     
-    def _categorize_recommendation(self, recommendation: str) -> str:
+    def _categorize_recommendation(self, recommendation: str, error: ArchError) -> str:
         """Categorize recommendation into types for summary."""
+        # Use explicit type if available
+        if error.recommendation_type:
+            return error.recommendation_type.value
+
+        # Fallback to pattern matching for backwards compatibility
         # Handle router import warnings
         if "Consider importing from specific child subsystem instead" in recommendation:
             return "Use specific child subsystem (not router index)"
@@ -235,6 +285,12 @@ class CheckResults:
         elif "Remove" in recommendation and "dependencies.json" in recommendation:
             return "Remove forbidden dependency"
         
+        # Handle subsystem declaration issues
+        elif "Create" in recommendation and "dependencies.json to formalize this subsystem" in recommendation:
+            return "Create or remove subsystem declaration"
+        elif "Remove" in recommendation and "'subsystems' array" in recommendation and "directory does not exist" in recommendation:
+            return "Remove invalid subsystem declaration"
+
         # Handle structural issues
         elif "Move file contents" in recommendation:
             return "Resolve file/folder conflict"

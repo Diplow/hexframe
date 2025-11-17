@@ -12,7 +12,7 @@ import re
 from pathlib import Path
 from typing import List
 
-from ..models import ArchError, ErrorType, SubsystemInfo
+from ..models import ArchError, ErrorType, RecommendationType, SubsystemInfo
 from ..utils.path_utils import PathHelper
 
 
@@ -51,7 +51,8 @@ class AppPageRuleChecker:
                         message=f"❌ App subfolder with page.tsx must be a subsystem: {subfolder.relative_to(self.path_helper.target_path)}",
                         error_type=ErrorType.SUBSYSTEM_STRUCTURE,
                         subsystem=str(subfolder),
-                        recommendation=f"Create {subfolder}/dependencies.json with appropriate type ('app' for root app, 'page' for pages)"
+                        recommendation=f"Create {subfolder}/dependencies.json with appropriate type ('app' for root app, 'page' for pages)",
+                        recommendation_type=RecommendationType.CREATE_DEPENDENCIES_JSON
                     ))
 
         return errors
@@ -101,7 +102,8 @@ class AppPageRuleChecker:
                         error_type=ErrorType.IMPORT_BOUNDARY,
                         subsystem=str(relative_path.parent if relative_path != ts_file else ts_file.parent),
                         file_path=str(ts_file),
-                        recommendation=f"Move shared code from {import_path} to ~/lib or remove this import"
+                        recommendation=f"Move shared code from {import_path} to ~/lib or remove this import",
+                        recommendation_type=RecommendationType.MOVE_SHARED_CODE
                     ))
 
         return errors
@@ -135,7 +137,8 @@ class AppPageRuleChecker:
                                 error_type=ErrorType.IMPORT_BOUNDARY,
                                 subsystem=str(page_subsystem.path),
                                 file_path=str(file_info.path),
-                                recommendation=f"Move shared code from {import_path} to ~/lib or ~/app/components"
+                                recommendation=f"Move shared code from {import_path} to ~/lib or ~/app/components",
+                                recommendation_type=RecommendationType.MOVE_SHARED_CODE
                             ))
 
         return errors

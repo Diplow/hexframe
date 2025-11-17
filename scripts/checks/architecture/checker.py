@@ -110,15 +110,30 @@ class ArchitectureChecker:
         return index_files
     
     def _find_subsystem_files(self, subsystem_dir: Path) -> List[FileInfo]:
-        """Find and cache all TypeScript files in a subsystem."""
+        """Find TypeScript files in subsystem, excluding child subsystems.
+
+        This mirrors the logic of count_typescript_lines() to ensure consistency:
+        - Files directly in this directory belong to this subsystem
+        - Files in subdirectories without dependencies.json also belong to this subsystem
+        - Files in child subsystems (with dependencies.json) are excluded
+        """
         files = []
-        
+
+        # Only include direct files in this directory
         for pattern in ["*.ts", "*.tsx"]:
-            for ts_file in subsystem_dir.rglob(pattern):
+            for ts_file in subsystem_dir.glob(pattern):  # glob, not rglob!
                 if not self._is_test_file(ts_file):
                     file_info = self.file_cache.get_file_info(ts_file)
                     files.append(file_info)
-        
+
+        # Recurse into subdirectories that are NOT subsystems
+        for subdir in subsystem_dir.iterdir():
+            if subdir.is_dir():
+                deps_file = subdir / "dependencies.json"
+                if not deps_file.exists():
+                    # Not a subsystem, recurse to include its files
+                    files.extend(self._find_subsystem_files(subdir))
+
         return files
     
     def _is_test_file(self, file_path: Path) -> bool:
@@ -144,7 +159,12 @@ class ArchitectureChecker:
         errors = self.subsystem_checker.check_subsystem_declarations(self.subsystems)
         for error in errors:
             results.add_error(error)
-        
+
+        # Check that declared subsystems actually exist
+        errors = self.subsystem_checker.check_declared_subsystems_exist(self.subsystems)
+        for error in errors:
+            results.add_error(error)
+
         # Check dependencies.json format
         errors = self.subsystem_checker.check_dependencies_json_format(self.subsystems)
         for error in errors:

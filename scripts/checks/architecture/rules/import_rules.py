@@ -10,7 +10,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import List, Set
 
-from ..models import ArchError, ErrorType, SubsystemInfo
+from ..models import ArchError, ErrorType, RecommendationType, SubsystemInfo
 from ..utils.file_utils import find_typescript_files
 from ..utils.import_utils import (
     is_child_of_subsystem, 
@@ -42,7 +42,8 @@ class ImportRuleChecker:
                     message=f"❌ External imports bypass {subsystem.name}/index{subsystem_type_desc}:",
                     error_type=ErrorType.IMPORT_BOUNDARY,
                     subsystem=str(subsystem.path),
-                    recommendation=f"Create or update {subsystem.path}/index.ts to reexport internal modules"
+                    recommendation=f"Create or update {subsystem.path}/index.ts to reexport internal modules",
+                    recommendation_type=RecommendationType.CREATE_SUBSYSTEM_INDEX
                 ))
                 for v in violations:
                     # Extract the import path from the violation
@@ -61,7 +62,8 @@ class ImportRuleChecker:
                         subsystem=str(subsystem.path),
                         file_path=str(v['file']),
                         line_number=v['line'],
-                        recommendation=recommendation
+                        recommendation=recommendation,
+                        recommendation_type=RecommendationType.USE_SUBSYSTEM_INTERFACE
                     ))
 
         return errors
@@ -79,7 +81,8 @@ class ImportRuleChecker:
                     message=f"❌ Invalid reexports in {subsystem.name}/index.ts:",
                     error_type=ErrorType.REEXPORT_BOUNDARY,
                     subsystem=str(subsystem.path),
-                    recommendation=f"Fix reexports in {subsystem.path}/index.ts to only expose internal modules"
+                    recommendation=f"Fix reexports in {subsystem.path}/index.ts to only expose internal modules",
+                    recommendation_type=RecommendationType.FIX_REEXPORT_BOUNDARY
                 ))
                 for v in violations:
                     # Create specific recommendation based on violation type
@@ -97,7 +100,8 @@ class ImportRuleChecker:
                         subsystem=str(subsystem.path),
                         file_path=f"{subsystem.path}/index.ts",
                         line_number=v['line'],
-                        recommendation=recommendation
+                        recommendation=recommendation,
+                        recommendation_type=RecommendationType.FIX_REEXPORT_BOUNDARY
                     ))
         
         return errors
@@ -147,7 +151,8 @@ class ImportRuleChecker:
                             error_type=ErrorType.IMPORT_BOUNDARY,
                             subsystem=str(subsystem.path),
                             file_path=str(file_info.path),
-                            recommendation=recommendation
+                            recommendation=recommendation,
+                            recommendation_type=RecommendationType.ADD_ALLOWED_DEPENDENCY
                         ))
             
             return subsystem_errors
@@ -200,7 +205,8 @@ class ImportRuleChecker:
                                 error_type=ErrorType.IMPORT_BOUNDARY,
                                 subsystem=str(subsystem.path),
                                 file_path=str(file_info.path),
-                                recommendation=recommendation
+                                recommendation=recommendation,
+                                recommendation_type=RecommendationType.USE_SPECIFIC_CHILD
                             ))
 
         return errors
@@ -248,7 +254,8 @@ class ImportRuleChecker:
                                 error_type=ErrorType.IMPORT_BOUNDARY,
                                 subsystem=str(subsystem.path),
                                 file_path=str(file_info.path),
-                                recommendation=f"Change import from '{import_path}' to '{proper_import}' (use utils index.ts)"
+                                recommendation=f"Change import from '{import_path}' to '{proper_import}' (use utils index.ts)",
+                                recommendation_type=RecommendationType.USE_UTILS_INTERFACE
                             )
                             errors.append(error)
         
@@ -274,7 +281,8 @@ class ImportRuleChecker:
                     message=f"❌ Invalid upward reexports in {index_file.relative_to(Path('src'))}:",
                     error_type=ErrorType.REEXPORT_BOUNDARY,
                     subsystem=str(index_file.parent),
-                    recommendation=f"Fix upward reexports in {index_file.relative_to(Path('src'))} - index files should not reexport from parent directories"
+                    recommendation=f"Fix upward reexports in {index_file.relative_to(Path('src'))} - index files should not reexport from parent directories",
+                    recommendation_type=RecommendationType.FIX_REEXPORT_BOUNDARY
                 ))
                 
                 for v in violations:
@@ -285,7 +293,8 @@ class ImportRuleChecker:
                         subsystem=str(index_file.parent),
                         file_path=str(index_file),
                         line_number=v['line'],
-                        recommendation="Either move implementation to this directory or import directly from original location"
+                        recommendation="Either move implementation to this directory or import directly from original location",
+                        recommendation_type=RecommendationType.FIX_UPWARD_REEXPORT
                     ))
         
         return errors

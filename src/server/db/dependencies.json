@@ -6,8 +6,6 @@
     "~/env",
     "~/lib/domains/mapping"
   ],
-  "subsystems": [
-    "./schema"
-  ],
+  "subsystems": [],
   "exceptions": {}
 }

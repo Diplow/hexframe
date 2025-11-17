@@ -9,7 +9,6 @@
   ],
   "subsystems": [
     "./services",
-    "./transport",
     "./handlers"
   ],
   "exceptions": {}
