@@ -87,12 +87,22 @@ python3 scripts/check-architecture.py --help
 - `utility` - Stateless helper functions
   - Can be imported from anywhere
   - No state, pure functions only
+- `page` - Next.js page route (isolated from other pages)
+  - Cannot import from other pages (use ~/lib for shared code)
+  - Direct subfolders of src/app with page.tsx must be subsystems
+  - Example: `src/app/map`, `src/app/auth`
+- `app` - Next.js app root (isolated from non-app code)
+  - Nothing outside ~/app can import from ~/app
+  - Contains page subsystems
+  - Example: `src/app`
 
 **When to use each type:**
 - Use `boundary` for subsystems that coordinate multiple components and have their own state/logic
 - Use `router` for pure aggregation layers that just organize child subsystems
 - Use `domain` (explicit or auto-detected) for DDD domain modules
 - Use `utility` for pure, stateless helper function collections
+- Use `page` for Next.js routes (any src/app subfolder with page.tsx)
+- Use `app` for src/app root directory only
 
 **Router subsystem warnings:**
 When a subsystem is marked as `"type": "router"`, the checker will generate **warnings** (not errors) for any imports from the router's index. The warnings suggest importing from specific child subsystems instead:

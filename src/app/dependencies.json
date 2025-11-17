@@ -1,0 +1,30 @@
+{
+  "$schema": "../../scripts/checks/architecture/dependencies.schema.json",
+  "type": "app",
+  "allowedChildren": [
+    "react",
+    "next",
+    "~/lib/utils",
+    "~/components"
+  ],
+  "allowed": [
+    "~/lib/auth",
+    "~/lib/debug/debug-logger",
+    "~/lib/test-logger",
+    "~/commons/trpc/react",
+    "~/server/api",
+    "~/lib/domains/agentic",
+    "~/lib/domains/mapping",
+    "~/lib/domains/iam",
+    "~/contexts/UnifiedAuthContext",
+    "~/contexts/MappingUserProvider",
+    "~/contexts/ThemeContext",
+    "~/env",
+    "~/server/auth",
+    "~/app/components"
+  ],
+  "subsystems": [
+    "./map",
+    "./auth"
+  ]
+}

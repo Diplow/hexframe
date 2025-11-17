@@ -1,11 +1,11 @@
 {
   "$schema": "../../../../../scripts/checks/architecture/dependencies.schema.json",
   "type": "boundary",
-  "allowedChildren": [],
-  "allowed": [
+  "allowedChildren": [
     "react",
     "@testing-library/react",
-    "vitest",
+    "vitest"],
+  "allowed": [
     "~/app/map/Services/Operations"
   ],
   "subsystems": []

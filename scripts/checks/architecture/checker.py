@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import List
 
 from .models import CheckResults, SubsystemInfo, FileInfo
-from .rules import ComplexityRuleChecker, SubsystemRuleChecker, ImportRuleChecker, DomainRuleChecker
+from .rules import ComplexityRuleChecker, SubsystemRuleChecker, ImportRuleChecker, DomainRuleChecker, AppPageRuleChecker
 from .utils import FileCache, PathHelper, ExceptionHandler
 from .utils.file_utils import find_typescript_files
 
@@ -33,6 +33,7 @@ class ArchitectureChecker:
         self.subsystem_checker = SubsystemRuleChecker(self.path_helper, self.file_cache)
         self.import_checker = ImportRuleChecker(self.path_helper, self.file_cache)
         self.domain_checker = DomainRuleChecker(self.path_helper, self.file_cache)
+        self.app_page_checker = AppPageRuleChecker(self.path_helper, self.file_cache)
         
         # Track subsystems for cross-rule coordination
         self.subsystems: List[SubsystemInfo] = []
@@ -56,7 +57,8 @@ class ArchitectureChecker:
         self._run_import_checks(results)
         self._run_standalone_index_checks(results)
         self._run_domain_checks(results)
-        
+        self._run_app_page_checks(results)
+
         results.execution_time = time.time() - start_time
         return results
     
@@ -216,8 +218,25 @@ class ArchitectureChecker:
         errors = self.domain_checker.check_domain_structure()
         for error in errors:
             results.add_error(error)
-        
+
         # Check domain import restrictions
         errors = self.domain_checker.check_domain_import_restrictions()
+        for error in errors:
+            results.add_error(error)
+
+    def _run_app_page_checks(self, results: CheckResults) -> None:
+        """Run app and page-specific checks."""
+        # Check that app subfolders with page.tsx are subsystems
+        errors = self.app_page_checker.check_page_tsx_subsystems()
+        for error in errors:
+            results.add_error(error)
+
+        # Check app isolation
+        errors = self.app_page_checker.check_app_isolation(self.subsystems)
+        for error in errors:
+            results.add_error(error)
+
+        # Check page isolation
+        errors = self.app_page_checker.check_page_isolation(self.subsystems)
         for error in errors:
             results.add_error(error)

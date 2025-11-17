@@ -1,16 +1,14 @@
 {
   "$schema": "../../../scripts/checks/architecture/dependencies.schema.json",
+  "type": "page",
   "allowedChildren": [
     "lucide-react",
     "next/navigation",
-    "react",
-    "react-dom", 
+    "react-dom",
     "react-markdown",
     "zod",
     "~/commons/trpc",
-    "~/app/components",
-    "~/components",
-    "~/lib/utils"
+    "~/app/components"
   ],
   "allowed": [
     "next/redirect",
@@ -29,7 +27,7 @@
     "./Cache",
     "./Canvas",
     "./Chat",
-    "./Hierarchy", 
+    "./Hierarchy",
     "./MapResolver",
     "./Services"
   ]

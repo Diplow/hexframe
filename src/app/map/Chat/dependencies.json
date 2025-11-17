@@ -5,7 +5,6 @@
   ],
   "allowed": [
     "remark-gfm",
-    "~/app",
     "~/app/map/Services",
     "~/commons/trpc/react",
     "~/components/ThemeToggle",

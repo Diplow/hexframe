@@ -22,7 +22,7 @@ export { BaseTileLayout } from '~/app/map/Canvas';
 
 // Services subsystem
 export { EventBus, EventBusContext, EventBusProvider, useEventBus } from '~/app/map/Services/EventBus';
-export { PreFetchedMapData, clearPreFetchedData, loadPreFetchedData, preloadUserMapData, savePreFetchedData, transformApiItemsToTileData } from '~/app/map/Services/PreFetch/pre-fetch-service';;
+export { type PreFetchedMapData, clearPreFetchedData, loadPreFetchedData, preloadUserMapData, savePreFetchedData, transformApiItemsToTileData } from '~/app/map/Services/PreFetch/pre-fetch-service';
 
 // Import missing types directly from their source
 export type { AppEvent, EventListener, EventBusService } from '~/app/map/types';
