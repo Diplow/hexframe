@@ -19,9 +19,11 @@
     "~/contexts/UnifiedAuthContext",
     "~/contexts/MappingUserProvider",
     "~/contexts/ThemeContext",
+    "~/contexts/AuthContext",
     "~/env",
     "~/server/auth",
-    "~/app/components"
+    "~/app/components",
+    "~/test-utils/event-bus"
   ],
   "subsystems": [
     "./map",

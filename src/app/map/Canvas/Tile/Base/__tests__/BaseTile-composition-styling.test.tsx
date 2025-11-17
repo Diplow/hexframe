@@ -3,7 +3,7 @@ import { describe, it, expect } from "vitest";
 import { render } from "@testing-library/react";
 import { BaseItemTile } from "~/app/map/Canvas/Tile/Base/_components/BaseItemTile";
 import type { TileData } from "~/app/map/types/tile-data";
-import { createTestSetup } from '~/test-utils/providers';
+import { createTestSetup } from '~/app/test-utils/providers';
 
 describe("BaseTile - Composition Styling", () => {
   const { wrapper } = createTestSetup();
