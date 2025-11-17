@@ -21,20 +21,20 @@ class ArchitectureReporter:
         self.complexity_threshold = 1000
         self.doc_threshold = 500
     
-    def report_results(self, results: CheckResults, show_errors: bool = False, format_type: str = "console") -> bool:
+    def report_results(self, results: CheckResults, show_errors: bool = False, format_type: str = "console", suppressed_warning_count: int = 0) -> bool:
         """Report results to both JSON file and console. Returns True if no errors."""
         # Ensure output directory exists
         self.output_file.parent.mkdir(exist_ok=True)
-        
+
         # Write detailed JSON report
         self._write_json_report(results)
-        
+
         # Display results based on format
         if format_type == "json":
             self._display_json_output(results)
         else:
-            self._display_console_summary(results, show_errors=show_errors)
-        
+            self._display_console_summary(results, show_errors=show_errors, suppressed_warning_count=suppressed_warning_count)
+
         return not results.has_errors()
     
     def _write_json_report(self, results: CheckResults) -> None:
@@ -45,11 +45,11 @@ class ArchitectureReporter:
         with open(self.output_file, 'w') as f:
             json.dump(report_data, f, indent=2, default=str)
     
-    def _display_console_summary(self, results: CheckResults, show_errors: bool = False) -> None:
+    def _display_console_summary(self, results: CheckResults, show_errors: bool = False, suppressed_warning_count: int = 0) -> None:
         """Display summary information on console."""
         # print(f"⏱️  Completed in {results.execution_time:.2f} seconds")
         print()
-        
+
         # Show summary statistics
         total_errors = len(results.errors)
         total_warnings = len(results.warnings)
@@ -114,6 +114,8 @@ class ArchitectureReporter:
             print()
         else:
             print("✅ Architecture check passed!")
+            if suppressed_warning_count > 0:
+                print(f"ℹ️  {suppressed_warning_count} warning(s) suppressed - run with --include-warnings to see them")
             print(f"Detailed report: {self.output_file}")
     
     def get_grep_suggestions(self, error_type: str = None, subsystem: str = None) -> list[str]:

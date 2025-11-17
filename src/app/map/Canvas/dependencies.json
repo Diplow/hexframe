@@ -1,5 +1,6 @@
 {
   "$schema": "../../../../scripts/checks/architecture/dependencies.schema.json",
+  "type": "boundary",
   "allowedChildren": [],
   "allowed": [
     "@testing-library/react",
@@ -12,11 +13,6 @@
     "~/lib/debug/debug-logger",
     "~/lib/test-logger"
   ],
-  "exceptions": {
-    "~/app/map/Services/TilePosition": "ARCHITECTURAL: Direct subsystem imports preferred over parent index for explicit dependency tracking",
-    "~/app/map/Services/DragAndDrop": "ARCHITECTURAL: Direct subsystem imports preferred over parent index for explicit dependency tracking",
-    "~/app/map/Services/Operations": "ARCHITECTURAL: Direct subsystem imports preferred over parent index for explicit dependency tracking"
-  },
   "subsystems": [
     "./Tile",
     "./OperationOverlay"

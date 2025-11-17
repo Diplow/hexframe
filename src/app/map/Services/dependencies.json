@@ -1,5 +1,6 @@
 {
   "$schema": "../../../../scripts/checks/architecture/dependencies.schema.json",
+  "type": "router",
   "allowed": [
     "~/contexts/UnifiedAuthContext",
     "~/lib/debug/debug-logger",

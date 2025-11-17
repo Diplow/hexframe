@@ -61,42 +61,79 @@ python3 scripts/check-architecture.py --help
 - `infrastructure/` - Implementation details
 - `utils/` - Pure utility functions
 
-### 4. Dependency Management
+### 4. Subsystem Types
+
+**Subsystems can declare their architectural role:**
+```json
+{
+  "type": "boundary",
+  "allowed": [...],
+  "subsystems": [...]
+}
+```
+
+**Available types:**
+- `boundary` - Cohesive module with its own logic (default behavior)
+  - External imports must go through parent index
+  - Enforces encapsulation and abstraction boundaries
+  - Example: `Canvas`, `Cache`, `OperationOverlay`
+- `router` - Just aggregates/re-exports children, no logic
+  - Direct child imports are allowed
+  - Acts as convenience layer for public API
+  - Example: `Services` (re-exports EventBus, DragAndDrop, etc.)
+- `domain` - Domain-driven design module (auto-detected)
+  - Special cross-domain import rules apply
+  - Services restricted to API/server code
+- `utility` - Stateless helper functions
+  - Can be imported from anywhere
+  - No state, pure functions only
+
+**When to use each type:**
+- Use `boundary` for subsystems that coordinate multiple components and have their own state/logic
+- Use `router` for pure aggregation layers that just organize child subsystems
+- Use `domain` (explicit or auto-detected) for DDD domain modules
+- Use `utility` for pure, stateless helper function collections
+
+**Router subsystem warnings:**
+When a subsystem is marked as `"type": "router"`, the checker will generate **warnings** (not errors) for any imports from the router's index. The warnings suggest importing from specific child subsystems instead:
+```
+⚠️  Consider importing from specific child instead: ~/app/map/Services/[EventBus, Operations]
+```
+This encourages explicit dependency tracking while still allowing router imports when convenient. Use `pnpm check:architecture --include-warnings` to see these suggestions.
+
+### 5. Dependency Management
 
 **All imports must be declared in dependencies.json:**
 ```json
 {
+  "type": "boundary",
   "allowed": ["~/lib/utils", "~/server/db"],
   "allowedChildren": ["react", "next/navigation"],
-  "subsystems": ["./services", "./infrastructure"],
-  "exceptions": {
-    "~/legacy/old-system": "TEMPORARY: Remove when migration complete (Q2 2024)"
-  }
+  "subsystems": ["./services", "./infrastructure"]
 }
 ```
 
-**Three dependency arrays:**
+**Dependency arrays:**
+- `type` - Architectural role: "boundary", "router", "domain", or "utility" (optional)
 - `allowed` - Dependencies specific to this subsystem (use `~/` absolute paths)
 - `allowedChildren` - Dependencies that cascade to child subsystems (use sparingly for truly ubiquitous dependencies like `react`)
 - `subsystems` - Declared child subsystems (relative paths like `./Cache`)
-
-**Optional exceptions object:**
-- Documents architectural violations with justification
-- Use for temporary technical debt with clear resolution plan
 
 **Path requirements:**
 - Use absolute paths with `~/` prefix in `allowed` and `allowedChildren`
 - Use relative paths like `./childname` only in `subsystems` array
 - No `../` paths anywhere
 
-### 5. Reexport Boundaries
+**Note:** The `exceptions` object has been removed in favor of using the `type` field. If you need to import from a child subsystem directly, use `"type": "router"` instead of documenting it as an exception.
+
+### 6. Reexport Boundaries
 
 **Index.ts files can only reexport:**
 - Internal files within same subsystem
 - Declared child subsystems
 - External libraries (not other subsystems)
 
-### 6. Naming Conflicts
+### 7. Naming Conflicts
 
 **No file/folder naming conflicts:**
 - Cannot have both `foo.ts` and `foo/` directory

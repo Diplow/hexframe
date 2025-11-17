@@ -71,18 +71,25 @@ class ArchitectureChecker:
             
             # Load subsystem info
             dependencies = self.file_cache.load_dependencies_json(deps_file)
-            
+
             # Find all TypeScript files in subsystem
             files = self._find_subsystem_files(subsystem_dir)
             total_lines = sum(f.lines for f in files)
-            
+
+            # Determine subsystem type
+            subsystem_type = dependencies.get("type")
+            # Auto-detect domain type if not specified
+            if not subsystem_type and self.path_helper.is_domain_path(subsystem_dir):
+                subsystem_type = "domain"
+
             subsystem = SubsystemInfo(
                 path=subsystem_dir,
                 name=subsystem_dir.name,
                 dependencies=dependencies,
                 files=files,
                 total_lines=total_lines,
-                parent_path=subsystem_dir.parent
+                parent_path=subsystem_dir.parent,
+                subsystem_type=subsystem_type
             )
             
             subsystems.append(subsystem)
@@ -176,17 +183,22 @@ class ArchitectureChecker:
         errors = self.import_checker.check_import_boundaries(self.subsystems)
         for error in errors:
             results.add_error(error)
-        
+
         # Check reexport boundaries
         errors = self.import_checker.check_reexport_boundaries(self.subsystems)
         for error in errors:
             results.add_error(error)
-        
+
         # Check outbound dependencies
         errors = self.import_checker.check_outbound_dependencies_parallel(self.subsystems)
         for error in errors:
             results.add_error(error)
-        
+
+        # Check router import patterns (warnings for importing from router index)
+        errors = self.import_checker.check_router_import_patterns(self.subsystems)
+        for error in errors:
+            results.add_error(error)
+
         # Check domain utils import patterns
         errors = self.import_checker.check_domain_utils_import_patterns(self.subsystems)
         for error in errors:

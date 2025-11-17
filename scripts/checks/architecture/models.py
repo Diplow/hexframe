@@ -40,7 +40,7 @@ class FileInfo:
     content: str = ""
 
 
-@dataclass  
+@dataclass
 class SubsystemInfo:
     """Information about a subsystem (directory with dependencies.json)."""
     path: Path
@@ -49,6 +49,7 @@ class SubsystemInfo:
     files: List[FileInfo] = field(default_factory=list)
     total_lines: int = 0
     parent_path: Optional[Path] = None
+    subsystem_type: Optional[str] = None  # "boundary", "router", "domain", or "utility"
 
 
 @dataclass
@@ -197,6 +198,10 @@ class CheckResults:
     
     def _categorize_recommendation(self, recommendation: str) -> str:
         """Categorize recommendation into types for summary."""
+        # Handle router import warnings
+        if "Consider importing from specific child subsystem instead" in recommendation:
+            return "Use specific child subsystem (not router index)"
+
         # Handle service import violations
         if "Move service import" in recommendation and "API/server code" in recommendation:
             return "Move service to API layer"
