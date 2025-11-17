@@ -60,26 +60,49 @@ class AppPageRuleChecker:
         """Check that nothing outside ~/app imports from ~/app."""
         errors = []
 
-        # Find all subsystems that are NOT under src/app
-        for subsystem in subsystems:
-            # Skip if this subsystem is under app
-            if "app" in subsystem.path.parts:
-                continue
+        app_dir = self.path_helper.target_path / "app"
+        if not app_dir.exists():
+            return errors
 
-            # Check all files in this subsystem for app imports
-            for file_info in subsystem.files:
-                for import_path in file_info.imports:
-                    if import_path.startswith("~/app"):
-                        errors.append(ArchError.create_error(
-                            message=(f"❌ App isolation violation in {subsystem.name}:\n"
-                                   f"  🔸 {file_info.path.relative_to(subsystem.path)}\n"
-                                   f"     import from '{import_path}'\n"
-                                   f"     → App code is isolated - move shared code to ~/lib or ~/server"),
-                            error_type=ErrorType.IMPORT_BOUNDARY,
-                            subsystem=str(subsystem.path),
-                            file_path=str(file_info.path),
-                            recommendation=f"Move shared code from {import_path} to ~/lib or remove this import"
-                        ))
+        # Check all TypeScript files, not just those in subsystems
+        # This catches violations in non-subsystem directories like test-utils
+        from ..utils.file_utils import find_typescript_files
+
+        all_files = find_typescript_files(self.path_helper.target_path)
+
+        for ts_file in all_files:
+            # Skip if file is inside app directory
+            try:
+                ts_file.relative_to(app_dir)
+                continue  # File is inside app, skip it
+            except ValueError:
+                pass  # File is outside app, check it
+
+            # Check this file for app imports
+            file_info = self.file_cache.get_file_info(ts_file)
+            for import_path in file_info.imports:
+                if import_path.startswith("~/app"):
+                    # Try to find which subsystem/directory this file belongs to
+                    subsystem_name = "unknown"
+                    relative_path = ts_file
+                    try:
+                        relative_path = ts_file.relative_to(self.path_helper.target_path)
+                        # Get the top-level directory (e.g., "lib", "server", "test-utils")
+                        if len(relative_path.parts) > 0:
+                            subsystem_name = relative_path.parts[0]
+                    except ValueError:
+                        pass
+
+                    errors.append(ArchError.create_error(
+                        message=(f"❌ App isolation violation in {subsystem_name}:\n"
+                               f"  🔸 {relative_path}\n"
+                               f"     import from '{import_path}'\n"
+                               f"     → App code is isolated - move shared code to ~/lib or ~/server"),
+                        error_type=ErrorType.IMPORT_BOUNDARY,
+                        subsystem=str(relative_path.parent if relative_path != ts_file else ts_file.parent),
+                        file_path=str(ts_file),
+                        recommendation=f"Move shared code from {import_path} to ~/lib or remove this import"
+                    ))
 
         return errors
 
