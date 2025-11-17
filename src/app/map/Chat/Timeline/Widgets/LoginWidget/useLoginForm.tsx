@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useEventBus } from '~/app/map/Services';
+import { useEventBus } from '~/app/map/Services/EventBus';;
 import { handleLoginFlow } from '~/app/map/Chat/Timeline/Widgets/LoginWidget/_helpers/login-handler';
 import { handleRegisterFlow } from '~/app/map/Chat/Timeline/Widgets/LoginWidget/_helpers/register-handler';
 

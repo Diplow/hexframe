@@ -5,8 +5,8 @@ export const dynamic = 'force-dynamic';
 
 import { MapResolverProvider } from '~/app/map/MapResolver';
 import { MapCacheProvider } from '~/app/map/Cache';
-import { EventBusProvider, eventBus } from '~/app/map/Services';
-import { OperationsProvider } from '~/app/map/Services';
+import { EventBusProvider, eventBus } from '~/app/map/Services/EventBus';;
+import { OperationsProvider } from '~/app/map/Services/Operations';;
 import { MapLoadingUI } from '~/app/map/_components/MapLoadingUI';
 import { MapUI } from '~/app/map/_components/MapUI';
 import { ChatPanel } from '~/app/map/Chat';

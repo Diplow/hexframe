@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useEventBus } from '~/app/map/Services';
+import { useEventBus } from '~/app/map/Services/EventBus';;
 import type { ChatEvent } from '~/app/map/Chat/_state/_events/event.types';
 import type { AppEvent } from '~/app/map/types';
 import { validateAndTransformMapEvent } from '~/app/map/Chat/_state/_events/event.validators';

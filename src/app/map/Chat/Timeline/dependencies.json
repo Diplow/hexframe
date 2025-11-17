@@ -8,7 +8,8 @@
     "~/components/ui/button",
     "~/lib/auth",
     "~/lib/debug/debug-logger",
-    "~/lib/domains/agentic"
+    "~/lib/domains/agentic",
+    "~/app/map/Services/EventBus"
   ],
   "subsystems": [
     "./Widgets"

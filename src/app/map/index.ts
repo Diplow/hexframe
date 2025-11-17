@@ -21,18 +21,8 @@ export type { ChatMessage, ChatWidget } from '~/app/map/Chat';
 export { BaseTileLayout } from '~/app/map/Canvas';
 
 // Services subsystem
-export {
-  EventBus,
-  EventBusProvider,
-  EventBusContext,
-  useEventBus,
-  preloadUserMapData,
-  transformApiItemsToTileData,
-  savePreFetchedData,
-  loadPreFetchedData,
-  clearPreFetchedData,
-  type PreFetchedMapData
-} from '~/app/map/Services';
+export { EventBus, EventBusContext, EventBusProvider, useEventBus } from '~/app/map/Services/EventBus';
+export { PreFetchedMapData, clearPreFetchedData, loadPreFetchedData, preloadUserMapData, savePreFetchedData, transformApiItemsToTileData } from '~/app/map/Services/PreFetch/pre-fetch-service';;
 
 // Import missing types directly from their source
 export type { AppEvent, EventListener, EventBusService } from '~/app/map/types';

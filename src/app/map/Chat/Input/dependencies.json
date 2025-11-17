@@ -3,7 +3,8 @@
   "allowed": [
     "~/components/ui/button",
     "~/lib/auth",
-    "~/lib/debug/debug-logger"
+    "~/lib/debug/debug-logger",
+    "~/app/map/Services/EventBus"
   ],
   "exceptions": {}
 }

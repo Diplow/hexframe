@@ -4,7 +4,7 @@ import { createCreationHandlers } from '~/app/map/Chat/Timeline/_utils/creation-
 import { createTileHandlers } from '~/app/map/Chat/Timeline/_utils/tile-handlers';
 import type { useChatOperations } from '~/app/map/Chat/_state/_operations';
 import type { useMapCache } from '~/app/map/Cache';
-import type { useEventBus } from '~/app/map/Services';
+import type { useEventBus } from '~/app/map/Services/EventBus';
 
 interface HandlerDependencies {
   createItemOptimistic: ReturnType<typeof useMapCache>['createItemOptimistic'];

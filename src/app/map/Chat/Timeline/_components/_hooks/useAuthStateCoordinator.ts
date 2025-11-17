@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '~/commons/trpc/react';
 import type { Widget } from '~/app/map/Chat/_state';
-import { useEventBus } from '~/app/map/Services';
+import { useEventBus } from '~/app/map/Services/EventBus';;
 import { handleUserMapNavigation } from '~/app/map/Chat/Timeline/_components/_hooks/_helpers/map-navigation-handlers';
 
 export function useAuthStateCoordinator(widgets: Widget[]) {
