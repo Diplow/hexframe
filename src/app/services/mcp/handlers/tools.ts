@@ -62,6 +62,11 @@ function parseJsonParam(param: unknown): unknown {
   return param;
 }
 
+import type { AppRouter } from '~/server/api';
+
+// Type for tRPC caller
+type TRPCCaller = ReturnType<AppRouter['createCaller']>;
+
 export interface McpTool {
   name: string;
   description: string;
@@ -70,7 +75,7 @@ export interface McpTool {
     properties: Record<string, unknown>;
     required?: string[];
   };
-  handler: (args: unknown) => Promise<unknown>;
+  handler: (args: unknown, caller: TRPCCaller) => Promise<unknown>;
 }
 
 export const mcpTools: McpTool[] = [
@@ -121,7 +126,7 @@ Use 'fields' parameter for progressive disclosure: ["name", "preview"] for overv
       },
       required: [],
     },
-    handler: async (args: unknown) => {
+    handler: async (args: unknown, caller: TRPCCaller) => {
       const argsObj = args as Record<string, unknown>;
 
       // Convert string parameters to numbers (Claude Code sends strings)
@@ -151,7 +156,7 @@ Use 'fields' parameter for progressive disclosure: ["name", "preview"] for overv
         throw new Error('userId is required');
       }
 
-      return await getUserMapItemsHandler(userId, groupId, depth, fields);
+      return await getUserMapItemsHandler(caller, userId, groupId, depth, fields);
     },
   },
 
@@ -187,11 +192,11 @@ Use 'fields' parameter for progressive disclosure: ["name", "preview"] for overv
       },
       required: ["coords"],
     },
-    handler: async (args: unknown) => {
+    handler: async (args: unknown, caller: TRPCCaller) => {
       const argsObj = args as Record<string, unknown>;
       const coords = normalizeCoordinates(argsObj?.coords);
       const fields = argsObj?.fields as string[] | undefined;
-      return await getItemByCoordsHandler(coords, fields);
+      return await getItemByCoordsHandler(caller, coords, fields);
     },
   },
 
@@ -239,7 +244,7 @@ DIRECTION USAGE:
       },
       required: ["coords", "title"],
     },
-    handler: async (args: unknown) => {
+    handler: async (args: unknown, caller: TRPCCaller) => {
       const argsObj = args as Record<string, unknown>;
       const coords = normalizeCoordinates(argsObj?.coords);
       const title = argsObj?.title as string;
@@ -251,7 +256,7 @@ DIRECTION USAGE:
         throw new Error("title parameter is required");
       }
 
-      return await addItemHandler(coords, title, content, preview, url);
+      return await addItemHandler(caller, coords, title, content, preview, url);
     },
   },
 
@@ -288,7 +293,7 @@ DIRECTION USAGE:
       },
       required: ["coords", "updates"],
     },
-    handler: async (args: unknown) => {
+    handler: async (args: unknown, caller: TRPCCaller) => {
       const argsObj = args as Record<string, unknown>;
       const coords = normalizeCoordinates(argsObj?.coords);
       const updates = parseJsonParam(argsObj?.updates) as { title?: string; content?: string; url?: string };
@@ -297,7 +302,7 @@ DIRECTION USAGE:
         throw new Error("updates parameter is required");
       }
 
-      return await updateItemHandler(coords, updates);
+      return await updateItemHandler(caller, coords, updates);
     },
   },
 
@@ -316,8 +321,8 @@ Returns user info including:
       type: "object",
       properties: {},
     },
-    handler: async () => {
-      return await getCurrentUserHandler();
+    handler: async (_args: unknown, caller: TRPCCaller) => {
+      return await getCurrentUserHandler(caller);
     },
   },
 
@@ -351,10 +356,10 @@ Use with extreme caution. Always verify coordinates before deletion. Consider mo
       },
       required: ["coords"],
     },
-    handler: async (args: unknown) => {
+    handler: async (args: unknown, caller: TRPCCaller) => {
       const argsObj = args as Record<string, unknown>;
       const coords = normalizeCoordinates(argsObj?.coords);
-      return await deleteItemHandler(coords);
+      return await deleteItemHandler(caller, coords);
     },
   },
 
@@ -403,11 +408,11 @@ Ensure both old and new coordinates are correct. The user must own both the item
       },
       required: ["oldCoords", "newCoords"],
     },
-    handler: async (args: unknown) => {
+    handler: async (args: unknown, caller: TRPCCaller) => {
       const argsObj = args as Record<string, unknown>;
       const oldCoords = normalizeCoordinates(argsObj?.oldCoords);
       const newCoords = normalizeCoordinates(argsObj?.newCoords);
-      return await moveItemHandler(oldCoords, newCoords);
+      return await moveItemHandler(caller, oldCoords, newCoords);
     },
   },
 
@@ -443,7 +448,7 @@ Ensure both old and new coordinates are correct. The user must own both the item
       },
       required: ["coords"],
     },
-    handler: async (args: unknown) => {
+    handler: async (args: unknown, caller: TRPCCaller) => {
       const argsObj = args as Record<string, unknown>;
       const coords = normalizeCoordinates(argsObj?.coords);
       const fields = argsObj?.fields as string[] | undefined;
@@ -458,7 +463,7 @@ Ensure both old and new coordinates are correct. The user must own both the item
         };
 
         try {
-          const ancestor = await getItemByCoordsHandler(ancestorCoords, fields);
+          const ancestor = await getItemByCoordsHandler(caller, ancestorCoords, fields);
           if (ancestor) {
             ancestry.push(ancestor);
           }
@@ -503,7 +508,7 @@ Ensure both old and new coordinates are correct. The user must own both the item
       },
       required: ["coords"],
     },
-    handler: async (args: unknown) => {
+    handler: async (args: unknown, caller: TRPCCaller) => {
       const argsObj = args as Record<string, unknown>;
       const coords = normalizeCoordinates(argsObj?.coords);
       const fields = argsObj?.fields as string[] | undefined;
@@ -521,7 +526,7 @@ Ensure both old and new coordinates are correct. The user must own both the item
       for (const siblingCoordId of siblingCoordIds) {
         try {
           const siblingCoords = CoordSystem.parseId(siblingCoordId);
-          const sibling = await getItemByCoordsHandler(siblingCoords, fields);
+          const sibling = await getItemByCoordsHandler(caller, siblingCoords, fields);
           if (sibling) {
             siblings.push(sibling);
           }
@@ -566,7 +571,7 @@ Ensure both old and new coordinates are correct. The user must own both the item
       },
       required: ["coords"],
     },
-    handler: async (args: unknown) => {
+    handler: async (args: unknown, caller: TRPCCaller) => {
       const argsObj = args as Record<string, unknown>;
       const coords = normalizeCoordinates(argsObj?.coords);
       const fields = argsObj?.fields as string[] | undefined;
@@ -580,7 +585,7 @@ Ensure both old and new coordinates are correct. The user must own both the item
         };
 
         try {
-          const child = await getItemByCoordsHandler(childCoords, fields);
+          const child = await getItemByCoordsHandler(caller, childCoords, fields);
           if (child) {
             composedChildren.push(child);
           }
@@ -630,7 +635,7 @@ Ensure both old and new coordinates are correct. The user must own both the item
       },
       required: ["coords"],
     },
-    handler: async (args: unknown) => {
+    handler: async (args: unknown, caller: TRPCCaller) => {
       const argsObj = args as Record<string, unknown>;
       const coords = normalizeCoordinates(argsObj?.coords);
       const fields = argsObj?.fields as string[] | undefined;
@@ -646,7 +651,7 @@ Ensure both old and new coordinates are correct. The user must own both the item
           };
 
           try {
-            const child = await getItemByCoordsHandler(childCoords, fields);
+            const child = await getItemByCoordsHandler(caller, childCoords, fields);
             if (child) {
               children.push(child);
             }
@@ -669,7 +674,7 @@ Ensure both old and new coordinates are correct. The user must own both the item
           };
 
           try {
-            const child = await getItemByCoordsHandler(childCoords, fields);
+            const child = await getItemByCoordsHandler(caller, childCoords, fields);
             if (child) {
               const grandchildren = await fetchDescendants(childCoords);
               children.push({ ...child, children: grandchildren });
@@ -731,7 +736,7 @@ Returns an XML-formatted prompt string ready for AI agent consumption.`,
       },
       required: ["taskCoords"],
     },
-    handler: async (args: unknown) => {
+    handler: async (args: unknown, caller: TRPCCaller) => {
       const argsObj = args as Record<string, unknown>;
       const taskCoords = argsObj?.taskCoords as string;
       const instruction = argsObj?.instruction as string | undefined;
@@ -740,16 +745,10 @@ Returns an XML-formatted prompt string ready for AI agent consumption.`,
         throw new Error("taskCoords parameter is required");
       }
 
-      const { callTrpcEndpoint } = await import("~/app/services/mcp/services/api-helpers");
-
-      const result = await callTrpcEndpoint<{ prompt: string }>(
-        "agentic.hexecute",
-        {
-          taskCoords,
-          instruction
-        },
-        { requireAuth: false }
-      );
+      const result = await caller.agentic.hexecute({
+        taskCoords,
+        instruction
+      });
 
       return result;
     },
@@ -773,14 +772,14 @@ export function formatToolResponse(result: unknown): { content: Array<{ type: "t
 /**
  * Helper function to handle tool execution with error handling
  */
-export async function executeTool(toolName: string, args: unknown): Promise<{ content: Array<{ type: "text"; text: string }> }> {
+export async function executeTool(toolName: string, args: unknown, caller: TRPCCaller): Promise<{ content: Array<{ type: "text"; text: string }> }> {
   try {
     const tool = mcpTools.find(t => t.name === toolName);
     if (!tool) {
       throw new Error(`Unknown tool: ${toolName}`);
     }
 
-    const result = await tool.handler(args);
+    const result = await tool.handler(args, caller);
     return formatToolResponse(result);
   } catch (error) {
     return {

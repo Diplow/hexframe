@@ -1,8 +1,11 @@
 import "server-only";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
-import { callTrpcEndpoint } from "~/app/services/mcp/services/api-helpers";
 import type { MapItem, MapItemWithHierarchy } from "~/app/services/mcp/services/hierarchy-utils";
 import { buildHierarchyFromFlatArray } from "~/app/services/mcp/services/hierarchy-utils";
+import type { AppRouter } from '~/server/api';
+
+// Type for tRPC caller
+type TRPCCaller = ReturnType<AppRouter['createCaller']>;
 
 // Helper function to filter fields from an object
 function filterFields<T extends Record<string, unknown>>(item: T, fields?: string[]): Partial<T> {
@@ -31,15 +34,18 @@ function filterHierarchyFields(item: MapItemWithHierarchy, fields?: string[]): P
 }
 
 // Helper to get a map item by coordinates
-async function _getItemByCoords(coords: {
-  userId: number;
-  groupId: number;
-  path: number[];
-}): Promise<MapItem | null> {
+async function _getItemByCoords(
+  caller: TRPCCaller,
+  coords: {
+    userId: number;
+    groupId: number;
+    path: number[];
+  }
+): Promise<MapItem | null> {
   try {
-    return await callTrpcEndpoint<MapItem>("map.getItemByCoords", {
-      coords,
-    }, { requireAuth: false });
+    const result = await caller.map.getItemByCoords({ coords });
+    // Handle potential array return (shouldn't happen but type safety)
+    return Array.isArray(result) ? result[0] ?? null : result;
   } catch {
     return null;
   }
@@ -47,6 +53,7 @@ async function _getItemByCoords(coords: {
 
 // Handler for getUserMapItems tool (renamed to getItemsForRootItem)
 export async function getUserMapItemsHandler(
+  caller: TRPCCaller,
   userId: number,
   groupId = 0,
   depth = 3,
@@ -54,12 +61,11 @@ export async function getUserMapItemsHandler(
 ): Promise<Partial<MapItemWithHierarchy> | null> {
   if (process.env.DEBUG_MCP === "true") console.error("[MCP DEBUG] getUserMapItemsHandler called! userId:", userId);
   try {
-    // Get ALL items for this user in a single API call
-    // This is a public endpoint, so no authentication required
-    const allItems = await callTrpcEndpoint<MapItem[]>("map.getItemsForRootItem", {
+    // Get ALL items for this user via direct tRPC call
+    const allItems = await caller.map.getItemsForRootItem({
       userId,
       groupId,
-    }, { requireAuth: false });
+    });
 
     if (!allItems || allItems.length === 0) {
       throw new Error(
@@ -86,13 +92,17 @@ export async function getUserMapItemsHandler(
 }
 
 // Handler for getItemByCoords tool
-export async function getItemByCoordsHandler(coords: {
-  userId: number;
-  groupId: number;
-  path: number[];
-}, fields?: string[]): Promise<Partial<MapItem> | null> {
+export async function getItemByCoordsHandler(
+  caller: TRPCCaller,
+  coords: {
+    userId: number;
+    groupId: number;
+    path: number[];
+  },
+  fields?: string[]
+): Promise<Partial<MapItem> | null> {
   try {
-    const item = await _getItemByCoords(coords);
+    const item = await _getItemByCoords(caller, coords);
     if (!item) {
       throw new Error(
         `No tile found at coordinates ${CoordSystem.createId(coords)}. ` +
@@ -108,10 +118,10 @@ export async function getItemByCoordsHandler(coords: {
 }
 
 // Handler for getting current user info (debug tool)
-export async function getCurrentUserHandler(): Promise<unknown> {
+export async function getCurrentUserHandler(caller: TRPCCaller): Promise<unknown> {
   try {
     if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Getting current user info`);
-    const userInfo = await callTrpcEndpoint<unknown>("user.getCurrentUser", {}, { requireAuth: true });
+    const userInfo = await caller.user.getCurrentUser();
     if (process.env.DEBUG_MCP === "true") console.error(`[MCP DEBUG] Current user info retrieved: ${userInfo ? 'yes' : 'no'}`);
     return userInfo;
   } catch (error) {

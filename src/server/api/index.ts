@@ -16,6 +16,3 @@ export type * from '~/server/api/types/contracts';
 
 // Middleware exports for advanced usage
 export { verificationAwareRateLimit, verificationAwareAuthLimit } from '~/server/api/middleware';
-
-// Service layer (for direct usage when needed)
-export { UserMappingService } from '~/server/api/services/user-mapping.service';

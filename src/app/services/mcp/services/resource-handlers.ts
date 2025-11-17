@@ -1,34 +1,39 @@
 import "server-only";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
-import { callTrpcEndpoint } from "~/app/services/mcp/services/api-helpers";
 import type { MapItem } from "~/app/services/mcp/services/hierarchy-utils";
 import { buildHierarchyFromFlatArray } from "~/app/services/mcp/services/hierarchy-utils";
+import type { AppRouter } from '~/server/api';
+
+// Type for tRPC caller
+type TRPCCaller = ReturnType<AppRouter['createCaller']>;
 
 // Helper to get a map item by coordinates
-async function _getItemByCoords(coords: {
-  userId: number;
-  groupId: number;
-  path: number[];
-}): Promise<MapItem | null> {
+async function _getItemByCoords(
+  caller: TRPCCaller,
+  coords: {
+    userId: number;
+    groupId: number;
+    path: number[];
+  }
+): Promise<MapItem | null> {
   try {
-    return await callTrpcEndpoint<MapItem>("map.getItemByCoords", {
-      coords,
-    }, { requireAuth: false });
+    const result = await caller.map.getItemByCoords({ coords });
+    // Handle potential array return (shouldn't happen but type safety)
+    return Array.isArray(result) ? result[0] ?? null : result;
   } catch {
     return null;
   }
 }
 
 // Handler for map items list resource
-export async function mapItemsListHandler(uri: URL, rootId: string) {
+export async function mapItemsListHandler(caller: TRPCCaller, uri: URL, rootId: string) {
   try {
-    // Parse rootId to get user info and use the efficient approach
+    // Parse rootId to get user info
     const coords = CoordSystem.parseId(rootId);
-    // This is a public endpoint, so no authentication required
-    const allItems = await callTrpcEndpoint<MapItem[]>("map.getItemsForRootItem", {
+    const allItems = await caller.map.getItemsForRootItem({
       userId: coords.userId,
       groupId: coords.groupId,
-    }, { requireAuth: false });
+    });
 
     const hierarchy = buildHierarchyFromFlatArray(allItems, rootId, 3);
 
@@ -56,11 +61,11 @@ export async function mapItemsListHandler(uri: URL, rootId: string) {
 }
 
 // Handler for single map item resource
-export async function mapItemHandler(uri: URL, itemId: string) {
+export async function mapItemHandler(caller: TRPCCaller, uri: URL, itemId: string) {
   try {
     // For single items, use the simple getItemByCoords approach
     const coords = CoordSystem.parseId(itemId);
-    const item = await _getItemByCoords(coords);
+    const item = await _getItemByCoords(caller, coords);
 
     if (!item) {
       throw new Error(

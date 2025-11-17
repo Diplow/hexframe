@@ -1,7 +1,6 @@
 import { mcpTools } from '~/app/services/mcp';
-import { validateInternalApiKey } from '~/lib/domains/iam';
-import { auth } from '~/server/auth';
-import { runWithRequestContext } from '~/lib/utils/request-context';
+import { createContext } from '~/server/api/trpc';
+import { createCaller } from '~/server/api';
 
 interface JsonRpcRequest {
   jsonrpc: '2.0';
@@ -25,62 +24,22 @@ interface JsonRpcResponse {
   };
 }
 
-async function validateApiKey(request: Request): Promise<{ apiKey: string; userId: string } | null> {
-  try {
-    const apiKeyHeader = request.headers.get('x-api-key');
-    const authHeader = request.headers.get('authorization');
-
-    let apiKey = apiKeyHeader;
-
-    // Try to extract from Bearer token if no x-api-key header
-    if (!apiKey && authHeader?.startsWith('Bearer ')) {
-      apiKey = authHeader.slice(7);
-    }
-
-    if (!apiKey) {
-      return null;
-    }
-
-    // Try internal API key first (from IAM domain, for MCP server-to-server auth)
-    const internalResult = await validateInternalApiKey(apiKey);
-    if (internalResult) {
-      return { apiKey, userId: internalResult.userId };
-    }
-
-    // Fall back to regular API key validation (for external tools)
-    const result = await auth.api.verifyApiKey({
-      body: { key: apiKey }
-    });
-
-    if (!result.valid || !result.key) {
-      return null;
-    }
-
-    return { apiKey, userId: result.key.userId };
-  } catch {
-    return null;
-  }
-}
-
 export async function POST(request: Request): Promise<Response> {
   try {
     // Parse JSON-RPC request
     const body = await request.text();
     const jsonRpcRequest = JSON.parse(body) as JsonRpcRequest;
 
-    // Validate API key
-    const authContext = await validateApiKey(request);
-    if (!authContext) {
-      const errorResponse: JsonRpcResponse = {
-        jsonrpc: '2.0',
-        id: jsonRpcRequest.id,
-        error: {
-          code: -32001,
-          message: 'Authentication failed'
-        }
-      };
-      return Response.json(errorResponse, { status: 401 });
-    }
+    // Create tRPC context from the request
+    // The context creation will handle API key validation via headers
+    const ctx = await createContext({
+      req: request as unknown as Parameters<typeof createContext>[0]['req'],
+      res: null as unknown as Parameters<typeof createContext>[0]['res'],
+      info: {} as Parameters<typeof createContext>[0]['info'],
+    });
+
+    // Create tRPC caller with the context
+    const caller = createCaller(ctx);
 
     // Handle different MCP methods
     if (jsonRpcRequest.method === 'tools/list') {
@@ -88,7 +47,7 @@ export async function POST(request: Request): Promise<Response> {
         tools: mcpTools.map(tool => ({
           name: tool.name,
           description: tool.description,
-        preview: undefined,
+          preview: undefined,
           inputSchema: tool.inputSchema
         }))
       };
@@ -132,11 +91,8 @@ export async function POST(request: Request): Promise<Response> {
       }
 
       try {
-        // Run tool handler with proper context
-        const result = await runWithRequestContext(
-          authContext,
-          () => tool.handler(toolArgs)
-        );
+        // Execute tool with tRPC caller - no HTTP overhead!
+        const result = await tool.handler(toolArgs, caller);
 
         const response: JsonRpcResponse = {
           jsonrpc: '2.0',
