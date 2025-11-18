@@ -1,6 +1,5 @@
 import { mcpTools } from '~/app/services/mcp';
-import { createContext } from '~/server/api/trpc';
-import { createCaller } from '~/server/api';
+import { createContext, createCaller } from '~/server/api';
 
 interface JsonRpcRequest {
   jsonrpc: '2.0';

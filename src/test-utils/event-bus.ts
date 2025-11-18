@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import type { AppEvent, EventListener, EventBusService } from '~/lib/utils/event-bus/types';
+import type { AppEvent, EventListener, EventBusService } from '~/lib/utils/event-bus';
 
 /**
  * Creates a mock EventBus for testing

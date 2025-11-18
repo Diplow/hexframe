@@ -3,7 +3,6 @@
   "allowed": [
     "next/cache",
     "zod",
-    "~/lib",
     "~/lib/domains/mapping",
     "~/server/api",
     "~/server/auth",

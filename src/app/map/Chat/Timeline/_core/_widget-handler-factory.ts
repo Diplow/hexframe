@@ -1,8 +1,7 @@
-import type { Widget } from '~/app/map/Chat/_state';
+import type { Widget, useChatOperations } from '~/app/map/Chat/_state';
 import type { WidgetHandlers } from '~/app/map/Chat/Timeline/_components/_renderers/widget-renderers';
 import { createCreationHandlers } from '~/app/map/Chat/Timeline/_utils/creation-handlers';
 import { createTileHandlers } from '~/app/map/Chat/Timeline/_utils/tile-handlers';
-import type { useChatOperations } from '~/app/map/Chat/_state/_operations';
 import type { useMapCache } from '~/app/map/Cache';
 import type { useEventBus } from '~/app/map/Services/EventBus';
 

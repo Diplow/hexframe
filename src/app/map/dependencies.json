@@ -21,7 +21,8 @@
     "~/lib/debug/debug-logger",
     "~/lib/domains/agentic",
     "~/lib/test-logger",
-    "~/lib/domains/mapping"
+    "~/lib/domains/mapping",
+    "~/lib/utils/event-bus"
   ],
   "subsystems": [
     "./Cache",

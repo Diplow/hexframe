@@ -150,14 +150,18 @@ def import_goes_into_subsystem(import_path: str) -> bool:
     return False
 
 
-def is_import_allowed_by_set(import_path: str, allowed_set: Set[str], 
+def is_import_allowed_by_set(import_path: str, allowed_set: Set[str],
                             subsystem_path: Path) -> bool:
     """Check if import is allowed by a set of allowed dependencies with proper hierarchical logic."""
     # Convert subsystem_path to absolute path format for internal import checking
-    subsystem_abs_path = f"~/{subsystem_path.relative_to(Path('src'))}"
-    
+    # Handle special case where subsystem is src itself
+    if subsystem_path == Path('src'):
+        subsystem_abs_path = "~"
+    else:
+        subsystem_abs_path = f"~/{subsystem_path.relative_to(Path('src'))}"
+
     # Allow internal imports within the same subsystem
-    if (import_path.startswith(f"{subsystem_abs_path}/") or 
+    if (import_path.startswith(f"{subsystem_abs_path}/") or
         import_path == subsystem_abs_path):
         return True
     

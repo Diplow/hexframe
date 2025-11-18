@@ -2,8 +2,7 @@
   "$schema": "../../../../scripts/checks/architecture/dependencies.schema.json",
   "allowed": [
     "~/app/services/mcp",
-    "~/server/api/trpc",
-    "~/server/api/root"
+    "~/server/api"
   ],
   "exceptions": {}
 }

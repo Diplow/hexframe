@@ -3,9 +3,9 @@
   "type": "router",
   "allowed": [
     "better-auth",
-    "better-auth/adapters/drizzle",
     "nodemailer",
     "~/env",
+    "~/lib/debug/debug-logger",
     "~/server/db"
   ],
   "subsystems": [

@@ -1,6 +1,8 @@
 {
   "$schema": "../../../../../scripts/checks/architecture/dependencies.schema.json",
-  "allowed": [],
+  "allowed": [
+    "~/app/map/Services/EventBus"
+  ],
   "subsystems": [
     "./docs"
   ],
