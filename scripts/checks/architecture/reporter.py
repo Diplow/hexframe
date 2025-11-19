@@ -45,7 +45,7 @@ class ArchitectureReporter:
         with open(self.output_file, 'w') as f:
             json.dump(report_data, f, indent=2, default=str)
     
-    def _display_console_summary(self, results: CheckResults, show_errors: bool = False, suppressed_warning_count: int = 0) -> None:
+    def _display_console_summary(self, results: CheckResults, suppressed_warning_count: int = 0) -> None:
         """Display summary information on console."""
         # print(f"⏱️  Completed in {results.execution_time:.2f} seconds")
         print()
