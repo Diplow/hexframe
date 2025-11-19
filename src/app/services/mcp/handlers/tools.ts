@@ -132,7 +132,9 @@ Use 'fields' parameter for progressive disclosure: ["name", "preview"] for overv
       // Convert parameters to appropriate types (Claude Code sends strings)
       let userId: string | undefined;
       if (argsObj?.userId) {
-        userId = typeof argsObj.userId === 'string' ? argsObj.userId : String(argsObj.userId);
+        userId = typeof argsObj.userId === 'string'
+          ? argsObj.userId
+          : (typeof argsObj.userId === 'number' ? String(argsObj.userId) : undefined);
       }
 
       // If no userId provided, use the authenticated user's ID
