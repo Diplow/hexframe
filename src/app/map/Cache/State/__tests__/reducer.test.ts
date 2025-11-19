@@ -50,7 +50,6 @@ describe("Cache Reducer", () => {
         currentCenter: null,
         expandedItemIds: [],
         isCompositionExpanded: false,
-        pendingOperations: {},
         isLoading: false,
         error: null,
         lastUpdated: 0,
@@ -872,37 +871,37 @@ describe("Cache Reducer", () => {
     test("resets composition when navigating to new center", () => {
       const stateWithComposition: CacheState = {
         ...mockState,
-        currentCenter: "1,0:1",
+        currentCenter: "user-test-1,0:1",
         isCompositionExpanded: true,
       };
 
       const action: CacheAction = {
         type: ACTION_TYPES.SET_CENTER,
-        payload: "1,0:2",
+        payload: "user-test-1,0:2",
       };
 
       const result = cacheReducer(stateWithComposition, action);
 
-      expect(result.currentCenter).toBe("1,0:2");
+      expect(result.currentCenter).toBe("user-test-1,0:2");
       expect(result.isCompositionExpanded).toBe(false);
     });
 
     test("preserves other state properties when resetting composition", () => {
       const stateWithComposition: CacheState = {
         ...mockState,
-        currentCenter: "1,0:1",
+        currentCenter: "user-test-1,0:1",
         expandedItemIds: ["1", "2"],
         isCompositionExpanded: true,
       };
 
       const action: CacheAction = {
         type: ACTION_TYPES.SET_CENTER,
-        payload: "1,0:2",
+        payload: "user-test-1,0:2",
       };
 
       const result = cacheReducer(stateWithComposition, action);
 
-      expect(result.currentCenter).toBe("1,0:2");
+      expect(result.currentCenter).toBe("user-test-1,0:2");
       expect(result.expandedItemIds).toEqual(["1", "2"]);
       expect(result.isCompositionExpanded).toBe(false);
     });

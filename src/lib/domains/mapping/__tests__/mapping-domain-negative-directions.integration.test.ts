@@ -412,7 +412,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
 
       // Utils layer: serialize
       const coordId = CoordSystem.createId(coord);
-      expect(coordId).toBe("1,0:1,-3,4");
+      expect(coordId).toBe("user-test-1,0:1,-3,4");
 
       // Utils layer: deserialize
       const parsed = CoordSystem.parseId(coordId);

@@ -23,7 +23,7 @@ describe("MutationCoordinator Event Emissions", () => {
       color: "#000000",
     },
     metadata: {
-      coordId: "1,2",
+      coordId: "user-test-1,2",
       dbId: "item-1",
       depth: 1,
       parentId: undefined,
@@ -49,7 +49,7 @@ describe("MutationCoordinator Event Emissions", () => {
       color: "#000000",
     },
     metadata: {
-      coordId: "1,3",
+      coordId: "user-test-1,3",
       dbId: "item-2",
       depth: 1,
       parentId: undefined,
@@ -85,6 +85,7 @@ describe("MutationCoordinator Event Emissions", () => {
   };
 
   beforeEach(() => {
+    vi.clearAllMocks();
     mockDispatch = vi.fn();
     mockEventBus = createMockEventBus();
     
@@ -114,8 +115,8 @@ describe("MutationCoordinator Event Emissions", () => {
     mockState = {
       ...initialCacheState,
       itemsById: {
-        "1,2": mockExistingItem1,
-        "1,3": mockExistingItem2,
+        "user-test-1,2": mockExistingItem1,
+        "user-test-1,3": mockExistingItem2,
       },
     };
 
@@ -142,14 +143,14 @@ describe("MutationCoordinator Event Emissions", () => {
         modifiedItems: []
       });
 
-      await coordinator.moveItem("1,2", "2,3"); // Moving to empty space
-      
+      await coordinator.moveItem("user-test-1,2", "user-test-2,3"); // Moving to empty space
+
       // Should emit map.tile_moved event
       expectEventEmitted(mockEventBus, 'map.tile_moved', {
         tileId: "item-1",
         tileName: "Item 1",
-        fromCoordId: "1,2",
-        toCoordId: "2,3"
+        fromCoordId: "user-test-1,2",
+        toCoordId: "user-test-2,3"
       });
     });
 
@@ -160,7 +161,7 @@ describe("MutationCoordinator Event Emissions", () => {
         modifiedItems: []
       });
 
-      await coordinator.moveItem("1,2", "1,3"); // Moving to occupied space (swap)
+      await coordinator.moveItem("user-test-1,2", "user-test-1,3"); // Moving to occupied space (swap)
       
       // Should emit map.tiles_swapped event
       expectEventEmitted(mockEventBus, 'map.tiles_swapped', {
@@ -186,7 +187,7 @@ describe("MutationCoordinator Event Emissions", () => {
         ...mockMutations,
       });
 
-      await coordinatorWithoutEventBus.moveItem("1,2", "2,3");
+      await coordinatorWithoutEventBus.moveItem("user-test-1,2", "user-test-2,3");
 
       // Should not emit any events
       expect(mockEventBus.emit).not.toHaveBeenCalled();
@@ -198,11 +199,16 @@ describe("MutationCoordinator Event Emissions", () => {
         new Error("Move failed")
       );
 
-      await expect(coordinator.moveItem("1,2", "2,3")).rejects.toThrow("Move failed");
+      await expect(coordinator.moveItem("user-test-1,2", "user-test-2,3")).rejects.toThrow("Move failed");
 
-      // Should emit operation_started event but not completion event
-      expect(mockEventBus.emit).toHaveBeenCalledTimes(1);
-      expect(mockEventBus.emittedEvents[0]?.type).toBe('map.operation_started');
+      // Should emit operation_started event but not tile_moved/tiles_swapped completion events
+      expectEventEmitted(mockEventBus, 'map.operation_started');
+
+      // Ensure no completion events were emitted
+      const hasMovedEvent = mockEventBus.emittedEvents.some(e => e.type === 'map.tile_moved');
+      const hasSwappedEvent = mockEventBus.emittedEvents.some(e => e.type === 'map.tiles_swapped');
+      expect(hasMovedEvent).toBe(false);
+      expect(hasSwappedEvent).toBe(false);
     });
   });
 
@@ -213,19 +219,17 @@ describe("MutationCoordinator Event Emissions", () => {
         modifiedItems: []
       });
 
-      await coordinator.moveItem("1,2", "3,4");
+      await coordinator.moveItem("user-test-1,2", "user-test-3,4");
 
-      // Should emit operation_started followed by tile_moved
-      expect(mockEventBus.emit).toHaveBeenCalledTimes(2);
-      const emittedEvent = mockEventBus.emittedEvents[1]; // Second event is the completion event
-      expect(emittedEvent).toBeDefined();
-      expect(emittedEvent?.type).toBe('map.tile_moved');
-      expect(emittedEvent?.source).toBe('map_cache');
-      expect(emittedEvent?.payload).toEqual({
+      // Should emit tile_moved event with correct payload
+      const movedEvent = mockEventBus.emittedEvents.find(e => e.type === 'map.tile_moved');
+      expect(movedEvent).toBeDefined();
+      expect(movedEvent?.source).toBe('map_cache');
+      expect(movedEvent?.payload).toEqual({
         tileId: "item-1",
         tileName: "Item 1",
-        fromCoordId: "1,2",
-        toCoordId: "3,4"
+        fromCoordId: "user-test-1,2",
+        toCoordId: "user-test-3,4"
       });
     });
 
@@ -235,15 +239,13 @@ describe("MutationCoordinator Event Emissions", () => {
         modifiedItems: []
       });
 
-      await coordinator.moveItem("1,2", "1,3");
+      await coordinator.moveItem("user-test-1,2", "user-test-1,3");
 
-      // Should emit operation_started followed by tiles_swapped
-      expect(mockEventBus.emit).toHaveBeenCalledTimes(2);
-      const emittedEvent = mockEventBus.emittedEvents[1]; // Second event is the completion event
-      expect(emittedEvent).toBeDefined();
-      expect(emittedEvent?.type).toBe('map.tiles_swapped');
-      expect(emittedEvent?.source).toBe('map_cache');
-      expect(emittedEvent?.payload).toEqual({
+      // Should emit tiles_swapped event with correct payload
+      const swappedEvent = mockEventBus.emittedEvents.find(e => e.type === 'map.tiles_swapped');
+      expect(swappedEvent).toBeDefined();
+      expect(swappedEvent?.source).toBe('map_cache');
+      expect(swappedEvent?.payload).toEqual({
         tile1Id: "item-1",
         tile1Name: "Item 1",
         tile2Id: "item-2",
@@ -259,7 +261,7 @@ describe("MutationCoordinator Event Emissions", () => {
         ...mockExistingItem1,
         metadata: {
           ...mockExistingItem1.metadata,
-          coordId: "1,0:1",
+          coordId: "user-test-1,0:1",
           dbId: "parent-1",
         },
       };
@@ -268,14 +270,14 @@ describe("MutationCoordinator Event Emissions", () => {
         ...mockExistingItem2,
         metadata: {
           ...mockExistingItem2.metadata,
-          coordId: "1,0:1,2",
+          coordId: "user-test-1,0:1,2",
           dbId: "child-1",
         },
       };
 
       mockState.itemsById = {
-        "1,0:1": parentItem,
-        "1,0:1,2": childItem,
+        "user-test-1,0:1": parentItem,
+        "user-test-1,0:1,2": childItem,
       };
 
       // Mock server response: parent moved to [3], child now at [3,2]
@@ -284,7 +286,7 @@ describe("MutationCoordinator Event Emissions", () => {
         modifiedItems: [
           {
             id: "parent-1",
-            coordinates: "1,0:3",
+            coordinates: "user-test-1,0:3",
             title: "Item 1",
             content: "Description 1",
             preview: undefined,
@@ -296,7 +298,7 @@ describe("MutationCoordinator Event Emissions", () => {
           },
           {
             id: "child-1",
-            coordinates: "1,0:3,2",
+            coordinates: "user-test-1,0:3,2",
             title: "Item 2",
             content: "Description 2",
             preview: undefined,
@@ -310,18 +312,18 @@ describe("MutationCoordinator Event Emissions", () => {
       });
 
       // Execute move
-      await coordinator.moveItem("1,0:1", "1,0:3");
+      await coordinator.moveItem("user-test-1,0:1", "user-test-1,0:3");
 
       // Verify that stale coordIds were removed
       const removeItemCalls = mockDispatch.mock.calls.filter(
         (call) => (call[0] as { type?: string })?.type === "REMOVE_ITEM"
       );
 
-      // Should have removed OLD coordIds: "1,0:1" and "1,0:1,2"
+      // Should have removed OLD coordIds: "user-test-1,0:1" and "user-test-1,0:1,2"
       expect(removeItemCalls).toEqual(
         expect.arrayContaining([
-          [expect.objectContaining({ payload: "1,0:1" })],
-          [expect.objectContaining({ payload: "1,0:1,2" })],
+          [expect.objectContaining({ payload: "user-test-1,0:1" })],
+          [expect.objectContaining({ payload: "user-test-1,0:1,2" })],
         ])
       );
     });
@@ -332,7 +334,7 @@ describe("MutationCoordinator Event Emissions", () => {
         ...mockExistingItem1,
         metadata: {
           ...mockExistingItem1.metadata,
-          coordId: "1,0:1",
+          coordId: "user-test-1,0:1",
           dbId: "parent-1",
         },
       };
@@ -341,14 +343,14 @@ describe("MutationCoordinator Event Emissions", () => {
         ...mockExistingItem2,
         metadata: {
           ...mockExistingItem2.metadata,
-          coordId: "1,0:1,0",
+          coordId: "user-test-1,0:1,0",
           dbId: "composed-1",
         },
       };
 
       mockState.itemsById = {
-        "1,0:1": parentItem,
-        "1,0:1,0": composedChild,
+        "user-test-1,0:1": parentItem,
+        "user-test-1,0:1,0": composedChild,
       };
 
       // Mock server response: parent moved to [2], composed child now at [2,0]
@@ -357,7 +359,7 @@ describe("MutationCoordinator Event Emissions", () => {
         modifiedItems: [
           {
             id: "parent-1",
-            coordinates: "1,0:2",
+            coordinates: "user-test-1,0:2",
             title: "Item 1",
             content: "Description 1",
             preview: undefined,
@@ -369,7 +371,7 @@ describe("MutationCoordinator Event Emissions", () => {
           },
           {
             id: "composed-1",
-            coordinates: "1,0:2,0",
+            coordinates: "user-test-1,0:2,0",
             title: "Item 2",
             content: "Description 2",
             preview: undefined,
@@ -383,18 +385,18 @@ describe("MutationCoordinator Event Emissions", () => {
       });
 
       // Execute move
-      await coordinator.moveItem("1,0:1", "1,0:2");
+      await coordinator.moveItem("user-test-1,0:1", "user-test-1,0:2");
 
       // Verify that stale coordIds were removed
       const removeItemCalls = mockDispatch.mock.calls.filter(
         (call) => (call[0] as { type?: string })?.type === "REMOVE_ITEM"
       );
 
-      // Should have removed OLD coordIds: "1,0:1" and "1,0:1,0"
+      // Should have removed OLD coordIds: "user-test-1,0:1" and "user-test-1,0:1,0"
       expect(removeItemCalls).toEqual(
         expect.arrayContaining([
-          [expect.objectContaining({ payload: "1,0:1" })],
-          [expect.objectContaining({ payload: "1,0:1,0" })],
+          [expect.objectContaining({ payload: "user-test-1,0:1" })],
+          [expect.objectContaining({ payload: "user-test-1,0:1,0" })],
         ])
       );
     });
@@ -405,7 +407,7 @@ describe("MutationCoordinator Event Emissions", () => {
         ...mockExistingItem1,
         metadata: {
           ...mockExistingItem1.metadata,
-          coordId: "1,0:1",
+          coordId: "user-test-1,0:1",
           dbId: "parent-1",
         },
       };
@@ -414,7 +416,7 @@ describe("MutationCoordinator Event Emissions", () => {
         ...mockExistingItem2,
         metadata: {
           ...mockExistingItem2.metadata,
-          coordId: "1,0:1,2",
+          coordId: "user-test-1,0:1,2",
           dbId: "child-1",
         },
       };
@@ -423,15 +425,15 @@ describe("MutationCoordinator Event Emissions", () => {
         ...mockExistingItem1,
         metadata: {
           ...mockExistingItem1.metadata,
-          coordId: "1,0:1,2,3",
+          coordId: "user-test-1,0:1,2,3",
           dbId: "grandchild-1",
         },
       };
 
       mockState.itemsById = {
-        "1,0:1": parentItem,
-        "1,0:1,2": childItem,
-        "1,0:1,2,3": grandchildItem,
+        "user-test-1,0:1": parentItem,
+        "user-test-1,0:1,2": childItem,
+        "user-test-1,0:1,2,3": grandchildItem,
       };
 
       // Mock server response: parent moved to [4], children moved accordingly
@@ -440,7 +442,7 @@ describe("MutationCoordinator Event Emissions", () => {
         modifiedItems: [
           {
             id: "parent-1",
-            coordinates: "1,0:4",
+            coordinates: "user-test-1,0:4",
             title: "Item 1",
             content: "Description 1",
             preview: undefined,
@@ -452,7 +454,7 @@ describe("MutationCoordinator Event Emissions", () => {
           },
           {
             id: "child-1",
-            coordinates: "1,0:4,2",
+            coordinates: "user-test-1,0:4,2",
             title: "Item 2",
             content: "Description 2",
             preview: undefined,
@@ -464,7 +466,7 @@ describe("MutationCoordinator Event Emissions", () => {
           },
           {
             id: "grandchild-1",
-            coordinates: "1,0:4,2,3",
+            coordinates: "user-test-1,0:4,2,3",
             title: "Item 1",
             content: "Description 1",
             preview: undefined,
@@ -478,19 +480,19 @@ describe("MutationCoordinator Event Emissions", () => {
       });
 
       // Execute move
-      await coordinator.moveItem("1,0:1", "1,0:4");
+      await coordinator.moveItem("user-test-1,0:1", "user-test-1,0:4");
 
       // Verify that ALL stale coordIds were removed
       const removeItemCalls = mockDispatch.mock.calls.filter(
         (call) => (call[0] as { type?: string })?.type === "REMOVE_ITEM"
       );
 
-      // Should have removed OLD coordIds: "1,0:1", "1,0:1,2", "1,0:1,2,3"
+      // Should have removed OLD coordIds: "user-test-1,0:1", "user-test-1,0:1,2", "user-test-1,0:1,2,3"
       expect(removeItemCalls).toEqual(
         expect.arrayContaining([
-          [expect.objectContaining({ payload: "1,0:1" })],
-          [expect.objectContaining({ payload: "1,0:1,2" })],
-          [expect.objectContaining({ payload: "1,0:1,2,3" })],
+          [expect.objectContaining({ payload: "user-test-1,0:1" })],
+          [expect.objectContaining({ payload: "user-test-1,0:1,2" })],
+          [expect.objectContaining({ payload: "user-test-1,0:1,2,3" })],
         ])
       );
     });
@@ -501,7 +503,7 @@ describe("MutationCoordinator Event Emissions", () => {
         ...mockExistingItem1,
         metadata: {
           ...mockExistingItem1.metadata,
-          coordId: "1,0:1",
+          coordId: "user-test-1,0:1",
           dbId: "parent-1",
         },
       };
@@ -510,14 +512,14 @@ describe("MutationCoordinator Event Emissions", () => {
         ...mockExistingItem2,
         metadata: {
           ...mockExistingItem2.metadata,
-          coordId: "1,0:1,2",
+          coordId: "user-test-1,0:1,2",
           dbId: "child-1",
         },
       };
 
       mockState.itemsById = {
-        "1,0:1": parentItem,
-        "1,0:1,2": childItem,
+        "user-test-1,0:1": parentItem,
+        "user-test-1,0:1,2": childItem,
       };
 
       // Mock server response: parent moved to [5] (empty space), child now at [5,2]
@@ -526,7 +528,7 @@ describe("MutationCoordinator Event Emissions", () => {
         modifiedItems: [
           {
             id: "parent-1",
-            coordinates: "1,0:5",
+            coordinates: "user-test-1,0:5",
             title: "Item 1",
             content: "Description 1",
             preview: undefined,
@@ -538,7 +540,7 @@ describe("MutationCoordinator Event Emissions", () => {
           },
           {
             id: "child-1",
-            coordinates: "1,0:5,2",
+            coordinates: "user-test-1,0:5,2",
             title: "Item 2",
             content: "Description 2",
             preview: undefined,
@@ -552,18 +554,18 @@ describe("MutationCoordinator Event Emissions", () => {
       });
 
       // Execute move (not a swap - target is empty)
-      await coordinator.moveItem("1,0:1", "1,0:5");
+      await coordinator.moveItem("user-test-1,0:1", "user-test-1,0:5");
 
       // Verify that stale coordIds were removed
       const removeItemCalls = mockDispatch.mock.calls.filter(
         (call) => (call[0] as { type?: string })?.type === "REMOVE_ITEM"
       );
 
-      // Should have removed OLD coordIds: "1,0:1" and "1,0:1,2"
+      // Should have removed OLD coordIds: "user-test-1,0:1" and "user-test-1,0:1,2"
       expect(removeItemCalls).toEqual(
         expect.arrayContaining([
-          [expect.objectContaining({ payload: "1,0:1" })],
-          [expect.objectContaining({ payload: "1,0:1,2" })],
+          [expect.objectContaining({ payload: "user-test-1,0:1" })],
+          [expect.objectContaining({ payload: "user-test-1,0:1,2" })],
         ])
       );
     });
@@ -574,13 +576,13 @@ describe("MutationCoordinator Event Emissions", () => {
         ...mockExistingItem1,
         metadata: {
           ...mockExistingItem1.metadata,
-          coordId: "1,0:1",
+          coordId: "user-test-1,0:1",
           dbId: "parent-1",
         },
       };
 
       mockState.itemsById = {
-        "1,0:1": parentItem,
+        "user-test-1,0:1": parentItem,
       };
 
       // Mock server response: parent moved to [2], no children
@@ -589,7 +591,7 @@ describe("MutationCoordinator Event Emissions", () => {
         modifiedItems: [
           {
             id: "parent-1",
-            coordinates: "1,0:2",
+            coordinates: "user-test-1,0:2",
             title: "Item 1",
             content: "Description 1",
             preview: undefined,
@@ -603,18 +605,18 @@ describe("MutationCoordinator Event Emissions", () => {
       });
 
       // Execute move
-      await coordinator.moveItem("1,0:1", "1,0:2");
+      await coordinator.moveItem("user-test-1,0:1", "user-test-1,0:2");
 
       // Verify that only the parent's old coordId was removed
       const removeItemCalls = mockDispatch.mock.calls.filter(
         (call) => (call[0] as { type?: string })?.type === "REMOVE_ITEM"
       );
 
-      // Should have removed only OLD coordId: "1,0:1"
+      // Should have removed only OLD coordId: "user-test-1,0:1"
       expect(removeItemCalls).toHaveLength(2); // One from optimistic, one from finalize
       expect(removeItemCalls).toEqual(
         expect.arrayContaining([
-          [expect.objectContaining({ payload: "1,0:1" })],
+          [expect.objectContaining({ payload: "user-test-1,0:1" })],
         ])
       );
     });

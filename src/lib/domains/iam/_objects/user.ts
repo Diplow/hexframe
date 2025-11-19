@@ -39,10 +39,16 @@ export class User {
       throw new Error("User ID is required");
     }
 
+    // Validate name: if provided, it must not be empty after trimming
+    const trimmedName = props.name?.trim();
+    if (props.name !== undefined && (!trimmedName || trimmedName.length === 0)) {
+      throw new Error("User name is required");
+    }
+
     return new User({
       id: props.id,
       email: props.email.toLowerCase(),
-      name: props.name?.trim(),
+      name: trimmedName,
       emailVerified: props.emailVerified ?? false,
       image: props.image,
       createdAt: props.createdAt ?? new Date(),

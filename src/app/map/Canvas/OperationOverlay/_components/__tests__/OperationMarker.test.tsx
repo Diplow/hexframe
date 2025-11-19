@@ -7,7 +7,7 @@ describe('OperationMarker', () => {
     const { container } = render(
       <svg>
         <OperationMarker
-          coordId="1,0:1"
+          coordId="user-test-1,0:1"
           operation="create"
           position={{ x: 100, y: 200 }}
           width={100} height={115}
@@ -23,7 +23,7 @@ describe('OperationMarker', () => {
     const { container } = render(
       <svg>
         <OperationMarker
-          coordId="1,0:1,2"
+          coordId="user-test-1,0:1,2"
           operation="update"
           position={{ x: 0, y: 0 }}
           width={100} height={115}
@@ -32,7 +32,7 @@ describe('OperationMarker', () => {
     );
 
     const g = container.querySelector('g');
-    expect(g?.getAttribute('data-coord-id')).toBe('1,0:1,2');
+    expect(g?.getAttribute('data-coord-id')).toBe('user-test-1,0:1,2');
     expect(g?.getAttribute('data-operation')).toBe('update');
   });
 
@@ -40,7 +40,7 @@ describe('OperationMarker', () => {
     const { container } = render(
       <svg>
         <OperationMarker
-          coordId="1,0:1"
+          coordId="user-test-1,0:1"
           operation="delete"
           position={{ x: 50, y: 50 }}
           width={100} height={115}
@@ -57,7 +57,7 @@ describe('OperationMarker', () => {
     const { container } = render(
       <svg>
         <OperationMarker
-          coordId="1,0:1"
+          coordId="user-test-1,0:1"
           operation="move"
           position={{ x: 100, y: 200 }}
           width={100} height={115}
@@ -75,7 +75,7 @@ describe('OperationMarker', () => {
     const { container } = render(
       <svg>
         <OperationMarker
-          coordId="1,0:1"
+          coordId="user-test-1,0:1"
           operation="copy"
           position={{ x: 0, y: 0 }}
           width={60} height={70}

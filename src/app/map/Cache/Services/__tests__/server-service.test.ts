@@ -91,7 +91,7 @@ describe("Server Service", () => {
       const mockItems = [
         {
           id: "1",
-          coordinates: "1,2",
+          coordinates: "user-test-1,2",
           title: "Test Item",
           content: "Test Description",
           depth: 1,
@@ -106,7 +106,7 @@ describe("Server Service", () => {
 
       const service = createServerService(mockUtils);
       const result = await service.fetchItemsForCoordinate({
-        centerCoordId: "1,2",
+        centerCoordId: "user-test-1,2",
         maxDepth: 2,
       });
 
@@ -124,7 +124,7 @@ describe("Server Service", () => {
 
       await expect(
         service.fetchItemsForCoordinate({
-          centerCoordId: "1,2",
+          centerCoordId: "user-test-1,2",
           maxDepth: 2,
         }),
       ).rejects.toThrow(ServiceError);
@@ -137,7 +137,7 @@ describe("Server Service", () => {
 
       await expect(
         service.fetchItemsForCoordinate({
-          centerCoordId: "1,2",
+          centerCoordId: "user-test-1,2",
           maxDepth: 2,
         }),
       ).rejects.toThrow(ServiceError);
@@ -150,7 +150,7 @@ describe("Server Service", () => {
 
       await expect(
         service.fetchItemsForCoordinate({
-          centerCoordId: "1,2",
+          centerCoordId: "user-test-1,2",
           maxDepth: 2,
         }),
       ).rejects.toThrow(TimeoutError);
@@ -165,7 +165,7 @@ describe("Server Service", () => {
       const service = createServerService(mockUtils, { retryAttempts: 3 });
 
       const result = await service.fetchItemsForCoordinate({
-        centerCoordId: "1,2",
+        centerCoordId: "user-test-1,2",
         maxDepth: 2,
       });
 
@@ -180,7 +180,7 @@ describe("Server Service", () => {
 
       await expect(
         service.fetchItemsForCoordinate({
-          centerCoordId: "1,2",
+          centerCoordId: "user-test-1,2",
           maxDepth: 2,
         }),
       ).rejects.toThrow(NetworkError);
@@ -195,7 +195,7 @@ describe("Server Service", () => {
 
       await expect(
         service.fetchItemsForCoordinate({
-          centerCoordId: "1,2",
+          centerCoordId: "user-test-1,2",
           maxDepth: 2,
         }),
       ).rejects.toThrow(NetworkError);
@@ -213,7 +213,7 @@ describe("Server Service", () => {
 
       await expect(
         service.fetchItemsForCoordinate({
-          centerCoordId: "1,2",
+          centerCoordId: "user-test-1,2",
           maxDepth: 2,
         }),
       ).rejects.toThrow(TimeoutError);
@@ -224,13 +224,13 @@ describe("Server Service", () => {
     test("getItemByCoordinate works correctly", async () => {
       const item = {
         id: "item-id",
-        coordinates: "1,2:1",
+        coordinates: "user-test-1,2:1",
         title: "Test Item",
       };
       mockGetItemByCoordsFetch.mockResolvedValue(item);
 
       const service = createServerService(mockUtils);
-      const result = await service.getItemByCoordinate("1,2:1");
+      const result = await service.getItemByCoordinate("user-test-1,2:1");
 
       expect(mockGetItemByCoordsFetch).toHaveBeenCalledWith({
         coords: { userId: "user-test-1", groupId: 2, path: [1] },
@@ -278,7 +278,7 @@ describe("Server Service", () => {
 
       await expect(
         service.createItem({
-          coordId: "1,2:1",
+          coordId: "user-test-1,2:1",
           data: {
             coords: { path: [1], userId: "user-test-1", groupId: 0 },
             itemType: MapItemType.BASE,
@@ -290,7 +290,7 @@ describe("Server Service", () => {
 
       await expect(
         service.createItem({
-          coordId: "1,2:1",
+          coordId: "user-test-1,2:1",
           data: {
             coords: { path: [1], userId: "user-test-1", groupId: 0 },
             itemType: MapItemType.BASE,
@@ -308,14 +308,14 @@ describe("Server Service", () => {
 
       await expect(
         service.updateItem({
-          coordId: "1,2:1",
+          coordId: "user-test-1,2:1",
           data: { title: "Updated Item", content: "Updated Description" },
         }),
       ).rejects.toThrow(ServiceError);
 
       await expect(
         service.updateItem({
-          coordId: "1,2:1",
+          coordId: "user-test-1,2:1",
           data: { title: "Updated Item", content: "Updated Description" },
         }),
       ).rejects.toThrow(
@@ -326,11 +326,11 @@ describe("Server Service", () => {
     test("deleteItem throws architectural error", async () => {
       const service = createServerService(mockUtils);
 
-      await expect(service.deleteItem({ coordId: "1,2:1" })).rejects.toThrow(
+      await expect(service.deleteItem({ coordId: "user-test-1,2:1" })).rejects.toThrow(
         ServiceError,
       );
 
-      await expect(service.deleteItem({ coordId: "1,2:1" })).rejects.toThrow(
+      await expect(service.deleteItem({ coordId: "user-test-1,2:1" })).rejects.toThrow(
         "Mutations should be handled through the mutation layer, not the server service",
       );
     });
@@ -354,7 +354,7 @@ describe("Server Service", () => {
 
       await expect(
         service.fetchItemsForCoordinate({
-          centerCoordId: "1,2",
+          centerCoordId: "user-test-1,2",
           maxDepth: 2,
         }),
       ).rejects.toThrow(NetworkError);
@@ -384,7 +384,7 @@ describe("Server Service", () => {
       });
 
       const result = await mockService.fetchItemsForCoordinate({
-        centerCoordId: "1,2",
+        centerCoordId: "user-test-1,2",
         maxDepth: 2,
       });
 
@@ -396,14 +396,14 @@ describe("Server Service", () => {
 
       await expect(
         mockService.fetchItemsForCoordinate({
-          centerCoordId: "1,2",
+          centerCoordId: "user-test-1,2",
           maxDepth: 2,
         }),
       ).rejects.toThrow(ServiceError);
 
       await expect(
         mockService.fetchItemsForCoordinate({
-          centerCoordId: "1,2",
+          centerCoordId: "user-test-1,2",
           maxDepth: 2,
         }),
       ).rejects.toThrow("Mock not implemented");
@@ -444,14 +444,14 @@ describe("Server Service", () => {
 
   describe("Complex coordinate parsing", () => {
     test("handles complex coordinate IDs", async () => {
-      const mockItem = { id: "123", coordinates: "1,2:3,4,5", title: "Test" };
+      const mockItem = { id: "123", coordinates: "user-test-1,2:3,4,5", title: "Test" };
       mockGetItemByCoordsFetch.mockResolvedValue(mockItem);
       mockGetDescendantsFetch.mockResolvedValue([]);
 
       const service = createServerService(mockUtils);
 
       const result = await service.fetchItemsForCoordinate({
-        centerCoordId: "1,2:3,4,5",
+        centerCoordId: "user-test-1,2:3,4,5",
         maxDepth: 3,
       });
 
@@ -475,12 +475,12 @@ describe("Server Service", () => {
       const service = createServerService(mockUtils);
 
       await service.fetchItemsForCoordinate({
-        centerCoordId: "10,20",
+        centerCoordId: "user-10,20",
         maxDepth: 1,
       });
 
       expect(mockFetch).toHaveBeenCalledWith({
-        userId: 10,
+        userId: "user-10",
         groupId: 20,
       });
     });

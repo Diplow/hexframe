@@ -85,32 +85,32 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
 
   describe("getComposedChildCoordsFromId", () => {
     it("should generate composed child IDs with negative directions", () => {
-      const parentId = "1,0:1";
+      const parentId = "user-test-1,0:1";
       const composedChildIds = CoordSystem.getComposedChildCoordsFromId(parentId);
 
       expect(composedChildIds).toHaveLength(6);
-      expect(composedChildIds[0]).toBe("1,0:1,-1");
-      expect(composedChildIds[1]).toBe("1,0:1,-2");
-      expect(composedChildIds[2]).toBe("1,0:1,-3");
-      expect(composedChildIds[3]).toBe("1,0:1,-4");
-      expect(composedChildIds[4]).toBe("1,0:1,-5");
-      expect(composedChildIds[5]).toBe("1,0:1,-6");
+      expect(composedChildIds[0]).toBe("user-test-1,0:1,-1");
+      expect(composedChildIds[1]).toBe("user-test-1,0:1,-2");
+      expect(composedChildIds[2]).toBe("user-test-1,0:1,-3");
+      expect(composedChildIds[3]).toBe("user-test-1,0:1,-4");
+      expect(composedChildIds[4]).toBe("user-test-1,0:1,-5");
+      expect(composedChildIds[5]).toBe("user-test-1,0:1,-6");
     });
 
     it("should work for deep parent paths", () => {
-      const parentId = "1,0:1,2,3";
+      const parentId = "user-test-1,0:1,2,3";
       const composedChildIds = CoordSystem.getComposedChildCoordsFromId(parentId);
 
       expect(composedChildIds).toHaveLength(6);
-      expect(composedChildIds[0]).toBe("1,0:1,2,3,-1");
+      expect(composedChildIds[0]).toBe("user-test-1,0:1,2,3,-1");
     });
 
     it("should work for root parent", () => {
-      const parentId = "1,0";
+      const parentId = "user-test-1,0";
       const composedChildIds = CoordSystem.getComposedChildCoordsFromId(parentId);
 
       expect(composedChildIds).toHaveLength(6);
-      expect(composedChildIds[0]).toBe("1,0:-1");
+      expect(composedChildIds[0]).toBe("user-test-1,0:-1");
     });
   });
 
@@ -123,11 +123,11 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
       };
       const id = CoordSystem.createId(coord);
 
-      expect(id).toBe("1,0:1,-3");
+      expect(id).toBe("user-test-1,0:1,-3");
     });
 
     it("should correctly deserialize ID with negative direction", () => {
-      const id = "1,0:1,-2";
+      const id = "user-test-1,0:1,-2";
       const coord = CoordSystem.parseId(id);
 
       expect(coord).toEqual({
@@ -162,7 +162,7 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
       const id = CoordSystem.createId(coord);
       const parsed = CoordSystem.parseId(id);
 
-      expect(id).toBe("1,0:1,-3,-5");
+      expect(id).toBe("user-test-1,0:1,-3,-5");
       expect(parsed).toEqual(coord);
     });
 
@@ -180,7 +180,7 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
       const id = CoordSystem.createId(coord);
       const parsed = CoordSystem.parseId(id);
 
-      expect(id).toBe("1,0:1,0,-3,4");
+      expect(id).toBe("user-test-1,0:1,0,-3,4");
       expect(parsed).toEqual(coord);
     });
   });
@@ -245,77 +245,77 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
 
   describe("getParentCoordFromId - with negative directions", () => {
     it("should return parent ID when child has negative direction", () => {
-      const childId = "1,0:1,-3";
+      const childId = "user-test-1,0:1,-3";
       const parentId = CoordSystem.getParentCoordFromId(childId);
 
-      expect(parentId).toBe("1,0:1");
+      expect(parentId).toBe("user-test-1,0:1");
     });
 
     it("should work with multiple negative directions in path", () => {
-      const childId = "1,0:1,-3,-5";
+      const childId = "user-test-1,0:1,-3,-5";
       const parentId = CoordSystem.getParentCoordFromId(childId);
 
-      expect(parentId).toBe("1,0:1,-3");
+      expect(parentId).toBe("user-test-1,0:1,-3");
     });
   });
 
   describe("isDescendant - with negative directions", () => {
     it("should return true when composed child is direct child", () => {
-      const result = CoordSystem.isDescendant("1,0:1,-3", "1,0:1");
+      const result = CoordSystem.isDescendant("user-test-1,0:1,-3", "user-test-1,0:1");
       expect(result).toBe(true);
     });
 
     it("should return true when child is descendant of composed child", () => {
-      const result = CoordSystem.isDescendant("1,0:1,-3,2", "1,0:1");
+      const result = CoordSystem.isDescendant("user-test-1,0:1,-3,2", "user-test-1,0:1");
       expect(result).toBe(true);
     });
 
     it("should return true when deep under composed children", () => {
-      const result = CoordSystem.isDescendant("1,0:1,-3,-5,2,4", "1,0:1,-3");
+      const result = CoordSystem.isDescendant("user-test-1,0:1,-3,-5,2,4", "user-test-1,0:1,-3");
       expect(result).toBe(true);
     });
 
     it("should return false when not a descendant", () => {
-      const result = CoordSystem.isDescendant("1,0:1,-3", "1,0:2,-3");
+      const result = CoordSystem.isDescendant("user-test-1,0:1,-3", "user-test-1,0:2,-3");
       expect(result).toBe(false);
     });
 
     it("should handle mix of composition (0) and composed children (negative)", () => {
       // Parent at direction 0 (composition container)
       // Child at negative direction (composed child)
-      const result = CoordSystem.isDescendant("1,0:1,0,-3", "1,0:1");
+      const result = CoordSystem.isDescendant("user-test-1,0:1,0,-3", "user-test-1,0:1");
       expect(result).toBe(true);
     });
   });
 
   describe("isAncestor - with negative directions", () => {
     it("should return true when parent contains composed child", () => {
-      const result = CoordSystem.isAncestor("1,0:1", "1,0:1,-3");
+      const result = CoordSystem.isAncestor("user-test-1,0:1", "user-test-1,0:1,-3");
       expect(result).toBe(true);
     });
 
     it("should return true when parent contains deep composed descendants", () => {
-      const result = CoordSystem.isAncestor("1,0:1", "1,0:1,-3,2");
+      const result = CoordSystem.isAncestor("user-test-1,0:1", "user-test-1,0:1,-3,2");
       expect(result).toBe(true);
     });
 
     it("should return false when not an ancestor", () => {
-      const result = CoordSystem.isAncestor("1,0:1,-3", "1,0:1,2");
+      const result = CoordSystem.isAncestor("user-test-1,0:1,-3", "user-test-1,0:1,2");
       expect(result).toBe(false);
     });
   });
 
   describe("getSiblingsFromId - with negative directions", () => {
     it("should return other composed children as siblings", () => {
-      const siblings = CoordSystem.getSiblingsFromId("1,0:1,-3");
+      const siblings = CoordSystem.getSiblingsFromId("user-test-1,0:1,-3");
 
       expect(siblings).toHaveLength(5);
-      expect(siblings).toContain("1,0:1,-1");
-      expect(siblings).toContain("1,0:1,-2");
-      expect(siblings).toContain("1,0:1,-4");
-      expect(siblings).toContain("1,0:1,-5");
-      expect(siblings).toContain("1,0:1,-6");
-      expect(siblings).not.toContain("1,0:1,-3"); // Not itself
+      expect(siblings).toContain("user-test-1,0:1,-1");
+      expect(siblings).toContain("user-test-1,0:1,-2");
+      expect(siblings).toContain("user-test-1,0:1,-4");
+      expect(siblings).toContain("user-test-1,0:1,-5");
+      expect(siblings).toContain("user-test-1,0:1,-6");
+      expect(siblings).not.toContain("user-test-1,0:1,-3"); // Not itself
     });
   });
 
@@ -397,29 +397,29 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
 
   describe("isComposedChildId", () => {
     it("should return true for ID with negative direction", () => {
-      expect(CoordSystem.isComposedChildId("1,0:1,-3")).toBe(true);
+      expect(CoordSystem.isComposedChildId("user-test-1,0:1,-3")).toBe(true);
     });
 
     it("should return false for ID with only positive directions", () => {
-      expect(CoordSystem.isComposedChildId("1,0:1,2,3")).toBe(false);
+      expect(CoordSystem.isComposedChildId("user-test-1,0:1,2,3")).toBe(false);
     });
 
     it("should return false for composition container ID", () => {
-      expect(CoordSystem.isComposedChildId("1,0:1,0")).toBe(false);
+      expect(CoordSystem.isComposedChildId("user-test-1,0:1,0")).toBe(false);
     });
 
     it("should return true for ID with negative direction in middle of path", () => {
-      expect(CoordSystem.isComposedChildId("1,0:1,-3,2")).toBe(true);
+      expect(CoordSystem.isComposedChildId("user-test-1,0:1,-3,2")).toBe(true);
     });
 
     it("should return false for root ID", () => {
-      expect(CoordSystem.isComposedChildId("1,0")).toBe(false);
+      expect(CoordSystem.isComposedChildId("user-test-1,0")).toBe(false);
     });
   });
 
   describe("edge cases and validation", () => {
     it("should handle parsing invalid negative direction gracefully", () => {
-      const id = "1,0:1,-7"; // Invalid negative direction
+      const id = "user-test-1,0:1,-7"; // Invalid negative direction
       const coord = CoordSystem.parseId(id);
 
       expect(coord.path[1]).toBe(-7);

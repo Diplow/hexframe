@@ -496,7 +496,7 @@ describe('GlobalDragService - Ctrl Key Detection and Copy/Move Operations', () =
 
     it('should validate before setting drop target for both copy and move operations', () => {
       // Test copy operation validation
-      const sourceElement = createTileElement('tile-1', 1, true);
+      const sourceElement = createTileElementWithOwner('tile-1', 'user-test-1', true);
       const targetElement1 = createTileElement('tile-2', 1, false);
       document.body.appendChild(sourceElement);
       document.body.appendChild(targetElement1);
@@ -514,7 +514,7 @@ describe('GlobalDragService - Ctrl Key Detection and Copy/Move Operations', () =
       document.body.innerHTML = '';
 
       // Test move operation validation
-      const sourceElement2 = createTileElement('tile-3', 1, true);
+      const sourceElement2 = createTileElementWithOwner('tile-3', 'user-test-1', true);
       const targetElement2 = createTileElement('tile-4', 1, false);
       document.body.appendChild(sourceElement2);
       document.body.appendChild(targetElement2);
@@ -538,6 +538,18 @@ function createTileElement(tileId: string, ownerId: number, hasContent: boolean)
   // Only set owner if tile has content (empty tiles have no owner)
   if (hasContent) {
     element.setAttribute('data-tile-owner', ownerId.toString());
+  }
+  element.setAttribute('data-tile-has-content', hasContent.toString());
+  element.draggable = true;
+  return element;
+}
+
+function createTileElementWithOwner(tileId: string, ownerId: string, hasContent: boolean): HTMLElement {
+  const element = document.createElement('div');
+  element.setAttribute('data-tile-id', tileId);
+  // Only set owner if tile has content (empty tiles have no owner)
+  if (hasContent) {
+    element.setAttribute('data-tile-owner', ownerId);
   }
   element.setAttribute('data-tile-has-content', hasContent.toString());
   element.draggable = true;

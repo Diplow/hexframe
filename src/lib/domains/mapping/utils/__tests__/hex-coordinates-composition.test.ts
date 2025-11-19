@@ -61,24 +61,24 @@ describe("CoordSystem - Direction 0 (Composition) Support", () => {
 
   describe("getCompositionCoordFromId", () => {
     it("should generate composition ID for shallow parent", () => {
-      const parentId = "1,0:1";
+      const parentId = "user-test-1,0:1";
       const compositionId = CoordSystem.getCompositionCoordFromId(parentId);
 
-      expect(compositionId).toBe("1,0:1,0");
+      expect(compositionId).toBe("user-test-1,0:1,0");
     });
 
     it("should generate composition ID for deep parent", () => {
-      const parentId = "1,0:1,2,3";
+      const parentId = "user-test-1,0:1,2,3";
       const compositionId = CoordSystem.getCompositionCoordFromId(parentId);
 
-      expect(compositionId).toBe("1,0:1,2,3,0");
+      expect(compositionId).toBe("user-test-1,0:1,2,3,0");
     });
 
     it("should generate composition ID for root parent", () => {
-      const parentId = "1,0";
+      const parentId = "user-test-1,0";
       const compositionId = CoordSystem.getCompositionCoordFromId(parentId);
 
-      expect(compositionId).toBe("1,0:0");
+      expect(compositionId).toBe("user-test-1,0:0");
     });
 
     it("should handle different user and group IDs", () => {
@@ -160,20 +160,20 @@ describe("CoordSystem - Direction 0 (Composition) Support", () => {
 
   describe("getChildCoordsFromId - backwards compatibility", () => {
     it("should return 6 structural child IDs by default", () => {
-      const parentId = "1,0:1";
+      const parentId = "user-test-1,0:1";
       const childIds = CoordSystem.getChildCoordsFromId(parentId);
 
       expect(childIds).toHaveLength(6);
-      expect(childIds[0]).toBe("1,0:1,1");
-      expect(childIds[1]).toBe("1,0:1,2");
-      expect(childIds[2]).toBe("1,0:1,3");
-      expect(childIds[3]).toBe("1,0:1,4");
-      expect(childIds[4]).toBe("1,0:1,5");
-      expect(childIds[5]).toBe("1,0:1,6");
+      expect(childIds[0]).toBe("user-test-1,0:1,1");
+      expect(childIds[1]).toBe("user-test-1,0:1,2");
+      expect(childIds[2]).toBe("user-test-1,0:1,3");
+      expect(childIds[3]).toBe("user-test-1,0:1,4");
+      expect(childIds[4]).toBe("user-test-1,0:1,5");
+      expect(childIds[5]).toBe("user-test-1,0:1,6");
     });
 
     it("should return 6 structural child IDs when includeComposition is false", () => {
-      const parentId = "1,0:1";
+      const parentId = "user-test-1,0:1";
       const childIds = CoordSystem.getChildCoordsFromId(parentId, false);
 
       expect(childIds).toHaveLength(6);
@@ -183,91 +183,91 @@ describe("CoordSystem - Direction 0 (Composition) Support", () => {
 
   describe("getChildCoordsFromId - with composition", () => {
     it("should return 7 child IDs when includeComposition is true", () => {
-      const parentId = "1,0:1";
+      const parentId = "user-test-1,0:1";
       const childIds = CoordSystem.getChildCoordsFromId(parentId, true);
 
       expect(childIds).toHaveLength(7);
     });
 
     it("should place composition child ID first when includeComposition is true", () => {
-      const parentId = "1,0:1";
+      const parentId = "user-test-1,0:1";
       const childIds = CoordSystem.getChildCoordsFromId(parentId, true);
 
-      expect(childIds[0]).toBe("1,0:1,0");
+      expect(childIds[0]).toBe("user-test-1,0:1,0");
     });
 
     it("should include all structural child IDs after composition", () => {
-      const parentId = "1,0:1,2";
+      const parentId = "user-test-1,0:1,2";
       const childIds = CoordSystem.getChildCoordsFromId(parentId, true);
 
-      expect(childIds[0]).toBe("1,0:1,2,0");
-      expect(childIds[1]).toBe("1,0:1,2,1");
-      expect(childIds[2]).toBe("1,0:1,2,2");
-      expect(childIds[3]).toBe("1,0:1,2,3");
-      expect(childIds[4]).toBe("1,0:1,2,4");
-      expect(childIds[5]).toBe("1,0:1,2,5");
-      expect(childIds[6]).toBe("1,0:1,2,6");
+      expect(childIds[0]).toBe("user-test-1,0:1,2,0");
+      expect(childIds[1]).toBe("user-test-1,0:1,2,1");
+      expect(childIds[2]).toBe("user-test-1,0:1,2,2");
+      expect(childIds[3]).toBe("user-test-1,0:1,2,3");
+      expect(childIds[4]).toBe("user-test-1,0:1,2,4");
+      expect(childIds[5]).toBe("user-test-1,0:1,2,5");
+      expect(childIds[6]).toBe("user-test-1,0:1,2,6");
     });
 
     it("should work for root parent", () => {
-      const parentId = "1,0";
+      const parentId = "user-test-1,0";
       const childIds = CoordSystem.getChildCoordsFromId(parentId, true);
 
       expect(childIds).toHaveLength(7);
-      expect(childIds[0]).toBe("1,0:0");
+      expect(childIds[0]).toBe("user-test-1,0:0");
     });
   });
 
   describe("isDescendant - with direction 0 paths", () => {
     it("should return true when composition container is direct child", () => {
-      const result = CoordSystem.isDescendant("1,0:1,0", "1,0:1");
+      const result = CoordSystem.isDescendant("user-test-1,0:1,0", "user-test-1,0:1");
       expect(result).toBe(true);
     });
 
     it("should return true when child is composed child under composition container", () => {
-      const result = CoordSystem.isDescendant("1,0:1,0,2", "1,0:1");
+      const result = CoordSystem.isDescendant("user-test-1,0:1,0,2", "user-test-1,0:1");
       expect(result).toBe(true);
     });
 
     it("should return true when child is deep under composition container", () => {
-      const result = CoordSystem.isDescendant("1,0:1,0,2,3,4", "1,0:1,0");
+      const result = CoordSystem.isDescendant("user-test-1,0:1,0,2,3,4", "user-test-1,0:1,0");
       expect(result).toBe(true);
     });
 
     it("should return false when structural child is not under composition container", () => {
-      const result = CoordSystem.isDescendant("1,0:1,2", "1,0:1,0");
+      const result = CoordSystem.isDescendant("user-test-1,0:1,2", "user-test-1,0:1,0");
       expect(result).toBe(false);
     });
 
     it("should return false when sibling composition containers", () => {
-      const result = CoordSystem.isDescendant("1,0:1,0", "1,0:2,0");
+      const result = CoordSystem.isDescendant("user-test-1,0:1,0", "user-test-1,0:2,0");
       expect(result).toBe(false);
     });
 
     it("should work with multiple direction 0s in path", () => {
-      const result = CoordSystem.isDescendant("1,0:1,0,2,0,3", "1,0:1,0");
+      const result = CoordSystem.isDescendant("user-test-1,0:1,0,2,0,3", "user-test-1,0:1,0");
       expect(result).toBe(true);
     });
   });
 
   describe("isAncestor - with direction 0 paths", () => {
     it("should return true when parent contains composition child", () => {
-      const result = CoordSystem.isAncestor("1,0:1", "1,0:1,0");
+      const result = CoordSystem.isAncestor("user-test-1,0:1", "user-test-1,0:1,0");
       expect(result).toBe(true);
     });
 
     it("should return true when parent contains deep composed descendants", () => {
-      const result = CoordSystem.isAncestor("1,0:1", "1,0:1,0,2");
+      const result = CoordSystem.isAncestor("user-test-1,0:1", "user-test-1,0:1,0,2");
       expect(result).toBe(true);
     });
 
     it("should return true when composition container is ancestor", () => {
-      const result = CoordSystem.isAncestor("1,0:1,0", "1,0:1,0,2,3");
+      const result = CoordSystem.isAncestor("user-test-1,0:1,0", "user-test-1,0:1,0,2,3");
       expect(result).toBe(true);
     });
 
     it("should return false when not an ancestor", () => {
-      const result = CoordSystem.isAncestor("1,0:1,0", "1,0:1,2");
+      const result = CoordSystem.isAncestor("user-test-1,0:1,0", "user-test-1,0:1,2");
       expect(result).toBe(false);
     });
   });
@@ -365,11 +365,11 @@ describe("CoordSystem - Direction 0 (Composition) Support", () => {
       const coord: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest, Direction.Center] };
       const id = CoordSystem.createId(coord);
 
-      expect(id).toBe("1,0:1,0");
+      expect(id).toBe("user-test-1,0:1,0");
     });
 
     it("should correctly deserialize ID with direction 0", () => {
-      const id = "1,0:1,0,2";
+      const id = "user-test-1,0:1,0,2";
       const coord = CoordSystem.parseId(id);
 
       expect(coord).toEqual({
