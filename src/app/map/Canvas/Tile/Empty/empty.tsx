@@ -20,7 +20,7 @@ export interface DynamicEmptyTileProps {
   urlInfo: URLInfo;
   parentItem?: { id: string; name: string; ownerId?: string };
   interactive?: boolean;
-  currentUserId?: number;
+  currentUserId?: string;
   onCreateRequested?: (payload: {
     coordId: string;
     parentName?: string;

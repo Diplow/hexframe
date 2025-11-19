@@ -13,7 +13,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
       const params: CreateMapItemParams = {
         itemType: MapItemType.BASE,
         coords: {
-          userId: 1,
+          userId: "user-test-1",
           groupId: 0,
           path: [Direction.ComposedEast], // -3
         },
@@ -29,7 +29,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
       const params: CreateMapItemParams = {
         itemType: MapItemType.BASE,
         coords: {
-          userId: 1,
+          userId: "user-test-1",
           groupId: 0,
           path: [Direction.NorthWest, Direction.ComposedEast], // [1, -3]
         },
@@ -45,7 +45,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
       const params: CreateMapItemParams = {
         itemType: MapItemType.BASE,
         coords: {
-          userId: 1,
+          userId: "user-test-1",
           groupId: 0,
           path: [
             Direction.NorthWest,
@@ -75,7 +75,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
         const params: CreateMapItemParams = {
           itemType: MapItemType.BASE,
           coords: {
-            userId: 1,
+            userId: "user-test-1",
             groupId: 0,
             path: [dir],
           },
@@ -92,7 +92,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
       const params: CreateMapItemParams = {
         itemType: MapItemType.BASE,
         coords: {
-          userId: 1,
+          userId: "user-test-1",
           groupId: 0,
           path: [
             Direction.NorthWest, // 1
@@ -115,7 +115,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
       const params: CreateMapItemParams = {
         itemType: MapItemType.BASE,
         coords: {
-          userId: 1,
+          userId: "user-test-1",
           groupId: 0,
           path: [
             Direction.NorthWest,
@@ -138,7 +138,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
       const params: CreateMapItemParams = {
         itemType: MapItemType.BASE,
         coords: {
-          userId: 1,
+          userId: "user-test-1",
           groupId: 0,
           path: [Direction.NorthWest, Direction.Center],
         },
@@ -154,7 +154,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
       const params: CreateMapItemParams = {
         itemType: MapItemType.USER,
         coords: {
-          userId: 1,
+          userId: "user-test-1",
           groupId: 0,
           path: [],
         },
@@ -172,7 +172,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
       const params = {
         itemType: MapItemType.BASE,
         coords: {
-          userId: 1,
+          userId: "user-test-1",
           groupId: 0,
           path: [-7], // Invalid: less than -6
         },
@@ -188,7 +188,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
       const params = {
         itemType: MapItemType.BASE,
         coords: {
-          userId: 1,
+          userId: "user-test-1",
           groupId: 0,
           path: [7], // Invalid: greater than 6
         },
@@ -206,7 +206,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
       const params = {
         itemType: MapItemType.BASE,
         coords: {
-          userId: 1,
+          userId: "user-test-1",
           groupId: 0,
           path: [Direction.NorthWest, Direction.ComposedEast],
         },
@@ -226,7 +226,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
       const params = {
         itemType: MapItemType.BASE,
         coords: {
-          userId: 1,
+          userId: "user-test-1",
           groupId: 0,
           path: [-7], // Invalid
         },
@@ -241,7 +241,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
       const params = {
         itemType: MapItemType.BASE,
         coords: {
-          userId: 1,
+          userId: "user-test-1",
           groupId: 0,
           path: [
             Direction.ComposedNorthWest,
@@ -267,7 +267,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
       const params: CreateMapItemParams = {
         itemType: MapItemType.BASE,
         coords: {
-          userId: 1,
+          userId: "user-test-1",
           groupId: 0,
           path: [Direction.ComposedEast],
         },
@@ -284,7 +284,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
       const params: CreateMapItemParams = {
         itemType: MapItemType.BASE,
         coords: {
-          userId: 1,
+          userId: "user-test-1",
           groupId: 0,
           path: [
             Direction.NorthWest,
@@ -308,7 +308,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
       const params: CreateMapItemParams = {
         itemType: MapItemType.BASE,
         coords: {
-          userId: 1,
+          userId: "user-test-1",
           groupId: 0,
           path: [Direction.NorthWest, Direction.ComposedEast],
         },
@@ -325,7 +325,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
       const params: CreateMapItemParams = {
         itemType: MapItemType.BASE,
         coords: {
-          userId: 1,
+          userId: "user-test-1",
           groupId: 0,
           path: [Direction.NorthWest, Direction.Center],
         },
@@ -342,7 +342,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
       const params: CreateMapItemParams = {
         itemType: MapItemType.USER,
         coords: {
-          userId: 1,
+          userId: "user-test-1",
           groupId: 0,
           path: [],
         },
@@ -360,7 +360,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
       const params: CreateMapItemParams = {
         itemType: MapItemType.BASE,
         coords: {
-          userId: 1,
+          userId: "user-test-1",
           groupId: 0,
           path: [Direction.NorthWest, Direction.East, Direction.SouthEast],
         },
@@ -377,7 +377,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
       const params: CreateMapItemParams = {
         itemType: MapItemType.BASE,
         coords: {
-          userId: 42,
+          userId: "user-test-42",
           groupId: 5,
           path: [1, 2, 3],
         },

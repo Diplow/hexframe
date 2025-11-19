@@ -77,7 +77,7 @@ describe("MappingService - Item Relationships [Integration - DB]", () => {
   }
 
   async function _validateRootDescendants(hierarchySetup: {
-    userId: number;
+    userId: string;
     groupId: number;
     rootMap: { coords: Parameters<typeof testEnv.service.items.crud.getItem>[0]['coords'] };
   }) {

@@ -94,7 +94,7 @@ describe("MapItemActions - Transaction Support", () => {
     const sourceItem = {
       id: 1,
       attrs: {
-        coords: { userId: 1, groupId: 1, path: [1] },
+        coords: { userId: "user-test-1", groupId: 1, path: [1] },
         itemType: MapItemType.BASE,
       },
     } as unknown as MapItemWithId;
@@ -112,19 +112,19 @@ describe("MapItemActions - Transaction Support", () => {
 
     // Create a mock transaction
     const mockTx = {} as DatabaseTransaction;
-    
+
     // Create transaction-aware repository mocks
     const txMapItemRepo = { ...mapItemRepo };
     const txBaseItemRepo = { ...baseItemRepo };
-    
+
     const withTransactionMock = vi.mocked(mapItemRepo.withTransaction);
     withTransactionMock.mockReturnValue(txMapItemRepo);
     const baseWithTransactionMock = vi.mocked(baseItemRepo.withTransaction);
     baseWithTransactionMock.mockReturnValue(txBaseItemRepo);
 
     // Call action with transaction
-    const oldCoords = { userId: 1, groupId: 1, path: [1] };
-    const newCoords = { userId: 1, groupId: 1, path: [2] };
+    const oldCoords = { userId: "user-test-1", groupId: 1, path: [1] };
+    const newCoords = { userId: "user-test-1", groupId: 1, path: [2] };
 
     try {
       await actions.moveMapItem({ oldCoords, newCoords, tx: mockTx });
@@ -152,20 +152,20 @@ describe("MapItemActions - Transaction Support", () => {
       return {
         id: 1,
         attrs: {
-          coords: { userId: 1, groupId: 1, path: [1] },
+          coords: { userId: "user-test-1", groupId: 1, path: [1] },
           itemType: MapItemType.BASE,
         },
       } as unknown as MapItemWithId;
     });
-    
+
     const withTransactionMock2 = vi.mocked(mapItemRepo.withTransaction);
     withTransactionMock2.mockReturnValue(mapItemRepo);
     const baseWithTransactionMock2 = vi.mocked(baseItemRepo.withTransaction);
     baseWithTransactionMock2.mockReturnValue(baseItemRepo);
 
     // Call service method
-    const oldCoords = { userId: 1, groupId: 1, path: [1] };
-    const newCoords = { userId: 1, groupId: 1, path: [2] };
+    const oldCoords = { userId: "user-test-1", groupId: 1, path: [1] };
+    const newCoords = { userId: "user-test-1", groupId: 1, path: [2] };
 
     try {
       await service.moveMapItem({ oldCoords, newCoords });

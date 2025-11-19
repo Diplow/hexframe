@@ -14,7 +14,7 @@ describe("Item Swap with Orphaned Temp Item - Integration Test", () => {
   let baseItemRepo: DbBaseItemRepository;
   let queryService: ItemQueryService;
   let actions: MapItemActions;
-  const testUserId = 1;
+  const testUserId = "user-test-1";
   const testGroupId = 99999; // Use a unique group ID
 
   beforeEach(async () => {

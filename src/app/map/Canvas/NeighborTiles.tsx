@@ -25,7 +25,7 @@ export interface NeighborTilesProps {
   isCompositionExpanded?: boolean;
   isDarkMode?: boolean;
   interactive?: boolean;
-  currentUserId?: number;
+  currentUserId?: string;
   selectedTileId?: string | null;
   onNavigate?: (coordId: string) => void;
   onToggleExpansion?: (itemId: string, coordId: string) => void;

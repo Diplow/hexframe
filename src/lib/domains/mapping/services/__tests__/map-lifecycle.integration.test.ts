@@ -53,7 +53,7 @@ describe("MappingService - Map Lifecycle [Integration - DB]", () => {
     });
 
     it("should throw error for non-existent userId/groupId", async () => {
-      const nonExistentParams = _createUniqueTestParams(999999);
+      const nonExistentParams = _createUniqueTestParams("user-test-999999");
       await expect(
         testEnv.service.maps.getMapData(nonExistentParams),
       ).rejects.toThrow();
@@ -89,7 +89,7 @@ describe("MappingService - Map Lifecycle [Integration - DB]", () => {
     });
 
     it("should return empty array for user with no maps", async () => {
-      const nonExistentParams = _createUniqueTestParams(999999);
+      const nonExistentParams = _createUniqueTestParams("user-test-999999");
       const maps = await testEnv.service.maps.getManyUserMaps(
         nonExistentParams.userId,
       );
@@ -116,7 +116,7 @@ describe("MappingService - Map Lifecycle [Integration - DB]", () => {
     });
 
     it("should throw error for non-existent map", async () => {
-      const nonExistentParams = _createUniqueTestParams(999999);
+      const nonExistentParams = _createUniqueTestParams("user-test-999999");
       await expect(
         testEnv.service.maps.updateMapInfo({
           ...nonExistentParams,
@@ -137,7 +137,7 @@ describe("MappingService - Map Lifecycle [Integration - DB]", () => {
     });
 
     it("should handle removing non-existent map gracefully", async () => {
-      const nonExistentParams = _createUniqueTestParams(999999);
+      const nonExistentParams = _createUniqueTestParams("user-test-999999");
       await expect(
         testEnv.service.maps.removeMap(nonExistentParams),
       ).resolves.not.toThrow();

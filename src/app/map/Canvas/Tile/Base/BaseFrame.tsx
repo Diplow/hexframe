@@ -17,7 +17,7 @@ export interface BaseFrameProps {
   scale?: TileScale;
   urlInfo: URLInfo;
   interactive?: boolean;
-  currentUserId?: number;
+  currentUserId?: string;
   isDarkMode?: boolean;
 }
 
@@ -260,7 +260,7 @@ interface RenderChildProps {
   scale: TileScale;
   urlInfo: URLInfo;
   interactive?: boolean;
-  currentUserId?: number;
+  currentUserId?: string;
   isDarkMode?: boolean;
 }
 
@@ -385,7 +385,7 @@ interface CompositionFrameProps {
   scale: TileScale;
   urlInfo: URLInfo;
   interactive: boolean;
-  currentUserId?: number;
+  currentUserId?: string;
   isDarkMode: boolean;
 }
 

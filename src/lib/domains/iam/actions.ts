@@ -76,7 +76,7 @@ export async function registerAction(data: z.infer<typeof registerSchema>) {
       const mappingService = new MappingService(repositories);
 
       const map = await mappingService.maps.createMap({
-        userId: user.mappingId,
+        userId: user.id,
         title: `${user.displayName}'s Space`,
         content: "Your personal hexframe workspace",
       });

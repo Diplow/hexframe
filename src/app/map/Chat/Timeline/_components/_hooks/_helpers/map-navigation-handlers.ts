@@ -32,12 +32,7 @@ export async function handleUserMapNavigation({
 
       // Pre-fetch all map data before navigation
       if (userId) {
-        const userIdNum = parseInt(userId);
-        if (isNaN(userIdNum)) {
-          console.warn('[AuthCoordinator] Invalid user ID format:', userId);
-          return;
-        }
-        const preFetchedData = await preloadUserMapData(userIdNum, 0, trpcUtils);
+        const preFetchedData = await preloadUserMapData(userId, 0, trpcUtils);
         if (preFetchedData) {
           // Save pre-fetched data for MapCacheProvider to use
           savePreFetchedData(preFetchedData);
@@ -89,12 +84,7 @@ export async function createUserMap({
     if (createResult?.success && createResult.mapId) {
       // Pre-fetch the newly created map data
       if (userId) {
-        const userIdNum = parseInt(userId);
-        if (isNaN(userIdNum)) {
-          console.warn('[AuthCoordinator] Invalid user ID format for new map:', userId);
-          return;
-        }
-        const preFetchedData = await preloadUserMapData(userIdNum, 0, trpcUtils);
+        const preFetchedData = await preloadUserMapData(userId, 0, trpcUtils);
         if (preFetchedData) {
           savePreFetchedData(preFetchedData);
         }

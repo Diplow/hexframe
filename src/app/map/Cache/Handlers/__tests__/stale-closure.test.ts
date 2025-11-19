@@ -88,7 +88,7 @@ describe("Stale State Closure Bug", () => {
             dbId: "123",
             depth: 0,
             parentId: undefined,
-            coordinates: { userId: 1, groupId: 2, path: [] },
+            coordinates: { userId: "user-test-1", groupId: 2, path: [] },
             ownerId: "test-owner",
           },
           state: {

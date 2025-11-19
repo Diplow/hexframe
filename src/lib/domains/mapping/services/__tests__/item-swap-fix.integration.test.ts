@@ -13,7 +13,7 @@ describe("Item Swap Fix - Regression Test", () => {
   let baseItemRepo: DbBaseItemRepository;
   let service: ItemCrudService;
   let actions: MapItemActions;
-  const testUserId = 1;
+  const testUserId = "user-test-1";
   const testGroupId = 77777; // Use a unique group ID
 
   beforeEach(async () => {

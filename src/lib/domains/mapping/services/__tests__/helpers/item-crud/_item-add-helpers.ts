@@ -32,7 +32,7 @@ export async function _addAndValidateChildItem(
 
 export async function _validateMapItemHierarchy(
   testEnv: TestEnvironment,
-  setupParams: { userId: number; groupId: number },
+  setupParams: { userId: string; groupId: number },
   addItemArgs: { parentId: number; title?: string; coords?: Coord },
 ) {
   const mapData = await testEnv.service.maps.getMapData(setupParams);

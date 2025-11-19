@@ -92,7 +92,7 @@ export interface NavigationOperations {
 }
 
 export interface MutationOperations {
-  createItem: (coordId: string, data: MapItemCreateAttributes) => Promise<MutationResult>;
+  createItem: (coordId: string, data: Omit<MapItemCreateAttributes, 'coords' | 'itemType'> & { parentId?: number }) => Promise<MutationResult>;
   updateItem: (coordId: string, data: MapItemUpdateAttributes) => Promise<MutationResult>;
   deleteItem: (coordId: string) => Promise<MutationResult>;
   moveItem: (sourceCoordId: string, targetCoordId: string) => Promise<MutationResult & { isSwap?: boolean }>;

@@ -58,7 +58,7 @@ export const mapItemsRouter = createTRPCRouter({
     .use(mappingServiceMiddleware)
     .input(
       z.object({
-        userId: z.number(),
+        userId: z.string(),
         groupId: z.number().optional().default(0),
       }),
     )
@@ -77,7 +77,7 @@ export const mapItemsRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       // For adding items, check if user owns the parent item OR if they're creating in their own space
       const coords = input.coords as Coord;
-      const currentUserId = await _getUserId(ctx.user);
+      const currentUserId = _getUserId(ctx.user);
       const currentUserIdString = String(currentUserId);
 
       // If creating a root item, ensure it's in user's own space
@@ -129,7 +129,7 @@ export const mapItemsRouter = createTRPCRouter({
     .input(z.object({ coords: hexCoordSchema }))
     .mutation(async ({ ctx, input }) => {
       // Check if user owns the item they're trying to remove
-      const currentUserId = await _getUserId(ctx.user);
+      const currentUserId = _getUserId(ctx.user);
       const currentUserIdString = String(currentUserId);
       
       const item = await ctx.mappingService.items.crud.getItem({
@@ -155,7 +155,7 @@ export const mapItemsRouter = createTRPCRouter({
     .input(itemUpdateSchema)
     .mutation(async ({ ctx, input }) => {
       // Check if user owns the item they're trying to update
-      const currentUserId = await _getUserId(ctx.user);
+      const currentUserId = _getUserId(ctx.user);
       const currentUserIdString = String(currentUserId);
 
       const existingItem = await ctx.mappingService.items.crud.getItem({
@@ -195,7 +195,7 @@ export const mapItemsRouter = createTRPCRouter({
     .input(itemMovementSchema)
     .mutation(async ({ ctx, input }) => {
       // Check if user owns the item they're trying to move
-      const currentUserId = await _getUserId(ctx.user);
+      const currentUserId = _getUserId(ctx.user);
       const currentUserIdString = String(currentUserId);
       
       const existingItem = await ctx.mappingService.items.crud.getItem({
@@ -351,7 +351,7 @@ export const mapItemsRouter = createTRPCRouter({
     .use(mappingServiceMiddleware)
     .input(itemCopySchema)
     .mutation(async ({ ctx, input }) => {
-      const currentUserId = await _getUserId(ctx.user);
+      const currentUserId = _getUserId(ctx.user);
       const currentUserIdString = String(currentUserId);
 
       // Verify user owns the source item

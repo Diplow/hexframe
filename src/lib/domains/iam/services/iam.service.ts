@@ -97,17 +97,6 @@ export class IAMService {
   }
 
   /**
-   * Get user by mapping ID
-   */
-  async getUserByMappingId(mappingId: number): Promise<User> {
-    const user = await this.repositories.user.findByMappingId(mappingId);
-    if (!user) {
-      throw new UserNotFoundError(`mapping:${mappingId}`);
-    }
-    return user;
-  }
-
-  /**
    * Update user profile
    */
   async updateProfile(
@@ -127,13 +116,6 @@ export class IAMService {
   }
 
   /**
-   * Ensure a user has a mapping ID (for legacy compatibility)
-   */
-  async ensureMappingId(userId: string): Promise<number> {
-    return this.repositories.user.ensureMappingId(userId);
-  }
-
-  /**
    * Convert User entity to API contract
    */
   userToContract(user: User): UserContract {
@@ -144,7 +126,6 @@ export class IAMService {
       displayName: user.displayName,
       emailVerified: user.emailVerified,
       image: user.image,
-      mappingId: user.mappingId,
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString(),
     };

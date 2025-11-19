@@ -22,9 +22,9 @@ interface User {
 
 interface AuthContextType {
   user: User | null | undefined; // undefined during loading, null if not logged in
-  mappingUserId: number | undefined; // The user's mapping system ID
+  mappingUserId: string | undefined; // The user's mapping system ID (UUID from better-auth)
   isLoading: boolean;
-  setMappingUserId: (id: number | undefined) => void;
+  setMappingUserId: (id: string | undefined) => void;
   // Optional: A function to explicitly trigger re-fetching session or handling logout
   // if more complex logic than just invalidating tRPC query is needed client-side.
   // signOut?: () => Promise<void>;
@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authState, setAuthState] = useState<SessionState>(() =>
     authClient.useSession.get(),
   );
-  const [mappingUserId, setMappingUserId] = useState<number | undefined>(undefined);
+  const [mappingUserId, setMappingUserId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     // Define the callback to update React state when the Atom changes

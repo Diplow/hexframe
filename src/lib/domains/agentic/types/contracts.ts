@@ -24,7 +24,7 @@ export interface ChatMessageContract {
 export interface TileSnapshot {
   coordId: string
   coordinates: {
-    userId: number
+    userId: string
     groupId: number
     path: number[]
   }

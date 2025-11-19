@@ -2,7 +2,6 @@ import { relations } from "drizzle-orm";
 import { mapItems } from "~/server/db/schema/_tables/mapping/map-items";
 import { baseItems } from "~/server/db/schema/_tables/mapping/base-items";
 import { baseItemVersions } from "~/server/db/schema/_tables/mapping/base-item-versions";
-import { userMapping } from "~/server/db/schema/_tables/mapping/user-mapping";
 import { users } from "~/server/db/schema/_tables/auth/users";
 import { accounts } from "~/server/db/schema/_tables/auth/accounts";
 import { sessions } from "~/server/db/schema/_tables/auth/sessions";
@@ -66,26 +65,10 @@ export const baseItemVersionsRelations = relations(
   })
 );
 
-/**
- * Relations for user_mapping table
- */
-export const userMappingRelations = relations(userMapping, ({ one }) => ({
-  // Many-to-one: UserMapping -> User (auth user)
-  authUser: one(users, {
-    fields: [userMapping.authUserId],
-    references: [users.id],
-  }),
-}));
-
 // Relations for Auth tables
-export const usersRelations = relations(users, ({ many, one }) => ({
+export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
   sessions: many(sessions),
-  // One-to-one: User -> UserMapping (for mapping to integer IDs)
-  userMapping: one(userMapping, {
-    fields: [users.id],
-    references: [userMapping.authUserId],
-  }),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({

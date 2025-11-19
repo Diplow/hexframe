@@ -139,7 +139,7 @@ describe('TileContextMenu - Copy and Move', () => {
           coordId: '1,0:[2]',
           parentId: '1,0:[]',
           coordinates: {
-            userId: 1,
+            userId: "user-test-1",
             groupId: 0,
             path: [Direction.NorthEast],
           },

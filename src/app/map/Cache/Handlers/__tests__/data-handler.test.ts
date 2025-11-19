@@ -35,7 +35,7 @@ describe("Data Handler", () => {
   const mockItems: MapItemAPIContract[] = [
     {
       id: "1",
-      coordinates: "1,2",
+      coordinates: "user-test-1,2",
       title: "Test Item 1",
       content: "Test Description 1",
       preview: undefined,
@@ -48,7 +48,7 @@ describe("Data Handler", () => {
     },
     {
       id: "2",
-      coordinates: "1,3",
+      coordinates: "user-test-1,3",
       title: "Test Item 2",
       content: "Test Description 2",
       preview: undefined,
@@ -405,15 +405,15 @@ describe("Data Handler", () => {
         { retryAttempts: 1 },
       );
 
-      await handler.loadRegion("1,2", 2);
+      await handler.loadRegion("user-test-1,2", 2);
 
       expect(mockUtils.map.getItemsForRootItem.fetch).toHaveBeenCalledWith({
-        userId: 1,
+        userId: "user-test-1",
         groupId: 2,
       });
       expect(mockDispatch).toHaveBeenCalledWith(cacheActions.setLoading(true));
       expect(mockDispatch).toHaveBeenCalledWith(
-        cacheActions.loadRegion(mockItems, "1,2", 2),
+        cacheActions.loadRegion(mockItems, "user-test-1,2", 2),
       );
       expect(mockDispatch).toHaveBeenCalledWith(cacheActions.setLoading(false));
     });

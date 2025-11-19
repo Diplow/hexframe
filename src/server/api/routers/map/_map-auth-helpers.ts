@@ -1,5 +1,4 @@
 import { TRPCError } from "@trpc/server";
-import { UserMappingService } from "~/lib/domains/iam";
 
 interface AuthUser {
   id: string;
@@ -16,7 +15,7 @@ export function _ensureUserAuthenticated(
       message: "User not authenticated",
     });
   }
-  
+
   const authUser = user as Record<string, unknown>;
   if (!authUser.id || typeof authUser.id !== 'string') {
     throw new TRPCError({
@@ -26,11 +25,11 @@ export function _ensureUserAuthenticated(
   }
 }
 
-export async function _getUserId(user: unknown): Promise<number> {
+export function _getUserId(user: unknown): string {
   _ensureUserAuthenticated(user);
 
-  // user.id is a string from better-auth, convert it to integer for mapping system
-  return await UserMappingService.getOrCreateMappingUserId(user.id);
+  // user.id is already a string from better-auth - use it directly
+  return user.id;
 }
 
 export function _getUserName(user: unknown): string {

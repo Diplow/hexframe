@@ -26,13 +26,13 @@ export interface MapItemRepository
   /**
    * Get the root MapItem (type USER) for a specific user and group.
    */
-  getRootItem(userId: number, groupId: number): Promise<MapItemWithId | null>;
+  getRootItem(userId: string, groupId: number): Promise<MapItemWithId | null>;
 
   /**
    * Get all root MapItems (type USER) for a specific user across all their groups.
    */
   getRootItemsForUser(
-    userId: number,
+    userId: string,
     limit?: number,
     offset?: number,
   ): Promise<MapItemWithId[]>;
@@ -55,7 +55,7 @@ export interface MapItemRepository
     offset,
   }: {
     parentPath: Coord["path"];
-    parentUserId: number;
+    parentUserId: string;
     parentGroupId: number;
     limit?: number;
     offset?: number;
@@ -81,7 +81,7 @@ export interface MapItemRepository
     offset,
   }: {
     parentPath: Coord["path"];
-    parentUserId: number;
+    parentUserId: string;
     parentGroupId: number;
     maxGenerations: number;
     limit?: number;
@@ -115,7 +115,7 @@ export interface MapItemRepository
    */
   getContextForCenter(config: {
     centerPath: Coord["path"];
-    userId: number;
+    userId: string;
     groupId: number;
     includeParent: boolean;
     includeComposed: boolean;

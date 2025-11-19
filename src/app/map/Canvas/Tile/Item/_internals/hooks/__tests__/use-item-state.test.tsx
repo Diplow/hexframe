@@ -52,7 +52,7 @@ describe("useItemState - Drag Functionality", () => {
       dbId: "item-1",
       ownerId,
       coordinates: {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [1],
       },
@@ -105,8 +105,8 @@ describe("useItemState - Drag Functionality", () => {
   it("should make owned tiles draggable regardless of active tool", () => {
     // Reset the mock to ensure draggable is true
     mockIsDraggable = true;
-    const currentUserId = 123;
-    const tile = createMockTile("123"); // Owned by current user
+    const currentUserId = "user-test-123";
+    const tile = createMockTile("user-test-123"); // Owned by current user
 
     const { result } = renderHook(
       () =>
@@ -130,8 +130,8 @@ describe("useItemState - Drag Functionality", () => {
   it("should not make tiles draggable when user does not own them", () => {
     // Reset the mock to ensure draggable is true
     mockIsDraggable = true;
-    const currentUserId = 123;
-    const tile = createMockTile("456"); // Owned by different user
+    const currentUserId = "user-test-123";
+    const tile = createMockTile("user-test-456"); // Owned by different user
 
     const { result } = renderHook(
       () =>
@@ -153,8 +153,8 @@ describe("useItemState - Drag Functionality", () => {
   });
 
   it("should not make tiles draggable when interactive is false", () => {
-    const currentUserId = 123;
-    const tile = createMockTile("123"); // Owned by current user
+    const currentUserId = "user-test-123";
+    const tile = createMockTile("user-test-123"); // Owned by current user
 
     const { result } = renderHook(
       () =>

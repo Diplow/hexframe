@@ -11,7 +11,7 @@ describe('TileContextMenu - History Integration', () => {
       coordId: '1,0:1',
       dbId: '123',
       parentId: '1,0:',
-      coordinates: { userId: 1, groupId: 0, path: [1] },
+      coordinates: { userId: "user-test-1", groupId: 0, path: [1] },
       depth: 1,
       ownerId: '1',
     },

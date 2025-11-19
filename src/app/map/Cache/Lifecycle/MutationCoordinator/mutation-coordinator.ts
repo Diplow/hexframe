@@ -16,7 +16,7 @@ export interface MutationCoordinatorConfig {
   dataOperations: DataOperations;
   storageService: StorageService;
   mapContext?: {
-    userId: number;
+    userId: string;
     groupId: number;
     rootItemId: number;
   };
@@ -25,20 +25,12 @@ export interface MutationCoordinatorConfig {
     mutateAsync: (params: {
       coords: Coord;
       parentId?: number | null;
-      title?: string;
-      content?: string;
-      preview?: string;
-      url?: string;
-    }) => Promise<MapItemAPIContract>;
+    } & MapItemCreateAttributes) => Promise<MapItemAPIContract>;
   };
   updateItemMutation: {
     mutateAsync: (params: {
       coords: Coord;
-      title?: string;
-      content?: string;
-      preview?: string;
-      url?: string;
-    }) => Promise<MapItemAPIContract>;
+    } & MapItemUpdateAttributes) => Promise<MapItemAPIContract>;
   };
   deleteItemMutation: {
     mutateAsync: (params: {
@@ -278,7 +270,7 @@ export class MutationCoordinator {
     }
   }
 
-  async createItem(coordId: string, data: MapItemCreateAttributes & { parentId?: number }): Promise<MutationResult> {
+  async createItem(coordId: string, data: Omit<MapItemCreateAttributes, 'coords' | 'itemType'> & { parentId?: number }): Promise<MutationResult> {
     return this.trackOperation(coordId, 'create', async () => {
       const changeId = this.tracker.generateChangeId();
 
@@ -309,11 +301,12 @@ export class MutationCoordinator {
         }
         const result = await this.config.addItemMutation.mutateAsync({
           coords,
+          itemType: MapItemType.BASE,
           ...(parentIdNumber !== undefined ? { parentId: parentIdNumber } : {}),
           title: data.title,
           content: data.content,
           preview: data.preview,
-          url: data.link,
+          link: data.link,
         });
 
         // Finalize with real data
@@ -359,7 +352,7 @@ export class MutationCoordinator {
           title: data.title,
           content: data.content,
           preview: data.preview,
-          url: data.link,
+          link: data.link,
         });
 
         // Finalize with real data
@@ -775,7 +768,7 @@ export class MutationCoordinator {
       depth: coords.path.length,
       parentId,
       itemType: MapItemType.BASE,
-      ownerId: this.config.mapContext?.userId.toString() ?? "unknown",
+      ownerId: this.config.mapContext?.userId ?? "unknown",
       originId: null,
     };
   }
@@ -928,7 +921,7 @@ export class MutationCoordinator {
       link: tile.data.link,
       parentId: null, // We don't store this in TileData
       itemType: MapItemType.BASE,
-      ownerId: tile.metadata.ownerId ?? this.config.mapContext?.userId.toString() ?? "unknown",
+      ownerId: tile.metadata.ownerId ?? this.config.mapContext?.userId ?? "unknown",
       originId: null,
     };
   }

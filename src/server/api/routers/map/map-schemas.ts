@@ -2,7 +2,7 @@ import { z } from "zod";
 
 // Zod schema for Coord validation
 export const hexCoordSchema = z.object({
-  userId: z.number(),
+  userId: z.string(),
   groupId: z.number(),
   path: z.array(z.number()),
 });
@@ -22,7 +22,7 @@ export const userMapCreationSchema = z.object({
 
 // User map update schema
 export const userMapUpdateSchema = z.object({
-  userId: z.number(),
+  userId: z.string(),
   groupId: z.number(),
   title: z.string().min(3).max(100).optional(),
   content: z.string().max(500).optional(),
@@ -30,7 +30,7 @@ export const userMapUpdateSchema = z.object({
 
 // User map identifier schema
 export const userMapIdentifierSchema = z.object({
-  userId: z.number(),
+  userId: z.string(),
   groupId: z.number(),
 });
 

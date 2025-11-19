@@ -7,7 +7,7 @@ import { MapItemType } from "~/lib/domains/mapping/_objects/map-item";
 
 export async function _setupItemForRetrieval(
   testEnv: TestEnvironment,
-  setupParams: { userId: number; groupId: number },
+  setupParams: { userId: string; groupId: number },
 ) {
   const setupData = await _setupBasicMap(testEnv.service, setupParams);
 

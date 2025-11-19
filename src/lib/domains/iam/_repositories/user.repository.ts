@@ -38,11 +38,6 @@ export interface UserRepository {
   findByEmail(email: string): Promise<User | null>;
 
   /**
-   * Find a user by their mapping ID
-   */
-  findByMappingId(mappingId: number): Promise<User | null>;
-
-  /**
    * Authenticate a user with email and password
    * Note: This validates credentials but does not create a session
    */
@@ -52,12 +47,6 @@ export interface UserRepository {
    * Update user profile information
    */
   update(user: User): Promise<User>;
-
-  /**
-   * Get or create a mapping ID for a user
-   * This is needed for backward compatibility with the mapping system
-   */
-  ensureMappingId(userId: string): Promise<number>;
 
   /**
    * Verify a user's email address

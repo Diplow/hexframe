@@ -21,7 +21,7 @@ export enum Direction {
 // Represents a hex's position in the hierarchy
 export interface Coord {
   // Base grid position
-  userId: number;
+  userId: string; // better-auth UUID string
   groupId: number;
   // Array of directions taken from root hex to reach this hex
   // Empty for base grid hexes
@@ -29,7 +29,7 @@ export interface Coord {
 }
 
 export class CoordSystem {
-  static getCenterCoord(userId: number, groupId = 0): Coord {
+  static getCenterCoord(userId: string, groupId = 0): Coord {
     return {
       userId,
       groupId,
@@ -95,11 +95,10 @@ export class CoordSystem {
 
     if (!basePart) throw new Error(MAPPING_ERRORS.INVALID_HEX_ID);
 
-    const [userIdStr, groupIdStr] = basePart.split(",");
-    const userId = parseInt(userIdStr ?? "0", 10);
+    const [userId, groupIdStr] = basePart.split(",");
     const groupId = parseInt(groupIdStr ?? "0", 10);
 
-    if (isNaN(userId) || isNaN(groupId)) {
+    if (!userId || isNaN(groupId)) {
       throw new Error(
         MAPPING_ERRORS.INVALID_HEX_ID + " - Malformed userId or groupId",
       );
@@ -293,7 +292,7 @@ export function getNeighborCoord(coord: Coord, direction: Direction): Coord {
 }
 
 export function isValidCoord(coord: Coord): boolean {
-  return coord.userId > 0 && coord.groupId >= 0 && Array.isArray(coord.path);
+  return typeof coord.userId === 'string' && coord.userId.length > 0 && coord.groupId >= 0 && Array.isArray(coord.path);
 }
 
 export function coordToString(coord: Coord): string {
@@ -308,23 +307,24 @@ export function stringToCoord(coordId: string): Coord {
  * Validates that a coordinate ID is safe for use in CSS selectors
  *
  * Valid coordId format: "userId,groupId" or "userId,groupId:" or "userId,groupId:path"
- * where userId and groupId are positive integers,
+ * where userId is a string (UUID or alphanumeric), groupId is a non-negative integer,
  * and path is comma-separated integers (can be negative for composed children)
  *
  * @param coordId - The coordinate ID to validate
  * @returns true if coordId is safe for CSS selectors
  *
  * @example
- * isValidCoordId("1,0") // true
- * isValidCoordId("1,0:") // true (center tile alternative format)
- * isValidCoordId("1,0:1,2,3") // true
- * isValidCoordId("1,0:1,-2,3") // true (composed child)
- * isValidCoordId("1,0:1'];alert('xss')") // false
+ * isValidCoordId("550e8400-e29b-41d4-a716-446655440000,0") // true (UUID)
+ * isValidCoordId("user123,0:") // true (center tile alternative format)
+ * isValidCoordId("abc-123,0:1,2,3") // true
+ * isValidCoordId("user1,0:1,-2,3") // true (composed child)
+ * isValidCoordId("user';DROP TABLE,0") // false
  */
 export function isValidCoordId(coordId: string): boolean {
   // Valid format: userId,groupId or userId,groupId: or userId,groupId:path
-  // userId and groupId must be non-negative integers
+  // userId is a string (alphanumeric, hyphens, underscores allowed)
+  // groupId must be non-negative integer
   // path is comma-separated integers (can be negative), or empty after colon
-  const coordIdPattern = /^[0-9]+,[0-9]+(?::[-0-9,]*)?$/;
+  const coordIdPattern = /^[a-zA-Z0-9_-]+,[0-9]+(?::[-0-9,]*)?$/;
   return coordIdPattern.test(coordId);
 }

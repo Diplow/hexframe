@@ -6,7 +6,7 @@ import { _setupBasicMap, _createTestCoordinates } from "~/lib/domains/mapping/se
 
 export async function _setupItemForUpdate(
   testEnv: TestEnvironment,
-  setupParams: { userId: number; groupId: number },
+  setupParams: { userId: string; groupId: number },
 ) {
   const setupData = await _setupBasicMap(testEnv.service, setupParams);
 
@@ -52,7 +52,7 @@ export async function _validateItemUpdate(
 
 export async function _validateUpdateNonExistentItemError(
   testEnv: TestEnvironment,
-  setupParams: { userId: number; groupId: number },
+  setupParams: { userId: string; groupId: number },
 ) {
   const nonExistentCoords = _createTestCoordinates({
     userId: setupParams.userId,

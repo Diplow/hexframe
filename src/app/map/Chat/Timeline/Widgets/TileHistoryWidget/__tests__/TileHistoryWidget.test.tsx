@@ -56,7 +56,7 @@ import { api } from '~/commons/trpc/react';
 
 describe('TileHistoryView', () => {
   const mockCoords: Coord = {
-    userId: 1,
+    userId: "user-test-1",
     groupId: 0,
     path: [1],
   };

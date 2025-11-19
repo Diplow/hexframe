@@ -19,7 +19,7 @@ describe('State Initialization - Composition Support', () => {
       content: '',
       preview: undefined,
       link: '',
-      coordinates: { userId: 1, groupId: 0, path: [1] },
+      coordinates: { userId: "user-test-1", groupId: 0, path: [1] },
       depth: 1,
       parentId: 1,
       itemType: 'item' as const,

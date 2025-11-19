@@ -11,7 +11,7 @@ type TRPCCaller = ReturnType<AppRouter['createCaller']>;
 async function _getItemByCoords(
   caller: TRPCCaller,
   coords: {
-    userId: number;
+    userId: string;
     groupId: number;
     path: number[];
   }

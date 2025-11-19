@@ -14,10 +14,8 @@ const createMockUserRepository = (): UserRepository => ({
   create: vi.fn(),
   findById: vi.fn(),
   findByEmail: vi.fn(),
-  findByMappingId: vi.fn(),
   authenticate: vi.fn(),
   update: vi.fn(),
-  ensureMappingId: vi.fn(),
   verifyEmail: vi.fn(),
   emailExists: vi.fn(),
 });
@@ -43,7 +41,6 @@ describe("IAMService", () => {
         id: "user-123",
         email: validInput.email,
         name: validInput.name,
-        mappingId: 1,
       });
 
       (mockUserRepo.emailExists as ReturnType<typeof vi.fn>).mockResolvedValue(false);
@@ -89,7 +86,6 @@ describe("IAMService", () => {
       const mockUser = User.create({
         id: "user-123",
         email: loginInput.email,
-        mappingId: 1,
       });
 
       const mockAuthResult = {
@@ -124,7 +120,6 @@ describe("IAMService", () => {
       const mockUser = User.create({
         id: "user-123",
         email: "test@example.com",
-        mappingId: 1,
       });
 
       (mockUserRepo.findById as ReturnType<typeof vi.fn>).mockResolvedValue(mockUser);
@@ -150,7 +145,6 @@ describe("IAMService", () => {
         id: "user-123",
         email: "test@example.com",
         name: "Old Name",
-        mappingId: 1,
       });
 
       const updatedUser = mockUser.updateProfile({ name: "New Name" });
@@ -173,7 +167,6 @@ describe("IAMService", () => {
         id: "user-123",
         email: "test@example.com",
         name: "Test User",
-        mappingId: 1,
       });
 
       const contract = service.userToContract(user);
@@ -183,7 +176,6 @@ describe("IAMService", () => {
         email: "test@example.com",
         name: "Test User",
         displayName: "Test User",
-        mappingId: 1,
       });
       expect(typeof contract.createdAt).toBe("string");
       expect(typeof contract.updatedAt).toBe("string");

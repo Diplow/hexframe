@@ -10,9 +10,9 @@ describe("BaseFrame - Composition Rendering", () => {
 
   const createMockItem = (coordId: string, dbId: string, title: string): TileData => {
     // Parse coordId format: "userId,groupId:path" where path is comma-separated numbers
-    // e.g., "1,0:1,2,3" → userId:1, groupId:0, path:[1,2,3]
-    // e.g., "1,0:1" → userId:1, groupId:0, path:[1]
-    // e.g., "1,0:" → userId:1, groupId:0, path:[]
+    // e.g., "user1,0:1,2,3" → userId:"user1", groupId:0, path:[1,2,3]
+    // e.g., "user1,0:1" → userId:"user1", groupId:0, path:[1]
+    // e.g., "user1,0:" → userId:"user1", groupId:0, path:[]
     const [, pathStr] = coordId.split(":");
     const path = pathStr ? pathStr.split(",").map(Number) : [];
 
@@ -21,7 +21,7 @@ describe("BaseFrame - Composition Rendering", () => {
         dbId,
         coordId,
         parentId: undefined,
-        coordinates: { userId: 1, groupId: 0, path },
+        coordinates: { userId: "user-test-1", groupId: 0, path },
         depth: path.length,
         ownerId: "user1",
       },

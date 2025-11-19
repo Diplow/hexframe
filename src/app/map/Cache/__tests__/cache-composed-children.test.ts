@@ -74,11 +74,11 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
   describe("Fetching composed children", () => {
     test("should fetch composed children for a tile with negative directions", async () => {
       // Setup: tile with composed children in negative directions
-      const parentCoordId = "1,0:2"; // Structural child at direction 2
+      const parentCoordId = "user-test-1,0:2"; // Structural child at direction 2
       const composedChildren: MapItemAPIContract[] = [
         {
           id: "10",
-          coordinates: "1,0:2,-1", // ComposedNorthWest
+          coordinates: "user-test-1,0:2,-1", // ComposedNorthWest
           title: "Composed Child NW",
           content: "Content NW",
           preview: undefined,
@@ -91,7 +91,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
         },
         {
           id: "11",
-          coordinates: "1,0:2,-3", // ComposedEast
+          coordinates: "user-test-1,0:2,-3", // ComposedEast
           title: "Composed Child E",
           content: "Content E",
           preview: undefined,
@@ -118,7 +118,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
     });
 
     test("should return empty array for tile without composed children", async () => {
-      const parentCoordId = "1,0:3";
+      const parentCoordId = "user-test-1,0:3";
       mockUtils.map.getComposedChildren.fetch.mockResolvedValue([]);
 
       const result = await mockUtils.map.getComposedChildren.fetch({ coordId: parentCoordId }) as MapItemAPIContract[];
@@ -128,14 +128,14 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
     });
 
     test("should fetch all 6 composed children when all slots filled", async () => {
-      const parentCoordId = "1,0:1";
+      const parentCoordId = "user-test-1,0:1";
       const allComposedChildren: MapItemAPIContract[] = [
-        { id: "1", coordinates: "1,0:1,-1", title: "NW", content: "", preview: undefined, depth: 2, link: "", parentId: "0", itemType: MapItemType.BASE, ownerId: "1", originId: null }, // ComposedNorthWest
-        { id: "2", coordinates: "1,0:1,-2", title: "NE", content: "", preview: undefined, depth: 2, link: "", parentId: "0", itemType: MapItemType.BASE, ownerId: "1", originId: null }, // ComposedNorthEast
-        { id: "3", coordinates: "1,0:1,-3", title: "E", content: "", preview: undefined, depth: 2, link: "", parentId: "0", itemType: MapItemType.BASE, ownerId: "1", originId: null },  // ComposedEast
-        { id: "4", coordinates: "1,0:1,-4", title: "SE", content: "", preview: undefined, depth: 2, link: "", parentId: "0", itemType: MapItemType.BASE, ownerId: "1", originId: null }, // ComposedSouthEast
-        { id: "5", coordinates: "1,0:1,-5", title: "SW", content: "", preview: undefined, depth: 2, link: "", parentId: "0", itemType: MapItemType.BASE, ownerId: "1", originId: null }, // ComposedSouthWest
-        { id: "6", coordinates: "1,0:1,-6", title: "W", content: "", preview: undefined, depth: 2, link: "", parentId: "0", itemType: MapItemType.BASE, ownerId: "1", originId: null },  // ComposedWest
+        { id: "1", coordinates: "user-test-1,0:1,-1", title: "NW", content: "", preview: undefined, depth: 2, link: "", parentId: "0", itemType: MapItemType.BASE, ownerId: "1", originId: null }, // ComposedNorthWest
+        { id: "2", coordinates: "user-test-1,0:1,-2", title: "NE", content: "", preview: undefined, depth: 2, link: "", parentId: "0", itemType: MapItemType.BASE, ownerId: "1", originId: null }, // ComposedNorthEast
+        { id: "3", coordinates: "user-test-1,0:1,-3", title: "E", content: "", preview: undefined, depth: 2, link: "", parentId: "0", itemType: MapItemType.BASE, ownerId: "1", originId: null },  // ComposedEast
+        { id: "4", coordinates: "user-test-1,0:1,-4", title: "SE", content: "", preview: undefined, depth: 2, link: "", parentId: "0", itemType: MapItemType.BASE, ownerId: "1", originId: null }, // ComposedSouthEast
+        { id: "5", coordinates: "user-test-1,0:1,-5", title: "SW", content: "", preview: undefined, depth: 2, link: "", parentId: "0", itemType: MapItemType.BASE, ownerId: "1", originId: null }, // ComposedSouthWest
+        { id: "6", coordinates: "user-test-1,0:1,-6", title: "W", content: "", preview: undefined, depth: 2, link: "", parentId: "0", itemType: MapItemType.BASE, ownerId: "1", originId: null },  // ComposedWest
       ];
 
       mockUtils.map.getComposedChildren.fetch.mockResolvedValue(allComposedChildren);
@@ -144,19 +144,19 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
 
       expect(result).toHaveLength(6);
       expect(result.map((item: MapItemAPIContract) => item.coordinates)).toEqual([
-        "1,0:1,-1",
-        "1,0:1,-2",
-        "1,0:1,-3",
-        "1,0:1,-4",
-        "1,0:1,-5",
-        "1,0:1,-6",
+        "user-test-1,0:1,-1",
+        "user-test-1,0:1,-2",
+        "user-test-1,0:1,-3",
+        "user-test-1,0:1,-4",
+        "user-test-1,0:1,-5",
+        "user-test-1,0:1,-6",
       ]);
     });
   });
 
   describe("hasComposition query", () => {
     test("should return true when tile has composed children", async () => {
-      const coordId = "1,0:2";
+      const coordId = "user-test-1,0:2";
       mockUtils.map.hasComposition.fetch.mockResolvedValue({ hasComposition: true });
 
       const result = await mockUtils.map.hasComposition.fetch({ coordId }) as { hasComposition: boolean };
@@ -166,7 +166,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
     });
 
     test("should return false when tile has no composed children", async () => {
-      const coordId = "1,0:3";
+      const coordId = "user-test-1,0:3";
       mockUtils.map.hasComposition.fetch.mockResolvedValue({ hasComposition: false });
 
       const result = await mockUtils.map.hasComposition.fetch({ coordId }) as { hasComposition: boolean };
@@ -175,7 +175,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
     });
 
     test("should return false for root tile without composition", async () => {
-      const coordId = "1,0";
+      const coordId = "user-test-1,0";
       mockUtils.map.hasComposition.fetch.mockResolvedValue({ hasComposition: false });
 
       const result = await mockUtils.map.hasComposition.fetch({ coordId }) as { hasComposition: boolean };
@@ -214,7 +214,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
       const state2 = cacheReducer(state1, {
         type: "LOAD_REGION",
         payload: {
-          centerCoordId: "1,0",
+          centerCoordId: "user-test-1,0",
           items: [],
           maxDepth: 2,
         },
@@ -227,7 +227,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
 
   describe("Cache invalidation with composition", () => {
     test("should invalidate region when composed children are added", () => {
-      const parentCoordId = "1,0:2";
+      const parentCoordId = "user-test-1,0:2";
 
       // Initial state with region loaded
       const state1 = cacheReducer(initialCacheState, {
@@ -257,7 +257,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
       const state1 = cacheReducer(initialCacheState, {
         type: "LOAD_REGION",
         payload: {
-          centerCoordId: "1,0",
+          centerCoordId: "user-test-1,0",
           items: [],
           maxDepth: 2,
         },
@@ -266,7 +266,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
       const state2 = cacheReducer(state1, {
         type: "LOAD_REGION",
         payload: {
-          centerCoordId: "1,0:1",
+          centerCoordId: "user-test-1,0:1",
           items: [],
           maxDepth: 2,
         },
@@ -286,7 +286,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
     test("should store composed children in cache with negative directions", () => {
       const composedChild: MapItemAPIContract = {
         id: "10",
-        coordinates: "1,0:2,-1", // Negative direction
+        coordinates: "user-test-1,0:2,-1", // Negative direction
         title: "Composed Child",
         content: "Test content",
         preview: undefined,
@@ -302,14 +302,14 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
         type: "LOAD_REGION",
         payload: {
           items: [composedChild],
-          centerCoordId: "1,0:2",
+          centerCoordId: "user-test-1,0:2",
           maxDepth: 2,
         },
       });
 
-      const cachedItem = state.itemsById["1,0:2,-1"];
+      const cachedItem = state.itemsById["user-test-1,0:2,-1"];
       expect(cachedItem).toBeDefined();
-      expect(cachedItem?.metadata.coordId).toBe("1,0:2,-1");
+      expect(cachedItem?.metadata.coordId).toBe("user-test-1,0:2,-1");
       expect(cachedItem?.data.title).toBe("Composed Child");
       expect(cachedItem?.metadata.coordinates.path).toEqual([2, -1]);
     });
@@ -319,7 +319,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
         // Structural child (positive direction)
         {
           id: "1",
-          coordinates: "1,0:1,2",
+          coordinates: "user-test-1,0:1,2",
           title: "Structural",
           content: "",
           preview: undefined,
@@ -333,7 +333,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
         // Composed child (negative direction)
         {
           id: "2",
-          coordinates: "1,0:1,-2",
+          coordinates: "user-test-1,0:1,-2",
           title: "Composed",
           content: "",
           preview: undefined,
@@ -350,17 +350,17 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
         type: "LOAD_REGION",
         payload: {
           items: mixedChildren,
-          centerCoordId: "1,0:1",
+          centerCoordId: "user-test-1,0:1",
           maxDepth: 2,
         },
       });
 
       // Structural child should have positive direction
-      const structural = state.itemsById["1,0:1,2"];
+      const structural = state.itemsById["user-test-1,0:1,2"];
       expect(structural?.metadata.coordinates.path).toEqual([1, 2]);
 
       // Composed child should have negative direction
-      const composed = state.itemsById["1,0:1,-2"];
+      const composed = state.itemsById["user-test-1,0:1,-2"];
       expect(composed?.metadata.coordinates.path).toEqual([1, -2]);
       expect(composed?.metadata.coordinates.path[1]).toBe(Direction.ComposedNorthEast);
     });
@@ -371,7 +371,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
       const mixedItems: MapItemAPIContract[] = [
         {
           id: "1",
-          coordinates: "1,0",
+          coordinates: "user-test-1,0",
           title: "Root",
           content: "",
           preview: undefined,
@@ -384,7 +384,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
         },
         {
           id: "2",
-          coordinates: "1,0:1",
+          coordinates: "user-test-1,0:1",
           title: "Structural Child",
           content: "",
           preview: undefined,
@@ -397,7 +397,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
         },
         {
           id: "3",
-          coordinates: "1,0:-1",
+          coordinates: "user-test-1,0:-1",
           title: "Composed Child",
           content: "",
           preview: undefined,
@@ -414,19 +414,19 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
         type: "LOAD_REGION",
         payload: {
           items: mixedItems,
-          centerCoordId: "1,0",
+          centerCoordId: "user-test-1,0",
           maxDepth: 2,
         },
       });
 
       // All items should be in cache
       expect(Object.keys(state.itemsById)).toHaveLength(3);
-      expect(state.itemsById["1,0"]).toBeDefined();
-      expect(state.itemsById["1,0:1"]).toBeDefined();
-      expect(state.itemsById["1,0:-1"]).toBeDefined();
+      expect(state.itemsById["user-test-1,0"]).toBeDefined();
+      expect(state.itemsById["user-test-1,0:1"]).toBeDefined();
+      expect(state.itemsById["user-test-1,0:-1"]).toBeDefined();
 
       // Verify negative direction is properly stored
-      const composedChild = state.itemsById["1,0:-1"];
+      const composedChild = state.itemsById["user-test-1,0:-1"];
       expect(composedChild?.metadata.coordinates.path).toEqual([-1]);
       expect(composedChild?.metadata.coordinates.path[0]).toBe(Direction.ComposedNorthWest);
     });
@@ -434,11 +434,11 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
 
   describe("Data handler integration with composed children", () => {
     test("should successfully load region including composed children", async () => {
-      const centerCoordId = "1,0";
+      const centerCoordId = "user-test-1,0";
       const itemsWithComposition: MapItemAPIContract[] = [
         {
           id: "1",
-          coordinates: "1,0",
+          coordinates: "user-test-1,0",
           title: "Root",
           content: "",
           preview: undefined,
@@ -451,7 +451,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
         },
         {
           id: "2",
-          coordinates: "1,0:1",
+          coordinates: "user-test-1,0:1",
           title: "Structural",
           content: "",
           preview: undefined,
@@ -464,7 +464,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
         },
         {
           id: "3",
-          coordinates: "1,0:-1",
+          coordinates: "user-test-1,0:-1",
           title: "Composed",
           content: "",
           preview: undefined,
@@ -500,13 +500,13 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
           type: "LOAD_REGION",
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           payload: expect.objectContaining({
-            centerCoordId: "1,0",
+            centerCoordId: "user-test-1,0",
             maxDepth: 2,
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             items: expect.arrayContaining([
-              expect.objectContaining({ coordinates: "1,0" }),
-              expect.objectContaining({ coordinates: "1,0:1" }),
-              expect.objectContaining({ coordinates: "1,0:-1" }),
+              expect.objectContaining({ coordinates: "user-test-1,0" }),
+              expect.objectContaining({ coordinates: "user-test-1,0:1" }),
+              expect.objectContaining({ coordinates: "user-test-1,0:-1" }),
             ]),
           }),
         })
@@ -518,7 +518,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
     test("should handle deeply nested composed children", () => {
       const deepComposedChild: MapItemAPIContract = {
         id: "10",
-        coordinates: "1,0:1,2,-3,4,-1", // Mixed positive and negative
+        coordinates: "user-test-1,0:1,2,-3,4,-1", // Mixed positive and negative
         title: "Deep Composed",
         content: "",
         preview: undefined,
@@ -534,12 +534,12 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
         type: "LOAD_REGION",
         payload: {
           items: [deepComposedChild],
-          centerCoordId: "1,0:1",
+          centerCoordId: "user-test-1,0:1",
           maxDepth: 5,
         },
       });
 
-      const cached = state.itemsById["1,0:1,2,-3,4,-1"];
+      const cached = state.itemsById["user-test-1,0:1,2,-3,4,-1"];
       expect(cached).toBeDefined();
       expect(cached?.metadata.coordinates.path).toEqual([1, 2, -3, 4, -1]);
       expect(cached?.metadata.depth).toBe(5);
@@ -548,7 +548,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
     test("should handle composition at root level", () => {
       const rootComposition: MapItemAPIContract = {
         id: "1",
-        coordinates: "1,0:-1", // Composed child of root
+        coordinates: "user-test-1,0:-1", // Composed child of root
         title: "Root Composition",
         content: "",
         preview: undefined,
@@ -564,12 +564,12 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
         type: "LOAD_REGION",
         payload: {
           items: [rootComposition],
-          centerCoordId: "1,0",
+          centerCoordId: "user-test-1,0",
           maxDepth: 1,
         },
       });
 
-      const cached = state.itemsById["1,0:-1"];
+      const cached = state.itemsById["user-test-1,0:-1"];
       expect(cached).toBeDefined();
       expect(cached?.metadata.coordinates.path).toEqual([-1]);
     });
@@ -581,7 +581,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
         payload: {
           items: [{
             id: "1",
-            coordinates: "1,0:-1",
+            coordinates: "user-test-1,0:-1",
             title: "Original",
             content: "Original content",
             preview: undefined,
@@ -592,7 +592,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
             ownerId: "1",
             originId: null,
           }],
-          centerCoordId: "1,0",
+          centerCoordId: "user-test-1,0",
           maxDepth: 1,
         },
       });
@@ -603,7 +603,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
         payload: {
           items: [{
             id: "1",
-            coordinates: "1,0:-1",
+            coordinates: "user-test-1,0:-1",
             title: "Updated",
             content: "Updated content",
             preview: undefined,
@@ -614,12 +614,12 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
             ownerId: "1",
             originId: null,
           }],
-          centerCoordId: "1,0",
+          centerCoordId: "user-test-1,0",
           maxDepth: 1,
         },
       });
 
-      const cached = state2.itemsById["1,0:-1"];
+      const cached = state2.itemsById["user-test-1,0:-1"];
       expect(cached?.data.title).toBe("Updated");
       expect(cached?.metadata.coordinates.path).toEqual([-1]); // Direction preserved
     });
