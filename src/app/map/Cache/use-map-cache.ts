@@ -12,7 +12,7 @@ import {
   createHierarchyCallbacks,
   createSyncOperationsAPI,
 } from "~/app/map/Cache/Lifecycle";
-import { globalDragService } from '~/app/map/Services/DragAndDrop';;
+import { globalDragService } from '~/app/map/Services/DragAndDrop';
 
 /**
  * Main hook that provides clean public API for cache operations

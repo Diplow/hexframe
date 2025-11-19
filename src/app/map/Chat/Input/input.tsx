@@ -15,7 +15,7 @@ import { loggers } from '~/lib/debug/debug-logger';
 import { InputForm } from '~/app/map/Chat/Input/_components/InputForm';
 import { useMapCacheCenter } from '~/app/map/Cache';
 import { authClient } from '~/lib/auth';
-import { useEventBus } from '~/app/map/Services/EventBus';;
+import { useEventBus } from '~/app/map/Services/EventBus';
 
 
 export function Input() {

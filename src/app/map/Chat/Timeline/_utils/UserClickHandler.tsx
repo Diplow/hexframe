@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '~/commons/trpc/react';
 import { useMapCacheNavigation } from '~/app/map/Cache';
-import { useEventBus } from '~/app/map/Services/EventBus';;
+import { useEventBus } from '~/app/map/Services/EventBus';
 import { authClient } from '~/lib/auth';
 
 export function useUserClickHandler() {

@@ -1,7 +1,6 @@
 {
   "$schema": "../../../../scripts/checks/architecture/dependencies.schema.json",
   "allowedChildren": [
-    "~/app/map/Cache"
   ],
   "allowed": [
     "remark-gfm",
@@ -12,7 +11,8 @@
     "~/components/ui/logo",
     "~/lib/auth",
     "~/lib/debug/debug-logger",
-    "~/lib/domains/agentic"
+    "~/lib/domains/agentic",
+    "~/app/map/Cache"
   ],
   "subsystems": [
     "./Input",

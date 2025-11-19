@@ -6,7 +6,7 @@ import { useUserClickHandler } from '~/app/map/Chat/Timeline/_utils/UserClickHan
 import { MarkdownRenderer } from '~/app/map/Chat/Timeline/_components/MarkdownRenderer';
 import { CopyButton } from '~/app/map/Chat/Timeline/_components/CopyButton';
 import { authClient } from '~/lib/auth';
-import { useEventBus } from '~/app/map/Services/EventBus';;
+import { useEventBus } from '~/app/map/Services/EventBus';
 
 interface MessageActorRendererProps {
   message: Message;

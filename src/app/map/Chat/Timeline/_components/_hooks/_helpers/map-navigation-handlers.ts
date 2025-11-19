@@ -1,6 +1,6 @@
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import type { EventBusService } from '~/app/map/types/events';
-import { preloadUserMapData, savePreFetchedData } from '~/app/map/Services/PreFetch/pre-fetch-service';;
+import { preloadUserMapData, savePreFetchedData } from '~/app/map/Services/PreFetch/pre-fetch-service';
 import type { api } from '~/commons/trpc/react';
 
 interface MapInfo {

@@ -57,7 +57,7 @@ class AppPageRuleChecker:
 
         return errors
 
-    def check_app_isolation(self, subsystems: List[SubsystemInfo]) -> List[ArchError]:
+    def check_app_isolation(self) -> List[ArchError]:
         """Check that nothing outside ~/app imports from ~/app."""
         errors = []
 
@@ -116,19 +116,25 @@ class AppPageRuleChecker:
         page_subsystems = {}
         for subsystem in subsystems:
             if subsystem.subsystem_type == "page":
-                subsystem_path = f"~/{subsystem.path.relative_to(Path('src'))}"
+                # Normalize path: strip trailing slashes, use forward slashes
+                subsystem_path = f"~/{subsystem.path.relative_to(Path('src'))}".rstrip('/')
                 page_subsystems[subsystem_path] = subsystem
 
         # Check each page subsystem
         for page_path, page_subsystem in page_subsystems.items():
             for file_info in page_subsystem.files:
                 for import_path in file_info.imports:
+                    # Normalize import path
+                    normalized_import = import_path.rstrip('/')
+
                     # Check if importing from another page
                     for other_page_path, other_page in page_subsystems.items():
                         if other_page_path == page_path:
                             continue  # Skip self
 
-                        if import_path.startswith(other_page_path):
+                        # Check for path boundary: exact match or starts with path + separator
+                        if (normalized_import == other_page_path or
+                            normalized_import.startswith(other_page_path + "/")):
                             errors.append(ArchError.create_error(
                                 message=(f"❌ Page isolation violation in {page_subsystem.name}:\n"
                                        f"  🔸 {file_info.path.relative_to(page_subsystem.path)}\n"

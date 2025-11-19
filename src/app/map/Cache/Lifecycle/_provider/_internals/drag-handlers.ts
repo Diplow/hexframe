@@ -1,5 +1,5 @@
 import type { TileData } from "~/app/map/types";
-import { validateDragOperation } from '~/app/map/Services/DragAndDrop';;
+import { validateDragOperation } from '~/app/map/Services/DragAndDrop';
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 
 /**

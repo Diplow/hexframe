@@ -252,7 +252,7 @@ class ArchitectureChecker:
             results.add_error(error)
 
         # Check app isolation
-        errors = self.app_page_checker.check_app_isolation(self.subsystems)
+        errors = self.app_page_checker.check_app_isolation()
         for error in errors:
             results.add_error(error)
 

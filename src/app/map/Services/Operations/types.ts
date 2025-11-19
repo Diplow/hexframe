@@ -10,7 +10,7 @@ import type { AppEvent } from '~/lib/utils/event-bus';
 /**
  * Operation types that can be tracked
  */
-export type OperationType = 'create' | 'update' | 'delete' | 'move' | 'copy';
+export type OperationType = 'create' | 'update' | 'delete' | 'move' | 'copy' | 'swap';
 
 /**
  * State of pending operations by coordId
