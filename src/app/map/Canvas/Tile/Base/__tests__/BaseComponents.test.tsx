@@ -4,7 +4,7 @@ import { render } from "@testing-library/react";
 import { BaseItemTile } from "~/app/map/Canvas/Tile/Base/_components/BaseItemTile";
 import { BaseEmptyTile } from "~/app/map/Canvas/Tile/Base/_components/BaseEmptyTile";
 import type { TileData } from "~/app/map/types/tile-data";
-import { createTestSetup } from '~/test-utils/providers';
+import { createTestSetup } from '~/app/test-utils/providers';
 
 describe("Base Components", () => {
   const { wrapper } = createTestSetup();

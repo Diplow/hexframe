@@ -1,7 +1,8 @@
 {
   "$schema": "../../../../../scripts/checks/architecture/dependencies.schema.json",
   "allowed": [
-    "~/lib/debug/debug-logger"
+    "~/lib/debug/debug-logger",
+    "~/lib/utils/event-bus"
   ],
   "exceptions": {}
 }

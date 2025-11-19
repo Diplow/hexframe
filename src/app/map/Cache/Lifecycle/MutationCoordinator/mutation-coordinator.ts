@@ -12,7 +12,7 @@ import { MapItemType } from "~/lib/domains/mapping";
 
 export interface MutationCoordinatorConfig {
   dispatch: Dispatch<CacheAction>;
-  getState: () => { itemsById: Record<string, TileData>; pendingOperations: Record<string, 'create' | 'update' | 'delete' | 'move' | 'copy'> };
+  getState: () => { itemsById: Record<string, TileData> };
   dataOperations: DataOperations;
   storageService: StorageService;
   mapContext?: {
@@ -89,20 +89,16 @@ export class MutationCoordinator {
 
   /**
    * Check if an operation is currently pending for the given tile
-   * Reads from cache state for reactive updates
    */
   isOperationPending(coordId: string): boolean {
-    const state = this.config.getState();
-    return coordId in state.pendingOperations;
+    return this.pendingOperations.has(coordId);
   }
 
   /**
    * Get pending operation type for a tile, if any
-   * Reads from cache state for reactive updates
    */
   getPendingOperationType(coordId: string): 'create' | 'update' | 'delete' | 'move' | 'copy' | null {
-    const state = this.config.getState();
-    return state.pendingOperations[coordId] ?? null;
+    return this.pendingOperations.get(coordId)?.type ?? null;
   }
 
   /**
@@ -125,31 +121,49 @@ export class MutationCoordinator {
       throw new Error(`Operation already in progress for tile ${coordId}. Please wait for the current operation to complete.`);
     }
 
+    const operationId = `${type}_${coordId}_${Date.now()}`;
+
     // Start tracking the operation
     const promise = operation();
     this.pendingOperations.set(coordId, {
       type,
       promise,
-      startTime: Date.now()
+      startTime: Date.now(),
+      operationId
     });
 
-    // Dispatch to cache state for reactive UI updates
-    this.config.dispatch({
-      type: 'SET_PENDING_OPERATION',
-      payload: { coordId, operation: type },
+    // Emit operation started event for OperationsContext
+    this.config.eventBus?.emit({
+      type: 'cache.operation.started',
+      source: 'map_cache',
+      payload: {
+        coordId,
+        operationType: type,
+        operationId,
+      },
+      timestamp: new Date(),
     });
 
+    let success = false;
     try {
       const result = await promise;
+      success = true;
       return result;
     } finally {
       // Always clean up, even if operation fails
       this.pendingOperations.delete(coordId);
 
-      // Clear from cache state
-      this.config.dispatch({
-        type: 'CLEAR_PENDING_OPERATION',
-        payload: coordId,
+      // Emit operation completed event for OperationsContext
+      this.config.eventBus?.emit({
+        type: 'cache.operation.completed',
+        source: 'map_cache',
+        payload: {
+          coordId,
+          operationType: type,
+          operationId,
+          success,
+        },
+        timestamp: new Date(),
       });
     }
   }
@@ -192,18 +206,32 @@ export class MutationCoordinator {
     this.pendingOperations.set(sourceCoordId, sourceOperationData);
     this.pendingOperations.set(targetCoordId, targetOperationData);
 
-    // Dispatch to cache state for reactive UI updates
-    this.config.dispatch({
-      type: 'SET_PENDING_OPERATION',
-      payload: { coordId: sourceCoordId, operation: 'move' },
+    // Emit operation started events for both tiles
+    this.config.eventBus?.emit({
+      type: 'cache.operation.started',
+      source: 'map_cache',
+      payload: {
+        coordId: sourceCoordId,
+        operationType: 'move',
+        operationId,
+      },
+      timestamp: new Date(),
     });
-    this.config.dispatch({
-      type: 'SET_PENDING_OPERATION',
-      payload: { coordId: targetCoordId, operation: 'move' },
+    this.config.eventBus?.emit({
+      type: 'cache.operation.started',
+      source: 'map_cache',
+      payload: {
+        coordId: targetCoordId,
+        operationType: 'move',
+        operationId,
+      },
+      timestamp: new Date(),
     });
 
+    let success = false;
     try {
       const result = await promise;
+      success = true;
       return result;
     } catch (error) {
       throw error;
@@ -215,17 +243,35 @@ export class MutationCoordinator {
 
       if (sourceOp?.operationId === operationId) {
         this.pendingOperations.delete(sourceCoordId);
-        this.config.dispatch({
-          type: 'CLEAR_PENDING_OPERATION',
-          payload: sourceCoordId,
+
+        // Emit completion event for source tile
+        this.config.eventBus?.emit({
+          type: 'cache.operation.completed',
+          source: 'map_cache',
+          payload: {
+            coordId: sourceCoordId,
+            operationType: 'move',
+            operationId,
+            success,
+          },
+          timestamp: new Date(),
         });
       }
 
       if (targetOp?.operationId === operationId) {
         this.pendingOperations.delete(targetCoordId);
-        this.config.dispatch({
-          type: 'CLEAR_PENDING_OPERATION',
-          payload: targetCoordId,
+
+        // Emit completion event for target tile
+        this.config.eventBus?.emit({
+          type: 'cache.operation.completed',
+          source: 'map_cache',
+          payload: {
+            coordId: targetCoordId,
+            operationType: 'move',
+            operationId,
+            success,
+          },
+          timestamp: new Date(),
         });
       }
 

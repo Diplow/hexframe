@@ -4,8 +4,6 @@
     "react",
     "~/app/map/types"
   ],
-  "subsystems": [
-    "./_components"
-  ],
+  "subsystems": [],
   "exceptions": {}
 }

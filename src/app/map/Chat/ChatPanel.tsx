@@ -11,7 +11,7 @@ import { Button } from '~/components/ui/button';
 import { LogOut, LogIn } from 'lucide-react';
 import { authClient } from '~/lib/auth';
 import { loggers } from '~/lib/debug/debug-logger';
-import { useEventBus } from '~/app/map/Services';
+import { useEventBus } from '~/app/map/Services/EventBus';
 import { useAIChatIntegration } from '~/app/map/Chat/_hooks/useAIChatIntegration';
 
 interface ChatPanelProps {

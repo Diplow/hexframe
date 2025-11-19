@@ -1,0 +1,9 @@
+{
+  "$schema": "../../scripts/checks/architecture/dependencies.schema.json",
+  "type": "router",
+  "allowed": [],
+  "subsystems": [
+    "./auth",
+    "./domains"
+  ]
+}

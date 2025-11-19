@@ -22,5 +22,7 @@ export type {
   ChatMessageEvent,
   ChatWidgetEvent,
   AuthStateChangedEvent,
+  CacheOperationStartedEvent,
+  CacheOperationCompletedEvent,
   SpecificAppEvent
 } from '~/lib/utils/event-bus/types';

@@ -1,0 +1,31 @@
+{
+  "$schema": "../scripts/checks/architecture/dependencies.schema.json",
+  "allowed": [
+    "next",
+    "~/lib/test-logger",
+    "~/lib/utils",
+    "~/lib/debug/debug-logger",
+    "~/server/api",
+    "~/server/db",
+    "~/server/email",
+    "~/env",
+    "~/commons/trpc/query-client",
+    "~/commons/trpc/react",
+    "~/lib/domains/utils/generic-objects",
+    "~/lib/domains/utils/generic-repository",
+    "~/components/ThemeToggle/_utils/theme-toggle-styles",
+    "~/components/ThemeToggle/_hooks/useDragInteraction",
+    "~/components/ThemeToggle/ThemeToggleButton",
+    "~/components/ThemeToggle/DraggableThemePill",
+    "~/contexts/AuthContext",
+    "~/contexts/UnifiedAuthContext",
+    "~/contexts/ThemeContext",
+    "~/test-utils/event-bus",
+    "~/lib/auth"
+  ],
+  "subsystems": [
+    "./app",
+    "./lib",
+    "./server"
+  ]
+}

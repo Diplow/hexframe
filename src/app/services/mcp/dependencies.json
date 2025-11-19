@@ -1,16 +1,10 @@
 {
   "$schema": "../../../../scripts/checks/architecture/dependencies.schema.json",
   "allowed": [
-    "@modelcontextprotocol/sdk/server",
     "@modelcontextprotocol/sdk/types",
     "~/lib/domains/mapping",
-    "~/lib/utils/request-context",
-    "~/server/auth"
+    "~/server/api"
   ],
-  "subsystems": [
-    "./services",
-    "./transport",
-    "./handlers"
-  ],
+  "subsystems": [],
   "exceptions": {}
 }

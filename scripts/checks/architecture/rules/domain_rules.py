@@ -8,7 +8,7 @@ Handles checking domain structure and import restrictions.
 from pathlib import Path
 from typing import List
 
-from ..models import ArchError, ErrorType
+from ..models import ArchError, ErrorType, RecommendationType
 from ..utils.file_utils import find_typescript_files
 from ..utils.path_utils import PathHelper
 
@@ -80,7 +80,8 @@ class DomainRuleChecker:
                     message=f"❌ {services_dir} needs dependencies.json",
                     error_type=ErrorType.DOMAIN_STRUCTURE,
                     subsystem=str(services_dir),
-                    recommendation=f"Create {services_dir}/dependencies.json file"
+                    recommendation=f"Create {services_dir}/dependencies.json file",
+                    recommendation_type=RecommendationType.CREATE_DEPENDENCIES_JSON
                 ))
             
             # Services must be exposed in services/index.ts
@@ -89,7 +90,8 @@ class DomainRuleChecker:
                     message=f"❌ {services_dir} missing index.ts to expose services",
                     error_type=ErrorType.DOMAIN_STRUCTURE,
                     subsystem=str(services_dir),
-                    recommendation=f"Create {services_dir}/index.ts file to reexport service modules"
+                    recommendation=f"Create {services_dir}/index.ts file to reexport service modules",
+                    recommendation_type=RecommendationType.CREATE_SUBSYSTEM_INDEX
                 ))
         
         return errors
@@ -105,7 +107,8 @@ class DomainRuleChecker:
                     message=f"❌ Infrastructure {infra_dir} needs dependencies.json",
                     error_type=ErrorType.DOMAIN_STRUCTURE,
                     subsystem=str(infra_dir),
-                    recommendation=f"Create {infra_dir}/dependencies.json file"
+                    recommendation=f"Create {infra_dir}/dependencies.json file",
+                    recommendation_type=RecommendationType.CREATE_DEPENDENCIES_JSON
                 ))
         
         return errors
@@ -120,7 +123,8 @@ class DomainRuleChecker:
                 message=f"❌ {utils_dir} missing index.ts to expose utilities",
                 error_type=ErrorType.DOMAIN_STRUCTURE,
                 subsystem=str(utils_dir),
-                recommendation=f"Create {utils_dir}/index.ts file to reexport utility modules"
+                recommendation=f"Create {utils_dir}/index.ts file to reexport utility modules",
+                recommendation_type=RecommendationType.CREATE_SUBSYSTEM_INDEX
             ))
         
         return errors
@@ -186,7 +190,8 @@ class DomainRuleChecker:
                         error_type=ErrorType.DOMAIN_IMPORT,
                         subsystem=str(service_file.parent),
                         file_path=str(file_path),
-                        recommendation=recommendation
+                        recommendation=recommendation,
+                        recommendation_type=RecommendationType.FIX_DOMAIN_SERVICE_IMPORT
                     ))
                 else:
                     # Outside domain structure - should go through API
@@ -199,7 +204,8 @@ class DomainRuleChecker:
                         error_type=ErrorType.DOMAIN_IMPORT,
                         subsystem=str(service_file.parent),
                         file_path=str(file_path),
-                        recommendation=recommendation
+                        recommendation=recommendation,
+                        recommendation_type=RecommendationType.MOVE_SERVICE_TO_API
                     ))
         
         return errors
@@ -255,7 +261,8 @@ class DomainRuleChecker:
                                 error_type=ErrorType.DOMAIN_IMPORT,
                                 subsystem=str(ts_file.parent),
                                 file_path=str(file_path),
-                                recommendation=recommendation
+                                recommendation=recommendation,
+                                recommendation_type=RecommendationType.REMOVE_CROSS_DOMAIN_IMPORT
                             ))
                             break  # Only report first violation per file
         

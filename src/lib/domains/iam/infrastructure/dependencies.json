@@ -2,7 +2,6 @@
   "$schema": "../../../../../scripts/checks/architecture/dependencies.schema.json",
   "allowed": [
     "drizzle-orm",
-    "~/lib/domains",
     "~/server/api",
     "~/server/auth",
     "~/server/db"

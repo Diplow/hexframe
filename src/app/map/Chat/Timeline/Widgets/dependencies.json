@@ -6,7 +6,8 @@
     "~/components/ui/button",
     "~/lib/auth",
     "~/lib/debug/debug-logger",
-    "~/lib/domains/agentic"
+    "~/lib/domains/agentic",
+    "~/lib/utils/mcp-config"
   ],
   "subsystems": [
     "./AIResponseWidget",

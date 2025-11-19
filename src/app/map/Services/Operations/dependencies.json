@@ -1,0 +1,9 @@
+{
+  "$schema": "../../../../../scripts/checks/architecture/dependencies.schema.json",
+  "allowed": [
+    "~/lib/utils/event-bus",
+    "~/app/map/types/events",
+    "~/app/map/Services/EventBus"
+  ],
+  "exceptions": {}
+}

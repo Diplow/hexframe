@@ -32,15 +32,23 @@ def main():
     # Run checks
     checker = ArchitectureChecker(args.target_path)
     results = checker.run_all_checks()
-    
+
+    # Save warning count before filtering
+    warning_count = len(results.warnings)
+
     # Filter out warnings if not requested
     if not args.include_warnings:
         results.warnings = []
-    
+
     # Report results
     reporter = ArchitectureReporter()
-    success = reporter.report_results(results, show_errors=args.show_errors, format_type=args.format)
-    
+    success = reporter.report_results(
+        results,
+        show_errors=args.show_errors,
+        format_type=args.format,
+        suppressed_warning_count=warning_count if not args.include_warnings else 0
+    )
+
     sys.exit(0 if success else 1)
 
 

@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import List
 
 from .models import CheckResults, SubsystemInfo, FileInfo
-from .rules import ComplexityRuleChecker, SubsystemRuleChecker, ImportRuleChecker, DomainRuleChecker
+from .rules import ComplexityRuleChecker, SubsystemRuleChecker, ImportRuleChecker, DomainRuleChecker, AppPageRuleChecker
 from .utils import FileCache, PathHelper, ExceptionHandler
 from .utils.file_utils import find_typescript_files
 
@@ -33,6 +33,7 @@ class ArchitectureChecker:
         self.subsystem_checker = SubsystemRuleChecker(self.path_helper, self.file_cache)
         self.import_checker = ImportRuleChecker(self.path_helper, self.file_cache)
         self.domain_checker = DomainRuleChecker(self.path_helper, self.file_cache)
+        self.app_page_checker = AppPageRuleChecker(self.path_helper, self.file_cache)
         
         # Track subsystems for cross-rule coordination
         self.subsystems: List[SubsystemInfo] = []
@@ -56,7 +57,8 @@ class ArchitectureChecker:
         self._run_import_checks(results)
         self._run_standalone_index_checks(results)
         self._run_domain_checks(results)
-        
+        self._run_app_page_checks(results)
+
         results.execution_time = time.time() - start_time
         return results
     
@@ -71,18 +73,25 @@ class ArchitectureChecker:
             
             # Load subsystem info
             dependencies = self.file_cache.load_dependencies_json(deps_file)
-            
+
             # Find all TypeScript files in subsystem
             files = self._find_subsystem_files(subsystem_dir)
             total_lines = sum(f.lines for f in files)
-            
+
+            # Determine subsystem type
+            subsystem_type = dependencies.get("type")
+            # Auto-detect domain type if not specified
+            if not subsystem_type and self.path_helper.is_domain_path(subsystem_dir):
+                subsystem_type = "domain"
+
             subsystem = SubsystemInfo(
                 path=subsystem_dir,
                 name=subsystem_dir.name,
                 dependencies=dependencies,
                 files=files,
                 total_lines=total_lines,
-                parent_path=subsystem_dir.parent
+                parent_path=subsystem_dir.parent,
+                subsystem_type=subsystem_type
             )
             
             subsystems.append(subsystem)
@@ -101,15 +110,30 @@ class ArchitectureChecker:
         return index_files
     
     def _find_subsystem_files(self, subsystem_dir: Path) -> List[FileInfo]:
-        """Find and cache all TypeScript files in a subsystem."""
+        """Find TypeScript files in subsystem, excluding child subsystems.
+
+        This mirrors the logic of count_typescript_lines() to ensure consistency:
+        - Files directly in this directory belong to this subsystem
+        - Files in subdirectories without dependencies.json also belong to this subsystem
+        - Files in child subsystems (with dependencies.json) are excluded
+        """
         files = []
-        
+
+        # Only include direct files in this directory
         for pattern in ["*.ts", "*.tsx"]:
-            for ts_file in subsystem_dir.rglob(pattern):
+            for ts_file in subsystem_dir.glob(pattern):  # glob, not rglob!
                 if not self._is_test_file(ts_file):
                     file_info = self.file_cache.get_file_info(ts_file)
                     files.append(file_info)
-        
+
+        # Recurse into subdirectories that are NOT subsystems
+        for subdir in subsystem_dir.iterdir():
+            if subdir.is_dir():
+                deps_file = subdir / "dependencies.json"
+                if not deps_file.exists():
+                    # Not a subsystem, recurse to include its files
+                    files.extend(self._find_subsystem_files(subdir))
+
         return files
     
     def _is_test_file(self, file_path: Path) -> bool:
@@ -135,7 +159,12 @@ class ArchitectureChecker:
         errors = self.subsystem_checker.check_subsystem_declarations(self.subsystems)
         for error in errors:
             results.add_error(error)
-        
+
+        # Check that declared subsystems actually exist
+        errors = self.subsystem_checker.check_declared_subsystems_exist(self.subsystems)
+        for error in errors:
+            results.add_error(error)
+
         # Check dependencies.json format
         errors = self.subsystem_checker.check_dependencies_json_format(self.subsystems)
         for error in errors:
@@ -176,17 +205,22 @@ class ArchitectureChecker:
         errors = self.import_checker.check_import_boundaries(self.subsystems)
         for error in errors:
             results.add_error(error)
-        
+
         # Check reexport boundaries
         errors = self.import_checker.check_reexport_boundaries(self.subsystems)
         for error in errors:
             results.add_error(error)
-        
+
         # Check outbound dependencies
         errors = self.import_checker.check_outbound_dependencies_parallel(self.subsystems)
         for error in errors:
             results.add_error(error)
-        
+
+        # Check router import patterns (warnings for importing from router index)
+        errors = self.import_checker.check_router_import_patterns(self.subsystems)
+        for error in errors:
+            results.add_error(error)
+
         # Check domain utils import patterns
         errors = self.import_checker.check_domain_utils_import_patterns(self.subsystems)
         for error in errors:
@@ -204,8 +238,25 @@ class ArchitectureChecker:
         errors = self.domain_checker.check_domain_structure()
         for error in errors:
             results.add_error(error)
-        
+
         # Check domain import restrictions
         errors = self.domain_checker.check_domain_import_restrictions()
+        for error in errors:
+            results.add_error(error)
+
+    def _run_app_page_checks(self, results: CheckResults) -> None:
+        """Run app and page-specific checks."""
+        # Check that app subfolders with page.tsx are subsystems
+        errors = self.app_page_checker.check_page_tsx_subsystems()
+        for error in errors:
+            results.add_error(error)
+
+        # Check app isolation
+        errors = self.app_page_checker.check_app_isolation()
+        for error in errors:
+            results.add_error(error)
+
+        # Check page isolation
+        errors = self.app_page_checker.check_page_isolation(self.subsystems)
         for error in errors:
             results.add_error(error)

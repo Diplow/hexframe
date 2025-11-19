@@ -13,10 +13,7 @@
     "~/lib/debug/debug-logger"
   ],
   "subsystems": [
-    "./middleware",
-    "./routers",
-    "./services",
-    "./types"
+    "./routers"
   ],
   "exceptions": {}
 }

@@ -9,7 +9,8 @@
     "~/app/map/types",
     "~/commons/trpc/react",
     "~/lib/domains/mapping",
-    "~/server/api"
+    "~/server/api",
+    "~/app/map/Services/DragAndDrop"
   ],
   "subsystems": [
     "./MutationCoordinator"

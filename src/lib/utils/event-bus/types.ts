@@ -143,6 +143,28 @@ export interface AuthStateChangedEvent extends AppEvent {
   };
 }
 
+// Cache operation events
+export interface CacheOperationStartedEvent extends AppEvent {
+  type: 'cache.operation.started';
+  source: 'map_cache';
+  payload: {
+    coordId: string;
+    operationType: 'create' | 'update' | 'delete' | 'move' | 'copy';
+    operationId: string;
+  };
+}
+
+export interface CacheOperationCompletedEvent extends AppEvent {
+  type: 'cache.operation.completed';
+  source: 'map_cache';
+  payload: {
+    coordId: string;
+    operationType: 'create' | 'update' | 'delete' | 'move' | 'copy';
+    operationId: string;
+    success: boolean;
+  };
+}
+
 // Union type of all specific events
 export type SpecificAppEvent =
   | MapTileCreatedEvent
@@ -156,7 +178,9 @@ export type SpecificAppEvent =
   | MapImportCompletedEvent
   | ChatMessageEvent
   | ChatWidgetEvent
-  | AuthStateChangedEvent;
+  | AuthStateChangedEvent
+  | CacheOperationStartedEvent
+  | CacheOperationCompletedEvent;
 
 // Event listener type
 export type EventListener<T extends AppEvent = AppEvent> = (event: T) => void;

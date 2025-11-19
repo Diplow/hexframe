@@ -9,7 +9,7 @@ import re
 from pathlib import Path
 from typing import List, Set
 
-from ..models import ArchError, ErrorType, SubsystemInfo
+from ..models import ArchError, ErrorType, RecommendationType, SubsystemInfo
 from ..utils.file_utils import find_typescript_files
 from ..utils.path_utils import PathHelper
 from ..utils.import_utils import find_redundant_ancestor_declarations
@@ -26,20 +26,20 @@ class SubsystemRuleChecker:
         """Check that subsystems are declared in parent dependencies.json."""
         errors = []
         # print("Checking subsystem declarations...")
-        
+
         for subsystem in subsystems:
             parent_dir = subsystem.parent_path
-            
+
             # Skip if parent is target path itself
-            if (parent_dir == self.path_helper.target_path or 
+            if (parent_dir == self.path_helper.target_path or
                 parent_dir == Path(".")):
                 continue
-            
+
             parent_deps_file = parent_dir / "dependencies.json"
             if parent_deps_file.exists():
                 parent_deps = self.file_cache.load_dependencies_json(parent_deps_file)
                 subsystems_array = parent_deps.get("subsystems", [])
-                
+
                 relative_path = f"./{subsystem.name}"
                 if relative_path not in subsystems_array:
                     error = ArchError.create_error(
@@ -47,10 +47,55 @@ class SubsystemRuleChecker:
                                f"   → Add \"{relative_path}\" to the \"subsystems\" array"),
                         error_type=ErrorType.SUBSYSTEM_STRUCTURE,
                         subsystem=str(subsystem.path),
-                        recommendation=f"Add \"{relative_path}\" to the \"subsystems\" array in {parent_deps_file}"
+                        recommendation=f"Add \"{relative_path}\" to the \"subsystems\" array in {parent_deps_file}",
+                        recommendation_type=RecommendationType.ADD_ALLOWED_CHILDREN
                     )
                     errors.append(error)
-        
+
+        return errors
+
+    def check_declared_subsystems_exist(self, subsystems: List[SubsystemInfo]) -> List[ArchError]:
+        """Check that declared subsystems actually have dependencies.json files."""
+        errors = []
+        # print("Checking declared subsystems exist...")
+
+        for subsystem in subsystems:
+            deps = subsystem.dependencies
+            declared_subsystems = deps.get("subsystems", [])
+
+            for declared_subsystem in declared_subsystems:
+                # Convert relative path to absolute
+                if declared_subsystem.startswith("./"):
+                    subsystem_name = declared_subsystem[2:]  # Remove "./"
+                    subsystem_path = subsystem.path / subsystem_name
+                    deps_file = subsystem_path / "dependencies.json"
+
+                    if not deps_file.exists():
+                        # Check if directory exists at all
+                        if subsystem_path.exists():
+                            recommendation = (
+                                f"Create {deps_file.relative_to(Path('src'))} to formalize this subsystem, "
+                                f"or remove '{declared_subsystem}' from {subsystem.path}/dependencies.json 'subsystems' array if it's not a subsystem"
+                            )
+                        else:
+                            recommendation = (
+                                f"Remove '{declared_subsystem}' from {subsystem.path}/dependencies.json 'subsystems' array "
+                                f"(directory does not exist)"
+                            )
+
+                        error = ArchError.create_error(
+                            message=(f"❌ Declared subsystem missing dependencies.json:\n"
+                                   f"  🔸 {subsystem.name} declares '{declared_subsystem}' as a subsystem\n"
+                                   f"  🔸 But {deps_file.relative_to(Path('src'))} does not exist\n"
+                                   f"     → Either create the dependencies.json file\n"
+                                   f"     → Or remove '{declared_subsystem}' from subsystems array"),
+                            error_type=ErrorType.SUBSYSTEM_STRUCTURE,
+                            subsystem=str(subsystem.path),
+                            recommendation=recommendation,
+                            recommendation_type=RecommendationType.CREATE_OR_REMOVE_SUBSYSTEM if subsystem_path.exists() else RecommendationType.REMOVE_INVALID_SUBSYSTEM
+                        )
+                        errors.append(error)
+
         return errors
     
     def check_dependencies_json_format(self, subsystems: List[SubsystemInfo]) -> List[ArchError]:
@@ -71,11 +116,12 @@ class SubsystemRuleChecker:
                                f"   → Use absolute paths with ~/ prefix instead"),
                         error_type=ErrorType.DEPENDENCY_FORMAT,
                         subsystem=str(subsystem.path),
-                        recommendation=f"Change relative path '{dep}' to absolute path with ~/ prefix in {deps_file}"
+                        recommendation=f"Change relative path '{dep}' to absolute path with ~/ prefix in {deps_file}",
+                        recommendation_type=RecommendationType.FIX_DEPENDENCY_PATH_FORMAT
                     )
                     errors.append(error)
-            
-            # Check allowedChildren array for relative paths  
+
+            # Check allowedChildren array for relative paths
             allowed_children = deps.get("allowedChildren", [])
             for dep in allowed_children:
                 if self._is_invalid_relative_path(dep):
@@ -84,7 +130,8 @@ class SubsystemRuleChecker:
                                f"   → Use absolute paths with ~/ prefix instead (except for subsystems)"),
                         error_type=ErrorType.DEPENDENCY_FORMAT,
                         subsystem=str(subsystem.path),
-                        recommendation=f"Change relative path '{dep}' to absolute path with ~/ prefix in {deps_file}"
+                        recommendation=f"Change relative path '{dep}' to absolute path with ~/ prefix in {deps_file}",
+                        recommendation_type=RecommendationType.FIX_DEPENDENCY_PATH_FORMAT
                     )
                     errors.append(error)
         
@@ -142,7 +189,8 @@ class SubsystemRuleChecker:
                                f"     → Parent allowedChildren automatically cascades to children"),
                         error_type=ErrorType.REDUNDANCY,
                         subsystem=str(subsystem.path),
-                        recommendation=f"Remove '{dep}' from {subsystem.path}/dependencies.json 'allowed' array (redundant with parent)"
+                        recommendation=f"Remove '{dep}' from {subsystem.path}/dependencies.json 'allowed' array (redundant with parent)",
+                        recommendation_type=RecommendationType.REMOVE_REDUNDANT_DEPENDENCY
                     )
                     errors.append(error)
             
@@ -156,7 +204,8 @@ class SubsystemRuleChecker:
                                f"     → Remove from {subsystem.path}/dependencies.json 'allowedChildren' array"),
                         error_type=ErrorType.REDUNDANCY,
                         subsystem=str(subsystem.path),
-                        recommendation=f"Remove '{dep}' from {subsystem.path}/dependencies.json 'allowedChildren' array (redundant with parent)"
+                        recommendation=f"Remove '{dep}' from {subsystem.path}/dependencies.json 'allowedChildren' array (redundant with parent)",
+                        recommendation_type=RecommendationType.REMOVE_REDUNDANT_DEPENDENCY
                     )
                     errors.append(error)
         
@@ -177,7 +226,8 @@ class SubsystemRuleChecker:
                            f"     → Child subsystems automatically inherit access to ancestor subsystems"),
                     error_type=ErrorType.REDUNDANCY,
                     subsystem=str(subsystem.path),
-                    recommendation=f"Remove '{ancestor_path}' from {subsystem.path}/dependencies.json 'allowed' array (automatically inherited)"
+                    recommendation=f"Remove '{ancestor_path}' from {subsystem.path}/dependencies.json 'allowed' array (automatically inherited)",
+                    recommendation_type=RecommendationType.REMOVE_REDUNDANT_DEPENDENCY
                 )
                 errors.append(error)
         
@@ -202,7 +252,8 @@ class SubsystemRuleChecker:
                                f"     → Domain utils are automatically accessible without explicit permission"),
                         error_type=ErrorType.REDUNDANCY,
                         subsystem=str(subsystem.path),
-                        recommendation=f"Remove '{dep}' from {subsystem.path}/dependencies.json 'allowed' array (domain utils are implicitly allowed)"
+                        recommendation=f"Remove '{dep}' from {subsystem.path}/dependencies.json 'allowed' array (domain utils are implicitly allowed)",
+                        recommendation_type=RecommendationType.REMOVE_REDUNDANT_DEPENDENCY
                     )
                     errors.append(error)
         
@@ -228,7 +279,8 @@ class SubsystemRuleChecker:
                                    f"     → Or create the missing directory/file"),
                             error_type=ErrorType.NONEXISTENT_DEPENDENCY,
                             subsystem=str(subsystem.path),
-                            recommendation=f"Remove '{dep}' from {subsystem.path}/dependencies.json 'allowed' array (path does not exist)"
+                            recommendation=f"Remove '{dep}' from {subsystem.path}/dependencies.json 'allowed' array (path does not exist)",
+                            recommendation_type=RecommendationType.REMOVE_FORBIDDEN_DEPENDENCY
                         )
                         errors.append(error)
             
@@ -245,7 +297,8 @@ class SubsystemRuleChecker:
                                    f"     → Or create the missing directory/file"),
                             error_type=ErrorType.NONEXISTENT_DEPENDENCY,
                             subsystem=str(subsystem.path),
-                            recommendation=f"Remove '{dep}' from {subsystem.path}/dependencies.json 'allowedChildren' array (path does not exist)"
+                            recommendation=f"Remove '{dep}' from {subsystem.path}/dependencies.json 'allowedChildren' array (path does not exist)",
+                            recommendation_type=RecommendationType.REMOVE_FORBIDDEN_DEPENDENCY
                         )
                         errors.append(error)
         
@@ -273,7 +326,8 @@ class SubsystemRuleChecker:
                            f"     → Move file contents to {potential_folder.relative_to(self.path_helper.target_path)}/index.ts"),
                     error_type=ErrorType.FILE_CONFLICT,
                     file_path=str(ts_file.relative_to(self.path_helper.target_path)),
-                    recommendation=f"Move {ts_file.relative_to(self.path_helper.target_path)} contents to {potential_folder.relative_to(self.path_helper.target_path)}/index.ts"
+                    recommendation=f"Move {ts_file.relative_to(self.path_helper.target_path)} contents to {potential_folder.relative_to(self.path_helper.target_path)}/index.ts",
+                    recommendation_type=RecommendationType.RESOLVE_FILE_FOLDER_CONFLICT
                 )
                 errors.append(error)
         
@@ -307,7 +361,8 @@ class SubsystemRuleChecker:
                                        f"     → '{other_dep}' already provides hierarchical access"),
                                 error_type=ErrorType.REDUNDANCY,
                                 subsystem=str(subsystem.path),
-                                recommendation=f"Remove '{dep}' from {subsystem.path}/dependencies.json '{list_name}' array (redundant with '{other_dep}')"
+                                recommendation=f"Remove '{dep}' from {subsystem.path}/dependencies.json '{list_name}' array (redundant with '{other_dep}')",
+                                recommendation_type=RecommendationType.REMOVE_REDUNDANT_DEPENDENCY
                             )
                             errors.append(error)
                         # If child path IS a subsystem, it's NOT redundant - subsystems need explicit access

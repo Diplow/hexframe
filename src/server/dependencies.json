@@ -1,0 +1,15 @@
+{
+  "$schema": "../../scripts/checks/architecture/dependencies.schema.json",
+  "type": "router",
+  "allowed": [
+    "better-auth",
+    "nodemailer",
+    "~/env",
+    "~/lib/debug/debug-logger",
+    "~/server/db"
+  ],
+  "subsystems": [
+    "./api",
+    "./db"
+  ]
+}

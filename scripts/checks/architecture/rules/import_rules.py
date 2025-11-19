@@ -10,7 +10,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import List, Set
 
-from ..models import ArchError, ErrorType, SubsystemInfo
+from ..models import ArchError, ErrorType, RecommendationType, SubsystemInfo
 from ..utils.file_utils import find_typescript_files
 from ..utils.import_utils import (
     is_child_of_subsystem, 
@@ -31,16 +31,19 @@ class ImportRuleChecker:
         """Check that external imports go through subsystem index files."""
         errors = []
         # print("Checking import boundaries...")
-        
+
         for subsystem in subsystems:
             violations = self._find_import_boundary_violations(subsystem)
-            
+
             if violations:
+                # Provide context based on subsystem type
+                subsystem_type_desc = f" (type: {subsystem.subsystem_type})" if subsystem.subsystem_type else ""
                 errors.append(ArchError.create_error(
-                    message=f"❌ External imports bypass {subsystem.name}/index:",
+                    message=f"❌ External imports bypass {subsystem.name}/index{subsystem_type_desc}:",
                     error_type=ErrorType.IMPORT_BOUNDARY,
                     subsystem=str(subsystem.path),
-                    recommendation=f"Create or update {subsystem.path}/index.ts to reexport internal modules"
+                    recommendation=f"Create or update {subsystem.path}/index.ts to reexport internal modules",
+                    recommendation_type=RecommendationType.CREATE_SUBSYSTEM_INDEX
                 ))
                 for v in violations:
                     # Extract the import path from the violation
@@ -52,16 +55,17 @@ class ImportRuleChecker:
                         recommendation = f"Change import from '{import_path}' to '{subsystem_abs_path}' (via index.ts)"
                     else:
                         recommendation = f"Import through {subsystem.path}/index.ts instead of direct file access"
-                    
+
                     errors.append(ArchError.create_error(
                         message=f"  🔸 {v['file']}:{v['line']}\n     {v['import']}",
                         error_type=ErrorType.IMPORT_BOUNDARY,
                         subsystem=str(subsystem.path),
                         file_path=str(v['file']),
                         line_number=v['line'],
-                        recommendation=recommendation
+                        recommendation=recommendation,
+                        recommendation_type=RecommendationType.USE_SUBSYSTEM_INTERFACE
                     ))
-        
+
         return errors
     
     def check_reexport_boundaries(self, subsystems: List[SubsystemInfo]) -> List[ArchError]:
@@ -77,7 +81,8 @@ class ImportRuleChecker:
                     message=f"❌ Invalid reexports in {subsystem.name}/index.ts:",
                     error_type=ErrorType.REEXPORT_BOUNDARY,
                     subsystem=str(subsystem.path),
-                    recommendation=f"Fix reexports in {subsystem.path}/index.ts to only expose internal modules"
+                    recommendation=f"Fix reexports in {subsystem.path}/index.ts to only expose internal modules",
+                    recommendation_type=RecommendationType.FIX_REEXPORT_BOUNDARY
                 ))
                 for v in violations:
                     # Create specific recommendation based on violation type
@@ -95,7 +100,8 @@ class ImportRuleChecker:
                         subsystem=str(subsystem.path),
                         file_path=f"{subsystem.path}/index.ts",
                         line_number=v['line'],
-                        recommendation=recommendation
+                        recommendation=recommendation,
+                        recommendation_type=RecommendationType.FIX_REEXPORT_BOUNDARY
                     ))
         
         return errors
@@ -145,7 +151,8 @@ class ImportRuleChecker:
                             error_type=ErrorType.IMPORT_BOUNDARY,
                             subsystem=str(subsystem.path),
                             file_path=str(file_info.path),
-                            recommendation=recommendation
+                            recommendation=recommendation,
+                            recommendation_type=RecommendationType.ADD_ALLOWED_DEPENDENCY
                         ))
             
             return subsystem_errors
@@ -163,6 +170,47 @@ class ImportRuleChecker:
         
         return errors
     
+    def check_router_import_patterns(self, subsystems: List[SubsystemInfo]) -> List[ArchError]:
+        """Check for imports from router subsystems - warn to use specific child instead."""
+        errors = []
+        # print("Checking router import patterns...")
+
+        # Build a map of router subsystems by their import path
+        router_subsystems = {}
+        for subsystem in subsystems:
+            if subsystem.subsystem_type == "router":
+                subsystem_abs_path = f"~/{subsystem.path.relative_to(Path('src'))}"
+                router_subsystems[subsystem_abs_path] = subsystem
+
+        # Check all subsystems for imports from routers
+        for subsystem in subsystems:
+            for file_info in subsystem.files:
+                for import_path in file_info.imports:
+                    # Check if importing from a router subsystem's index
+                    for router_path, router_subsystem in router_subsystems.items():
+                        # Match exact router path (importing from index) but not child paths
+                        if import_path == router_path:
+                            # Get list of child subsystems for suggestion
+                            child_subsystems = router_subsystem.dependencies.get("subsystems", [])
+                            children_list = ", ".join([child.lstrip("./") for child in child_subsystems])
+
+                            recommendation = f"Consider importing from specific child subsystem instead: {router_path}/[{children_list}]"
+
+                            errors.append(ArchError.create_warning(
+                                message=(f"⚠️  Import from router subsystem in {subsystem.name}:\n"
+                                       f"  🔸 {file_info.path.relative_to(subsystem.path)}\n"
+                                       f"     import from '{import_path}'\n"
+                                       f"     → Router subsystems are aggregators - prefer importing from specific children for explicit dependency tracking\n"
+                                       f"     → Available children: {children_list}"),
+                                error_type=ErrorType.IMPORT_BOUNDARY,
+                                subsystem=str(subsystem.path),
+                                file_path=str(file_info.path),
+                                recommendation=recommendation,
+                                recommendation_type=RecommendationType.USE_SPECIFIC_CHILD
+                            ))
+
+        return errors
+
     def check_domain_utils_import_patterns(self, subsystems: List[SubsystemInfo]) -> List[ArchError]:
         """Check that domain utils imports go through index.ts, not specific files."""
         errors = []
@@ -206,7 +254,8 @@ class ImportRuleChecker:
                                 error_type=ErrorType.IMPORT_BOUNDARY,
                                 subsystem=str(subsystem.path),
                                 file_path=str(file_info.path),
-                                recommendation=f"Change import from '{import_path}' to '{proper_import}' (use utils index.ts)"
+                                recommendation=f"Change import from '{import_path}' to '{proper_import}' (use utils index.ts)",
+                                recommendation_type=RecommendationType.USE_UTILS_INTERFACE
                             )
                             errors.append(error)
         
@@ -232,7 +281,8 @@ class ImportRuleChecker:
                     message=f"❌ Invalid upward reexports in {index_file.relative_to(Path('src'))}:",
                     error_type=ErrorType.REEXPORT_BOUNDARY,
                     subsystem=str(index_file.parent),
-                    recommendation=f"Fix upward reexports in {index_file.relative_to(Path('src'))} - index files should not reexport from parent directories"
+                    recommendation=f"Fix upward reexports in {index_file.relative_to(Path('src'))} - index files should not reexport from parent directories",
+                    recommendation_type=RecommendationType.FIX_REEXPORT_BOUNDARY
                 ))
                 
                 for v in violations:
@@ -243,7 +293,8 @@ class ImportRuleChecker:
                         subsystem=str(index_file.parent),
                         file_path=str(index_file),
                         line_number=v['line'],
-                        recommendation="Either move implementation to this directory or import directly from original location"
+                        recommendation="Either move implementation to this directory or import directly from original location",
+                        recommendation_type=RecommendationType.FIX_UPWARD_REEXPORT
                     ))
         
         return errors
@@ -251,54 +302,58 @@ class ImportRuleChecker:
     def _find_import_boundary_violations(self, subsystem: SubsystemInfo) -> List[dict]:
         """Find violations where external files import directly into subsystem."""
         violations = []
-        
+
+        # Router subsystems allow direct child imports (they're just aggregators)
+        if subsystem.subsystem_type == "router":
+            return violations
+
         # We want to find EXTERNAL files that import directly into this subsystem
         typescript_files = find_typescript_files(self.path_helper.target_path)
-        
+
         for ts_file in typescript_files:
             # Skip index.ts files - they're allowed to import from their children
             if ts_file.name == "index.ts":
                 continue
-            
+
             file_str = str(ts_file)
-            
+
             # Skip if file IS within this subsystem (internal files, not external importers)
             if str(subsystem.path) in file_str:
                 continue
-            
-            # Skip if file is in a child subsystem (children can import parent freely)  
+
+            # Skip if file is in a child subsystem (children can import parent freely)
             if is_child_of_subsystem(ts_file, subsystem, {}):  # TODO: pass proper subsystem_cache
                 continue
-            
+
             # Now check if this external file imports into the subsystem
             content = self.file_cache.get_file_info(ts_file).content
             if not content:
                 continue
-            
+
             # Find imports that bypass index.ts
             # Use full subsystem path for precise matching
             subsystem_abs_path = f"~/{subsystem.path.relative_to(Path('src'))}"
             import_pattern = rf'from\s+["\']({re.escape(subsystem_abs_path)}/[^"\']*)["\']'
             matches = re.finditer(import_pattern, content, re.MULTILINE)
-            
+
             for match in matches:
                 import_path = match.group(1)
                 # Skip if importing from index or root
                 sub_path = import_path[len(subsystem_abs_path) + 1:]
                 if not sub_path or sub_path == "index":
                     continue
-                
+
                 # Check if importing file has permission through its own inheritance chain
                 if self._file_has_import_permission(ts_file, import_path):
                     continue
-                
+
                 line_num = content[:match.start()].count('\n') + 1
                 violations.append({
                     'file': ts_file,
                     'line': line_num,
                     'import': match.group(0)
                 })
-        
+
         return violations
     
     def _find_reexport_violations(self, subsystem: SubsystemInfo) -> List[dict]:

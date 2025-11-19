@@ -5,21 +5,17 @@ import {
   handleLoadItemChildren,
   handleUpdateItems,
   handleRemoveItem,
-} from "~/app/map/Cache/State/_reducers/_data-reducers";
-import {
   handleSetCenter,
   handleSetExpandedItems,
   handleToggleItemExpansion,
   handleToggleCompositionExpansion,
   handleSetCompositionExpansion,
-} from "~/app/map/Cache/State/_reducers/_navigation-reducers";
-import {
   handleSetLoading,
   handleSetError,
   handleInvalidateRegion,
   handleInvalidateAll,
   handleUpdateCacheConfig,
-} from "~/app/map/Cache/State/_reducers/_system-reducers";
+} from "~/app/map/Cache/State/_reducers";
 
 // Initial state for the cache
 export const initialCacheState: CacheState = {
@@ -28,7 +24,6 @@ export const initialCacheState: CacheState = {
   currentCenter: null,
   expandedItemIds: [],
   isCompositionExpanded: false,
-  pendingOperations: {},
   isLoading: false,
   error: null,
   lastUpdated: 0,
@@ -87,24 +82,6 @@ export function cacheReducer(
 
     case ACTION_TYPES.UPDATE_ITEMS:
       return handleUpdateItems(state, action);
-
-    case ACTION_TYPES.SET_PENDING_OPERATION:
-      return {
-        ...state,
-        pendingOperations: {
-          ...state.pendingOperations,
-          [action.payload.coordId]: action.payload.operation,
-        },
-      };
-
-    case ACTION_TYPES.CLEAR_PENDING_OPERATION: {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { [action.payload]: _, ...remaining } = state.pendingOperations;
-      return {
-        ...state,
-        pendingOperations: remaining,
-      };
-    }
 
     default: {
       // TypeScript exhaustiveness check

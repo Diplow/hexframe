@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import type { Command } from '~/app/map/Chat/Input/_commands';
-import type { useChatOperations } from '~/app/map/Chat/_state/_operations';
+import type { useChatOperations } from '~/app/map/Chat/_state';
 
 type ChatOperations = ReturnType<typeof useChatOperations>;
 

@@ -1,11 +1,14 @@
 {
   "$schema": "../../../../scripts/checks/architecture/dependencies.schema.json",
+  "type": "boundary",
   "allowedChildren": [],
   "allowed": [
     "@testing-library/react",
     "vitest",
     "~/app/map/Cache",
-    "~/app/map/Services",
+    "~/app/map/Services/TilePosition",
+    "~/app/map/Services/DragAndDrop",
+    "~/app/map/Services/Operations",
     "~/contexts/UnifiedAuthContext",
     "~/lib/debug/debug-logger",
     "~/lib/test-logger"

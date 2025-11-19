@@ -157,7 +157,7 @@ vi.mock('~/commons/trpc/react', () => {
 
 import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import { ChatPanel } from '~/app/map/Chat/ChatPanel';
-import { TestProviders } from '~/test-utils/providers';
+import { TestProviders } from '~/app/test-utils/providers';
 import { createMockEventBus } from '~/test-utils/event-bus';
 import { chatSettings } from '~/app/map/Chat/_settings/chat-settings';
 

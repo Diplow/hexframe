@@ -1,6 +1,6 @@
 import type { Widget } from '~/app/map/Chat/_state';
 import { useMapCache } from '~/app/map/Cache';
-import { useEventBus } from '~/app/map/Services';
+import { useEventBus } from '~/app/map/Services/EventBus';
 import { useChatState } from '~/app/map/Chat/_state';
 import { focusChatInput } from '~/app/map/Chat/Timeline/_utils/focus-helpers';
 import { _createWidgetHandlers } from '~/app/map/Chat/Timeline/_core/_widget-handler-factory';

@@ -1,16 +1,14 @@
 {
   "$schema": "../../../scripts/checks/architecture/dependencies.schema.json",
+  "type": "page",
   "allowedChildren": [
     "lucide-react",
     "next/navigation",
-    "react",
-    "react-dom", 
+    "react-dom",
     "react-markdown",
     "zod",
     "~/commons/trpc",
-    "~/app/components",
-    "~/components",
-    "~/lib/utils"
+    "~/app/components"
   ],
   "allowed": [
     "next/redirect",
@@ -23,13 +21,14 @@
     "~/lib/debug/debug-logger",
     "~/lib/domains/agentic",
     "~/lib/test-logger",
-    "~/lib/domains/mapping"
+    "~/lib/domains/mapping",
+    "~/lib/utils/event-bus"
   ],
   "subsystems": [
     "./Cache",
     "./Canvas",
     "./Chat",
-    "./Hierarchy", 
+    "./Hierarchy",
     "./MapResolver",
     "./Services"
   ]

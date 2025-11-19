@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { debugLogger } from '~/lib/debug/debug-logger';
 import { authClient } from '~/lib/auth';
-import { useEventBus } from '~/app/map/Services';
+import { useEventBus } from '~/app/map/Services/EventBus';
 
 /**
  * Custom hook providing command handler functions

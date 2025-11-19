@@ -8,7 +8,7 @@ Handles checking for complexity-based documentation requirements.
 from pathlib import Path
 from typing import List
 
-from ..models import ArchError, ErrorType, SubsystemInfo
+from ..models import ArchError, ErrorType, RecommendationType, SubsystemInfo
 from ..utils.file_utils import count_typescript_lines
 from ..utils.path_utils import PathHelper
 
@@ -62,11 +62,13 @@ class ComplexityRuleChecker:
                         threshold_msg = f" (custom threshold {complexity_threshold})" if exception_info else ""
                         recommendation = f"ERROR: Create {directory}/README.md file (follow guidelines in scripts/checks/architecture/README-STRUCTURE.md)" if missing == ["README.md"] else f"ERROR: Create missing files in {directory}: {', '.join(missing)} (for README.md follow guidelines in scripts/checks/architecture/README-STRUCTURE.md)"
                         
+                        rec_type = RecommendationType.CREATE_README if missing == ["README.md"] else RecommendationType.CREATE_SUBSYSTEM_FILES
                         error = ArchError.create_error(
                             message=f"❌ {directory} ({lines} lines){threshold_msg} missing: {' '.join(missing)}",
                             error_type=ErrorType.COMPLEXITY,
                             subsystem=str(directory),
-                            recommendation=recommendation
+                            recommendation=recommendation,
+                            recommendation_type=rec_type
                         )
                         
                         # Add exception info for reporting
@@ -89,7 +91,8 @@ class ComplexityRuleChecker:
                             message=f"⚠️  {directory} ({lines} lines){threshold_msg} - missing README.md",
                             error_type=ErrorType.COMPLEXITY,
                             subsystem=str(directory),
-                            recommendation=f"WARNING: Create {directory}/README.md file (follow guidelines in scripts/checks/architecture/README-STRUCTURE.md)"
+                            recommendation=f"WARNING: Create {directory}/README.md file (follow guidelines in scripts/checks/architecture/README-STRUCTURE.md)",
+                            recommendation_type=RecommendationType.CREATE_README
                         )
                         
                         # Add exception info for reporting
@@ -126,12 +129,14 @@ class ComplexityRuleChecker:
                 threshold_msg = f" (custom threshold {complexity_threshold})" if exception_info else ""
                 recommendation = f"ERROR: Create {subsystem.path}/README.md file (follow guidelines in scripts/checks/architecture/README-STRUCTURE.md)" if missing == ["README.md"] else f"ERROR: Create missing files in {subsystem.path}: {', '.join(missing)} (for README.md follow guidelines in scripts/checks/architecture/README-STRUCTURE.md)"
                 
+                rec_type = RecommendationType.CREATE_README if missing == ["README.md"] else RecommendationType.CREATE_SUBSYSTEM_FILES
                 error = ArchError.create_error(
                     message=(f"❌ Subsystem {subsystem.path} ({subsystem.total_lines} lines){threshold_msg} "
                            f"missing: {' '.join(missing)}"),
                     error_type=ErrorType.SUBSYSTEM_STRUCTURE,
                     subsystem=str(subsystem.path),
-                    recommendation=recommendation
+                    recommendation=recommendation,
+                    recommendation_type=rec_type
                 )
                 
                 # Add exception info for reporting

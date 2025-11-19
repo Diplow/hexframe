@@ -1,4 +1,4 @@
-import type { useChatOperations } from '~/app/map/Chat/_state/_operations';
+import type { useChatOperations } from '~/app/map/Chat/_state';
 import { loggers } from '~/lib/debug/debug-logger';
 
 // Type for the tRPC response that might include jobId for queued responses

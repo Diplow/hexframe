@@ -4,6 +4,12 @@
   "description": "Declares allowed imports for a subsystem. Everything not listed is forbidden.",
   "type": "object",
   "properties": {
+    "type": {
+      "type": "string",
+      "enum": ["boundary", "router", "domain", "utility", "page", "app"],
+      "description": "Defines the architectural role of this subsystem: 'boundary' (cohesive module with logic - prefer parent imports), 'router' (aggregates children - child imports OK), 'domain' (special domain rules), 'utility' (stateless helpers - import anywhere), 'page' (Next.js page - isolated from other pages), 'app' (Next.js app root - isolated from non-app code)",
+      "examples": ["boundary", "router", "domain", "utility", "page", "app"]
+    },
     "allowed": {
       "type": "array",
       "description": "Patterns for allowed imports specific to this subsystem.",

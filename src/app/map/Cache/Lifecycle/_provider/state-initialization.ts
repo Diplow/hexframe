@@ -7,7 +7,7 @@ import { cacheActions } from "~/app/map/Cache/State";
 import type { CacheState, CacheAction } from "~/app/map/Cache/State";
 import type { TileData } from "~/app/map/types";
 import type { EventBusService } from "~/app/map/types/events";
-import { globalDragService } from "~/app/map/Services";
+import { globalDragService } from '~/app/map/Services/DragAndDrop';
 import { createDropHandler, createValidationHandler } from "~/app/map/Cache/Lifecycle/_provider/_internals/drag-handlers";
 
 export interface InitialStateConfig {

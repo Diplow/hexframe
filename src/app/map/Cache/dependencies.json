@@ -6,7 +6,8 @@
     "~/lib/debug/debug-logger",
     "~/server/api",
     "~/lib/domains/mapping",
-    "~/app/map/Cache/State"
+    "~/app/map/Cache/State",
+    "~/app/map/Services/DragAndDrop"
   ],
   "subsystems": [
     "./Handlers",
