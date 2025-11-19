@@ -26,7 +26,7 @@ class GlobalDragService {
   private currentDropTarget: string | null = null;
   private dropHandler: DropHandler | null = null;
   private validationHandler: ValidationHandler | null = null;
-  private currentUserId: number | null = null;
+  private currentUserId: string | null = null;
   private cleanupTimer: number | null = null;
 
   private constructor() {
@@ -44,7 +44,7 @@ class GlobalDragService {
   initialize(options: {
     dropHandler: DropHandler;
     validationHandler: ValidationHandler;
-    currentUserId: number;
+    currentUserId: string;
   }) {
 
     if (this.isInitialized) {
@@ -264,7 +264,7 @@ class GlobalDragService {
 
     if (!tileId) return null;
 
-    const isOwned = ownerIdAttr ? parseInt(ownerIdAttr) === this.currentUserId : false;
+    const isOwned = ownerIdAttr ? ownerIdAttr === this.currentUserId : false;
 
     return {
       tileId,
@@ -284,7 +284,7 @@ class GlobalDragService {
 
     const sourceElement = this.findTileElement(sourceId);
     const sourceOwnerIdAttr = sourceElement?.getAttribute('data-tile-owner');
-    const sourceOwned = sourceOwnerIdAttr ? parseInt(sourceOwnerIdAttr) === this.currentUserId : false;
+    const sourceOwned = sourceOwnerIdAttr ? sourceOwnerIdAttr === this.currentUserId : false;
 
     return this.validationHandler(sourceId, target.tileId, sourceOwned, target.isOwned);
   }
@@ -292,7 +292,7 @@ class GlobalDragService {
   /**
    * Update current user ID for ownership validation
    */
-  updateUserId(userId: number) {
+  updateUserId(userId: string) {
     this.currentUserId = userId;
   }
 

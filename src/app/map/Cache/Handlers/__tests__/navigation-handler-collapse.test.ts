@@ -21,7 +21,7 @@ describe("NavigationHandler - Collapse distant tiles", () => {
       dbId,
       ownerId: "user1",
       coordinates: {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: coordId.split(":")[1]?.split(",").map(Number) ?? [],
       },

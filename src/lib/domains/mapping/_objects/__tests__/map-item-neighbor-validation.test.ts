@@ -36,7 +36,7 @@ function createTestMapItem(
 describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => {
   describe("validateNeighbors - structural children only (6 max)", () => {
     it("should pass validation with 6 structural children (directions 1-6)", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest] };
 
       const neighbors = [
         Direction.NorthWest,
@@ -48,7 +48,7 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
       ].map((direction, index) => {
         return createTestMapItem(
           10 + index,
-          { userId: 1, groupId: 0, path: [...parent.path, direction] },
+          { userId: "user-test-1", groupId: 0, path: [...parent.path, direction] },
           MapItemType.BASE,
           1,
         );
@@ -59,13 +59,13 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
     });
 
     it("should pass validation with fewer than 6 structural children", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest] };
 
       const neighbors = [Direction.NorthWest, Direction.East, Direction.West].map(
         (direction, index) => {
           return createTestMapItem(
             10 + index,
-            { userId: 1, groupId: 0, path: [...parent.path, direction] },
+            { userId: "user-test-1", groupId: 0, path: [...parent.path, direction] },
             MapItemType.BASE,
             1,
           );
@@ -77,7 +77,7 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
     });
 
     it("should fail validation with duplicate directions", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest] };
 
       const neighbors = [
         Direction.NorthWest,
@@ -86,7 +86,7 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
       ].map((direction, index) => {
         return createTestMapItem(
           10 + index,
-          { userId: 1, groupId: 0, path: [...parent.path, direction] },
+          { userId: "user-test-1", groupId: 0, path: [...parent.path, direction] },
           MapItemType.BASE,
           1,
         );
@@ -101,7 +101,7 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
 
   describe("validateNeighbors - with direction 0 (composition)", () => {
     it("should pass validation with direction 0 child plus 6 structural children (7 total)", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest] };
 
       const neighbors = [
         Direction.Center,
@@ -114,7 +114,7 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
       ].map((direction, index) => {
         return createTestMapItem(
           10 + index,
-          { userId: 1, groupId: 0, path: [...parent.path, direction] },
+          { userId: "user-test-1", groupId: 0, path: [...parent.path, direction] },
           MapItemType.BASE,
           1,
         );
@@ -125,13 +125,13 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
     });
 
     it("should pass validation with direction 0 child plus fewer structural children", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [Direction.East] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.East] };
 
       const neighbors = [Direction.Center, Direction.NorthWest, Direction.East].map(
         (direction, index) => {
           return createTestMapItem(
             10 + index,
-            { userId: 1, groupId: 0, path: [...parent.path, direction] },
+            { userId: "user-test-1", groupId: 0, path: [...parent.path, direction] },
             MapItemType.BASE,
             1,
           );
@@ -143,12 +143,12 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
     });
 
     it("should pass validation with only direction 0 child", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [Direction.SouthEast] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.SouthEast] };
 
       const neighbors = [
         createTestMapItem(
           10,
-          { userId: 1, groupId: 0, path: [...parent.path, Direction.Center] },
+          { userId: "user-test-1", groupId: 0, path: [...parent.path, Direction.Center] },
           MapItemType.BASE,
           1,
         ),
@@ -159,7 +159,7 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
     });
 
     it("should fail validation with duplicate structural directions", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest] };
 
       const neighbors = [
         Direction.Center,
@@ -169,7 +169,7 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
       ].map((direction, index) => {
         return createTestMapItem(
           10 + index,
-          { userId: 1, groupId: 0, path: [...parent.path, direction] },
+          { userId: "user-test-1", groupId: 0, path: [...parent.path, direction] },
           MapItemType.BASE,
           1,
         );
@@ -182,12 +182,12 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
     });
 
     it("should fail validation with duplicate direction 0 children", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [Direction.East] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.East] };
 
       const neighbors = [Direction.Center, Direction.Center].map((direction, index) => {
         return createTestMapItem(
           10 + index,
-          { userId: 1, groupId: 0, path: [...parent.path, direction] },
+          { userId: "user-test-1", groupId: 0, path: [...parent.path, direction] },
           MapItemType.BASE,
           1,
         );
@@ -202,14 +202,14 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
 
   describe("validateNeighbors - edge cases", () => {
     it("should pass validation with no neighbors", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest] };
       const parentItem = createTestMapItem(1, parent, MapItemType.BASE, 999, []);
       expect(() => MapItemNeighborValidation.validateNeighbors(parentItem)).not.toThrow();
     });
 
     it("should validate direction 0 works at any depth", () => {
       const parent: Coord = {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest, Direction.East, Direction.SouthEast],
       };
@@ -217,7 +217,7 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
       const neighbors = [
         createTestMapItem(
           10,
-          { userId: 1, groupId: 0, path: [...parent.path, Direction.Center] },
+          { userId: "user-test-1", groupId: 0, path: [...parent.path, Direction.Center] },
           MapItemType.BASE,
           1,
         ),
@@ -228,12 +228,12 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
     });
 
     it("should validate direction 0 with different userId/groupId combinations", () => {
-      const parent: Coord = { userId: 42, groupId: 5, path: [Direction.West] };
+      const parent: Coord = { userId: "user-test-42", groupId: 5, path: [Direction.West] };
 
       const neighbors = [
         createTestMapItem(
           10,
-          { userId: 42, groupId: 5, path: [...parent.path, Direction.Center] },
+          { userId: "user-test-42", groupId: 5, path: [...parent.path, Direction.Center] },
           MapItemType.BASE,
           1,
         ),
@@ -246,7 +246,7 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
 
   describe("validateNeighborsCount - direct testing", () => {
     it("should accept exactly 7 neighbors when one is direction 0", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [] };
 
       const neighbors = [
         Direction.Center,
@@ -259,7 +259,7 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
       ].map((direction, index) => {
         return createTestMapItem(
           10 + index,
-          { userId: 1, groupId: 0, path: [direction] },
+          { userId: "user-test-1", groupId: 0, path: [direction] },
           MapItemType.BASE,
           1,
         );
@@ -270,7 +270,7 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
     });
 
     it("should reject 7 neighbors when none is direction 0", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [] };
 
       const neighbors = [
         Direction.NorthWest,
@@ -283,7 +283,7 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
       ].map((direction, index) => {
         return createTestMapItem(
           10 + index,
-          { userId: 1, groupId: 0, path: [direction] },
+          { userId: "user-test-1", groupId: 0, path: [direction] },
           MapItemType.BASE,
           1,
         );

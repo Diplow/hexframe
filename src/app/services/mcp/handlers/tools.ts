@@ -14,10 +14,10 @@ import {
  */
 
 /**
- * Helper function to convert coordinates with string values to numbers
+ * Helper function to convert coordinates with string values to normalized format
  * MCP clients often send coords as JSON strings or with numbers as strings
  */
-function normalizeCoordinates(coords: unknown): { userId: number; groupId: number; path: number[] } {
+function normalizeCoordinates(coords: unknown): { userId: string; groupId: number; path: number[] } {
   if (!coords) {
     throw new Error('Coordinates are required');
   }
@@ -40,7 +40,7 @@ function normalizeCoordinates(coords: unknown): { userId: number; groupId: numbe
   const coordsInput = coordsObj as Record<string, unknown>;
 
   return {
-    userId: typeof coordsInput.userId === 'string' ? parseInt(coordsInput.userId, 10) : Number(coordsInput.userId),
+    userId: typeof coordsInput.userId === 'string' ? coordsInput.userId : String(coordsInput.userId),
     groupId: typeof coordsInput.groupId === 'string' ? parseInt(coordsInput.groupId, 10) : Number(coordsInput.groupId),
     path: Array.isArray(coordsInput.path) ? coordsInput.path.map((p: unknown) =>
       typeof p === 'string' ? parseInt(p, 10) : Number(p)
@@ -129,18 +129,17 @@ Use 'fields' parameter for progressive disclosure: ["name", "preview"] for overv
     handler: async (args: unknown, caller: TRPCCaller) => {
       const argsObj = args as Record<string, unknown>;
 
-      // Convert string parameters to numbers (Claude Code sends strings)
-      let userId: number | undefined;
+      // Convert parameters to appropriate types (Claude Code sends strings)
+      let userId: string | undefined;
       if (argsObj?.userId) {
-        userId = typeof argsObj.userId === 'string' ? parseInt(argsObj.userId, 10) : argsObj.userId as number;
+        userId = typeof argsObj.userId === 'string' ? argsObj.userId : String(argsObj.userId);
       }
 
       // If no userId provided, use the authenticated user's ID
       if (!userId && argsObj?.authInfo) {
         const authInfo = argsObj.authInfo as { clientId?: string };
-        const parsedUserId = authInfo.clientId ? parseInt(authInfo.clientId, 10) : undefined;
-        if (parsedUserId) {
-          userId = parsedUserId;
+        if (authInfo.clientId) {
+          userId = authInfo.clientId;
         }
       }
 

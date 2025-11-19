@@ -2,7 +2,6 @@ import { eq } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { schema } from "~/server/db";
 const { users } = schema;
-import { UserMappingService } from "./user-mapping.service";
 import { User, type UserRepository, type CreateUserInput, type AuthenticateUserInput, type AuthenticationResult } from "~/lib/domains/iam";
 import type { auth as authInstance } from "~/server/auth";
 
@@ -58,11 +57,6 @@ export class BetterAuthUserRepository implements UserRepository {
         throw new Error(data.error ?? "Failed to create user");
       }
 
-      // Create mapping ID immediately
-      const mappingId = await UserMappingService.getOrCreateMappingUserId(
-        data.user.id
-      );
-
       // Create domain User entity
       return User.create({
         id: data.user.id,
@@ -70,7 +64,6 @@ export class BetterAuthUserRepository implements UserRepository {
         name: data.user.name ?? undefined,
         emailVerified: data.user.emailVerified ?? false,
         image: data.user.image ?? undefined,
-        mappingId,
         createdAt: new Date(data.user.createdAt),
         updatedAt: new Date(data.user.updatedAt),
       });
@@ -97,14 +90,7 @@ export class BetterAuthUserRepository implements UserRepository {
       return null;
     }
 
-    const mappingId = await UserMappingService.getMappingUserId(id);
-    if (!mappingId) {
-      // This shouldn't happen, but if it does, create the mapping
-      const newMappingId = await UserMappingService.getOrCreateMappingUserId(id);
-      return this.dbUserToEntity(dbUser[0], newMappingId);
-    }
-
-    return this.dbUserToEntity(dbUser[0], mappingId);
+    return this.dbUserToEntity(dbUser[0]);
   }
 
   async findByEmail(email: string): Promise<User | null> {
@@ -118,24 +104,7 @@ export class BetterAuthUserRepository implements UserRepository {
       return null;
     }
 
-    const mappingId = await UserMappingService.getMappingUserId(dbUser[0].id);
-    if (!mappingId) {
-      const newMappingId = await UserMappingService.getOrCreateMappingUserId(
-        dbUser[0].id
-      );
-      return this.dbUserToEntity(dbUser[0], newMappingId);
-    }
-
-    return this.dbUserToEntity(dbUser[0], mappingId);
-  }
-
-  async findByMappingId(mappingId: number): Promise<User | null> {
-    const authUserId = await UserMappingService.getAuthUserId(mappingId);
-    if (!authUserId) {
-      return null;
-    }
-
-    return this.findById(authUserId);
+    return this.dbUserToEntity(dbUser[0]);
   }
 
   async authenticate(
@@ -163,17 +132,12 @@ export class BetterAuthUserRepository implements UserRepository {
         throw new Error("Invalid credentials");
       }
 
-      const mappingId = await UserMappingService.getOrCreateMappingUserId(
-        data.user.id
-      );
-
       const user = User.create({
         id: data.user.id,
         email: data.user.email,
         name: data.user.name ?? undefined,
         emailVerified: data.user.emailVerified ?? false,
         image: data.user.image ?? undefined,
-        mappingId,
         createdAt: new Date(data.user.createdAt),
         updatedAt: new Date(data.user.updatedAt),
       });
@@ -199,10 +163,6 @@ export class BetterAuthUserRepository implements UserRepository {
       .where(eq(users.id, user.id));
 
     return user;
-  }
-
-  async ensureMappingId(userId: string): Promise<number> {
-    return UserMappingService.getOrCreateMappingUserId(userId);
   }
 
   async verifyEmail(userId: string): Promise<User> {
@@ -235,8 +195,7 @@ export class BetterAuthUserRepository implements UserRepository {
 
   // Helper method to convert database user to domain entity
   private dbUserToEntity(
-    dbUser: typeof users.$inferSelect,
-    mappingId: number
+    dbUser: typeof users.$inferSelect
   ): User {
     return User.create({
       id: dbUser.id,
@@ -244,7 +203,6 @@ export class BetterAuthUserRepository implements UserRepository {
       name: dbUser.name ?? undefined,
       emailVerified: dbUser.emailVerified ?? false,
       image: dbUser.image ?? undefined,
-      mappingId,
       createdAt: dbUser.createdAt,
       updatedAt: dbUser.updatedAt,
     });

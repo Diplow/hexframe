@@ -27,7 +27,7 @@ describe("MutationCoordinator Event Emissions", () => {
       dbId: "item-1",
       depth: 1,
       parentId: undefined,
-      coordinates: { userId: 1, groupId: 2, path: [1, 2] },
+      coordinates: { userId: "user-test-1", groupId: 2, path: [1, 2] },
       ownerId: "test-owner",
     },
     state: {
@@ -53,7 +53,7 @@ describe("MutationCoordinator Event Emissions", () => {
       dbId: "item-2",
       depth: 1,
       parentId: undefined,
-      coordinates: { userId: 1, groupId: 3, path: [1, 3] },
+      coordinates: { userId: "user-test-1", groupId: 3, path: [1, 3] },
       ownerId: "test-owner",
     },
     state: {
@@ -126,7 +126,7 @@ describe("MutationCoordinator Event Emissions", () => {
       storageService: mockStorageService,
       eventBus: mockEventBus,
       mapContext: {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 1,
         rootItemId: 1,
       },
@@ -179,7 +179,7 @@ describe("MutationCoordinator Event Emissions", () => {
         dataOperations: mockDataOperations,
         storageService: mockStorageService,
         mapContext: {
-          userId: 1,
+          userId: "user-test-1",
           groupId: 1,
           rootItemId: 1,
         },

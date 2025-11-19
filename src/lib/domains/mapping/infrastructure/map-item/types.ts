@@ -4,7 +4,7 @@ import type { MapItemType } from "~/lib/domains/mapping/_objects/map-item";
 export type DbMapItemSelect = {
   id: number;
   parentId: number | null;
-  coord_user_id: number;
+  coord_user_id: string;
   coord_group_id: number;
   path: string;
   item_type: MapItemType;
@@ -28,7 +28,7 @@ export type DbMapItemWithBase = {
 
 export type CreateMapItemDbAttrs = {
   parentId: number | null;
-  coord_user_id: number;
+  coord_user_id: string;
   coord_group_id: number;
   path: string;
   item_type: MapItemType;
@@ -37,7 +37,7 @@ export type CreateMapItemDbAttrs = {
 
 export type UpdateMapItemDbAttrs = Partial<{
   parentId: number | null;
-  coord_user_id: number;
+  coord_user_id: string;
   coord_group_id: number;
   path: string;
   item_type: MapItemType;

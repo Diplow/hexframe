@@ -15,7 +15,7 @@ export type FieldSelection = 'minimal' | 'standard' | 'full';
 
 export interface ContextQueryConfig {
   centerPath: Direction[];
-  userId: number;
+  userId: string;
   groupId: number;
   includeParent: boolean;
   includeComposed: boolean;
@@ -67,7 +67,7 @@ export class SpecializedQueries {
   }
 
   async fetchRootItem(
-    userId: number,
+    userId: string,
     groupId: number,
   ): Promise<DbMapItemWithBase | null> {
     const result = await this.db
@@ -92,7 +92,7 @@ export class SpecializedQueries {
   }
 
   async fetchRootItemsForUser(
-    userId: number,
+    userId: string,
     { limit = 50, offset = 0 }: { limit?: number; offset?: number },
   ): Promise<DbMapItemWithBase[]> {
     const results = await this.db
@@ -117,7 +117,7 @@ export class SpecializedQueries {
 
   async fetchDescendantsByParent(params: {
     parentPath: Direction[];
-    parentUserId: number;
+    parentUserId: string;
     parentGroupId: number;
     limit?: number;
     offset?: number;
@@ -152,7 +152,7 @@ export class SpecializedQueries {
 
   async fetchDescendantsWithDepth(params: {
     parentPath: Direction[];
-    parentUserId: number;
+    parentUserId: string;
     parentGroupId: number;
     maxGenerations: number;
     limit?: number;
@@ -195,7 +195,7 @@ export class SpecializedQueries {
 
   private _buildDescendantsConditions(
     parentPath: Direction[],
-    parentUserId: number,
+    parentUserId: string,
     parentGroupId: number,
   ): SQL[] {
     const parentPathString = pathToString(parentPath);
@@ -218,7 +218,7 @@ export class SpecializedQueries {
 
   private _buildDescendantsWithDepthConditions(
     parentPath: Direction[],
-    parentUserId: number,
+    parentUserId: string,
     parentGroupId: number,
     maxGenerations: number,
   ): SQL[] {

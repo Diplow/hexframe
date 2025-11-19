@@ -17,7 +17,7 @@ interface MutationOperationsConfig {
   storageService: StorageService;
   eventBus?: EventBusService;
   mapContext?: {
-    userId: number;
+    userId: string;
     groupId: number;
     rootItemId: number;
   };

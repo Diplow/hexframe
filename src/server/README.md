@@ -71,7 +71,7 @@ The tRPC API schemas validate coordinates including negative directions:
 ```typescript
 // hexCoordSchema accepts any number in path array (positive, zero, negative)
 export const hexCoordSchema = z.object({
-  userId: z.number(),
+  userId: z.string(), // better-auth UUID string
   groupId: z.number(),
   path: z.array(z.number()), // Accepts negative directions
 });

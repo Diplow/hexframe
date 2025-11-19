@@ -38,7 +38,7 @@ describe('GlobalDragService - Ctrl Key Detection and Copy/Move Operations', () =
     globalDragService.initialize({
       dropHandler: mockDropHandler,
       validationHandler: mockValidationHandler,
-      currentUserId: 1
+      currentUserId: "user-test-1"
     });
 
     // Create mock drag event with dataTransfer

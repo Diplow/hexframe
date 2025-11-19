@@ -6,7 +6,6 @@ describe("User Entity", () => {
     id: "user-123",
     email: "test@example.com",
     name: "Test User",
-    mappingId: 1,
   };
 
   describe("create", () => {
@@ -16,7 +15,6 @@ describe("User Entity", () => {
       expect(user.id).toBe(validProps.id);
       expect(user.email).toBe(validProps.email);
       expect(user.name).toBe(validProps.name);
-      expect(user.mappingId).toBe(validProps.mappingId);
       expect(user.emailVerified).toBe(false);
       expect(user.createdAt).toBeInstanceOf(Date);
       expect(user.updatedAt).toBeInstanceOf(Date);
@@ -58,20 +56,13 @@ describe("User Entity", () => {
       ).toThrow("User ID is required");
     });
 
-    it("should throw error for invalid mapping ID", () => {
+    it("should throw error for missing name", () => {
       expect(() =>
         User.create({
           ...validProps,
-          mappingId: 0,
+          name: "",
         })
-      ).toThrow("Valid mapping ID is required");
-
-      expect(() =>
-        User.create({
-          ...validProps,
-          mappingId: -1,
-        })
-      ).toThrow("Valid mapping ID is required");
+      ).toThrow("User name is required");
     });
   });
 
@@ -154,7 +145,6 @@ describe("User Entity", () => {
         id: validProps.id,
         email: validProps.email,
         name: validProps.name,
-        mappingId: validProps.mappingId,
         emailVerified: false,
       });
       expect(json.createdAt).toBeInstanceOf(Date);

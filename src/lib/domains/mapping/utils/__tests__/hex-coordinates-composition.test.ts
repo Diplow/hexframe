@@ -5,11 +5,11 @@ import type { Coord } from "~/lib/domains/mapping/utils/hex-coordinates";
 describe("CoordSystem - Direction 0 (Composition) Support", () => {
   describe("getCompositionCoord", () => {
     it("should generate composition coord with direction 0 for shallow parent", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest] };
       const composition = CoordSystem.getCompositionCoord(parent);
 
       expect(composition).toEqual({
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest, Direction.Center],
       });
@@ -17,40 +17,40 @@ describe("CoordSystem - Direction 0 (Composition) Support", () => {
 
     it("should generate composition coord for deep parent path", () => {
       const parent: Coord = {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest, Direction.NorthEast, Direction.East],
       };
       const composition = CoordSystem.getCompositionCoord(parent);
 
       expect(composition).toEqual({
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest, Direction.NorthEast, Direction.East, Direction.Center],
       });
     });
 
     it("should generate composition coord for root parent (math only, validation happens elsewhere)", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [] };
       const composition = CoordSystem.getCompositionCoord(parent);
 
       expect(composition).toEqual({
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.Center],
       });
     });
 
     it("should preserve userId and groupId from parent", () => {
-      const parent: Coord = { userId: 42, groupId: 5, path: [Direction.East] };
+      const parent: Coord = { userId: "user-test-42", groupId: 5, path: [Direction.East] };
       const composition = CoordSystem.getCompositionCoord(parent);
 
-      expect(composition.userId).toBe(42);
+      expect(composition.userId).toBe("user-test-42");
       expect(composition.groupId).toBe(5);
     });
 
     it("should not mutate parent coord", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest] };
       const originalPath = [...parent.path];
 
       CoordSystem.getCompositionCoord(parent);
@@ -91,7 +91,7 @@ describe("CoordSystem - Direction 0 (Composition) Support", () => {
 
   describe("getChildCoords - backwards compatibility", () => {
     it("should return 6 structural children by default", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest] };
       const children = CoordSystem.getChildCoords(parent);
 
       expect(children).toHaveLength(6);
@@ -104,7 +104,7 @@ describe("CoordSystem - Direction 0 (Composition) Support", () => {
     });
 
     it("should return 6 structural children when includeComposition is false", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest] };
       const children = CoordSystem.getChildCoords(parent, false);
 
       expect(children).toHaveLength(6);
@@ -112,7 +112,7 @@ describe("CoordSystem - Direction 0 (Composition) Support", () => {
     });
 
     it("should not include direction 0 in default behavior", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest] };
       const children = CoordSystem.getChildCoords(parent);
 
       const hasDirection0 = children.some(child =>
@@ -124,21 +124,21 @@ describe("CoordSystem - Direction 0 (Composition) Support", () => {
 
   describe("getChildCoords - with composition", () => {
     it("should return 7 children when includeComposition is true", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest] };
       const children = CoordSystem.getChildCoords(parent, true);
 
       expect(children).toHaveLength(7);
     });
 
     it("should place composition child first when includeComposition is true", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest] };
       const children = CoordSystem.getChildCoords(parent, true);
 
       expect(children[0]?.path).toEqual([Direction.NorthWest, Direction.Center]);
     });
 
     it("should include all 6 structural children after composition when includeComposition is true", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest] };
       const children = CoordSystem.getChildCoords(parent, true);
 
       expect(children[1]?.path).toEqual([Direction.NorthWest, Direction.NorthWest]);
@@ -150,7 +150,7 @@ describe("CoordSystem - Direction 0 (Composition) Support", () => {
     });
 
     it("should work for root parent", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [] };
       const children = CoordSystem.getChildCoords(parent, true);
 
       expect(children).toHaveLength(7);
@@ -274,11 +274,11 @@ describe("CoordSystem - Direction 0 (Composition) Support", () => {
 
   describe("getParentCoord - with direction 0 paths", () => {
     it("should return parent when child has direction 0", () => {
-      const child: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest, Direction.Center] };
+      const child: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest, Direction.Center] };
       const parent = CoordSystem.getParentCoord(child);
 
       expect(parent).toEqual({
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest],
       });
@@ -286,14 +286,14 @@ describe("CoordSystem - Direction 0 (Composition) Support", () => {
 
     it("should return composition container when child is composed child", () => {
       const child: Coord = {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest, Direction.Center, Direction.NorthEast],
       };
       const parent = CoordSystem.getParentCoord(child);
 
       expect(parent).toEqual({
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest, Direction.Center],
       });
@@ -301,21 +301,21 @@ describe("CoordSystem - Direction 0 (Composition) Support", () => {
 
     it("should work with multiple direction 0s in path", () => {
       const child: Coord = {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest, Direction.Center, Direction.East, Direction.Center],
       };
       const parent = CoordSystem.getParentCoord(child);
 
       expect(parent).toEqual({
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest, Direction.Center, Direction.East],
       });
     });
 
     it("should return null for root even with direction 0", () => {
-      const child: Coord = { userId: 1, groupId: 0, path: [] };
+      const child: Coord = { userId: "user-test-1", groupId: 0, path: [] };
       const parent = CoordSystem.getParentCoord(child);
 
       expect(parent).toBeNull();
@@ -324,7 +324,7 @@ describe("CoordSystem - Direction 0 (Composition) Support", () => {
 
   describe("getDirection - with direction 0 paths", () => {
     it("should return Direction.Center for composition container", () => {
-      const coord: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest, Direction.Center] };
+      const coord: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest, Direction.Center] };
       const direction = CoordSystem.getDirection(coord);
 
       expect(direction).toBe(Direction.Center);
@@ -332,7 +332,7 @@ describe("CoordSystem - Direction 0 (Composition) Support", () => {
 
     it("should return correct direction for child under composition", () => {
       const coord: Coord = {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest, Direction.Center, Direction.NorthEast],
       };
@@ -343,7 +343,7 @@ describe("CoordSystem - Direction 0 (Composition) Support", () => {
 
     it("should handle multiple direction 0s in path", () => {
       const coord: Coord = {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest, Direction.Center, Direction.East, Direction.Center],
       };
@@ -353,7 +353,7 @@ describe("CoordSystem - Direction 0 (Composition) Support", () => {
     });
 
     it("should return Direction.Center for root", () => {
-      const coord: Coord = { userId: 1, groupId: 0, path: [] };
+      const coord: Coord = { userId: "user-test-1", groupId: 0, path: [] };
       const direction = CoordSystem.getDirection(coord);
 
       expect(direction).toBe(Direction.Center);
@@ -362,7 +362,7 @@ describe("CoordSystem - Direction 0 (Composition) Support", () => {
 
   describe("createId and parseId - with direction 0", () => {
     it("should correctly serialize coord with direction 0", () => {
-      const coord: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest, Direction.Center] };
+      const coord: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest, Direction.Center] };
       const id = CoordSystem.createId(coord);
 
       expect(id).toBe("1,0:1,0");
@@ -373,7 +373,7 @@ describe("CoordSystem - Direction 0 (Composition) Support", () => {
       const coord = CoordSystem.parseId(id);
 
       expect(coord).toEqual({
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest, Direction.Center, Direction.NorthEast],
       });
@@ -381,7 +381,7 @@ describe("CoordSystem - Direction 0 (Composition) Support", () => {
 
     it("should round-trip coords with direction 0", () => {
       const original: Coord = {
-        userId: 42,
+        userId: "user-test-42",
         groupId: 5,
         path: [Direction.East, Direction.Center, Direction.NorthWest, Direction.Center],
       };

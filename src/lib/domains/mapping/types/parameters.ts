@@ -6,7 +6,7 @@ import { MapItemType } from "~/lib/domains/mapping/_objects";
  * Supports positive directions (1-6), zero (Center), and negative directions (-1 to -6) for composed children
  */
 const CoordsSchema = z.object({
-  userId: z.number().positive(),
+  userId: z.string().min(1),
   groupId: z.number().min(0),
   path: z.array(z.number().min(-6).max(6)),
 });

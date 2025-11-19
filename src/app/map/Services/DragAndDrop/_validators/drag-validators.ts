@@ -24,7 +24,7 @@ export function isCenterTile(coordId: string): boolean {
  * - User must own the tile
  * - Center tile cannot be dragged
  */
-export function canDragTile(tile: TileData | null, userId: number | undefined): boolean {
+export function canDragTile(tile: TileData | null, userId: string | undefined): boolean {
   // User must be logged in
   if (!userId) {
     return false;
@@ -59,7 +59,7 @@ export function canDropOnTile(
   sourceTile: TileData | null,
   targetTile: TileData | null,
   targetCoordId: string,
-  userId: number | undefined
+  userId: string | undefined
 ): boolean {
   // Source tile must be draggable
   if (!canDragTile(sourceTile, userId)) {
@@ -100,7 +100,7 @@ export function validateDragOperation(
   targetCoordId: string,
   sourceTile: TileData | null,
   targetTile: TileData | null,
-  userId: number | undefined
+  userId: string | undefined
 ): { isValid: boolean; reason?: string } {
   // Basic validation
   if (!userId) {

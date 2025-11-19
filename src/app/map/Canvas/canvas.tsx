@@ -11,7 +11,7 @@ import { useUnifiedAuth } from "~/contexts/UnifiedAuthContext";
 export interface CenterInfo {
   center: string;
   rootItemId: number;
-  userId: number;
+  userId: string;
   groupId: number;
 }
 import type { TileScale } from "~/app/map/Canvas/Tile";

@@ -108,7 +108,7 @@ function _renderMapContent(
   }
 
   const rootItemId = 0;
-  const userId = 0;
+  const userId = "0";
   const groupId = 0;
 
   return (

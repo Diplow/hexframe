@@ -12,7 +12,6 @@ export interface UserContract {
   displayName: string;
   emailVerified: boolean;
   image?: string;
-  mappingId: number;
   createdAt: string; // ISO string for JSON serialization
   updatedAt: string;
 }
@@ -47,8 +46,4 @@ export interface GetUserByIdInput {
 
 export interface GetUserByEmailInput {
   email: string;
-}
-
-export interface GetUserByMappingIdInput {
-  mappingId: number;
 }

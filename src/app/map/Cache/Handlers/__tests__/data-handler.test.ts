@@ -408,7 +408,7 @@ describe("Data Handler", () => {
       await handler.loadRegion("1,2", 2);
 
       expect(mockUtils.map.getItemsForRootItem.fetch).toHaveBeenCalledWith({
-        userId: 1,
+        userId: "user-test-1",
         groupId: 2,
       });
       expect(mockDispatch).toHaveBeenCalledWith(cacheActions.setLoading(true));

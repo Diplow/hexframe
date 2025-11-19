@@ -6,6 +6,7 @@ import {
 } from "~/app/map/Cache/Services";
 import { ServiceError, NetworkError, TimeoutError } from "~/app/map/Cache/Services";
 import type { ServiceConfig } from "~/app/map/Cache/Services";
+import { MapItemType } from "~/lib/domains/mapping/utils";
 
 // Mock console.warn to avoid noise in tests (restored after each test)
 vi.spyOn(console, 'warn').mockImplementation(() => {
@@ -111,7 +112,7 @@ describe("Server Service", () => {
 
       expect(result).toEqual(mockItems);
       expect(mockFetch).toHaveBeenCalledWith({
-        userId: 1,
+        userId: "user-test-1",
         groupId: 2,
       });
     });
@@ -232,7 +233,7 @@ describe("Server Service", () => {
       const result = await service.getItemByCoordinate("1,2:1");
 
       expect(mockGetItemByCoordsFetch).toHaveBeenCalledWith({
-        coords: { userId: 1, groupId: 2, path: [1] },
+        coords: { userId: "user-test-1", groupId: 2, path: [1] },
       });
       expect(result).toEqual(item);
     });
@@ -278,14 +279,24 @@ describe("Server Service", () => {
       await expect(
         service.createItem({
           coordId: "1,2:1",
-          data: { title: "New Child Item", content: "New Description" },
+          data: {
+            coords: { path: [1], userId: "user-test-1", groupId: 0 },
+            itemType: MapItemType.BASE,
+            title: "New Child Item",
+            content: "New Description"
+          },
         }),
       ).rejects.toThrow(ServiceError);
 
       await expect(
         service.createItem({
           coordId: "1,2:1",
-          data: { title: "New Child Item", content: "New Description" },
+          data: {
+            coords: { path: [1], userId: "user-test-1", groupId: 0 },
+            itemType: MapItemType.BASE,
+            title: "New Child Item",
+            content: "New Description"
+          },
         }),
       ).rejects.toThrow(
         "Mutations should be handled through the mutation layer, not the server service",
@@ -447,7 +458,7 @@ describe("Server Service", () => {
       // For complex coordinates, it should call getItemByCoords with generations parameter
       expect(mockGetItemByCoordsFetch).toHaveBeenCalledWith({
         coords: {
-          userId: 1,
+          userId: "user-test-1",
           groupId: 2,
           path: [3, 4, 5],
         },

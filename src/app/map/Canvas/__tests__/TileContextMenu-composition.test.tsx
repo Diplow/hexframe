@@ -14,7 +14,7 @@ function createMockTileData(overrides?: Partial<TileData>): TileData {
       coordId: '1,0:[2]',
       parentId: '1,0:[]',
       coordinates: {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthEast],
       },
@@ -51,7 +51,7 @@ describe('TileContextMenu - Show Composition', () => {
           coordId: '1,0:[2]',
           parentId: '1,0:[]',
           coordinates: {
-            userId: 1,
+            userId: "user-test-1",
             groupId: 0,
             path: [Direction.NorthEast],
           },
@@ -140,7 +140,7 @@ describe('TileContextMenu - Show Composition', () => {
           coordId: '1,0:[2,3]',
           parentId: '1,0:[2]',
           coordinates: {
-            userId: 1,
+            userId: "user-test-1",
             groupId: 0,
             path: [Direction.NorthEast, Direction.East],
           },
@@ -192,7 +192,7 @@ describe('TileContextMenu - Show Composition', () => {
           coordId: '1,0:',
           parentId: undefined,
           coordinates: {
-            userId: 1,
+            userId: "user-test-1",
             groupId: 0,
             path: [], // Empty path = user tile
           },
@@ -244,7 +244,7 @@ describe('TileContextMenu - Show Composition', () => {
           coordId: '1,0:[2]',
           parentId: '1,0:[]',
           coordinates: {
-            userId: 1,
+            userId: "user-test-1",
             groupId: 0,
             path: [Direction.NorthEast],
           },

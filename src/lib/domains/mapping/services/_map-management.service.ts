@@ -30,7 +30,7 @@ export class MapManagementService {
     userId,
     groupId = 0,
   }: {
-    userId: number;
+    userId: string;
     groupId?: number;
   }): Promise<MapContract | null> {
     const rootItem = await this.actions.mapItems.getRootItem(userId, groupId);
@@ -45,7 +45,7 @@ export class MapManagementService {
    * Fetches all root USER MapItems for a given user (across all their groups).
    */
   async getManyUserMaps(
-    userId: number,
+    userId: string,
     limit?: number,
     offset?: number,
   ): Promise<MapContract[]> {
@@ -73,7 +73,7 @@ export class MapManagementService {
     title,
     content,
   }: {
-    userId: number;
+    userId: string;
     groupId?: number;
     title?: string;
     content?: string;
@@ -97,7 +97,7 @@ export class MapManagementService {
     title,
     content,
   }: {
-    userId: number;
+    userId: string;
     groupId?: number;
     title?: string;
     content?: string;
@@ -125,7 +125,7 @@ export class MapManagementService {
     userId,
     groupId = 0,
   }: {
-    userId: number;
+    userId: string;
     groupId?: number;
   }): Promise<void> {
     const rootItem = await this.actions.mapItems.getRootItem(userId, groupId);

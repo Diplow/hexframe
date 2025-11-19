@@ -75,7 +75,7 @@ export function useInitialCenterSetup(
  * Hook to initialize global drag service with cache integration
  */
 export function useDragServiceSetup(
-  userId: number | undefined,
+  userId: string | undefined,
   itemsById: Record<string, TileData>,
   moveItem: (sourceId: string, targetId: string) => Promise<unknown>,
   copyItem: (sourceId: string, targetId: string, destinationParentId: string) => Promise<unknown>,

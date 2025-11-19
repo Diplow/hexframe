@@ -202,7 +202,7 @@ describe('Map Composition Integration with Negative Directions', () => {
         initialCenter: null,
         initialExpandedItems: [],
         initialCompositionExpanded, // Must be boolean
-        mapContext: { rootItemId: 1, userId: 1, groupId: 0 },
+        mapContext: { rootItemId: 1, userId: "user-test-1", groupId: 0 },
         cacheConfig: {
           maxAge: 300000,
           backgroundRefreshInterval: 30000,

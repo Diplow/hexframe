@@ -26,7 +26,7 @@ export interface DynamicFrameCoreProps {
   scale?: TileScale;
   urlInfo: URLInfo;
   interactive?: boolean;
-  currentUserId?: number;
+  currentUserId?: string;
   selectedTileId?: string | null;
   showNeighbors?: boolean;
   // Callbacks for tile actions
@@ -48,7 +48,7 @@ export interface DynamicFrameCoreProps {
     isCompositionExpanded?: boolean;
     isDarkMode: boolean;
     interactive?: boolean;
-    currentUserId?: number;
+    currentUserId?: string;
     selectedTileId?: string | null;
     onNavigate?: (coordId: string) => void;
     onToggleExpansion?: (itemId: string, coordId: string) => void;
@@ -206,7 +206,7 @@ const FrameInterior = (props: {
   isCompositionExpanded?: boolean;
   urlInfo: URLInfo;
   interactive?: boolean;
-  currentUserId?: number;
+  currentUserId?: string;
   selectedTileId?: string | null;
   onNavigate?: (coordId: string) => void;
   onToggleExpansion?: (itemId: string, coordId: string) => void;
@@ -327,7 +327,7 @@ const CompositionFrame = (props: {
   expandedItemIds?: string[];
   urlInfo: URLInfo;
   interactive?: boolean;
-  currentUserId?: number;
+  currentUserId?: string;
   selectedTileId?: string | null;
   onNavigate?: (coordId: string) => void;
   onToggleExpansion?: (itemId: string, coordId: string) => void;
@@ -467,7 +467,7 @@ const FrameSlot = (props: {
   isCompositionExpanded?: boolean;
   urlInfo: URLInfo;
   interactive?: boolean;
-  currentUserId?: number;
+  currentUserId?: string;
   selectedTileId?: string | null;
   onNavigate?: (coordId: string) => void;
   onToggleExpansion?: (itemId: string, coordId: string) => void;

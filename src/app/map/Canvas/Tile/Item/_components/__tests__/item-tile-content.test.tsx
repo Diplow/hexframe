@@ -39,7 +39,7 @@ describe("ItemTileContent - Scale 1 Expansion", () => {
       dbId,
       ownerId: "user1",
       coordinates: {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [1],
       },

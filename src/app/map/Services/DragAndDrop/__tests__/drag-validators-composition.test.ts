@@ -54,7 +54,7 @@ function createMockTile(coordId: string, ownerId: string, overrides?: Partial<Ti
 }
 
 describe('Drag Validators - Composition Detection (Negative Directions)', () => {
-  const userId = 1;
+  const userId = "user-test-1";
 
   describe('canDragTile - composed children detection', () => {
     it('should allow dragging parent tile that has composed children', () => {

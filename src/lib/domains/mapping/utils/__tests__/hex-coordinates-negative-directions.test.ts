@@ -26,7 +26,7 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
 
   describe("getComposedChildCoords", () => {
     it("should generate 6 composed child coords with negative directions", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest] };
       const composedChildren = CoordSystem.getComposedChildCoords(parent);
 
       expect(composedChildren).toHaveLength(6);
@@ -40,7 +40,7 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
 
     it("should work for deep parent paths", () => {
       const parent: Coord = {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest, Direction.East, Direction.SouthEast],
       };
@@ -56,7 +56,7 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
     });
 
     it("should work for root parent", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [] };
       const composedChildren = CoordSystem.getComposedChildCoords(parent);
 
       expect(composedChildren).toHaveLength(6);
@@ -64,17 +64,17 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
     });
 
     it("should preserve userId and groupId from parent", () => {
-      const parent: Coord = { userId: 42, groupId: 5, path: [Direction.East] };
+      const parent: Coord = { userId: "user-test-42", groupId: 5, path: [Direction.East] };
       const composedChildren = CoordSystem.getComposedChildCoords(parent);
 
       composedChildren.forEach((child) => {
-        expect(child.userId).toBe(42);
+        expect(child.userId).toBe("user-test-42");
         expect(child.groupId).toBe(5);
       });
     });
 
     it("should not mutate parent coord", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest] };
       const originalPath = [...parent.path];
 
       CoordSystem.getComposedChildCoords(parent);
@@ -117,7 +117,7 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
   describe("createId and parseId - with negative directions", () => {
     it("should correctly serialize coord with negative direction", () => {
       const coord: Coord = {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest, Direction.ComposedEast],
       };
@@ -131,7 +131,7 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
       const coord = CoordSystem.parseId(id);
 
       expect(coord).toEqual({
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest, Direction.ComposedNorthEast],
       });
@@ -139,7 +139,7 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
 
     it("should round-trip coords with negative directions", () => {
       const original: Coord = {
-        userId: 42,
+        userId: "user-test-42",
         groupId: 5,
         path: [Direction.East, Direction.ComposedNorthWest, Direction.SouthEast],
       };
@@ -151,7 +151,7 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
 
     it("should handle multiple negative directions in path", () => {
       const coord: Coord = {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [
           Direction.NorthWest,
@@ -168,7 +168,7 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
 
     it("should handle mix of positive, zero, and negative directions", () => {
       const coord: Coord = {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [
           Direction.NorthWest,
@@ -188,7 +188,7 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
   describe("getDirection - with negative directions", () => {
     it("should return negative direction for composed child", () => {
       const coord: Coord = {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest, Direction.ComposedEast],
       };
@@ -200,7 +200,7 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
 
     it("should return correct negative direction from path", () => {
       const coord: Coord = {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.East, Direction.ComposedSouthWest],
       };
@@ -214,14 +214,14 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
   describe("getParentCoord - with negative directions", () => {
     it("should return parent when child has negative direction", () => {
       const child: Coord = {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest, Direction.ComposedEast],
       };
       const parent = CoordSystem.getParentCoord(child);
 
       expect(parent).toEqual({
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest],
       });
@@ -229,14 +229,14 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
 
     it("should work with multiple negative directions", () => {
       const child: Coord = {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest, Direction.ComposedEast, Direction.ComposedSouthWest],
       };
       const parent = CoordSystem.getParentCoord(child);
 
       expect(parent).toEqual({
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest, Direction.ComposedEast],
       });
@@ -321,7 +321,7 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
 
   describe("getChildCoords - combined behavior", () => {
     it("should return structural children (1-6) by default, not composed children", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest] };
       const children = CoordSystem.getChildCoords(parent);
 
       expect(children).toHaveLength(6);
@@ -332,7 +332,7 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
     });
 
     it("should not include negative directions by default", () => {
-      const parent: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest] };
+      const parent: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest] };
       const children = CoordSystem.getChildCoords(parent);
 
       expect(children.every((child) => {
@@ -345,7 +345,7 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
   describe("isComposedChild", () => {
     it("should return true for coord with negative direction", () => {
       const coord: Coord = {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest, Direction.ComposedEast],
       };
@@ -356,7 +356,7 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
 
     it("should return false for coord with positive directions only", () => {
       const coord: Coord = {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest, Direction.East],
       };
@@ -367,7 +367,7 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
 
     it("should return false for composition container (direction 0)", () => {
       const coord: Coord = {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest, Direction.Center],
       };
@@ -378,7 +378,7 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
 
     it("should return true even if negative direction is not last", () => {
       const coord: Coord = {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest, Direction.ComposedEast, Direction.SouthEast],
       };
@@ -388,7 +388,7 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
     });
 
     it("should return false for root coord", () => {
-      const coord: Coord = { userId: 1, groupId: 0, path: [] };
+      const coord: Coord = { userId: "user-test-1", groupId: 0, path: [] };
       const result = CoordSystem.isComposedChild(coord);
 
       expect(result).toBe(false);
@@ -428,7 +428,7 @@ describe("CoordSystem - Negative Direction Support for Composed Children", () =>
     it("should serialize and deserialize all negative directions correctly", () => {
       for (let negDir = -1; negDir >= -6; negDir--) {
         const coord: Coord = {
-          userId: 1,
+          userId: "user-test-1",
           groupId: 0,
           path: [negDir as Direction],
         };

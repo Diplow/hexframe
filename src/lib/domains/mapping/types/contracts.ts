@@ -4,11 +4,11 @@ import { CoordSystem, type Coord } from "~/lib/domains/mapping/utils";
 
 export const mapItemDomainToContractAdapter = (
   aggregate: MapItemWithId,
-  ownerId: number,
+  ownerId: string,
 ) => {
   return {
     id: String(aggregate.id),
-    ownerId: String(ownerId),
+    ownerId,
     coords: CoordSystem.createId(aggregate.attrs.coords),
     title: aggregate.ref.attrs.title,
     content: aggregate.ref.attrs.content,

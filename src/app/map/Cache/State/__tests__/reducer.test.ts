@@ -195,7 +195,7 @@ describe("Cache Reducer", () => {
               dbId: "1",
               depth: 1,
               parentId: undefined,
-              coordinates: { userId: 1, groupId: 2, path: [1, 2] },
+              coordinates: { userId: "user-test-1", groupId: 2, path: [1, 2] },
               ownerId: "test-owner",
             },
             state: {
@@ -259,7 +259,7 @@ describe("Cache Reducer", () => {
               dbId: "1",
               depth: 1,
               parentId: undefined,
-              coordinates: { userId: 1, groupId: 2, path: [1, 2] },
+              coordinates: { userId: "user-test-1", groupId: 2, path: [1, 2] },
               ownerId: "test-owner",
             },
             state: {
@@ -284,7 +284,7 @@ describe("Cache Reducer", () => {
               dbId: "2",
               depth: 2,
               parentId: undefined,
-              coordinates: { userId: 1, groupId: 3, path: [1, 3] },
+              coordinates: { userId: "user-test-1", groupId: 3, path: [1, 3] },
               ownerId: "test-owner",
             },
             state: {
@@ -331,7 +331,7 @@ describe("Cache Reducer", () => {
               dbId: "1",
               depth: 1,
               parentId: undefined,
-              coordinates: { userId: 1, groupId: 2, path: [1, 2] },
+              coordinates: { userId: "user-test-1", groupId: 2, path: [1, 2] },
               ownerId: "test-owner",
             },
             state: {
@@ -525,7 +525,7 @@ describe("Cache Reducer", () => {
               dbId: "1", 
               depth: 0, 
               parentId: undefined, 
-              coordinates: { userId: 1, groupId: 2, path: [] },
+              coordinates: { userId: "user-test-1", groupId: 2, path: [] },
               ownerId: "test-owner"
             },
             state: { isDragged: false, isHovered: false, isSelected: false, isExpanded: false, isDragOver: false, isHovering: false }

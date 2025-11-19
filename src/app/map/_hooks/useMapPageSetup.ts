@@ -32,7 +32,7 @@ interface MapPageSetupResult {
     initialCompositionExpanded: boolean;
     mapContext?: {
       rootItemId: number;
-      userId: number;
+      userId: string;
       groupId: number;
     };
     cacheConfig: {

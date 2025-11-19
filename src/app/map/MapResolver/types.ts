@@ -5,7 +5,7 @@ import type { ReactNode, Dispatch } from 'react'
  */
 export interface ResolvedMapInfo {
   centerCoordinate: string;
-  userId: number;
+  userId: string;
   groupId: number;
   rootItemId: number;
   isLoading: boolean;

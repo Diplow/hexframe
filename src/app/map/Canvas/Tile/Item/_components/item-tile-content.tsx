@@ -37,7 +37,7 @@ interface ItemTileContentProps {
   canEdit: boolean;
   isSelected?: boolean;
   hasOperationPending?: boolean;
-  operationType?: 'create' | 'update' | 'delete' | 'move' | 'copy' | null;
+  operationType?: 'create' | 'update' | 'delete' | 'move' | 'copy' | 'swap' | null;
   dragProps?: DragProps; // Drag props from useItemState
   dataAttributes?: DataAttributes; // Data attributes for drag service
   onNavigate?: (coordId: string) => void;

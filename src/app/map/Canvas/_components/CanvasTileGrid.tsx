@@ -16,7 +16,7 @@ interface CanvasTileGridProps {
   scale: TileScale;
   urlInfo: URLInfo;
   interactive: boolean;
-  currentUserId?: number;
+  currentUserId?: string;
   selectedTileId: string | null;
   showNeighbors: boolean;
   onNavigate: (coordId: string) => void;

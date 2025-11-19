@@ -7,6 +7,7 @@ import {
   type RelatedLists,
 } from "~/lib/domains/mapping/_objects/map-item";
 import {
+  type Coord,
   type Direction,
 } from "~/lib/domains/mapping/utils";
 import type { MapItemRepository } from "~/lib/domains/mapping/_repositories";
@@ -77,7 +78,7 @@ export class DbMapItemRepository implements MapItemRepository {
   }
 
   async getRootItem(
-    userId: number,
+    userId: string,
     groupId: number,
   ): Promise<MapItemWithId | null> {
     const result = await this.specializedQueries.fetchRootItem(userId, groupId);
@@ -85,7 +86,7 @@ export class DbMapItemRepository implements MapItemRepository {
   }
 
   async getRootItemsForUser(
-    userId: number,
+    userId: string,
     limit = 50,
     offset = 0,
   ): Promise<MapItemWithId[]> {
@@ -175,7 +176,7 @@ export class DbMapItemRepository implements MapItemRepository {
 
   async getDescendantsByParent(params: {
     parentPath: Direction[];
-    parentUserId: number;
+    parentUserId: string;
     parentGroupId: number;
     limit?: number;
     offset?: number;
@@ -187,7 +188,7 @@ export class DbMapItemRepository implements MapItemRepository {
 
   async getDescendantsWithDepth(params: {
     parentPath: Direction[];
-    parentUserId: number;
+    parentUserId: string;
     parentGroupId: number;
     maxGenerations: number;
     limit?: number;
@@ -318,7 +319,7 @@ export class DbMapItemRepository implements MapItemRepository {
 
   async getContextForCenter(config: {
     centerPath: Direction[];
-    userId: number;
+    userId: string;
     groupId: number;
     includeParent: boolean;
     includeComposed: boolean;
@@ -348,8 +349,8 @@ export class DbMapItemRepository implements MapItemRepository {
    */
   async batchUpdateItemAndDescendants(params: {
     movedItemId: number;
-    oldCoords: { userId: number; groupId: number; path: Direction[] };
-    newCoords: { userId: number; groupId: number; path: Direction[] };
+    oldCoords: Coord;
+    newCoords: Coord;
     newParentId: number | null;
   }): Promise<number> {
     return this.writeQueries.batchUpdateItemAndDescendants(params);

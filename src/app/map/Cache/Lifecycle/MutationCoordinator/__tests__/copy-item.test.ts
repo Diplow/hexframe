@@ -29,7 +29,7 @@ describe("MutationCoordinator - copyItem", () => {
       dbId: "source-1",
       depth: 1,
       parentId: undefined,
-      coordinates: { userId: 1, groupId: 0, path: [1] },
+      coordinates: { userId: "user-test-1", groupId: 0, path: [1] },
       ownerId: "test-owner",
     },
     state: {
@@ -55,7 +55,7 @@ describe("MutationCoordinator - copyItem", () => {
       dbId: "child-1",
       depth: 2,
       parentId: undefined,
-      coordinates: { userId: 1, groupId: 0, path: [1, 2] },
+      coordinates: { userId: "user-test-1", groupId: 0, path: [1, 2] },
       ownerId: "test-owner",
     },
     state: {
@@ -133,7 +133,7 @@ describe("MutationCoordinator - copyItem", () => {
       storageService: mockStorageService,
       eventBus: mockEventBus,
       mapContext: {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         rootItemId: 1,
       },
@@ -191,8 +191,8 @@ describe("MutationCoordinator - copyItem", () => {
       await coordinator.copyItem("1,0:1", "1,0:3", "1");
 
       expect(mockCopyItemMutation.mutateAsync).toHaveBeenCalledWith({
-        sourceCoords: { userId: 1, groupId: 0, path: [1] },
-        destinationCoords: { userId: 1, groupId: 0, path: [3] },
+        sourceCoords: { userId: "user-test-1", groupId: 0, path: [1] },
+        destinationCoords: { userId: "user-test-1", groupId: 0, path: [3] },
         destinationParentId: 1,
       });
     });
@@ -319,7 +319,7 @@ describe("MutationCoordinator - copyItem", () => {
           dbId: "grandchild-1",
           depth: 3,
           parentId: undefined,
-          coordinates: { userId: 1, groupId: 0, path: [1, 2, 4] },
+          coordinates: { userId: "user-test-1", groupId: 0, path: [1, 2, 4] },
           ownerId: "test-owner",
         },
         state: {
