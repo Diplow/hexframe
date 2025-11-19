@@ -23,7 +23,8 @@ export {
   ContextStrategies,
 } from '~/lib/domains/mapping/utils/context';
 
-// Re-export commonly needed types from the domain
+// Re-export commonly needed types from the domain (client-safe API)
+// This allows client code to import from utils without pulling in server dependencies
 export { MapItemType } from '~/lib/domains/mapping/_objects';
 export type { UpdateMapItemAttrs as MapItemUpdateAttributes } from '~/lib/domains/mapping/types/parameters';
 export type { CreateMapItemParams as MapItemCreateAttributes } from '~/lib/domains/mapping/types/parameters';

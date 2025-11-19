@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeEach, vi } from "vitest";
 import { Direction } from "~/lib/domains/mapping/utils";
 import type { MapItemAPIContract } from "~/server/api/types/contracts";
-import { MapItemType } from "~/lib/domains/mapping/utils";
+import { MapItemType } from "~/lib/domains/mapping";
 import { createDataHandler, type DataHandlerServices } from "~/app/map/Cache/Handlers/DataHandler/data-handler";
 import { cacheReducer, initialCacheState } from "~/app/map/Cache/State/reducer";
 import type { CacheState } from "~/app/map/Cache/State/types";

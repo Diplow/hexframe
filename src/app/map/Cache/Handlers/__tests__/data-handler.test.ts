@@ -8,7 +8,7 @@ import { initialCacheState } from "~/app/map/Cache/State/reducer";
 import type { DataHandlerConfig, DataHandlerServices } from "~/app/map/Cache/Handlers/DataHandler/data-handler";
 import type { CacheState } from "~/app/map/Cache/State/types";
 import type { MapItemAPIContract } from "~/server/api/types/contracts";
-import { MapItemType } from "~/lib/domains/mapping/utils";
+import { MapItemType } from "~/lib/domains/mapping";
 
 describe("Data Handler", () => {
   let mockDispatch: ReturnType<typeof vi.fn>;

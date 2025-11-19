@@ -1,5 +1,6 @@
 import { type Dispatch } from "react";
-import { CoordSystem, type Coord, type MapItemUpdateAttributes, type MapItemCreateAttributes, type Direction } from "~/lib/domains/mapping/utils";
+import { CoordSystem, type Coord, type Direction } from "~/lib/domains/mapping/utils";
+import type { MapItemUpdateAttributes, MapItemCreateAttributes } from "~/lib/domains/mapping/utils";
 import type { MapItemAPIContract } from "~/server/api";
 import type { CacheAction } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
@@ -8,7 +9,7 @@ import type { StorageService } from "~/app/map/Cache/Services";
 import type { TileData } from "~/app/map/types";
 import { OptimisticChangeTracker } from "~/app/map/Cache/Lifecycle/MutationCoordinator/optimistic-tracker";
 import type { EventBusService } from '~/app/map';
-import { MapItemType } from "~/lib/domains/mapping";
+import { MapItemType } from "~/lib/domains/mapping/utils";
 
 export interface MutationCoordinatorConfig {
   dispatch: Dispatch<CacheAction>;

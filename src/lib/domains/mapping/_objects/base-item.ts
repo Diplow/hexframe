@@ -2,7 +2,7 @@ import {
   GenericAggregate,
   type GenericAggregateConstructorArgs,
 } from "~/lib/domains/utils";
-import type { MapItemAttributes } from "~/lib/domains/mapping/utils";
+import type { MapItemAttributes } from "~/lib/domains/mapping/types/item-attributes";
 
 // Type alias for MapItemAttributes - provides semantic meaning in this domain context
 export type Attrs = MapItemAttributes;

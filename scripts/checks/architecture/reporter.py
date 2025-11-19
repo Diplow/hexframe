@@ -21,7 +21,7 @@ class ArchitectureReporter:
         self.complexity_threshold = 1000
         self.doc_threshold = 500
     
-    def report_results(self, results: CheckResults, show_errors: bool = False, format_type: str = "console", suppressed_warning_count: int = 0) -> bool:
+    def report_results(self, results: CheckResults, format_type: str = "console", suppressed_warning_count: int = 0) -> bool:
         """Report results to both JSON file and console. Returns True if no errors."""
         # Ensure output directory exists
         self.output_file.parent.mkdir(exist_ok=True)
@@ -33,7 +33,7 @@ class ArchitectureReporter:
         if format_type == "json":
             self._display_json_output(results)
         else:
-            self._display_console_summary(results, show_errors=show_errors, suppressed_warning_count=suppressed_warning_count)
+            self._display_console_summary(results, suppressed_warning_count=suppressed_warning_count)
 
         return not results.has_errors()
     

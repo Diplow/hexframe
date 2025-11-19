@@ -1,6 +1,7 @@
 import type { TileData } from "~/app/map/types";
 import { getColor } from "~/app/map/types";
-import { CoordSystem, type MapItemType } from "~/lib/domains/mapping/utils";
+import { CoordSystem } from "~/lib/domains/mapping/utils";
+import type { MapItemType } from "~/lib/domains/mapping/utils";
 
 /**
  * Convert server item to TileData format

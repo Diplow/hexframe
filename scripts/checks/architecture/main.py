@@ -18,7 +18,6 @@ def main():
     """Main entry point for architecture checking."""
     parser = argparse.ArgumentParser(description="Check architecture boundaries and complexity requirements")
     parser.add_argument('target_path', nargs='?', default='src', help='Target directory to check (default: src)')
-    parser.add_argument('--show-errors', action='store_true', help='Show detailed error output')
     parser.add_argument('--format', choices=['console', 'json'], default='console', help='Output format')
     parser.add_argument('--include-warnings', action='store_true', help='Include warnings in output (default: errors only)')
     
@@ -44,7 +43,6 @@ def main():
     reporter = ArchitectureReporter()
     success = reporter.report_results(
         results,
-        show_errors=args.show_errors,
         format_type=args.format,
         suppressed_warning_count=warning_count if not args.include_warnings else 0
     )

@@ -6,7 +6,7 @@ import {
 } from "~/app/map/Cache/Services";
 import { ServiceError, NetworkError, TimeoutError } from "~/app/map/Cache/Services";
 import type { ServiceConfig } from "~/app/map/Cache/Services";
-import { MapItemType } from "~/lib/domains/mapping/utils";
+import { MapItemType } from "~/lib/domains/mapping";
 
 // Mock console.warn to avoid noise in tests (restored after each test)
 vi.spyOn(console, 'warn').mockImplementation(() => {

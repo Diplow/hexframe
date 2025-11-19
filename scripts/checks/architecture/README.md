@@ -143,6 +143,13 @@ This encourages explicit dependency tracking while still allowing router imports
 - Declared child subsystems
 - External libraries (not other subsystems)
 
+**EXCEPTION: Domain utils can reexport from sibling subsystems:**
+- `domain/utils` subsystems (`src/lib/domains/*/utils`) are special
+- They create a client-safe API by reexporting types from sibling subsystems
+- This allows client code to import from `~/lib/domains/DOMAIN/utils` without pulling in server dependencies (like database connections)
+- Example: `~/lib/domains/mapping/utils` can reexport types from `~/lib/domains/mapping/types` and `~/lib/domains/mapping/_objects`
+- The main domain index (`~/lib/domains/mapping`) still imports server-side code and should NOT be imported by client components
+
 ### 7. Naming Conflicts
 
 **No file/folder naming conflicts:**
