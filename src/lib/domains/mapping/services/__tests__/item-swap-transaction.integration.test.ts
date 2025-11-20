@@ -13,7 +13,7 @@ describe("Item Swap Transaction - Integration Test", () => {
   let baseItemRepo: DbBaseItemRepository;
   let queryService: ItemQueryService;
   let actions: MapItemActions;
-  const testUserId = 1;
+  const testUserId = "user-test-1";
   const testGroupId = 88888; // Use a unique group ID
 
   beforeEach(async () => {

@@ -36,7 +36,7 @@ export function useMapResolver(centerParam: string): ResolvedMapInfo {
     if (queryResult.data && !queryResult.isLoading && !queryResult.error) {
       const resolvedData: ResolvedMapInfo = {
         centerCoordinate: queryResult.data.coordinates || "",
-        userId: parseInt(queryResult.data.ownerId) || 0,
+        userId: queryResult.data.ownerId || "0",
         groupId: 0, // Not available in current API, defaulting to 0
         rootItemId: parseInt(queryResult.data.id) || 0,
         isLoading: false,
@@ -54,7 +54,7 @@ export function useMapResolver(centerParam: string): ResolvedMapInfo {
     if (queryResult.error && !queryResult.isLoading) {
       const errorData: ResolvedMapInfo = {
         centerCoordinate: "",
-        userId: 0,
+        userId: "0",
         groupId: 0,
         rootItemId: 0,
         isLoading: false,
@@ -77,7 +77,7 @@ export function useMapResolver(centerParam: string): ResolvedMapInfo {
     if (needsResolution) {
       return {
         centerCoordinate: "",
-        userId: 0,
+        userId: "0",
         groupId: 0,
         rootItemId: 0,
         isLoading: queryResult.isLoading,

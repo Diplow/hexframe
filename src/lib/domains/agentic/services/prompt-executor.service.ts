@@ -1,4 +1,4 @@
-import type { MapItemContract } from '~/lib/domains/mapping/utils'
+import type { MapItemMappingContract as MapItemContract } from '~/lib/domains/mapping'
 import { escapeXML } from '~/lib/domains/agentic/services/_prompt-executor-helpers'
 
 /**

@@ -41,7 +41,7 @@ export class ReadQueries {
   }
 
   async findItemIdByCoords(coords: {
-    userId: number;
+    userId: string;
     groupId: number;
     path: Direction[];
   }): Promise<number | undefined> {

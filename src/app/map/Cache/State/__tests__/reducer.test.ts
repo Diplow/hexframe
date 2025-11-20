@@ -2,7 +2,7 @@ import { cacheReducer, initialCacheState } from "~/app/map/Cache/State/reducer";
 import { ACTION_TYPES } from "~/app/map/Cache/State/types";
 import type { CacheState, CacheAction, RegionMetadata } from "~/app/map/Cache/State/types";
 import type { MapItemAPIContract } from "~/server/api/types/contracts";
-import { MapItemType } from "~/lib/domains/mapping/utils";
+import { MapItemType } from "~/lib/domains/mapping";
 
 describe("Cache Reducer", () => {
   // Mock data for testing
@@ -50,7 +50,6 @@ describe("Cache Reducer", () => {
         currentCenter: null,
         expandedItemIds: [],
         isCompositionExpanded: false,
-        pendingOperations: {},
         isLoading: false,
         error: null,
         lastUpdated: 0,
@@ -195,7 +194,7 @@ describe("Cache Reducer", () => {
               dbId: "1",
               depth: 1,
               parentId: undefined,
-              coordinates: { userId: 1, groupId: 2, path: [1, 2] },
+              coordinates: { userId: "user-test-1", groupId: 2, path: [1, 2] },
               ownerId: "test-owner",
             },
             state: {
@@ -259,7 +258,7 @@ describe("Cache Reducer", () => {
               dbId: "1",
               depth: 1,
               parentId: undefined,
-              coordinates: { userId: 1, groupId: 2, path: [1, 2] },
+              coordinates: { userId: "user-test-1", groupId: 2, path: [1, 2] },
               ownerId: "test-owner",
             },
             state: {
@@ -284,7 +283,7 @@ describe("Cache Reducer", () => {
               dbId: "2",
               depth: 2,
               parentId: undefined,
-              coordinates: { userId: 1, groupId: 3, path: [1, 3] },
+              coordinates: { userId: "user-test-1", groupId: 3, path: [1, 3] },
               ownerId: "test-owner",
             },
             state: {
@@ -331,7 +330,7 @@ describe("Cache Reducer", () => {
               dbId: "1",
               depth: 1,
               parentId: undefined,
-              coordinates: { userId: 1, groupId: 2, path: [1, 2] },
+              coordinates: { userId: "user-test-1", groupId: 2, path: [1, 2] },
               ownerId: "test-owner",
             },
             state: {
@@ -525,7 +524,7 @@ describe("Cache Reducer", () => {
               dbId: "1", 
               depth: 0, 
               parentId: undefined, 
-              coordinates: { userId: 1, groupId: 2, path: [] },
+              coordinates: { userId: "user-test-1", groupId: 2, path: [] },
               ownerId: "test-owner"
             },
             state: { isDragged: false, isHovered: false, isSelected: false, isExpanded: false, isDragOver: false, isHovering: false }
@@ -872,37 +871,37 @@ describe("Cache Reducer", () => {
     test("resets composition when navigating to new center", () => {
       const stateWithComposition: CacheState = {
         ...mockState,
-        currentCenter: "1,0:1",
+        currentCenter: "user-test-1,0:1",
         isCompositionExpanded: true,
       };
 
       const action: CacheAction = {
         type: ACTION_TYPES.SET_CENTER,
-        payload: "1,0:2",
+        payload: "user-test-1,0:2",
       };
 
       const result = cacheReducer(stateWithComposition, action);
 
-      expect(result.currentCenter).toBe("1,0:2");
+      expect(result.currentCenter).toBe("user-test-1,0:2");
       expect(result.isCompositionExpanded).toBe(false);
     });
 
     test("preserves other state properties when resetting composition", () => {
       const stateWithComposition: CacheState = {
         ...mockState,
-        currentCenter: "1,0:1",
+        currentCenter: "user-test-1,0:1",
         expandedItemIds: ["1", "2"],
         isCompositionExpanded: true,
       };
 
       const action: CacheAction = {
         type: ACTION_TYPES.SET_CENTER,
-        payload: "1,0:2",
+        payload: "user-test-1,0:2",
       };
 
       const result = cacheReducer(stateWithComposition, action);
 
-      expect(result.currentCenter).toBe("1,0:2");
+      expect(result.currentCenter).toBe("user-test-1,0:2");
       expect(result.expandedItemIds).toEqual(["1", "2"]);
       expect(result.isCompositionExpanded).toBe(false);
     });

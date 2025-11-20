@@ -16,7 +16,7 @@ export { getUserMapItemsHandler, getItemByCoordsHandler, getCurrentUserHandler }
 async function _getItemByCoords(
   caller: TRPCCaller,
   coords: {
-    userId: number;
+    userId: string;
     groupId: number;
     path: number[];
   }
@@ -36,7 +36,7 @@ async function _getItemByCoords(
 // Handler for addItem tool
 export async function addItemHandler(
   caller: TRPCCaller,
-  coords: { userId: number; groupId: number; path: number[] },
+  coords: { userId: string; groupId: number; path: number[] },
   title: string,
   content?: string,
   preview?: string,
@@ -90,7 +90,7 @@ export async function addItemHandler(
 // Handler for updateItem tool
 export async function updateItemHandler(
   caller: TRPCCaller,
-  coords: { userId: number; groupId: number; path: number[] },
+  coords: { userId: string; groupId: number; path: number[] },
   updates: { title?: string; content?: string; preview?: string; url?: string },
 ): Promise<MapItem> {
   try {
@@ -112,7 +112,7 @@ export async function updateItemHandler(
 // Handler for deleteItem tool
 export async function deleteItemHandler(
   caller: TRPCCaller,
-  coords: { userId: number; groupId: number; path: number[] },
+  coords: { userId: string; groupId: number; path: number[] },
 ): Promise<{ success: true }> {
   try {
     const result = await caller.map.removeItem({
@@ -128,8 +128,8 @@ export async function deleteItemHandler(
 // Handler for moveItem tool
 export async function moveItemHandler(
   caller: TRPCCaller,
-  oldCoords: { userId: number; groupId: number; path: number[] },
-  newCoords: { userId: number; groupId: number; path: number[] },
+  oldCoords: { userId: string; groupId: number; path: number[] },
+  newCoords: { userId: string; groupId: number; path: number[] },
 ): Promise<{
   modifiedItems: MapItem[];
   movedItemId: string;

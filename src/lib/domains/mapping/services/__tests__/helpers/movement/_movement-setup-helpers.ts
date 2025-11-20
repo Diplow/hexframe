@@ -7,7 +7,7 @@ import {
 
 export async function _setupItemForMovement(
   testEnv: TestEnvironment,
-  setupParams: { userId: number; groupId: number },
+  setupParams: { userId: string; groupId: number },
 ) {
   const setupData = await _setupBasicMap(testEnv.service, setupParams);
 
@@ -34,7 +34,7 @@ export async function _setupItemForMovement(
 
 export async function _setupTwoItemsForSwap(
   testEnv: TestEnvironment,
-  setupParams: { userId: number; groupId: number },
+  setupParams: { userId: string; groupId: number },
 ) {
   const setupData = await _setupBasicMap(testEnv.service, setupParams);
 
@@ -73,7 +73,7 @@ export async function _setupTwoItemsForSwap(
 
 export async function _setupParentChildHierarchy(
   testEnv: TestEnvironment,
-  setupParams: { userId: number; groupId: number },
+  setupParams: { userId: string; groupId: number },
 ) {
   const setupData = await _setupBasicMap(testEnv.service, setupParams);
 
@@ -121,7 +121,7 @@ export async function _setupParentChildHierarchy(
 
 export async function _setupItemWithComposition(
   testEnv: TestEnvironment,
-  setupParams: { userId: number; groupId: number },
+  setupParams: { userId: string; groupId: number },
 ) {
   const setupData = await _setupBasicMap(testEnv.service, setupParams);
 

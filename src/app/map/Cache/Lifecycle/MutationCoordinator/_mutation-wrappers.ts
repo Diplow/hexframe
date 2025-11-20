@@ -1,4 +1,5 @@
-import type { Coord, MapItemUpdateAttributes, MapItemCreateAttributes } from "~/lib/domains/mapping/utils";
+import type { Coord } from "~/lib/domains/mapping/utils";
+import type { MapItemUpdateAttributes, MapItemCreateAttributes } from "~/lib/domains/mapping/utils";
 import type { MapItemAPIContract } from "~/server/api";
 
 /**

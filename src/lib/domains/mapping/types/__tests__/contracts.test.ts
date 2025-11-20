@@ -192,7 +192,7 @@ describe("baseItemVersionDomainToContractAdapter", () => {
 
 describe("ItemHistoryContract type", () => {
   it("should be compatible with expected structure", () => {
-    const coords: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest] };
+    const coords: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest] };
     const currentVersion = createTestBaseItem(
       789,
       "Current Title",
@@ -238,7 +238,7 @@ describe("ItemHistoryContract type", () => {
   });
 
   it("should support pagination with hasMore flag", () => {
-    const coords: Coord = { userId: 1, groupId: 0, path: [] };
+    const coords: Coord = { userId: "user-test-1", groupId: 0, path: [] };
     const currentVersion = createTestBaseItem(789, "Current", "Content", null, "");
 
     const history: ItemHistoryContract = {
@@ -284,7 +284,7 @@ describe("adapt object - centralized access", () => {
   });
 
   it("should provide mapItem adapter", () => {
-    const coords: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest] };
+    const coords: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest] };
     const mapItem = createTestMapItem(
       123,
       coords,
@@ -297,14 +297,14 @@ describe("adapt object - centralized access", () => {
       999 // parentId - BASE items need a parent
     );
 
-    const contract = adapt.mapItem(mapItem, 1);
+    const contract = adapt.mapItem(mapItem, "user-test-1");
 
     expect(contract.id).toBe("123");
     expect(contract.title).toBe("Map Item Title");
   });
 
   it("should provide map adapter", () => {
-    const coords: Coord = { userId: 1, groupId: 0, path: [] };
+    const coords: Coord = { userId: "user-test-1", groupId: 0, path: [] };
     const rootItem = createTestMapItem(
       1,
       coords,
@@ -354,7 +354,7 @@ describe("adapter function purity", () => {
   });
 
   it("should not mutate input MapItem", () => {
-    const coords: Coord = { userId: 1, groupId: 0, path: [Direction.NorthWest] };
+    const coords: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest] };
     const mapItem = createTestMapItem(
       123,
       coords,
@@ -369,7 +369,7 @@ describe("adapter function purity", () => {
 
     const originalAttrs = { ...mapItem.attrs };
     const originalRefAttrs = { ...mapItem.ref.attrs };
-    mapItemDomainToContractAdapter(mapItem, 1);
+    mapItemDomainToContractAdapter(mapItem, "user-test-1");
 
     expect(mapItem.attrs).toEqual(originalAttrs);
     expect(mapItem.ref.attrs).toEqual(originalRefAttrs);

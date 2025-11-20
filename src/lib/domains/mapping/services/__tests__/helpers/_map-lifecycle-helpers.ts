@@ -5,7 +5,7 @@ import type { TestEnvironment } from "~/lib/domains/mapping/services/__tests__/h
 
 export async function _createAndValidateMap(
   testEnv: TestEnvironment,
-  params: { userId: number; groupId: number },
+  params: { userId: string; groupId: number },
   expectedData: { title?: string; content?: string },
 ) {
   const createArgs = { ...params, ...expectedData };
@@ -25,7 +25,7 @@ export async function _createAndValidateMap(
 
 export async function _validateMapInRepository(
   testEnv: TestEnvironment,
-  params: { userId: number; groupId: number },
+  params: { userId: string; groupId: number },
   expectedData: { title: string; content: string },
 ) {
   const rootItem = await testEnv.repositories.mapItem.getRootItem(
@@ -45,7 +45,7 @@ export async function _validateMapInRepository(
 export function _validateRetrievedMapData(
   retrievedMapData: unknown,
   createdMap: { id: number; title: string; content: string },
-  params: { userId: number; groupId: number },
+  params: { userId: string; groupId: number },
 ) {
   expect(retrievedMapData).not.toBeNull();
   if (retrievedMapData) {
@@ -68,7 +68,7 @@ export function _validateRetrievedMapData(
 
 export async function _setupMultipleUserMaps(
   testEnv: TestEnvironment,
-  userId: number,
+  userId: string,
 ) {
   const map1 = await testEnv.service.maps.createMap({
     userId,
@@ -81,7 +81,7 @@ export async function _setupMultipleUserMaps(
     title: "Second Map",
   });
   const otherUserMap = await testEnv.service.maps.createMap({
-    userId: userId + 1,
+    userId: userId + "-other",
     groupId: 0,
     title: "Other User Map",
   });
@@ -101,7 +101,7 @@ export function _validateUserMapsRetrieval(
 
 export async function _updateAndValidateMapInfo(
   testEnv: TestEnvironment,
-  params: { userId: number; groupId: number },
+  params: { userId: string; groupId: number },
   updateData: { title: string; content: string },
   expectedId: number,
 ) {
@@ -119,7 +119,7 @@ export async function _updateAndValidateMapInfo(
 
 export async function _validateUpdatedMapInRepository(
   testEnv: TestEnvironment,
-  params: { userId: number; groupId: number },
+  params: { userId: string; groupId: number },
   updateData: { title: string; content: string },
 ) {
   const rootItem = await testEnv.repositories.mapItem.getRootItem(
@@ -131,7 +131,7 @@ export async function _validateUpdatedMapInRepository(
 
 export async function _validateMapRemoval(
   testEnv: TestEnvironment,
-  params: { userId: number; groupId: number },
+  params: { userId: string; groupId: number },
 ) {
   await expect(testEnv.service.maps.getMapData(params)).rejects.toThrow();
   const rootItem = await testEnv.repositories.mapItem.getRootItem(
@@ -143,7 +143,7 @@ export async function _validateMapRemoval(
 
 export async function _createAndUpdateMap(
   testEnv: TestEnvironment,
-  createParams: { userId: number; groupId: number },
+  createParams: { userId: string; groupId: number },
   updateData: { title?: string; content?: string },
 ) {
   const createArgs = { ...createParams, title: "Original", content: "Original" };
@@ -162,7 +162,7 @@ export async function _createAndUpdateMap(
 
 export async function _validateMapDataError(
   testEnv: TestEnvironment,
-  params: { userId: number; groupId: number },
+  params: { userId: string; groupId: number },
 ) {
   await expect(testEnv.service.maps.getMapData(params)).rejects.toThrow();
 }

@@ -43,7 +43,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
     const userItem = await db
       .insert(schema.mapItems)
       .values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "",
         item_type: MapItemType.USER,
@@ -63,7 +63,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
       const [insertedItem] = await db
         .insert(schema.mapItems)
         .values({
-          coord_user_id: 1,
+          coord_user_id: "user-test-1",
           coord_group_id: 0,
           path: pathWithNegative,
           item_type: MapItemType.BASE,
@@ -97,7 +97,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
         const [item] = await db
           .insert(schema.mapItems)
           .values({
-            coord_user_id: 1,
+            coord_user_id: "user-test-1",
             coord_group_id: 0,
             path: path,
             item_type: MapItemType.BASE,
@@ -143,7 +143,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
       const [insertedItem] = await db
         .insert(schema.mapItems)
         .values({
-          coord_user_id: 1,
+          coord_user_id: "user-test-1",
           coord_group_id: 0,
           path: complexPath,
           item_type: MapItemType.BASE,
@@ -172,7 +172,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
       const [insertedItem] = await db
         .insert(schema.mapItems)
         .values({
-          coord_user_id: 1,
+          coord_user_id: "user-test-1",
           coord_group_id: 0,
           path: negativeOnlyPath,
           item_type: MapItemType.BASE,
@@ -201,7 +201,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
       const [insertedItem] = await db
         .insert(schema.mapItems)
         .values({
-          coord_user_id: 1,
+          coord_user_id: "user-test-1",
           coord_group_id: 0,
           path: mixedPath,
           item_type: MapItemType.BASE,
@@ -227,7 +227,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
       const [insertedItem] = await db
         .insert(schema.mapItems)
         .values({
-          coord_user_id: 1,
+          coord_user_id: "user-test-1",
           coord_group_id: 0,
           path: pathWithZero,
           item_type: MapItemType.BASE,
@@ -263,7 +263,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
       const [insertedItem] = await db
         .insert(schema.mapItems)
         .values({
-          coord_user_id: 1,
+          coord_user_id: "user-test-1",
           coord_group_id: 0,
           path: deepPath,
           item_type: MapItemType.BASE,
@@ -289,7 +289,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
       const [insertedItem] = await db
         .insert(schema.mapItems)
         .values({
-          coord_user_id: 2, // Different user to avoid USER type conflict
+          coord_user_id: "user-test-2", // Different user to avoid USER type conflict
           coord_group_id: 0,
           path: emptyPath,
           item_type: MapItemType.USER,
@@ -310,7 +310,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
 
       for (const path of paths) {
         await db.insert(schema.mapItems).values({
-          coord_user_id: 1,
+          coord_user_id: "user-test-1",
           coord_group_id: 0,
           path: path,
           item_type: MapItemType.BASE,
@@ -338,7 +338,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
 
       await db.insert(schema.mapItems).values([
         {
-          coord_user_id: 1,
+          coord_user_id: "user-test-1",
           coord_group_id: 0,
           path: parentPath,
           item_type: MapItemType.BASE,
@@ -346,7 +346,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
           parentId: testUserId,
         },
         {
-          coord_user_id: 1,
+          coord_user_id: "user-test-1",
           coord_group_id: 0,
           path: childPath,
           item_type: MapItemType.BASE,
@@ -354,7 +354,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
           parentId: testUserId,
         },
         {
-          coord_user_id: 1,
+          coord_user_id: "user-test-1",
           coord_group_id: 0,
           path: grandchildPath,
           item_type: MapItemType.BASE,
@@ -362,7 +362,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
           parentId: testUserId,
         },
         {
-          coord_user_id: 1,
+          coord_user_id: "user-test-1",
           coord_group_id: 0,
           path: unrelatedPath,
           item_type: MapItemType.BASE,
@@ -375,7 +375,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
       const { like, and, eq } = await import("drizzle-orm");
       const descendants = await db.query.mapItems.findMany({
         where: and(
-          eq(schema.mapItems.coord_user_id, 1),
+          eq(schema.mapItems.coord_user_id, "user-test-1"),
           eq(schema.mapItems.coord_group_id, 0),
           like(schema.mapItems.path, `${parentPath},%`),
         ),
@@ -394,7 +394,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
       const duplicatePath = "1,-3,2";
 
       await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: duplicatePath,
         item_type: MapItemType.BASE,
@@ -405,7 +405,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
       // Act & Assert: Attempting to insert duplicate should fail
       await expect(
         db.insert(schema.mapItems).values({
-          coord_user_id: 1,
+          coord_user_id: "user-test-1",
           coord_group_id: 0,
           path: duplicatePath,
           item_type: MapItemType.BASE,
@@ -424,7 +424,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
         .insert(schema.mapItems)
         .values([
           {
-            coord_user_id: 1,
+            coord_user_id: "user-test-1",
             coord_group_id: 0,
             path: samePath,
             item_type: MapItemType.BASE,
@@ -432,7 +432,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
             parentId: testUserId,
           },
           {
-            coord_user_id: 1,
+            coord_user_id: "user-test-1",
             coord_group_id: 1, // Different group
             path: samePath,
             item_type: MapItemType.BASE,
@@ -440,7 +440,7 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
             parentId: testUserId,
           },
           {
-            coord_user_id: 2, // Different user
+            coord_user_id: "user-test-2", // Different user
             coord_group_id: 0,
             path: samePath,
             item_type: MapItemType.BASE,

@@ -11,7 +11,7 @@ import {
 export async function _validateItemMovementToEmptyCell(
   testEnv: TestEnvironment,
   movementSetup: {
-    userId: number;
+    userId: string;
     groupId: number;
     item: { id: string };
     initialCoords: Coord;
@@ -80,7 +80,7 @@ export async function _validateItemSwapping(
 export async function _validateParentChildMovement(
   testEnv: TestEnvironment,
   hierarchySetup: {
-    userId: number;
+    userId: string;
     groupId: number;
     parentItem: { id: string };
     parentInitialCoords: Coord;
@@ -121,7 +121,7 @@ export async function _validateParentNewPosition(
 export async function _validateChildRelativePosition(
   testEnv: TestEnvironment,
   hierarchySetup: {
-    userId: number;
+    userId: string;
     groupId: number;
     parentNewCoords: Coord;
     parentItem: { id: string };
@@ -192,9 +192,9 @@ export async function _validateUserItemMoveRestriction(
 
 export async function _validateCrossSpaceMovementError(
   testEnv: TestEnvironment,
-  movementSetup: { userId: number; groupId: number; initialCoords: Coord },
+  movementSetup: { userId: string; groupId: number; initialCoords: Coord },
 ) {
-  const differentUserId = movementSetup.userId + 999999;
+  const differentUserId = `${movementSetup.userId}-different`;
   const differentSpaceCoords = _createTestCoordinates({
     userId: differentUserId,
     groupId: movementSetup.groupId,
@@ -212,7 +212,7 @@ export async function _validateCrossSpaceMovementError(
 export async function _validateCompositionMovement(
   testEnv: TestEnvironment,
   compositionSetup: {
-    userId: number;
+    userId: string;
     groupId: number;
     parentItem: { id: string };
     parentInitialCoords: Coord;

@@ -17,11 +17,11 @@ export function _validateAndParseCoordinate(
   }
 
   // Don't make API calls with invalid userId/groupId values
-  if (coords.userId === 0 || isNaN(coords.userId)) {
+  if (!coords.userId || coords.userId === '0') {
     console.warn('[ServerService] Skipping API call due to invalid coordinate parsing:', {
       centerCoordId,
       parsedCoords: coords,
-      issue: isNaN(coords.userId) ? 'NaN userId (likely database ID format)' : 'Zero userId'
+      issue: !coords.userId ? 'Empty userId' : 'Invalid userId value "0"'
     });
     return null;
   }

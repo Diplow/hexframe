@@ -13,7 +13,7 @@ describe("BaseTile - Composition Styling", () => {
       dbId,
       coordId,
       parentId: undefined,
-      coordinates: { userId: 1, groupId: 0, path: coordId.split(":")[2]?.split(",").map(Number) ?? [] },
+      coordinates: { userId: "user-test-1", groupId: 0, path: coordId.split(":")[2]?.split(",").map(Number) ?? [] },
       depth: coordId.split(":")[2]?.split(",").length ?? 0,
       ownerId: "user1",
     },

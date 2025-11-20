@@ -405,14 +405,14 @@ describe("Mapping Domain - Negative Direction Integration", () => {
     it("should correctly serialize and validate negative direction coordinates", () => {
       // Test that utils serialization works with types validation
       const coord: Coord = {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest, Direction.ComposedEast, Direction.SouthEast],
       };
 
       // Utils layer: serialize
       const coordId = CoordSystem.createId(coord);
-      expect(coordId).toBe("1,0:1,-3,4");
+      expect(coordId).toBe("user-test-1,0:1,-3,4");
 
       // Utils layer: deserialize
       const parsed = CoordSystem.parseId(coordId);
@@ -424,13 +424,13 @@ describe("Mapping Domain - Negative Direction Integration", () => {
 
     it("should identify composed children correctly across utils functions", () => {
       const composedCoord: Coord = {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest, Direction.ComposedEast],
       };
 
       const structuralCoord: Coord = {
-        userId: 1,
+        userId: "user-test-1",
         groupId: 0,
         path: [Direction.NorthWest, Direction.East],
       };
@@ -491,7 +491,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
       // Repository layer query (through getContextForCenter)
       const repoResult = await testEnv.repositories.mapItem.getContextForCenter({
         centerPath: parentCoord.path,
-        userId: testParams.userId,
+        userId: String(testParams.userId),
         groupId: testParams.groupId,
         includeParent: false,
         includeComposed: true,

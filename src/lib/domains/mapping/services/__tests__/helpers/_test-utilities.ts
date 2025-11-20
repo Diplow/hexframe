@@ -68,7 +68,7 @@ export function _createTestEnvironment(): TestEnvironment {
 }
 
 export function _createTestCoordinates(params: {
-  userId: number;
+  userId: string;
   groupId: number;
   path?: Direction[];
 }): Coord {
@@ -81,7 +81,7 @@ export function _createTestCoordinates(params: {
 
 export async function _setupBasicMap(
   service: MappingService,
-  params: { userId: number; groupId: number; title?: string },
+  params: { userId: string; groupId: number; title?: string },
 ) {
   return await service.maps.createMap({
     userId: params.userId,
@@ -94,7 +94,7 @@ export async function _setupBasicMap(
 export async function _setupMapWithChild(
   service: MappingService,
   params: {
-    userId: number;
+    userId: string;
     groupId: number;
     childPath?: Direction[];
     childTitle?: string;
@@ -117,8 +117,8 @@ export async function _setupMapWithChild(
 }
 
 // Helper to ensure unique test parameters to avoid conflicts
-export function _createUniqueTestParams(baseUserId = 1): {
-  userId: number;
+export function _createUniqueTestParams(baseUserId = "user-test-1"): {
+  userId: string;
   groupId: number;
 } {
   // Use smaller random numbers that fit within integer constraints
@@ -127,7 +127,7 @@ export function _createUniqueTestParams(baseUserId = 1): {
   const timeComponent = Date.now() % 100000; // Last 5 digits of timestamp
 
   return {
-    userId: baseUserId * 1000 + random, // Creates unique IDs in reasonable range
+    userId: `${baseUserId}-${random}`, // Creates unique string IDs
     groupId: timeComponent % 1000, // 0-999 range
   };
 }

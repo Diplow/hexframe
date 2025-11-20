@@ -27,7 +27,7 @@ export class ItemQueryService {
     userId,
     groupId = 0,
   }: {
-    userId: number;
+    userId: string;
     groupId?: number;
   }): Promise<MapItemContract[]> {
     const rootItem = await this.actions.mapItems.getRootItem(userId, groupId);

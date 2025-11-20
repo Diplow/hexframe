@@ -37,7 +37,7 @@ function filterHierarchyFields(item: MapItemWithHierarchy, fields?: string[]): P
 async function _getItemByCoords(
   caller: TRPCCaller,
   coords: {
-    userId: number;
+    userId: string;
     groupId: number;
     path: number[];
   }
@@ -54,7 +54,7 @@ async function _getItemByCoords(
 // Handler for getUserMapItems tool (renamed to getItemsForRootItem)
 export async function getUserMapItemsHandler(
   caller: TRPCCaller,
-  userId: number,
+  userId: string,
   groupId = 0,
   depth = 3,
   fields?: string[],
@@ -95,7 +95,7 @@ export async function getUserMapItemsHandler(
 export async function getItemByCoordsHandler(
   caller: TRPCCaller,
   coords: {
-    userId: number;
+    userId: string;
     groupId: number;
     path: number[];
   },

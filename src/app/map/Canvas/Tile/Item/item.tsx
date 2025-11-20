@@ -18,7 +18,7 @@ export interface DynamicItemTileProps {
   isCenter?: boolean;
   urlInfo: URLInfo;
   interactive?: boolean;
-  currentUserId?: number;
+  currentUserId?: string;
   isSelected?: boolean;
   onNavigate?: (coordId: string) => void;
   onToggleExpansion?: (itemId: string, coordId: string) => void;

@@ -36,7 +36,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
 
       // Act - insert mapItem with negative direction in path
       const mapItem = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,-1", // Positive direction, then negative direction
         item_type: MapItemType.BASE,
@@ -58,7 +58,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
 
       // Act - insert mapItem with multiple negative directions
       const mapItem = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,-1,2,-2", // Mixed positive and negative
         item_type: MapItemType.BASE,
@@ -81,7 +81,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       const negativeDirections = [-1, -2, -3, -4, -5, -6];
       const promises = negativeDirections.map((dir) =>
         db.insert(schema.mapItems).values({
-          coord_user_id: 1,
+          coord_user_id: "user-test-1",
           coord_group_id: 0,
           path: `${dir}`,
           item_type: MapItemType.BASE,
@@ -138,7 +138,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const parent = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
         item_type: MapItemType.BASE,
@@ -152,7 +152,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const container = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0",
         item_type: MapItemType.BASE,
@@ -173,7 +173,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         }).returning();
 
         const child = await db.insert(schema.mapItems).values({
-          coord_user_id: 1,
+          coord_user_id: "user-test-1",
           coord_group_id: 0,
           path: `1,0,${dir}`,
           item_type: MapItemType.BASE,
@@ -209,7 +209,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const parent = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
         item_type: MapItemType.BASE,
@@ -223,7 +223,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const container = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0",
         item_type: MapItemType.BASE,
@@ -255,7 +255,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const container = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "0",
         item_type: MapItemType.BASE,
@@ -269,7 +269,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const child = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "0,1",
         item_type: MapItemType.BASE,
@@ -307,7 +307,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }
 
       const level1 = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
         item_type: MapItemType.BASE,
@@ -315,7 +315,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const level2 = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,2",
         item_type: MapItemType.BASE,
@@ -324,7 +324,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const container = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,2,0",
         item_type: MapItemType.BASE,
@@ -333,7 +333,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const child = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,2,0,3",
         item_type: MapItemType.BASE,
@@ -364,7 +364,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const root = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "",
         item_type: MapItemType.BASE,
@@ -379,7 +379,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const branch1 = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
         item_type: MapItemType.BASE,
@@ -394,7 +394,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const container1 = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0",
         item_type: MapItemType.BASE,
@@ -409,7 +409,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const child1 = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0,4",
         item_type: MapItemType.BASE,
@@ -425,7 +425,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const branch2 = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "2",
         item_type: MapItemType.BASE,
@@ -440,7 +440,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const container2 = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "2,0",
         item_type: MapItemType.BASE,
@@ -455,7 +455,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const child2 = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "2,0,5",
         item_type: MapItemType.BASE,
@@ -509,7 +509,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
 
       // Verify only transformed items exist (no duplicates)
       const allItems = await db.query.mapItems.findMany({
-        where: eq(schema.mapItems.coord_user_id, 1),
+        where: eq(schema.mapItems.coord_user_id, "user-test-1"),
       });
       expect(allItems).toHaveLength(2); // Only parent and child
     });
@@ -523,7 +523,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const item = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,-1",
         item_type: MapItemType.BASE,
@@ -551,7 +551,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const parent = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
         item_type: MapItemType.BASE,
@@ -565,7 +565,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const child = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,2", // Direction 2 without preceding 0
         item_type: MapItemType.BASE,
@@ -597,7 +597,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const parent = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
         item_type: MapItemType.BASE,
@@ -612,7 +612,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const container = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0",
         item_type: MapItemType.BASE,
@@ -642,7 +642,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const parent = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
         item_type: MapItemType.BASE,
@@ -656,7 +656,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const container = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0",
         item_type: MapItemType.BASE,
@@ -671,7 +671,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const child = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0,1",
         item_type: MapItemType.BASE,
@@ -706,7 +706,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const parent = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
         item_type: MapItemType.BASE,
@@ -720,7 +720,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const container = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0",
         item_type: MapItemType.BASE,
@@ -735,7 +735,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const child = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0,1",
         item_type: MapItemType.BASE,
@@ -768,7 +768,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const parent = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
         item_type: MapItemType.BASE,
@@ -782,7 +782,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const container = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0",
         item_type: MapItemType.BASE,
@@ -797,7 +797,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const child = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0,1",
         item_type: MapItemType.BASE,
@@ -825,7 +825,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const parent = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
         item_type: MapItemType.BASE,
@@ -839,7 +839,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const container = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0",
         item_type: MapItemType.BASE,
@@ -870,7 +870,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const parent = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
         item_type: MapItemType.BASE,
@@ -884,7 +884,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const container = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0",
         item_type: MapItemType.BASE,
@@ -899,7 +899,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const child = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0,1",
         item_type: MapItemType.BASE,
@@ -914,7 +914,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       }).returning();
 
       const grandchild = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0,1,2",
         item_type: MapItemType.BASE,
@@ -1006,7 +1006,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
     }).returning();
 
     const parent = await db.insert(schema.mapItems).values({
-      coord_user_id: 1,
+      coord_user_id: "user-test-1",
       coord_group_id: 0,
       path: parentPath,
       item_type: MapItemType.BASE,
@@ -1020,7 +1020,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
     }).returning();
 
     const container = await db.insert(schema.mapItems).values({
-      coord_user_id: 1,
+      coord_user_id: "user-test-1",
       coord_group_id: 0,
       path: containerPath,
       item_type: MapItemType.BASE,
@@ -1035,7 +1035,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
     }).returning();
 
     const child = await db.insert(schema.mapItems).values({
-      coord_user_id: 1,
+      coord_user_id: "user-test-1",
       coord_group_id: 0,
       path: childPath,
       item_type: MapItemType.BASE,

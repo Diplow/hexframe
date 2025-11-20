@@ -12,7 +12,6 @@ export interface UserProps {
   name?: string;
   emailVerified: boolean;
   image?: string;
-  mappingId: number; // Legacy mapping system ID
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,7 +22,6 @@ export interface CreateUserProps {
   name?: string;
   emailVerified?: boolean;
   image?: string;
-  mappingId: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -41,17 +39,18 @@ export class User {
       throw new Error("User ID is required");
     }
 
-    if (typeof props.mappingId !== "number" || props.mappingId <= 0) {
-      throw new Error("Valid mapping ID is required");
+    // Validate name: if provided, it must not be empty after trimming
+    const trimmedName = props.name?.trim();
+    if (props.name !== undefined && (!trimmedName || trimmedName.length === 0)) {
+      throw new Error("User name is required");
     }
 
     return new User({
       id: props.id,
       email: props.email.toLowerCase(),
-      name: props.name?.trim(),
+      name: trimmedName,
       emailVerified: props.emailVerified ?? false,
       image: props.image,
-      mappingId: props.mappingId,
       createdAt: props.createdAt ?? new Date(),
       updatedAt: props.updatedAt ?? new Date(),
     });
@@ -80,10 +79,6 @@ export class User {
 
   get image(): string | undefined {
     return this.props.image;
-  }
-
-  get mappingId(): number {
-    return this.props.mappingId;
   }
 
   get createdAt(): Date {

@@ -111,7 +111,7 @@ export class MapItemQueryHelpers {
     userId,
     groupId,
   }: {
-    userId: number;
+    userId: string;
     groupId: number;
   }): Promise<MapItemWithId[]> {
     const rootItem = await this.mapItems.getRootItem(userId, groupId);

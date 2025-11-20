@@ -9,7 +9,6 @@ export {
   baseItemRelations,
   baseItemVersionsRelations,
   mapItemRelations,
-  userMappingRelations,
   usersRelations,
   accountsRelations,
   sessionsRelations,
@@ -27,7 +26,6 @@ export * from "~/server/db/schema/_tables/auth/internal-api-keys";
 export * from "~/server/db/schema/_tables/mapping/base-items";
 export * from "~/server/db/schema/_tables/mapping/base-item-versions";
 export * from "~/server/db/schema/_tables/mapping/map-items";
-export * from "~/server/db/schema/_tables/mapping/user-mapping";
 
 // LLM job results table
 export * from "~/server/db/schema/_tables/llm-job-results";

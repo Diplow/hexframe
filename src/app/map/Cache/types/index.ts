@@ -141,7 +141,7 @@ export interface MapCacheProviderProps {
   initialCompositionExpanded?: boolean;
   mapContext?: {
     rootItemId: number;
-    userId: number;
+    userId: string;
     groupId: number;
   };
   cacheConfig?: Partial<MapCacheHook["config"]>;

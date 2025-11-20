@@ -387,10 +387,10 @@ class ImportRuleChecker:
         
         return violations
     
-    def _check_reexport_violation(self, subsystem: SubsystemInfo, import_path: str, 
+    def _check_reexport_violation(self, subsystem: SubsystemInfo, import_path: str,
                                  full_statement: str, line_num: int) -> dict:
         """Check if a single reexport violates rules."""
-        
+
         # NEW RULE: index.ts files cannot reexport from parent/higher directories
         if self._is_upward_reexport(subsystem, import_path):
             return {
@@ -399,7 +399,7 @@ class ImportRuleChecker:
                 'full_statement': full_statement,
                 'reason': 'index.ts files cannot reexport from parent directories - either move implementation here or import directly from original location'
             }
-        
+
         # Special rule: Domain index.ts files should NOT reexport from utils
         # Utils should be imported directly, not through domain index
         if self._is_domain_index(subsystem):
@@ -421,20 +421,38 @@ class ImportRuleChecker:
                     'full_statement': full_statement,
                     'reason': 'domain index should not reexport utils - import directly from utils instead'
                 }
-        
+
+        # EXCEPTION: Domain utils can reexport from sibling subsystems within same domain
+        # This allows utils to create a client-safe API without server dependencies
+        if self._is_domain_utils(subsystem):
+            # Check if import is from the same domain
+            subsystem_rel_path = subsystem.path.relative_to(Path('src'))
+            path_parts = subsystem_rel_path.parts
+            if len(path_parts) >= 4 and path_parts[0] == 'lib' and path_parts[1] == 'domains':
+                domain_name = path_parts[2]
+                domain_prefix = f"~/lib/domains/{domain_name}"
+
+                # Allow reexports from same domain for domain/utils
+                if import_path.startswith(domain_prefix):
+                    return None  # Allowed for domain/utils
+                # Also allow relative imports from siblings
+                if import_path.startswith('../'):
+                    # Check if it resolves to same domain
+                    return None  # Allowed for domain/utils
+
         # STRICT RULE: Only allow reexports from child subsystems or internal files
         if import_path.startswith('./'):
             # This is a child reference - check if it's a declared child subsystem or internal file
             child_name = import_path[2:]  # Remove './'
             child_subsystems = subsystem.dependencies.get("subsystems", [])
-            
+
             if f"./{child_name}" in child_subsystems:
                 return None  # Valid child subsystem reexport
             else:
                 # Check if it's a file within the current subsystem
                 if self._is_internal_file_reexport(subsystem, child_name):
                     return None  # Valid internal file reexport
-        
+
         elif import_path.startswith('../'):
             # STRICT: No reexports from siblings or parents
             return {
@@ -580,10 +598,24 @@ class ImportRuleChecker:
         """Check if this subsystem represents a domain's main index.ts file."""
         # Domain paths look like: src/lib/domains/DOMAIN_NAME
         path_parts = subsystem.path.parts
-        return (len(path_parts) >= 4 and 
-                path_parts[-3] == 'lib' and 
-                path_parts[-2] == 'domains' and 
+        return (len(path_parts) >= 4 and
+                path_parts[-3] == 'lib' and
+                path_parts[-2] == 'domains' and
                 (subsystem.path / 'index.ts').exists())
+
+    def _is_domain_utils(self, subsystem: SubsystemInfo) -> bool:
+        """Check if this subsystem is a domain/utils directory.
+
+        Domain utils are special - they create a client-safe API by reexporting
+        types from sibling subsystems without pulling in server dependencies.
+        Pattern: src/lib/domains/DOMAIN_NAME/utils
+        """
+        path_parts = subsystem.path.parts
+        return (len(path_parts) >= 5 and
+                path_parts[0] == 'src' and
+                path_parts[1] == 'lib' and
+                path_parts[2] == 'domains' and
+                path_parts[4] == 'utils')
     
     def _is_index_in_formal_subsystem(self, index_file: Path) -> bool:
         """Check if this index file belongs to a formal subsystem (has dependencies.json)."""

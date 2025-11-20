@@ -71,7 +71,7 @@ describe("Navigation Handler", () => {
             dbId: "999",
             depth: 0,
             parentId: undefined,
-            coordinates: { userId: 0, groupId: 0, path: [] },
+            coordinates: { userId: "user-test-0", groupId: 0, path: [] },
             ownerId: "test-owner",
           },
           state: {
@@ -96,7 +96,7 @@ describe("Navigation Handler", () => {
             dbId: "123",
             depth: 1,
             parentId: undefined,
-            coordinates: { userId: 1, groupId: 2, path: [1, 2] },
+            coordinates: { userId: "user-test-1", groupId: 2, path: [1, 2] },
             ownerId: "test-owner",
           },
           state: {

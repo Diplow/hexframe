@@ -43,7 +43,7 @@ export function createDropHandler(
 /**
  * Create validation handler for drag service
  */
-export function createValidationHandler(itemsById: Record<string, TileData>, userId: number) {
+export function createValidationHandler(itemsById: Record<string, TileData>, userId: string) {
   return (sourceId: string, targetId: string) => {
     const sourceTile = itemsById[sourceId] ?? null;
     const targetTile = itemsById[targetId] ?? null;

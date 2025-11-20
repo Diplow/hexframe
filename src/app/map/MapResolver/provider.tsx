@@ -60,32 +60,32 @@ export function MapResolverProvider({ children }: MapResolverProviderProps) {
     if (!centerParam) {
       return {
         centerCoordinate: "",
-        userId: 0,
+        userId: "0",
         groupId: 0,
         rootItemId: 0,
         isLoading: false,
         error: null,
       };
     }
-    
+
     // Check if already a coordinate format - return immediately without dispatch
     const isCoordinate = centerParam.includes(",");
     if (isCoordinate) {
       return {
         centerCoordinate: centerParam,
-        userId: 0,
+        userId: "0",
         groupId: 0,
         rootItemId: 0,
         isLoading: false,
         error: null,
       };
     }
-    
+
     // Must be a database ID - need async resolution
     // Return loading state - actual resolution will happen in the hook
     return {
       centerCoordinate: "",
-      userId: 0,
+      userId: "0",
       groupId: 0,
       rootItemId: 0,
       isLoading: true,

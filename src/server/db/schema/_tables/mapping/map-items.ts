@@ -39,7 +39,7 @@ export const mapItems = createTable(
   "map_items",
   {
     id: integer("id").primaryKey().generatedByDefaultAsIdentity(),
-    coord_user_id: integer("coord_user_id").notNull(),
+    coord_user_id: varchar("coord_user_id", { length: 255 }).notNull(),
     coord_group_id: integer("coord_group_id").notNull().default(0),
     path: varchar("path", { length: 255 }).notNull().default(""),
     item_type: varchar("item_type", { length: 50 })

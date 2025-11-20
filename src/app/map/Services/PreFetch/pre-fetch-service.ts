@@ -22,16 +22,15 @@ export interface PreFetchedMapData {
  * Note: This function should be called from a React component context to access tRPC utils
  */
 export async function preloadUserMapData(
-  userId: number,
+  userId: string,
   groupId = 0,
   utils: ReturnType<typeof api.useUtils>
 ): Promise<PreFetchedMapData | null> {
   try {
-    // Validate userId to prevent NaN errors
-    if (!userId || isNaN(userId) || userId <= 0) {
+    // Validate userId to prevent empty string errors
+    if (!userId || userId.trim() === '') {
       console.warn('[PreFetch] Invalid userId provided:', {
         userId,
-        isNaN: isNaN(userId),
         type: typeof userId
       });
       return null;

@@ -13,7 +13,7 @@ describe("Item Movement - Transaction Integration Tests", () => {
   let baseItemRepo: DbBaseItemRepository;
   let service: ItemCrudService;
   let actions: MapItemActions;
-  const testUserId = 1;
+  const testUserId = "user-test-1";
   const testGroupId = 66666; // Use a unique group ID to avoid conflicts
 
   beforeEach(async () => {

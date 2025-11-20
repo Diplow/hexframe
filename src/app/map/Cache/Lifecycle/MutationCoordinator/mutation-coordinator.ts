@@ -1,5 +1,6 @@
 import { type Dispatch } from "react";
-import { CoordSystem, type Coord, type MapItemUpdateAttributes, type MapItemCreateAttributes, type Direction } from "~/lib/domains/mapping/utils";
+import { CoordSystem, type Coord, type Direction } from "~/lib/domains/mapping/utils";
+import type { MapItemUpdateAttributes, MapItemCreateAttributes } from "~/lib/domains/mapping/utils";
 import type { MapItemAPIContract } from "~/server/api";
 import type { CacheAction } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
@@ -8,7 +9,7 @@ import type { StorageService } from "~/app/map/Cache/Services";
 import type { TileData } from "~/app/map/types";
 import { OptimisticChangeTracker } from "~/app/map/Cache/Lifecycle/MutationCoordinator/optimistic-tracker";
 import type { EventBusService } from '~/app/map';
-import { MapItemType } from "~/lib/domains/mapping";
+import { MapItemType } from "~/lib/domains/mapping/utils";
 
 export interface MutationCoordinatorConfig {
   dispatch: Dispatch<CacheAction>;
@@ -16,7 +17,7 @@ export interface MutationCoordinatorConfig {
   dataOperations: DataOperations;
   storageService: StorageService;
   mapContext?: {
-    userId: number;
+    userId: string;
     groupId: number;
     rootItemId: number;
   };
@@ -25,20 +26,12 @@ export interface MutationCoordinatorConfig {
     mutateAsync: (params: {
       coords: Coord;
       parentId?: number | null;
-      title?: string;
-      content?: string;
-      preview?: string;
-      url?: string;
-    }) => Promise<MapItemAPIContract>;
+    } & MapItemCreateAttributes) => Promise<MapItemAPIContract>;
   };
   updateItemMutation: {
     mutateAsync: (params: {
       coords: Coord;
-      title?: string;
-      content?: string;
-      preview?: string;
-      url?: string;
-    }) => Promise<MapItemAPIContract>;
+    } & MapItemUpdateAttributes) => Promise<MapItemAPIContract>;
   };
   deleteItemMutation: {
     mutateAsync: (params: {
@@ -278,7 +271,7 @@ export class MutationCoordinator {
     }
   }
 
-  async createItem(coordId: string, data: MapItemCreateAttributes & { parentId?: number }): Promise<MutationResult> {
+  async createItem(coordId: string, data: Omit<MapItemCreateAttributes, 'coords' | 'itemType'> & { parentId?: number }): Promise<MutationResult> {
     return this.trackOperation(coordId, 'create', async () => {
       const changeId = this.tracker.generateChangeId();
 
@@ -309,11 +302,12 @@ export class MutationCoordinator {
         }
         const result = await this.config.addItemMutation.mutateAsync({
           coords,
+          itemType: MapItemType.BASE,
           ...(parentIdNumber !== undefined ? { parentId: parentIdNumber } : {}),
           title: data.title,
           content: data.content,
           preview: data.preview,
-          url: data.link,
+          link: data.link,
         });
 
         // Finalize with real data
@@ -359,7 +353,7 @@ export class MutationCoordinator {
           title: data.title,
           content: data.content,
           preview: data.preview,
-          url: data.link,
+          link: data.link,
         });
 
         // Finalize with real data
@@ -775,7 +769,7 @@ export class MutationCoordinator {
       depth: coords.path.length,
       parentId,
       itemType: MapItemType.BASE,
-      ownerId: this.config.mapContext?.userId.toString() ?? "unknown",
+      ownerId: this.config.mapContext?.userId ?? "unknown",
       originId: null,
     };
   }
@@ -928,7 +922,7 @@ export class MutationCoordinator {
       link: tile.data.link,
       parentId: null, // We don't store this in TileData
       itemType: MapItemType.BASE,
-      ownerId: tile.metadata.ownerId ?? this.config.mapContext?.userId.toString() ?? "unknown",
+      ownerId: tile.metadata.ownerId ?? this.config.mapContext?.userId ?? "unknown",
       originId: null,
     };
   }

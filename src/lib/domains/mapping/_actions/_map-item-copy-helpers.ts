@@ -1,7 +1,7 @@
 import type { BaseItemWithId } from "~/lib/domains/mapping/_objects/base-item";
 import type { MapItemWithId } from "~/lib/domains/mapping/_objects/map-item";
 import type { Coord, Direction } from "~/lib/domains/mapping/utils";
-import type { MapItemAttributes } from "~/lib/domains/mapping/utils";
+import type { MapItemAttributes } from "~/lib/domains/mapping/types/item-attributes";
 import { MapItemType } from "~/lib/domains/mapping/_objects";
 
 /**

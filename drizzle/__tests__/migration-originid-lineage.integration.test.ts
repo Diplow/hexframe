@@ -34,7 +34,7 @@ describe("Migration: originId Lineage Tracking [Integration - DB]", () => {
       }).returning();
 
       const mapItem = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
         item_type: MapItemType.BASE,
@@ -57,7 +57,7 @@ describe("Migration: originId Lineage Tracking [Integration - DB]", () => {
       // Act - TypeScript prevents this at compile time, but if we bypass with 'as any'
       // the runtime should just ignore the unknown property
       const mapItem = await db.insert(schema.mapItems).values({
-        coord_user_id: 1,
+        coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
         item_type: MapItemType.BASE,

@@ -67,7 +67,7 @@ export const userRouter = createTRPCRouter({
         if (input.createDefaultMap) {
           try {
             const map = await ctx.mappingService.maps.createMap({
-              userId: user.mappingId,
+              userId: user.id,
               title: `${user.displayName}'s Space`,
               content: "Your personal hexframe workspace",
             });
@@ -280,21 +280,4 @@ export const userRouter = createTRPCRouter({
       }
     }),
 
-  /**
-   * Get user by mapping ID
-   */
-  getByMappingId: protectedProcedure
-    .use(iamServiceMiddleware)
-    .input(z.object({ mappingId: z.number() }))
-    .query(async ({ ctx, input }) => {
-      try {
-        const user = await ctx.iamService.getUserByMappingId(input.mappingId);
-        return ctx.iamService.userToContract(user);
-      } catch {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "User not found",
-        });
-      }
-    }),
 });

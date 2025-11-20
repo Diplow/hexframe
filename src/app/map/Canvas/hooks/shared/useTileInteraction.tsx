@@ -64,7 +64,7 @@ export function useTileInteraction({
           coordId,
           dbId: "0",
           parentId: undefined,
-          coordinates: { path: [], userId: 0, groupId: 0 },
+          coordinates: { path: [], userId: "0", groupId: 0 },
           ownerId: '',
           depth: 0,
         },

@@ -13,7 +13,7 @@ import { canDragTile } from "~/app/map/Services/DragAndDrop";
 
 interface ItemStateProps {
   item: TileData;
-  currentUserId?: number;
+  currentUserId?: string;
   interactive: boolean;
   allExpandedItemIds: string[];
   hasChildren: boolean;

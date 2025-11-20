@@ -8,7 +8,7 @@ import {
 
 export async function _setupItemHierarchyForRemoval(
   testEnv: TestEnvironment,
-  setupParams: { userId: number; groupId: number },
+  setupParams: { userId: string; groupId: number },
 ) {
   const setupData = await _setupBasicMap(testEnv.service, setupParams);
 
@@ -43,7 +43,7 @@ export async function _setupItemHierarchyForRemoval(
 export async function _validateItemRemovalAndHierarchy(
   testEnv: TestEnvironment,
   setupData: {
-    setupParams: { userId: number; groupId: number };
+    setupParams: { userId: string; groupId: number };
     child1Coords: Parameters<typeof CoordSystem.createId>[0];
   },
 ) {
@@ -60,7 +60,7 @@ export async function _validateItemRemovalAndHierarchy(
 
 export async function _validateRootItemRemoval(
   testEnv: TestEnvironment,
-  setupParams: { userId: number; groupId: number },
+  setupParams: { userId: string; groupId: number },
 ) {
   await _setupBasicMap(testEnv.service, setupParams);
   const rootCoords = CoordSystem.getCenterCoord(
@@ -75,7 +75,7 @@ export async function _validateRootItemRemoval(
 
 export async function _validateRemoveNonExistentItemError(
   testEnv: TestEnvironment,
-  setupParams: { userId: number; groupId: number },
+  setupParams: { userId: string; groupId: number },
 ) {
   const nonExistentCoords = _createTestCoordinates({
     userId: setupParams.userId,
