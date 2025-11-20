@@ -64,6 +64,20 @@
       "when": 1761824513415,
       "tag": "0008_fat_union_jack",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1763625721000,
+      "tag": "0009_migrate_composition_negative_directions",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1763627300000,
+      "tag": "0010_convert_userid_to_text",
+      "breakpoints": true
     }
   ]
 }

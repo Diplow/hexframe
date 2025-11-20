@@ -25,7 +25,7 @@ export const mapUserRouter = createTRPCRouter({
     .use(mappingServiceMiddleware)
     .input(paginationSchema)
     .query(async ({ ctx, input }) => {
-      const userId = await _getUserId(ctx.user);
+      const userId = _getUserId(ctx.user);
       const maps = await ctx.mappingService.maps.getManyUserMaps(
         userId,
         input.limit,
@@ -39,7 +39,7 @@ export const mapUserRouter = createTRPCRouter({
     .use(mappingServiceMiddleware)
     .input(userMapCreationSchema)
     .mutation(async ({ ctx, input }) => {
-      const userId = await _getUserId(ctx.user);
+      const userId = _getUserId(ctx.user);
       const map = await ctx.mappingService.maps.createMap({
         userId,
         groupId: input.groupId,
@@ -54,7 +54,7 @@ export const mapUserRouter = createTRPCRouter({
     .use(mappingServiceMiddleware)
     .input(userMapUpdateSchema)
     .mutation(async ({ ctx, input }) => {
-      await _getUserId(ctx.user); // Ensure authenticated
+      _getUserId(ctx.user); // Ensure authenticated
       const map = await ctx.mappingService.maps.updateMapInfo(input);
       if (!map) {
         throw new TRPCError({
@@ -70,7 +70,7 @@ export const mapUserRouter = createTRPCRouter({
     .use(mappingServiceMiddleware)
     .input(userMapIdentifierSchema)
     .mutation(async ({ ctx, input }) => {
-      await _getUserId(ctx.user); // Ensure authenticated
+      _getUserId(ctx.user); // Ensure authenticated
       await ctx.mappingService.maps.removeMap(input);
       return _createSuccessResponse() as { success: true };
     }),
@@ -80,7 +80,7 @@ export const mapUserRouter = createTRPCRouter({
     .use(mappingServiceMiddleware)
     .input(z.void())
     .mutation(async ({ ctx }) => {
-      const userId = await _getUserId(ctx.user);
+      const userId = _getUserId(ctx.user);
       const userName = _getUserName(ctx.user);
 
       try {
@@ -102,7 +102,7 @@ export const mapUserRouter = createTRPCRouter({
     .use(mappingServiceMiddleware)
     .input(z.void())
     .query(async ({ ctx }) => {
-      const userId = await _getUserId(ctx.user);
+      const userId = _getUserId(ctx.user);
       try {
         const maps = await ctx.mappingService.maps.getManyUserMaps(
           userId,
@@ -126,7 +126,7 @@ export const mapUserRouter = createTRPCRouter({
   // Get current user's mapping ID
   getCurrentUserMappingId: protectedProcedure
     .query(async ({ ctx }) => {
-      const mappingUserId = await _getUserId(ctx.user);
+      const mappingUserId = _getUserId(ctx.user);
       return { mappingUserId };
     }),
 });
