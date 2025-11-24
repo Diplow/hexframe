@@ -462,7 +462,7 @@ export const agenticRouter = createTRPCRouter({
       }
     }),
 
-  // Execute a task using its composed children for guidance (orchestrator, context builder, state manager)
+  // Execute a task using its composed children for guidance
   hexecute: publicProcedure
     .use(mappingServiceMiddleware)
     .input(
@@ -472,12 +472,11 @@ export const agenticRouter = createTRPCRouter({
       })
     )
     .query(async ({ input, ctx }) => {
-      const { instruction } = input
-      let { taskCoords } = input
+      const { instruction, taskCoords } = input
 
       // Import utilities
       const { CoordSystem } = await import('~/lib/domains/mapping/utils')
-      const { executePrompt } = await import('~/lib/domains/agentic')
+      const { buildPrompt } = await import('~/lib/domains/agentic')
 
       // Parse coordinates
       let taskCoord
@@ -490,10 +489,10 @@ export const agenticRouter = createTRPCRouter({
         })
       }
 
-      // Read task center tile
-      let taskCenterTile
+      // Read task tile
+      let taskTile
       try {
-        taskCenterTile = await ctx.mappingService.items.crud.getItem({
+        taskTile = await ctx.mappingService.items.crud.getItem({
           coords: taskCoord
         })
       } catch (error) {
@@ -504,67 +503,82 @@ export const agenticRouter = createTRPCRouter({
         })
       }
 
-      // Check if there's a meta-task at direction [0]
-      // If yes, redirect to execute the meta-task instead of the parent
-      let actualTaskTile = taskCenterTile
-      let parentTaskInfo: { title: string; preview: string | undefined; coords: string } | undefined
-
-      try {
-        const metaTask = await ctx.mappingService.items.crud.getItem({
-          coords: { ...taskCoord, path: [...taskCoord.path, 0] }
-        })
-
-        // If meta-task exists with content, redirect execution to it
-        if (metaTask?.content && metaTask.content.trim().length > 0) {
-          // Store parent info for context
-          parentTaskInfo = {
-            title: taskCenterTile.title,
-            preview: taskCenterTile.preview ?? undefined,
-            coords: taskCoords
-          }
-
-          // Redirect: execute the meta-task instead
-          actualTaskTile = metaTask
-          taskCoords = CoordSystem.createId({
-            ...taskCoord,
-            path: [...taskCoord.path, 0]
-          })
-          taskCoord = { ...taskCoord, path: [...taskCoord.path, 0] }
-        }
-      } catch {
-        // No meta-task at [0], continue with original task
-      }
-
-      // Fetch composed children for the actual task (either meta-task or original)
+      // Fetch composed children (-1 to -6)
       const { composed: composedChildren } = await ctx.mappingService.context.getContextForCenter(
         taskCoords,
         ContextStrategies.STANDARD
       )
 
-      // Build minimal task data for executePrompt
-      const taskData = {
-        center: actualTaskTile,
-        composedChildren,
-        parentTask: parentTaskInfo
+      // Fetch structural children (1-6) for subtasks with coords
+      const structuralChildren = []
+      for (let dir = 1; dir <= 6; dir++) {
+        try {
+          const childCoords = { ...taskCoord, path: [...taskCoord.path, dir] }
+          const child = await ctx.mappingService.items.crud.getItem({
+            coords: childCoords
+          })
+          if (child) {
+            structuralChildren.push({
+              title: child.title,
+              preview: child.preview ?? undefined,
+              coords: CoordSystem.createId(childCoords)
+            })
+          }
+        } catch {
+          // Child doesn't exist, continue
+        }
       }
 
-      // Fetch execution history content if it exists (at direction 0,0)
-      let executionHistoryContent: string | undefined
-      try {
-        const executionHistoryTile = await ctx.mappingService.items.crud.getItem({
-          coords: { ...taskCoord, path: [...taskCoord.path, 0, 0] }
+      // Get MCP server name from environment (defaults to 'hexframe')
+      const mcpServerName = process.env.HEXFRAME_MCP_SERVER || 'hexframe'
+
+      // Fetch ancestor execution histories (from root to immediate parent)
+      const ancestorHistories = []
+      const ancestors = []
+
+      // Build ancestor path from root to immediate parent
+      for (let i = 0; i < taskCoord.path.length; i++) {
+        const ancestorPath = taskCoord.path.slice(0, i)
+        ancestors.push({
+          userId: taskCoord.userId,
+          groupId: taskCoord.groupId,
+          path: ancestorPath
         })
-        executionHistoryContent = executionHistoryTile.content || undefined
-      } catch {
-        // Execution history tile doesn't exist yet, that's fine
-        executionHistoryContent = undefined
       }
 
-      // Execute prompt with task data, instruction, and execution history
-      const promptResult = executePrompt({
-        taskData,
+      // Fetch execution history (direction 0) for each ancestor
+      for (const ancestorCoord of ancestors) {
+        try {
+          const historyCoord = { ...ancestorCoord, path: [...ancestorCoord.path, 0] }
+          const historyTile = await ctx.mappingService.items.crud.getItem({
+            coords: historyCoord
+          })
+          if (historyTile.content && historyTile.content.trim()) {
+            ancestorHistories.push({
+              coords: CoordSystem.createId(ancestorCoord),
+              content: historyTile.content
+            })
+          }
+        } catch {
+          // Ancestor history doesn't exist, skip
+        }
+      }
+
+      // Build prompt using new recursive execution model
+      const promptResult = buildPrompt({
+        task: {
+          title: taskTile.title,
+          content: taskTile.content || undefined,
+          coords: taskCoords
+        },
+        composedChildren: composedChildren.map(child => ({
+          title: child.title,
+          content: child.content
+        })),
+        structuralChildren,
         instruction,
-        executionHistoryContent
+        mcpServerName,
+        ancestorHistories
       })
 
       return {
