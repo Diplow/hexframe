@@ -102,7 +102,7 @@ Hexframe uses a **negative direction** approach for storing composed children:
 ### Direction Values
 - **Positive 1-6**: Structural children (normal hierarchy)
 - **Negative -1 to -6**: Composed children (combined functionality)
-- **Direction 0**: Reserved for future meta-orchestration
+- **Direction 0**: Execution history (state tracking for AI orchestration)
 
 ### Key Characteristics
 - Tiles can have BOTH structural and composed children simultaneously
@@ -120,6 +120,50 @@ All layers support negative directions consistently:
 - **Infrastructure**: PostgreSQL stores negative integers in path arrays
 
 See `UBIQUITOUS.md` for complete terminology and `src/lib/domains/mapping/README.md` for domain implementation details.
+
+## AI Orchestration: Tiles as Executable Tasks
+
+Hexframe's core innovation is making hierarchical knowledge **executable** through the `hexecute` system. See [docs/features/HEXFRAME_PROMPT.md](docs/features/HEXFRAME_PROMPT.md) for full specification.
+
+### Divide and Conquer Prompting
+
+The `hexecute` tool transforms any tile into a structured XML prompt using tile hierarchy:
+
+**Prompt structure from tile anatomy:**
+- `<context>`: Composed children (-1 to -6) provide reference materials, constraints, templates
+- `<subtasks>`: Structural children (1-6) are work units to divide into subagents
+- `<execution-history>`: Direction-0 child tracks progress across agent sessions
+- `<task>`: Tile's own title (goal) and content (requirements)
+- `<instructions>`: Runtime user input
+
+**Key insight:** System thinkers already decompose hierarchically. Hexframe makes that decomposition directly executable - no prompt engineering required.
+
+**Implementation:** The `buildPrompt()` function in `src/lib/domains/agentic/services/prompt-executor.service.ts` deterministically generates XML from tile coordinates.
+
+### Observable Execution Through History Tiles
+
+**Direction-0 tiles are the state layer:** Each task stores its execution state at `[...path, 0]`:
+- Tile `[1, 3]` → execution history at `[1, 3, 0]`
+- Root tile `[]` → execution history at `[0]`
+
+**What history tiles contain:**
+- Status: what's completed, in progress, blocked
+- Decisions: why approaches were chosen
+- Blockers: what's preventing progress
+- Next steps: what should happen next
+
+**Update protocol:** Agents use standard MCP tools (`getItemByCoords`, `updateItem`) with emoji prefixes:
+- 🟡 STARTED: Task began
+- ✅ COMPLETED: Task finished
+- 🔴 BLOCKED: Task stuck
+
+**Observability benefits:**
+- Inspect `[1, 0]` for top-level progress
+- Drill into `[1, 2, 0]` for subtask details
+- Trace execution by following direction-0 tiles down hierarchy
+- Resume work by reading history and continuing from last state
+
+**Implementation:** The MCP `hexecute` tool in `src/app/services/mcp/handlers/tools.ts` reads history tiles and includes them in prompts. Agents update using standard `updateItem` calls.
 
 ## Important Notes
 - Always use `pnpm` (not npm or yarn)
