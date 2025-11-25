@@ -63,11 +63,60 @@ function _createMapUIHandlers(
     });
   };
 
+  const handleDeleteChildrenClick = (tileData: TileData) => {
+    eventBus.emit({
+      type: 'map.delete_children_requested',
+      source: 'canvas',
+      payload: {
+        tileId: tileData.metadata.coordId,
+        tileName: tileData.data.title,
+        directionType: 'structural',
+      },
+      timestamp: new Date(),
+    });
+  };
+
+  const handleDeleteComposedClick = (tileData: TileData) => {
+    eventBus.emit({
+      type: 'map.delete_children_requested',
+      source: 'canvas',
+      payload: {
+        tileId: tileData.metadata.coordId,
+        tileName: tileData.data.title,
+        directionType: 'composed',
+      },
+      timestamp: new Date(),
+    });
+  };
+
+  const handleDeleteExecutionHistoryClick = (tileData: TileData) => {
+    eventBus.emit({
+      type: 'map.delete_children_requested',
+      source: 'canvas',
+      payload: {
+        tileId: tileData.metadata.coordId,
+        tileName: tileData.data.title,
+        directionType: 'executionHistory',
+      },
+      timestamp: new Date(),
+    });
+  };
+
   const handleCreateClick = (_tileData: TileData) => {
     // TODO: Implement create functionality
   };
 
-  return { handleNavigate, handleExpand, handleCompositionToggle, handleEditClick, handleDeleteClick, handleCreateClick };
+  return {
+    handleNavigate,
+    handleExpand,
+    handleCompositionToggle,
+    handleEditClick,
+    handleDeleteClick,
+    handleDeleteChildrenClick,
+    handleDeleteComposedClick,
+    handleDeleteExecutionHistoryClick,
+    handleCreateClick,
+  };
 }
 
 function _createMapUIParams(
@@ -157,7 +206,17 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
   const centerCoordinate = center;
   const loadingError = error;
   const params = _createMapUIParams(centerCoordinate, expandedItems);
-  const { handleNavigate, handleExpand, handleCompositionToggle, handleEditClick, handleDeleteClick, handleCreateClick } = _createMapUIHandlers(
+  const {
+    handleNavigate,
+    handleExpand,
+    handleCompositionToggle,
+    handleEditClick,
+    handleDeleteClick,
+    handleDeleteChildrenClick,
+    handleDeleteComposedClick,
+    handleDeleteExecutionHistoryClick,
+    handleCreateClick,
+  } = _createMapUIHandlers(
     navigateToItem,
     toggleItemExpansionWithURL,
     toggleCompositionExpansionWithURL,
@@ -208,6 +267,9 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
       onCreateClick={handleCreateClick}
       onEditClick={handleEditClick}
       onDeleteClick={handleDeleteClick}
+      onDeleteChildrenClick={handleDeleteChildrenClick}
+      onDeleteComposedClick={handleDeleteComposedClick}
+      onDeleteExecutionHistoryClick={handleDeleteExecutionHistoryClick}
       onCompositionToggle={handleCompositionToggle}
       hasComposition={hasComposition}
       isCompositionExpanded={isCompositionExpandedForTile}

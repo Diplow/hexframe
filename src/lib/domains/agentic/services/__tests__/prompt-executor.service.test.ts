@@ -1,499 +1,464 @@
 import { describe, it, expect } from 'vitest'
-import { executePrompt } from '~/lib/domains/agentic/services/prompt-executor.service'
-import type {
-  ExecutePromptParams,
-  TaskHierarchyData
-} from '~/lib/domains/agentic/services/prompt-executor.service'
-import { MapItemType, type MapItemContract } from '~/lib/domains/mapping/types/contracts'
+import { buildPrompt, type PromptData } from '~/lib/domains/agentic/services/prompt-executor.service'
 
-describe('executePrompt', () => {
-  const createMockItem = (overrides: Partial<MapItemContract> = {}): MapItemContract => ({
-    id: '1',
-    ownerId: '1',
-    coords: '1,0',
-    title: 'Test Title',
-    content: 'Test content',
-    preview: 'Test preview',
-    link: '',
-    itemType: MapItemType.USER,
-    depth: 0,
-    parentId: null,
-    originId: null,
-    ...overrides
-  })
-
-  const createSimpleTaskData = (): TaskHierarchyData => ({
-    center: createMockItem({
-      title: 'Simple Task',
-      content: 'Do something simple',
-      coords: '1,0'
-    }),
-    composedChildren: []
-  })
-
-  const createTaskWithComposedChildren = (): TaskHierarchyData => ({
-    center: createMockItem({
-      title: 'Complex Task',
-      content: 'Do something complex',
-      coords: '1,0'
-    }),
-    composedChildren: [
-      createMockItem({
-        title: 'Prompt Preparation',
-        content: 'You are preparing the execution.\n\n## Step 1: Read\nRead the task...'
-      }),
-      createMockItem({
-        title: 'Generic Context Builder',
-        content: 'Use MCP tools to gather context when needed.'
-      })
-    ]
-  })
-
-  describe('basic structure', () => {
-    it('should wrap everything in hexframe-session tags', () => {
-      const params: ExecutePromptParams = {
-        taskData: createSimpleTaskData()
+describe('buildPrompt - HEXFRAME_PROMPT.md Spec v2 (Recursive Execution)', () => {
+  // ==================== BASIC STRUCTURE TESTS ====================
+  describe('Basic Structure', () => {
+    it('should generate all 4 sections in correct order', () => {
+      const data: PromptData = {
+        task: { title: 'Test Task', content: 'Test content', coords: '1,0:1' },
+        composedChildren: [{ title: 'Context', content: 'Context info' }],
+        structuralChildren: [{ title: 'Subtask 1', preview: 'Preview 1', coords: '1,0:1,1' }],
+        instruction: 'Test instruction',
+        mcpServerName: 'hexframe',
+        ancestorHistories: []
       }
 
-      const result = executePrompt(params)
+      const result = buildPrompt(data)
 
-      expect(result).toMatch(/^<hexframe-session>/)
-      expect(result).toMatch(/<\/hexframe-session>$/)
-    })
-
-    it('should include task section', () => {
-      const params: ExecutePromptParams = {
-        taskData: createSimpleTaskData()
-      }
-
-      const result = executePrompt(params)
-
+      // Check all sections appear
+      expect(result).toContain('<context>')
+      expect(result).toContain('<subtasks>')
       expect(result).toContain('<task>')
-      expect(result).toContain('<title>Simple Task</title>')
-      expect(result).toContain('<content>Do something simple</content>')
-      expect(result).toContain('<coordinates>1,0</coordinates>')
-      expect(result).toContain('</task>')
+      expect(result).toContain('<instructions>')
+
+      // execution-history section should NOT exist (moved to subtasks)
+      expect(result).not.toContain('<execution-history>')
+
+      // Check order (use lastIndexOf for user <instructions> section after <task>)
+      const contextIndex = result.indexOf('<context>')
+      const subtasksIndex = result.indexOf('<subtasks>')
+      const taskIndex = result.indexOf('<task>')
+      const instructionsIndex = result.lastIndexOf('<instructions>') // User instructions at the end
+
+      expect(contextIndex).toBeLessThan(subtasksIndex)
+      expect(subtasksIndex).toBeLessThan(taskIndex)
+      expect(taskIndex).toBeLessThan(instructionsIndex)
     })
 
-    it('should include execution context section', () => {
-      const params: ExecutePromptParams = {
-        taskData: createSimpleTaskData(),
-        instruction: 'Test instruction'
+    it('should separate sections with blank lines', () => {
+      const data: PromptData = {
+        task: { title: 'Test', content: 'Content', coords: '1,0' },
+        composedChildren: [{ title: 'C1', content: 'Content 1' }],
+        structuralChildren: [{ title: 'S1', preview: 'Preview 1', coords: '1,0:1' }],
+        instruction: 'Instruction',
+        mcpServerName: 'hexframe',
+        ancestorHistories: []
       }
 
-      const result = executePrompt(params)
+      const result = buildPrompt(data)
 
-      expect(result).toContain('<execution-context>')
-      expect(result).toContain('<storage-location>1,0,0,0</storage-location>')
-      expect(result).toContain('<current-instruction>Test instruction</current-instruction>')
-      expect(result).toContain('</execution-context>')
+      // Should have blank lines between sections
+      expect(result).toMatch(/<\/context>\n\n<subtasks>/)
+      expect(result).toMatch(/<\/subtasks>\n\n<task>/)
+      expect(result).toMatch(/<\/task>\n\n<instructions>/)
     })
   })
 
-  describe('composed children concatenation', () => {
-    it('should not include composed children sections when empty', () => {
-      const params: ExecutePromptParams = {
-        taskData: createSimpleTaskData()
+  // ==================== CONTEXT SECTION TESTS ====================
+  describe('Context Section', () => {
+    it('should always include Hexframe philosophy subsection', () => {
+      const data: PromptData = {
+        task: { title: 'Test', content: 'Content', coords: '1,0' },
+        composedChildren: [],
+        structuralChildren: [],
+        instruction: undefined,
+        mcpServerName: 'hexframe',
+        ancestorHistories: []
       }
 
-      const result = executePrompt(params)
+      const result = buildPrompt(data)
 
-      expect(result).not.toContain('<prompt-preparation>')
-      expect(result).not.toContain('<generic-context-builder>')
+      expect(result).toContain('<context>')
+      expect(result).toContain('# Hexframe Orchestration')
+      expect(result).toContain('hexecute')
+      expect(result).toContain('subagent')
+      expect(result).toContain('</context>')
     })
 
-    it('should concatenate composed children as simple sections', () => {
-      const params: ExecutePromptParams = {
-        taskData: createTaskWithComposedChildren()
+    it('should include Hexframe philosophy even when no composed children', () => {
+      const data: PromptData = {
+        task: { title: 'Test', content: 'Content', coords: '1,0' },
+        composedChildren: [],
+        structuralChildren: [],
+        instruction: undefined,
+        mcpServerName: 'hexframe',
+        ancestorHistories: []
       }
 
-      const result = executePrompt(params)
+      const result = buildPrompt(data)
 
-      expect(result).toContain('<prompt-preparation>')
-      expect(result).toContain('You are preparing the execution.')
-      expect(result).toContain('## Step 1: Read')
-      expect(result).toContain('</prompt-preparation>')
-
-      expect(result).toContain('<generic-context-builder>')
-      expect(result).toContain('Use MCP tools to gather context when needed.')
-      expect(result).toContain('</generic-context-builder>')
+      expect(result).toContain('<context>')
+      expect(result).toContain('# Hexframe Orchestration')
     })
 
-    it('should convert composed child titles to section names', () => {
-      const taskData = createSimpleTaskData()
-      taskData.composedChildren = [
-        createMockItem({
-          title: 'Generic System Orchestrator',
-          content: 'Orchestrator content here'
-        })
-      ]
-
-      const params: ExecutePromptParams = {
-        taskData
+    it('should concatenate philosophy + composed children', () => {
+      const data: PromptData = {
+        task: { title: 'Test', content: 'Content', coords: '1,0' },
+        composedChildren: [
+          { title: 'Context 1', content: 'Content 1' },
+          { title: 'Context 2', content: 'Content 2' }
+        ],
+        structuralChildren: [],
+        instruction: undefined,
+        mcpServerName: 'hexframe',
+        ancestorHistories: []
       }
 
-      const result = executePrompt(params)
+      const result = buildPrompt(data)
 
-      expect(result).toContain('<generic-system-orchestrator>')
-      expect(result).toContain('Orchestrator content here')
-      expect(result).toContain('</generic-system-orchestrator>')
+      expect(result).toContain('<context>')
+      expect(result).toContain('# Hexframe Orchestration')
+      expect(result).toContain('Context 1')
+      expect(result).toContain('Content 1')
+      expect(result).toContain('Context 2')
+      expect(result).toContain('Content 2')
+      expect(result).toContain('</context>')
     })
 
     it('should skip composed children with empty content', () => {
-      const taskData = createSimpleTaskData()
-      taskData.composedChildren = [
-        createMockItem({
-          title: 'Empty Tile',
-          content: ''
-        }),
-        createMockItem({
-          title: 'Valid Tile',
-          content: 'Valid content'
-        })
-      ]
-
-      const params: ExecutePromptParams = {
-        taskData
+      const data: PromptData = {
+        task: { title: 'Test', content: 'Content', coords: '1,0' },
+        composedChildren: [
+          { title: 'Empty', content: '' },
+          { title: 'Valid', content: 'Valid content' },
+          { title: 'Whitespace', content: '   \n\t  ' }
+        ],
+        structuralChildren: [],
+        instruction: undefined,
+        mcpServerName: 'hexframe',
+        ancestorHistories: []
       }
 
-      const result = executePrompt(params)
+      const result = buildPrompt(data)
 
-      expect(result).not.toContain('<empty-tile>')
-      expect(result).toContain('<valid-tile>')
+      expect(result).toContain('Valid')
       expect(result).toContain('Valid content')
+      expect(result).not.toContain('Empty')
+      expect(result).not.toContain('Whitespace')
+    })
+
+    it('should escape XML special characters in composed children', () => {
+      const data: PromptData = {
+        task: { title: 'Test', content: 'Content', coords: '1,0' },
+        composedChildren: [
+          { title: 'Title <with> & "special" chars', content: 'Content with <xml> & \'quotes\'' }
+        ],
+        structuralChildren: [],
+        instruction: undefined,
+        mcpServerName: 'hexframe',
+        ancestorHistories: []
+      }
+
+      const result = buildPrompt(data)
+
+      expect(result).toContain('Title &lt;with&gt; &amp; &quot;special&quot; chars')
+      expect(result).toContain('Content with &lt;xml&gt; &amp; &apos;quotes&apos;')
     })
   })
 
-  describe('execution context', () => {
-    it('should calculate storage location correctly', () => {
-      const taskData = createSimpleTaskData()
-      taskData.center.coords = '23,0:6'
-
-      const params: ExecutePromptParams = {
-        taskData
+  // ==================== SUBTASKS SECTION TESTS ====================
+  describe('Subtasks Section', () => {
+    it('should always include systematic subtasks even when no user subtasks', () => {
+      const data: PromptData = {
+        task: { title: 'Test', content: 'Content', coords: '1,0:1' },
+        composedChildren: [],
+        structuralChildren: [],
+        instruction: undefined,
+        mcpServerName: 'hexframe',
+        ancestorHistories: []
       }
 
-      const result = executePrompt(params)
+      const result = buildPrompt(data)
 
-      expect(result).toContain('<storage-location>23,0:6,0,0</storage-location>')
+      expect(result).toContain('<subtasks>')
+      // Should have read history subtask
+      expect(result).toContain('<subtask coords="1,0:1,0" subagent="false">')
+      expect(result).toContain('Read Execution History')
+      // Should have mark done subtask
+      expect(result).toContain('Mark Task Complete')
+      expect(result).toContain('</subtasks>')
+    })
+
+    it('should include coords attribute for each subtask', () => {
+      const data: PromptData = {
+        task: { title: 'Test', content: 'Content', coords: '1,0:1' },
+        composedChildren: [],
+        structuralChildren: [
+          { title: 'Subtask 1', preview: 'Preview 1', coords: '1,0:1,1' },
+          { title: 'Subtask 2', preview: 'Preview 2', coords: '1,0:1,2' }
+        ],
+        instruction: undefined,
+        mcpServerName: 'hexframe',
+        ancestorHistories: []
+      }
+
+      const result = buildPrompt(data)
+
+      expect(result).toContain('<subtask coords="1,0:1,0" subagent="false">') // Read history
+      expect(result).toContain('<subtask coords="1,0:1,1" subagent="true">')
+      expect(result).toContain('<subtask coords="1,0:1,2" subagent="true">')
+      expect(result).toContain('Mark Task Complete') // Mark done (no coords, inline)
+    })
+
+    it('should order subtasks: read history, user subtasks, mark done', () => {
+      const data: PromptData = {
+        task: { title: 'Test', content: 'Content', coords: '1,0:1' },
+        composedChildren: [],
+        structuralChildren: [
+          { title: 'User Subtask', preview: 'Preview', coords: '1,0:1,1' }
+        ],
+        instruction: undefined,
+        mcpServerName: 'hexframe',
+        ancestorHistories: []
+      }
+
+      const result = buildPrompt(data)
+
+      const readHistoryIndex = result.indexOf('Read Execution History')
+      const userSubtaskIndex = result.indexOf('User Subtask')
+      const markDoneIndex = result.indexOf('Mark Task Complete')
+
+      expect(readHistoryIndex).toBeLessThan(userSubtaskIndex)
+      expect(userSubtaskIndex).toBeLessThan(markDoneIndex)
+    })
+
+    it('should use MCP server name from environment in read history subtask', () => {
+      const data: PromptData = {
+        task: { title: 'Test', content: 'Content', coords: '1,0:1' },
+        composedChildren: [],
+        structuralChildren: [],
+        instruction: undefined,
+        mcpServerName: 'debughexframe',
+        ancestorHistories: []
+      }
+
+      const result = buildPrompt(data)
+
+      expect(result).toContain('debughexframe:getItemByCoords')
+    })
+
+    it('should escape XML special characters in subtasks', () => {
+      const data: PromptData = {
+        task: { title: 'Test', content: 'Content', coords: '1,0' },
+        composedChildren: [],
+        structuralChildren: [
+          { title: 'Task <with> & chars', preview: 'Preview "with" \'quotes\'', coords: '1,0:1' }
+        ],
+        instruction: undefined,
+        mcpServerName: 'hexframe',
+        ancestorHistories: []
+      }
+
+      const result = buildPrompt(data)
+
+      expect(result).toContain('Task &lt;with&gt; &amp; chars')
+      expect(result).toContain('Preview &quot;with&quot; &apos;quotes&apos;')
+    })
+
+    it('should include ancestor histories in read history subtask', () => {
+      const data: PromptData = {
+        task: { title: 'Test', content: 'Content', coords: '1,0:1,2' },
+        composedChildren: [],
+        structuralChildren: [],
+        instruction: undefined,
+        mcpServerName: 'hexframe',
+        ancestorHistories: [
+          { coords: '1,0:1,0', content: 'Root task progress...' },
+          { coords: '1,0:1', content: 'Parent task completed step 1' }
+        ]
+      }
+
+      const result = buildPrompt(data)
+
+      expect(result).toContain('<parent-context>')
+      expect(result).toContain('From 1,0:1,0:')
+      expect(result).toContain('Root task progress...')
+      expect(result).toContain('From 1,0:1:')
+      expect(result).toContain('Parent task completed step 1')
+      expect(result).toContain('</parent-context>')
+      expect(result).toContain('<instructions>')
+    })
+  })
+
+  // ==================== TASK SECTION TESTS ====================
+  describe('Task Section', () => {
+    it('should always include task section', () => {
+      const data: PromptData = {
+        task: { title: 'Test Task', content: 'Test content', coords: '1,0' },
+        composedChildren: [],
+        structuralChildren: [],
+        instruction: undefined,
+        mcpServerName: 'hexframe',
+        ancestorHistories: []
+      }
+
+      const result = buildPrompt(data)
+
+      expect(result).toContain('<task>')
+      expect(result).toContain('</task>')
+    })
+
+    it('should include goal wrapper for title', () => {
+      const data: PromptData = {
+        task: { title: 'My Test Goal', content: 'Content', coords: '1,0' },
+        composedChildren: [],
+        structuralChildren: [],
+        instruction: undefined,
+        mcpServerName: 'hexframe',
+        ancestorHistories: []
+      }
+
+      const result = buildPrompt(data)
+
+      expect(result).toContain('<goal>My Test Goal</goal>')
+    })
+
+    it('should include task content', () => {
+      const data: PromptData = {
+        task: { title: 'Title', content: 'This is the task content', coords: '1,0' },
+        composedChildren: [],
+        structuralChildren: [],
+        instruction: undefined,
+        mcpServerName: 'hexframe',
+        ancestorHistories: []
+      }
+
+      const result = buildPrompt(data)
+
+      expect(result).toContain('This is the task content')
+    })
+
+    it('should handle empty task content', () => {
+      const data: PromptData = {
+        task: { title: 'Title', content: '', coords: '1,0' },
+        composedChildren: [],
+        structuralChildren: [],
+        instruction: undefined,
+        mcpServerName: 'hexframe',
+        ancestorHistories: []
+      }
+
+      const result = buildPrompt(data)
+
+      expect(result).toContain('<task>')
+      expect(result).toContain('<goal>Title</goal>')
+      expect(result).toContain('</task>')
+    })
+
+    it('should escape XML special characters in task', () => {
+      const data: PromptData = {
+        task: {
+          title: 'Title <with> & chars',
+          content: 'Content "with" \'special\' characters',
+          coords: '1,0'
+        },
+        composedChildren: [],
+        structuralChildren: [],
+        instruction: undefined,
+        mcpServerName: 'hexframe',
+        ancestorHistories: []
+      }
+
+      const result = buildPrompt(data)
+
+      expect(result).toContain('Title &lt;with&gt; &amp; chars')
+      expect(result).toContain('Content &quot;with&quot; &apos;special&apos; characters')
+    })
+  })
+
+  // ==================== INSTRUCTIONS SECTION TESTS ====================
+  describe('Instructions Section', () => {
+    it('should be empty when no instruction provided', () => {
+      const data: PromptData = {
+        task: { title: 'Test', content: 'Content', coords: '1,0' },
+        composedChildren: [],
+        structuralChildren: [],
+        instruction: undefined,
+        mcpServerName: 'hexframe',
+        ancestorHistories: []
+      }
+
+      const result = buildPrompt(data)
+
+      // Systematic subtasks have <instructions> wrapper, but no user <instructions> section at the end
+      const instructionsCount = (result.match(/<instructions>/g) ?? []).length
+      expect(instructionsCount).toBe(2) // Read history + Mark done subtasks
     })
 
     it('should include instruction when provided', () => {
-      const params: ExecutePromptParams = {
-        taskData: createSimpleTaskData(),
-        instruction: 'Create a new feature'
+      const data: PromptData = {
+        task: { title: 'Test', content: 'Content', coords: '1,0' },
+        composedChildren: [],
+        structuralChildren: [],
+        instruction: 'Use PostgreSQL for the database',
+        mcpServerName: 'hexframe',
+        ancestorHistories: []
       }
 
-      const result = executePrompt(params)
+      const result = buildPrompt(data)
 
-      expect(result).toContain('<current-instruction>Create a new feature</current-instruction>')
+      expect(result).toContain('<instructions>')
+      expect(result).toContain('Use PostgreSQL for the database')
+      expect(result).toContain('</instructions>')
     })
 
-    it('should not include instruction tag when not provided', () => {
-      const params: ExecutePromptParams = {
-        taskData: createSimpleTaskData()
+    it('should escape XML special characters in instructions', () => {
+      const data: PromptData = {
+        task: { title: 'Test', content: 'Content', coords: '1,0' },
+        composedChildren: [],
+        structuralChildren: [],
+        instruction: 'Use <component> & "props"',
+        mcpServerName: 'hexframe',
+        ancestorHistories: []
       }
 
-      const result = executePrompt(params)
-
-      expect(result).not.toContain('<current-instruction>')
-    })
-
-    it('should include execution history when provided', () => {
-      const params: ExecutePromptParams = {
-        taskData: createSimpleTaskData(),
-        executionHistoryContent: '## State\n- mcp_server: debughexframe\n\n## Log\n[10:00] Started'
-      }
-
-      const result = executePrompt(params)
-
-      expect(result).toContain('<history>')
-      expect(result).toContain('## State')
-      expect(result).toContain('- mcp_server: debughexframe')
-      expect(result).toContain('## Log')
-      expect(result).toContain('[10:00] Started')
-      expect(result).toContain('</history>')
-    })
-
-    it('should include default history message when not provided', () => {
-      const params: ExecutePromptParams = {
-        taskData: createSimpleTaskData()
-      }
-
-      const result = executePrompt(params)
-
-      expect(result).toContain('<history>No execution history yet - this is the first execution.</history>')
-    })
-  })
-
-  describe('XML escaping', () => {
-    it('should escape XML special characters in task title', () => {
-      const taskData = createSimpleTaskData()
-      taskData.center.title = 'Task with <tags> & "quotes"'
-
-      const params: ExecutePromptParams = {
-        taskData
-      }
-
-      const result = executePrompt(params)
-
-      expect(result).toContain('Task with &lt;tags&gt; &amp; &quot;quotes&quot;')
-      expect(result).not.toContain('Task with <tags> & "quotes"')
-    })
-
-    it('should escape XML special characters in task content', () => {
-      const taskData = createSimpleTaskData()
-      taskData.center.content = "Content with 'apostrophes' & <special> characters"
-
-      const params: ExecutePromptParams = {
-        taskData
-      }
-
-      const result = executePrompt(params)
-
-      expect(result).toContain("Content with &apos;apostrophes&apos; &amp; &lt;special&gt; characters")
-    })
-
-    it('should escape XML special characters in composed children content', () => {
-      const taskData = createSimpleTaskData()
-      taskData.composedChildren = [
-        createMockItem({
-          title: 'Test Tile',
-          content: 'Content with <xml> & "special" characters'
-        })
-      ]
-
-      const params: ExecutePromptParams = {
-        taskData
-      }
-
-      const result = executePrompt(params)
-
-      expect(result).toContain('Content with &lt;xml&gt; &amp; &quot;special&quot; characters')
-    })
-
-    it('should escape XML special characters in instruction', () => {
-      const params: ExecutePromptParams = {
-        taskData: createSimpleTaskData(),
-        instruction: 'Use <component> & "props"'
-      }
-
-      const result = executePrompt(params)
+      const result = buildPrompt(data)
 
       expect(result).toContain('Use &lt;component&gt; &amp; &quot;props&quot;')
     })
   })
 
-  describe('edge cases', () => {
-    it('should handle task without content', () => {
-      const taskData = createSimpleTaskData()
-      taskData.center.content = ''
-
-      const params: ExecutePromptParams = {
-        taskData
+  // ==================== EDGE CASES ====================
+  describe('Edge Cases', () => {
+    it('should handle minimal tile (only task, systematic subtasks)', () => {
+      const data: PromptData = {
+        task: { title: 'Minimal Task', content: undefined, coords: '1,0' },
+        composedChildren: [],
+        structuralChildren: [],
+        instruction: undefined,
+        mcpServerName: 'hexframe',
+        ancestorHistories: []
       }
 
-      const result = executePrompt(params)
+      const result = buildPrompt(data)
 
+      // Should have context (philosophy), subtasks (systematic), and task sections
+      expect(result).toContain('<context>')
+      expect(result).toContain('<subtasks>')
       expect(result).toContain('<task>')
-      expect(result).toContain('<title>Simple Task</title>')
-      expect(result).toContain('<coordinates>1,0</coordinates>')
-      expect(result).not.toContain('<content>')
-      expect(result).toContain('</task>')
+      // Should have <instructions> in systematic subtasks, but not as separate section
+      const instructionsCount = (result.match(/<instructions>/g) ?? []).length
+      expect(instructionsCount).toBe(2) // Read history + Mark done subtasks
     })
 
-    it('should handle task with whitespace-only content', () => {
-      const taskData = createSimpleTaskData()
-      taskData.center.content = '   \n\t  '
-
-      const params: ExecutePromptParams = {
-        taskData
+    it('should handle multiline content with proper formatting', () => {
+      const data: PromptData = {
+        task: {
+          title: 'Test',
+          content: 'Line 1\nLine 2\n\nLine 4',
+          coords: '1,0'
+        },
+        composedChildren: [],
+        structuralChildren: [],
+        instruction: undefined,
+        mcpServerName: 'hexframe',
+        ancestorHistories: []
       }
 
-      const result = executePrompt(params)
+      const result = buildPrompt(data)
 
-      expect(result).not.toContain('<content>')
-    })
-
-    it('should handle composed child with special characters in title', () => {
-      const taskData = createSimpleTaskData()
-      taskData.composedChildren = [
-        createMockItem({
-          title: 'Context Builder (v2.0) - NEW!',
-          content: 'Builder content'
-        })
-      ]
-
-      const params: ExecutePromptParams = {
-        taskData
-      }
-
-      const result = executePrompt(params)
-
-      // Should strip special characters from section name (periods and hyphens preserved)
-      expect(result).toContain('<context-builder-v2.0---new>')
-      expect(result).toContain('Builder content')
-      expect(result).toContain('</context-builder-v2.0---new>')
-    })
-
-    it('should use fallback section name for title with only special characters', () => {
-      const taskData = createSimpleTaskData()
-      taskData.composedChildren = [
-        createMockItem({
-          title: '!!!',
-          content: 'Content for special chars tile'
-        })
-      ]
-
-      const params: ExecutePromptParams = {
-        taskData
-      }
-
-      const result = executePrompt(params)
-
-      // Should use fallback name since sanitized result is empty
-      expect(result).toContain('<section-1>')
-      expect(result).toContain('Content for special chars tile')
-      expect(result).toContain('</section-1>')
-    })
-
-    it('should use fallback section name for title starting with digits', () => {
-      const taskData = createSimpleTaskData()
-      taskData.composedChildren = [
-        createMockItem({
-          title: '123',
-          content: 'Content for numeric tile'
-        })
-      ]
-
-      const params: ExecutePromptParams = {
-        taskData
-      }
-
-      const result = executePrompt(params)
-
-      // Should use fallback name since XML names cannot start with digits
-      expect(result).toContain('<section-1>')
-      expect(result).toContain('Content for numeric tile')
-      expect(result).toContain('</section-1>')
-    })
-
-    it('should use fallback section name for title starting with hyphen', () => {
-      const taskData = createSimpleTaskData()
-      taskData.composedChildren = [
-        createMockItem({
-          title: ' -foo',
-          content: 'Content for hyphen-prefixed tile'
-        })
-      ]
-
-      const params: ExecutePromptParams = {
-        taskData
-      }
-
-      const result = executePrompt(params)
-
-      // Should use fallback name since sanitized result starts with hyphen (invalid XML name start)
-      expect(result).toContain('<section-1>')
-      expect(result).toContain('Content for hyphen-prefixed tile')
-      expect(result).toContain('</section-1>')
-    })
-
-    it('should use sequential fallback names for multiple invalid tiles', () => {
-      const taskData = createSimpleTaskData()
-      taskData.composedChildren = [
-        createMockItem({
-          title: '!!!',
-          content: 'First invalid tile'
-        }),
-        createMockItem({
-          title: 'Valid Name',
-          content: 'Valid tile'
-        }),
-        createMockItem({
-          title: '123',
-          content: 'Second invalid tile'
-        })
-      ]
-
-      const params: ExecutePromptParams = {
-        taskData
-      }
-
-      const result = executePrompt(params)
-
-      // First invalid tile gets section-1
-      expect(result).toContain('<section-1>')
-      expect(result).toContain('First invalid tile')
-      expect(result).toContain('</section-1>')
-
-      // Valid tile gets its sanitized name
-      expect(result).toContain('<valid-name>')
-      expect(result).toContain('Valid tile')
-      expect(result).toContain('</valid-name>')
-
-      // Second invalid tile gets section-3 (1-based index from original array: 2 + 1)
-      expect(result).toContain('<section-3>')
-      expect(result).toContain('Second invalid tile')
-      expect(result).toContain('</section-3>')
-    })
-
-    it('should produce well-formed XML with invalid tile names', () => {
-      const taskData = createSimpleTaskData()
-      taskData.composedChildren = [
-        createMockItem({
-          title: '!!!',
-          content: 'Test content 1'
-        }),
-        createMockItem({
-          title: '---',
-          content: 'Test content 2'
-        })
-      ]
-
-      const params: ExecutePromptParams = {
-        taskData
-      }
-
-      const result = executePrompt(params)
-
-      // Verify well-formed XML structure
-      expect(result).toMatch(/<section-1>[\s\S]*?<\/section-1>/)
-      expect(result).toMatch(/<section-2>[\s\S]*?<\/section-2>/)
-
-      // Verify matching opening and closing tags
-      const section1Open = result.indexOf('<section-1>')
-      const section1Close = result.indexOf('</section-1>')
-      const section2Open = result.indexOf('<section-2>')
-      const section2Close = result.indexOf('</section-2>')
-
-      expect(section1Open).toBeGreaterThan(-1)
-      expect(section1Close).toBeGreaterThan(section1Open)
-      expect(section2Open).toBeGreaterThan(section1Close)
-      expect(section2Close).toBeGreaterThan(section2Open)
-    })
-  })
-
-  describe('section ordering', () => {
-    it('should order sections correctly', () => {
-      const params: ExecutePromptParams = {
-        taskData: createTaskWithComposedChildren(),
-        instruction: 'Test instruction',
-        executionHistoryContent: '## State\nTest state'
-      }
-
-      const result = executePrompt(params)
-
-      const sessionIndex = result.indexOf('<hexframe-session>')
-      const taskIndex = result.indexOf('<task>')
-      const composedIndex = result.indexOf('<prompt-preparation>')
-      const contextIndex = result.indexOf('<execution-context>')
-      const sessionEndIndex = result.indexOf('</hexframe-session>')
-
-      expect(sessionIndex).toBeLessThan(taskIndex)
-      expect(taskIndex).toBeLessThan(composedIndex)
-      expect(composedIndex).toBeLessThan(contextIndex)
-      expect(contextIndex).toBeLessThan(sessionEndIndex)
+      expect(result).toContain('Line 1\nLine 2\n\nLine 4')
     })
   })
 })

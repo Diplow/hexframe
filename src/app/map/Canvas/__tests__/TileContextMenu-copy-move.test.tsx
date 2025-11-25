@@ -280,7 +280,7 @@ describe('TileContextMenu - Copy and Move', () => {
         />
       );
 
-      const menuItems = screen.getAllByRole('button');
+      const menuItems = screen.getAllByRole('menuitem');
       const editIndex = menuItems.findIndex(item => item.textContent?.includes('Edit'));
       const copyIndex = menuItems.findIndex(item => item.textContent?.includes('Copy to...'));
       const moveIndex = menuItems.findIndex(item => item.textContent?.includes('Move to...'));

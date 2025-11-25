@@ -87,7 +87,7 @@ WORKFLOW: First use getCurrentUser to get the user's mappingId, then use that as
 
 HEXFRAME CONTEXT: You're working with a hexagonal knowledge mapping system where:
 - Tiles are hexagonal units organized hierarchically around a center
-- Coordinates: {userId: 1, groupId: 0, path: [1,-2]} where path=directions from root
+- Coordinates: {userId: "abc123", groupId: 0, path: [1,-2]} where path=directions from root
 - Structural directions (1-6): 1=NorthWest, 2=NorthEast, 3=East, 4=SouthEast, 5=SouthWest, 6=West
 - Composed directions (-1 to -6): Children "inside" the parent tile, mapping to same spatial positions as 1-6
 - Empty path=[] means root/center tile
@@ -99,8 +99,8 @@ Use 'fields' parameter for progressive disclosure: ["name", "preview"] for overv
       type: "object",
       properties: {
         userId: {
-          type: "number",
-          description: "The user ID to fetch map items for (get this from getCurrentUser.mappingId)",
+          type: "string",
+          description: "The user ID to fetch map items for (get this from getCurrentUser.id)",
         },
         groupId: {
           type: "number",
@@ -171,7 +171,7 @@ Use 'fields' parameter for progressive disclosure: ["name", "preview"] for overv
           type: "object",
           description: "The coordinates of the tile to fetch",
           properties: {
-            userId: { type: "number" },
+            userId: { type: "string" },
             groupId: { type: "number" },
             path: {
               type: "array",
@@ -216,7 +216,7 @@ DIRECTION USAGE:
           type: "object",
           description: "The coordinates where to create the new tile",
           properties: {
-            userId: { type: "number" },
+            userId: { type: "string" },
             groupId: { type: "number" },
             path: {
               type: "array",
@@ -271,7 +271,7 @@ DIRECTION USAGE:
           type: "object",
           description: "The coordinates of the tile to update",
           properties: {
-            userId: { type: "number" },
+            userId: { type: "string" },
             groupId: { type: "number" },
             path: {
               type: "array",
@@ -344,7 +344,7 @@ Use with extreme caution. Always verify coordinates before deletion. Consider mo
           type: "object",
           description: "The coordinates of the tile to delete",
           properties: {
-            userId: { type: "number" },
+            userId: { type: "string" },
             groupId: { type: "number" },
             path: {
               type: "array",
@@ -382,7 +382,7 @@ Ensure both old and new coordinates are correct. The user must own both the item
           type: "object",
           description: "Current coordinates of the tile to move",
           properties: {
-            userId: { type: "number" },
+            userId: { type: "string" },
             groupId: { type: "number" },
             path: {
               type: "array",
@@ -396,7 +396,7 @@ Ensure both old and new coordinates are correct. The user must own both the item
           type: "object",
           description: "New coordinates where to move the tile",
           properties: {
-            userId: { type: "number" },
+            userId: { type: "string" },
             groupId: { type: "number" },
             path: {
               type: "array",
@@ -427,7 +427,7 @@ Ensure both old and new coordinates are correct. The user must own both the item
           type: "object",
           description: "The coordinates of the tile to get ancestry for",
           properties: {
-            userId: { type: "number" },
+            userId: { type: "string" },
             groupId: { type: "number" },
             path: {
               type: "array",
@@ -487,7 +487,7 @@ Ensure both old and new coordinates are correct. The user must own both the item
           type: "object",
           description: "The coordinates of the tile to get siblings for",
           properties: {
-            userId: { type: "number" },
+            userId: { type: "string" },
             groupId: { type: "number" },
             path: {
               type: "array",
@@ -550,7 +550,7 @@ Ensure both old and new coordinates are correct. The user must own both the item
           type: "object",
           description: "The coordinates of the tile to get composed children for",
           properties: {
-            userId: { type: "number" },
+            userId: { type: "string" },
             groupId: { type: "number" },
             path: {
               type: "array",
@@ -609,7 +609,7 @@ Ensure both old and new coordinates are correct. The user must own both the item
           type: "object",
           description: "The coordinates of the tile to get children for",
           properties: {
-            userId: { type: "number" },
+            userId: { type: "string" },
             groupId: { type: "number" },
             path: {
               type: "array",
@@ -705,34 +705,43 @@ Ensure both old and new coordinates are correct. The user must own both the item
 
   {
     name: "hexecute",
-    description: `Generate execution-ready prompt from a task tile and its composed children.
+    description: `Generate execution-ready prompt from a task tile following the Hexframe uniform task pattern.
 
-WORKFLOW: This tool reads a task tile and its composed children, then produces an XML prompt for AI agent execution. An agent session is opened with guidance from the task tile's title/content and all composed children's titles/contents.
+WORKFLOW: Reads a task tile and generates a structured XML prompt for AI agent execution. See docs/features/HEXFRAME_PROMPT.md for full specification.
 
-TYPICAL USAGE:
-1. Identify a task tile at specific coordinates (e.g., "23,0:6")
-2. Call hexecute with taskCoords to get an AI-ready prompt
-3. Optionally provide an instruction string for additional context
-4. Use the returned XML prompt to spawn an agent session
-5. The agent follows guidance from the task and its composed children
+PROMPT STRUCTURE:
+1. <context>: Composed children (-1 to -6) providing reference materials, constraints, templates
+2. <subtasks>: Structural children (1-6) showing decomposed work units
+3. <execution-history>: State tracking from direction 0 tile, with protocol instructions
+4. <task>: The tile's goal (title) and requirements (content)
+5. <instructions>: Optional runtime instructions from user
 
-COORDINATES FORMAT: "userId,groupId:path" (e.g., "23,0:6" or "1,0:1,1")
+UNIFORM TASK PATTERN: Every task follows the same flow:
+- Read execution history at direction 0
+- Read context from composed children
+- Read subtasks from structural children
+- Update execution history with plan
+- Execute each subtask by calling hexecute recursively
+- Update execution history with completion status
 
-COMPOSED CHILDREN: The task's composed children (negative directions -1 to -6) contain reference materials that guide execution. What these children contain is up to the tile author - they define the orchestration, context gathering, state management, or any other guidance the agent needs.
+COORDINATES FORMAT: "userId,groupId:path" (e.g., "abc123,0:6" or "userIdString,0:1,1")
 
-EXECUTION HISTORY: If an execution history exists at direction -1 with path ending in [0,-1], its content is included in the prompt to provide continuity across sessions.
+EXECUTION HISTORY: Stored at direction 0 (not -6). Agents update using standard updateItem MCP tool with emoji-prefixed status:
+- 🟡 STARTED: Task began
+- ✅ COMPLETED: Task finished
+- 🔴 BLOCKED: Task stuck
 
-Returns an XML-formatted prompt string ready for AI agent consumption.`,
+Returns XML-formatted prompt ready for agent execution.`,
     inputSchema: {
       type: "object",
       properties: {
         taskCoords: {
           type: "string",
-          description: "Coordinates of task tile to execute (format: 'userId,groupId:path' e.g. '23,0:6')"
+          description: "Coordinates of task tile to execute (format: 'userId,groupId:path' e.g. 'abc123,0:6')"
         },
         instruction: {
           type: "string",
-          description: "Optional instruction to add to execution history section"
+          description: "Optional runtime instruction to include in <instructions> section"
         }
       },
       required: ["taskCoords"],

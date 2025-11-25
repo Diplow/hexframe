@@ -31,6 +31,10 @@ export function _wrapTRPCMutations(mutations: {
     destinationCoords: Coord;
     destinationParentId: number;
   }) => Promise<MapItemAPIContract> };
+  removeChildrenByTypeMutation: { mutateAsync: (params: {
+    coords: Coord;
+    directionType: 'structural' | 'composed' | 'executionHistory';
+  }) => Promise<{ success: boolean; deletedCount: number }> };
 }) {
   const wrappedAddItemMutation = {
     mutateAsync: async (params: { coords: Coord; parentId?: number | null } & MapItemCreateAttributes) => {
@@ -78,11 +82,18 @@ export function _wrapTRPCMutations(mutations: {
     },
   };
 
+  const wrappedRemoveChildrenByTypeMutation = {
+    mutateAsync: async (params: { coords: Coord; directionType: 'structural' | 'composed' | 'executionHistory' }) => {
+      return mutations.removeChildrenByTypeMutation.mutateAsync(params);
+    },
+  };
+
   return {
     addItemMutation: wrappedAddItemMutation,
     updateItemMutation: wrappedUpdateItemMutation,
     deleteItemMutation: wrappedDeleteItemMutation,
     moveItemMutation: wrappedMoveItemMutation,
     copyItemMutation: wrappedCopyItemMutation,
+    removeChildrenByTypeMutation: wrappedRemoveChildrenByTypeMutation,
   };
 }

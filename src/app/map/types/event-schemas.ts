@@ -62,6 +62,14 @@ const mapItemCopiedPayloadSchema = z.object({
   toCoordId: z.string(),
 });
 
+const mapChildrenDeletedPayloadSchema = z.object({
+  parentId: z.string(),
+  parentName: z.string(),
+  coordId: z.string(),
+  directionType: z.enum(['structural', 'composed', 'executionHistory']),
+  deletedCount: z.number(),
+});
+
 const mapOperationStartedPayloadSchema = z.object({
   operation: z.enum(['create', 'update', 'delete', 'move', 'swap', 'copy']),
   tileId: z.string().optional(),
@@ -135,6 +143,12 @@ const mapDeleteRequestedPayloadSchema = z.object({
   tileName: z.string(),
 });
 
+const mapDeleteChildrenRequestedPayloadSchema = z.object({
+  tileId: z.string(),
+  tileName: z.string(),
+  directionType: z.enum(['structural', 'composed', 'executionHistory']),
+});
+
 const mapCreateRequestedPayloadSchema = z.object({
   coordId: z.string(),
   parentName: z.string().optional(),
@@ -183,6 +197,12 @@ export const mapItemCopiedEventSchema = baseEventSchema.extend({
   type: z.literal('map.item_copied'),
   source: z.literal('map_cache'),
   payload: mapItemCopiedPayloadSchema,
+});
+
+export const mapChildrenDeletedEventSchema = baseEventSchema.extend({
+  type: z.literal('map.children_deleted'),
+  source: z.literal('map_cache'),
+  payload: mapChildrenDeletedPayloadSchema,
 });
 
 export const mapOperationStartedEventSchema = baseEventSchema.extend({
@@ -270,6 +290,12 @@ export const mapDeleteRequestedEventSchema = baseEventSchema.extend({
   payload: mapDeleteRequestedPayloadSchema,
 });
 
+export const mapDeleteChildrenRequestedEventSchema = baseEventSchema.extend({
+  type: z.literal('map.delete_children_requested'),
+  source: z.enum(['canvas', 'chat_cache']),
+  payload: mapDeleteChildrenRequestedPayloadSchema,
+});
+
 export const mapCreateRequestedEventSchema = baseEventSchema.extend({
   type: z.literal('map.create_requested'),
   source: z.literal('canvas'),
@@ -284,6 +310,7 @@ export const appEventSchema = z.discriminatedUnion('type', [
   mapTileCreatedEventSchema,
   mapTileUpdatedEventSchema,
   mapTileDeletedEventSchema,
+  mapChildrenDeletedEventSchema,
   mapTilesSwappedEventSchema,
   mapTileMovedEventSchema,
   mapItemCopiedEventSchema,
@@ -301,6 +328,7 @@ export const appEventSchema = z.discriminatedUnion('type', [
   // Request events
   mapEditRequestedEventSchema,
   mapDeleteRequestedEventSchema,
+  mapDeleteChildrenRequestedEventSchema,
   mapCreateRequestedEventSchema,
 ]);
 

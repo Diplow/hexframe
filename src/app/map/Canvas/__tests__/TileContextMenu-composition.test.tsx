@@ -355,7 +355,7 @@ describe('TileContextMenu - Show Composition', () => {
         />
       );
 
-      const menuItems = screen.getAllByRole('button');
+      const menuItems = screen.getAllByRole('menuitem');
       const expandIndex = menuItems.findIndex(item => item.textContent?.includes('Expand'));
       const compositionIndex = menuItems.findIndex(item => item.textContent?.includes('Show Composition'));
 

@@ -20,6 +20,9 @@ interface TileHeaderProps {
   onTitleKeyDown: (e: React.KeyboardEvent) => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  onDeleteChildren?: () => void;
+  onDeleteComposed?: () => void;
+  onDeleteExecutionHistory?: () => void;
   onClose?: () => void;
   onMetadata?: () => void;
   onHistory?: () => void;
@@ -42,6 +45,9 @@ export function TileHeader({
   onTitleKeyDown,
   onEdit,
   onDelete,
+  onDeleteChildren,
+  onDeleteComposed,
+  onDeleteExecutionHistory,
   onClose,
   onMetadata,
   onHistory,
@@ -101,6 +107,9 @@ export function TileHeader({
           onCancel={onCancel}
           onEdit={onEdit}
           onDelete={onDelete}
+          onDeleteChildren={onDeleteChildren}
+          onDeleteComposed={onDeleteComposed}
+          onDeleteExecutionHistory={onDeleteExecutionHistory}
           onClose={onClose}
           onMetadata={onMetadata}
           onHistory={onHistory}

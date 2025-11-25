@@ -5,6 +5,7 @@ import {
   mapTileCreatedEventSchema,
   mapTileUpdatedEventSchema,
   mapTileDeletedEventSchema,
+  mapChildrenDeletedEventSchema,
   mapTilesSwappedEventSchema,
   mapTileMovedEventSchema,
   mapItemCopiedEventSchema,
@@ -14,6 +15,7 @@ import {
   errorOccurredEventSchema,
   mapEditRequestedEventSchema,
   mapDeleteRequestedEventSchema,
+  mapDeleteChildrenRequestedEventSchema,
   mapCreateRequestedEventSchema,
   safeValidateEvent,
 } from '~/app/map/types';
@@ -87,6 +89,26 @@ function _transformTileDeletedEvent(validEvent: AppEvent, baseEvent: Partial<Cha
       result: 'success',
       tileId: payload.tileId,
       message: `Deleted tile "${payload.tileName}"`,
+    },
+  } as ChatEvent;
+}
+
+/**
+ * Transform children deleted events to chat operation completed events
+ */
+function _transformChildrenDeletedEvent(validEvent: AppEvent, baseEvent: Partial<ChatEvent>): ChatEvent {
+  const payload = mapChildrenDeletedEventSchema.parse(validEvent).payload;
+  const typeLabel = payload.directionType === 'structural' ? 'children' :
+                    payload.directionType === 'composed' ? 'composed children' :
+                    'execution history';
+  return {
+    ...baseEvent,
+    type: 'operation_completed',
+    payload: {
+      operation: 'delete',
+      result: 'success',
+      tileId: payload.parentId,
+      message: `Deleted ${payload.deletedCount} ${typeLabel} of "${payload.parentName}"`,
     },
   } as ChatEvent;
 }
@@ -193,6 +215,9 @@ function _transformTileEvents(validEvent: AppEvent, baseEvent: Partial<ChatEvent
 
     case 'map.tile_deleted':
       return _transformTileDeletedEvent(validEvent, baseEvent);
+
+    case 'map.children_deleted':
+      return _transformChildrenDeletedEvent(validEvent, baseEvent);
 
     case 'map.tiles_swapped':
       return _transformTilesSwappedEvent(validEvent, baseEvent);
@@ -301,6 +326,28 @@ function _transformOperationEvents(validEvent: AppEvent, baseEvent: Partial<Chat
             data: {
               tileId: payload.tileId,
               tileName: payload.tileName,
+            },
+            priority: 'action',
+            timestamp: baseEvent.timestamp,
+          },
+        },
+      } as ChatEvent;
+    }
+
+    case 'map.delete_children_requested': {
+      const payload = mapDeleteChildrenRequestedEventSchema.parse(validEvent).payload;
+      // Create delete_children widget for bulk deletion confirmation
+      return {
+        ...baseEvent,
+        type: 'widget_created',
+        payload: {
+          widget: {
+            id: `delete-children-${Date.now()}`,
+            type: 'delete_children',
+            data: {
+              tileId: payload.tileId,
+              tileName: payload.tileName,
+              directionType: payload.directionType,
             },
             priority: 'action',
             timestamp: baseEvent.timestamp,
