@@ -40,10 +40,19 @@ export async function _cleanupDatabase(): Promise<void> {
     await db.execute(
       sql`TRUNCATE TABLE vde_map_items, vde_base_item_versions, vde_base_items RESTART IDENTITY CASCADE`,
     );
-  } catch {
+  } catch (error) {
     // In parallel test execution, cleanup conflicts are expected.
-    // Tests using _createUniqueTestParams() will still be isolated.
-    // Don't log to avoid noisy output - this is expected behavior.
+    // Only suppress lock/conflict errors; re-throw others
+    const isExpectedError = 
+      error instanceof Error && 
+      (error.message.includes('deadlock') || 
+       error.message.includes('lock') ||
+       error.message.includes('concurrent'));
+    
+    if (!isExpectedError) {
+      console.warn('[_cleanupDatabase] Unexpected error during cleanup:', error);
+      throw error;
+    }
   }
 }
 
