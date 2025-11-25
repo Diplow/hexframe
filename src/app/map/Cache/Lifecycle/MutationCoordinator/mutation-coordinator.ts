@@ -645,11 +645,12 @@ export class MutationCoordinator {
           return firstChildDirection > Direction.Center;
         case 'composed':
           return firstChildDirection < Direction.Center;
-        case 'executionHistory':
+        case 'executionHistory': {
           // Delete ALL execution history tiles in the subtree
           // This includes any tile that has direction 0 anywhere in its path after parent
           const pathAfterParent = itemCoords.path.slice(parentCoords.path.length);
           return pathAfterParent.includes(Direction.Center);
+        }
         default:
           return false;
       }
