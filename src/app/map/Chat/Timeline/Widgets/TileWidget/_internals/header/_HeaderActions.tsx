@@ -11,6 +11,9 @@ interface HeaderActionsProps {
   onCancel: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  onDeleteChildren?: () => void;
+  onDeleteComposed?: () => void;
+  onDeleteExecutionHistory?: () => void;
   onClose?: () => void;
   onMetadata?: () => void;
   onHistory?: () => void;
@@ -23,6 +26,9 @@ export function _HeaderActions({
   onCancel,
   onEdit,
   onDelete,
+  onDeleteChildren,
+  onDeleteComposed,
+  onDeleteExecutionHistory,
   onClose,
   onMetadata,
   onHistory,
@@ -57,6 +63,9 @@ export function _HeaderActions({
     <ActionMenu
       onEdit={onEdit}
       onDelete={onDelete}
+      onDeleteChildren={onDeleteChildren}
+      onDeleteComposed={onDeleteComposed}
+      onDeleteExecutionHistory={onDeleteExecutionHistory}
       onClose={onClose}
       onMetadata={onMetadata}
       onHistory={onHistory}

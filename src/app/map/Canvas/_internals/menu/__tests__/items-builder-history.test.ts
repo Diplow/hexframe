@@ -65,7 +65,8 @@ describe('buildMenuItems - History Support', () => {
       });
 
       const historyItem = items.find(item => item?.label === 'View History');
-      historyItem?.onClick();
+      expect(historyItem?.onClick).toBeDefined();
+      historyItem?.onClick?.();
 
       expect(onViewHistory).toHaveBeenCalledTimes(1);
     });

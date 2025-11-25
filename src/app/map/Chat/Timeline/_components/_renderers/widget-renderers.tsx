@@ -1,12 +1,15 @@
 import type { Widget } from '~/app/map/Chat/_state';
 import type { TileData } from '~/app/map/types';
-import { _renderTileWidget, _renderCreationWidget, _renderDeleteWidget } from '~/app/map/Chat/Timeline/_components/_renderers/_tile-renderers';
+import { _renderTileWidget, _renderCreationWidget, _renderDeleteWidget, _renderDeleteChildrenWidget } from '~/app/map/Chat/Timeline/_components/_renderers/_tile-renderers';
 import { _renderLoginWidget, _renderErrorWidget } from '~/app/map/Chat/Timeline/_components/_renderers/_auth-error-renderers';
 import { _renderLoadingWidget, _renderAIResponseWidget, _renderMcpKeysWidget, _renderDebugLogsWidget } from '~/app/map/Chat/Timeline/_components/_renderers/_ai-debug-renderers';
 
 export interface WidgetHandlers {
   handleEdit?: () => void;
   handleDelete?: () => void;
+  handleDeleteChildren?: () => void;
+  handleDeleteComposed?: () => void;
+  handleDeleteExecutionHistory?: () => void;
   handleTileSave?: (title: string, preview: string, content: string) => void;
   handleTileClose?: () => void;
   handleSave?: (name: string, preview: string, content: string) => void;
@@ -39,6 +42,10 @@ export function renderLoadingWidget(widget: Widget) {
 
 export function renderDeleteWidget(widget: Widget, handlers: WidgetHandlers) {
   return _renderDeleteWidget(widget, handlers);
+}
+
+export function renderDeleteChildrenWidget(widget: Widget, handlers: WidgetHandlers) {
+  return _renderDeleteChildrenWidget(widget, handlers);
 }
 
 export function renderAIResponseWidget(widget: Widget) {

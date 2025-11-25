@@ -1,5 +1,5 @@
 import { type Dispatch } from "react";
-import { CoordSystem, type Coord, type Direction } from "~/lib/domains/mapping/utils";
+import { CoordSystem, Direction, type Coord } from "~/lib/domains/mapping/utils";
 import type { MapItemUpdateAttributes, MapItemCreateAttributes } from "~/lib/domains/mapping/utils";
 import type { MapItemAPIContract } from "~/server/api";
 import type { CacheAction } from "~/app/map/Cache/State";
@@ -53,6 +53,12 @@ export interface MutationCoordinatorConfig {
       destinationCoords: Coord;
       destinationParentId: number;
     }) => Promise<MapItemAPIContract>;
+  };
+  removeChildrenByTypeMutation?: {
+    mutateAsync: (params: {
+      coords: Coord;
+      directionType: 'structural' | 'composed' | 'executionHistory';
+    }) => Promise<{ success: boolean; deletedCount: number }>;
   };
   eventBus?: EventBusService;
 }
@@ -545,6 +551,167 @@ export class MutationCoordinator {
         // Rollback: remove all optimistically created items
         this._rollbackCopy(optimisticCoordIds, changeId);
         throw error;
+      }
+    });
+  }
+
+  async deleteChildrenByType(
+    coordId: string,
+    directionType: 'structural' | 'composed' | 'executionHistory'
+  ): Promise<MutationResult & { deletedCount: number }> {
+    if (!this.config.removeChildrenByTypeMutation) {
+      throw new Error("Remove children by type mutation not configured");
+    }
+
+    return this.trackOperation(coordId, 'delete', async () => {
+      const changeId = this.tracker.generateChangeId();
+      const existingItem = this._getExistingItem(coordId);
+
+      // Get all children that will be deleted for optimistic update
+      const currentState = this.config.getState();
+      const childrenToDelete = this._getChildrenByDirectionType(
+        coordId,
+        directionType,
+        currentState.itemsById
+      );
+
+      // Store previous state for rollback
+      const previousChildrenData: MapItemAPIContract[] = childrenToDelete.map(
+        child => this._reconstructApiData(child)
+      );
+
+      try {
+        // Emit operation started event
+        this.config.eventBus?.emit({
+          type: 'map.operation_started',
+          payload: {
+            operation: 'delete',
+            tileId: coordId,
+            tileName: `${existingItem.data.title} (${directionType} children)`,
+          },
+          source: 'map_cache',
+          timestamp: new Date(),
+        });
+
+        // Apply optimistic removal of children
+        this._applyOptimisticDeleteChildren(childrenToDelete, previousChildrenData, changeId);
+
+        // Make server call
+        const coords = CoordSystem.parseId(coordId);
+        const result = await this.config.removeChildrenByTypeMutation!.mutateAsync({
+          coords,
+          directionType,
+        });
+
+        // Finalize deletion
+        await this._finalizeDeleteChildren(childrenToDelete, changeId);
+
+        // Emit delete event
+        this._emitDeleteChildrenEvent(existingItem, directionType, result.deletedCount);
+
+        return { success: true, deletedCount: result.deletedCount };
+      } catch (error) {
+        // Rollback: restore all deleted children
+        this._rollbackDeleteChildren(previousChildrenData, changeId);
+        throw error;
+      }
+    });
+  }
+
+  private _getChildrenByDirectionType(
+    parentCoordId: string,
+    directionType: 'structural' | 'composed' | 'executionHistory',
+    itemsById: Record<string, TileData>
+  ): TileData[] {
+    const parentCoords = CoordSystem.parseId(parentCoordId);
+
+    return Object.values(itemsById).filter(item => {
+      // Must be a descendant of parent
+      if (!CoordSystem.isDescendant(item.metadata.coordId, parentCoordId)) {
+        return false;
+      }
+
+      // Get the first direction after the parent path
+      const itemCoords = CoordSystem.parseId(item.metadata.coordId);
+      const firstChildDirection = itemCoords.path[parentCoords.path.length];
+
+      if (firstChildDirection === undefined) {
+        return false;
+      }
+
+      // Filter based on direction type
+      switch (directionType) {
+        case 'structural':
+          return firstChildDirection > Direction.Center;
+        case 'composed':
+          return firstChildDirection < Direction.Center;
+        case 'executionHistory':
+          // Delete ALL execution history tiles in the subtree
+          // This includes any tile that has direction 0 anywhere in its path after parent
+          const pathAfterParent = itemCoords.path.slice(parentCoords.path.length);
+          return pathAfterParent.includes(Direction.Center);
+        default:
+          return false;
+      }
+    });
+  }
+
+  private _applyOptimisticDeleteChildren(
+    children: TileData[],
+    previousData: MapItemAPIContract[],
+    changeId: string
+  ): void {
+    // Track the deletion for rollback
+    this.tracker.trackChange(changeId, {
+      type: 'delete',
+      coordId: children[0]?.metadata.coordId ?? '',
+      metadata: { previousChildrenData: previousData }
+    });
+
+    // Remove all children from cache
+    children.forEach(child => {
+      this.config.dispatch(cacheActions.removeItem(child.metadata.coordId));
+    });
+  }
+
+  private async _finalizeDeleteChildren(
+    children: TileData[],
+    changeId: string
+  ): Promise<void> {
+    // Remove from storage
+    for (const child of children) {
+      await this.config.storageService.remove(`item:${child.metadata.dbId}`);
+    }
+    this.tracker.removeChange(changeId);
+  }
+
+  private _rollbackDeleteChildren(
+    previousData: MapItemAPIContract[],
+    changeId: string
+  ): void {
+    // Restore all deleted children
+    if (previousData.length > 0 && previousData[0]) {
+      this.config.dispatch(cacheActions.loadRegion(previousData, previousData[0].coordinates, 1));
+    }
+    this.tracker.removeChange(changeId);
+  }
+
+  private _emitDeleteChildrenEvent(
+    parentItem: TileData,
+    directionType: 'structural' | 'composed' | 'executionHistory',
+    deletedCount: number
+  ): void {
+    if (!this.config.eventBus) return;
+
+    this.config.eventBus.emit({
+      type: 'map.children_deleted',
+      source: 'map_cache',
+      payload: {
+        parentId: String(parentItem.metadata.dbId),
+        parentName: parentItem.data.title,
+        coordId: parentItem.metadata.coordId,
+        directionType,
+        deletedCount,
       }
     });
   }

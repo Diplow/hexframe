@@ -17,6 +17,9 @@ interface ContextMenuContainerProps {
   onCreateClick?: (tileData: TileData) => void;
   onEditClick?: (tileData: TileData) => void;
   onDeleteClick?: (tileData: TileData) => void;
+  onDeleteChildrenClick?: (tileData: TileData) => void;
+  onDeleteComposedClick?: (tileData: TileData) => void;
+  onDeleteExecutionHistoryClick?: (tileData: TileData) => void;
   onCopyClick?: (tileData: TileData) => void;
   onMoveClick?: (tileData: TileData) => void;
   onCompositionToggle?: (tileData: TileData) => void;
@@ -34,6 +37,9 @@ export function ContextMenuContainer({
   onCreateClick,
   onEditClick,
   onDeleteClick,
+  onDeleteChildrenClick,
+  onDeleteComposedClick,
+  onDeleteExecutionHistoryClick,
   onCopyClick,
   onMoveClick,
   onCompositionToggle,
@@ -53,6 +59,9 @@ export function ContextMenuContainer({
       onNavigate={() => onNavigateClick?.(contextMenu.tileData)}
       onEdit={() => onEditClick?.(contextMenu.tileData)}
       onDelete={() => onDeleteClick?.(contextMenu.tileData)}
+      onDeleteChildren={() => onDeleteChildrenClick?.(contextMenu.tileData)}
+      onDeleteComposed={() => onDeleteComposedClick?.(contextMenu.tileData)}
+      onDeleteExecutionHistory={() => onDeleteExecutionHistoryClick?.(contextMenu.tileData)}
       onCreate={() => onCreateClick?.(contextMenu.tileData)}
       onCopy={() => onCopyClick?.(contextMenu.tileData)}
       onMove={() => onMoveClick?.(contextMenu.tileData)}

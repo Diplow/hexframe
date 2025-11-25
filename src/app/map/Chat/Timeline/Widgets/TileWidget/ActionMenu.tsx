@@ -8,19 +8,31 @@ import { _MenuDropdown } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_inter
 interface ActionMenuProps {
   onEdit?: () => void;
   onDelete?: () => void;
+  onDeleteChildren?: () => void;
+  onDeleteComposed?: () => void;
+  onDeleteExecutionHistory?: () => void;
   onClose?: () => void;
   onMetadata?: () => void;
   onHistory?: () => void;
 }
 
-export function ActionMenu({ onEdit, onDelete, onClose, onMetadata, onHistory }: ActionMenuProps) {
+export function ActionMenu({
+  onEdit,
+  onDelete,
+  onDeleteChildren,
+  onDeleteComposed,
+  onDeleteExecutionHistory,
+  onClose,
+  onMetadata,
+  onHistory,
+}: ActionMenuProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
 
-  const hasActions = onEdit ?? onDelete ?? onClose ?? onMetadata ?? onHistory;
+  const hasActions = onEdit ?? onDelete ?? onDeleteChildren ?? onDeleteComposed ?? onDeleteExecutionHistory ?? onClose ?? onMetadata ?? onHistory;
 
   // Handle click outside to close menu
   useEffect(() => {
@@ -105,6 +117,9 @@ export function ActionMenu({ onEdit, onDelete, onClose, onMetadata, onHistory }:
           menuPosition={menuPosition}
           onEdit={onEdit}
           onDelete={onDelete}
+          onDeleteChildren={onDeleteChildren}
+          onDeleteComposed={onDeleteComposed}
+          onDeleteExecutionHistory={onDeleteExecutionHistory}
           onClose={onClose}
           onMetadata={onMetadata}
           onHistory={onHistory}

@@ -11,7 +11,7 @@ import {
   _buildEditItem,
   _buildCopyItem,
   _buildMoveItem,
-  _buildDeleteItem,
+  _buildDeleteSubmenu,
   _buildCreateItem,
 } from "~/app/map/Canvas/_internals/menu/_builders/edit-actions";
 
@@ -19,9 +19,11 @@ export interface MenuItem {
   icon: LucideIcon;
   label: string;
   shortcut: string;
-  onClick: () => void;
+  onClick?: () => void;
   separator?: boolean;
   className?: string;
+  /** Submenu items - if present, this is a submenu parent */
+  submenu?: MenuItem[];
 }
 
 interface MenuItemsConfig {
@@ -35,6 +37,9 @@ interface MenuItemsConfig {
   onNavigate?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  onDeleteChildren?: () => void;
+  onDeleteComposed?: () => void;
+  onDeleteExecutionHistory?: () => void;
   onCreate?: () => void;
   onCompositionToggle?: (tileData: TileData) => void;
   onViewHistory?: () => void;
@@ -54,6 +59,9 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
     onNavigate,
     onEdit,
     onDelete,
+    onDeleteChildren,
+    onDeleteComposed,
+    onDeleteExecutionHistory,
     onCreate,
     onCompositionToggle,
     onViewHistory,
@@ -79,6 +87,11 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
     ..._buildEditItem(canEdit, onEdit),
     ..._buildCopyItem(canEdit, onCopy),
     ..._buildMoveItem(canEdit, onMove),
-    ..._buildDeleteItem(canEdit, onDelete),
+    ..._buildDeleteSubmenu(canEdit, {
+      onDelete,
+      onDeleteChildren,
+      onDeleteComposed,
+      onDeleteExecutionHistory,
+    }),
   ];
 }

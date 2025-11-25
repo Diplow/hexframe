@@ -54,10 +54,19 @@ export function createMutationCallbacks(mutationOperations: MutationOperations) 
     return result;
   };
 
+  const deleteChildrenByTypeOptimistic = async (
+    coordId: string,
+    directionType: 'structural' | 'composed' | 'executionHistory'
+  ) => {
+    const result = await mutationOperations.deleteChildrenByType(coordId, directionType);
+    return result;
+  };
+
   return {
     createItemOptimistic,
     updateItemOptimistic,
     deleteItemOptimistic,
+    deleteChildrenByTypeOptimistic,
     moveItemOptimistic,
     copyItemOptimistic,
     rollbackOptimisticChange: mutationOperations.rollbackOptimisticChange,

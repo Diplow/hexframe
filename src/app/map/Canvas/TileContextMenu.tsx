@@ -15,6 +15,9 @@ interface TileContextMenuProps {
   onNavigate?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  onDeleteChildren?: () => void;
+  onDeleteComposed?: () => void;
+  onDeleteExecutionHistory?: () => void;
   onCreate?: () => void;
   onCompositionToggle?: (tileData: TileData) => void;
   onViewHistory?: () => void;
@@ -36,6 +39,9 @@ export function TileContextMenu({
   onNavigate,
   onEdit,
   onDelete,
+  onDeleteChildren,
+  onDeleteComposed,
+  onDeleteExecutionHistory,
   onCreate,
   onCompositionToggle,
   onViewHistory,
@@ -84,6 +90,9 @@ export function TileContextMenu({
     onNavigate,
     onEdit,
     onDelete,
+    onDeleteChildren,
+    onDeleteComposed,
+    onDeleteExecutionHistory,
     onCreate,
     onCompositionToggle,
     onViewHistory,
@@ -113,6 +122,7 @@ export function TileContextMenu({
             className={item.className}
             separator={item.separator}
             showSeparator={index > 0}
+            submenu={item.submenu}
           />
         );
       })}

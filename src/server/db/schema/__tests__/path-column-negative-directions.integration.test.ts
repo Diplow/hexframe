@@ -1,7 +1,7 @@
 import { describe, beforeEach, it, expect } from "vitest";
 import { db } from "~/server/db";
 import { schema } from "~/server/db";
-import { _cleanupDatabase } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
+import { _createUniqueTestParams } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { DbBaseItemRepository } from "~/lib/domains/mapping/infrastructure/base-item/db";
 import { MapItemType } from "~/lib/domains/mapping";
 
@@ -22,9 +22,11 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
   let baseItemRepository: DbBaseItemRepository;
   let testBaseItemId: number;
   let testUserId: number;
+  let testParams: { userId: string; groupId: number };
 
   beforeEach(async () => {
-    await _cleanupDatabase();
+    // Use unique params to avoid conflicts with other tests running in parallel
+    testParams = _createUniqueTestParams("schema-path-test");
     baseItemRepository = new DbBaseItemRepository(db);
 
     // Create a test base item to reference
@@ -43,8 +45,8 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
     const userItem = await db
       .insert(schema.mapItems)
       .values({
-        coord_user_id: "user-test-1",
-        coord_group_id: 0,
+        coord_user_id: testParams.userId,
+        coord_group_id: testParams.groupId,
         path: "",
         item_type: MapItemType.USER,
         refItemId: testBaseItemId,
@@ -63,8 +65,8 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
       const [insertedItem] = await db
         .insert(schema.mapItems)
         .values({
-          coord_user_id: "user-test-1",
-          coord_group_id: 0,
+          coord_user_id: testParams.userId,
+          coord_group_id: testParams.groupId,
           path: pathWithNegative,
           item_type: MapItemType.BASE,
           refItemId: testBaseItemId,
@@ -97,8 +99,8 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
         const [item] = await db
           .insert(schema.mapItems)
           .values({
-            coord_user_id: "user-test-1",
-            coord_group_id: 0,
+            coord_user_id: testParams.userId,
+            coord_group_id: testParams.groupId,
             path: path,
             item_type: MapItemType.BASE,
             refItemId: testBaseItemId,
@@ -143,8 +145,8 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
       const [insertedItem] = await db
         .insert(schema.mapItems)
         .values({
-          coord_user_id: "user-test-1",
-          coord_group_id: 0,
+          coord_user_id: testParams.userId,
+          coord_group_id: testParams.groupId,
           path: complexPath,
           item_type: MapItemType.BASE,
           refItemId: testBaseItemId,
@@ -172,8 +174,8 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
       const [insertedItem] = await db
         .insert(schema.mapItems)
         .values({
-          coord_user_id: "user-test-1",
-          coord_group_id: 0,
+          coord_user_id: testParams.userId,
+          coord_group_id: testParams.groupId,
           path: negativeOnlyPath,
           item_type: MapItemType.BASE,
           refItemId: testBaseItemId,
@@ -201,8 +203,8 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
       const [insertedItem] = await db
         .insert(schema.mapItems)
         .values({
-          coord_user_id: "user-test-1",
-          coord_group_id: 0,
+          coord_user_id: testParams.userId,
+          coord_group_id: testParams.groupId,
           path: mixedPath,
           item_type: MapItemType.BASE,
           refItemId: testBaseItemId,
@@ -227,8 +229,8 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
       const [insertedItem] = await db
         .insert(schema.mapItems)
         .values({
-          coord_user_id: "user-test-1",
-          coord_group_id: 0,
+          coord_user_id: testParams.userId,
+          coord_group_id: testParams.groupId,
           path: pathWithZero,
           item_type: MapItemType.BASE,
           refItemId: testBaseItemId,
@@ -263,8 +265,8 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
       const [insertedItem] = await db
         .insert(schema.mapItems)
         .values({
-          coord_user_id: "user-test-1",
-          coord_group_id: 0,
+          coord_user_id: testParams.userId,
+          coord_group_id: testParams.groupId,
           path: deepPath,
           item_type: MapItemType.BASE,
           refItemId: testBaseItemId,
@@ -284,13 +286,15 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
     it("should handle root path (empty string) as baseline", async () => {
       // Arrange: Empty path for root items
       const emptyPath = "";
+      // Use different test params to avoid USER type conflict with beforeEach root
+      const otherParams = _createUniqueTestParams("schema-root-test");
 
       // Act
       const [insertedItem] = await db
         .insert(schema.mapItems)
         .values({
-          coord_user_id: "user-test-2", // Different user to avoid USER type conflict
-          coord_group_id: 0,
+          coord_user_id: otherParams.userId,
+          coord_group_id: otherParams.groupId,
           path: emptyPath,
           item_type: MapItemType.USER,
           refItemId: testBaseItemId,
@@ -310,8 +314,8 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
 
       for (const path of paths) {
         await db.insert(schema.mapItems).values({
-          coord_user_id: "user-test-1",
-          coord_group_id: 0,
+          coord_user_id: testParams.userId,
+          coord_group_id: testParams.groupId,
           path: path,
           item_type: MapItemType.BASE,
           refItemId: testBaseItemId,
@@ -319,9 +323,13 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
         });
       }
 
-      // Act: Query for specific path with negative direction
+      // Act: Query for specific path with negative direction (filter by user/group to isolate test data)
       const items = await db.query.mapItems.findMany({
-        where: (mapItems, { eq }) => eq(mapItems.path, "1,-3"),
+        where: (mapItems, { and, eq }) => and(
+          eq(mapItems.coord_user_id, testParams.userId),
+          eq(mapItems.coord_group_id, testParams.groupId),
+          eq(mapItems.path, "1,-3"),
+        ),
       });
 
       // Assert: Should find exactly one item
@@ -338,32 +346,32 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
 
       await db.insert(schema.mapItems).values([
         {
-          coord_user_id: "user-test-1",
-          coord_group_id: 0,
+          coord_user_id: testParams.userId,
+          coord_group_id: testParams.groupId,
           path: parentPath,
           item_type: MapItemType.BASE,
           refItemId: testBaseItemId,
           parentId: testUserId,
         },
         {
-          coord_user_id: "user-test-1",
-          coord_group_id: 0,
+          coord_user_id: testParams.userId,
+          coord_group_id: testParams.groupId,
           path: childPath,
           item_type: MapItemType.BASE,
           refItemId: testBaseItemId,
           parentId: testUserId,
         },
         {
-          coord_user_id: "user-test-1",
-          coord_group_id: 0,
+          coord_user_id: testParams.userId,
+          coord_group_id: testParams.groupId,
           path: grandchildPath,
           item_type: MapItemType.BASE,
           refItemId: testBaseItemId,
           parentId: testUserId,
         },
         {
-          coord_user_id: "user-test-1",
-          coord_group_id: 0,
+          coord_user_id: testParams.userId,
+          coord_group_id: testParams.groupId,
           path: unrelatedPath,
           item_type: MapItemType.BASE,
           refItemId: testBaseItemId,
@@ -375,8 +383,8 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
       const { like, and, eq } = await import("drizzle-orm");
       const descendants = await db.query.mapItems.findMany({
         where: and(
-          eq(schema.mapItems.coord_user_id, "user-test-1"),
-          eq(schema.mapItems.coord_group_id, 0),
+          eq(schema.mapItems.coord_user_id, testParams.userId),
+          eq(schema.mapItems.coord_group_id, testParams.groupId),
           like(schema.mapItems.path, `${parentPath},%`),
         ),
       });
@@ -394,8 +402,8 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
       const duplicatePath = "1,-3,2";
 
       await db.insert(schema.mapItems).values({
-        coord_user_id: "user-test-1",
-        coord_group_id: 0,
+        coord_user_id: testParams.userId,
+        coord_group_id: testParams.groupId,
         path: duplicatePath,
         item_type: MapItemType.BASE,
         refItemId: testBaseItemId,
@@ -405,8 +413,8 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
       // Act & Assert: Attempting to insert duplicate should fail
       await expect(
         db.insert(schema.mapItems).values({
-          coord_user_id: "user-test-1",
-          coord_group_id: 0,
+          coord_user_id: testParams.userId,
+          coord_group_id: testParams.groupId,
           path: duplicatePath,
           item_type: MapItemType.BASE,
           refItemId: testBaseItemId,
@@ -418,30 +426,31 @@ describe("Schema: path column negative direction support [Integration - DB]", ()
     it("should allow same negative direction in different coordinate spaces", async () => {
       // Arrange: Same path but different user/group
       const samePath = "1,-3";
+      const otherUserParams = _createUniqueTestParams("schema-other-user");
 
       // Act: Insert into different coordinate spaces
       const items = await db
         .insert(schema.mapItems)
         .values([
           {
-            coord_user_id: "user-test-1",
-            coord_group_id: 0,
+            coord_user_id: testParams.userId,
+            coord_group_id: testParams.groupId,
             path: samePath,
             item_type: MapItemType.BASE,
             refItemId: testBaseItemId,
             parentId: testUserId,
           },
           {
-            coord_user_id: "user-test-1",
-            coord_group_id: 1, // Different group
+            coord_user_id: testParams.userId,
+            coord_group_id: testParams.groupId + 1, // Different group
             path: samePath,
             item_type: MapItemType.BASE,
             refItemId: testBaseItemId,
             parentId: testUserId,
           },
           {
-            coord_user_id: "user-test-2", // Different user
-            coord_group_id: 0,
+            coord_user_id: otherUserParams.userId, // Different user
+            coord_group_id: otherUserParams.groupId,
             path: samePath,
             item_type: MapItemType.BASE,
             refItemId: testBaseItemId,

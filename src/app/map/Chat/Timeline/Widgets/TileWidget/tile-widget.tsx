@@ -12,8 +12,10 @@ import {
   _handleShowMetadata,
   _handleTitleKeyDown,
   _handleConfirmDelete,
+  _handleConfirmDeleteChildren,
 } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/_handlers';
 import { _DeleteConfirmation } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/_DeleteConfirmation';
+import { _DeleteChildrenConfirmation } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/_DeleteChildrenConfirmation';
 import { BaseWidget } from '~/app/map/Chat/Timeline/Widgets/_shared';
 import { TileHistoryView } from '~/app/map/Chat/Timeline/Widgets/TileHistoryWidget/TileHistoryWidget';
 import { useMapCache } from '~/app/map/Cache';
@@ -21,7 +23,7 @@ import { CoordSystem } from '~/lib/domains/mapping/utils';
 import { getColor } from '~/app/map/types';
 
 interface TileWidgetProps {
-  mode?: 'view' | 'edit' | 'create' | 'delete' | 'history';
+  mode?: 'view' | 'edit' | 'create' | 'delete' | 'delete_children' | 'history';
   tileId?: string;
   coordId?: string;
   title?: string;
@@ -32,8 +34,12 @@ interface TileWidgetProps {
   tileColor?: string;
   parentName?: string;
   parentCoordId?: string;
+  directionType?: 'structural' | 'composed' | 'executionHistory';
   onEdit?: () => void;
   onDelete?: () => void;
+  onDeleteChildren?: () => void;
+  onDeleteComposed?: () => void;
+  onDeleteExecutionHistory?: () => void;
   onSave?: (title: string, preview: string, content: string) => void;
   onClose?: () => void;
 }
@@ -67,12 +73,16 @@ export function TileWidget({
   tileColor: providedTileColor,
   parentName: _parentName,
   parentCoordId: _parentCoordId,
+  directionType = 'structural',
   onEdit,
   onDelete: _onDelete,
+  onDeleteChildren,
+  onDeleteComposed,
+  onDeleteExecutionHistory,
   onSave,
   onClose,
 }: TileWidgetProps) {
-  const { getItem, hasItem, isLoading, deleteItemOptimistic } = useMapCache();
+  const { getItem, hasItem, isLoading, deleteItemOptimistic, deleteChildrenByTypeOptimistic } = useMapCache();
   const [showMetadata, setShowMetadata] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
@@ -106,12 +116,20 @@ export function TileWidget({
   const handleCancel = () => _handleCancel(currentMode, title, preview, content, editState, onClose);
   const handleTitleKeyDown = (e: React.KeyboardEvent) => _handleTitleKeyDown(e, handleCancel);
   const handleConfirmDelete = () => _handleConfirmDelete(tileId, setIsDeleting, setDeleteError, deleteItemOptimistic, onClose);
+  const handleConfirmDeleteChildren = () => _handleConfirmDeleteChildren(tileId, directionType, setIsDeleting, setDeleteError, deleteChildrenByTypeOptimistic, onClose);
   const handleHistory = () => setCurrentMode('history');
 
   if (currentMode === 'delete') {
     return <_DeleteConfirmation title={title} tileId={tileId} coordId={coordId} isDeleting={isDeleting}
                                 deleteError={deleteError} onCancel={handleCancel}
                                 onConfirmDelete={() => void handleConfirmDelete()} />;
+  }
+
+  if (currentMode === 'delete_children') {
+    return <_DeleteChildrenConfirmation title={title} tileId={tileId} coordId={coordId}
+                                        directionType={directionType} isDeleting={isDeleting}
+                                        deleteError={deleteError} onCancel={handleCancel}
+                                        onConfirmDelete={() => void handleConfirmDeleteChildren()} />;
   }
 
   if (currentMode === 'history' && coordId) {
@@ -145,6 +163,9 @@ export function TileWidget({
         onTitleKeyDown={handleTitleKeyDown}
         onEdit={onEdit ? handleEdit : undefined}
         onDelete={currentMode !== 'create' ? () => setCurrentMode('delete') : undefined}
+        onDeleteChildren={currentMode !== 'create' ? onDeleteChildren : undefined}
+        onDeleteComposed={currentMode !== 'create' ? onDeleteComposed : undefined}
+        onDeleteExecutionHistory={currentMode !== 'create' ? onDeleteExecutionHistory : undefined}
         onClose={onClose}
         onMetadata={currentMode !== 'create' ? () => _handleShowMetadata(tileId, getItem, setShowMetadata) : undefined}
         onHistory={historyHandler}

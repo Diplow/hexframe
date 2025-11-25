@@ -1,8 +1,8 @@
 'use client';
 
-import { Edit, Trash2, X, Copy, History } from 'lucide-react';
+import { Edit, Trash2, X, Copy, History, FolderTree, Layers, Clock } from 'lucide-react';
 import { Portal } from '~/app/map/Chat/Timeline/Widgets/Portal';
-import { _MenuItem } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/menu/_MenuItem';
+import { _MenuItem, type MenuItemData } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/menu/_MenuItem';
 import type { RefObject } from 'react';
 
 interface MenuDropdownProps {
@@ -10,6 +10,9 @@ interface MenuDropdownProps {
   menuPosition: { top: number; left: number };
   onEdit?: () => void;
   onDelete?: () => void;
+  onDeleteChildren?: () => void;
+  onDeleteComposed?: () => void;
+  onDeleteExecutionHistory?: () => void;
   onClose?: () => void;
   onMetadata?: () => void;
   onHistory?: () => void;
@@ -21,11 +24,55 @@ export function _MenuDropdown({
   menuPosition,
   onEdit,
   onDelete,
+  onDeleteChildren,
+  onDeleteComposed,
+  onDeleteExecutionHistory,
   onClose,
   onMetadata,
   onHistory,
   onMenuAction,
 }: MenuDropdownProps) {
+  // Build delete submenu items
+  const deleteSubmenuItems: MenuItemData[] = [];
+
+  if (onDelete) {
+    deleteSubmenuItems.push({
+      icon: Trash2,
+      label: 'Delete Tile',
+      onClick: () => onMenuAction(onDelete),
+      variant: 'destructive',
+    });
+  }
+
+  if (onDeleteChildren) {
+    deleteSubmenuItems.push({
+      icon: FolderTree,
+      label: 'Delete Children',
+      onClick: () => onMenuAction(onDeleteChildren),
+      variant: 'destructive',
+    });
+  }
+
+  if (onDeleteComposed) {
+    deleteSubmenuItems.push({
+      icon: Layers,
+      label: 'Delete Composed',
+      onClick: () => onMenuAction(onDeleteComposed),
+      variant: 'destructive',
+    });
+  }
+
+  if (onDeleteExecutionHistory) {
+    deleteSubmenuItems.push({
+      icon: Clock,
+      label: 'Delete Exec History',
+      onClick: () => onMenuAction(onDeleteExecutionHistory),
+      variant: 'destructive',
+    });
+  }
+
+  // Determine if we should show submenu or single delete item
+  const hasMultipleDeleteActions = deleteSubmenuItems.length > 1;
 
   return (
     <Portal>
@@ -52,7 +99,16 @@ export function _MenuDropdown({
             />
           </div>
         )}
-        {onDelete && (
+        {hasMultipleDeleteActions ? (
+          <div onClick={(e) => e.stopPropagation()}>
+            <_MenuItem
+              icon={Trash2}
+              label="Delete"
+              variant="destructive"
+              submenu={deleteSubmenuItems}
+            />
+          </div>
+        ) : onDelete && (
           <div onClick={(e) => e.stopPropagation()}>
             <_MenuItem
               icon={Trash2}
@@ -73,7 +129,7 @@ export function _MenuDropdown({
         )}
         {onClose && (
           <>
-            {(onEdit ?? onDelete) && (
+            {(onEdit ?? onDelete ?? hasMultipleDeleteActions) && (
               <div className="h-px bg-neutral-200 dark:bg-neutral-800" />
             )}
             <div onClick={(e) => e.stopPropagation()}>

@@ -17,7 +17,7 @@ export function _handleSave(
   editTitle: string,
   editPreview: string,
   editContent: string,
-  currentMode: 'view' | 'edit' | 'create' | 'delete' | 'history',
+  currentMode: 'view' | 'edit' | 'create' | 'delete' | 'delete_children' | 'history',
   setIsEditing: (value: boolean) => void,
   onSave?: (title: string, preview: string, content: string) => void
 ) {
@@ -28,14 +28,14 @@ export function _handleSave(
 }
 
 export function _handleCancel(
-  currentMode: 'view' | 'edit' | 'create' | 'delete' | 'history',
+  currentMode: 'view' | 'edit' | 'create' | 'delete' | 'delete_children' | 'history',
   title: string,
   preview: string,
   content: string,
   editState: EditState,
   onClose?: () => void
 ) {
-  if (currentMode === 'create' || currentMode === 'delete' || currentMode === 'history') {
+  if (currentMode === 'create' || currentMode === 'delete' || currentMode === 'delete_children' || currentMode === 'history') {
     onClose?.();
   } else {
     editState.setEditTitle(title);
@@ -100,6 +100,29 @@ export async function _handleConfirmDelete(
     onClose?.();
   } catch (err) {
     setDeleteError(err instanceof Error ? err.message : 'Failed to delete tile');
+  } finally {
+    setIsDeleting(false);
+  }
+}
+
+export async function _handleConfirmDeleteChildren(
+  tileId: string | undefined,
+  directionType: 'structural' | 'composed' | 'executionHistory',
+  setIsDeleting: (value: boolean) => void,
+  setDeleteError: (value: string) => void,
+  deleteChildrenByTypeOptimistic: (id: string, directionType: 'structural' | 'composed' | 'executionHistory') => Promise<{ success: boolean; deletedCount: number }>,
+  onClose?: () => void
+) {
+  if (!tileId) return;
+
+  setIsDeleting(true);
+  setDeleteError('');
+
+  try {
+    await deleteChildrenByTypeOptimistic(tileId, directionType);
+    onClose?.();
+  } catch (err) {
+    setDeleteError(err instanceof Error ? err.message : 'Failed to delete children');
   } finally {
     setIsDeleting(false);
   }

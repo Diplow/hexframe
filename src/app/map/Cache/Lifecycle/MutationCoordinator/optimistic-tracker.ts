@@ -9,6 +9,7 @@ export interface OptimisticChange {
   rawData?: MapItemAPIContract;
   metadata?: {
     optimisticCoordIds?: string[];
+    previousChildrenData?: MapItemAPIContract[];
   };
 }
 

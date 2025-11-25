@@ -27,6 +27,9 @@ export interface TileActionsContextValue {
   onCreateClick?: (tileData: TileData) => void;
   onEditClick?: (tileData: TileData) => void;
   onDeleteClick?: (tileData: TileData) => void;
+  onDeleteChildrenClick?: (tileData: TileData) => void;
+  onDeleteComposedClick?: (tileData: TileData) => void;
+  onDeleteExecutionHistoryClick?: (tileData: TileData) => void;
   onCompositionToggle?: (tileData: TileData) => void;
 
   // Drag and drop
@@ -54,6 +57,9 @@ interface TileActionsProviderProps {
   onCreateClick?: (tileData: TileData) => void;
   onEditClick?: (tileData: TileData) => void;
   onDeleteClick?: (tileData: TileData) => void;
+  onDeleteChildrenClick?: (tileData: TileData) => void;
+  onDeleteComposedClick?: (tileData: TileData) => void;
+  onDeleteExecutionHistoryClick?: (tileData: TileData) => void;
   onCompositionToggle?: (tileData: TileData) => void;
   // Composition state - for context menu
   hasComposition?: (coordId: string) => boolean;
@@ -76,6 +82,9 @@ export function TileActionsProvider({
   onCreateClick,
   onEditClick,
   onDeleteClick,
+  onDeleteChildrenClick,
+  onDeleteComposedClick,
+  onDeleteExecutionHistoryClick,
   onCompositionToggle,
   hasComposition,
   isCompositionExpanded,
@@ -149,6 +158,9 @@ export function TileActionsProvider({
     onCreateClick,
     onEditClick,
     onDeleteClick,
+    onDeleteChildrenClick,
+    onDeleteComposedClick,
+    onDeleteExecutionHistoryClick,
     onCompositionToggle,
   }), [
     onTileClick,
@@ -164,6 +176,9 @@ export function TileActionsProvider({
     onCreateClick,
     onEditClick,
     onDeleteClick,
+    onDeleteChildrenClick,
+    onDeleteComposedClick,
+    onDeleteExecutionHistoryClick,
     onCompositionToggle,
   ]);
 
@@ -179,6 +194,9 @@ export function TileActionsProvider({
         onCreateClick={onCreateClick}
         onEditClick={onEditClick}
         onDeleteClick={onDeleteClick}
+        onDeleteChildrenClick={onDeleteChildrenClick}
+        onDeleteComposedClick={onDeleteComposedClick}
+        onDeleteExecutionHistoryClick={onDeleteExecutionHistoryClick}
         onCopyClick={handleCopyToClick}
         onMoveClick={handleMoveToClick}
         onCompositionToggle={onCompositionToggle}

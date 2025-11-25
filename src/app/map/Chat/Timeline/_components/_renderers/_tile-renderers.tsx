@@ -12,6 +12,9 @@ export function _renderTileWidget(
   const {
     handleEdit = () => { /* noop */ },
     handleDelete = () => { /* noop */ },
+    handleDeleteChildren,
+    handleDeleteComposed,
+    handleDeleteExecutionHistory,
     handleTileSave = () => { /* noop */ },
     handleTileClose = () => { /* noop */ }
   } = handlers;
@@ -35,6 +38,9 @@ export function _renderTileWidget(
       openInEditMode={tileData.openInEditMode}
       onEdit={handleEdit}
       onDelete={handleDelete}
+      onDeleteChildren={handleDeleteChildren}
+      onDeleteComposed={handleDeleteComposed}
+      onDeleteExecutionHistory={handleDeleteExecutionHistory}
       onSave={handleTileSave}
       onClose={handleTileClose}
     />
@@ -70,6 +76,30 @@ export function _renderDeleteWidget(widget: Widget, handlers: WidgetHandlers) {
       tileId={tileCoordId}
       coordId={tileCoordId}
       title={tileName}
+      onClose={handleCancel}
+    />
+  );
+}
+
+export function _renderDeleteChildrenWidget(widget: Widget, handlers: WidgetHandlers) {
+  const deleteData = widget.data as {
+    tileId?: string;
+    tileName?: string;
+    directionType?: 'structural' | 'composed' | 'executionHistory';
+  };
+  const { handleCancel = () => { /* noop */ } } = handlers;
+
+  const tileCoordId = deleteData.tileId ?? '';
+  const tileName = deleteData.tileName ?? 'item';
+  const directionType = deleteData.directionType ?? 'structural';
+
+  return (
+    <TileWidget
+      mode="delete_children"
+      tileId={tileCoordId}
+      coordId={tileCoordId}
+      title={tileName}
+      directionType={directionType}
       onClose={handleCancel}
     />
   );

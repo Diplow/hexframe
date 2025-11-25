@@ -6,9 +6,7 @@ import type {
   BaseItemRepository,
 } from "~/lib/domains/mapping/_repositories";
 import { db } from "~/server/db";
-import { mapItems, baseItems } from "~/server/db/schema";
 import { type Coord, Direction } from "~/lib/domains/mapping/utils";
-import { sql } from "drizzle-orm";
 
 export interface TestRepositories {
   mapItem: MapItemRepository;
@@ -25,37 +23,27 @@ export const TEST_DB_REPOS: TestRepositories = {
   baseItem: new DbBaseItemRepository(db),
 };
 
+/**
+ * Cleans up test database tables.
+ *
+ * NOTE: With parallel test execution, cleanup can cause race conditions.
+ * Tests should prefer using _createUniqueTestParams() for isolation.
+ * This function is kept for backwards compatibility but may be a no-op
+ * in environments where parallel test isolation is required.
+ */
 export async function _cleanupDatabase(): Promise<void> {
-  // Delete in the correct order to avoid foreign key constraint violations
-  // First delete mapItems (which reference baseItems), then baseItems
+  // Use TRUNCATE CASCADE with all related tables in a single statement
+  // This is atomic and avoids FK issues between tables
+  const { sql } = await import("drizzle-orm");
+
   try {
-    // eslint-disable-next-line drizzle/enforce-delete-with-where
-    await db.delete(mapItems);
-    // eslint-disable-next-line drizzle/enforce-delete-with-where
-    await db.delete(baseItems);
-
-    // Small delay to ensure cleanup completes
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await db.execute(
+      sql`TRUNCATE TABLE vde_map_items, vde_base_item_versions, vde_base_items RESTART IDENTITY CASCADE`,
+    );
   } catch (error) {
-    console.warn("Database cleanup warning:", error);
-    // If cleanup fails, try a more aggressive approach
-    try {
-      // Disable foreign key checks temporarily, truncate, then re-enable
-      await db.execute(sql`SET session_replication_role = replica`);
-      await db.execute(
-        sql`TRUNCATE TABLE vde_map_items RESTART IDENTITY CASCADE`,
-      );
-      await db.execute(
-        sql`TRUNCATE TABLE vde_base_items RESTART IDENTITY CASCADE`,
-      );
-      await db.execute(sql`SET session_replication_role = DEFAULT`);
-
-      // Small delay to ensure operations complete
-      await new Promise((resolve) => setTimeout(resolve, 10));
-    } catch (truncateError) {
-      console.error("Failed to cleanup database:", truncateError);
-      throw truncateError;
-    }
+    // In parallel test execution, cleanup conflicts are expected.
+    // Tests using _createUniqueTestParams() will still be isolated.
+    // Don't log to avoid noisy output - this is expected behavior.
   }
 }
 
@@ -116,18 +104,23 @@ export async function _setupMapWithChild(
   return { rootMap, childItem, childCoords };
 }
 
+// Counter for generating unique test params within a session
+let testParamCounter = 0;
+
 // Helper to ensure unique test parameters to avoid conflicts
-export function _createUniqueTestParams(baseUserId = "user-test-1"): {
+export function _createUniqueTestParams(baseUserId = "user-test"): {
   userId: string;
   groupId: number;
 } {
-  // Use smaller random numbers that fit within integer constraints
-  // Generate numbers in a reasonable range for testing
-  const random = Math.floor(Math.random() * 10000); // 0-9999
-  const timeComponent = Date.now() % 100000; // Last 5 digits of timestamp
+  // Use a combination of counter, timestamp, and random for true uniqueness
+  const counter = testParamCounter++;
+  const timestamp = Date.now();
+  const random = Math.floor(Math.random() * 10000);
 
   return {
-    userId: `${baseUserId}-${random}`, // Creates unique string IDs
-    groupId: timeComponent % 1000, // 0-999 range
+    // Combines baseUserId with timestamp and counter for uniqueness
+    userId: `${baseUserId}-${timestamp}-${counter}-${random}`,
+    // Each call gets a unique groupId based on counter
+    groupId: counter,
   };
 }

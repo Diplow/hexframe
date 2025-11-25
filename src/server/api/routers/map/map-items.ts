@@ -387,4 +387,35 @@ export const mapItemsRouter = createTRPCRouter({
 
       return contractToApiAdapters.mapItem(copiedItem);
     }),
+
+  // Remove children by direction type (bulk delete)
+  removeChildrenByType: dualAuthProcedure
+    .use(mappingServiceMiddleware)
+    .input(z.object({
+      coords: hexCoordSchema,
+      directionType: z.enum(['structural', 'composed', 'executionHistory']),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const currentUserId = _getUserId(ctx.user);
+      const currentUserIdString = String(currentUserId);
+
+      // Verify user owns the parent item
+      const parentItem = await ctx.mappingService.items.crud.getItem({
+        coords: input.coords as Coord,
+      });
+
+      if (parentItem.ownerId !== currentUserIdString) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You can only delete children of items you own",
+        });
+      }
+
+      const result = await ctx.mappingService.items.crud.removeChildrenByType({
+        coords: input.coords as Coord,
+        directionType: input.directionType,
+      });
+
+      return { success: true, deletedCount: result.deletedCount };
+    }),
 });

@@ -9,6 +9,7 @@ import {
   renderCreationWidget,
   renderLoadingWidget,
   renderDeleteWidget,
+  renderDeleteChildrenWidget,
   renderAIResponseWidget,
   renderMcpKeysWidget,
   renderDebugLogsWidget
@@ -32,6 +33,8 @@ export function _renderWidget(
       return renderLoadingWidget(widget);
     case 'delete':
       return renderDeleteWidget(widget, handlers);
+    case 'delete_children':
+      return renderDeleteChildrenWidget(widget, handlers);
     case 'ai-response':
       return renderAIResponseWidget(widget);
     case 'mcp-keys':

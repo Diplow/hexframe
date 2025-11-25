@@ -33,6 +33,7 @@ export function useMutationOperations(config: MutationOperationsConfig): Mutatio
   const deleteItemMutation = api.map.removeItem.useMutation();
   const moveItemMutation = api.map.items.moveMapItem.useMutation();
   const copyItemMutation = api.map.items.copyMapItem.useMutation();
+  const removeChildrenByTypeMutation = api.map.items.removeChildrenByType.useMutation();
 
   // Use ref to provide current state to coordinator
   const stateRef = useRef(config.state);
@@ -48,7 +49,8 @@ export function useMutationOperations(config: MutationOperationsConfig): Mutatio
     deleteItemMutation,
     moveItemMutation,
     copyItemMutation,
-  }), [addItemMutation, updateItemMutation, deleteItemMutation, moveItemMutation, copyItemMutation]);
+    removeChildrenByTypeMutation,
+  }), [addItemMutation, updateItemMutation, deleteItemMutation, moveItemMutation, copyItemMutation, removeChildrenByTypeMutation]);
 
   // Create coordinator instance
   const coordinator = useMemo(() => {
@@ -76,6 +78,7 @@ export function useMutationOperations(config: MutationOperationsConfig): Mutatio
     createItem: coordinator.createItem.bind(coordinator),
     updateItem: coordinator.updateItem.bind(coordinator),
     deleteItem: coordinator.deleteItem.bind(coordinator),
+    deleteChildrenByType: coordinator.deleteChildrenByType.bind(coordinator),
     moveItem: coordinator.moveItem.bind(coordinator),
     copyItem: coordinator.copyItem.bind(coordinator),
     rollbackOptimisticChange: coordinator.rollbackChange.bind(coordinator),
