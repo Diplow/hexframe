@@ -382,7 +382,7 @@ describe('buildPrompt - HEXFRAME_PROMPT.md Spec v2 (Recursive Execution)', () =>
       const result = buildPrompt(data)
 
       // Systematic subtasks have <instructions> wrapper, but no user <instructions> section at the end
-      const instructionsCount = (result.match(/<instructions>/g) || []).length
+      const instructionsCount = (result.match(/<instructions>/g) ?? []).length
       expect(instructionsCount).toBe(2) // Read history + Mark done subtasks
     })
 
@@ -438,7 +438,7 @@ describe('buildPrompt - HEXFRAME_PROMPT.md Spec v2 (Recursive Execution)', () =>
       expect(result).toContain('<subtasks>')
       expect(result).toContain('<task>')
       // Should have <instructions> in systematic subtasks, but not as separate section
-      const instructionsCount = (result.match(/<instructions>/g) || []).length
+      const instructionsCount = (result.match(/<instructions>/g) ?? []).length
       expect(instructionsCount).toBe(2) // Read history + Mark done subtasks
     })
 

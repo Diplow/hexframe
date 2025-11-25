@@ -15,7 +15,7 @@ export { McpKeysWidget } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/Mcp
 export { DebugLogsWidget } from '~/app/map/Chat/Timeline/Widgets/DebugLogsWidget';
 
 // Widget Infrastructure
-export { Portal } from '~/app/map/Chat/Timeline/Widgets/Portal';
+export { Portal } from '~/components/ui/context-menu';
 
 // Shared Widget Components (for internal widget implementations)
 export { BaseWidget, WidgetHeader, WidgetContent } from '~/app/map/Chat/Timeline/Widgets/_shared';

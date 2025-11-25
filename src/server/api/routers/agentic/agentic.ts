@@ -530,7 +530,7 @@ export const agenticRouter = createTRPCRouter({
       }
 
       // Get MCP server name from environment (defaults to 'hexframe')
-      const mcpServerName = process.env.HEXFRAME_MCP_SERVER || 'hexframe'
+      const mcpServerName = process.env.HEXFRAME_MCP_SERVER ?? 'hexframe'
 
       // Fetch ancestor execution histories (from root to immediate parent)
       const ancestorHistories = []
@@ -553,7 +553,7 @@ export const agenticRouter = createTRPCRouter({
           const historyTile = await ctx.mappingService.items.crud.getItem({
             coords: historyCoord
           })
-          if (historyTile.content && historyTile.content.trim()) {
+          if (historyTile.content?.trim()) {
             ancestorHistories.push({
               coords: CoordSystem.createId(ancestorCoord),
               content: historyTile.content

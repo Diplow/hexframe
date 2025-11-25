@@ -7,7 +7,7 @@ import { StatusMessages } from '~/app/map/Chat/Timeline/Widgets/LoginWidget/Stat
 import { FormActions } from '~/app/map/Chat/Timeline/Widgets/LoginWidget/FormActions';
 import { useLoginForm } from '~/app/map/Chat/Timeline/Widgets/LoginWidget/useLoginForm';
 import { BaseWidget, WidgetHeader, WidgetContent } from '~/app/map/Chat/Timeline/Widgets/_shared';
-import { InfoBanner } from '~/app/components/InfoBanner';
+import { InfoBanner } from '~/components/ui/info-banner';
 
 interface LoginWidgetProps {
   message?: string;

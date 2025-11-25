@@ -40,7 +40,7 @@ export async function _cleanupDatabase(): Promise<void> {
     await db.execute(
       sql`TRUNCATE TABLE vde_map_items, vde_base_item_versions, vde_base_items RESTART IDENTITY CASCADE`,
     );
-  } catch (error) {
+  } catch {
     // In parallel test execution, cleanup conflicts are expected.
     // Tests using _createUniqueTestParams() will still be isolated.
     // Don't log to avoid noisy output - this is expected behavior.

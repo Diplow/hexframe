@@ -78,7 +78,7 @@ export function _buildDeleteSubmenu(
       label: "Delete Tile",
       shortcut: "",
       onClick: onDelete,
-      className: "text-[color:var(--destructive-color-600)] dark:text-[color:var(--destructive-color-400)]",
+      variant: "destructive",
     });
   }
 
@@ -88,7 +88,7 @@ export function _buildDeleteSubmenu(
       label: "Delete Children",
       shortcut: "",
       onClick: onDeleteChildren,
-      className: "text-[color:var(--destructive-color-600)] dark:text-[color:var(--destructive-color-400)]",
+      variant: "destructive",
     });
   }
 
@@ -98,7 +98,7 @@ export function _buildDeleteSubmenu(
       label: "Delete Composed",
       shortcut: "",
       onClick: onDeleteComposed,
-      className: "text-[color:var(--destructive-color-600)] dark:text-[color:var(--destructive-color-400)]",
+      variant: "destructive",
     });
   }
 
@@ -108,7 +108,7 @@ export function _buildDeleteSubmenu(
       label: "Delete Exec History",
       shortcut: "",
       onClick: onDeleteExecutionHistory,
-      className: "text-[color:var(--destructive-color-600)] dark:text-[color:var(--destructive-color-400)]",
+      variant: "destructive",
     });
   }
 
@@ -119,7 +119,7 @@ export function _buildDeleteSubmenu(
       label: "Delete",
       shortcut: "",
       onClick: onDelete,
-      className: "text-[color:var(--destructive-color-600)] dark:text-[color:var(--destructive-color-400)]",
+      variant: "destructive",
     }];
   }
 
@@ -129,7 +129,7 @@ export function _buildDeleteSubmenu(
       icon: Trash2,
       label: "Delete",
       shortcut: "",
-      className: "text-[color:var(--destructive-color-600)] dark:text-[color:var(--destructive-color-400)]",
+      variant: "destructive",
       submenu: submenuItems,
     }];
   }

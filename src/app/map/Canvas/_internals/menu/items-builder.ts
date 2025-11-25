@@ -1,5 +1,5 @@
 import type { TileData } from "~/app/map/types/tile-data";
-import { type LucideIcon } from "lucide-react";
+import type { ContextMenuItemData } from "~/components/ui/context-menu";
 import {
   _buildPreviewItem,
   _buildExpandItem,
@@ -15,16 +15,7 @@ import {
   _buildCreateItem,
 } from "~/app/map/Canvas/_internals/menu/_builders/edit-actions";
 
-export interface MenuItem {
-  icon: LucideIcon;
-  label: string;
-  shortcut: string;
-  onClick?: () => void;
-  separator?: boolean;
-  className?: string;
-  /** Submenu items - if present, this is a submenu parent */
-  submenu?: MenuItem[];
-}
+export type MenuItem = ContextMenuItemData;
 
 interface MenuItemsConfig {
   tileData: TileData;
