@@ -564,22 +564,40 @@ export const agenticRouter = createTRPCRouter({
         }
       }
 
+      // Validate task tile has a non-empty title
+      if (!taskTile.title || taskTile.title.trim().length === 0) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `Task tile at ${taskCoords} has an empty title. A non-empty title is required for prompt generation.`
+        })
+      }
+
       // Build prompt using new recursive execution model
-      const promptResult = buildPrompt({
-        task: {
-          title: taskTile.title,
-          content: taskTile.content || undefined,
-          coords: taskCoords
-        },
-        composedChildren: composedChildren.map(child => ({
-          title: child.title,
-          content: child.content
-        })),
-        structuralChildren,
-        instruction,
-        mcpServerName,
-        ancestorHistories
-      })
+      let promptResult: string
+      try {
+        promptResult = buildPrompt({
+          task: {
+            title: taskTile.title,
+            content: taskTile.content || undefined,
+            coords: taskCoords
+          },
+          composedChildren: composedChildren.map(child => ({
+            title: child.title,
+            content: child.content
+          })),
+          structuralChildren,
+          instruction,
+          mcpServerName,
+          ancestorHistories
+        })
+      } catch (error) {
+        console.error(`Failed to build prompt for task at ${taskCoords}:`, error)
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Failed to build prompt for task "${taskTile.title}" at ${taskCoords}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          cause: error
+        })
+      }
 
       return {
         prompt: promptResult
