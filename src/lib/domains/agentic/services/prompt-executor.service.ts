@@ -83,24 +83,62 @@ This prompt was generated from a Hexframe tile hierarchy.
 This is where you track progress. Write to it after EACH subtask (not all at once at the end).
 
 **Subtask Execution Pattern:**
-For each subtask marked with subagent="true":
-1. Call ${mcpServerName}:hexecute(subtask_coords, 'read relevant context from parent execution history')
-2. The response is a prompt - spawn a subagent and give it that prompt to execute as its own task
-3. The subagent updates its own execution history (at subtask_coords,0)
+For domain subtasks in the ORCHESTRATION section below:
+
+If marked [SUBAGENT]:
+1. Call ${mcpServerName}:hexecute(subtask_coords, 'context from parent execution history')
+2. Spawn subagent with the returned prompt
+3. Subagent updates its own execution history
 4. YOU update YOUR execution history (${historyCoords}) with:
    - ✅ Subtask [N] complete: [brief summary]
    - Created/updated tiles: [coords only, don't copy full content]
    - Next subtask needs: [brief context]
 
-For subtasks marked with subagent="false":
-- Execute the task yourself directly (no subagent spawning)
+If marked [THIS AGENT]:
+- Execute directly in this session (coordination, reporting, decisions)
+- Update execution history as you progress
+
+For systematic subtasks (subagent="false" in this prompt):
+- These are meta-orchestration tasks (read history, mark complete)
+- Just execute them - they manage the execution machinery itself
 
 **Key Points:**
 - Do NOT include subtask context in your conversation - subagents fetch what they need
 - Do NOT read tiles created by subtasks unless you specifically need them
 - Document tile coords in your history, not content (keeps context clean)
 - Subagents update their own history - you update yours
-- Update YOUR history progressively (after each subtask), not at the end`
+- Update YOUR history progressively (after each subtask), not at the end
+
+<agent-planning-protocol>
+**Planning Your Work:**
+
+When you start execution, create a plan in your execution history distinguishing:
+
+1. **Meta-orchestration tasks** (subagent="false" in this prompt):
+   - Read execution history (first step, always)
+   - Mark task complete (last step, always)
+   - These are systematic - just execute them
+
+2. **Domain orchestration tasks** (from ORCHESTRATION section in &lt;task&gt;):
+   - Check if marked [SUBAGENT] or [THIS AGENT]
+   - [SUBAGENT]: Spawn via hexecute, track in execution history
+   - [THIS AGENT]: Execute directly, document progress
+
+**Example execution history structure:**
+\`\`\`
+🟡 STARTED [timestamp]: Beginning execution of "Task Name"
+
+**Execution Plan:**
+1. [META] Read execution history - DONE
+2. [SUBAGENT] Analyze System Impact (${taskCoords},1) - PENDING
+3. [SUBAGENT] Define Work Units (${taskCoords},2) - PENDING
+4. [THIS AGENT] Generate report - PENDING
+5. [THIS AGENT] Decide: recurse or terminate - PENDING
+6. [META] Mark task complete - PENDING
+\`\`\`
+
+This plan helps you track what to do, how to do it, and maintain context across execution.
+</agent-planning-protocol>`
 }
 
 function buildSubtasksSection(
