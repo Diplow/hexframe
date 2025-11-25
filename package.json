@@ -18,7 +18,7 @@
     "db:delete-map-orphans": "dotenv -e .env -e .env.local -- tsx scripts/delete-map-orphans.ts",
     "db:find-user-orphans": "dotenv -e .env -e .env.local -- tsx scripts/find-user-orphans.ts",
     "db:delete-user-orphans": "dotenv -e .env -e .env.local -- tsx scripts/delete-user-orphans.ts",
-    "db:pre-migration-cleanup": "tsx scripts/pre-migration-cleanup-orphans.ts",
+    "db:pre-migration-cleanup": "dotenv -e .env -e .env.local -- tsx scripts/pre-migration-cleanup-orphans.ts",
     "dev": "next dev -H 0.0.0.0",
     "format:check": "prettier --config ./config/prettier.config.js --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "format:write": "prettier --config ./config/prettier.config.js --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
