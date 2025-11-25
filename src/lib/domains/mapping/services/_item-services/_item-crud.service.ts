@@ -235,10 +235,12 @@ export class ItemCrudService {
           // Negative directions: -1 to -6
           return firstChildDirection < Direction.Center;
         case 'executionHistory':
+          {
           // Delete ALL execution history tiles in the subtree
           // This includes any tile that has direction 0 anywhere in its path after parent
           const pathAfterParent = itemPath.slice(parentPathLength);
           return pathAfterParent.includes(Direction.Center);
+          }
         default:
           return false;
       }
