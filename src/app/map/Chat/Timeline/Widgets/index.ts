@@ -14,9 +14,6 @@ export { AIResponseWidget } from '~/app/map/Chat/Timeline/Widgets/AIResponseWidg
 export { McpKeysWidget } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/McpKeysWidget';
 export { DebugLogsWidget } from '~/app/map/Chat/Timeline/Widgets/DebugLogsWidget';
 
-// Widget Infrastructure
-export { Portal } from '~/components/ui/context-menu';
-
 // Shared Widget Components (for internal widget implementations)
 export { BaseWidget, WidgetHeader, WidgetContent } from '~/app/map/Chat/Timeline/Widgets/_shared';
 
