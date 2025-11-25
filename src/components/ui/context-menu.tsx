@@ -192,6 +192,9 @@ function ContextMenuItem({
       )}
       <button
         type="button"
+        role="menuitem"
+        aria-haspopup={hasSubmenu ? 'menu' : undefined}
+        aria-expanded={hasSubmenu ? isSubmenuOpen : undefined}
         className={cn(
           'flex items-center justify-between gap-2 w-full px-3 py-2 text-sm whitespace-nowrap',
           'hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors',
