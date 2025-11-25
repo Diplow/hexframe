@@ -8,6 +8,45 @@ import type {
 import { db } from "~/server/db";
 import { type Coord, Direction } from "~/lib/domains/mapping/utils";
 
+// PostgreSQL error codes for concurrency/lock-related issues
+// See: https://www.postgresql.org/docs/current/errcodes-appendix.html
+const EXPECTED_PG_ERROR_CODES = new Set([
+  '40001', // serialization_failure
+  '40P01', // deadlock_detected
+  '55P03', // lock_not_available
+  '57014', // query_canceled (can happen during concurrent truncate)
+]);
+
+// Message patterns indicating expected parallel-cleanup conflicts
+const EXPECTED_ERROR_PATTERNS = [
+  'deadlock',
+  'lock',
+  'concurrent',
+  'could not obtain lock',
+  'canceling statement due to conflict',
+  'tuple concurrently',
+];
+
+/**
+ * Checks if an error is an expected concurrency/lock-related error
+ * that can safely be ignored during parallel test cleanup.
+ */
+function _isExpectedConcurrencyError(err: unknown): boolean {
+  if (!(err instanceof Error)) {
+    return false;
+  }
+
+  // Check PostgreSQL error code if available (node-postgres / pg errors)
+  const pgError = err as Error & { code?: string };
+  if (pgError.code && EXPECTED_PG_ERROR_CODES.has(pgError.code)) {
+    return true;
+  }
+
+  // Check error message for known concurrency patterns
+  const lowerMessage = err.message.toLowerCase();
+  return EXPECTED_ERROR_PATTERNS.some(pattern => lowerMessage.includes(pattern));
+}
+
 export interface TestRepositories {
   mapItem: MapItemRepository;
   baseItem: BaseItemRepository;
@@ -40,19 +79,19 @@ export async function _cleanupDatabase(): Promise<void> {
     await db.execute(
       sql`TRUNCATE TABLE vde_map_items, vde_base_item_versions, vde_base_items RESTART IDENTITY CASCADE`,
     );
-  } catch (error) {
+  } catch (err) {
     // In parallel test execution, cleanup conflicts are expected.
-    // Only suppress lock/conflict errors; re-throw others
-    const isExpectedError = 
-      error instanceof Error && 
-      (error.message.includes('deadlock') || 
-       error.message.includes('lock') ||
-       error.message.includes('concurrent'));
-    
-    if (!isExpectedError) {
-      console.warn('[_cleanupDatabase] Unexpected error during cleanup:', error);
-      throw error;
+    // Only suppress lock/conflict errors; re-throw others (connection, permission, syntax/schema)
+    const isExpectedConcurrencyError = _isExpectedConcurrencyError(err);
+
+    if (isExpectedConcurrencyError) {
+      // Debug-level: expected during parallel test execution, no action needed
+      return;
     }
+
+    // Unexpected error - log and rethrow so tests fail fast
+    console.error('[_cleanupDatabase] Unexpected error during cleanup:', err);
+    throw err;
   }
 }
 

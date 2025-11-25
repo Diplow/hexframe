@@ -603,13 +603,22 @@ export class MutationCoordinator {
           directionType,
         });
 
+        // Check if server reported failure
+        if (!result.success) {
+          // Rollback optimistic cache changes
+          this._rollbackDeleteChildren(previousChildrenData, changeId);
+          throw new Error(
+            `Server failed to delete ${directionType} children. Deleted count: ${result.deletedCount}`
+          );
+        }
+
         // Finalize deletion
         await this._finalizeDeleteChildren(childrenToDelete, changeId);
 
         // Emit delete event
         this._emitDeleteChildrenEvent(existingItem, directionType, result.deletedCount);
 
-        return { success: true, deletedCount: result.deletedCount };
+        return { success: result.success, deletedCount: result.deletedCount };
       } catch (error) {
         // Rollback: restore all deleted children
         this._rollbackDeleteChildren(previousChildrenData, changeId);

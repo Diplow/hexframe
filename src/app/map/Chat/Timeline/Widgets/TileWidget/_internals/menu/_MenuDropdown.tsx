@@ -96,11 +96,13 @@ export function _MenuDropdown({
       variant: 'destructive',
       submenu: deleteSubmenuItems,
     });
-  } else if (onDelete) {
+  } else if (deleteSubmenuItems.length === 1) {
+    // Single delete action - wire directly to its onClick
+    const singleDeleteItem = deleteSubmenuItems[0]!;
     menuItems.push({
-      icon: Trash2,
-      label: 'Delete',
-      onClick: onDelete,
+      icon: singleDeleteItem.icon ?? Trash2,
+      label: singleDeleteItem.label,
+      onClick: singleDeleteItem.onClick,
       variant: 'destructive',
     });
   }
