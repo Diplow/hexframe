@@ -109,7 +109,7 @@ Every task, whether root, branch, or leaf, follows the same execution flow:
 
 ### Example Execution Flow
 
-```
+```text
 Tile: "Implement user authentication" [1]
 ├─ Composed children (context):
 │  ├─ [-1] "Security requirements"
@@ -147,7 +147,7 @@ The direction-0 tile content is **free-form text** written by agents, typically 
 - **Next steps**: What should happen next
 
 Example:
-```
+```markdown
 ## Status
 - ✓ Database schema created (migration 0012)
 - ⧗ Login endpoint partially implemented
@@ -179,7 +179,7 @@ No special tools required - just `getItemByCoords` to read and `updateItem` to w
 ### Scoped Execution Histories
 Each task maintains its **own** execution history, scoped to its work:
 
-```
+```text
 Parent [1] execution history at [1,0]:
   "🟡 STARTED: Plan is to complete schema, endpoint, and hashing in sequence.
    ✅ Subtask [1,1] completed successfully
@@ -209,7 +209,7 @@ When execution needs correction, users manually reset state:
 4. **Run hexecute again** - agent reads updated history, skips completed work
 
 Example execution history edit:
-```
+```markdown
 ## Status
 - ✅ Database schema created (migration 0012)
 - ❌ Login endpoint had bug, REVERTED
