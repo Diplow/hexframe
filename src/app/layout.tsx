@@ -5,7 +5,6 @@ import { type Metadata } from "next";
 
 import { TRPCReactProvider } from "~/commons/trpc/react";
 import { UnifiedAuthProvider } from "~/contexts/UnifiedAuthContext";
-import { MappingUserProvider } from "~/contexts/MappingUserProvider";
 import { ThemeProvider } from "~/contexts/ThemeContext";
 import { Analytics } from "@vercel/analytics/next"
 
@@ -38,9 +37,7 @@ export default function RootLayout({
         <ThemeProvider>
           <UnifiedAuthProvider>
             <TRPCReactProvider>
-              <MappingUserProvider>
-                {children}
-              </MappingUserProvider>
+              {children}
             </TRPCReactProvider>
           </UnifiedAuthProvider>
         </ThemeProvider>

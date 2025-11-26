@@ -17,7 +17,6 @@
     "~/lib/domains/mapping",
     "~/lib/domains/iam",
     "~/contexts/UnifiedAuthContext",
-    "~/contexts/MappingUserProvider",
     "~/contexts/ThemeContext",
     "~/contexts/AuthContext",
     "~/env",
