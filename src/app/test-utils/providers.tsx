@@ -32,7 +32,6 @@ export function TestProviders({
   React.useEffect(() => {
     debugLogger.setOptions({
       enableConsole: false,
-      enableUI: false,
     });
     return () => {
       debugLogger.clearBuffer();

@@ -5,8 +5,6 @@ export interface DebugLogConfig {
 
 export interface DebugLoggerOptions {
   enableConsole?: boolean;
-  enableUI?: boolean;
-  blacklistedPrefixes?: string[]; // Prefixes that should never log to UI
   maxBufferSize?: number;
 }
 
@@ -32,10 +30,8 @@ const debugLogBuffer: DebugLogEntry[] = [];
 
 // Debug settings
 let debugSettings: DebugLoggerOptions = {
-  enableConsole: false, // Disabled by default as requested
-  enableUI: false,
-  blacklistedPrefixes: ['DEBUG', 'RENDER', 'CHAT'], // Prevent chat/render logs from going to UI
-  maxBufferSize: 2000, // Store last 2000 logs
+  enableConsole: false,
+  maxBufferSize: 2000,
 };
 
 export class DebugLogger {
@@ -85,21 +81,16 @@ export class DebugLogger {
       const dataString = config.data ? ` | Data: ${JSON.stringify(config.data, null, 2)}` : '';
       console.log(`%c${prefixString}%c ${config.message}${dataString}`, style, 'color: inherit;');
     }
-    
-    // Check if this prefix is blacklisted for UI
-    const isBlacklisted = debugSettings.blacklistedPrefixes?.some(blacklisted => 
-      prefixString.includes(`[${blacklisted}]`)
-    );
-    
-    // Notify subscribers for UI display if enabled and not blacklisted
-    if (debugSettings.enableUI && !isBlacklisted) {
-      this.notifySubscribers();
-    }
+
+    // Notify subscribers for UI updates
+    this.notifySubscribers();
   }
   
   // Subscribe to log updates (for external UI components)
   subscribe(callback: (logs: DebugLogEntry[]) => void): () => void {
     this.subscribers.add(callback);
+    // Immediately notify with current buffer so subscriber sees existing logs
+    callback([...debugLogBuffer]);
     return () => {
       this.subscribers.delete(callback);
     };
