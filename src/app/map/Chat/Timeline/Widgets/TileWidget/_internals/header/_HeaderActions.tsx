@@ -15,7 +15,7 @@ interface HeaderActionsProps {
   onDeleteComposed?: () => void;
   onDeleteExecutionHistory?: () => void;
   onClose?: () => void;
-  onMetadata?: () => void;
+  onCopyCoordinates?: () => void;
   onHistory?: () => void;
 }
 
@@ -30,7 +30,7 @@ export function _HeaderActions({
   onDeleteComposed,
   onDeleteExecutionHistory,
   onClose,
-  onMetadata,
+  onCopyCoordinates,
   onHistory,
 }: HeaderActionsProps) {
 
@@ -67,7 +67,7 @@ export function _HeaderActions({
       onDeleteComposed={onDeleteComposed}
       onDeleteExecutionHistory={onDeleteExecutionHistory}
       onClose={onClose}
-      onMetadata={onMetadata}
+      onCopyCoordinates={onCopyCoordinates}
       onHistory={onHistory}
     />
   );

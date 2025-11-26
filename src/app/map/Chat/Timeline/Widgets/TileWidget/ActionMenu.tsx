@@ -12,7 +12,7 @@ interface ActionMenuProps {
   onDeleteComposed?: () => void;
   onDeleteExecutionHistory?: () => void;
   onClose?: () => void;
-  onMetadata?: () => void;
+  onCopyCoordinates?: () => void;
   onHistory?: () => void;
 }
 
@@ -23,14 +23,14 @@ export function ActionMenu({
   onDeleteComposed,
   onDeleteExecutionHistory,
   onClose,
-  onMetadata,
+  onCopyCoordinates,
   onHistory,
 }: ActionMenuProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
-  const hasActions = onEdit ?? onDelete ?? onDeleteChildren ?? onDeleteComposed ?? onDeleteExecutionHistory ?? onClose ?? onMetadata ?? onHistory;
+  const hasActions = onEdit ?? onDelete ?? onDeleteChildren ?? onDeleteComposed ?? onDeleteExecutionHistory ?? onClose ?? onCopyCoordinates ?? onHistory;
 
   const _calculateMenuPosition = () => {
     if (!menuButtonRef.current) return null;
@@ -96,7 +96,7 @@ export function ActionMenu({
           onDeleteComposed={onDeleteComposed}
           onDeleteExecutionHistory={onDeleteExecutionHistory}
           onClose={onClose}
-          onMetadata={onMetadata}
+          onCopyCoordinates={onCopyCoordinates}
           onHistory={onHistory}
           onMenuClose={_handleMenuClose}
         />

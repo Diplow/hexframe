@@ -22,6 +22,7 @@ interface ContextMenuContainerProps {
   onDeleteExecutionHistoryClick?: (tileData: TileData) => void;
   onCopyClick?: (tileData: TileData) => void;
   onMoveClick?: (tileData: TileData) => void;
+  onCopyCoordinatesComplete?: () => void;
   onCompositionToggle?: (tileData: TileData) => void;
   hasComposition?: (coordId: string) => boolean;
   isCompositionExpanded?: (coordId: string) => boolean;
@@ -42,6 +43,7 @@ export function ContextMenuContainer({
   onDeleteExecutionHistoryClick,
   onCopyClick,
   onMoveClick,
+  onCopyCoordinatesComplete,
   onCompositionToggle,
   hasComposition,
   isCompositionExpanded,
@@ -65,6 +67,12 @@ export function ContextMenuContainer({
       onCreate={() => onCreateClick?.(contextMenu.tileData)}
       onCopy={() => onCopyClick?.(contextMenu.tileData)}
       onMove={() => onMoveClick?.(contextMenu.tileData)}
+      onCopyCoordinates={() => {
+        const coordId = contextMenu.tileData.metadata.coordId;
+        void navigator.clipboard.writeText(coordId).then(() => {
+          onCopyCoordinatesComplete?.();
+        });
+      }}
       onCompositionToggle={onCompositionToggle}
       canEdit={contextMenu.canEdit}
       isEmptyTile={contextMenu.isEmptyTile}

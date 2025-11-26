@@ -11,7 +11,7 @@ interface MenuDropdownProps {
   onDeleteComposed?: () => void;
   onDeleteExecutionHistory?: () => void;
   onClose?: () => void;
-  onMetadata?: () => void;
+  onCopyCoordinates?: () => void;
   onHistory?: () => void;
   onMenuClose: () => void;
 }
@@ -24,7 +24,7 @@ export function _MenuDropdown({
   onDeleteComposed,
   onDeleteExecutionHistory,
   onClose,
-  onMetadata,
+  onCopyCoordinates,
   onHistory,
   onMenuClose,
 }: MenuDropdownProps) {
@@ -107,11 +107,11 @@ export function _MenuDropdown({
     });
   }
 
-  if (onMetadata) {
+  if (onCopyCoordinates) {
     menuItems.push({
       icon: Copy,
-      label: 'Copy Metadata',
-      onClick: onMetadata,
+      label: 'Copy Coordinates',
+      onClick: onCopyCoordinates,
     });
   }
 
