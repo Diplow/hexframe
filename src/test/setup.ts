@@ -303,16 +303,14 @@ vi.mock('~/contexts/AuthContext', async () => {
     user: null,
     mappingUserId: undefined,
     isLoading: false,
-    setMappingUserId: vi.fn(),
   });
-  
+
   return {
     AuthContext,
     useAuth: vi.fn(() => ({
       user: null,
       mappingUserId: undefined,
       isLoading: false,
-      setMappingUserId: vi.fn(),
     })),
     AuthProvider: ({ children }: { children: React.ReactNode }) => children,
   };
