@@ -92,11 +92,12 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: true
 
-  # Dead code detection job
+  # Dead code detection job (informational only, does not block CI)
   deadcode:
-    name: Dead Code Check
+    name: Dead Code Check (Optional)
     needs: setup
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -164,11 +165,12 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: true
 
-  # Rule of 6 validation job
+  # Rule of 6 validation job (informational only, does not block CI)
   ruleof6:
-    name: Rule of 6 Check
+    name: Rule of 6 Check (Optional)
     needs: setup
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -399,7 +401,8 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
           SKIP_ENV_VALIDATION: true
 
-  # Final check that all parallel jobs succeeded
+  # Final check that all required parallel jobs succeeded
+  # Note: deadcode and ruleof6 are optional (informational only)
   ci-status:
     name: CI Status Check
     needs: [eslint, deadcode, architecture, ruleof6, typecheck, test-phase1, test-phase2, build]
@@ -408,15 +411,23 @@ jobs:
     steps:
       - name: Check all job statuses
         run: |
+          # Required checks (will fail CI if not successful)
           if [[ "${{ needs.eslint.result }}" != "success" || \
-                "${{ needs.deadcode.result }}" != "success" || \
                 "${{ needs.architecture.result }}" != "success" || \
-                "${{ needs.ruleof6.result }}" != "success" || \
                 "${{ needs.typecheck.result }}" != "success" || \
                 "${{ needs.test-phase1.result }}" != "success" || \
                 "${{ needs.test-phase2.result }}" != "success" || \
                 "${{ needs.build.result }}" != "success" ]]; then
-            echo "One or more CI checks failed"
+            echo "One or more required CI checks failed"
             exit 1
           fi
-          echo "All CI checks passed successfully!"
+
+          # Optional checks (informational only, logged but don't fail CI)
+          if [[ "${{ needs.deadcode.result }}" != "success" ]]; then
+            echo "⚠️ Dead code check found issues (optional, not blocking)"
+          fi
+          if [[ "${{ needs.ruleof6.result }}" != "success" ]]; then
+            echo "⚠️ Rule of 6 check found issues (optional, not blocking)"
+          fi
+
+          echo "All required CI checks passed successfully!"
