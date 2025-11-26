@@ -84,7 +84,7 @@ export function TileWidget({
   onClose,
 }: TileWidgetProps) {
   const { getItem, hasItem, isLoading, deleteItemOptimistic, deleteChildrenByTypeOptimistic } = useMapCache();
-  const { show: showCopied, triggerCopy } = useCopyFeedback();
+  const { show: showCopied, isError: isCopyError, triggerSuccess: triggerCopySuccess, triggerError: triggerCopyError } = useCopyFeedback();
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [currentMode, setCurrentMode] = useState(initialMode);
@@ -168,7 +168,7 @@ export function TileWidget({
         onDeleteComposed={currentMode !== 'create' ? onDeleteComposed : undefined}
         onDeleteExecutionHistory={currentMode !== 'create' ? onDeleteExecutionHistory : undefined}
         onClose={onClose}
-        onCopyCoordinates={currentMode !== 'create' ? () => _handleCopyCoordinates(coordId, triggerCopy) : undefined}
+        onCopyCoordinates={currentMode !== 'create' ? () => _handleCopyCoordinates(coordId, triggerCopySuccess, triggerCopyError) : undefined}
         onHistory={historyHandler}
         onSave={handleSave}
         onCancel={handleCancel}
@@ -186,7 +186,10 @@ export function TileWidget({
       )}
 
       {showCopied && (
-        <CopyFeedback message="Coordinates copied to clipboard!" />
+        <CopyFeedback
+          message={isCopyError ? "Failed to copy coordinates" : "Coordinates copied to clipboard!"}
+          variant={isCopyError ? "error" : "success"}
+        />
       )}
     </BaseWidget>
   );

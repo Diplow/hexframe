@@ -93,7 +93,7 @@ export function TileActionsProvider({
 }: TileActionsProviderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
-  const { show: showCopyFeedback, triggerCopy } = useCopyFeedback();
+  const { show: showCopyFeedback, isError: isCopyError, triggerSuccess: triggerCopySuccess, triggerError: triggerCopyError } = useCopyFeedback();
 
   const { onTileClick, onTileDoubleClick } = useTileClickHandlers({
     onNavigateClick,
@@ -201,14 +201,18 @@ export function TileActionsProvider({
         onDeleteExecutionHistoryClick={onDeleteExecutionHistoryClick}
         onCopyClick={handleCopyToClick}
         onMoveClick={handleMoveToClick}
-        onCopyCoordinatesComplete={triggerCopy}
+        onCopyCoordinatesSuccess={triggerCopySuccess}
+        onCopyCoordinatesError={triggerCopyError}
         onCompositionToggle={onCompositionToggle}
         hasComposition={hasComposition}
         isCompositionExpanded={isCompositionExpanded}
         canShowComposition={canShowComposition}
       />
       {showCopyFeedback && (
-        <CopyFeedback message="Coordinates copied to clipboard!" />
+        <CopyFeedback
+          message={isCopyError ? "Failed to copy coordinates" : "Coordinates copied to clipboard!"}
+          variant={isCopyError ? "error" : "success"}
+        />
       )}
     </TileActionsContext.Provider>
   );
