@@ -1,5 +1,6 @@
 import type { TileData } from "~/app/map/types/tile-data";
 import { TileContextMenu } from "~/app/map/Canvas/TileContextMenu";
+import { copyToClipboard } from "~/components/ui/copy-feedback";
 
 interface ContextMenuState {
   tileData: TileData;
@@ -22,6 +23,8 @@ interface ContextMenuContainerProps {
   onDeleteExecutionHistoryClick?: (tileData: TileData) => void;
   onCopyClick?: (tileData: TileData) => void;
   onMoveClick?: (tileData: TileData) => void;
+  onCopyCoordinatesSuccess?: () => void;
+  onCopyCoordinatesError?: () => void;
   onCompositionToggle?: (tileData: TileData) => void;
   hasComposition?: (coordId: string) => boolean;
   isCompositionExpanded?: (coordId: string) => boolean;
@@ -42,6 +45,8 @@ export function ContextMenuContainer({
   onDeleteExecutionHistoryClick,
   onCopyClick,
   onMoveClick,
+  onCopyCoordinatesSuccess,
+  onCopyCoordinatesError,
   onCompositionToggle,
   hasComposition,
   isCompositionExpanded,
@@ -65,6 +70,13 @@ export function ContextMenuContainer({
       onCreate={() => onCreateClick?.(contextMenu.tileData)}
       onCopy={() => onCopyClick?.(contextMenu.tileData)}
       onMove={() => onMoveClick?.(contextMenu.tileData)}
+      onCopyCoordinates={() => {
+        copyToClipboard(
+          contextMenu.tileData.metadata.coordId,
+          () => onCopyCoordinatesSuccess?.(),
+          () => onCopyCoordinatesError?.()
+        );
+      }}
       onCompositionToggle={onCompositionToggle}
       canEdit={contextMenu.canEdit}
       isEmptyTile={contextMenu.isEmptyTile}

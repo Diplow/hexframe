@@ -1,4 +1,4 @@
-import { Edit, Trash2, Move, Copy, Plus, History, Layers, FolderTree, Clock } from "lucide-react";
+import { Edit, Trash2, Move, Copy, Plus, History, Layers, FolderTree, Clock, Clipboard } from "lucide-react";
 import type { MenuItem } from "~/app/map/Canvas/_internals/menu/items-builder";
 
 /**
@@ -161,6 +161,21 @@ export function _buildViewHistoryItem(onViewHistory?: () => void): MenuItem[] {
           label: "View History",
           shortcut: "",
           onClick: onViewHistory,
+        },
+      ]
+    : [];
+}
+
+export function _buildCopyCoordinatesItem(
+  onCopyCoordinates?: () => void,
+): MenuItem[] {
+  return onCopyCoordinates
+    ? [
+        {
+          icon: Clipboard,
+          label: "Copy Coordinates",
+          shortcut: "",
+          onClick: onCopyCoordinates,
         },
       ]
     : [];

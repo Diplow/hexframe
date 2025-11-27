@@ -13,6 +13,7 @@ import {
   _buildMoveItem,
   _buildDeleteSubmenu,
   _buildCreateItem,
+  _buildCopyCoordinatesItem,
 } from "~/app/map/Canvas/_internals/menu/_builders/edit-actions";
 
 export type MenuItem = ContextMenuItemData;
@@ -36,6 +37,7 @@ interface MenuItemsConfig {
   onViewHistory?: () => void;
   onCopy?: () => void;
   onMove?: () => void;
+  onCopyCoordinates?: () => void;
 }
 
 export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
@@ -58,6 +60,7 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
     onViewHistory,
     onCopy,
     onMove,
+    onCopyCoordinates,
   } = config;
 
   if (isEmptyTile) {
@@ -84,5 +87,6 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
       onDeleteComposed,
       onDeleteExecutionHistory,
     }),
+    ..._buildCopyCoordinatesItem(onCopyCoordinates),
   ];
 }

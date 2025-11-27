@@ -21,6 +21,7 @@ interface TileContextMenuProps {
   onViewHistory?: () => void;
   onCopy?: () => void;
   onMove?: () => void;
+  onCopyCoordinates?: () => void;
   canEdit: boolean;
   isEmptyTile?: boolean;
   hasComposition?: boolean;
@@ -45,6 +46,7 @@ export function TileContextMenu({
   onViewHistory,
   onCopy,
   onMove,
+  onCopyCoordinates,
   canEdit,
   isEmptyTile = false,
   hasComposition: _hasComposition = false,
@@ -70,6 +72,7 @@ export function TileContextMenu({
     onViewHistory,
     onCopy,
     onMove,
+    onCopyCoordinates,
   });
 
   return (

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { CopyFeedback, useCopyFeedback, copyToClipboard } from '~/components/ui/copy-feedback';
 import { TileHeader } from '~/app/map/Chat/Timeline/Widgets/TileWidget/TileHeader';
 import { ContentDisplay } from '~/app/map/Chat/Timeline/Widgets/TileWidget/ContentDisplay';
 import { TileForm } from '~/app/map/Chat/Timeline/Widgets/TileWidget/TileForm';
@@ -9,7 +10,6 @@ import {
   _handleEdit,
   _handleSave,
   _handleCancel,
-  _handleShowMetadata,
   _handleTitleKeyDown,
   _handleConfirmDelete,
   _handleConfirmDeleteChildren,
@@ -83,7 +83,7 @@ export function TileWidget({
   onClose,
 }: TileWidgetProps) {
   const { getItem, hasItem, isLoading, deleteItemOptimistic, deleteChildrenByTypeOptimistic } = useMapCache();
-  const [showMetadata, setShowMetadata] = useState(false);
+  const { show: showCopied, isError: isCopyError, triggerSuccess: triggerCopySuccess, triggerError: triggerCopyError } = useCopyFeedback();
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [currentMode, setCurrentMode] = useState(initialMode);
@@ -167,7 +167,7 @@ export function TileWidget({
         onDeleteComposed={currentMode !== 'create' ? onDeleteComposed : undefined}
         onDeleteExecutionHistory={currentMode !== 'create' ? onDeleteExecutionHistory : undefined}
         onClose={onClose}
-        onMetadata={currentMode !== 'create' ? () => _handleShowMetadata(tileId, getItem, setShowMetadata) : undefined}
+        onCopyCoordinates={currentMode !== 'create' ? () => copyToClipboard(coordId, triggerCopySuccess, triggerCopyError) : undefined}
         onHistory={historyHandler}
         onSave={handleSave}
         onCancel={handleCancel}
@@ -184,10 +184,11 @@ export function TileWidget({
                         onToggleExpansion={() => setIsExpanded(!isExpanded)} />
       )}
 
-      {showMetadata && (
-        <div className="absolute top-2 right-2 bg-neutral-800 dark:bg-neutral-200 text-white dark:text-neutral-800 px-2 py-1 rounded text-xs z-10">
-          Metadata copied to clipboard!
-        </div>
+      {showCopied && (
+        <CopyFeedback
+          message={isCopyError ? "Failed to copy coordinates" : "Coordinates copied to clipboard!"}
+          variant={isCopyError ? "error" : "success"}
+        />
       )}
     </BaseWidget>
   );

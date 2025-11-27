@@ -24,7 +24,7 @@ interface TileHeaderProps {
   onDeleteComposed?: () => void;
   onDeleteExecutionHistory?: () => void;
   onClose?: () => void;
-  onMetadata?: () => void;
+  onCopyCoordinates?: () => void;
   onHistory?: () => void;
   onSave: () => void;
   onCancel: () => void;
@@ -49,7 +49,7 @@ export function TileHeader({
   onDeleteComposed,
   onDeleteExecutionHistory,
   onClose,
-  onMetadata,
+  onCopyCoordinates,
   onHistory,
   onSave,
   onCancel,
@@ -111,7 +111,7 @@ export function TileHeader({
           onDeleteComposed={onDeleteComposed}
           onDeleteExecutionHistory={onDeleteExecutionHistory}
           onClose={onClose}
-          onMetadata={onMetadata}
+          onCopyCoordinates={onCopyCoordinates}
           onHistory={onHistory}
         />
       </div>

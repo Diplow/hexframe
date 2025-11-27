@@ -45,31 +45,6 @@ export function _handleCancel(
   }
 }
 
-export function _handleShowMetadata(
-  tileId: string | undefined,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getItem: (id: string) => any,
-  setShowMetadata: (value: boolean) => void
-) {
-  if (!tileId) return;
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const tile = getItem(tileId);
-  if (!tile) return;
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-  const metadata = tile.metadata;
-  if (!metadata) return;
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-unsafe-assignment
-  const { dbId, coordId, ownerId } = metadata;
-  const metadataText = `Tile Metadata:\n- Database ID: ${dbId}\n- Coordinate ID: ${coordId}\n- Owner ID: ${ownerId}`;
-
-  void navigator.clipboard.writeText(metadataText).then(() => {
-    setShowMetadata(true);
-    setTimeout(() => setShowMetadata(false), 2000);
-  });
-}
-
 export function _handleTitleKeyDown(
   e: KeyboardEvent,
   onCancel: () => void

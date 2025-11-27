@@ -12,6 +12,7 @@ import type { TileData } from "~/app/map/types/tile-data";
 import { useTileClickHandlers } from "~/app/map/Canvas/_internals/tile-click-handlers";
 import { ContextMenuContainer } from "~/app/map/Canvas/_components/ContextMenuContainer";
 import { simulateDragStart } from "~/app/map/Canvas/_internals/drag-simulator";
+import { CopyFeedback, useCopyFeedback } from "~/components/ui/copy-feedback";
 
 export interface TileActionsContextValue {
   // Click handlers
@@ -92,6 +93,7 @@ export function TileActionsProvider({
 }: TileActionsProviderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
+  const { show: showCopyFeedback, isError: isCopyError, triggerSuccess: triggerCopySuccess, triggerError: triggerCopyError } = useCopyFeedback();
 
   const { onTileClick, onTileDoubleClick } = useTileClickHandlers({
     onNavigateClick,
@@ -199,11 +201,19 @@ export function TileActionsProvider({
         onDeleteExecutionHistoryClick={onDeleteExecutionHistoryClick}
         onCopyClick={handleCopyToClick}
         onMoveClick={handleMoveToClick}
+        onCopyCoordinatesSuccess={triggerCopySuccess}
+        onCopyCoordinatesError={triggerCopyError}
         onCompositionToggle={onCompositionToggle}
         hasComposition={hasComposition}
         isCompositionExpanded={isCompositionExpanded}
         canShowComposition={canShowComposition}
       />
+      {showCopyFeedback && (
+        <CopyFeedback
+          message={isCopyError ? "Failed to copy coordinates" : "Coordinates copied to clipboard!"}
+          variant={isCopyError ? "error" : "success"}
+        />
+      )}
     </TileActionsContext.Provider>
   );
 }
