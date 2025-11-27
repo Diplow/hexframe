@@ -45,23 +45,6 @@ export function _handleCancel(
   }
 }
 
-export function _handleCopyCoordinates(
-  coordId: string | undefined,
-  onSuccess: () => void,
-  onError?: () => void
-) {
-  if (!coordId) return;
-
-  void navigator.clipboard.writeText(coordId)
-    .then(() => {
-      onSuccess();
-    })
-    .catch((error: unknown) => {
-      console.error('Failed to copy coordinates to clipboard:', error);
-      onError?.();
-    });
-}
-
 export function _handleTitleKeyDown(
   e: KeyboardEvent,
   onCancel: () => void

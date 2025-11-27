@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { CopyFeedback, useCopyFeedback } from '~/components/ui/copy-feedback';
+import { CopyFeedback, useCopyFeedback, copyToClipboard } from '~/components/ui/copy-feedback';
 import { TileHeader } from '~/app/map/Chat/Timeline/Widgets/TileWidget/TileHeader';
 import { ContentDisplay } from '~/app/map/Chat/Timeline/Widgets/TileWidget/ContentDisplay';
 import { TileForm } from '~/app/map/Chat/Timeline/Widgets/TileWidget/TileForm';
@@ -10,7 +10,6 @@ import {
   _handleEdit,
   _handleSave,
   _handleCancel,
-  _handleCopyCoordinates,
   _handleTitleKeyDown,
   _handleConfirmDelete,
   _handleConfirmDeleteChildren,
@@ -168,7 +167,7 @@ export function TileWidget({
         onDeleteComposed={currentMode !== 'create' ? onDeleteComposed : undefined}
         onDeleteExecutionHistory={currentMode !== 'create' ? onDeleteExecutionHistory : undefined}
         onClose={onClose}
-        onCopyCoordinates={currentMode !== 'create' ? () => _handleCopyCoordinates(coordId, triggerCopySuccess, triggerCopyError) : undefined}
+        onCopyCoordinates={currentMode !== 'create' ? () => copyToClipboard(coordId, triggerCopySuccess, triggerCopyError) : undefined}
         onHistory={historyHandler}
         onSave={handleSave}
         onCancel={handleCancel}

@@ -1,6 +1,6 @@
 import type { TileData } from "~/app/map/types/tile-data";
 import { TileContextMenu } from "~/app/map/Canvas/TileContextMenu";
-import { _handleCopyCoordinates } from "~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/_handlers";
+import { copyToClipboard } from "~/components/ui/copy-feedback";
 
 interface ContextMenuState {
   tileData: TileData;
@@ -71,7 +71,7 @@ export function ContextMenuContainer({
       onCopy={() => onCopyClick?.(contextMenu.tileData)}
       onMove={() => onMoveClick?.(contextMenu.tileData)}
       onCopyCoordinates={() => {
-        _handleCopyCoordinates(
+        copyToClipboard(
           contextMenu.tileData.metadata.coordId,
           () => onCopyCoordinatesSuccess?.(),
           () => onCopyCoordinatesError?.()

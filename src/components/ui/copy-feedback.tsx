@@ -51,6 +51,27 @@ export function useCopyFeedback(duration = 2000): CopyFeedbackState {
 }
 
 /**
+ * Copy text to clipboard with success/error callbacks
+ * Use with useCopyFeedback hook for user feedback
+ */
+export function copyToClipboard(
+  text: string | undefined,
+  onSuccess: () => void,
+  onError?: () => void
+) {
+  if (!text) return;
+
+  void navigator.clipboard.writeText(text)
+    .then(() => {
+      onSuccess();
+    })
+    .catch((error: unknown) => {
+      console.error('Failed to copy to clipboard:', error);
+      onError?.();
+    });
+}
+
+/**
  * Ephemeral toast notification for clipboard copy feedback
  * Renders in a portal at document body level to appear on top of everything
  * Fixed position at bottom-right of the screen
