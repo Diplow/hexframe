@@ -11,8 +11,8 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         structuralChildren: [{ title: 'Subtask 1', preview: 'Preview 1', coords: 'userId,0:1,1' }],
         instruction: 'Test instruction',
         mcpServerName: 'hexframe',
-        plan: 'Existing plan content',
-        planInitializerPath: undefined
+        hexPlan: 'Existing plan content',
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -41,8 +41,8 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         structuralChildren: [{ title: 'S1', preview: 'Preview 1', coords: 'userId,0:1,1' }],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        plan: 'Plan content',
-        planInitializerPath: undefined
+        hexPlan: 'Plan content',
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -59,8 +59,8 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        plan: undefined,
-        planInitializerPath: undefined
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -79,8 +79,8 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        plan: undefined,
-        planInitializerPath: undefined
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -98,8 +98,8 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        plan: undefined,
-        planInitializerPath: undefined
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -122,8 +122,8 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        plan: undefined,
-        planInitializerPath: undefined
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -143,8 +143,8 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        plan: undefined,
-        planInitializerPath: undefined
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -163,8 +163,8 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        plan: undefined,
-        planInitializerPath: undefined
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -182,8 +182,8 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         ],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        plan: undefined,
-        planInitializerPath: undefined
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -201,8 +201,8 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         ],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        plan: undefined,
-        planInitializerPath: undefined
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -221,8 +221,8 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         ],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        plan: undefined,
-        planInitializerPath: undefined
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -240,8 +240,8 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         ],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        plan: undefined,
-        planInitializerPath: undefined
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -261,8 +261,8 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        plan: undefined,
-        planInitializerPath: undefined
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -278,8 +278,8 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        plan: undefined,
-        planInitializerPath: undefined
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -294,8 +294,8 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        plan: undefined,
-        planInitializerPath: undefined
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -310,8 +310,8 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        plan: undefined,
-        planInitializerPath: undefined
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -332,8 +332,8 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        plan: undefined,
-        planInitializerPath: undefined
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -352,8 +352,8 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        plan: '🟡 STARTED: Working on task...',
-        planInitializerPath: undefined
+        hexPlan: '🟡 STARTED: Working on task...',
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -370,8 +370,8 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         structuralChildren: [],
         instruction: 'Build feature X',
         mcpServerName: 'hexframe',
-        plan: undefined,
-        planInitializerPath: undefined
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -392,8 +392,8 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'debughexframe',
-        plan: undefined,
-        planInitializerPath: undefined
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -410,8 +410,8 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        plan: 'Plan with <tags> & "quotes"',
-        planInitializerPath: undefined
+        hexPlan: 'Plan with <tags> & "quotes"',
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -419,15 +419,15 @@ describe('buildPrompt - v3 Simplified Structure', () => {
       expect(result).toContain('Plan with &lt;tags&gt; &amp; &quot;quotes&quot;')
     })
 
-    it('should use custom planInitializerPath when provided', () => {
+    it('should use custom hexPlanInitializerPath when provided', () => {
       const data: PromptData = {
         task: { title: 'Test', content: 'Content', coords: 'userId,0:1,2' },
         composedChildren: [],
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        plan: undefined,
-        planInitializerPath: '2,3' // Custom path instead of default '1,4'
+        hexPlan: undefined,
+        hexPlanInitializerPath: '2,3' // Custom path instead of default '1,4'
       }
 
       const result = buildPrompt(data)
@@ -446,8 +446,8 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        plan: undefined,
-        planInitializerPath: undefined
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -470,8 +470,8 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        plan: undefined,
-        planInitializerPath: undefined
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)

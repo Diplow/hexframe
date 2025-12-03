@@ -468,11 +468,12 @@ export const agenticRouter = createTRPCRouter({
     .input(
       z.object({
         taskCoords: z.string(),
-        instruction: z.string().optional()
+        instruction: z.string().optional(),
+        hexPlanInitializerPath: z.string().optional() // Custom path for hexPlan initialization (e.g., '1,4')
       })
     )
     .query(async ({ input, ctx }) => {
-      const { instruction, taskCoords } = input
+      const { instruction, taskCoords, hexPlanInitializerPath } = input
 
       // Import utilities
       const { CoordSystem } = await import('~/lib/domains/mapping/utils')
@@ -532,36 +533,18 @@ export const agenticRouter = createTRPCRouter({
       // Get MCP server name from environment (defaults to 'hexframe')
       const mcpServerName = process.env.HEXFRAME_MCP_SERVER ?? 'hexframe'
 
-      // Fetch ancestor execution histories (from root to immediate parent)
-      const ancestorHistories = []
-      const ancestors = []
-
-      // Build ancestor path from root to immediate parent
-      for (let i = 0; i < taskCoord.path.length; i++) {
-        const ancestorPath = taskCoord.path.slice(0, i)
-        ancestors.push({
-          userId: taskCoord.userId,
-          groupId: taskCoord.groupId,
-          path: ancestorPath
+      // Fetch hexPlan (direction-0 of current task) if it exists
+      let hexPlan: string | undefined
+      try {
+        const hexPlanCoord = { ...taskCoord, path: [...taskCoord.path, 0] }
+        const hexPlanTile = await ctx.mappingService.items.crud.getItem({
+          coords: hexPlanCoord
         })
-      }
-
-      // Fetch execution history (direction 0) for each ancestor
-      for (const ancestorCoord of ancestors) {
-        try {
-          const historyCoord = { ...ancestorCoord, path: [...ancestorCoord.path, 0] }
-          const historyTile = await ctx.mappingService.items.crud.getItem({
-            coords: historyCoord
-          })
-          if (historyTile.content?.trim()) {
-            ancestorHistories.push({
-              coords: CoordSystem.createId(ancestorCoord),
-              content: historyTile.content
-            })
-          }
-        } catch {
-          // Ancestor history doesn't exist, skip
+        if (hexPlanTile.content?.trim()) {
+          hexPlan = hexPlanTile.content
         }
+      } catch {
+        // HexPlan doesn't exist yet, will be initialized on first execution
       }
 
       // Validate task tile has a non-empty title
@@ -583,12 +566,14 @@ export const agenticRouter = createTRPCRouter({
           },
           composedChildren: composedChildren.map(child => ({
             title: child.title,
-            content: child.content
+            content: child.content,
+            coords: child.coords
           })),
           structuralChildren,
           instruction,
           mcpServerName,
-          ancestorHistories
+          hexPlan,
+          hexPlanInitializerPath
         })
       } catch (error) {
         console.error(`Failed to build prompt for task at ${taskCoords}:`, error)
