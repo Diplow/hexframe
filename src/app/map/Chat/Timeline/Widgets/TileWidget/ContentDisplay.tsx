@@ -1,6 +1,8 @@
 'use client';
 
 import ReactMarkdown from 'react-markdown';
+import remarkBreaks from 'remark-breaks';
+import remarkGfm from 'remark-gfm';
 
 interface ContentDisplayProps {
   content: string;
@@ -44,6 +46,7 @@ export function ContentDisplay({
     <div className="p-2">
       <div className="prose prose-sm max-w-none dark:prose-invert">
         <ReactMarkdown
+          remarkPlugins={[remarkGfm, remarkBreaks]}
           components={{
             // Ensure links open in new tab for security
             a: ({ href, children }) => (
