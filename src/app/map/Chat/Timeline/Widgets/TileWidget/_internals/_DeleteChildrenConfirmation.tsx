@@ -8,32 +8,32 @@ interface DeleteChildrenConfirmationProps {
   title: string;
   tileId?: string;
   coordId?: string;
-  directionType: 'structural' | 'composed' | 'executionHistory';
+  directionType: 'structural' | 'composed' | 'hexPlan';
   isDeleting: boolean;
   deleteError: string;
   onCancel: () => void;
   onConfirmDelete: () => void;
 }
 
-function _getDirectionTypeLabel(directionType: 'structural' | 'composed' | 'executionHistory'): string {
+function _getDirectionTypeLabel(directionType: 'structural' | 'composed' | 'hexPlan'): string {
   switch (directionType) {
     case 'structural':
       return 'children';
     case 'composed':
       return 'composed children';
-    case 'executionHistory':
-      return 'execution history';
+    case 'hexPlan':
+      return 'hexPlan';
   }
 }
 
-function _getDirectionTypeDescription(directionType: 'structural' | 'composed' | 'executionHistory'): string {
+function _getDirectionTypeDescription(directionType: 'structural' | 'composed' | 'hexPlan'): string {
   switch (directionType) {
     case 'structural':
       return 'All structural children (directions 1-6) and their descendants will be deleted.';
     case 'composed':
       return 'All composed children (directions -1 to -6) and their descendants will be deleted.';
-    case 'executionHistory':
-      return 'The execution history (direction 0) and its descendants will be deleted.';
+    case 'hexPlan':
+      return 'The hexPlan (direction 0) and its descendants will be deleted.';
   }
 }
 

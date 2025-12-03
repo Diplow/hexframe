@@ -96,7 +96,7 @@ function _createMapUIHandlers(
       payload: {
         tileId: tileData.metadata.coordId,
         tileName: tileData.data.title,
-        directionType: 'executionHistory',
+        directionType: 'hexPlan',
       },
       timestamp: new Date(),
     });
