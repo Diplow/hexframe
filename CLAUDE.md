@@ -19,17 +19,6 @@ Each README.md should contain:
 - **Responsibilities**: What this subsystem handles
 - **Subsystems**: Child components and their purposes
 
-## 🚀 IMMEDIATE ACTION REQUIRED
-
-**Check the current workflow state and suggest the next action:**
-1. Read `.workflow/current.json` to identify current phase and progress
-2. Check `.workflow/cycles/[current]/README.md` for priority details
-3. If a priority file exists (`.workflow/cycles/[current]/priority-X-*.md`), read it for detailed plan
-4. If no priority file exists, work from the cycle README (likely a quick win)
-5. Proactively suggest: "Based on the workflow, you're currently in [PHASE] working on [PRIORITY]. Would you like to [NEXT ACTION]?"
-
-Example: "You're in the execution phase working on Priority 0 (Establish baseline context). Would you like to start updating X?
-
 ## Project Overview
 
 Hexframe transforms visions into living systems through AI-powered hexagonal maps.
@@ -41,11 +30,6 @@ Hexframe transforms visions into living systems through AI-powered hexagonal map
 - **Main page**: `src/app/map/README.md` - The interface (web page) to the HexFrame system
 - **Domain Model**: `src/lib/domains/README.md` - Core domain structure
 - **System Philosophy**: `src/app/SYSTEM.md` - What systems mean in Hexframe
-
-### Current Development Status
-- **Workflow State**: `.workflow/current.json` - Current phase, priorities, progress
-- **Active Cycle**: `.workflow/cycles/2025-08-07/` - Current sprint documentation
-- **Milestones**: `.workflow/milestones/` - High-level goals tracking
 
 ## Key Principles
 
@@ -95,75 +79,107 @@ Use `pnpm check:deadcode [path]` to identify unused exports, files, and transiti
 - Migrations in `/drizzle/migrations/`
 - localStorage for performance caching
 
-## Composition System Architecture
+## Tile Hierarchy Architecture
 
-Hexframe uses a **negative direction** approach for storing composed children:
+Hexframe tiles have three types of children, each serving a distinct purpose in the execution model:
 
 ### Direction Values
-- **Positive 1-6**: Structural children (normal hierarchy)
-- **Negative -1 to -6**: Composed children (combined functionality)
-- **Direction 0**: Execution history (state tracking for AI orchestration)
+- **Positive 1-6**: Subtask children (decomposed work units)
+- **Negative -1 to -6**: Context children (reference materials, constraints, templates)
+- **Direction 0**: Hexplan (execution state and agent guidance)
 
 ### Key Characteristics
-- Tiles can have BOTH structural and composed children simultaneously
-- Path example: `[1, -3, 4]` = NW → ComposedE → SE (mixed hierarchy)
-- Composed children stored as direct children with negative direction values
-- UX: Composition expansion controlled by boolean toggle (not per-tile)
+- Tiles can have BOTH subtask and context children simultaneously
+- Path example: `[1, -3, 4]` = NW → ContextE → SE (mixed hierarchy)
+- Context children stored as direct children with negative direction values
+- UX: Context expansion controlled by boolean toggle (not per-tile)
 - Storage detail: Negative directions are internal implementation, not exposed in UI
 
 ### Implementation Layers
 All layers support negative directions consistently:
 - **Utils**: Direction enum includes negative values (-1 to -6)
 - **Types**: Parameter schemas validate negative directions
-- **Services**: Composition queries filter by negative direction
+- **Services**: Context queries filter by negative direction
 - **Repositories**: Database queries handle negative path values
 - **Infrastructure**: PostgreSQL stores negative integers in path arrays
 
 See `UBIQUITOUS.md` for complete terminology and `src/lib/domains/mapping/README.md` for domain implementation details.
 
-## AI Orchestration: Tiles as Executable Tasks
+## AI Orchestration: Hexplan-Driven Autonomous Execution
 
 Hexframe's core innovation is making hierarchical knowledge **executable** through the `hexecute` system. See [docs/features/HEXFRAME_PROMPT.md](docs/features/HEXFRAME_PROMPT.md) for full specification.
+
+### The Hexframe Execution Philosophy
+
+Hexframe enables **autonomous execution with structured human control**. This differs fundamentally from conversational AI interaction:
+
+| Conversational Approach | Hexframe Approach |
+|------------------------|-------------------|
+| Chat back-and-forth with agent | Define system structure, let it run autonomously |
+| Hope the agent interprets correctly | Place instructions at the exact right location |
+| Interrupt to course-correct | Edit the hexplan, agent adapts on next step |
+| Context lost between sessions | Hexplan persists, agent resumes from state |
+
+**The workflow:**
+1. Define your system as a hierarchy of tasks with context
+2. Run `hexecute` — agent works autonomously through subtasks
+3. Monitor progress by reading hexplan tiles at direction-0
+4. To adjust: stop the agent, edit the relevant hexplan tile, restart
+5. Agent reads its hexplan, skips completed steps, continues from current state
+
+**Why this works:** System thinkers naturally decompose problems hierarchically. Hexframe makes that decomposition the control interface — you edit structure, not chat history.
 
 ### Divide and Conquer Prompting
 
 The `hexecute` tool transforms any tile into a structured XML prompt using tile hierarchy:
 
 **Prompt structure from tile anatomy:**
-- `<context>`: Composed children (-1 to -6) provide reference materials, constraints, templates
-- `<subtasks>`: Structural children (1-6) are work units to divide into subagents
-- `<execution-history>`: Direction-0 child tracks progress across agent sessions
+- `<context>`: Context children (-1 to -6) provide reference materials, constraints, templates
+- `<subtasks>`: Subtask children (1-6) are work units to divide into subagents
 - `<task>`: Tile's own title (goal) and content (requirements)
-- `<instructions>`: Runtime user input
+- `<hexplan>`: Direction-0 child tracks execution state and guides agent decisions
 
-**Key insight:** System thinkers already decompose hierarchically. Hexframe makes that decomposition directly executable - no prompt engineering required.
+**Key insight:** System thinkers already decompose hierarchically. Hexframe makes that decomposition directly executable — no prompt engineering required.
 
 **Implementation:** The `buildPrompt()` function in `src/lib/domains/agentic/services/prompt-executor.service.ts` deterministically generates XML from tile coordinates.
 
-### Observable Execution Through History Tiles
+### Hexplan Tiles: The Control Interface
 
-**Direction-0 tiles are the state layer:** Each task stores its execution state at `[...path, 0]`:
-- Tile `[1, 3]` → execution history at `[1, 3, 0]`
-- Root tile `[]` → execution history at `[0]`
+**Direction-0 tiles are the hexplan layer:** Each task stores its execution state at `[...path, 0]`:
+- Tile `[1, 3]` → hexplan at `[1, 3, 0]`
+- Root tile `[]` → hexplan at `[0]`
 
-**What history tiles contain:**
+**What hexplan tiles contain:**
 - Status: what's completed, in progress, blocked
 - Decisions: why approaches were chosen
 - Blockers: what's preventing progress
 - Next steps: what should happen next
+- **User adjustments**: instructions added by humans to guide execution
 
 **Update protocol:** Agents use standard MCP tools (`getItemByCoords`, `updateItem`) with emoji prefixes:
 - 🟡 STARTED: Task began
 - ✅ COMPLETED: Task finished
 - 🔴 BLOCKED: Task stuck
 
-**Observability benefits:**
-- Inspect `[1, 0]` for top-level progress
-- Drill into `[1, 2, 0]` for subtask details
-- Trace execution by following direction-0 tiles down hierarchy
-- Resume work by reading history and continuing from last state
+**Human-in-the-loop control:**
+- Read `[1, 0]` to see top-level progress
+- Edit `[1, 2, 0]` to adjust a specific subtask's approach
+- Mark steps as completed to skip them
+- Add instructions at any level — agent incorporates them on next run
 
-**Implementation:** The MCP `hexecute` tool in `src/app/services/mcp/handlers/tools.ts` reads history tiles and includes them in prompts. Agents update using standard `updateItem` calls.
+**Implementation:** The MCP `hexecute` tool in `src/app/services/mcp/handlers/tools.ts` reads hexplan tiles and includes them in prompts. Agents update using standard `updateItem` calls.
+
+### Hexplan Initialization: Hexframe Bootstrapping Hexframe
+
+Since the hexplan is central to Hexframe execution, there's a **default Hexframe system for initializing hexplans**. This is Hexframe using its own formalism to define the system that creates hexplans for other systems.
+
+The hexplan initialization system:
+1. Reads a task hierarchy
+2. Analyzes context and subtask structure
+3. Generates initial hexplan tiles at direction-0 for each task
+4. Sets up the execution state for autonomous runs
+
+This bootstrap system is itself a Hexframe system — demonstrating the self-referential power of the model.
 
 ## Important Notes
 - Always use `pnpm` (not npm or yarn)
