@@ -6,6 +6,7 @@ const { mapItems } = schemaImport;
 import type {
   MapItemIdr,
   Attrs,
+  Visibility,
 } from "~/lib/domains/mapping/_objects/map-item";
 import type { CreateMapItemDbAttrs, UpdateMapItemDbAttrs } from "~/lib/domains/mapping/infrastructure/map-item/types";
 import { pathToString } from "~/lib/domains/mapping/infrastructure/map-item/mappers";
@@ -176,4 +177,13 @@ export class WriteQueries {
     }
   }
 
+  /**
+   * Update the visibility of a map item.
+   */
+  async updateVisibility(itemId: number, visibility: Visibility): Promise<void> {
+    await this.db
+      .update(mapItems)
+      .set({ visibility })
+      .where(eq(mapItems.id, itemId));
+  }
 }

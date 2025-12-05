@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { DynamicMapCanvas, MapLoadingSpinner } from "~/app/map/Canvas";
 import type { TileData } from "~/app/map/types/tile-data";
 import { ParentHierarchy } from "~/app/map/Hierarchy";
@@ -10,6 +10,7 @@ import { useMapCache, type MapCacheHook } from '~/app/map/Cache';
 import { useRouter } from "next/navigation";
 import { useEventBus, type EventBusService } from '~/app/map';
 import { CoordSystem } from "~/lib/domains/mapping/utils";
+import { Visibility } from '~/lib/domains/mapping/utils';
 // Removed drag service import - using global service
 
 const CACHE_CONFIG = {
@@ -225,6 +226,14 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
     router
   );
 
+  const handleToggleVisibility = useCallback((tileData: TileData) => {
+    const currentVisibility = tileData.data.visibility ?? Visibility.PRIVATE;
+    const newVisibility = currentVisibility === Visibility.PRIVATE ? "public" : "private";
+    void cache.updateItemOptimistic(tileData.metadata.coordId, {
+      visibility: newVisibility,
+    });
+  }, [cache]);
+
   // Composition state checkers
   const hasComposition = (coordId: string): boolean => {
     // Check if tile has any composed children (negative directions)
@@ -271,6 +280,7 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
       onDeleteComposedClick={handleDeleteComposedClick}
       onDeleteExecutionHistoryClick={handleDeleteExecutionHistoryClick}
       onCompositionToggle={handleCompositionToggle}
+      onToggleVisibility={handleToggleVisibility}
       hasComposition={hasComposition}
       isCompositionExpanded={isCompositionExpandedForTile}
       canShowComposition={canShowComposition}

@@ -58,6 +58,7 @@ export function _wrapTRPCMutations(mutations: {
           content: params.content,
           preview: params.preview,
           link: params.link,
+          visibility: params.visibility,
         },
       });
     },

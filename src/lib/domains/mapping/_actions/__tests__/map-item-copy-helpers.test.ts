@@ -8,7 +8,7 @@ import {
   type TestEnvironment,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { Direction } from "~/lib/domains/mapping/utils";
-import { MapItemType } from "~/lib/domains/mapping/_objects";
+import { MapItemType, Visibility } from "~/lib/domains/mapping/_objects";
 
 describe("MapItem Copy Helpers", () => {
   let testEnv: TestEnvironment;
@@ -378,6 +378,7 @@ describe("MapItem Copy Helpers", () => {
           coords: destinationCoords,
           parentId: rootMap.id,
           sourceRefId: originalMapItem.ref.id,
+          visibility: Visibility.PRIVATE,
         },
       ];
 

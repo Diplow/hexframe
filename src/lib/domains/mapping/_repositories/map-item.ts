@@ -3,6 +3,7 @@ import {
   type MapItemRelatedItems,
   type MapItemRelatedLists,
   type MapItemWithId,
+  type Visibility,
 } from "~/lib/domains/mapping/_objects";
 import { type GenericRepository } from "~/lib/domains/utils";
 import { type Coord } from "~/lib/domains/mapping/utils";
@@ -24,17 +25,56 @@ export interface MapItemRepository
     MapItemIdr
   > {
   /**
-   * Get the root MapItem (type USER) for a specific user and group.
+   * Override getOne to support visibility filtering.
+   * @param id - ID of the item
+   * @param requesterUserId - The user making the request (for visibility filtering)
    */
-  getRootItem(userId: string, groupId: number): Promise<MapItemWithId | null>;
+  getOne(id: number, requesterUserId?: string): Promise<MapItemWithId>;
+
+  /**
+   * Override getOneByIdr to support visibility filtering.
+   * @param params - Object containing the identifier
+   * @param requesterUserId - The user making the request (for visibility filtering)
+   */
+  getOneByIdr(
+    params: { idr: MapItemIdr; limit?: number; offset?: number },
+    requesterUserId?: string
+  ): Promise<MapItemWithId>;
+
+  /**
+   * Override exists to support visibility filtering.
+   * @param params - Object containing the identifier
+   * @param requesterUserId - The user making the request (for visibility filtering)
+   */
+  exists(
+    params: { idr: MapItemIdr },
+    requesterUserId?: string
+  ): Promise<boolean>;
+
+  /**
+   * Get the root MapItem (type USER) for a specific user and group.
+   * @param userId - The owner's user ID
+   * @param groupId - The group ID
+   * @param requesterUserId - The user making the request (for visibility filtering)
+   */
+  getRootItem(
+    userId: string,
+    groupId: number,
+    requesterUserId?: string
+  ): Promise<MapItemWithId | null>;
 
   /**
    * Get all root MapItems (type USER) for a specific user across all their groups.
+   * @param userId - The owner's user ID
+   * @param limit - Optional limit for pagination
+   * @param offset - Optional offset for pagination
+   * @param requesterUserId - The user making the request (for visibility filtering)
    */
   getRootItemsForUser(
     userId: string,
     limit?: number,
     offset?: number,
+    requesterUserId?: string
   ): Promise<MapItemWithId[]>;
 
   /**
@@ -45,6 +85,7 @@ export interface MapItemRepository
    * @param parentGroupId The groupId from the parent's Coord
    * @param limit Optional limit for pagination
    * @param offset Optional offset for pagination
+   * @param requesterUserId The user making the request (for visibility filtering)
    * @returns Array of map items that are descendants of the specified parent
    */
   getDescendantsByParent({
@@ -53,12 +94,14 @@ export interface MapItemRepository
     parentGroupId,
     limit,
     offset,
+    requesterUserId,
   }: {
     parentPath: Coord["path"];
     parentUserId: string;
     parentGroupId: number;
     limit?: number;
     offset?: number;
+    requesterUserId?: string;
   }): Promise<MapItemWithId[]>;
 
   /**
@@ -70,6 +113,7 @@ export interface MapItemRepository
    * @param maxGenerations Maximum number of generations to retrieve (0 = no descendants, 1 = direct children only, etc.)
    * @param limit Optional limit for pagination
    * @param offset Optional offset for pagination
+   * @param requesterUserId The user making the request (for visibility filtering)
    * @returns Array of map items that are descendants within the specified generation limit
    */
   getDescendantsWithDepth({
@@ -79,6 +123,7 @@ export interface MapItemRepository
     maxGenerations,
     limit,
     offset,
+    requesterUserId,
   }: {
     parentPath: Coord["path"];
     parentUserId: string;
@@ -86,6 +131,7 @@ export interface MapItemRepository
     maxGenerations: number;
     limit?: number;
     offset?: number;
+    requesterUserId?: string;
   }): Promise<MapItemWithId[]>;
 
   /**
@@ -111,6 +157,7 @@ export interface MapItemRepository
    * based on configuration, avoiding redundant queries and direction 0 issues.
    *
    * @param config - Configuration specifying which relationships to include
+   * @param config.requesterUserId - The user making the request (for visibility filtering)
    * @returns Grouped map items by relationship
    */
   getContextForCenter(config: {
@@ -121,6 +168,7 @@ export interface MapItemRepository
     includeComposed: boolean;
     includeChildren: boolean;
     includeGrandchildren: boolean;
+    requesterUserId?: string;
   }): Promise<{
     parent: MapItemWithId | null;
     center: MapItemWithId;
@@ -145,4 +193,13 @@ export interface MapItemRepository
     newCoords: Coord;
     newParentId: number | null;
   }): Promise<number>;
+
+  /**
+   * Update the visibility of a map item.
+   *
+   * @param itemId - ID of the item to update
+   * @param visibility - New visibility setting
+   * @returns The updated map item
+   */
+  updateVisibility(itemId: number, visibility: Visibility): Promise<MapItemWithId>;
 }

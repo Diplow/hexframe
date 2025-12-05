@@ -5,6 +5,7 @@ import {
   type MapItemWithId,
   type RelatedItems,
   type RelatedLists,
+  type Visibility,
 } from "~/lib/domains/mapping/_objects/map-item";
 import {
   type Coord,
@@ -48,40 +49,51 @@ export class DbMapItemRepository implements MapItemRepository {
     return true;
   }
 
-  async getOne(id: number): Promise<MapItemWithId> {
-    const mainItemData = await this.readQueries.fetchItemWithBase(id);
+  async getOne(id: number, requesterUserId?: string): Promise<MapItemWithId> {
+    const mainItemData = await this.readQueries.fetchItemWithBase(id, requesterUserId);
     const neighbors = await this.readQueries.fetchNeighbors(
       mainItemData.map_items.id,
+      requesterUserId
     );
     return mapJoinedDbToDomain(mainItemData, neighbors);
   }
 
-  async getOneByIdr({ idr }: { idr: MapItemIdr }): Promise<MapItemWithId> {
-    const mapItemId = await this._resolveItemId(idr);
+  async getOneByIdr(
+    { idr }: { idr: MapItemIdr },
+    requesterUserId?: string
+  ): Promise<MapItemWithId> {
+    const mapItemId = await this._resolveItemId(idr, requesterUserId);
     if (!mapItemId) {
       throw new Error(`MapItem with idr ${JSON.stringify(idr)} not found.`);
     }
-    return this.getOne(mapItemId);
+    return this.getOne(mapItemId, requesterUserId);
   }
 
-  async exists({ idr }: { idr: MapItemIdr }): Promise<boolean> {
-    const mapItemId = await this._resolveItemId(idr);
+  async exists(
+    { idr }: { idr: MapItemIdr },
+    requesterUserId?: string
+  ): Promise<boolean> {
+    const mapItemId = await this._resolveItemId(idr, requesterUserId);
     return mapItemId !== undefined;
   }
 
-  async getMany(params: {
-    limit?: number;
-    offset?: number;
-  }): Promise<MapItemWithId[]> {
-    const results = await this.readQueries.fetchMany(params);
+  async getMany(
+    params: {
+      limit?: number;
+      offset?: number;
+    },
+    requesterUserId?: string
+  ): Promise<MapItemWithId[]> {
+    const results = await this.readQueries.fetchMany(params, requesterUserId);
     return results.map((r) => mapJoinedDbToDomain(r));
   }
 
   async getRootItem(
     userId: string,
     groupId: number,
+    requesterUserId?: string
   ): Promise<MapItemWithId | null> {
-    const result = await this.specializedQueries.fetchRootItem(userId, groupId);
+    const result = await this.specializedQueries.fetchRootItem(userId, groupId, requesterUserId);
     return result ? mapJoinedDbToDomain(result, []) : null;
   }
 
@@ -89,23 +101,28 @@ export class DbMapItemRepository implements MapItemRepository {
     userId: string,
     limit = 50,
     offset = 0,
+    requesterUserId?: string
   ): Promise<MapItemWithId[]> {
     const results = await this.specializedQueries.fetchRootItemsForUser(
       userId,
       { limit, offset },
+      requesterUserId
     );
     return results.map((r) => mapJoinedDbToDomain(r, []));
   }
 
-  async getManyByIdr(params: {
-    idrs: MapItemIdr[];
-    limit?: number;
-    offset?: number;
-  }): Promise<MapItemWithId[]> {
+  async getManyByIdr(
+    params: {
+      idrs: MapItemIdr[];
+      limit?: number;
+      offset?: number;
+    },
+    requesterUserId?: string
+  ): Promise<MapItemWithId[]> {
     const numericIds = this._extractNumericIds(params.idrs);
     if (numericIds.length === 0) return [];
 
-    const results = await this.readQueries.fetchManyByIds(numericIds, params);
+    const results = await this.readQueries.fetchManyByIds(numericIds, params, requesterUserId);
     return results.map((r) => mapJoinedDbToDomain(r));
   }
 
@@ -180,6 +197,7 @@ export class DbMapItemRepository implements MapItemRepository {
     parentGroupId: number;
     limit?: number;
     offset?: number;
+    requesterUserId?: string;
   }): Promise<MapItemWithId[]> {
     const results =
       await this.specializedQueries.fetchDescendantsByParent(params);
@@ -193,6 +211,7 @@ export class DbMapItemRepository implements MapItemRepository {
     maxGenerations: number;
     limit?: number;
     offset?: number;
+    requesterUserId?: string;
   }): Promise<MapItemWithId[]> {
     const results =
       await this.specializedQueries.fetchDescendantsWithDepth(params);
@@ -257,11 +276,14 @@ export class DbMapItemRepository implements MapItemRepository {
     return item;
   }
 
-  private async _resolveItemId(idr: MapItemIdr): Promise<number | undefined> {
+  private async _resolveItemId(
+    idr: MapItemIdr,
+    requesterUserId?: string
+  ): Promise<number | undefined> {
     if ("id" in idr) {
       return idr.id;
     } else if ("attrs" in idr && idr.attrs.coords) {
-      return this.readQueries.findItemIdByCoords(idr.attrs.coords);
+      return this.readQueries.findItemIdByCoords(idr.attrs.coords, requesterUserId);
     }
     return undefined;
   }
@@ -313,6 +335,7 @@ export class DbMapItemRepository implements MapItemRepository {
       coord_group_id: attrs.coords.groupId,
       path: pathToString(attrs.coords.path),
       item_type: attrs.itemType,
+      visibility: attrs.visibility,
       refItemId: attrs.ref.itemId,
     };
   }
@@ -325,6 +348,7 @@ export class DbMapItemRepository implements MapItemRepository {
     includeComposed: boolean;
     includeChildren: boolean;
     includeGrandchildren: boolean;
+    requesterUserId?: string;
   }): Promise<{
     parent: MapItemWithId | null;
     center: MapItemWithId;
@@ -354,5 +378,13 @@ export class DbMapItemRepository implements MapItemRepository {
     newParentId: number | null;
   }): Promise<number> {
     return this.writeQueries.batchUpdateItemAndDescendants(params);
+  }
+
+  /**
+   * Update the visibility of a map item.
+   */
+  async updateVisibility(itemId: number, visibility: Visibility): Promise<MapItemWithId> {
+    await this.writeQueries.updateVisibility(itemId, visibility);
+    return this.getOne(itemId);
   }
 }

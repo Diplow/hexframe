@@ -1,5 +1,6 @@
 import type { TileData } from "~/app/map/types/tile-data";
 import type { ContextMenuItemData } from "~/components/ui/context-menu";
+import type { Visibility } from '~/lib/domains/mapping/utils';
 import {
   _buildPreviewItem,
   _buildExpandItem,
@@ -14,6 +15,7 @@ import {
   _buildDeleteSubmenu,
   _buildCreateItem,
   _buildCopyCoordinatesItem,
+  _buildVisibilityItem,
 } from "~/app/map/Canvas/_internals/menu/_builders/edit-actions";
 
 export type MenuItem = ContextMenuItemData;
@@ -24,6 +26,7 @@ interface MenuItemsConfig {
   isEmptyTile: boolean;
   isCompositionExpanded: boolean;
   canShowComposition: boolean;
+  visibility?: Visibility;
   onSelect?: () => void;
   onExpand?: () => void;
   onNavigate?: () => void;
@@ -38,6 +41,7 @@ interface MenuItemsConfig {
   onCopy?: () => void;
   onMove?: () => void;
   onCopyCoordinates?: () => void;
+  onToggleVisibility?: () => void;
 }
 
 export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
@@ -47,6 +51,7 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
     isEmptyTile,
     isCompositionExpanded,
     canShowComposition,
+    visibility,
     onSelect,
     onExpand,
     onNavigate,
@@ -61,6 +66,7 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
     onCopy,
     onMove,
     onCopyCoordinates,
+    onToggleVisibility,
   } = config;
 
   if (isEmptyTile) {
@@ -81,6 +87,7 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
     ..._buildEditItem(canEdit, onEdit),
     ..._buildCopyItem(canEdit, onCopy),
     ..._buildMoveItem(canEdit, onMove),
+    ..._buildVisibilityItem(canEdit, visibility, onToggleVisibility),
     ..._buildDeleteSubmenu(canEdit, {
       onDelete,
       onDeleteChildren,

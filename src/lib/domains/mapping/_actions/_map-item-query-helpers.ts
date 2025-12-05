@@ -122,15 +122,24 @@ export class MapItemQueryHelpers {
     return [rootItem, ...descendants];
   }
 
-  async getMapItem({ coords }: { coords: Coord }): Promise<MapItemWithId> {
+  async getMapItem({
+    coords,
+    requesterUserId,
+  }: {
+    coords: Coord;
+    requesterUserId?: string;
+  }): Promise<MapItemWithId> {
     try {
-      return await this.mapItems.getOneByIdr({
-        idr: {
-          attrs: {
-            coords,
+      return await this.mapItems.getOneByIdr(
+        {
+          idr: {
+            attrs: {
+              coords,
+            },
           },
         },
-      });
+        requesterUserId
+      );
     } catch {
       throw new Error(
         `${MAPPING_ERRORS.ITEM_NOT_FOUND} at coords: ${CoordSystem.createId(coords)}`,

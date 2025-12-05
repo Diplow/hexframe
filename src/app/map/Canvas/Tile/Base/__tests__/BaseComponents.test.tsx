@@ -5,6 +5,7 @@ import { BaseItemTile } from "~/app/map/Canvas/Tile/Base/_components/BaseItemTil
 import { BaseEmptyTile } from "~/app/map/Canvas/Tile/Base/_components/BaseEmptyTile";
 import type { TileData } from "~/app/map/types/tile-data";
 import { createTestSetup } from '~/app/test-utils/providers';
+import { Visibility } from '~/lib/domains/mapping/utils';
 
 describe("Base Components", () => {
   const { wrapper } = createTestSetup();
@@ -23,9 +24,10 @@ describe("Base Components", () => {
         data: {
           title: "Test Tile",
           content: "Test description",
-        preview: undefined,
+          preview: undefined,
           link: "",
           color: "zinc-500",
+          visibility: Visibility.PRIVATE,
         },
         state: {
           isDragged: false,
@@ -59,9 +61,10 @@ describe("Base Components", () => {
         data: {
           title: "Selected Tile",
           content: "",
-        preview: undefined,
+          preview: undefined,
           link: "",
           color: "amber-400",
+          visibility: Visibility.PRIVATE,
         },
         state: {
           isDragged: false,

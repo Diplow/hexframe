@@ -55,6 +55,7 @@ export class MapItemActions {
       preview: params.preview,
       link: params.link,
       parentId: params.parentId,
+      visibility: params.visibility,
     });
   }
 
@@ -77,10 +78,12 @@ export class MapItemActions {
 
   public async getMapItem({
     coords,
+    requesterUserId,
   }: {
     coords: Coord;
+    requesterUserId?: string;
   }): Promise<MapItemWithId> {
-    return await this.queryHelpers.getMapItem({ coords });
+    return await this.queryHelpers.getMapItem({ coords, requesterUserId });
   }
 
   public async moveMapItem({

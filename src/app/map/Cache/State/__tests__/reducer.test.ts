@@ -3,6 +3,7 @@ import { ACTION_TYPES } from "~/app/map/Cache/State/types";
 import type { CacheState, CacheAction, RegionMetadata } from "~/app/map/Cache/State/types";
 import type { MapItemAPIContract } from "~/server/api/types/contracts";
 import { MapItemType } from "~/lib/domains/mapping";
+import { Visibility } from '~/lib/domains/mapping/utils';
 
 describe("Cache Reducer", () => {
   // Mock data for testing
@@ -19,6 +20,7 @@ describe("Cache Reducer", () => {
       itemType: MapItemType.BASE,
       ownerId: "test-owner",
       originId: null,
+      visibility: Visibility.PRIVATE,
     },
     {
       id: "2",
@@ -32,6 +34,7 @@ describe("Cache Reducer", () => {
       itemType: MapItemType.BASE,
       ownerId: "test-owner",
       originId: null,
+      visibility: Visibility.PRIVATE,
     },
   ];
 
@@ -157,6 +160,7 @@ describe("Cache Reducer", () => {
           itemType: MapItemType.BASE,
           ownerId: "test-owner",
           originId: null,
+          visibility: Visibility.PRIVATE,
         },
       ];
 
@@ -185,9 +189,10 @@ describe("Cache Reducer", () => {
             data: {
               title: "Old Name",
               content: "Old Desc",
-        preview: undefined,
+              preview: undefined,
               link: "",
               color: "#000000",
+              visibility: Visibility.PRIVATE,
             },
             metadata: {
               coordId: "1,2",
@@ -249,9 +254,10 @@ describe("Cache Reducer", () => {
             data: {
               title: "Test Item 1",
               content: "Test Description 1",
-        preview: undefined,
+              preview: undefined,
               link: "",
               color: "#000000",
+              visibility: Visibility.PRIVATE,
             },
             metadata: {
               coordId: "1,2",
@@ -274,9 +280,10 @@ describe("Cache Reducer", () => {
             data: {
               title: "Test Item 2",
               content: "Test Description 2",
-        preview: undefined,
+              preview: undefined,
               link: "",
               color: "#000000",
+              visibility: Visibility.PRIVATE,
             },
             metadata: {
               coordId: "1,3",
@@ -321,9 +328,10 @@ describe("Cache Reducer", () => {
             data: {
               title: "Old Name",
               content: "Old Desc",
-        preview: undefined,
+              preview: undefined,
               link: "",
               color: "#000000",
+              visibility: Visibility.PRIVATE,
             },
             metadata: {
               coordId: "1,2",
@@ -518,7 +526,7 @@ describe("Cache Reducer", () => {
         ...mockState,
         itemsById: { 
           "1,2": {
-            data: { title: "Test", content: "", preview: undefined, link: "", color: "#000000" },
+            data: { title: "Test", content: "", preview: undefined, link: "", color: "#000000", visibility: Visibility.PRIVATE },
             metadata: { 
               coordId: "1,2", 
               dbId: "1", 
@@ -626,6 +634,7 @@ describe("Cache Reducer", () => {
           itemType: MapItemType.BASE,
           ownerId: "",
           originId: null,
+          visibility: Visibility.PRIVATE,
         },
       ];
 
@@ -678,6 +687,7 @@ describe("Cache Reducer", () => {
           itemType: MapItemType.BASE,
           ownerId: "test-owner",
           originId: null,
+          visibility: Visibility.PRIVATE,
         }),
       );
 

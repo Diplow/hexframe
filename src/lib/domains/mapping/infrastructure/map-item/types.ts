@@ -1,4 +1,4 @@
-import type { MapItemType } from "~/lib/domains/mapping/_objects/map-item";
+import type { MapItemType, Visibility } from "~/lib/domains/mapping/_objects/map-item";
 
 // Infer DB types
 export type DbMapItemSelect = {
@@ -8,6 +8,7 @@ export type DbMapItemSelect = {
   coord_group_id: number;
   path: string;
   item_type: MapItemType;
+  visibility: Visibility;
   refItemId: number;
 };
 
@@ -32,6 +33,7 @@ export type CreateMapItemDbAttrs = {
   coord_group_id: number;
   path: string;
   item_type: MapItemType;
+  visibility?: Visibility;
   refItemId: number;
 };
 
@@ -41,5 +43,6 @@ export type UpdateMapItemDbAttrs = Partial<{
   coord_group_id: number;
   path: string;
   item_type: MapItemType;
+  visibility: Visibility;
   refItemId: number;
 }>;

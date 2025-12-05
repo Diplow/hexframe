@@ -11,6 +11,7 @@ import { MappingUtils } from "~/lib/domains/mapping/services";
 
 export class MapManagementService {
   private readonly actions: MapItemActions;
+  private readonly mapItemRepository: MapItemRepository;
 
   constructor(repositories: {
     mapItem: MapItemRepository;
@@ -20,44 +21,68 @@ export class MapManagementService {
       mapItem: repositories.mapItem,
       baseItem: repositories.baseItem,
     });
+    this.mapItemRepository = repositories.mapItem;
   }
 
   /**
    * Fetches the root USER MapItem for a given user/group and its entire tree of descendants.
    * This represents what was previously a "map".
+   *
+   * @param userId - Owner of the map
+   * @param groupId - Group ID (default 0)
+   * @param requesterUserId - The user making the request (for visibility filtering)
    */
   async getMapData({
     userId,
     groupId = 0,
+    requesterUserId,
   }: {
     userId: string;
     groupId?: number;
+    requesterUserId?: string;
   }): Promise<MapContract | null> {
-    const rootItem = await this.actions.mapItems.getRootItem(userId, groupId);
+    const rootItem = await this.mapItemRepository.getRootItem(userId, groupId, requesterUserId);
     if (!rootItem) {
       throw new Error(`Map for user ${userId}, group ${groupId} not found.`);
     }
-    const descendants = await this.actions.getDescendants(rootItem.id);
+    const descendants = await this.mapItemRepository.getDescendantsByParent({
+      parentUserId: rootItem.attrs.coords.userId,
+      parentGroupId: rootItem.attrs.coords.groupId,
+      parentPath: rootItem.attrs.coords.path,
+      requesterUserId,
+    });
     return adapt.map(rootItem, descendants);
   }
 
   /**
    * Fetches all root USER MapItems for a given user (across all their groups).
+   *
+   * @param userId - Owner of the maps
+   * @param limit - Optional limit for pagination
+   * @param offset - Optional offset for pagination
+   * @param requesterUserId - The user making the request (for visibility filtering)
    */
   async getManyUserMaps(
     userId: string,
     limit?: number,
     offset?: number,
+    requesterUserId?: string,
   ): Promise<MapContract[]> {
     const params = MappingUtils.validatePaginationParameters(limit, offset);
-    const rootItems = await this.actions.mapItems.getRootItemsForUser(
+    const rootItems = await this.mapItemRepository.getRootItemsForUser(
       userId,
       params.limit,
       params.offset,
+      requesterUserId,
     );
     const mapContracts = await Promise.all(
       rootItems.map(async (root) => {
-        const descendants = await this.actions.getDescendants(root.id);
+        const descendants = await this.mapItemRepository.getDescendantsByParent({
+          parentUserId: root.attrs.coords.userId,
+          parentGroupId: root.attrs.coords.groupId,
+          parentPath: root.attrs.coords.path,
+          requesterUserId,
+        });
         return adapt.map(root, descendants);
       }),
     );

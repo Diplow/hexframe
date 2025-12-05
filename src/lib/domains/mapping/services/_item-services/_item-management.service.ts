@@ -8,7 +8,7 @@ import { ItemHistoryService } from "~/lib/domains/mapping/services/_item-service
 import type { Coord } from "~/lib/domains/mapping/utils";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 import type { MapItemContract } from "~/lib/domains/mapping/types/contracts";
-import { MapItemType, type MapItemWithId, type BaseItemWithId } from "~/lib/domains/mapping/_objects";
+import { MapItemType, type Visibility, type MapItemWithId, type BaseItemWithId } from "~/lib/domains/mapping/_objects";
 import {
   _prepareBaseItemsForCopy,
   _prepareMapItemsForCopy,
@@ -143,6 +143,7 @@ export class ItemManagementService {
       preview: rootCopiedItem.ref.attrs.preview,
       link: rootCopiedItem.ref.attrs.link ?? "",
       itemType: rootCopiedItem.attrs.itemType,
+      visibility: rootCopiedItem.attrs.visibility,
       depth: rootCopiedItem.attrs.coords.path.length,
       parentId: rootCopiedItem.attrs.parentId
         ? String(rootCopiedItem.attrs.parentId)
@@ -171,6 +172,7 @@ export class ItemManagementService {
       sourceParentId: number | null;
       sourceMapItemId: number;
       sourceRefId: number;
+      visibility: Visibility;
     }>,
     baseItemMapping: Map<number, number>,
     copiedBaseItems: BaseItemWithId[]
@@ -233,6 +235,7 @@ export class ItemManagementService {
               itemId: copiedBaseItemId,
             },
             itemType: MapItemType.BASE,
+            visibility: prepared.visibility,
           },
           ref: copiedBaseItem,
         };

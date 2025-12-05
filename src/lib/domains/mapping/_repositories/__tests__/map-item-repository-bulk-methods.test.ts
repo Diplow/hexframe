@@ -10,7 +10,7 @@ import {
   type TestEnvironment,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { Direction } from "~/lib/domains/mapping/utils";
-import { MapItemType } from "~/lib/domains/mapping/_objects";
+import { MapItemType, Visibility } from "~/lib/domains/mapping/_objects";
 
 describe("MapItemRepository - bulk createMany method", () => {
   let testEnv: TestEnvironment;
@@ -67,6 +67,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               itemId: baseItem1.id,
             },
             itemType: MapItemType.BASE,
+            visibility: Visibility.PRIVATE,
           },
           ref: baseItem1,
         },
@@ -83,6 +84,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               itemId: baseItem2.id,
             },
             itemType: MapItemType.BASE,
+            visibility: Visibility.PRIVATE,
           },
           ref: baseItem2,
         },
@@ -142,6 +144,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               itemId: baseItem.id,
             },
             itemType: MapItemType.BASE,
+            visibility: Visibility.PRIVATE,
           },
           ref: baseItem,
         },
@@ -200,6 +203,7 @@ describe("MapItemRepository - bulk createMany method", () => {
             itemId: baseItems[0]!.id,
           },
           itemType: MapItemType.BASE,
+          visibility: Visibility.PRIVATE,
         },
         relatedItems: {
           ref: baseItems[0]!,
@@ -225,6 +229,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               itemId: baseItems[1]!.id,
             },
             itemType: MapItemType.BASE,
+            visibility: Visibility.PRIVATE,
           },
           ref: baseItems[1]!,
         },
@@ -241,6 +246,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               itemId: baseItems[2]!.id,
             },
             itemType: MapItemType.BASE,
+            visibility: Visibility.PRIVATE,
           },
           ref: baseItems[2]!,
         },
@@ -299,6 +305,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               itemId: baseItem.id,
             },
             itemType: MapItemType.BASE,
+            visibility: Visibility.PRIVATE,
           },
           ref: baseItem,
         };
@@ -344,6 +351,7 @@ describe("MapItemRepository - bulk createMany method", () => {
             itemId: parentBaseItem.id,
           },
           itemType: MapItemType.BASE,
+          visibility: Visibility.PRIVATE,
         },
         relatedItems: {
           ref: parentBaseItem,
@@ -391,6 +399,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               itemId: composedBaseItems[0]!.id,
             },
             itemType: MapItemType.BASE,
+            visibility: Visibility.PRIVATE,
           },
           ref: composedBaseItems[0]!,
         },
@@ -407,6 +416,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               itemId: composedBaseItems[1]!.id,
             },
             itemType: MapItemType.BASE,
+            visibility: Visibility.PRIVATE,
           },
           ref: composedBaseItems[1]!,
         },
@@ -423,6 +433,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               itemId: composedBaseItems[2]!.id,
             },
             itemType: MapItemType.BASE,
+            visibility: Visibility.PRIVATE,
           },
           ref: composedBaseItems[2]!,
         },
@@ -489,6 +500,7 @@ describe("MapItemRepository - bulk createMany method", () => {
             itemId: parentBaseItem.id,
           },
           itemType: MapItemType.BASE,
+          visibility: Visibility.PRIVATE,
         },
         relatedItems: {
           ref: parentBaseItem,
@@ -533,6 +545,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               itemId: composedBaseItems[index]!.id,
             },
             itemType: MapItemType.BASE,
+            visibility: Visibility.PRIVATE,
           },
           ref: composedBaseItems[index]!,
         }))
@@ -586,6 +599,7 @@ describe("MapItemRepository - bulk createMany method", () => {
             itemId: parentBaseItem.id,
           },
           itemType: MapItemType.BASE,
+          visibility: Visibility.PRIVATE,
         },
         relatedItems: {
           ref: parentBaseItem,
@@ -619,6 +633,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               itemId: baseItems[0]!.id,
             },
             itemType: MapItemType.BASE,
+            visibility: Visibility.PRIVATE,
           },
           ref: baseItems[0]!,
         },
@@ -635,6 +650,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               itemId: baseItems[1]!.id,
             },
             itemType: MapItemType.BASE,
+            visibility: Visibility.PRIVATE,
           },
           ref: baseItems[1]!,
         },
@@ -651,6 +667,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               itemId: baseItems[2]!.id,
             },
             itemType: MapItemType.BASE,
+            visibility: Visibility.PRIVATE,
           },
           ref: baseItems[2]!,
         },
@@ -667,6 +684,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               itemId: baseItems[3]!.id,
             },
             itemType: MapItemType.BASE,
+            visibility: Visibility.PRIVATE,
           },
           ref: baseItems[3]!,
         },
@@ -719,6 +737,7 @@ describe("MapItemRepository - bulk createMany method", () => {
             itemId: level1BaseItem.id,
           },
           itemType: MapItemType.BASE,
+          visibility: Visibility.PRIVATE,
         },
         relatedItems: {
           ref: level1BaseItem,
@@ -753,6 +772,7 @@ describe("MapItemRepository - bulk createMany method", () => {
             itemId: level2BaseItem.id,
           },
           itemType: MapItemType.BASE,
+          visibility: Visibility.PRIVATE,
         },
         relatedItems: {
           ref: level2BaseItem,
@@ -783,6 +803,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               itemId: deepComposedBaseItems[0]!.id,
             },
             itemType: MapItemType.BASE,
+            visibility: Visibility.PRIVATE,
           },
           ref: deepComposedBaseItems[0]!,
         },
@@ -799,6 +820,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               itemId: deepComposedBaseItems[1]!.id,
             },
             itemType: MapItemType.BASE,
+            visibility: Visibility.PRIVATE,
           },
           ref: deepComposedBaseItems[1]!,
         },

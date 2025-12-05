@@ -1,4 +1,4 @@
-import { integer, text, timestamp } from "drizzle-orm/pg-core";
+import { integer, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { createTable } from "~/server/db/schema/_utils";
 import { baseItems } from "~/server/db/schema/_tables/mapping/base-items";
 
@@ -34,9 +34,9 @@ export const baseItemVersions = createTable(
   },
   (table) => ({
     // Composite unique index ensures one version number per baseItem
-    uniqueVersionPerItem: {
-      columns: [table.baseItemId, table.versionNumber],
-      unique: true,
-    },
+    uniqueVersionPerItem: uniqueIndex("base_item_versions_unique_version_idx").on(
+      table.baseItemId,
+      table.versionNumber
+    ),
   })
 );

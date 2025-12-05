@@ -241,6 +241,11 @@ DIRECTION USAGE:
         url: {
           type: "string",
           description: "Optional URL for the tile"
+        },
+        visibility: {
+          type: "string",
+          enum: ["public", "private"],
+          description: "Visibility of the tile (default: private). Public tiles are visible to all users; private tiles are only visible to the owner."
         }
       },
       required: ["coords", "title"],
@@ -252,18 +257,19 @@ DIRECTION USAGE:
       const content = argsObj?.content as string | undefined;
       const preview = argsObj?.preview as string | undefined;
       const url = argsObj?.url as string | undefined;
+      const visibility = argsObj?.visibility as "public" | "private" | undefined;
 
       if (!title) {
         throw new Error("title parameter is required");
       }
 
-      return await addItemHandler(caller, coords, title, content, preview, url);
+      return await addItemHandler(caller, coords, title, content, preview, url, visibility);
     },
   },
 
   {
     name: "updateItem",
-    description: "Update an existing Hexframe tile's content (title, description, or URL). Use coordinates to specify which tile to modify.",
+    description: "Update an existing Hexframe tile's content (title, description, visibility, or URL). Use coordinates to specify which tile to modify.",
     inputSchema: {
       type: "object",
       properties: {
@@ -288,7 +294,12 @@ DIRECTION USAGE:
             title: { type: "string" },
             content: { type: "string" },
             preview: { type: "string" },
-            url: { type: "string" }
+            url: { type: "string" },
+            visibility: {
+              type: "string",
+              enum: ["public", "private"],
+              description: "Visibility of the tile. Public tiles are visible to all users; private tiles are only visible to the owner."
+            }
           }
         }
       },
@@ -297,7 +308,7 @@ DIRECTION USAGE:
     handler: async (args: unknown, caller: TRPCCaller) => {
       const argsObj = args as Record<string, unknown>;
       const coords = normalizeCoordinates(argsObj?.coords);
-      const updates = parseJsonParam(argsObj?.updates) as { title?: string; content?: string; url?: string };
+      const updates = parseJsonParam(argsObj?.updates) as { title?: string; content?: string; url?: string; visibility?: "public" | "private" };
 
       if (!updates) {
         throw new Error("updates parameter is required");
