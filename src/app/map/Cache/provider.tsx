@@ -111,6 +111,7 @@ export function MapCacheProvider({
     syncOperations,
     serverService,
     disableSync: testingOverrides.disableSync ?? false,
+    eventBus,
   });
 
   // Initialize global drag service

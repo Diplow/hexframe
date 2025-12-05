@@ -15,32 +15,19 @@ export function useAuthStateCoordinator(widgets: Widget[]) {
     // Subscribe to auth.login events to handle post-login navigation
     const unsubscribe = eventBus.on('auth.login', (event) => {
       const payload = event.payload as { userId?: string; userName?: string };
-      console.log('[AuthCoordinator] auth.login event received', {
-        userId: payload.userId,
-        userName: payload.userName,
-        widgetCount: widgets.length,
-        widgetTypes: widgets.map(w => w.type)
-      });
 
       const loginWidget = widgets.find(w => w.type === 'login');
-      console.log('[AuthCoordinator] Login widget status:', {
-        hasLoginWidget: !!loginWidget,
-        loginWidgetId: loginWidget?.id
-      });
 
       if (!loginWidget) {
-        console.log('[AuthCoordinator] No login widget found, skipping navigation');
         return;
       }
 
       if (!payload.userId) {
-        console.log('[AuthCoordinator] No userId in event payload, skipping navigation');
         return;
       }
 
       // Handle user authentication - widget resolution handled by chat state
       // Pre-fetch user map data and navigate
-      console.log('[AuthCoordinator] Calling handleUserMapNavigation');
       void handleUserMapNavigation({
         userId: payload.userId,
         router,

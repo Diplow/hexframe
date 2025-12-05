@@ -28,10 +28,10 @@ export async function executePrefetchRegion(
 
   try {
     loadingCenters.add(centerCoordId);
-    
+
     // Set loading state before fetching
     dispatch(cacheActions.setLoading(true));
-    
+
     const items = await serverService.fetchItemsForCoordinate({
       centerCoordId,
       maxDepth,
@@ -45,10 +45,10 @@ export async function executePrefetchRegion(
         maxDepth,
       ),
     );
-    
+
     // Clear loading state after successful load
     dispatch(cacheActions.setLoading(false));
-    
+
     // Handle ancestor loading if needed
     await handleAncestorLoading(centerCoordId, items, dispatch, serverService);
   } catch (error) {

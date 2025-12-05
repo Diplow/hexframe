@@ -56,6 +56,7 @@ describe("Cache Reducer", () => {
         isLoading: false,
         error: null,
         lastUpdated: 0,
+        isAuthTransitioning: false,
         cacheConfig: {
           maxAge: 300000,
           backgroundRefreshInterval: 30000,

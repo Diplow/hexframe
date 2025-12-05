@@ -26,13 +26,21 @@ function toVisibilityEnum(visibility?: "public" | "private"): Visibility | undef
   return visibility === "public" ? Visibility.PUBLIC : Visibility.PRIVATE;
 }
 
+/**
+ * Get the requester user ID for visibility filtering.
+ * Returns empty string "" for anonymous users (not undefined, which means "internal/system operation").
+ */
+function getRequesterUserId(user: { id: string } | null | undefined): string {
+  return user?.id ?? "";
+}
+
 export const mapItemsRouter = createTRPCRouter({
   // Get root MapItem by ID
   getRootItemById: publicProcedure
     .use(mappingServiceMiddleware)
     .input(z.object({ mapItemId: z.number() }))
     .query(async ({ ctx, input }) => {
-      const requesterUserId = ctx.user?.id;
+      const requesterUserId = getRequesterUserId(ctx.user);
       const item = await ctx.mappingService.items.query.getItemById({
         itemId: input.mapItemId,
         requesterUserId,
@@ -48,7 +56,7 @@ export const mapItemsRouter = createTRPCRouter({
       generations: z.number().optional().default(0)
     }))
     .query(async ({ ctx, input }) => {
-      const requesterUserId = ctx.user?.id;
+      const requesterUserId = getRequesterUserId(ctx.user);
       if (input.generations > 0) {
         // Use the new method that returns item with generations
         const items = await ctx.mappingService.items.query.getItemWithGenerations({
@@ -77,7 +85,7 @@ export const mapItemsRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const requesterUserId = ctx.user?.id;
+      const requesterUserId = getRequesterUserId(ctx.user);
       const items = await ctx.mappingService.items.query.getItems({
         userId: input.userId,
         groupId: input.groupId,
@@ -273,7 +281,7 @@ export const mapItemsRouter = createTRPCRouter({
     .use(mappingServiceMiddleware)
     .input(z.object({ itemId: z.number() }))
     .query(async ({ ctx, input }) => {
-      const requesterUserId = ctx.user?.id;
+      const requesterUserId = getRequesterUserId(ctx.user);
       const descendants = await ctx.mappingService.items.query.getDescendants({
         itemId: input.itemId,
         requesterUserId,
@@ -286,7 +294,7 @@ export const mapItemsRouter = createTRPCRouter({
     .use(mappingServiceMiddleware)
     .input(z.object({ itemId: z.number() }))
     .query(async ({ ctx, input }) => {
-      const requesterUserId = ctx.user?.id;
+      const requesterUserId = getRequesterUserId(ctx.user);
       const ancestors = await ctx.mappingService.items.query.getAncestors({
         itemId: input.itemId,
         requesterUserId,
@@ -299,7 +307,7 @@ export const mapItemsRouter = createTRPCRouter({
     .use(mappingServiceMiddleware)
     .input(z.object({ coordId: z.string() }))
     .query(async ({ ctx, input }) => {
-      const requesterUserId = ctx.user?.id;
+      const requesterUserId = getRequesterUserId(ctx.user);
       const composedItems = await ctx.mappingService.items.query.getComposedChildren({
         coordId: input.coordId,
         requesterUserId,
@@ -312,7 +320,7 @@ export const mapItemsRouter = createTRPCRouter({
     .use(mappingServiceMiddleware)
     .input(z.object({ coordId: z.string() }))
     .query(async ({ ctx, input }) => {
-      const requesterUserId = ctx.user?.id;
+      const requesterUserId = getRequesterUserId(ctx.user);
       const hasComp = await ctx.mappingService.items.query.hasComposition({
         coordId: input.coordId,
         requesterUserId,
