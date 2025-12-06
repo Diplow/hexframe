@@ -308,7 +308,7 @@ DIRECTION USAGE:
     handler: async (args: unknown, caller: TRPCCaller) => {
       const argsObj = args as Record<string, unknown>;
       const coords = normalizeCoordinates(argsObj?.coords);
-      const updates = parseJsonParam(argsObj?.updates) as { title?: string; content?: string; url?: string; visibility?: "public" | "private" };
+      const updates = parseJsonParam(argsObj?.updates) as { title?: string; content?: string; preview?: string; url?: string; visibility?: "public" | "private" };
 
       if (!updates) {
         throw new Error("updates parameter is required");
