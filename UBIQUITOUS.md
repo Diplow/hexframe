@@ -156,6 +156,36 @@ Each Frame can have at most 6 child Tiles. This constraint forces prioritization
 
 The separation between what belongs to the current Map (visible) and what belongs inside CenterTiles (hidden until navigated to).
 
+## Visibility & Access Control
+
+### Tile Visibility
+
+A setting on each tile that controls who can access it:
+
+- **Public** - Visible to everyone, including anonymous users (default for new tiles)
+- **Private** - Visible only to the tile owner
+
+Visibility is enforced at the data layer. When viewing someone else's map, only their public tiles are visible. Private tiles are filtered out before data reaches the client.
+
+### Owner
+
+The user who created a tile. The owner always has full access to all their tiles regardless of visibility setting. Ownership is tracked via the tile's `ownerId` field, which matches the `userId` of the map's root.
+
+### Requester
+
+The identity making a request to access tiles. Every read operation carries requester context:
+
+- **Authenticated User** - A logged-in user identified by their user ID
+- **Anonymous** - An unauthenticated visitor (can only see public tiles)
+- **System Internal** - Server-side operations that bypass visibility filtering
+
+### Visibility Filter
+
+The automatic mechanism that filters query results based on requester identity:
+- Owner accessing own tiles: all tiles visible (public + private)
+- User accessing others' tiles: only public tiles visible
+- Anonymous accessing any tiles: only public tiles visible
+
 ## Philosophy
 
 ### Strategic Mapping

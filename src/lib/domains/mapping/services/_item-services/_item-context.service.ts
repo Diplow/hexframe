@@ -9,6 +9,7 @@ import {
   type ContextStrategy,
   type MapContext,
 } from "~/lib/domains/mapping/utils";
+import { type RequesterContext, SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 /**
  * Service for fetching map context for AI operations
@@ -44,13 +45,13 @@ export class ItemContextService {
    *
    * @param centerCoordId - Coordinate ID of the center tile
    * @param strategy - Which surrounding tiles to include
-   * @param requesterUserId - The user making the request (for visibility filtering)
+   * @param requester - The requester context for visibility filtering
    * @returns MapContext with center and surrounding tiles
    */
   async getContextForCenter(
     centerCoordId: string,
     strategy: ContextStrategy,
-    requesterUserId?: string
+    requester: RequesterContext = SYSTEM_INTERNAL
   ): Promise<MapContext> {
     // Parse center coordinates
     const centerCoord = CoordSystem.parseId(centerCoordId);
@@ -65,7 +66,7 @@ export class ItemContextService {
       includeComposed: strategy.includeComposed,
       includeChildren: strategy.includeChildren,
       includeGrandchildren: strategy.includeGrandchildren,
-      requesterUserId,
+      requester,
     });
 
     // Convert to contracts

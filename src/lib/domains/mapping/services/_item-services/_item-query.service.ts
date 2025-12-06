@@ -7,6 +7,7 @@ import { adapt } from "~/lib/domains/mapping/types/contracts";
 import { CoordSystem, Direction, type Coord } from "~/lib/domains/mapping/utils";
 import type { MapItemContract } from "~/lib/domains/mapping/types/contracts";
 import type { MapItemWithId } from "~/lib/domains/mapping/_objects";
+import { type RequesterContext, SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 export class ItemQueryService {
   private readonly actions: MapItemActions;
@@ -27,24 +28,24 @@ export class ItemQueryService {
    * Get all items for a specific map (root + descendants)
    * @param userId - Owner of the map
    * @param groupId - Group ID (default 0)
-   * @param requesterUserId - The user making the request (for visibility filtering)
+   * @param requester - The requester context for visibility filtering
    */
   async getItems({
     userId,
     groupId = 0,
-    requesterUserId,
+    requester = SYSTEM_INTERNAL,
   }: {
     userId: string;
     groupId?: number;
-    requesterUserId?: string;
+    requester?: RequesterContext;
   }): Promise<MapItemContract[]> {
-    const rootItem = await this.mapItemRepository.getRootItem(userId, groupId, requesterUserId);
+    const rootItem = await this.mapItemRepository.getRootItem(userId, groupId, requester);
     if (!rootItem) return [];
     const descendants = await this.mapItemRepository.getDescendantsByParent({
       parentUserId: rootItem.attrs.coords.userId,
       parentGroupId: rootItem.attrs.coords.groupId,
       parentPath: rootItem.attrs.coords.path,
-      requesterUserId,
+      requester,
     });
     const allItems = [rootItem, ...descendants];
     return allItems.map((item) => {
@@ -56,14 +57,14 @@ export class ItemQueryService {
   /**
    * Check if a tile has composition (children with negative directions)
    * @param coordId - Coordinate ID of the parent tile
-   * @param requesterUserId - The user making the request (for visibility filtering)
+   * @param requester - The requester context for visibility filtering
    */
   async hasComposition({
     coordId,
-    requesterUserId,
+    requester = SYSTEM_INTERNAL,
   }: {
     coordId: string;
-    requesterUserId?: string;
+    requester?: RequesterContext;
   }): Promise<boolean> {
     // Parse parent coord
     const parentCoord = CoordSystem.parseId(coordId);
@@ -76,7 +77,7 @@ export class ItemQueryService {
       try {
         await this.mapItemRepository.getOneByIdr(
           { idr: { attrs: { coords: childCoord } } },
-          requesterUserId,
+          requester,
         );
         return true; // Found at least one composed child
       } catch {
@@ -90,14 +91,14 @@ export class ItemQueryService {
   /**
    * Get composed children for a tile (direction 0 + children with negative directions)
    * @param coordId - Coordinate ID of the parent tile
-   * @param requesterUserId - The user making the request (for visibility filtering)
+   * @param requester - The requester context for visibility filtering
    */
   async getComposedChildren({
     coordId,
-    requesterUserId,
+    requester = SYSTEM_INTERNAL,
   }: {
     coordId: string;
-    requesterUserId?: string;
+    requester?: RequesterContext;
   }): Promise<MapItemContract[]> {
     // Parse parent coord
     const parentCoord = CoordSystem.parseId(coordId);
@@ -118,7 +119,7 @@ export class ItemQueryService {
     try {
       const direction0Child = await this.mapItemRepository.getOneByIdr(
         { idr: { attrs: { coords: direction0Coord } } },
-        requesterUserId,
+        requester,
       );
 
       const direction0Contract = adapt.mapItem(
@@ -136,7 +137,7 @@ export class ItemQueryService {
       try {
         const child = await this.mapItemRepository.getOneByIdr(
           { idr: { attrs: { coords: childCoord } } },
-          requesterUserId,
+          requester,
         );
 
         const childContract = adapt.mapItem(
@@ -157,18 +158,18 @@ export class ItemQueryService {
    * Get all descendants of a specific item ID
    * @param itemId - ID of the parent item
    * @param includeComposition - Whether to include composed children
-   * @param requesterUserId - The user making the request (for visibility filtering)
+   * @param requester - The requester context for visibility filtering
    */
   async getDescendants({
     itemId,
     includeComposition = true,
-    requesterUserId,
+    requester = SYSTEM_INTERNAL,
   }: {
     itemId: number;
     includeComposition?: boolean;
-    requesterUserId?: string;
+    requester?: RequesterContext;
   }): Promise<MapItemContract[]> {
-    const item = await this.mapItemRepository.getOne(itemId, requesterUserId);
+    const item = await this.mapItemRepository.getOne(itemId, requester);
     if (!item) throw new Error(`Item with id ${itemId} not found.`);
 
     // Get descendants with visibility filtering
@@ -176,7 +177,7 @@ export class ItemQueryService {
       parentUserId: item.attrs.coords.userId,
       parentGroupId: item.attrs.coords.groupId,
       parentPath: item.attrs.coords.path,
-      requesterUserId,
+      requester,
     });
 
     // Filter out composition if not requested
@@ -201,22 +202,22 @@ export class ItemQueryService {
   /**
    * Get all ancestors of a specific item ID (path from root to item)
    * @param itemId - ID of the item
-   * @param requesterUserId - The user making the request (for visibility filtering)
+   * @param requester - The requester context for visibility filtering
    *
-   * Note: For visibility inheritance validation, pass undefined for requesterUserId
+   * Note: For visibility inheritance validation, use SYSTEM_INTERNAL
    * to get all ancestors regardless of visibility.
    */
   async getAncestors({
     itemId,
-    requesterUserId,
+    requester = SYSTEM_INTERNAL,
   }: {
     itemId: number;
-    requesterUserId?: string;
+    requester?: RequesterContext;
   }): Promise<MapItemContract[]> {
-    const item = await this.mapItemRepository.getOne(itemId, requesterUserId);
+    const item = await this.mapItemRepository.getOne(itemId, requester);
     if (!item) throw new Error(`Item with id ${itemId} not found.`);
 
-    const ancestors = await this._getAncestorsInternal(item.attrs.coords, requesterUserId);
+    const ancestors = await this._getAncestorsInternal(item.attrs.coords, requester);
     return ancestors.map((ancestor) => {
       const ancestorUserId = ancestor.attrs.coords.userId;
       return adapt.mapItem(ancestor, ancestorUserId);
@@ -229,7 +230,7 @@ export class ItemQueryService {
    */
   private async _getAncestorsInternal(
     coords: Coord,
-    requesterUserId?: string
+    requester: RequesterContext = SYSTEM_INTERNAL
   ): Promise<MapItemWithId[]> {
     const ancestors: MapItemWithId[] = [];
     let currentCoords = coords;
@@ -241,7 +242,7 @@ export class ItemQueryService {
       try {
         const parent = await this.mapItemRepository.getOneByIdr(
           { idr: { attrs: { coords: parentCoords } } },
-          requesterUserId,
+          requester,
         );
         ancestors.unshift(parent); // Add to beginning to maintain root->item order
         currentCoords = parent.attrs.coords;
@@ -257,16 +258,16 @@ export class ItemQueryService {
   /**
    * Get a specific item by its ID
    * @param itemId - ID of the item
-   * @param requesterUserId - The user making the request (for visibility filtering)
+   * @param requester - The requester context for visibility filtering
    */
   async getItemById({
     itemId,
-    requesterUserId,
+    requester = SYSTEM_INTERNAL,
   }: {
     itemId: number;
-    requesterUserId?: string;
+    requester?: RequesterContext;
   }): Promise<MapItemContract> {
-    const item = await this.mapItemRepository.getOne(itemId, requesterUserId);
+    const item = await this.mapItemRepository.getOne(itemId, requester);
     if (!item) throw new Error(`Item with id ${itemId} not found.`);
     const itemUserId = item.attrs.coords.userId;
     return adapt.mapItem(item, itemUserId);
@@ -275,18 +276,18 @@ export class ItemQueryService {
   /**
    * Get an item by coordinates
    * @param coords - Coordinates of the item
-   * @param requesterUserId - The user making the request (for visibility filtering)
+   * @param requester - The requester context for visibility filtering
    */
   async getItemByCoords({
     coords,
-    requesterUserId,
+    requester = SYSTEM_INTERNAL,
   }: {
     coords: Coord;
-    requesterUserId?: string;
+    requester?: RequesterContext;
   }): Promise<MapItemContract> {
     const item = await this.mapItemRepository.getOneByIdr(
       { idr: { attrs: { coords } } },
-      requesterUserId,
+      requester,
     );
     const itemUserId = item.attrs.coords.userId;
     return adapt.mapItem(item, itemUserId);
@@ -296,21 +297,21 @@ export class ItemQueryService {
    * Get an item with a limited number of descendant generations
    * @param coords - Coordinates of the center item
    * @param generations - Number of generations to fetch
-   * @param requesterUserId - The user making the request (for visibility filtering)
+   * @param requester - The requester context for visibility filtering
    */
   async getItemWithGenerations({
     coords,
     generations = 0,
-    requesterUserId,
+    requester = SYSTEM_INTERNAL,
   }: {
     coords: Coord;
     generations?: number;
-    requesterUserId?: string;
+    requester?: RequesterContext;
   }): Promise<MapItemContract[]> {
     // Get the center item
     const centerItem = await this.mapItemRepository.getOneByIdr(
       { idr: { attrs: { coords } } },
-      requesterUserId,
+      requester,
     );
     if (!centerItem) throw new Error(`Item at coordinates not found.`);
     const centerUserId = centerItem.attrs.coords.userId;
@@ -327,7 +328,7 @@ export class ItemQueryService {
       parentUserId: coords.userId,
       parentGroupId: coords.groupId,
       maxGenerations: generations,
-      requesterUserId,
+      requester,
     });
 
     // Convert to contracts

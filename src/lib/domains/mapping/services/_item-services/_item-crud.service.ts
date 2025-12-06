@@ -12,6 +12,7 @@ import {
 import { MapItemType, Visibility, type MapItemWithId } from "~/lib/domains/mapping/_objects";
 import type { MapItemContract } from "~/lib/domains/mapping/types/contracts";
 import { TransactionManager } from "~/lib/domains/mapping/infrastructure";
+import { type RequesterContext, SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 export class ItemCrudService {
   private readonly actions: MapItemActions;
@@ -58,7 +59,8 @@ export class ItemCrudService {
   }): Promise<MapItemContract> {
     let parentItem = null;
     if (parentId !== null) {
-      parentItem = await this.mapItemRepository.getOne(parentId);
+      // Use SYSTEM_INTERNAL for internal operations - no visibility filtering
+      parentItem = await this.mapItemRepository.getOne(parentId, SYSTEM_INTERNAL);
       if (!parentItem) {
         throw new Error(`Parent MapItem with ID ${parentId} not found.`);
       }
@@ -109,18 +111,18 @@ export class ItemCrudService {
   /**
    * Get a specific item by its coordinates
    * @param coords - Coordinates of the item
-   * @param requesterUserId - The user making the request (for visibility filtering)
+   * @param requester - The requester context for visibility filtering
    */
   async getItem({
     coords,
-    requesterUserId,
+    requester = SYSTEM_INTERNAL,
   }: {
     coords: Coord;
-    requesterUserId?: string;
+    requester?: RequesterContext;
   }): Promise<MapItemContract> {
     const item = await this.mapItemRepository.getOneByIdr(
       { idr: { attrs: { coords } } },
-      requesterUserId,
+      requester,
     );
     return adapt.mapItem(item, item.attrs.coords.userId);
   }
@@ -134,7 +136,7 @@ export class ItemCrudService {
    * @param preview - Optional new preview
    * @param link - Optional new link
    * @param visibility - Optional new visibility setting
-   * @param requesterUserId - The user making the request (required for visibility changes)
+   * @param requester - The requester context for visibility filtering (required for visibility changes)
    */
   async updateItem({
     coords,
@@ -143,7 +145,7 @@ export class ItemCrudService {
     preview,
     link,
     visibility,
-    requesterUserId,
+    requester = SYSTEM_INTERNAL,
   }: {
     coords: Coord;
     title?: string;
@@ -151,13 +153,14 @@ export class ItemCrudService {
     preview?: string;
     link?: string;
     visibility?: Visibility;
-    requesterUserId?: string;
+    requester?: RequesterContext;
   }): Promise<MapItemContract> {
-    const item = await this.actions.getMapItem({ coords, requesterUserId });
+    const item = await this.actions.getMapItem({ coords, requester });
 
     // Validate ownership for visibility changes
     if (visibility !== undefined) {
-      if (requesterUserId && requesterUserId !== coords.userId) {
+      // Only check ownership if requester is a user (not SYSTEM_INTERNAL)
+      if (requester !== SYSTEM_INTERNAL && requester !== coords.userId) {
         throw new Error("Only the owner can change tile visibility.");
       }
 
@@ -179,7 +182,8 @@ export class ItemCrudService {
       };
       await this.actions.updateRef(item.ref, updateAttrs);
     }
-    const updatedItem = await this.mapItemRepository.getOne(item.id);
+    // Use SYSTEM_INTERNAL for fetching the updated item after update
+    const updatedItem = await this.mapItemRepository.getOne(item.id, SYSTEM_INTERNAL);
     if (!updatedItem) {
       throw new Error(`Failed to retrieve updated item with ID ${item.id}`);
     }
@@ -353,10 +357,10 @@ export class ItemCrudService {
       if (!parentCoords) break;
 
       try {
-        // Use undefined requesterUserId to bypass visibility filtering
+        // Use SYSTEM_INTERNAL to bypass visibility filtering for internal validation
         const parent = await this.mapItemRepository.getOneByIdr(
           { idr: { attrs: { coords: parentCoords } } },
-          undefined, // Bypass visibility filtering for internal validation
+          SYSTEM_INTERNAL,
         );
         ancestors.unshift(parent);
         currentCoords = parent.attrs.coords;

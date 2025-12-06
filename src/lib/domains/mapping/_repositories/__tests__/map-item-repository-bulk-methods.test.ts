@@ -11,6 +11,7 @@ import {
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { Direction } from "~/lib/domains/mapping/utils";
 import { MapItemType, Visibility } from "~/lib/domains/mapping/_objects";
+import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 describe("MapItemRepository - bulk createMany method", () => {
   let testEnv: TestEnvironment;
@@ -184,7 +185,7 @@ describe("MapItemRepository - bulk createMany method", () => {
       ]);
 
       // Get the actual root MapItem
-      const rootMapItem = await mapItemRepo.getOne(rootMap.id);
+      const rootMapItem = await mapItemRepo.getOne(rootMap.id, SYSTEM_INTERNAL);
       if (!rootMapItem) {
         throw new Error("Root map not found");
       }

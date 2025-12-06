@@ -18,6 +18,7 @@ import {
   MAX_HIERARCHY_DEPTH,
   MAX_DESCENDANTS_FOR_OPERATION,
 } from "~/lib/domains/mapping/constants";
+import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 /**
  * Coordinating service for item-level operations.
@@ -72,15 +73,17 @@ export class ItemManagementService {
     destinationCoords: Coord;
     destinationParentId: number;
   }): Promise<MapItemContract> {
-    // 1. Verify source exists
-    const sourceItem = await this.repositories.mapItem.getOneByIdr({
-      idr: { attrs: { coords: sourceCoords } },
-    });
+    // 1. Verify source exists (internal operation - no visibility filtering)
+    const sourceItem = await this.repositories.mapItem.getOneByIdr(
+      { idr: { attrs: { coords: sourceCoords } } },
+      SYSTEM_INTERNAL
+    );
 
-    // 2. Verify destination doesn't exist
-    const destinationExists = await this.repositories.mapItem.exists({
-      idr: { attrs: { coords: destinationCoords } },
-    });
+    // 2. Verify destination doesn't exist (internal operation)
+    const destinationExists = await this.repositories.mapItem.exists(
+      { idr: { attrs: { coords: destinationCoords } } },
+      SYSTEM_INTERNAL
+    );
 
     if (destinationExists) {
       throw new Error(
@@ -88,11 +91,12 @@ export class ItemManagementService {
       );
     }
 
-    // 3. Get all descendants of source
+    // 3. Get all descendants of source (internal operation)
     const descendants = await this.repositories.mapItem.getDescendantsByParent({
       parentPath: sourceCoords.path,
       parentUserId: sourceCoords.userId,
       parentGroupId: sourceCoords.groupId,
+      requester: SYSTEM_INTERNAL,
     });
 
     // Include source item + all descendants

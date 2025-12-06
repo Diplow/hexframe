@@ -11,13 +11,14 @@ import type { Direction } from "~/lib/domains/mapping/utils";
 import type { DbMapItemWithBase } from "~/lib/domains/mapping/infrastructure/map-item/types";
 import { mapJoinedDbToDomain, pathToString } from "~/lib/domains/mapping/infrastructure/map-item/mappers";
 import { buildVisibilityFilter, buildMultiOwnerVisibilityFilter } from "~/lib/domains/mapping/infrastructure/map-item/queries/visibility-filter";
+import { type RequesterContext } from "~/lib/domains/mapping/types";
 
 export class ReadQueries {
   constructor(private db: PostgresJsDatabase<typeof schemaImport>) {}
 
   async fetchItemWithBase(
     id: number,
-    requesterUserId?: string
+    requester: RequesterContext
   ): Promise<DbMapItemWithBase> {
     const result = await this.db
       .select()
@@ -32,7 +33,7 @@ export class ReadQueries {
 
     // Apply visibility filter after fetching to check ownership
     const ownerUserId = result[0].map_items.coord_user_id;
-    const visibilityFilter = buildVisibilityFilter(requesterUserId, ownerUserId);
+    const visibilityFilter = buildVisibilityFilter(requester, ownerUserId);
 
     // If filter exists and item is not public, deny access
     if (visibilityFilter && result[0].map_items.visibility !== Visibility.PUBLIC) {
@@ -44,10 +45,10 @@ export class ReadQueries {
 
   async fetchNeighbors(
     parentId: number,
-    requesterUserId?: string
+    requester: RequesterContext
   ): Promise<MapItemWithId[]> {
     // Build filter for multi-owner scenario (neighbors may have different owners)
-    const visibilityFilter = buildMultiOwnerVisibilityFilter(requesterUserId);
+    const visibilityFilter = buildMultiOwnerVisibilityFilter(requester);
 
     const neighborResults = await this.db
       .select()
@@ -66,13 +67,13 @@ export class ReadQueries {
       groupId: number;
       path: Direction[];
     },
-    requesterUserId?: string
+    requester: RequesterContext
   ): Promise<number | undefined> {
     const { userId, groupId, path } = coords;
     const pathString = pathToString(path);
 
     // Build visibility filter for the owner of this tile
-    const visibilityFilter = buildVisibilityFilter(requesterUserId, userId);
+    const visibilityFilter = buildVisibilityFilter(requester, userId);
 
     const whereClauses: SQL[] = [
       eq(mapItems.coord_user_id, userId),
@@ -97,10 +98,12 @@ export class ReadQueries {
   async fetchManyByIds(
     ids: number[],
     { limit = 50, offset = 0 }: { limit?: number; offset?: number },
-    requesterUserId?: string
+    requester?: RequesterContext
   ): Promise<DbMapItemWithBase[]> {
     // Build filter for multi-owner scenario
-    const visibilityFilter = buildMultiOwnerVisibilityFilter(requesterUserId);
+    const visibilityFilter = requester
+      ? buildMultiOwnerVisibilityFilter(requester)
+      : undefined;
 
     const results = await this.db
       .select()
@@ -124,10 +127,10 @@ export class ReadQueries {
       limit?: number;
       offset?: number;
     },
-    requesterUserId?: string
+    requester: RequesterContext
   ): Promise<DbMapItemWithBase[]> {
     // Build filter for multi-owner scenario
-    const visibilityFilter = buildMultiOwnerVisibilityFilter(requesterUserId);
+    const visibilityFilter = buildMultiOwnerVisibilityFilter(requester);
 
     const results = await this.db
       .select()

@@ -14,6 +14,10 @@ import {
 import type { MapItemRepository } from "~/lib/domains/mapping/_repositories";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import type { schema as schemaImport } from "~/server/db";
+import {
+  type RequesterContext,
+  SYSTEM_INTERNAL,
+} from "~/lib/domains/mapping/types";
 
 import { ReadQueries } from "~/lib/domains/mapping/infrastructure/map-item/queries/read-queries";
 import { WriteQueries } from "~/lib/domains/mapping/infrastructure/map-item/queries/write-queries";
@@ -49,31 +53,31 @@ export class DbMapItemRepository implements MapItemRepository {
     return true;
   }
 
-  async getOne(id: number, requesterUserId?: string): Promise<MapItemWithId> {
-    const mainItemData = await this.readQueries.fetchItemWithBase(id, requesterUserId);
+  async getOne(id: number, requester: RequesterContext): Promise<MapItemWithId> {
+    const mainItemData = await this.readQueries.fetchItemWithBase(id, requester);
     const neighbors = await this.readQueries.fetchNeighbors(
       mainItemData.map_items.id,
-      requesterUserId
+      requester
     );
     return mapJoinedDbToDomain(mainItemData, neighbors);
   }
 
   async getOneByIdr(
     { idr }: { idr: MapItemIdr },
-    requesterUserId?: string
+    requester: RequesterContext
   ): Promise<MapItemWithId> {
-    const mapItemId = await this._resolveItemId(idr, requesterUserId);
+    const mapItemId = await this._resolveItemId(idr, requester);
     if (!mapItemId) {
       throw new Error(`MapItem with idr ${JSON.stringify(idr)} not found.`);
     }
-    return this.getOne(mapItemId, requesterUserId);
+    return this.getOne(mapItemId, requester);
   }
 
   async exists(
     { idr }: { idr: MapItemIdr },
-    requesterUserId?: string
+    requester: RequesterContext
   ): Promise<boolean> {
-    const mapItemId = await this._resolveItemId(idr, requesterUserId);
+    const mapItemId = await this._resolveItemId(idr, requester);
     return mapItemId !== undefined;
   }
 
@@ -82,18 +86,18 @@ export class DbMapItemRepository implements MapItemRepository {
       limit?: number;
       offset?: number;
     },
-    requesterUserId?: string
+    requester: RequesterContext
   ): Promise<MapItemWithId[]> {
-    const results = await this.readQueries.fetchMany(params, requesterUserId);
+    const results = await this.readQueries.fetchMany(params, requester);
     return results.map((r) => mapJoinedDbToDomain(r));
   }
 
   async getRootItem(
     userId: string,
     groupId: number,
-    requesterUserId?: string
+    requester: RequesterContext
   ): Promise<MapItemWithId | null> {
-    const result = await this.specializedQueries.fetchRootItem(userId, groupId, requesterUserId);
+    const result = await this.specializedQueries.fetchRootItem(userId, groupId, requester);
     return result ? mapJoinedDbToDomain(result, []) : null;
   }
 
@@ -101,12 +105,12 @@ export class DbMapItemRepository implements MapItemRepository {
     userId: string,
     limit = 50,
     offset = 0,
-    requesterUserId?: string
+    requester?: RequesterContext
   ): Promise<MapItemWithId[]> {
     const results = await this.specializedQueries.fetchRootItemsForUser(
       userId,
       { limit, offset },
-      requesterUserId
+      requester
     );
     return results.map((r) => mapJoinedDbToDomain(r, []));
   }
@@ -117,12 +121,12 @@ export class DbMapItemRepository implements MapItemRepository {
       limit?: number;
       offset?: number;
     },
-    requesterUserId?: string
+    requester?: RequesterContext
   ): Promise<MapItemWithId[]> {
     const numericIds = this._extractNumericIds(params.idrs);
     if (numericIds.length === 0) return [];
 
-    const results = await this.readQueries.fetchManyByIds(numericIds, params, requesterUserId);
+    const results = await this.readQueries.fetchManyByIds(numericIds, params, requester);
     return results.map((r) => mapJoinedDbToDomain(r));
   }
 
@@ -135,7 +139,8 @@ export class DbMapItemRepository implements MapItemRepository {
     const dbAttrsToInsert = this._buildCreateAttrs(attrs);
 
     const newItem = await this.writeQueries.createMapItem(dbAttrsToInsert);
-    const result = await this.readQueries.fetchItemWithBase(newItem.id);
+    // Use SYSTEM_INTERNAL for internal creation operations
+    const result = await this.readQueries.fetchItemWithBase(newItem.id, SYSTEM_INTERNAL);
     return mapJoinedDbToDomain(result, []);
   }
 
@@ -164,7 +169,8 @@ export class DbMapItemRepository implements MapItemRepository {
 
     const updateValues = this.writeQueries.buildUpdateValues(attrs);
     await this.writeQueries.updateMapItem(mapItemIdToUpdate, updateValues);
-    return this.getOne(mapItemIdToUpdate);
+    // Use SYSTEM_INTERNAL for internal update operations
+    return this.getOne(mapItemIdToUpdate, SYSTEM_INTERNAL);
   }
 
   async remove(id: number): Promise<void> {
@@ -178,7 +184,8 @@ export class DbMapItemRepository implements MapItemRepository {
 
   async removeByIdr({ idr }: { idr: MapItemIdr }): Promise<void> {
     if (!("id" in idr)) {
-      const itemToFetch = await this.getOneByIdr({ idr });
+      // Use SYSTEM_INTERNAL for internal removal operations
+      const itemToFetch = await this.getOneByIdr({ idr }, SYSTEM_INTERNAL);
       if (!itemToFetch) {
         console.warn(
           `MapItem with idr ${JSON.stringify(idr)} not found for removal.`,
@@ -197,7 +204,7 @@ export class DbMapItemRepository implements MapItemRepository {
     parentGroupId: number;
     limit?: number;
     offset?: number;
-    requesterUserId?: string;
+    requester: RequesterContext;
   }): Promise<MapItemWithId[]> {
     const results =
       await this.specializedQueries.fetchDescendantsByParent(params);
@@ -211,7 +218,7 @@ export class DbMapItemRepository implements MapItemRepository {
     maxGenerations: number;
     limit?: number;
     offset?: number;
-    requesterUserId?: string;
+    requester: RequesterContext;
   }): Promise<MapItemWithId[]> {
     const results =
       await this.specializedQueries.fetchDescendantsWithDepth(params);
@@ -234,7 +241,8 @@ export class DbMapItemRepository implements MapItemRepository {
     item: RelatedItems[K];
   }): Promise<MapItemWithId> {
     await this.relationQueries.updateRelatedItemByIdr(args);
-    const item = await this.getOneByIdr({ idr: args.idr });
+    // Use SYSTEM_INTERNAL for internal relation operations
+    const item = await this.getOneByIdr({ idr: args.idr }, SYSTEM_INTERNAL);
     return item;
   }
 
@@ -253,7 +261,8 @@ export class DbMapItemRepository implements MapItemRepository {
     item: RelatedLists[K] extends Array<infer ItemType> ? ItemType : never;
   }): Promise<MapItemWithId> {
     await this.relationQueries.addToRelatedListByIdr(args);
-    const item = await this.getOneByIdr({ idr: args.idr });
+    // Use SYSTEM_INTERNAL for internal relation operations
+    const item = await this.getOneByIdr({ idr: args.idr }, SYSTEM_INTERNAL);
     return item;
   }
 
@@ -272,18 +281,19 @@ export class DbMapItemRepository implements MapItemRepository {
     itemId: number;
   }): Promise<MapItemWithId> {
     await this.relationQueries.removeFromRelatedListByIdr(args);
-    const item = await this.getOneByIdr({ idr: args.idr });
+    // Use SYSTEM_INTERNAL for internal relation operations
+    const item = await this.getOneByIdr({ idr: args.idr }, SYSTEM_INTERNAL);
     return item;
   }
 
   private async _resolveItemId(
     idr: MapItemIdr,
-    requesterUserId?: string
+    requester: RequesterContext
   ): Promise<number | undefined> {
     if ("id" in idr) {
       return idr.id;
     } else if ("attrs" in idr && idr.attrs.coords) {
-      return this.readQueries.findItemIdByCoords(idr.attrs.coords, requesterUserId);
+      return this.readQueries.findItemIdByCoords(idr.attrs.coords, requester);
     }
     return undefined;
   }
@@ -348,7 +358,7 @@ export class DbMapItemRepository implements MapItemRepository {
     includeComposed: boolean;
     includeChildren: boolean;
     includeGrandchildren: boolean;
-    requesterUserId?: string;
+    requester: RequesterContext;
   }): Promise<{
     parent: MapItemWithId | null;
     center: MapItemWithId;
@@ -385,6 +395,7 @@ export class DbMapItemRepository implements MapItemRepository {
    */
   async updateVisibility(itemId: number, visibility: Visibility): Promise<MapItemWithId> {
     await this.writeQueries.updateVisibility(itemId, visibility);
-    return this.getOne(itemId);
+    // Use SYSTEM_INTERNAL for internal visibility update operations
+    return this.getOne(itemId, SYSTEM_INTERNAL);
   }
 }

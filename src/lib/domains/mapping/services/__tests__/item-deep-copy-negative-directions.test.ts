@@ -8,6 +8,7 @@ import {
   type TestEnvironment,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { Direction } from "~/lib/domains/mapping/utils";
+import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 describe("MappingService - Deep Copy with Negative Directions [Integration - DB]", () => {
   let testEnv: TestEnvironment;
@@ -375,7 +376,7 @@ describe("MappingService - Deep Copy with Negative Directions [Integration - DB]
             },
           },
         },
-      });
+      }, SYSTEM_INTERNAL);
 
       // Get the copied composed child MapItem
       const copiedComposedChildMapItem = await testEnv.repositories.mapItem.getOneByIdr({
@@ -388,7 +389,7 @@ describe("MappingService - Deep Copy with Negative Directions [Integration - DB]
             },
           },
         },
-      });
+      }, SYSTEM_INTERNAL);
 
       // Verify parent-child relationship is preserved
       expect(copiedComposedChildMapItem.attrs.parentId).toBe(copiedParentMapItem.id);

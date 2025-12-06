@@ -8,6 +8,7 @@ import type { Direction } from "~/lib/domains/mapping/utils";
 import type { DbMapItemWithBase } from "~/lib/domains/mapping/infrastructure/map-item/types";
 import { pathToString } from "~/lib/domains/mapping/infrastructure/map-item/mappers";
 import { buildVisibilityFilter } from "~/lib/domains/mapping/infrastructure/map-item/queries/visibility-filter";
+import { type RequesterContext } from "~/lib/domains/mapping/types";
 
 /**
  * Field selection configuration for optimized queries
@@ -22,7 +23,7 @@ export interface ContextQueryConfig {
   includeComposed: boolean;
   includeChildren: boolean;
   includeGrandchildren: boolean;
-  requesterUserId?: string;
+  requester: RequesterContext;
 }
 
 export class SpecializedQueries {
@@ -71,10 +72,10 @@ export class SpecializedQueries {
   async fetchRootItem(
     userId: string,
     groupId: number,
-    requesterUserId?: string
+    requester: RequesterContext
   ): Promise<DbMapItemWithBase | null> {
     // Build visibility filter for the owner of this tile
-    const visibilityFilter = buildVisibilityFilter(requesterUserId, userId);
+    const visibilityFilter = buildVisibilityFilter(requester, userId);
 
     const conditions: SQL[] = [
       eq(mapItems.coord_user_id, userId),
@@ -105,10 +106,12 @@ export class SpecializedQueries {
   async fetchRootItemsForUser(
     userId: string,
     { limit = 50, offset = 0 }: { limit?: number; offset?: number },
-    requesterUserId?: string
+    requester?: RequesterContext
   ): Promise<DbMapItemWithBase[]> {
     // Build visibility filter for the owner of this tile
-    const visibilityFilter = buildVisibilityFilter(requesterUserId, userId);
+    const visibilityFilter = requester
+      ? buildVisibilityFilter(requester, userId)
+      : undefined;
 
     const conditions: SQL[] = [
       eq(mapItems.coord_user_id, userId),
@@ -141,7 +144,7 @@ export class SpecializedQueries {
     parentGroupId: number;
     limit?: number;
     offset?: number;
-    requesterUserId?: string;
+    requester: RequesterContext;
   }): Promise<DbMapItemWithBase[]> {
     const {
       parentPath,
@@ -149,7 +152,7 @@ export class SpecializedQueries {
       parentGroupId,
       limit = 1000,
       offset = 0,
-      requesterUserId,
+      requester,
     } = params;
 
     const conditions = this._buildDescendantsConditions(
@@ -159,7 +162,7 @@ export class SpecializedQueries {
     );
 
     // Build visibility filter for the owner of these tiles
-    const visibilityFilter = buildVisibilityFilter(requesterUserId, parentUserId);
+    const visibilityFilter = buildVisibilityFilter(requester, parentUserId);
     if (visibilityFilter) {
       conditions.push(visibilityFilter);
     }
@@ -185,7 +188,7 @@ export class SpecializedQueries {
     maxGenerations: number;
     limit?: number;
     offset?: number;
-    requesterUserId?: string;
+    requester: RequesterContext;
   }): Promise<DbMapItemWithBase[]> {
     const {
       parentPath,
@@ -194,7 +197,7 @@ export class SpecializedQueries {
       maxGenerations,
       limit = 1000,
       offset = 0,
-      requesterUserId,
+      requester,
     } = params;
 
     // Validate maxGenerations to prevent unbounded queries
@@ -210,7 +213,7 @@ export class SpecializedQueries {
     );
 
     // Build visibility filter for the owner of these tiles
-    const visibilityFilter = buildVisibilityFilter(requesterUserId, parentUserId);
+    const visibilityFilter = buildVisibilityFilter(requester, parentUserId);
     if (visibilityFilter) {
       conditions.push(visibilityFilter);
     }
@@ -300,12 +303,12 @@ export class SpecializedQueries {
     children: DbMapItemWithBase[];
     grandchildren: DbMapItemWithBase[];
   }> {
-    const { centerPath, userId, groupId, requesterUserId } = config;
+    const { centerPath, userId, groupId, requester } = config;
     const centerPathString = pathToString(centerPath);
     const centerDepth = centerPath.length;
 
     // Build visibility filter for the owner of these tiles
-    const visibilityFilter = buildVisibilityFilter(requesterUserId, userId);
+    const visibilityFilter = buildVisibilityFilter(requester, userId);
 
     // QUERY 1: Center + Parent + Composed (FULL content - needed for AI)
     const fullContentConditions: SQL[] = [];

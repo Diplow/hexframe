@@ -12,6 +12,7 @@ import {
   Visibility,
 } from "~/lib/domains/mapping/_objects";
 import { type Coord } from "~/lib/domains/mapping/utils";
+import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 export class MapItemCreationHelpers {
   constructor(
@@ -63,7 +64,8 @@ export class MapItemCreationHelpers {
       return null;
     }
 
-    const parent = await this.mapItems.getOne(parentId);
+    // Use SYSTEM_INTERNAL for internal creation operations - no visibility filtering
+    const parent = await this.mapItems.getOne(parentId, SYSTEM_INTERNAL);
     if (!parent) {
       throw new Error(`Parent MapItem with id ${parentId} not found.`);
     }

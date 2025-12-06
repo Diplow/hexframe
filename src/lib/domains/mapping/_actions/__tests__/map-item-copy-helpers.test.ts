@@ -9,6 +9,7 @@ import {
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { Direction } from "~/lib/domains/mapping/utils";
 import { MapItemType, Visibility } from "~/lib/domains/mapping/_objects";
+import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 describe("MapItem Copy Helpers", () => {
   let testEnv: TestEnvironment;
@@ -43,7 +44,7 @@ describe("MapItem Copy Helpers", () => {
       // Get the original item from the repository
       const originalMapItem = await testEnv.repositories.mapItem.getOneByIdr({
         idr: { id: Number(originalItem.id) },
-      });
+      }, SYSTEM_INTERNAL);
 
       const preparedItems = _prepareBaseItemsForCopy([originalMapItem.ref]);
 
@@ -85,7 +86,7 @@ describe("MapItem Copy Helpers", () => {
 
       const baseItemsToCopy = await testEnv.repositories.mapItem.getMany({
         limit: 10,
-      });
+      }, SYSTEM_INTERNAL);
 
       const preparedItems = _prepareBaseItemsForCopy(
         baseItemsToCopy
@@ -121,7 +122,7 @@ describe("MapItem Copy Helpers", () => {
         "~/lib/domains/mapping/_actions/_map-item-copy-helpers"
       );
 
-      const baseItems = await testEnv.repositories.mapItem.getMany({ limit: 10 });
+      const baseItems = await testEnv.repositories.mapItem.getMany({ limit: 10 }, SYSTEM_INTERNAL);
       const targetItem = baseItems.find(
         mi => mi.ref.attrs.title === "Full Item"
       );
@@ -160,7 +161,7 @@ describe("MapItem Copy Helpers", () => {
 
       const sourceMapItem = await testEnv.repositories.mapItem.getOneByIdr({
         idr: { id: Number(originalItem.id) },
-      });
+      }, SYSTEM_INTERNAL);
 
       const destinationCoords = _createTestCoordinates({
         userId: setupParams.userId,
@@ -215,6 +216,7 @@ describe("MapItem Copy Helpers", () => {
         parentPath: [],
         parentUserId: setupParams.userId,
         parentGroupId: setupParams.groupId,
+        requester: SYSTEM_INTERNAL,
       });
 
       const sourceMapItems = descendants.filter(
@@ -290,15 +292,15 @@ describe("MapItem Copy Helpers", () => {
 
       const sourceMapItems = await testEnv.repositories.mapItem.getManyByIdr({
         idrs: [{ id: Number(item1.id) }, { id: Number(item2.id) }],
-      });
+      }, SYSTEM_INTERNAL);
 
       // Get the BaseItem IDs from the MapItems
       const mapItem1 = await testEnv.repositories.mapItem.getOneByIdr({
         idr: { id: Number(item1.id) },
-      });
+      }, SYSTEM_INTERNAL);
       const mapItem2 = await testEnv.repositories.mapItem.getOneByIdr({
         idr: { id: Number(item2.id) },
-      });
+      }, SYSTEM_INTERNAL);
 
       const copiedBaseItems = await testEnv.repositories.baseItem.createMany([
         {
@@ -351,7 +353,7 @@ describe("MapItem Copy Helpers", () => {
       // Get the actual MapItem to access the BaseItem ref
       const originalMapItem = await testEnv.repositories.mapItem.getOneByIdr({
         idr: { id: Number(originalItem.id) },
-      });
+      }, SYSTEM_INTERNAL);
 
       const copiedBaseItem = await testEnv.repositories.baseItem.create({
         attrs: {
