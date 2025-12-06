@@ -60,8 +60,7 @@ Between each step, the user can:
 
 By default, uses `mcp__hexframe__hexecute`. To use the debug server, include it in the instruction:
 ```
-/hexrun abc123,0:6 Use mcp__debughexframe
-```
+/hexrun abc123,0:6 Use the debughexframe MCP server
 
 ## Implementation Notes
 
