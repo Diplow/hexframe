@@ -1,133 +1,129 @@
 import { describe, it, expect } from 'vitest'
 import { buildPrompt, type PromptData } from '~/lib/domains/agentic/services/prompt-executor.service'
 
-describe('buildPrompt - HEXFRAME_PROMPT.md Spec v2 (Recursive Execution)', () => {
+describe('buildPrompt - v3 Simplified Structure', () => {
   // ==================== BASIC STRUCTURE TESTS ====================
   describe('Basic Structure', () => {
-    it('should generate all 4 sections in correct order', () => {
+    it('should generate sections in correct order: context, subtasks, task, hexplan', () => {
       const data: PromptData = {
-        task: { title: 'Test Task', content: 'Test content', coords: '1,0:1' },
-        composedChildren: [{ title: 'Context', content: 'Context info' }],
-        structuralChildren: [{ title: 'Subtask 1', preview: 'Preview 1', coords: '1,0:1,1' }],
+        task: { title: 'Test Task', content: 'Test content', coords: 'userId,0:1' },
+        composedChildren: [{ title: 'Context', content: 'Context info', coords: 'userId,0:1,-1' }],
+        structuralChildren: [{ title: 'Subtask 1', preview: 'Preview 1', coords: 'userId,0:1,1' }],
         instruction: 'Test instruction',
         mcpServerName: 'hexframe',
-        ancestorHistories: []
+        hexPlan: 'Existing plan content',
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
 
       // Check all sections appear
-      expect(result).toContain('<context>')
+      expect(result).toContain('<context title="Context" coords="userId,0:1,-1">')
       expect(result).toContain('<subtasks>')
       expect(result).toContain('<task>')
-      expect(result).toContain('<instructions>')
+      expect(result).toContain('<hexplan')
 
-      // execution-history section should NOT exist (moved to subtasks)
-      expect(result).not.toContain('<execution-history>')
-
-      // Check order (use lastIndexOf for user <instructions> section after <task>)
-      const contextIndex = result.indexOf('<context>')
+      // Check order
+      const contextIndex = result.indexOf('<context ')
       const subtasksIndex = result.indexOf('<subtasks>')
       const taskIndex = result.indexOf('<task>')
-      const instructionsIndex = result.lastIndexOf('<instructions>') // User instructions at the end
+      const hexplanIndex = result.indexOf('<hexplan')
 
       expect(contextIndex).toBeLessThan(subtasksIndex)
       expect(subtasksIndex).toBeLessThan(taskIndex)
-      expect(taskIndex).toBeLessThan(instructionsIndex)
+      expect(taskIndex).toBeLessThan(hexplanIndex)
     })
 
     it('should separate sections with blank lines', () => {
       const data: PromptData = {
-        task: { title: 'Test', content: 'Content', coords: '1,0' },
-        composedChildren: [{ title: 'C1', content: 'Content 1' }],
-        structuralChildren: [{ title: 'S1', preview: 'Preview 1', coords: '1,0:1' }],
-        instruction: 'Instruction',
+        task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
+        composedChildren: [{ title: 'C1', content: 'Content 1', coords: 'userId,0:1,-1' }],
+        structuralChildren: [{ title: 'S1', preview: 'Preview 1', coords: 'userId,0:1,1' }],
+        instruction: undefined,
         mcpServerName: 'hexframe',
-        ancestorHistories: []
+        hexPlan: 'Plan content',
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
 
-      // Should have blank lines between sections
       expect(result).toMatch(/<\/context>\n\n<subtasks>/)
       expect(result).toMatch(/<\/subtasks>\n\n<task>/)
-      expect(result).toMatch(/<\/task>\n\n<instructions>/)
+      expect(result).toMatch(/<\/task>\n\n<hexplan/)
+    })
+
+    it('should not include hardcoded Hexframe philosophy', () => {
+      const data: PromptData = {
+        task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
+        composedChildren: [],
+        structuralChildren: [],
+        instruction: undefined,
+        mcpServerName: 'hexframe',
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
+      }
+
+      const result = buildPrompt(data)
+
+      expect(result).not.toContain('# Hexframe Orchestration')
+      expect(result).not.toContain('agent-planning-protocol')
     })
   })
 
   // ==================== CONTEXT SECTION TESTS ====================
   describe('Context Section', () => {
-    it('should always include Hexframe philosophy subsection', () => {
+    it('should be empty when no composed children', () => {
       const data: PromptData = {
-        task: { title: 'Test', content: 'Content', coords: '1,0' },
+        task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        ancestorHistories: []
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
 
-      expect(result).toContain('<context>')
-      expect(result).toContain('# Hexframe Orchestration')
-      expect(result).toContain('hexecute')
-      expect(result).toContain('subagent')
-      expect(result).toContain('</context>')
+      expect(result).not.toContain('<context')
     })
 
-    it('should include Hexframe philosophy even when no composed children', () => {
+    it('should include composed children with title, content and coords', () => {
       const data: PromptData = {
-        task: { title: 'Test', content: 'Content', coords: '1,0' },
-        composedChildren: [],
-        structuralChildren: [],
-        instruction: undefined,
-        mcpServerName: 'hexframe',
-        ancestorHistories: []
-      }
-
-      const result = buildPrompt(data)
-
-      expect(result).toContain('<context>')
-      expect(result).toContain('# Hexframe Orchestration')
-    })
-
-    it('should concatenate philosophy + composed children', () => {
-      const data: PromptData = {
-        task: { title: 'Test', content: 'Content', coords: '1,0' },
+        task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
         composedChildren: [
-          { title: 'Context 1', content: 'Content 1' },
-          { title: 'Context 2', content: 'Content 2' }
+          { title: 'Context 1', content: 'Content 1', coords: 'userId,0:1,-1' },
+          { title: 'Context 2', content: 'Content 2', coords: 'userId,0:1,-2' }
         ],
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        ancestorHistories: []
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
 
-      expect(result).toContain('<context>')
-      expect(result).toContain('# Hexframe Orchestration')
-      expect(result).toContain('Context 1')
+      expect(result).toContain('<context title="Context 1" coords="userId,0:1,-1">')
       expect(result).toContain('Content 1')
-      expect(result).toContain('Context 2')
-      expect(result).toContain('Content 2')
       expect(result).toContain('</context>')
+      expect(result).toContain('<context title="Context 2" coords="userId,0:1,-2">')
+      expect(result).toContain('Content 2')
     })
 
     it('should skip composed children with empty content', () => {
       const data: PromptData = {
-        task: { title: 'Test', content: 'Content', coords: '1,0' },
+        task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
         composedChildren: [
-          { title: 'Empty', content: '' },
-          { title: 'Valid', content: 'Valid content' },
-          { title: 'Whitespace', content: '   \n\t  ' }
+          { title: 'Empty', content: '', coords: 'userId,0:1,-1' },
+          { title: 'Valid', content: 'Valid content', coords: 'userId,0:1,-2' },
+          { title: 'Whitespace', content: '   \n\t  ', coords: 'userId,0:1,-3' }
         ],
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        ancestorHistories: []
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -140,144 +136,119 @@ describe('buildPrompt - HEXFRAME_PROMPT.md Spec v2 (Recursive Execution)', () =>
 
     it('should escape XML special characters in composed children', () => {
       const data: PromptData = {
-        task: { title: 'Test', content: 'Content', coords: '1,0' },
+        task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
         composedChildren: [
-          { title: 'Title <with> & "special" chars', content: 'Content with <xml> & \'quotes\'' }
+          { title: 'Title <with> & "special" chars', content: 'Content with <xml> & \'quotes\'', coords: 'userId,0:1,-1' }
         ],
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        ancestorHistories: []
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
 
-      expect(result).toContain('Title &lt;with&gt; &amp; &quot;special&quot; chars')
+      expect(result).toContain('title="Title &lt;with&gt; &amp; &quot;special&quot; chars"')
       expect(result).toContain('Content with &lt;xml&gt; &amp; &apos;quotes&apos;')
     })
   })
 
   // ==================== SUBTASKS SECTION TESTS ====================
   describe('Subtasks Section', () => {
-    it('should always include systematic subtasks even when no user subtasks', () => {
+    it('should be empty when no structural children', () => {
       const data: PromptData = {
-        task: { title: 'Test', content: 'Content', coords: '1,0:1' },
+        task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        ancestorHistories: []
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
 
-      expect(result).toContain('<subtasks>')
-      // Should have read history subtask
-      expect(result).toContain('<subtask coords="1,0:1,0" subagent="false">')
-      expect(result).toContain('Read Execution History')
-      // Should have mark done subtask
-      expect(result).toContain('Mark Task Complete')
-      expect(result).toContain('</subtasks>')
+      expect(result).not.toContain('<subtasks>')
     })
 
-    it('should include coords attribute for each subtask', () => {
+    it('should include title and coords attributes for each subtask-preview', () => {
       const data: PromptData = {
-        task: { title: 'Test', content: 'Content', coords: '1,0:1' },
+        task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [
-          { title: 'Subtask 1', preview: 'Preview 1', coords: '1,0:1,1' },
-          { title: 'Subtask 2', preview: 'Preview 2', coords: '1,0:1,2' }
+          { title: 'Subtask 1', preview: 'Preview 1', coords: 'userId,0:1,1' },
+          { title: 'Subtask 2', preview: 'Preview 2', coords: 'userId,0:1,2' }
         ],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        ancestorHistories: []
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
 
-      expect(result).toContain('<subtask coords="1,0:1,0" subagent="false">') // Read history
-      expect(result).toContain('<subtask coords="1,0:1,1" subagent="true">')
-      expect(result).toContain('<subtask coords="1,0:1,2" subagent="true">')
-      expect(result).toContain('Mark Task Complete') // Mark done (no coords, inline)
+      expect(result).toContain('<subtask-preview title="Subtask 1" coords="userId,0:1,1">')
+      expect(result).toContain('<subtask-preview title="Subtask 2" coords="userId,0:1,2">')
     })
 
-    it('should order subtasks: read history, user subtasks, mark done', () => {
+    it('should include preview content inside subtask-preview', () => {
       const data: PromptData = {
-        task: { title: 'Test', content: 'Content', coords: '1,0:1' },
+        task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [
-          { title: 'User Subtask', preview: 'Preview', coords: '1,0:1,1' }
+          { title: 'My Subtask', preview: 'My Preview', coords: 'userId,0:1,1' }
         ],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        ancestorHistories: []
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
 
-      const readHistoryIndex = result.indexOf('Read Execution History')
-      const userSubtaskIndex = result.indexOf('User Subtask')
-      const markDoneIndex = result.indexOf('Mark Task Complete')
-
-      expect(readHistoryIndex).toBeLessThan(userSubtaskIndex)
-      expect(userSubtaskIndex).toBeLessThan(markDoneIndex)
+      expect(result).toContain('<subtask-preview title="My Subtask" coords="userId,0:1,1">')
+      expect(result).toContain('My Preview')
+      expect(result).toContain('</subtask-preview>')
     })
 
-    it('should use MCP server name from environment in read history subtask', () => {
+    it('should escape XML special characters in subtask-preview', () => {
       const data: PromptData = {
-        task: { title: 'Test', content: 'Content', coords: '1,0:1' },
-        composedChildren: [],
-        structuralChildren: [],
-        instruction: undefined,
-        mcpServerName: 'debughexframe',
-        ancestorHistories: []
-      }
-
-      const result = buildPrompt(data)
-
-      expect(result).toContain('debughexframe:getItemByCoords')
-    })
-
-    it('should escape XML special characters in subtasks', () => {
-      const data: PromptData = {
-        task: { title: 'Test', content: 'Content', coords: '1,0' },
+        task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [
-          { title: 'Task <with> & chars', preview: 'Preview "with" \'quotes\'', coords: '1,0:1' }
+          { title: 'Task <with> & chars', preview: 'Preview "with" \'quotes\'', coords: 'userId,0:1,1' }
         ],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        ancestorHistories: []
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
 
-      expect(result).toContain('Task &lt;with&gt; &amp; chars')
+      expect(result).toContain('title="Task &lt;with&gt; &amp; chars"')
       expect(result).toContain('Preview &quot;with&quot; &apos;quotes&apos;')
     })
 
-    it('should include ancestor histories in read history subtask', () => {
+    it('should not include meta tasks (read history, mark done)', () => {
       const data: PromptData = {
-        task: { title: 'Test', content: 'Content', coords: '1,0:1,2' },
+        task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
         composedChildren: [],
-        structuralChildren: [],
+        structuralChildren: [
+          { title: 'User Subtask', preview: 'Preview', coords: 'userId,0:1,1' }
+        ],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        ancestorHistories: [
-          { coords: '1,0:1,0', content: 'Root task progress...' },
-          { coords: '1,0:1', content: 'Parent task completed step 1' }
-        ]
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
 
-      expect(result).toContain('<parent-context>')
-      expect(result).toContain('From 1,0:1,0:')
-      expect(result).toContain('Root task progress...')
-      expect(result).toContain('From 1,0:1:')
-      expect(result).toContain('Parent task completed step 1')
-      expect(result).toContain('</parent-context>')
-      expect(result).toContain('<instructions>')
+      expect(result).not.toContain('Read HexPlan')
+      expect(result).not.toContain('Mark Task Complete')
+      expect(result).not.toContain('subagent="false"')
     })
   })
 
@@ -285,12 +256,13 @@ describe('buildPrompt - HEXFRAME_PROMPT.md Spec v2 (Recursive Execution)', () =>
   describe('Task Section', () => {
     it('should always include task section', () => {
       const data: PromptData = {
-        task: { title: 'Test Task', content: 'Test content', coords: '1,0' },
+        task: { title: 'Test Task', content: 'Test content', coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        ancestorHistories: []
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -301,12 +273,13 @@ describe('buildPrompt - HEXFRAME_PROMPT.md Spec v2 (Recursive Execution)', () =>
 
     it('should include goal wrapper for title', () => {
       const data: PromptData = {
-        task: { title: 'My Test Goal', content: 'Content', coords: '1,0' },
+        task: { title: 'My Test Goal', content: 'Content', coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        ancestorHistories: []
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -316,12 +289,13 @@ describe('buildPrompt - HEXFRAME_PROMPT.md Spec v2 (Recursive Execution)', () =>
 
     it('should include task content', () => {
       const data: PromptData = {
-        task: { title: 'Title', content: 'This is the task content', coords: '1,0' },
+        task: { title: 'Title', content: 'This is the task content', coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        ancestorHistories: []
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -331,12 +305,13 @@ describe('buildPrompt - HEXFRAME_PROMPT.md Spec v2 (Recursive Execution)', () =>
 
     it('should handle empty task content', () => {
       const data: PromptData = {
-        task: { title: 'Title', content: '', coords: '1,0' },
+        task: { title: 'Title', content: '', coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        ancestorHistories: []
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -351,13 +326,14 @@ describe('buildPrompt - HEXFRAME_PROMPT.md Spec v2 (Recursive Execution)', () =>
         task: {
           title: 'Title <with> & chars',
           content: 'Content "with" \'special\' characters',
-          coords: '1,0'
+          coords: 'userId,0:1'
         },
         composedChildren: [],
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        ancestorHistories: []
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
@@ -367,79 +343,120 @@ describe('buildPrompt - HEXFRAME_PROMPT.md Spec v2 (Recursive Execution)', () =>
     })
   })
 
-  // ==================== INSTRUCTIONS SECTION TESTS ====================
-  describe('Instructions Section', () => {
-    it('should be empty when no instruction provided', () => {
+  // ==================== HEXPLAN SECTION TESTS ====================
+  describe('Hexplan Section', () => {
+    it('should show hexplan content when plan exists', () => {
       const data: PromptData = {
-        task: { title: 'Test', content: 'Content', coords: '1,0' },
+        task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        ancestorHistories: []
+        hexPlan: '🟡 STARTED: Working on task...',
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
 
-      // Systematic subtasks have <instructions> wrapper, but no user <instructions> section at the end
-      const instructionsCount = (result.match(/<instructions>/g) ?? []).length
-      expect(instructionsCount).toBe(2) // Read history + Mark done subtasks
+      expect(result).toContain('<hexplan coords="userId,0:1,0">')
+      expect(result).toContain('🟡 STARTED: Working on task...')
+      expect(result).toContain('</hexplan>')
     })
 
-    it('should include instruction when provided', () => {
+    it('should show initialization instructions when hexplan does not exist', () => {
       const data: PromptData = {
-        task: { title: 'Test', content: 'Content', coords: '1,0' },
+        task: { title: 'Test', content: 'Content', coords: 'userId,0:1,2' },
         composedChildren: [],
         structuralChildren: [],
-        instruction: 'Use PostgreSQL for the database',
+        instruction: 'Build feature X',
         mcpServerName: 'hexframe',
-        ancestorHistories: []
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
 
-      expect(result).toContain('<instructions>')
-      expect(result).toContain('Use PostgreSQL for the database')
-      expect(result).toContain('</instructions>')
+      expect(result).toContain('<hexplan coords="userId,0:1,2,0">')
+      expect(result).toContain('No hexplan exists yet. To initialize:')
+      expect(result).toContain(
+        '1. Run hexframe:hexecute("userId,0:1,4", "Create a hexplan for the task at userId,0:1,2. User instruction: Build feature X")'
+      )
+      expect(result).toContain('2. Launch a subagent with the resulting prompt')
+      expect(result).toContain('</hexplan>')
     })
 
-    it('should escape XML special characters in instructions', () => {
+    it('should use correct MCP server name in initialization instructions', () => {
       const data: PromptData = {
-        task: { title: 'Test', content: 'Content', coords: '1,0' },
+        task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [],
-        instruction: 'Use <component> & "props"',
-        mcpServerName: 'hexframe',
-        ancestorHistories: []
+        instruction: undefined,
+        mcpServerName: 'debughexframe',
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
 
-      expect(result).toContain('Use &lt;component&gt; &amp; &quot;props&quot;')
+      expect(result).toContain('debughexframe:hexecute')
+      expect(result).toContain('Create a hexplan for the task at userId,0:1")')
+      expect(result).not.toContain('User instruction:')
+    })
+
+    it('should escape XML special characters in hexplan content', () => {
+      const data: PromptData = {
+        task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
+        composedChildren: [],
+        structuralChildren: [],
+        instruction: undefined,
+        mcpServerName: 'hexframe',
+        hexPlan: 'Plan with <tags> & "quotes"',
+        hexPlanInitializerPath: undefined
+      }
+
+      const result = buildPrompt(data)
+
+      expect(result).toContain('Plan with &lt;tags&gt; &amp; &quot;quotes&quot;')
+    })
+
+    it('should use custom hexPlanInitializerPath when provided', () => {
+      const data: PromptData = {
+        task: { title: 'Test', content: 'Content', coords: 'userId,0:1,2' },
+        composedChildren: [],
+        structuralChildren: [],
+        instruction: undefined,
+        mcpServerName: 'hexframe',
+        hexPlan: undefined,
+        hexPlanInitializerPath: '2,3' // Custom path instead of default '1,4'
+      }
+
+      const result = buildPrompt(data)
+
+      expect(result).toContain('hexframe:hexecute("userId,0:2,3"')
+      expect(result).not.toContain('userId,0:1,4')
     })
   })
 
   // ==================== EDGE CASES ====================
   describe('Edge Cases', () => {
-    it('should handle minimal tile (only task, systematic subtasks)', () => {
+    it('should handle minimal tile (only task and hexplan)', () => {
       const data: PromptData = {
-        task: { title: 'Minimal Task', content: undefined, coords: '1,0' },
+        task: { title: 'Minimal Task', content: undefined, coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        ancestorHistories: []
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)
 
-      // Should have context (philosophy), subtasks (systematic), and task sections
-      expect(result).toContain('<context>')
-      expect(result).toContain('<subtasks>')
+      // Should have task and hexplan sections only
       expect(result).toContain('<task>')
-      // Should have <instructions> in systematic subtasks, but not as separate section
-      const instructionsCount = (result.match(/<instructions>/g) ?? []).length
-      expect(instructionsCount).toBe(2) // Read history + Mark done subtasks
+      expect(result).toContain('<hexplan')
+      expect(result).not.toContain('<context')
+      expect(result).not.toContain('<subtasks>')
     })
 
     it('should handle multiline content with proper formatting', () => {
@@ -447,13 +464,14 @@ describe('buildPrompt - HEXFRAME_PROMPT.md Spec v2 (Recursive Execution)', () =>
         task: {
           title: 'Test',
           content: 'Line 1\nLine 2\n\nLine 4',
-          coords: '1,0'
+          coords: 'userId,0:1'
         },
         composedChildren: [],
         structuralChildren: [],
         instruction: undefined,
         mcpServerName: 'hexframe',
-        ancestorHistories: []
+        hexPlan: undefined,
+        hexPlanInitializerPath: undefined
       }
 
       const result = buildPrompt(data)

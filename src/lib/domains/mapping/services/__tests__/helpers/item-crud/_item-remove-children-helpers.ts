@@ -15,25 +15,25 @@ interface HierarchySetupResult {
   rootMap: Awaited<ReturnType<typeof _setupBasicMap>>;
   structuralChildren: Array<{ id: number; coordId: string; title: string }>;
   composedChildren: Array<{ id: number; coordId: string; title: string }>;
-  executionHistories: Array<{ id: number; coordId: string; title: string }>;
-  nestedExecutionHistories: Array<{ id: number; coordId: string; title: string }>;
+  hexPlans: Array<{ id: number; coordId: string; title: string }>;
+  nestedHexPlans: Array<{ id: number; coordId: string; title: string }>;
 }
 
 /**
- * Sets up a comprehensive hierarchy with structural, composed, and execution history children.
+ * Sets up a comprehensive hierarchy with structural, composed, and hexPlan children.
  *
  * Structure created:
  * - Root []
  *   - Structural child [1] (NorthWest)
- *     - Execution history [1, 0]
+ *     - HexPlan [1, 0]
  *     - Grandchild [1, 2]
- *       - Execution history [1, 2, 0]
+ *       - HexPlan [1, 2, 0]
  *   - Structural child [3] (East)
- *     - Execution history [3, 0]
+ *     - HexPlan [3, 0]
  *   - Composed child [-1]
- *     - Execution history [-1, 0]
+ *     - HexPlan [-1, 0]
  *   - Composed child [-3]
- *   - Execution history [0]
+ *   - HexPlan [0]
  */
 export async function _setupHierarchyWithAllDirectionTypes(
   testEnv: TestEnvironment,
@@ -43,8 +43,8 @@ export async function _setupHierarchyWithAllDirectionTypes(
 
   const structuralChildren: HierarchySetupResult["structuralChildren"] = [];
   const composedChildren: HierarchySetupResult["composedChildren"] = [];
-  const executionHistories: HierarchySetupResult["executionHistories"] = [];
-  const nestedExecutionHistories: HierarchySetupResult["nestedExecutionHistories"] = [];
+  const hexPlans: HierarchySetupResult["hexPlans"] = [];
+  const nestedHexPlans: HierarchySetupResult["nestedHexPlans"] = [];
 
   // Add structural child [1] (NorthWest)
   const structuralChild1Coords = _createTestCoordinates({
@@ -64,21 +64,21 @@ export async function _setupHierarchyWithAllDirectionTypes(
     title: structuralChild1.title,
   });
 
-  // Add execution history for structural child [1, 0]
-  const execHistory1Coords = _createTestCoordinates({
+  // Add hexPlan for structural child [1, 0]
+  const hexPlan1Coords = _createTestCoordinates({
     userId: params.userId,
     groupId: params.groupId,
     path: [Direction.NorthWest, Direction.Center],
   });
-  const execHistory1 = await testEnv.service.items.crud.addItemToMap({
+  const hexPlan1 = await testEnv.service.items.crud.addItemToMap({
     parentId: structuralChild1Id,
-    coords: execHistory1Coords,
-    title: "Exec History for Child 1",
+    coords: hexPlan1Coords,
+    title: "HexPlan for Child 1",
   });
-  nestedExecutionHistories.push({
-    id: Number(execHistory1.id),
-    coordId: CoordSystem.createId(execHistory1Coords),
-    title: execHistory1.title,
+  nestedHexPlans.push({
+    id: Number(hexPlan1.id),
+    coordId: CoordSystem.createId(hexPlan1Coords),
+    title: hexPlan1.title,
   });
 
   // Add grandchild [1, 2] (NorthWest -> NorthEast)
@@ -99,21 +99,21 @@ export async function _setupHierarchyWithAllDirectionTypes(
     title: grandchild.title,
   });
 
-  // Add execution history for grandchild [1, 2, 0]
-  const execHistory2Coords = _createTestCoordinates({
+  // Add hexPlan for grandchild [1, 2, 0]
+  const hexPlan2Coords = _createTestCoordinates({
     userId: params.userId,
     groupId: params.groupId,
     path: [Direction.NorthWest, Direction.NorthEast, Direction.Center],
   });
-  const execHistory2 = await testEnv.service.items.crud.addItemToMap({
+  const hexPlan2 = await testEnv.service.items.crud.addItemToMap({
     parentId: grandchildId,
-    coords: execHistory2Coords,
-    title: "Exec History for Grandchild",
+    coords: hexPlan2Coords,
+    title: "HexPlan for Grandchild",
   });
-  nestedExecutionHistories.push({
-    id: Number(execHistory2.id),
-    coordId: CoordSystem.createId(execHistory2Coords),
-    title: execHistory2.title,
+  nestedHexPlans.push({
+    id: Number(hexPlan2.id),
+    coordId: CoordSystem.createId(hexPlan2Coords),
+    title: hexPlan2.title,
   });
 
   // Add structural child [3] (East)
@@ -134,21 +134,21 @@ export async function _setupHierarchyWithAllDirectionTypes(
     title: structuralChild2.title,
   });
 
-  // Add execution history for structural child 2 [3, 0]
-  const execHistory3Coords = _createTestCoordinates({
+  // Add hexPlan for structural child 2 [3, 0]
+  const hexPlan3Coords = _createTestCoordinates({
     userId: params.userId,
     groupId: params.groupId,
     path: [Direction.East, Direction.Center],
   });
-  const execHistory3 = await testEnv.service.items.crud.addItemToMap({
+  const hexPlan3 = await testEnv.service.items.crud.addItemToMap({
     parentId: structuralChild2Id,
-    coords: execHistory3Coords,
-    title: "Exec History for Child 2",
+    coords: hexPlan3Coords,
+    title: "HexPlan for Child 2",
   });
-  nestedExecutionHistories.push({
-    id: Number(execHistory3.id),
-    coordId: CoordSystem.createId(execHistory3Coords),
-    title: execHistory3.title,
+  nestedHexPlans.push({
+    id: Number(hexPlan3.id),
+    coordId: CoordSystem.createId(hexPlan3Coords),
+    title: hexPlan3.title,
   });
 
   // Add composed child [-1] (ComposedNW)
@@ -169,21 +169,21 @@ export async function _setupHierarchyWithAllDirectionTypes(
     title: composedChild1.title,
   });
 
-  // Add execution history for composed child [-1, 0]
-  const execHistory4Coords = _createTestCoordinates({
+  // Add hexPlan for composed child [-1, 0]
+  const hexPlan4Coords = _createTestCoordinates({
     userId: params.userId,
     groupId: params.groupId,
     path: [Direction.ComposedNorthWest, Direction.Center],
   });
-  const execHistory4 = await testEnv.service.items.crud.addItemToMap({
+  const hexPlan4 = await testEnv.service.items.crud.addItemToMap({
     parentId: composedChild1Id,
-    coords: execHistory4Coords,
-    title: "Exec History for Composed 1",
+    coords: hexPlan4Coords,
+    title: "HexPlan for Composed 1",
   });
-  nestedExecutionHistories.push({
-    id: Number(execHistory4.id),
-    coordId: CoordSystem.createId(execHistory4Coords),
-    title: execHistory4.title,
+  nestedHexPlans.push({
+    id: Number(hexPlan4.id),
+    coordId: CoordSystem.createId(hexPlan4Coords),
+    title: hexPlan4.title,
   });
 
   // Add composed child [-3] (ComposedE)
@@ -203,29 +203,29 @@ export async function _setupHierarchyWithAllDirectionTypes(
     title: composedChild2.title,
   });
 
-  // Add direct execution history [0]
-  const directExecHistoryCoords = _createTestCoordinates({
+  // Add direct hexPlan [0]
+  const directHexPlanCoords = _createTestCoordinates({
     userId: params.userId,
     groupId: params.groupId,
     path: [Direction.Center],
   });
-  const directExecHistory = await testEnv.service.items.crud.addItemToMap({
+  const directHexPlan = await testEnv.service.items.crud.addItemToMap({
     parentId: rootMap.id,
-    coords: directExecHistoryCoords,
-    title: "Direct Execution History",
+    coords: directHexPlanCoords,
+    title: "Direct HexPlan",
   });
-  executionHistories.push({
-    id: Number(directExecHistory.id),
-    coordId: CoordSystem.createId(directExecHistoryCoords),
-    title: directExecHistory.title,
+  hexPlans.push({
+    id: Number(directHexPlan.id),
+    coordId: CoordSystem.createId(directHexPlanCoords),
+    title: directHexPlan.title,
   });
 
   return {
     rootMap,
     structuralChildren,
     composedChildren,
-    executionHistories,
-    nestedExecutionHistories,
+    hexPlans,
+    nestedHexPlans,
   };
 }
 
@@ -248,12 +248,12 @@ export async function _validateStructuralChildrenRemoval(
     directionType: "structural",
   });
 
-  // Should have deleted structural children and their descendants (including nested exec histories)
+  // Should have deleted structural children and their descendants (including nested hexPlans)
   const expectedDeletedCount =
     setupData.structuralChildren.length +
-    setupData.nestedExecutionHistories.filter((eh) => {
+    setupData.nestedHexPlans.filter((hp) => {
       // Filter to only those under structural children
-      const path = CoordSystem.parseId(eh.coordId).path;
+      const path = CoordSystem.parseId(hp.coordId).path;
       return path.length > 0 && path[0]! > Direction.Center;
     }).length;
 
@@ -277,10 +277,10 @@ export async function _validateStructuralChildrenRemoval(
     expect(item.title).toBe(child.title);
   }
 
-  // Verify direct execution history still exists
-  for (const eh of setupData.executionHistories) {
+  // Verify direct hexPlan still exists
+  for (const hp of setupData.hexPlans) {
     const item = await testEnv.service.items.crud.getItem({
-      coords: CoordSystem.parseId(eh.coordId),
+      coords: CoordSystem.parseId(hp.coordId),
     });
     expect(item).toBeDefined();
   }
@@ -308,9 +308,9 @@ export async function _validateComposedChildrenRemoval(
   // Should have deleted composed children and their descendants
   const expectedDeletedCount =
     setupData.composedChildren.length +
-    setupData.nestedExecutionHistories.filter((eh) => {
+    setupData.nestedHexPlans.filter((hp) => {
       // Filter to only those under composed children
-      const path = CoordSystem.parseId(eh.coordId).path;
+      const path = CoordSystem.parseId(hp.coordId).path;
       return path.length > 0 && path[0]! < Direction.Center;
     }).length;
 
@@ -336,9 +336,9 @@ export async function _validateComposedChildrenRemoval(
 }
 
 /**
- * Validates that removeChildrenByType correctly removes ALL execution histories in subtree
+ * Validates that removeChildrenByType correctly removes ALL hexPlans in subtree
  */
-export async function _validateExecutionHistoryRemoval(
+export async function _validateHexPlanRemoval(
   testEnv: TestEnvironment,
   setupData: HierarchySetupResult,
   rootCoords: { userId: string; groupId: number },
@@ -351,35 +351,35 @@ export async function _validateExecutionHistoryRemoval(
 
   const result = await testEnv.service.items.crud.removeChildrenByType({
     coords,
-    directionType: "executionHistory",
+    directionType: "hexPlan",
   });
 
-  // Should have deleted ALL execution histories (direct + nested)
+  // Should have deleted ALL hexPlans (direct + nested)
   const expectedDeletedCount =
-    setupData.executionHistories.length +
-    setupData.nestedExecutionHistories.length;
+    setupData.hexPlans.length +
+    setupData.nestedHexPlans.length;
 
   expect(result.deletedCount).toBe(expectedDeletedCount);
 
-  // Verify all execution histories are gone (direct)
-  for (const eh of setupData.executionHistories) {
+  // Verify all hexPlans are gone (direct)
+  for (const hp of setupData.hexPlans) {
     await expect(
       testEnv.service.items.crud.getItem({
-        coords: CoordSystem.parseId(eh.coordId),
+        coords: CoordSystem.parseId(hp.coordId),
       }),
     ).rejects.toThrow();
   }
 
-  // Verify all nested execution histories are gone
-  for (const eh of setupData.nestedExecutionHistories) {
+  // Verify all nested hexPlans are gone
+  for (const hp of setupData.nestedHexPlans) {
     await expect(
       testEnv.service.items.crud.getItem({
-        coords: CoordSystem.parseId(eh.coordId),
+        coords: CoordSystem.parseId(hp.coordId),
       }),
     ).rejects.toThrow();
   }
 
-  // Verify structural children still exist (but without their exec histories)
+  // Verify structural children still exist (but without their hexPlans)
   for (const child of setupData.structuralChildren) {
     const item = await testEnv.service.items.crud.getItem({
       coords: CoordSystem.parseId(child.coordId),
@@ -388,7 +388,7 @@ export async function _validateExecutionHistoryRemoval(
     expect(item.title).toBe(child.title);
   }
 
-  // Verify composed children still exist (but without their exec histories)
+  // Verify composed children still exist (but without their hexPlans)
   for (const child of setupData.composedChildren) {
     const item = await testEnv.service.items.crud.getItem({
       coords: CoordSystem.parseId(child.coordId),
@@ -404,7 +404,7 @@ export async function _validateExecutionHistoryRemoval(
 export async function _validateNoMatchingChildren(
   testEnv: TestEnvironment,
   params: HierarchySetupParams,
-  directionType: "structural" | "composed" | "executionHistory",
+  directionType: "structural" | "composed" | "hexPlan",
 ): Promise<void> {
   const rootMap = await _setupBasicMap(testEnv.service, params);
 

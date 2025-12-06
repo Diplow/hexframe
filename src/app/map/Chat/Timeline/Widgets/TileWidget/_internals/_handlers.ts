@@ -82,10 +82,10 @@ export async function _handleConfirmDelete(
 
 export async function _handleConfirmDeleteChildren(
   tileId: string | undefined,
-  directionType: 'structural' | 'composed' | 'executionHistory',
+  directionType: 'structural' | 'composed' | 'hexPlan',
   setIsDeleting: (value: boolean) => void,
   setDeleteError: (value: string) => void,
-  deleteChildrenByTypeOptimistic: (id: string, directionType: 'structural' | 'composed' | 'executionHistory') => Promise<{ success: boolean; deletedCount: number }>,
+  deleteChildrenByTypeOptimistic: (id: string, directionType: 'structural' | 'composed' | 'hexPlan') => Promise<{ success: boolean; deletedCount: number }>,
   onClose?: () => void
 ) {
   if (!tileId) return;

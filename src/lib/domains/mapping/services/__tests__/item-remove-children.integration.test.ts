@@ -11,7 +11,7 @@ import {
   _setupHierarchyWithAllDirectionTypes,
   _validateStructuralChildrenRemoval,
   _validateComposedChildrenRemoval,
-  _validateExecutionHistoryRemoval,
+  _validateHexPlanRemoval,
   _validateNoMatchingChildren,
 } from "~/lib/domains/mapping/services/__tests__/helpers/item-crud/_item-remove-children-helpers";
 import { Direction } from "~/lib/domains/mapping/utils";
@@ -37,7 +37,7 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
       await _validateNoMatchingChildren(testEnv, params, "structural");
     });
 
-    it("should only remove structural children, not composed or execution history", async () => {
+    it("should only remove structural children, not composed or hexPlan", async () => {
       const params = _createUniqueTestParams("structural-only");
       const rootMap = await _setupBasicMap(testEnv.service, params);
 
@@ -121,24 +121,24 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
     });
   });
 
-  describe("executionHistory direction type", () => {
-    it("should remove ALL execution histories in the subtree recursively", async () => {
+  describe("hexPlan direction type", () => {
+    it("should remove ALL hexPlans in the subtree recursively", async () => {
       const params = _createUniqueTestParams("exec-all");
       const setupData = await _setupHierarchyWithAllDirectionTypes(testEnv, params);
 
-      await _validateExecutionHistoryRemoval(testEnv, setupData, params);
+      await _validateHexPlanRemoval(testEnv, setupData, params);
     });
 
-    it("should return 0 when no execution histories exist", async () => {
+    it("should return 0 when no hexPlans exist", async () => {
       const params = _createUniqueTestParams("exec-none");
-      await _validateNoMatchingChildren(testEnv, params, "executionHistory");
+      await _validateNoMatchingChildren(testEnv, params, "hexPlan");
     });
 
-    it("should remove execution histories nested under structural children", async () => {
+    it("should remove hexPlans nested under structural children", async () => {
       const params = _createUniqueTestParams("exec-structural");
       const rootMap = await _setupBasicMap(testEnv.service, params);
 
-      // Create: Root -> Structural [1] -> Exec History [1, 0]
+      // Create: Root -> Structural [1] -> HexPlan [1, 0]
       const structuralCoords = _createTestCoordinates({
         userId: params.userId,
         groupId: params.groupId,
@@ -150,15 +150,15 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
         title: "Structural Child",
       });
 
-      const nestedExecCoords = _createTestCoordinates({
+      const nestedHexPlanCoords = _createTestCoordinates({
         userId: params.userId,
         groupId: params.groupId,
         path: [Direction.NorthWest, Direction.Center],
       });
       await testEnv.service.items.crud.addItemToMap({
         parentId: Number(structuralChild.id),
-        coords: nestedExecCoords,
-        title: "Nested Exec History",
+        coords: nestedHexPlanCoords,
+        title: "Nested HexPlan",
       });
 
       const rootCoords = _createTestCoordinates({
@@ -169,14 +169,14 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
 
       const result = await testEnv.service.items.crud.removeChildrenByType({
         coords: rootCoords,
-        directionType: "executionHistory",
+        directionType: "hexPlan",
       });
 
       expect(result.deletedCount).toBe(1);
 
-      // Nested exec history should be gone
+      // Nested hexPlan should be gone
       await expect(
-        testEnv.service.items.crud.getItem({ coords: nestedExecCoords }),
+        testEnv.service.items.crud.getItem({ coords: nestedHexPlanCoords }),
       ).rejects.toThrow();
 
       // Structural child should still exist
@@ -186,11 +186,11 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
       expect(structural.id).toBe(structuralChild.id);
     });
 
-    it("should remove execution histories nested under composed children", async () => {
+    it("should remove hexPlans nested under composed children", async () => {
       const params = _createUniqueTestParams();
       const rootMap = await _setupBasicMap(testEnv.service, params);
 
-      // Create: Root -> Composed [-1] -> Exec History [-1, 0]
+      // Create: Root -> Composed [-1] -> HexPlan [-1, 0]
       const composedCoords = _createTestCoordinates({
         userId: params.userId,
         groupId: params.groupId,
@@ -202,15 +202,15 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
         title: "Composed Child",
       });
 
-      const nestedExecCoords = _createTestCoordinates({
+      const nestedHexPlanCoords = _createTestCoordinates({
         userId: params.userId,
         groupId: params.groupId,
         path: [Direction.ComposedNorthWest, Direction.Center],
       });
       await testEnv.service.items.crud.addItemToMap({
         parentId: Number(composedChild.id),
-        coords: nestedExecCoords,
-        title: "Nested Exec History",
+        coords: nestedHexPlanCoords,
+        title: "Nested HexPlan",
       });
 
       const rootCoords = _createTestCoordinates({
@@ -221,14 +221,14 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
 
       const result = await testEnv.service.items.crud.removeChildrenByType({
         coords: rootCoords,
-        directionType: "executionHistory",
+        directionType: "hexPlan",
       });
 
       expect(result.deletedCount).toBe(1);
 
-      // Nested exec history should be gone
+      // Nested hexPlan should be gone
       await expect(
-        testEnv.service.items.crud.getItem({ coords: nestedExecCoords }),
+        testEnv.service.items.crud.getItem({ coords: nestedHexPlanCoords }),
       ).rejects.toThrow();
 
       // Composed child should still exist
@@ -238,7 +238,7 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
       expect(composed.id).toBe(composedChild.id);
     });
 
-    it("should remove deeply nested execution histories", async () => {
+    it("should remove deeply nested hexPlans", async () => {
       const params = _createUniqueTestParams();
       const rootMap = await _setupBasicMap(testEnv.service, params);
 
@@ -276,15 +276,15 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
         title: "Level 3",
       });
 
-      const deepExecCoords = _createTestCoordinates({
+      const deepHexPlanCoords = _createTestCoordinates({
         userId: params.userId,
         groupId: params.groupId,
         path: [Direction.NorthWest, Direction.NorthEast, Direction.East, Direction.Center],
       });
       await testEnv.service.items.crud.addItemToMap({
         parentId: Number(level3.id),
-        coords: deepExecCoords,
-        title: "Deep Exec History",
+        coords: deepHexPlanCoords,
+        title: "Deep HexPlan",
       });
 
       const rootCoords = _createTestCoordinates({
@@ -295,14 +295,14 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
 
       const result = await testEnv.service.items.crud.removeChildrenByType({
         coords: rootCoords,
-        directionType: "executionHistory",
+        directionType: "hexPlan",
       });
 
       expect(result.deletedCount).toBe(1);
 
-      // Deep exec history should be gone
+      // Deep hexPlan should be gone
       await expect(
-        testEnv.service.items.crud.getItem({ coords: deepExecCoords }),
+        testEnv.service.items.crud.getItem({ coords: deepHexPlanCoords }),
       ).rejects.toThrow();
 
       // All structural ancestors should still exist

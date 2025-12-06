@@ -95,7 +95,7 @@ export interface MutationOperations {
   createItem: (coordId: string, data: Omit<MapItemCreateAttributes, 'coords' | 'itemType'> & { parentId?: number }) => Promise<MutationResult>;
   updateItem: (coordId: string, data: MapItemUpdateAttributes) => Promise<MutationResult>;
   deleteItem: (coordId: string) => Promise<MutationResult>;
-  deleteChildrenByType: (coordId: string, directionType: 'structural' | 'composed' | 'executionHistory') => Promise<MutationResult & { deletedCount: number }>;
+  deleteChildrenByType: (coordId: string, directionType: 'structural' | 'composed' | 'hexPlan') => Promise<MutationResult & { deletedCount: number }>;
   moveItem: (sourceCoordId: string, targetCoordId: string) => Promise<MutationResult & { isSwap?: boolean }>;
   copyItem: (sourceCoordId: string, destinationCoordId: string, destinationParentId: string) => Promise<MutationResult>;
   rollbackOptimisticChange: (changeId: string) => void;

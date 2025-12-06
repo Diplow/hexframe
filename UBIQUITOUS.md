@@ -6,15 +6,12 @@ A living glossary of terms used in the Hexframe project. This document establish
 
 ### Tile
 
-A hexagonal unit representing a single concept, task, or function. Like a function in programming, a Tile has a clear name that conveys WHAT it does or WHAT it is about without revealing HOW.
+A hexagonal unit representing a single task, information or tool. Like a function in programming, a Tile has a clear name that conveys WHAT it does or WHAT it is about without revealing HOW.
 
 ### Frame
 
 The result of expanding a Tile. A Frame consists of one CenterTile surrounded by up to 6 child Tiles, revealing HOW the original Tile accomplishes its purpose.
 
-### CenterTile
-
-A special Tile that serves as the center of a Frame. While visually identical to a regular Tile, expanding a CenterTile (not implemented yet) creates a new Map rather than adding to the current Generation.
 
 ### Generation
 
@@ -59,7 +56,7 @@ Tiles adjacent to each other in a Frame. Neighbors share natural connections and
 
 The seven possible positions around a CenterTile in pointy-top hexagonal layout:
 
-**Structural Directions (Positive 1-6):**
+**Subtask Directions (Positive 1-6):**
 - 1 = NW (Northwest)
 - 2 = NE (Northeast)
 - 3 = E (East)
@@ -67,30 +64,49 @@ The seven possible positions around a CenterTile in pointy-top hexagonal layout:
 - 5 = SW (Southwest)
 - 6 = W (West)
 
-**Composed Directions (Negative -1 to -6):**
-- -1 = ComposedNW (Composed Northwest)
-- -2 = ComposedNE (Composed Northeast)
-- -3 = ComposedE (Composed East)
-- -4 = ComposedSE (Composed Southeast)
-- -5 = ComposedSW (Composed Southwest)
-- -6 = ComposedW (Composed West)
+**Context Directions (Negative -1 to -6):**
+- -1 = ContextNW (Context Northwest)
+- -2 = ContextNE (Context Northeast)
+- -3 = ContextE (Context East)
+- -4 = ContextSE (Context Southeast)
+- -5 = ContextSW (Context Southwest)
+- -6 = ContextW (Context West)
 
-**Meta Orchestration (Direction 0):**
-- 0 = Center (Reserved for future meta-orchestration - tiles that define how to execute a task)
+**Hexplan (Direction 0):**
+- 0 = Hexplan (execution state and agent guidance for the parent tile)
 
-Positive directions represent structural hierarchy (regular children). Negative directions represent composition (tiles combined to create new functionality). The negative direction values are a storage implementation detail - UX-wise, composed children appear in the same hexagonal positions as structural children.
+Positive directions represent subtask children (decomposed work units). Negative directions represent context children (reference materials, constraints, templates). The negative direction values are a storage implementation detail - UX-wise, context children appear in the same hexagonal positions as subtask children.
 
 Best practice: Use string representations (NW, NE, etc.) in user interfaces and documentation for clarity, while using integers internally for Path calculations.
 
 ### Path
 
 An array of direction integers representing a Tile's position in the hierarchy. Examples:
-- [1, 2, 3] means: from root, go to NW child, then its NE child, then its E child (all structural)
-- [1, -3, 4] means: from root, go to NW child, then its ComposedE child, then its SE child (mixed structural and composed)
+- [1, 2, 3] means: from root, go to NW child, then its NE child, then its E child (all subtasks)
+- [1, -3, 4] means: from root, go to NW child, then its ContextE child, then its SE child (mixed subtask and context)
+- [1, 0] means: the hexplan tile for the NW subtask
 
-Negative values in the path indicate composed children at that level of the hierarchy.
+Negative values in the path indicate context children at that level. Direction 0 indicates a hexplan tile.
 
-## Composition System
+## Tile Children Types
+
+### Subtask Children (Positive 1-6)
+
+Children that decompose a task into smaller work units. When an agent executes a tile, it processes subtask children as discrete units of work that can be delegated to subagents.
+
+### Context Children (Negative -1 to -6)
+
+Children that provide reference materials, constraints, templates, or other contextual information. Context children are included in the prompt but not executed as separate tasks.
+
+### Hexplan (Direction 0)
+
+A special child that stores execution state and guides agent behavior. The hexplan contains:
+- Status of completed, in-progress, and blocked work
+- Decisions made and rationale
+- Next steps and instructions
+- User adjustments to guide execution
+
+Hexplans are the control interface for autonomous execution — users edit hexplans to steer agent behavior rather than chatting back-and-forth. The "hex" prefix distinguishes Hexframe's execution state from generic "plans" that might be created as task outputs.
 
 ### Tool Tile
 
@@ -100,31 +116,13 @@ A Tile that wraps a specific capability (LLM, code execution, database access, e
 
 A specific type of Tool Tile that provides access to a Large Language Model with configuration (API key, model selection, parameters).
 
-### Context Tile
+### Information Tile
 
-The most basic and commonly used Tile type, containing a title and description. Behavior when composed:
-- With an LLM Tile: Provides the context (title + description) to the LLM
-- With another Context Tile: Concatenates both contexts into a single combined context
-
-This serves as the fundamental building block for creating knowledge structures and providing information to AI systems.
+The most basic and commonly used Tile type, containing a title and description. When used as a context child, provides reference information to the executing agent.
 
 ### Prompt Tile
 
 A Tile containing a prompt template with parameters. When composed with an LLM Tool, creates a reusable AI component.
-
-### Composition
-
-The act of combining Tiles to create new functionality stored using negative direction values. When you compose tiles (e.g., via drag-and-drop), the composed children are stored as direct children of their parent using negative directions (-1 to -6), allowing a tile to have both structural children (directions 1-6) and composed children (directions -1 to -6) simultaneously.
-
-**Storage Implementation:**
-- Structural children: Stored at positive directions (1-6)
-- Composed children: Stored at negative directions (-1 to -6)
-- Direction 0: Reserved for future meta-orchestration functionality
-
-**User Experience:**
-- The negative direction values are an internal storage detail
-- UX-wise, users see composed children appear in the same hexagonal positions
-- Composition expansion is controlled by a boolean toggle, not individual tile selection
 
 ### CollaborativeMap
 
@@ -171,6 +169,28 @@ The iterative process of expanding Tiles until sufficient context exists for exe
 ### Visual Programming
 
 Building complex systems through spatial arrangement and visual composition rather than traditional code.
+
+### Hexplan-Driven Autonomous Execution
+
+The Hexframe approach to AI orchestration differs fundamentally from conversational interaction:
+
+| Conversational AI | Hexframe |
+|-------------------|----------|
+| Chat back-and-forth | Define structure, run autonomously |
+| Hope agent interprets correctly | Place instructions at exact location |
+| Interrupt to course-correct | Edit hexplan, agent adapts |
+| Context lost between sessions | Hexplan persists, agent resumes |
+
+The workflow:
+1. Define system as hierarchy of tasks with context
+2. Run `hexecute` — agent works autonomously through subtasks
+3. Monitor by reading hexplan tiles
+4. To adjust: stop agent, edit hexplan, restart
+5. Agent reads hexplan, skips completed steps, continues
+
+### Hexframe Bootstrapping
+
+Since hexplans are central to execution, Hexframe provides a default system for initializing hexplans — using Hexframe's own formalism. This self-referential capability demonstrates the model's power: the system that creates hexplans is itself a Hexframe system.
 
 ---
 

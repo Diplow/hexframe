@@ -34,7 +34,7 @@ interface TileWidgetProps {
   tileColor?: string;
   parentName?: string;
   parentCoordId?: string;
-  directionType?: 'structural' | 'composed' | 'executionHistory';
+  directionType?: 'structural' | 'composed' | 'hexPlan';
   onEdit?: () => void;
   onDelete?: () => void;
   onDeleteChildren?: () => void;

@@ -77,7 +77,7 @@ export function createTileHandlers(
       payload: {
         tileId: previewData.tileData.coordId,
         tileName: previewData.tileData.title,
-        directionType: 'executionHistory',
+        directionType: 'hexPlan',
       },
       source: 'chat_cache',
       timestamp: new Date(),

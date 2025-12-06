@@ -85,7 +85,7 @@ export function _renderDeleteChildrenWidget(widget: Widget, handlers: WidgetHand
   const deleteData = widget.data as {
     tileId?: string;
     tileName?: string;
-    directionType?: 'structural' | 'composed' | 'executionHistory';
+    directionType?: 'structural' | 'composed' | 'hexPlan';
   };
   const { handleCancel = () => { /* noop */ } } = handlers;
 

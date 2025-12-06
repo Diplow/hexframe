@@ -100,7 +100,7 @@ function _transformChildrenDeletedEvent(validEvent: AppEvent, baseEvent: Partial
   const payload = mapChildrenDeletedEventSchema.parse(validEvent).payload;
   const typeLabel = payload.directionType === 'structural' ? 'children' :
                     payload.directionType === 'composed' ? 'composed children' :
-                    'execution history';
+                    'hexPlan';
   return {
     ...baseEvent,
     type: 'operation_completed',

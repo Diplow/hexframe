@@ -66,7 +66,7 @@ const mapChildrenDeletedPayloadSchema = z.object({
   parentId: z.string(),
   parentName: z.string(),
   coordId: z.string(),
-  directionType: z.enum(['structural', 'composed', 'executionHistory']),
+  directionType: z.enum(['structural', 'composed', 'hexPlan']),
   deletedCount: z.number(),
 });
 
@@ -146,7 +146,7 @@ const mapDeleteRequestedPayloadSchema = z.object({
 const mapDeleteChildrenRequestedPayloadSchema = z.object({
   tileId: z.string(),
   tileName: z.string(),
-  directionType: z.enum(['structural', 'composed', 'executionHistory']),
+  directionType: z.enum(['structural', 'composed', 'hexPlan']),
 });
 
 const mapCreateRequestedPayloadSchema = z.object({

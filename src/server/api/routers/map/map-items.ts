@@ -393,7 +393,7 @@ export const mapItemsRouter = createTRPCRouter({
     .use(mappingServiceMiddleware)
     .input(z.object({
       coords: hexCoordSchema,
-      directionType: z.enum(['structural', 'composed', 'executionHistory']),
+      directionType: z.enum(['structural', 'composed', 'hexPlan']),
     }))
     .mutation(async ({ ctx, input }) => {
       const currentUserId = _getUserId(ctx.user);

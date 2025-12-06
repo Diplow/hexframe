@@ -102,7 +102,7 @@ export interface MapCacheHook {
     url?: string;
   }) => Promise<void>;
   deleteItemOptimistic: (coordId: string) => Promise<void>;
-  deleteChildrenByTypeOptimistic: (coordId: string, directionType: 'structural' | 'composed' | 'executionHistory') => Promise<{ success: boolean; deletedCount: number }>;
+  deleteChildrenByTypeOptimistic: (coordId: string, directionType: 'structural' | 'composed' | 'hexPlan') => Promise<{ success: boolean; deletedCount: number }>;
   moveItemOptimistic: (sourceCoordId: string, targetCoordId: string) => Promise<{ success: boolean; isSwap?: boolean }>;
   rollbackOptimisticChange: (changeId: string) => void;
   rollbackAllOptimistic: () => void;

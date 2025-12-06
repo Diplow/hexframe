@@ -56,7 +56,7 @@ export function createMutationCallbacks(mutationOperations: MutationOperations) 
 
   const deleteChildrenByTypeOptimistic = async (
     coordId: string,
-    directionType: 'structural' | 'composed' | 'executionHistory'
+    directionType: 'structural' | 'composed' | 'hexPlan'
   ) => {
     const result = await mutationOperations.deleteChildrenByType(coordId, directionType);
     return result;

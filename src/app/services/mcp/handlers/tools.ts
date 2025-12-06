@@ -710,23 +710,21 @@ Ensure both old and new coordinates are correct. The user must own both the item
 WORKFLOW: Reads a task tile and generates a structured XML prompt for AI agent execution. See docs/features/HEXFRAME_PROMPT.md for full specification.
 
 PROMPT STRUCTURE:
-1. <context>: Composed children (-1 to -6) providing reference materials, constraints, templates
-2. <subtasks>: Structural children (1-6) showing decomposed work units
-3. <execution-history>: State tracking from direction 0 tile, with protocol instructions
-4. <task>: The tile's goal (title) and requirements (content)
-5. <instructions>: Optional runtime instructions from user
+1. <context>: Context children (-1 to -6) providing reference materials, constraints, templates
+2. <subtasks>: Subtask children (1-6) showing decomposed work units
+3. <task>: The tile's goal (title) and requirements (content)
+4. <hexplan>: Direction-0 child tracking execution state and guiding agent decisions
 
-UNIFORM TASK PATTERN: Every task follows the same flow:
-- Read execution history at direction 0
-- Read context from composed children
-- Read subtasks from structural children
-- Update execution history with plan
-- Execute each subtask by calling hexecute recursively
-- Update execution history with completion status
+HEXPLAN-DRIVEN EXECUTION: Every task follows the same flow:
+- If no hexplan exists at direction-0, a subagent is spawned to create one using the plan initializer tile
+- Read hexplan from direction-0 for execution state
+- Read context from context children
+- Execute subtasks by calling hexecute recursively
+- Update hexplan with progress after each subtask
 
 COORDINATES FORMAT: "userId,groupId:path" (e.g., "abc123,0:6" or "userIdString,0:1,1")
 
-EXECUTION HISTORY: Stored at direction 0 (not -6). Agents update using standard updateItem MCP tool with emoji-prefixed status:
+HEXPLAN UPDATES: Agents update direction-0 tiles using standard updateItem MCP tool with emoji-prefixed status:
 - 🟡 STARTED: Task began
 - ✅ COMPLETED: Task finished
 - 🔴 BLOCKED: Task stuck
@@ -741,7 +739,11 @@ Returns XML-formatted prompt ready for agent execution.`,
         },
         instruction: {
           type: "string",
-          description: "Optional runtime instruction to include in <instructions> section"
+          description: "Optional runtime instruction to include in hexplan initialization"
+        },
+        hexPlanInitializerPath: {
+          type: "string",
+          description: "Optional custom path for the hexPlan initialization tile (default: '1,4'). Use this to customize how hexPlans are created."
         }
       },
       required: ["taskCoords"],
@@ -750,6 +752,7 @@ Returns XML-formatted prompt ready for agent execution.`,
       const argsObj = args as Record<string, unknown>;
       const taskCoords = argsObj?.taskCoords as string;
       const instruction = argsObj?.instruction as string | undefined;
+      const hexPlanInitializerPath = argsObj?.hexPlanInitializerPath as string | undefined;
 
       if (!taskCoords) {
         throw new Error("taskCoords parameter is required");
@@ -757,7 +760,8 @@ Returns XML-formatted prompt ready for agent execution.`,
 
       const result = await caller.agentic.hexecute({
         taskCoords,
-        instruction
+        instruction,
+        hexPlanInitializerPath
       });
 
       return result;

@@ -33,7 +33,7 @@ export function _wrapTRPCMutations(mutations: {
   }) => Promise<MapItemAPIContract> };
   removeChildrenByTypeMutation: { mutateAsync: (params: {
     coords: Coord;
-    directionType: 'structural' | 'composed' | 'executionHistory';
+    directionType: 'structural' | 'composed' | 'hexPlan';
   }) => Promise<{ success: boolean; deletedCount: number }> };
 }) {
   const wrappedAddItemMutation = {
@@ -83,7 +83,7 @@ export function _wrapTRPCMutations(mutations: {
   };
 
   const wrappedRemoveChildrenByTypeMutation = {
-    mutateAsync: async (params: { coords: Coord; directionType: 'structural' | 'composed' | 'executionHistory' }) => {
+    mutateAsync: async (params: { coords: Coord; directionType: 'structural' | 'composed' | 'hexPlan' }) => {
       return mutations.removeChildrenByTypeMutation.mutateAsync(params);
     },
   };

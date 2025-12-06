@@ -172,21 +172,21 @@ export class ItemCrudService {
   }
 
   /**
-   * Remove children by direction type (structural, composed, or execution history).
+   * Remove children by direction type (structural, composed, or hexPlan).
    * This removes direct children and all their descendants.
    *
    * @param coords - Parent tile coordinates
    * @param directionType - Type of children to remove:
    *   - 'structural': positive directions (1-6)
    *   - 'composed': negative directions (-1 to -6)
-   *   - 'executionHistory': direction 0 only
+   *   - 'hexPlan': direction 0 only
    */
   async removeChildrenByType({
     coords,
     directionType,
   }: {
     coords: Coord;
-    directionType: 'structural' | 'composed' | 'executionHistory';
+    directionType: 'structural' | 'composed' | 'hexPlan';
   }): Promise<{ deletedCount: number }> {
     const parentItem = await this.actions.getMapItem({ coords });
     const descendants = await this.actions.getDescendants(parentItem.id);
@@ -209,13 +209,13 @@ export class ItemCrudService {
    * Filters descendants based on direction type relative to the parent.
    *
    * For 'structural' and 'composed': filters by the first child direction after parent.
-   * For 'executionHistory': filters ALL tiles that have direction 0 anywhere in their
-   * path after the parent (recursively deletes all execution histories in the subtree).
+   * For 'hexPlan': filters ALL tiles that have direction 0 anywhere in their
+   * path after the parent (recursively deletes all hexplans in the subtree).
    */
   private _filterDescendantsByDirectionType(
     descendants: Awaited<ReturnType<typeof this.actions.getDescendants>>,
     parentCoords: Coord,
-    directionType: 'structural' | 'composed' | 'executionHistory',
+    directionType: 'structural' | 'composed' | 'hexPlan',
   ) {
     const parentPathLength = parentCoords.path.length;
 
@@ -234,9 +234,9 @@ export class ItemCrudService {
         case 'composed':
           // Negative directions: -1 to -6
           return firstChildDirection < Direction.Center;
-        case 'executionHistory':
+        case 'hexPlan':
           {
-          // Delete ALL execution history tiles in the subtree
+          // Delete ALL hexPlan tiles in the subtree
           // This includes any tile that has direction 0 anywhere in its path after parent
           const pathAfterParent = itemPath.slice(parentPathLength);
           return pathAfterParent.includes(Direction.Center);

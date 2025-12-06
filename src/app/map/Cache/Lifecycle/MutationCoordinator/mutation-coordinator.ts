@@ -57,7 +57,7 @@ export interface MutationCoordinatorConfig {
   removeChildrenByTypeMutation?: {
     mutateAsync: (params: {
       coords: Coord;
-      directionType: 'structural' | 'composed' | 'executionHistory';
+      directionType: 'structural' | 'composed' | 'hexPlan';
     }) => Promise<{ success: boolean; deletedCount: number }>;
   };
   eventBus?: EventBusService;
@@ -557,7 +557,7 @@ export class MutationCoordinator {
 
   async deleteChildrenByType(
     coordId: string,
-    directionType: 'structural' | 'composed' | 'executionHistory'
+    directionType: 'structural' | 'composed' | 'hexPlan'
   ): Promise<MutationResult & { deletedCount: number }> {
     if (!this.config.removeChildrenByTypeMutation) {
       throw new Error("Remove children by type mutation not configured");
@@ -629,7 +629,7 @@ export class MutationCoordinator {
 
   private _getChildrenByDirectionType(
     parentCoordId: string,
-    directionType: 'structural' | 'composed' | 'executionHistory',
+    directionType: 'structural' | 'composed' | 'hexPlan',
     itemsById: Record<string, TileData>
   ): TileData[] {
     const parentCoords = CoordSystem.parseId(parentCoordId);
@@ -654,8 +654,8 @@ export class MutationCoordinator {
           return firstChildDirection > Direction.Center;
         case 'composed':
           return firstChildDirection < Direction.Center;
-        case 'executionHistory': {
-          // Delete ALL execution history tiles in the subtree
+        case 'hexPlan': {
+          // Delete ALL hexPlan tiles in the subtree
           // This includes any tile that has direction 0 anywhere in its path after parent
           const pathAfterParent = itemCoords.path.slice(parentCoords.path.length);
           return pathAfterParent.includes(Direction.Center);
@@ -708,7 +708,7 @@ export class MutationCoordinator {
 
   private _emitDeleteChildrenEvent(
     parentItem: TileData,
-    directionType: 'structural' | 'composed' | 'executionHistory',
+    directionType: 'structural' | 'composed' | 'hexPlan',
     deletedCount: number
   ): void {
     if (!this.config.eventBus) return;
