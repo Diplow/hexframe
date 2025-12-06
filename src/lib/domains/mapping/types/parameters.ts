@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MapItemType } from "~/lib/domains/mapping/_objects";
+import { MapItemType, Visibility } from "~/lib/domains/mapping/_objects";
 
 /**
  * Shared coordinate schema
@@ -10,6 +10,11 @@ const CoordsSchema = z.object({
   groupId: z.number().min(0),
   path: z.array(z.number().min(-6).max(6)),
 });
+
+/**
+ * Visibility schema for tile access control
+ */
+export const VisibilitySchema = z.nativeEnum(Visibility);
 
 /**
  * Shared schema for creating map items
@@ -24,6 +29,7 @@ export const CreateMapItemParamsSchema = z.object({
   preview: z.string().optional(),
   link: z.string().optional(),
   parentId: z.number().positive().optional(),
+  visibility: VisibilitySchema.optional(),
 });
 
 export type CreateMapItemParams = z.infer<typeof CreateMapItemParamsSchema>;
@@ -37,6 +43,7 @@ export const UpdateMapItemAttrsSchema = z.object({
   content: z.string().optional(),
   preview: z.string().optional(),
   link: z.string().optional(),
+  visibility: VisibilitySchema.optional(),
 });
 
 export type UpdateMapItemAttrs = z.infer<typeof UpdateMapItemAttrsSchema>;

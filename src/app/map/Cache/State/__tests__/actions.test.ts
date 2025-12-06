@@ -21,6 +21,7 @@ import { ACTION_TYPES } from "~/app/map/Cache/State/types";
 import type { MapItemAPIContract } from "~/server/api/types/contracts";
 import type { CacheAction, CacheState } from "~/app/map/Cache/State/types";
 import { MapItemType } from "~/lib/domains/mapping";
+import { Visibility } from '~/lib/domains/mapping/utils';
 
 describe("Cache Actions", () => {
   // Mock data for testing
@@ -37,6 +38,7 @@ describe("Cache Actions", () => {
       itemType: MapItemType.BASE,
       ownerId: "test-owner",
       originId: null,
+      visibility: Visibility.PRIVATE,
     },
   ];
 

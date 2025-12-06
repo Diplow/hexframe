@@ -8,6 +8,7 @@ import {
   CoordSystem,
 } from "~/lib/domains/mapping/utils";
 import { MAPPING_ERRORS } from "~/lib/domains/mapping/types/errors";
+import { type RequesterContext, SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 export class MapItemQueryHelpers {
   constructor(
@@ -15,7 +16,10 @@ export class MapItemQueryHelpers {
     private readonly baseItems: BaseItemRepository,
   ) {}
 
-  async getParent(coords: Coord): Promise<MapItemWithId | null> {
+  async getParent(
+    coords: Coord,
+    requester: RequesterContext = SYSTEM_INTERNAL
+  ): Promise<MapItemWithId | null> {
     if (CoordSystem.isCenter(coords)) return null;
 
     const parentCoords = CoordSystem.getParentCoord(coords);
@@ -26,13 +30,16 @@ export class MapItemQueryHelpers {
     }
 
     try {
-      return await this.mapItems.getOneByIdr({
-        idr: {
-          attrs: {
-            coords: parentCoords,
+      return await this.mapItems.getOneByIdr(
+        {
+          idr: {
+            attrs: {
+              coords: parentCoords,
+            },
           },
         },
-      });
+        requester
+      );
     } catch (error) {
       console.warn(
         `Parent not found for coords ${CoordSystem.createId(coords)}. This may be expected for a new root item path.`,
@@ -42,9 +49,12 @@ export class MapItemQueryHelpers {
     }
   }
 
-  async getDescendants(parentId: number): Promise<MapItemWithId[]> {
+  async getDescendants(
+    parentId: number,
+    requester: RequesterContext = SYSTEM_INTERNAL
+  ): Promise<MapItemWithId[]> {
     try {
-      const parent = await this.mapItems.getOne(parentId);
+      const parent = await this.mapItems.getOne(parentId, requester);
       if (!parent) {
         console.error(
           `Parent item with ID ${parentId} not found for getDescendants.`,
@@ -56,6 +66,7 @@ export class MapItemQueryHelpers {
         parentUserId: parent.attrs.coords.userId,
         parentGroupId: parent.attrs.coords.groupId,
         parentPath: parent.attrs.coords.path,
+        requester,
       });
 
       return descendants;
@@ -65,9 +76,12 @@ export class MapItemQueryHelpers {
     }
   }
 
-  async getAncestors(itemId: number): Promise<MapItemWithId[]> {
+  async getAncestors(
+    itemId: number,
+    requester: RequesterContext = SYSTEM_INTERNAL
+  ): Promise<MapItemWithId[]> {
     try {
-      const item = await this.mapItems.getOne(itemId);
+      const item = await this.mapItems.getOne(itemId, requester);
       if (!item) {
         console.error(
           `Item with ID ${itemId} not found for getAncestors.`,
@@ -83,13 +97,16 @@ export class MapItemQueryHelpers {
         const parentCoords = CoordSystem.getParentCoord(currentCoords);
         if (!parentCoords) break;
 
-        const parent = await this.mapItems.getOneByIdr({
-          idr: {
-            attrs: {
-              coords: parentCoords,
+        const parent = await this.mapItems.getOneByIdr(
+          {
+            idr: {
+              attrs: {
+                coords: parentCoords,
+              },
             },
           },
-        });
+          requester
+        );
 
         if (parent) {
           ancestors.unshift(parent); // Add to beginning to maintain root->item order
@@ -110,27 +127,38 @@ export class MapItemQueryHelpers {
   async getItemsForOwnerGroup({
     userId,
     groupId,
+    requester = SYSTEM_INTERNAL,
   }: {
     userId: string;
     groupId: number;
+    requester?: RequesterContext;
   }): Promise<MapItemWithId[]> {
-    const rootItem = await this.mapItems.getRootItem(userId, groupId);
+    const rootItem = await this.mapItems.getRootItem(userId, groupId, requester);
     if (!rootItem) {
       return [];
     }
-    const descendants = await this.getDescendants(rootItem.id);
+    const descendants = await this.getDescendants(rootItem.id, requester);
     return [rootItem, ...descendants];
   }
 
-  async getMapItem({ coords }: { coords: Coord }): Promise<MapItemWithId> {
+  async getMapItem({
+    coords,
+    requester = SYSTEM_INTERNAL,
+  }: {
+    coords: Coord;
+    requester?: RequesterContext;
+  }): Promise<MapItemWithId> {
     try {
-      return await this.mapItems.getOneByIdr({
-        idr: {
-          attrs: {
-            coords,
+      return await this.mapItems.getOneByIdr(
+        {
+          idr: {
+            attrs: {
+              coords,
+            },
           },
         },
-      });
+        requester
+      );
     } catch {
       throw new Error(
         `${MAPPING_ERRORS.ITEM_NOT_FOUND} at coords: ${CoordSystem.createId(coords)}`,

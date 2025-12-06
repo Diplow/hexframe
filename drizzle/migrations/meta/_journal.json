@@ -78,6 +78,13 @@
       "when": 1763627300000,
       "tag": "0010_convert_userid_to_text",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1764800000000,
+      "tag": "0011_add_visibility_column",
+      "breakpoints": true
     }
   ]
 }

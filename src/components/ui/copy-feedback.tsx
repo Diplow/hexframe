@@ -88,7 +88,7 @@ export function CopyFeedback({
 
   const baseClasses = "fixed bottom-4 right-4 px-3 py-2 rounded-md text-sm pointer-events-none shadow-lg animate-in fade-in slide-in-from-bottom-2 duration-200";
   const variantClasses = variant === 'error'
-    ? "bg-red-600 text-white"
+    ? "bg-destructive text-destructive-foreground"
     : "bg-neutral-800 dark:bg-neutral-200 text-white dark:text-neutral-800";
 
   const content = (

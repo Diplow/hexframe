@@ -10,6 +10,7 @@ import type { TileData } from "~/app/map/types";
 import { OptimisticChangeTracker } from "~/app/map/Cache/Lifecycle/MutationCoordinator/optimistic-tracker";
 import type { EventBusService } from '~/app/map';
 import { MapItemType } from "~/lib/domains/mapping/utils";
+import { Visibility } from '~/lib/domains/mapping/utils';
 
 export interface MutationCoordinatorConfig {
   dispatch: Dispatch<CacheAction>;
@@ -360,6 +361,7 @@ export class MutationCoordinator {
           content: data.content,
           preview: data.preview,
           link: data.link,
+          visibility: data.visibility,
         });
 
         // Finalize with real data
@@ -948,6 +950,7 @@ export class MutationCoordinator {
       itemType: MapItemType.BASE,
       ownerId: this.config.mapContext?.userId ?? "unknown",
       originId: null,
+      visibility: Visibility.PRIVATE,
     };
   }
 
@@ -1017,6 +1020,7 @@ export class MutationCoordinator {
       content?: string;
       preview?: string;
       link?: string;
+      visibility?: "public" | "private";
     }
   ): { optimisticItem: MapItemAPIContract; previousData: MapItemAPIContract } {
     const previousData = this._reconstructApiData(existingItem);
@@ -1026,6 +1030,7 @@ export class MutationCoordinator {
       content: data.content ?? existingItem.data.content,
       preview: data.preview ?? existingItem.data.preview,
       link: data.link ?? existingItem.data.link,
+      visibility: data.visibility ? (data.visibility === "public" ? Visibility.PUBLIC : Visibility.PRIVATE) : previousData.visibility,
     };
     return { optimisticItem, previousData };
   }
@@ -1101,6 +1106,7 @@ export class MutationCoordinator {
       itemType: MapItemType.BASE,
       ownerId: tile.metadata.ownerId ?? this.config.mapContext?.userId ?? "unknown",
       originId: null,
+      visibility: tile.data.visibility ?? Visibility.PRIVATE,
     };
   }
 

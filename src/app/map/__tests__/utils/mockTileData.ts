@@ -1,5 +1,6 @@
 import type { TileData } from "~/app/map/types/tile-data";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
+import { Visibility } from '~/lib/domains/mapping/utils';
 
 export function createMockTileData(overrides?: Partial<TileData>): TileData {
   const defaultCoordId = "0,0";
@@ -20,6 +21,7 @@ export function createMockTileData(overrides?: Partial<TileData>): TileData {
       preview: undefined,
       link: "",
       color: "zinc-50",
+      visibility: Visibility.PRIVATE,
     },
     state: {
       isDragged: false,

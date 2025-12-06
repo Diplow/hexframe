@@ -10,6 +10,8 @@ import { useTileInteraction } from "~/app/map/Canvas";
 // import { useRouter } from "next/navigation"; // Removed unused import
 import { useCanvasTheme } from "~/app/map/Canvas";
 import { TileTooltip } from "~/app/map/Canvas/_shared/TileTooltip";
+import { Lock } from "lucide-react";
+import { Visibility } from '~/lib/domains/mapping/utils';
 
 // Types for drag props
 interface DragProps {
@@ -148,6 +150,13 @@ export function ItemTileContent({
                 depth={item.metadata.depth}
                 isSelected={isSelected}
               />
+              {/* Private visibility indicator */}
+              {item.data.visibility === Visibility.PRIVATE && scale >= 1 && (
+                <Lock
+                  size={scale >= 2 ? 12 : 8}
+                  className="absolute top-[15%] right-[20%] opacity-60 text-neutral-500 dark:text-neutral-400 pointer-events-none"
+                />
+              )}
             </DynamicBaseTileLayout>
           </div>
         </div>

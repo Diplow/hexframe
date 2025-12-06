@@ -5,6 +5,7 @@ import {
 } from "~/lib/domains/mapping/utils";
 import { Direction } from "~/app/map/constants";
 import { getSemanticColorClass } from "~/app/map/types/theme-colors";
+import { Visibility } from '~/lib/domains/mapping/utils';
 
 export interface TileState {
   isDragged: boolean;
@@ -70,6 +71,7 @@ const adapt = (item: MapItemAPIContract) => {
       preview: item.preview ?? undefined,
       link: item.link,
       color: getColor(coordinates),
+      visibility: item.visibility ?? Visibility.PRIVATE,
     },
     state: {
       isDragged: false,

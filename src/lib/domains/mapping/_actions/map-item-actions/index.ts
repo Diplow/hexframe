@@ -12,10 +12,12 @@ import type { MapItemIdr } from "~/lib/domains/mapping/_repositories";
 import { MapItemCreationHelpers } from "~/lib/domains/mapping/_actions/_map-item-creation-helpers";
 import { MapItemQueryHelpers } from "~/lib/domains/mapping/_actions/_map-item-query-helpers";
 import { MapItemMovementHelpers } from "~/lib/domains/mapping/_actions/_map-item-movement-helpers";
-import type {
-  DatabaseTransaction,
-  CreateMapItemParams,
-  UpdateMapItemAttrs,
+import {
+  type RequesterContext,
+  SYSTEM_INTERNAL,
+  type DatabaseTransaction,
+  type CreateMapItemParams,
+  type UpdateMapItemAttrs,
 } from "~/lib/domains/mapping/types";
 import { MoveOrchestrator } from "~/lib/domains/mapping/_actions/map-item-actions/move-orchestrator";
 import { ValidationStrategy } from "~/lib/domains/mapping/_actions/map-item-actions/validation-strategy";
@@ -55,6 +57,7 @@ export class MapItemActions {
       preview: params.preview,
       link: params.link,
       parentId: params.parentId,
+      visibility: params.visibility,
     });
   }
 
@@ -77,10 +80,12 @@ export class MapItemActions {
 
   public async getMapItem({
     coords,
+    requester = SYSTEM_INTERNAL,
   }: {
     coords: Coord;
+    requester?: RequesterContext;
   }): Promise<MapItemWithId> {
-    return await this.queryHelpers.getMapItem({ coords });
+    return await this.queryHelpers.getMapItem({ coords, requester });
   }
 
   public async moveMapItem({
@@ -104,21 +109,28 @@ export class MapItemActions {
     });
   }
 
-  public async getDescendants(parentId: number): Promise<MapItemWithId[]> {
-    return await this.queryHelpers.getDescendants(parentId);
+  public async getDescendants(
+    parentId: number,
+    requester: RequesterContext = SYSTEM_INTERNAL
+  ): Promise<MapItemWithId[]> {
+    return await this.queryHelpers.getDescendants(parentId, requester);
   }
-  
-  public async getAncestors(itemId: number): Promise<MapItemWithId[]> {
-    return await this.queryHelpers.getAncestors(itemId);
+
+  public async getAncestors(
+    itemId: number,
+    requester: RequesterContext = SYSTEM_INTERNAL
+  ): Promise<MapItemWithId[]> {
+    return await this.queryHelpers.getAncestors(itemId, requester);
   }
 
   private async _getItemAndDescendants(idr: MapItemIdr) {
     let item: MapItemWithId | null = null;
 
+    // Use SYSTEM_INTERNAL for internal removal operations - no visibility filtering
     if ("id" in idr) {
-      item = await this.mapItems.getOne(idr.id);
+      item = await this.mapItems.getOne(idr.id, SYSTEM_INTERNAL);
     } else if (idr.attrs?.coords) {
-      item = await this.mapItems.getOneByIdr({ idr });
+      item = await this.mapItems.getOneByIdr({ idr }, SYSTEM_INTERNAL);
     } else {
       throw new Error("Invalid identifier for removeItem");
     }
@@ -129,7 +141,7 @@ export class MapItemActions {
       );
     }
 
-    const descendants = await this.getDescendants(item.id);
+    const descendants = await this.getDescendants(item.id, SYSTEM_INTERNAL);
     return { item, descendants };
   }
 

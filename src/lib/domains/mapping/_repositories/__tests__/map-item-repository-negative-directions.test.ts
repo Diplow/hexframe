@@ -1,5 +1,6 @@
 import { describe, beforeEach, it, expect } from "vitest";
 import { Direction } from "~/lib/domains/mapping/utils";
+import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 import {
   type TestEnvironment,
   _cleanupDatabase,
@@ -67,6 +68,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         includeComposed: true,
         includeChildren: false,
         includeGrandchildren: false,
+        requester: SYSTEM_INTERNAL,
       });
 
       // Should return both composed children
@@ -136,6 +138,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         includeComposed: true,
         includeChildren: false,
         includeGrandchildren: false,
+        requester: SYSTEM_INTERNAL,
       });
 
       // Should return all 6 composed children
@@ -199,6 +202,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         includeComposed: true,
         includeChildren: false,
         includeGrandchildren: false,
+        requester: SYSTEM_INTERNAL,
       });
 
       // Should only return composed child
@@ -256,6 +260,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         includeComposed: false,
         includeChildren: true,
         includeGrandchildren: false,
+        requester: SYSTEM_INTERNAL,
       });
 
       // Should only return structural child
@@ -289,6 +294,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         includeComposed: true,
         includeChildren: false,
         includeGrandchildren: false,
+        requester: SYSTEM_INTERNAL,
       });
 
       expect(context.composed).toHaveLength(0);
@@ -320,6 +326,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         includeComposed: true,
         includeChildren: false,
         includeGrandchildren: false,
+        requester: SYSTEM_INTERNAL,
       });
 
       // Should return the composed child
@@ -379,6 +386,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         includeComposed: true,
         includeChildren: false,
         includeGrandchildren: false,
+        requester: SYSTEM_INTERNAL,
       });
 
       // Should return the composed child
@@ -437,6 +445,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         parentPath: [Direction.NorthEast],
         parentUserId: userId,
         parentGroupId: groupId,
+        requester: SYSTEM_INTERNAL,
       });
 
       // Should return both children (repository method doesn't filter by direction type)
@@ -493,6 +502,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         parentUserId: userId,
         parentGroupId: groupId,
         maxGenerations: 1,
+        requester: SYSTEM_INTERNAL,
       });
 
       // Should return both direct children (repository doesn't filter by direction type)

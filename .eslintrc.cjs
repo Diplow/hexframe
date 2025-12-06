@@ -58,6 +58,59 @@ const config = {
         "@typescript-eslint/no-unsafe-return": "off",
       },
     },
+    {
+      // SECURITY: Restrict drizzle-orm imports to infrastructure layer only.
+      // This ensures all database queries go through domain repositories,
+      // which enforce visibility filtering via RequesterContext.
+      // Allowed locations:
+      // - src/server/db/** - Schema definitions and connection
+      // - src/lib/domains/*/infrastructure/** - Repository implementations
+      // - src/lib/domains/*/types/** - Type definitions (type-only imports allowed)
+      // - drizzle/** - Migration files
+      // - scripts/** - Utility scripts
+      // - **/__tests__/** - Test files
+      files: ["src/**/*.ts", "src/**/*.tsx"],
+      excludedFiles: [
+        "src/server/db/**",
+        "src/server/api/routers/**", // TODO: Refactor to use repositories
+        "src/lib/domains/*/infrastructure/**",
+        "src/lib/domains/**/infrastructure/**",
+        "src/lib/domains/*/types/**",
+        "src/lib/domains/**/types/**",
+        "src/lib/domains/*/services/**", // TODO: Refactor to use repositories
+        "src/lib/domains/**/services/**", // TODO: Refactor to use repositories
+        "**/__tests__/**",
+        "**/*.test.ts",
+        "**/*.integration.test.ts"
+      ],
+      rules: {
+        "no-restricted-imports": [
+          "error",
+          {
+            paths: [
+              {
+                name: "drizzle-orm",
+                message: "Direct drizzle-orm imports are restricted to infrastructure layer. Use domain repositories instead to ensure visibility filtering."
+              },
+              {
+                name: "drizzle-orm/pg-core",
+                message: "Direct drizzle-orm imports are restricted to infrastructure layer. Use domain repositories instead to ensure visibility filtering."
+              }
+            ],
+            patterns: [
+              {
+                group: ["../*", "./*"],
+                message: "Relative imports are not allowed. Use absolute imports with '~/' prefix instead."
+              },
+              {
+                group: ["drizzle-orm/*"],
+                message: "Direct drizzle-orm imports are restricted to infrastructure layer. Use domain repositories instead to ensure visibility filtering."
+              }
+            ]
+          }
+        ]
+      }
+    },
   ],
   rules: {
     "@typescript-eslint/array-type": "off",

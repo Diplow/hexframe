@@ -69,6 +69,7 @@ function _buildMapItemArgs(
         path: parsePathString(dbMapItem.path),
       },
       itemType: dbMapItem.item_type,
+      visibility: dbMapItem.visibility,
       ref: {
         itemType: MapItemType.BASE,
         itemId: dbMapItem.refItemId,

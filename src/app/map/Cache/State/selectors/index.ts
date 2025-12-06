@@ -18,6 +18,7 @@ const createDefaultSelectors = () => {
     error: null,
     lastUpdated: 0,
     regionMetadata: {},
+    isAuthTransitioning: false,
     cacheConfig: {
       maxAge: 300000,
       backgroundRefreshInterval: 60000,
@@ -25,7 +26,7 @@ const createDefaultSelectors = () => {
       maxDepth: 6
     }
   };
-  
+
   return cacheSelectors(initialState);
 };
 

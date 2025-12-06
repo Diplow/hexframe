@@ -5,6 +5,7 @@ import { createMockEventBus, expectEventEmitted } from "~/test-utils/event-bus";
 import type { CacheState } from "~/app/map/Cache/State/types";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";
 import type { StorageService } from "~/app/map/Cache/Services";
+import { Visibility } from '~/lib/domains/mapping/utils';
 
 describe("MutationCoordinator Event Emissions", () => {
   let mockDispatch: ReturnType<typeof vi.fn>;
@@ -18,9 +19,10 @@ describe("MutationCoordinator Event Emissions", () => {
     data: {
       title: "Item 1",
       content: "Description 1",
-        preview: undefined,
+      preview: undefined,
       link: "",
       color: "#000000",
+      visibility: Visibility.PRIVATE,
     },
     metadata: {
       coordId: "user-test-1,2",
@@ -44,9 +46,10 @@ describe("MutationCoordinator Event Emissions", () => {
     data: {
       title: "Item 2",
       content: "Description 2",
-        preview: undefined,
+      preview: undefined,
       link: "",
       color: "#000000",
+      visibility: Visibility.PRIVATE,
     },
     metadata: {
       coordId: "user-test-1,3",

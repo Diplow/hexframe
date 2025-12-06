@@ -26,6 +26,7 @@ interface ContextMenuContainerProps {
   onCopyCoordinatesSuccess?: () => void;
   onCopyCoordinatesError?: () => void;
   onCompositionToggle?: (tileData: TileData) => void;
+  onToggleVisibility?: (tileData: TileData) => void;
   hasComposition?: (coordId: string) => boolean;
   isCompositionExpanded?: (coordId: string) => boolean;
   canShowComposition?: (tileData: TileData) => boolean;
@@ -48,6 +49,7 @@ export function ContextMenuContainer({
   onCopyCoordinatesSuccess,
   onCopyCoordinatesError,
   onCompositionToggle,
+  onToggleVisibility,
   hasComposition,
   isCompositionExpanded,
   canShowComposition,
@@ -77,6 +79,8 @@ export function ContextMenuContainer({
           () => onCopyCoordinatesError?.()
         );
       }}
+      onToggleVisibility={() => onToggleVisibility?.(contextMenu.tileData)}
+      visibility={contextMenu.tileData.data.visibility}
       onCompositionToggle={onCompositionToggle}
       canEdit={contextMenu.canEdit}
       isEmptyTile={contextMenu.isEmptyTile}

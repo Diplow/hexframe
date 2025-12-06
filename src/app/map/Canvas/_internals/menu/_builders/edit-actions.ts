@@ -1,4 +1,5 @@
-import { Edit, Trash2, Move, Copy, Plus, History, Layers, FolderTree, Clock, Clipboard } from "lucide-react";
+import { Edit, Trash2, Move, Copy, Plus, History, Layers, FolderTree, Clock, Clipboard, Lock, Unlock } from "lucide-react";
+import { Visibility } from '~/lib/domains/mapping/utils';
 import type { MenuItem } from "~/app/map/Canvas/_internals/menu/items-builder";
 
 /**
@@ -179,4 +180,22 @@ export function _buildCopyCoordinatesItem(
         },
       ]
     : [];
+}
+
+export function _buildVisibilityItem(
+  canEdit: boolean,
+  visibility: Visibility | undefined,
+  onToggleVisibility?: () => void,
+): MenuItem[] {
+  if (!canEdit || !onToggleVisibility || !visibility) return [];
+
+  const isPrivate = visibility === Visibility.PRIVATE;
+  return [
+    {
+      icon: isPrivate ? Unlock : Lock,
+      label: isPrivate ? "Make Public" : "Make Private",
+      shortcut: "",
+      onClick: onToggleVisibility,
+    },
+  ];
 }

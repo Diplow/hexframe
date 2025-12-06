@@ -5,6 +5,7 @@ import React from "react";
 import { ItemTileContent } from "~/app/map/Canvas/Tile/Item/_components/item-tile-content";
 import type { TileData } from "~/app/map/types/tile-data";
 import { TileActionsProvider } from "~/app/map/Canvas/TileActionsContext";
+import { Visibility } from '~/lib/domains/mapping/utils';
 
 // Mock the hooks
 vi.mock("next/navigation", () => ({
@@ -49,9 +50,10 @@ describe("ItemTileContent - Scale 1 Expansion", () => {
     data: {
       title: "Test Tile",
       content: "Test Description",
-        preview: undefined,
+      preview: undefined,
       link: "",
       color: "zinc-50",
+      visibility: Visibility.PRIVATE,
     },
     state: {
       isDragged: false,

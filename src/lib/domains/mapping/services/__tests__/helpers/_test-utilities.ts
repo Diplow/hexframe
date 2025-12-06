@@ -8,6 +8,9 @@ import type {
 import { db } from "~/server/db";
 import { type Coord, Direction } from "~/lib/domains/mapping/utils";
 
+// Re-export SYSTEM_INTERNAL for test files to use
+export { SYSTEM_INTERNAL, type RequesterContext } from "~/lib/domains/mapping/types";
+
 // PostgreSQL error codes for concurrency/lock-related issues
 // See: https://www.postgresql.org/docs/current/errcodes-appendix.html
 const EXPECTED_PG_ERROR_CODES = new Set([

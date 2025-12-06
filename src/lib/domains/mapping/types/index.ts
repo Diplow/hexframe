@@ -8,6 +8,18 @@ export {
   type MapItemContract as MapItemMappingContract,
 } from "~/lib/domains/mapping/types/contracts";
 
+// Security types for visibility filtering
+export {
+  type RequesterUserId,
+  type SystemInternal,
+  type RequesterContext,
+  asRequesterUserId,
+  ANONYMOUS_REQUESTER,
+  SYSTEM_INTERNAL,
+  isSystemInternal,
+  isRequesterUserId,
+} from "~/lib/domains/mapping/types/requester";
+
 export type { DatabaseTransaction } from "~/lib/domains/mapping/types/transaction";
 
 // Note: These are internal types used within the mapping domain

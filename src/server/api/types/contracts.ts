@@ -22,6 +22,7 @@ export const mapItemContractToApiAdapter = (contract: MapItemContract) => {
     itemType: contract.itemType,
     ownerId: contract.ownerId,
     originId: contract.originId,
+    visibility: contract.visibility,
   };
 };
 

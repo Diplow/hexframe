@@ -15,6 +15,7 @@ export function _renderTileWidget(
     handleDeleteChildren,
     handleDeleteComposed,
     handleDeleteExecutionHistory,
+    handleToggleVisibility,
     handleTileSave = () => { /* noop */ },
     handleTileClose = () => { /* noop */ }
   } = handlers;
@@ -25,6 +26,7 @@ export function _renderTileWidget(
   const currentContent = tileItem?.data.content ?? tileData.tileData.content ?? '';
   // Get color from the cached tile data (preferred) or generate from coordinates
   const tileColor = tileItem?.data.color;
+  const visibility = tileItem?.data.visibility;
 
 
   return (
@@ -35,12 +37,14 @@ export function _renderTileWidget(
       preview={currentPreview}
       content={currentContent}
       tileColor={tileColor}
+      visibility={visibility}
       openInEditMode={tileData.openInEditMode}
       onEdit={handleEdit}
       onDelete={handleDelete}
       onDeleteChildren={handleDeleteChildren}
       onDeleteComposed={handleDeleteComposed}
       onDeleteExecutionHistory={handleDeleteExecutionHistory}
+      onToggleVisibility={handleToggleVisibility}
       onSave={handleTileSave}
       onClose={handleTileClose}
     />

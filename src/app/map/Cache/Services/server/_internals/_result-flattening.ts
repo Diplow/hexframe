@@ -1,4 +1,5 @@
 import type { MapItemType } from "~/lib/domains/mapping/utils";
+import type { Visibility } from '~/lib/domains/mapping/utils';
 
 export interface FetchedMapItem {
   id: string;
@@ -12,6 +13,7 @@ export interface FetchedMapItem {
   itemType: MapItemType;
   ownerId: string;
   originId: string | null;
+  visibility: Visibility;
 }
 
 /**

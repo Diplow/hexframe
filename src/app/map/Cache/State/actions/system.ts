@@ -25,6 +25,11 @@ export const invalidateAll = (): CacheAction => ({
   type: ACTION_TYPES.INVALIDATE_ALL,
 });
 
+export const setAuthTransitioning = (transitioning: boolean): CacheAction => ({
+  type: ACTION_TYPES.SET_AUTH_TRANSITIONING,
+  payload: transitioning,
+});
+
 export const updateCacheConfig = (
   config: UpdateCacheConfigPayload,
 ): CacheAction => ({

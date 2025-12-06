@@ -381,7 +381,7 @@ describe('buildPrompt - v3 Simplified Structure', () => {
       expect(result).toContain(
         '1. Run hexframe:hexecute("userId,0:1,4", "Create a hexplan for the task at userId,0:1,2. User instruction: Build feature X")'
       )
-      expect(result).toContain('2. Launch a subagent with the resulting prompt')
+      expect(result).toContain('2. Spawn a subagent with the resulting prompt')
       expect(result).toContain('</hexplan>')
     })
 

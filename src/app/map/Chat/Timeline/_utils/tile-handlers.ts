@@ -1,6 +1,7 @@
 import type { Widget, TileSelectedPayload } from '~/app/map/Chat/_state';
 import { focusChatInput } from '~/app/map/Chat/Timeline/_utils/focus-helpers';
 import type { EventBusService } from '~/app/map/types';
+import { Visibility } from '~/lib/domains/mapping/utils';
 
 interface TileHandlerDeps {
   updateItemOptimistic: (tileId: string, data: {
@@ -8,18 +9,20 @@ interface TileHandlerDeps {
     name?: string;
     preview?: string;
     description?: string;
+    visibility?: "public" | "private";
   }) => Promise<void>;
   eventBus: EventBusService | null;
   chatState: {
     closeWidget: (id: string) => void;
   };
+  getItem?: (coordId: string) => { data: { visibility?: Visibility } } | null;
 }
 
 export function createTileHandlers(
   widget: Widget,
   deps: TileHandlerDeps
 ) {
-  const { updateItemOptimistic, eventBus, chatState } = deps;
+  const { updateItemOptimistic, eventBus, chatState, getItem } = deps;
 
   const handleEdit = () => {
     // The TileWidget component handles edit mode internally
@@ -112,12 +115,36 @@ export function createTileHandlers(
     }
   };
 
+  const handleToggleVisibility = async () => {
+    const tileData = widget.data as TileSelectedPayload;
+    try {
+      const currentTile = getItem?.(tileData.tileId);
+      const currentVisibility = currentTile?.data.visibility ?? Visibility.PRIVATE;
+      const newVisibility = currentVisibility === Visibility.PRIVATE ? "public" : "private";
+      await updateItemOptimistic(tileData.tileId, {
+        visibility: newVisibility,
+      });
+    } catch (error) {
+      eventBus?.emit({
+        type: 'error.occurred',
+        payload: {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          context: { operation: 'update', tileId: tileData.tileId },
+          retryable: true,
+        },
+        source: 'map_cache',
+        timestamp: new Date(),
+      });
+    }
+  };
+
   return {
     handleEdit,
     handleDelete,
     handleDeleteChildren,
     handleDeleteComposed,
     handleDeleteExecutionHistory,
+    handleToggleVisibility,
     handleTileSave,
     handleTileClose,
   };

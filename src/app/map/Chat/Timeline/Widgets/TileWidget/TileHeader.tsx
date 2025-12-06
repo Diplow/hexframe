@@ -4,6 +4,7 @@ import { cn } from '~/lib/utils';
 import { _TilePreviewSection } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/header/_TilePreview';
 import { _TitleSection } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/header/_TitleSection';
 import { _HeaderActions } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/header/_HeaderActions';
+import type { Visibility } from '~/lib/domains/mapping/utils';
 
 interface TileHeaderProps {
   tileId?: string;
@@ -15,6 +16,7 @@ interface TileHeaderProps {
   editTitle: string;
   hasContent: boolean;
   tileColor?: string;
+  visibility?: Visibility;
   onToggleExpansion: () => void;
   onTitleChange: (title: string) => void;
   onTitleKeyDown: (e: React.KeyboardEvent) => void;
@@ -23,6 +25,7 @@ interface TileHeaderProps {
   onDeleteChildren?: () => void;
   onDeleteComposed?: () => void;
   onDeleteExecutionHistory?: () => void;
+  onToggleVisibility?: () => void;
   onClose?: () => void;
   onCopyCoordinates?: () => void;
   onHistory?: () => void;
@@ -40,6 +43,7 @@ export function TileHeader({
   editTitle,
   hasContent,
   tileColor,
+  visibility,
   onToggleExpansion,
   onTitleChange,
   onTitleKeyDown,
@@ -48,6 +52,7 @@ export function TileHeader({
   onDeleteChildren,
   onDeleteComposed,
   onDeleteExecutionHistory,
+  onToggleVisibility,
   onClose,
   onCopyCoordinates,
   onHistory,
@@ -103,6 +108,7 @@ export function TileHeader({
         <_HeaderActions
           mode={mode}
           isEditing={isEditing}
+          visibility={visibility}
           onSave={onSave}
           onCancel={onCancel}
           onEdit={onEdit}
@@ -110,6 +116,7 @@ export function TileHeader({
           onDeleteChildren={onDeleteChildren}
           onDeleteComposed={onDeleteComposed}
           onDeleteExecutionHistory={onDeleteExecutionHistory}
+          onToggleVisibility={onToggleVisibility}
           onClose={onClose}
           onCopyCoordinates={onCopyCoordinates}
           onHistory={onHistory}

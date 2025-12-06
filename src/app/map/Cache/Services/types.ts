@@ -1,5 +1,6 @@
 // Service interface types for dependency injection and mocking
 import type { MapItemType, MapItemUpdateAttributes, MapItemCreateAttributes } from "~/lib/domains/mapping/utils";
+import type { Visibility } from '~/lib/domains/mapping/utils';
 
 export interface ServerService {
   // Data fetching operations (primary purpose)
@@ -18,6 +19,7 @@ export interface ServerService {
     itemType: MapItemType;
     ownerId: string;
     originId: string | null;
+    visibility: Visibility;
   }[]>;
 
   // Additional query operations
@@ -33,6 +35,7 @@ export interface ServerService {
     itemType: MapItemType;
     ownerId: string;
     originId: string | null;
+    visibility: Visibility;
   } | null>;
   getRootItemById: (mapItemId: number) => Promise<{
     id: string;
@@ -46,6 +49,7 @@ export interface ServerService {
     itemType: MapItemType;
     ownerId: string;
     originId: string | null;
+    visibility: Visibility;
   } | null>;
   getDescendants: (itemId: number) => Promise<{
     id: string;
@@ -59,6 +63,7 @@ export interface ServerService {
     itemType: MapItemType;
     ownerId: string;
     originId: string | null;
+    visibility: Visibility;
   }[]>;
   getAncestors: (itemId: number) => Promise<{
     id: string;
@@ -72,6 +77,7 @@ export interface ServerService {
     itemType: MapItemType;
     ownerId: string;
     originId: string | null;
+    visibility: Visibility;
   }[]>;
   getItemWithGenerations: (params: {
     coordId: string;
@@ -88,6 +94,7 @@ export interface ServerService {
     itemType: MapItemType;
     ownerId: string;
     originId: string | null;
+    visibility: Visibility;
   }[]>;
 
   // Mutation operations (architectural placeholders - should use mutation layer)

@@ -21,6 +21,7 @@ import { TileHistoryView } from '~/app/map/Chat/Timeline/Widgets/TileHistoryWidg
 import { useMapCache } from '~/app/map/Cache';
 import { CoordSystem } from '~/lib/domains/mapping/utils';
 import { getColor } from '~/app/map/types';
+import type { Visibility } from '~/lib/domains/mapping/utils';
 
 interface TileWidgetProps {
   mode?: 'view' | 'edit' | 'create' | 'delete' | 'delete_children' | 'history';
@@ -35,11 +36,13 @@ interface TileWidgetProps {
   parentName?: string;
   parentCoordId?: string;
   directionType?: 'structural' | 'composed' | 'hexPlan';
+  visibility?: Visibility;
   onEdit?: () => void;
   onDelete?: () => void;
   onDeleteChildren?: () => void;
   onDeleteComposed?: () => void;
   onDeleteExecutionHistory?: () => void;
+  onToggleVisibility?: () => void;
   onSave?: (title: string, preview: string, content: string) => void;
   onClose?: () => void;
 }
@@ -74,11 +77,13 @@ export function TileWidget({
   parentName: _parentName,
   parentCoordId: _parentCoordId,
   directionType = 'structural',
+  visibility,
   onEdit,
   onDelete: _onDelete,
   onDeleteChildren,
   onDeleteComposed,
   onDeleteExecutionHistory,
+  onToggleVisibility,
   onSave,
   onClose,
 }: TileWidgetProps) {
@@ -158,6 +163,7 @@ export function TileWidget({
         editTitle={editTitle}
         hasContent={!!content}
         tileColor={tileColor}
+        visibility={visibility}
         onToggleExpansion={() => setIsExpanded(!isExpanded)}
         onTitleChange={setEditTitle}
         onTitleKeyDown={handleTitleKeyDown}
@@ -166,6 +172,7 @@ export function TileWidget({
         onDeleteChildren={currentMode !== 'create' ? onDeleteChildren : undefined}
         onDeleteComposed={currentMode !== 'create' ? onDeleteComposed : undefined}
         onDeleteExecutionHistory={currentMode !== 'create' ? onDeleteExecutionHistory : undefined}
+        onToggleVisibility={currentMode !== 'create' ? onToggleVisibility : undefined}
         onClose={onClose}
         onCopyCoordinates={currentMode !== 'create' ? () => copyToClipboard(coordId, triggerCopySuccess, triggerCopyError) : undefined}
         onHistory={historyHandler}

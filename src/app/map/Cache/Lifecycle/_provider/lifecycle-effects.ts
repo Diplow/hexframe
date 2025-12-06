@@ -3,11 +3,18 @@
 import { useEffect, useRef, useCallback } from "react";
 import type { Dispatch } from "react";
 import type { CacheState, CacheAction } from "~/app/map/Cache/State";
+import { invalidateAll, setAuthTransitioning } from "~/app/map/Cache/State";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";
 import type { SyncOperations } from "~/app/map/Cache/Sync/types";
 import type { ServerService } from "~/app/map/Cache/Services";
+import type { EventBusService } from "~/app/map/types/events";
 import { executePrefetchRegion } from "~/app/map/Cache/Lifecycle/_provider/_internals/prefetch-operations";
 import { shouldTriggerPrefetch, createDeferredPrefetch } from "~/app/map/Cache/Lifecycle/_provider/_internals/center-change-handler";
+import { clearPreFetchedData } from "~/app/map/Services/PreFetch/pre-fetch-service";
+import { api } from "~/commons/trpc/react";
+
+// Delay to allow auth cookies to be fully cleared/set before refetching
+const AUTH_TRANSITION_DELAY_MS = 100;
 
 export interface LifecycleHookConfig {
   dispatch: Dispatch<CacheAction>;
@@ -16,6 +23,7 @@ export interface LifecycleHookConfig {
   syncOperations: SyncOperations;
   serverService: ServerService;
   disableSync?: boolean;
+  eventBus?: EventBusService;
 }
 
 /**
@@ -48,6 +56,54 @@ export function useCacheLifecycle(config: LifecycleHookConfig): void {
 
   // Handle center changes and trigger region loads
   useCenterChangeEffect(config, loadingCentersRef.current, prefetchRegion);
+
+  // Clear cache on auth state changes
+  useAuthStateEffect(config.eventBus, config.dispatch);
+}
+
+/**
+ * Effect to clear cache when auth state changes (login or logout).
+ * - On logout: removes private tiles from memory
+ * - On login: triggers refetch to include user's private tiles
+ *
+ * Uses auth transitioning flag to prevent race conditions where
+ * refetch happens before cookies are fully cleared/set.
+ */
+function useAuthStateEffect(
+  eventBus: EventBusService | undefined,
+  dispatch: Dispatch<CacheAction>
+): void {
+  const trpcUtils = api.useUtils();
+
+  useEffect(() => {
+    if (!eventBus) {
+      return;
+    }
+
+    const handleAuthChange = () => {
+      // 1. Block auto-refetch during transition
+      dispatch(setAuthTransitioning(true));
+
+      // 2. Clear all cached data (React state + sessionStorage + tRPC query cache)
+      clearPreFetchedData();
+      dispatch(invalidateAll());
+      // Invalidate tRPC query cache so fresh requests go to server
+      void trpcUtils.map.invalidate();
+
+      // 3. Allow refetch after delay (cookies should be cleared/set by then)
+      setTimeout(() => {
+        dispatch(setAuthTransitioning(false));
+      }, AUTH_TRANSITION_DELAY_MS);
+    };
+
+    const unsubscribeLogout = eventBus.on('auth.logout', handleAuthChange);
+    const unsubscribeLogin = eventBus.on('auth.login', handleAuthChange);
+
+    return () => {
+      unsubscribeLogout();
+      unsubscribeLogin();
+    };
+  }, [eventBus, dispatch, trpcUtils]);
 }
 
 /**

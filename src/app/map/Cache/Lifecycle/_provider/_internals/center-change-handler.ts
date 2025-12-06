@@ -7,30 +7,36 @@ export function shouldTriggerPrefetch(
   state: CacheState,
   loadingCenters: Set<string>
 ): { shouldPrefetch: boolean; centerToLoad?: string } {
-  const { currentCenter, itemsById, isLoading } = state;
-  
+  const { currentCenter, itemsById, isLoading, isAuthTransitioning } = state;
+
   if (!currentCenter) {
     return { shouldPrefetch: false };
   }
-  
+
+  // Block prefetch during auth transitions to prevent race conditions
+  // where server still sees old auth cookies
+  if (isAuthTransitioning) {
+    return { shouldPrefetch: false };
+  }
+
   // SAFETY NET: Validate that currentCenter is in coordinate format (contains comma)
   // This prevents trying to fetch with database IDs that haven't been resolved yet
   if (!currentCenter.includes(',')) {
     return { shouldPrefetch: false };
   }
-  
+
   // Simple check: do we have data or are we loading?
   const hasItem = itemsById[currentCenter];
-  
+
   // If the item already exists in cache, no need to load (even without region metadata)
   if (hasItem || isLoading || loadingCenters.has(currentCenter)) {
     // Data already loaded, loading globally, or loading this specific center
     return { shouldPrefetch: false };
   }
-  
-  return { 
-    shouldPrefetch: true, 
-    centerToLoad: currentCenter 
+
+  return {
+    shouldPrefetch: true,
+    centerToLoad: currentCenter
   };
 }
 

@@ -26,6 +26,7 @@ export {
   setError,
   invalidateRegion,
   invalidateAll,
+  setAuthTransitioning,
   updateCacheConfig,
   createOptimisticUpdateActions,
   createErrorHandlingActions,
@@ -68,5 +69,6 @@ export const cacheActions = {
   setError: systemActions.setError,
   invalidateRegion: systemActions.invalidateRegion,
   invalidateAll: systemActions.invalidateAll,
+  setAuthTransitioning: systemActions.setAuthTransitioning,
   updateCacheConfig: systemActions.updateCacheConfig,
 };

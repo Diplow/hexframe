@@ -27,6 +27,7 @@ export const initialCacheState: CacheState = {
   isLoading: false,
   error: null,
   lastUpdated: 0,
+  isAuthTransitioning: false,
   cacheConfig: {
     maxAge: 300000, // 5 minutes
     backgroundRefreshInterval: 30000, // 30 seconds
@@ -82,6 +83,9 @@ export function cacheReducer(
 
     case ACTION_TYPES.UPDATE_ITEMS:
       return handleUpdateItems(state, action);
+
+    case ACTION_TYPES.SET_AUTH_TRANSITIONING:
+      return { ...state, isAuthTransitioning: action.payload };
 
     default: {
       // TypeScript exhaustiveness check

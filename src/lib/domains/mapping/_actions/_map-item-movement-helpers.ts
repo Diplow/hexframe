@@ -9,6 +9,7 @@ import {
   type Direction,
 } from "~/lib/domains/mapping/utils";
 import { MAPPING_ERRORS } from "~/lib/domains/mapping/types/errors";
+import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 export class MapItemMovementHelpers {
   constructor(
@@ -48,8 +49,9 @@ export class MapItemMovementHelpers {
     // Check if there's already an item at the temporary position
     // This can happen if a previous swap failed and left an orphaned item
     try {
+      // Use SYSTEM_INTERNAL for internal movement operations - no visibility filtering
       const existingTempItem = await this.mapItems
-        .getOneByIdr({ idr: { attrs: { coords: tempCoords } } })
+        .getOneByIdr({ idr: { attrs: { coords: tempCoords } } }, SYSTEM_INTERNAL)
         .catch(() => null);
         
       if (existingTempItem) {

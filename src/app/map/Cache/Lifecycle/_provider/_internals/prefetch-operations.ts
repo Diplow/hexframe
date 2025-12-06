@@ -6,6 +6,7 @@ import { checkAncestors, loadAncestorsForItem } from "~/app/map/Cache/Handlers";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 import type { TileData } from "~/app/map/types";
 import { getColor } from "~/app/map/types";
+import { Visibility } from '~/lib/domains/mapping/utils';
 
 // Type for items returned by ServerService
 type ServerItem = Awaited<ReturnType<ServerService['fetchItemsForCoordinate']>>[0];
@@ -27,10 +28,10 @@ export async function executePrefetchRegion(
 
   try {
     loadingCenters.add(centerCoordId);
-    
+
     // Set loading state before fetching
     dispatch(cacheActions.setLoading(true));
-    
+
     const items = await serverService.fetchItemsForCoordinate({
       centerCoordId,
       maxDepth,
@@ -44,10 +45,10 @@ export async function executePrefetchRegion(
         maxDepth,
       ),
     );
-    
+
     // Clear loading state after successful load
     dispatch(cacheActions.setLoading(false));
-    
+
     // Handle ancestor loading if needed
     await handleAncestorLoading(centerCoordId, items, dispatch, serverService);
   } catch (error) {
@@ -119,9 +120,10 @@ async function loadSiblingsForInitialLoad(
           data: {
             title: item.title,
             content: item.content,
-        preview: item.preview,
+            preview: item.preview,
             link: item.link,
             color: getColor(itemCoords),
+            visibility: item.visibility ?? Visibility.PRIVATE,
           },
           metadata: {
             coordId,

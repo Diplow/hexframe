@@ -42,6 +42,7 @@ export const itemCreationSchema = z.object({
   content: z.string().optional(),
   preview: z.string().optional(),
   link: z.string().optional(),
+  visibility: z.enum(["public", "private"]).optional(),
 });
 
 // Item update schema
@@ -52,6 +53,7 @@ export const itemUpdateSchema = z.object({
     content: z.string().optional(),
     preview: z.string().optional(),
     link: z.string().optional(),
+    visibility: z.enum(["public", "private"]).optional(),
   }),
 });
 

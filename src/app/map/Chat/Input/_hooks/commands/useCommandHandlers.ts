@@ -16,18 +16,24 @@ export function useCommandHandlers(chatState: {
     try {
       debugLogger.clearBuffer();
       await authClient.signOut();
-      
-      if (chatState && 'clearChat' in chatState) {
-        chatState.clearChat();
-      }
+
+      // Emit logout event to trigger cache invalidation and chat clearing
+      // This ensures consistent behavior whether logout is triggered via
+      // /logout command or the logout button in ChatHeader
+      eventBus.emit({
+        type: 'auth.logout',
+        payload: {},
+        source: 'auth' as const,
+        timestamp: new Date(),
+      });
     } catch (error) {
       console.error('Logout failed:', error);
-      
+
       if (chatState && 'showSystemMessage' in chatState) {
         chatState.showSystemMessage('Logout failed. Please try again.', 'error');
       }
     }
-  }, [chatState]);
+  }, [eventBus, chatState]);
 
   const handleLogin = useCallback(() => {
     eventBus.emit({

@@ -62,6 +62,7 @@ interface TileActionsProviderProps {
   onDeleteComposedClick?: (tileData: TileData) => void;
   onDeleteExecutionHistoryClick?: (tileData: TileData) => void;
   onCompositionToggle?: (tileData: TileData) => void;
+  onToggleVisibility?: (tileData: TileData) => void;
   // Composition state - for context menu
   hasComposition?: (coordId: string) => boolean;
   isCompositionExpanded?: (coordId: string) => boolean;
@@ -87,6 +88,7 @@ export function TileActionsProvider({
   onDeleteComposedClick,
   onDeleteExecutionHistoryClick,
   onCompositionToggle,
+  onToggleVisibility,
   hasComposition,
   isCompositionExpanded,
   canShowComposition,
@@ -204,6 +206,7 @@ export function TileActionsProvider({
         onCopyCoordinatesSuccess={triggerCopySuccess}
         onCopyCoordinatesError={triggerCopyError}
         onCompositionToggle={onCompositionToggle}
+        onToggleVisibility={onToggleVisibility}
         hasComposition={hasComposition}
         isCompositionExpanded={isCompositionExpanded}
         canShowComposition={canShowComposition}

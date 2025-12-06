@@ -22,6 +22,7 @@ export function WidgetManager({ widgets, focusChatInput: focusChatInputProp }: W
   const deps = {
     createItemOptimistic,
     updateItemOptimistic,
+    getItem,
     eventBus,
     chatState,
     focusChatInput: focusChatInputFn
