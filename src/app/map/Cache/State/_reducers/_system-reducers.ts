@@ -35,7 +35,6 @@ export function handleInvalidateRegion(
 }
 
 export function handleInvalidateAll(state: CacheState): CacheState {
-  console.error("[DEBUG Reducer] INVALIDATE_ALL called! This clears all items!");
   return {
     ...state,
     itemsById: {},

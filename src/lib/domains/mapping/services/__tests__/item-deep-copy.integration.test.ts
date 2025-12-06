@@ -8,6 +8,7 @@ import {
   type TestEnvironment,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { Direction } from "~/lib/domains/mapping/utils";
+import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 describe("MappingService - Deep Copy [Integration - DB]", () => {
   let testEnv: TestEnvironment;
@@ -429,6 +430,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
         parentPath: destinationCoords.path,
         parentUserId: setupParams.userId,
         parentGroupId: setupParams.groupId,
+        requester: SYSTEM_INTERNAL,
       });
 
       expect(descendants.length).toBe(0);
@@ -560,7 +562,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
             },
           },
         },
-      });
+      }, SYSTEM_INTERNAL);
 
       // Get the copied child MapItem from repository
       const copiedChildMapItem = await testEnv.repositories.mapItem.getOneByIdr({
@@ -573,7 +575,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
             },
           },
         },
-      });
+      }, SYSTEM_INTERNAL);
 
       // CRITICAL ASSERTIONS: Verify parent-child relationships
       // Parent should point to the destination parent (rootMap)

@@ -1,5 +1,6 @@
 import { describe, beforeEach, it, expect } from "vitest";
 import { Direction } from "~/lib/domains/mapping/utils";
+import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 import {
   type TestEnvironment,
   _cleanupDatabase,
@@ -64,6 +65,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         includeComposed: false,
         includeChildren: false,
         includeGrandchildren: false,
+        requester: SYSTEM_INTERNAL,
       });
 
       // BUG: With slice(0, -2), centerPath [1, 3] becomes [] (root/grandparent)
@@ -128,6 +130,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         includeComposed: false,
         includeChildren: false,
         includeGrandchildren: false,
+        requester: SYSTEM_INTERNAL,
       });
 
       // With the bug (slice(0, -2)): path [1,1,3] -> [1] (returns Level 1, wrong!)
@@ -155,6 +158,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         includeComposed: false,
         includeChildren: false,
         includeGrandchildren: false,
+        requester: SYSTEM_INTERNAL,
       });
 
       // Root has no parent
@@ -187,6 +191,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         includeComposed: false,
         includeChildren: false,
         includeGrandchildren: false,
+        requester: SYSTEM_INTERNAL,
       });
 
       // Parent should be root with path []
@@ -257,6 +262,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         includeComposed: false,
         includeChildren: true,
         includeGrandchildren: false,
+        requester: SYSTEM_INTERNAL,
       });
 
       // Should return all 3 children
@@ -321,6 +327,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         includeComposed: false,
         includeChildren: true,
         includeGrandchildren: false,
+        requester: SYSTEM_INTERNAL,
       });
 
       // Should only return the regular child, not the composed container
@@ -354,6 +361,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         includeComposed: false,
         includeChildren: true,
         includeGrandchildren: false,
+        requester: SYSTEM_INTERNAL,
       });
 
       expect(context.children).toHaveLength(0);
@@ -410,6 +418,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         includeComposed: true,
         includeChildren: false,
         includeGrandchildren: false,
+        requester: SYSTEM_INTERNAL,
       });
 
       // Should return 2 composed children
@@ -478,6 +487,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         includeComposed: true,
         includeChildren: false,
         includeGrandchildren: false,
+        requester: SYSTEM_INTERNAL,
       });
 
       // Should return empty array - we only created the container, not any composed children
@@ -511,6 +521,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         includeComposed: true,
         includeChildren: false,
         includeGrandchildren: false,
+        requester: SYSTEM_INTERNAL,
       });
 
       expect(context.composed).toHaveLength(0);
@@ -579,6 +590,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         includeComposed: false,
         includeChildren: false,
         includeGrandchildren: true,
+        requester: SYSTEM_INTERNAL,
       });
 
       // Should return both grandchildren
@@ -656,6 +668,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         includeComposed: false,
         includeChildren: false,
         includeGrandchildren: true,
+        requester: SYSTEM_INTERNAL,
       });
 
       // Should only return regular grandchild, not composed
@@ -691,6 +704,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         includeComposed: false,
         includeChildren: false,
         includeGrandchildren: true,
+        requester: SYSTEM_INTERNAL,
       });
 
       expect(context.grandchildren).toHaveLength(0);
@@ -784,6 +798,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         includeComposed: false,
         includeChildren: true,
         includeGrandchildren: false,
+        requester: SYSTEM_INTERNAL,
       });
 
       // Bug: Children query uses notLike('%,0,%') which would exclude [1,0,1,3]
@@ -885,6 +900,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         includeComposed: true,
         includeChildren: true,
         includeGrandchildren: true,
+        requester: SYSTEM_INTERNAL,
       });
 
       // Verify all parts

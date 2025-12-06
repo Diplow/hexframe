@@ -1,5 +1,5 @@
 import type { MapItemWithId, BaseItemWithId, BaseItemVersion } from "~/lib/domains/mapping/_objects";
-import { MapItemType } from "~/lib/domains/mapping/_objects";
+import { MapItemType, Visibility } from "~/lib/domains/mapping/_objects";
 import { CoordSystem, type Coord } from "~/lib/domains/mapping/utils";
 
 export const mapItemDomainToContractAdapter = (
@@ -15,6 +15,7 @@ export const mapItemDomainToContractAdapter = (
     preview: aggregate.ref.attrs.preview,
     link: aggregate.ref.attrs.link,
     itemType: aggregate.attrs.itemType,
+    visibility: aggregate.attrs.visibility,
     depth: aggregate.attrs.coords.path.length,
     parentId: aggregate.attrs.parentId
       ? String(aggregate.attrs.parentId)
@@ -26,7 +27,7 @@ export const mapItemDomainToContractAdapter = (
 };
 
 export type MapItemContract = ReturnType<typeof mapItemDomainToContractAdapter>;
-export { MapItemType };
+export { MapItemType, Visibility };
 
 export interface MoveMapItemResult {
   modifiedItems: MapItemContract[];

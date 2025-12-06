@@ -8,6 +8,7 @@ import type {
   BaseItemVersionContract,
   ItemHistoryContract,
 } from "~/lib/domains/mapping/types/contracts";
+import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 /**
  * Service for tile version history operations.
@@ -51,10 +52,11 @@ export class ItemHistoryService {
     limit?: number;
     offset?: number;
   }): Promise<ItemHistoryContract> {
-    // 1. Get MapItem to find BaseItem reference
-    const mapItem = await this.repositories.mapItem.getOneByIdr({
-      idr: { attrs: { coords } },
-    });
+    // 1. Get MapItem to find BaseItem reference (internal operation)
+    const mapItem = await this.repositories.mapItem.getOneByIdr(
+      { idr: { attrs: { coords } } },
+      SYSTEM_INTERNAL
+    );
 
     if (!mapItem) {
       throw new Error(
@@ -109,10 +111,11 @@ export class ItemHistoryService {
     coords: Coord;
     versionNumber: number;
   }): Promise<BaseItemVersionContract> {
-    // 1. Get MapItem to find BaseItem reference
-    const mapItem = await this.repositories.mapItem.getOneByIdr({
-      idr: { attrs: { coords } },
-    });
+    // 1. Get MapItem to find BaseItem reference (internal operation)
+    const mapItem = await this.repositories.mapItem.getOneByIdr(
+      { idr: { attrs: { coords } } },
+      SYSTEM_INTERNAL
+    );
 
     if (!mapItem) {
       throw new Error(

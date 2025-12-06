@@ -1,7 +1,8 @@
 'use client';
 
-import { Edit, Trash2, X, Copy, History, FolderTree, Layers, Clock } from 'lucide-react';
+import { Edit, Trash2, X, Copy, History, FolderTree, Layers, Clock, Lock, Unlock } from 'lucide-react';
 import { ContextMenu, type ContextMenuItemData } from '~/components/ui/context-menu';
+import { Visibility } from '~/lib/domains/mapping/utils';
 
 interface MenuDropdownProps {
   menuPosition: { top: number; left: number };
@@ -14,6 +15,8 @@ interface MenuDropdownProps {
   onCopyCoordinates?: () => void;
   onHistory?: () => void;
   onMenuClose: () => void;
+  visibility?: Visibility;
+  onToggleVisibility?: () => void;
 }
 
 export function _MenuDropdown({
@@ -27,6 +30,8 @@ export function _MenuDropdown({
   onCopyCoordinates,
   onHistory,
   onMenuClose,
+  visibility,
+  onToggleVisibility,
 }: MenuDropdownProps) {
   // Build delete submenu items
   const deleteSubmenuItems: ContextMenuItemData[] = [];
@@ -78,6 +83,14 @@ export function _MenuDropdown({
       icon: Edit,
       label: 'Edit',
       onClick: onEdit,
+    });
+  }
+
+  if (onToggleVisibility) {
+    menuItems.push({
+      icon: visibility === Visibility.PRIVATE ? Unlock : Lock,
+      label: visibility === Visibility.PRIVATE ? 'Make Public' : 'Make Private',
+      onClick: onToggleVisibility,
     });
   }
 

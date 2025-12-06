@@ -5,6 +5,7 @@ import { cacheReducer, initialCacheState } from "~/app/map/Cache/State/reducer";
 import type { NavigationHandlerConfig } from "~/app/map/Cache/Handlers/NavigationHandler/navigation-handler";
 import type { CacheState, CacheAction } from "~/app/map/Cache/State/types";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";
+import { Visibility } from '~/lib/domains/mapping/utils';
 
 describe("Stale State Closure Bug", () => {
   test("navigation handler should use current maxDepth config not stale value", async () => {
@@ -82,7 +83,7 @@ describe("Stale State Closure Bug", () => {
       ...state,
       itemsById: {
         "1,2:0": {
-          data: { title: "Test", content: "", preview: undefined, link: "", color: "#000000" },
+          data: { title: "Test", content: "", preview: undefined, link: "", color: "#000000", visibility: Visibility.PRIVATE },
           metadata: {
             coordId: "1,2:0",
             dbId: "123",

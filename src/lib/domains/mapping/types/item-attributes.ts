@@ -28,6 +28,7 @@ export interface MapItemUpdateAttributes {
   preview?: string;
   link?: string;
   originId?: number | null;
+  visibility?: "public" | "private";
 }
 
 /**

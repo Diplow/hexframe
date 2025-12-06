@@ -3,6 +3,7 @@ import type { CacheAction } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
 import type { ServerService } from "~/app/map/Cache/Services";
 import type { MapItemType } from "~/lib/domains/mapping/utils";
+import type { Visibility } from '~/lib/domains/mapping/utils';
 import { loggers } from "~/lib/debug/debug-logger";
 
 /**
@@ -21,6 +22,7 @@ export async function loadRegionForItem(
     itemType: MapItemType;
     ownerId: string;
     originId: string | null;
+    visibility: Visibility;
   },
   serverService: ServerService,
   dispatch: Dispatch<CacheAction>

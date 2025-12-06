@@ -7,6 +7,7 @@ import {
 } from "~/server/api/trpc";
 import { contractToApiAdapters } from "~/server/api/types/contracts";
 import { type Coord } from "~/lib/domains/mapping/utils";
+import { Visibility } from '~/lib/domains/mapping/utils';
 import {
   hexCoordSchema,
   itemCreationSchema,
@@ -14,8 +15,16 @@ import {
   itemMovementSchema,
   itemCopySchema,
 } from "~/server/api/routers/map/map-schemas";
-import { _createSuccessResponse, _getUserId } from "~/server/api/routers/map/_map-auth-helpers";
+import { _createSuccessResponse, _getUserId, _getRequesterUserId } from "~/server/api/routers/map/_map-auth-helpers";
 import { TRPCError } from "@trpc/server";
+
+/**
+ * Convert string visibility to Visibility enum
+ */
+function toVisibilityEnum(visibility?: "public" | "private"): Visibility | undefined {
+  if (!visibility) return undefined;
+  return visibility === "public" ? Visibility.PUBLIC : Visibility.PRIVATE;
+}
 
 export const mapItemsRouter = createTRPCRouter({
   // Get root MapItem by ID
@@ -23,8 +32,10 @@ export const mapItemsRouter = createTRPCRouter({
     .use(mappingServiceMiddleware)
     .input(z.object({ mapItemId: z.number() }))
     .query(async ({ ctx, input }) => {
+      const requester = _getRequesterUserId(ctx.user);
       const item = await ctx.mappingService.items.query.getItemById({
         itemId: input.mapItemId,
+        requester,
       });
       return contractToApiAdapters.mapItem(item);
     }),
@@ -37,17 +48,20 @@ export const mapItemsRouter = createTRPCRouter({
       generations: z.number().optional().default(0)
     }))
     .query(async ({ ctx, input }) => {
+      const requester = _getRequesterUserId(ctx.user);
       if (input.generations > 0) {
         // Use the new method that returns item with generations
         const items = await ctx.mappingService.items.query.getItemWithGenerations({
           coords: input.coords as Coord,
           generations: input.generations,
+          requester,
         });
         return items.map(contractToApiAdapters.mapItem);
       } else {
         // Original behavior for backward compatibility
         const item = await ctx.mappingService.items.crud.getItem({
           coords: input.coords as Coord,
+          requester,
         });
         return contractToApiAdapters.mapItem(item);
       }
@@ -63,9 +77,11 @@ export const mapItemsRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
+      const requester = _getRequesterUserId(ctx.user);
       const items = await ctx.mappingService.items.query.getItems({
         userId: input.userId,
         groupId: input.groupId,
+        requester,
       });
       return items.map(contractToApiAdapters.mapItem);
     }),
@@ -119,6 +135,7 @@ export const mapItemsRouter = createTRPCRouter({
         content: input.content,
         preview: input.preview,
         link: input.link,
+        visibility: toVisibilityEnum(input.visibility),
       });
       return contractToApiAdapters.mapItem(mapItem);
     }),
@@ -131,18 +148,20 @@ export const mapItemsRouter = createTRPCRouter({
       // Check if user owns the item they're trying to remove
       const currentUserId = _getUserId(ctx.user);
       const currentUserIdString = String(currentUserId);
-      
+      const requester = _getRequesterUserId(ctx.user);
+
       const item = await ctx.mappingService.items.crud.getItem({
         coords: input.coords as Coord,
+        requester,
       });
-      
+
       if (item.ownerId !== currentUserIdString) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You can only delete items you own",
         });
       }
-      
+
       await ctx.mappingService.items.crud.removeItem({
         coords: input.coords as Coord,
       });
@@ -157,9 +176,11 @@ export const mapItemsRouter = createTRPCRouter({
       // Check if user owns the item they're trying to update
       const currentUserId = _getUserId(ctx.user);
       const currentUserIdString = String(currentUserId);
+      const requester = _getRequesterUserId(ctx.user);
 
       const existingItem = await ctx.mappingService.items.crud.getItem({
         coords: input.coords as Coord,
+        requester,
       });
 
       if (existingItem.ownerId !== currentUserIdString) {
@@ -175,8 +196,11 @@ export const mapItemsRouter = createTRPCRouter({
         content?: string;
         preview?: string;
         link?: string;
+        visibility?: Visibility;
+        requester?: typeof requester;
       } = {
         coords: input.coords as Coord,
+        requester,
       };
 
       // Only include fields that are explicitly provided
@@ -184,6 +208,7 @@ export const mapItemsRouter = createTRPCRouter({
       if (input.data.content !== undefined) updateParams.content = input.data.content;
       if (input.data.preview !== undefined) updateParams.preview = input.data.preview;
       if (input.data.link !== undefined) updateParams.link = input.data.link;
+      if (input.data.visibility !== undefined) updateParams.visibility = toVisibilityEnum(input.data.visibility);
 
       const item = await ctx.mappingService.items.crud.updateItem(updateParams);
       return contractToApiAdapters.mapItem(item);
@@ -197,30 +222,33 @@ export const mapItemsRouter = createTRPCRouter({
       // Check if user owns the item they're trying to move
       const currentUserId = _getUserId(ctx.user);
       const currentUserIdString = String(currentUserId);
-      
+      const requester = _getRequesterUserId(ctx.user);
+
       const existingItem = await ctx.mappingService.items.crud.getItem({
         coords: input.oldCoords as Coord,
+        requester,
       });
-      
+
       if (existingItem.ownerId !== currentUserIdString) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You can only move items you own",
         });
       }
-      
+
       // Also check if they own the destination parent (if moving to a new parent)
       const oldCoords = input.oldCoords as Coord;
       const newCoords = input.newCoords as Coord;
-      
+
       // If changing parent (different path prefix), check new parent ownership
       if (oldCoords.path.slice(0, -1).join() !== newCoords.path.slice(0, -1).join()) {
         if (newCoords.path.length > 0) {
           const newParentCoords = { ...newCoords, path: newCoords.path.slice(0, -1) };
           const newParentItem = await ctx.mappingService.items.crud.getItem({
             coords: newParentCoords,
+            requester,
           });
-          
+
           if (newParentItem.ownerId !== currentUserIdString) {
             throw new TRPCError({
               code: "FORBIDDEN",
@@ -229,12 +257,12 @@ export const mapItemsRouter = createTRPCRouter({
           }
         }
       }
-      
+
       const result = await ctx.mappingService.items.query.moveMapItem({
         oldCoords: oldCoords,
         newCoords: newCoords,
       });
-      
+
       // Convert domain objects to API contracts
       return {
         modifiedItems: result.modifiedItems.map(contractToApiAdapters.mapItem),
@@ -248,8 +276,10 @@ export const mapItemsRouter = createTRPCRouter({
     .use(mappingServiceMiddleware)
     .input(z.object({ itemId: z.number() }))
     .query(async ({ ctx, input }) => {
+      const requester = _getRequesterUserId(ctx.user);
       const descendants = await ctx.mappingService.items.query.getDescendants({
         itemId: input.itemId,
+        requester,
       });
       return descendants.map(contractToApiAdapters.mapItem);
     }),
@@ -259,8 +289,10 @@ export const mapItemsRouter = createTRPCRouter({
     .use(mappingServiceMiddleware)
     .input(z.object({ itemId: z.number() }))
     .query(async ({ ctx, input }) => {
+      const requester = _getRequesterUserId(ctx.user);
       const ancestors = await ctx.mappingService.items.query.getAncestors({
         itemId: input.itemId,
+        requester,
       });
       return ancestors.map(contractToApiAdapters.mapItem);
     }),
@@ -270,8 +302,10 @@ export const mapItemsRouter = createTRPCRouter({
     .use(mappingServiceMiddleware)
     .input(z.object({ coordId: z.string() }))
     .query(async ({ ctx, input }) => {
+      const requester = _getRequesterUserId(ctx.user);
       const composedItems = await ctx.mappingService.items.query.getComposedChildren({
         coordId: input.coordId,
+        requester,
       });
       return composedItems.map(contractToApiAdapters.mapItem);
     }),
@@ -281,8 +315,10 @@ export const mapItemsRouter = createTRPCRouter({
     .use(mappingServiceMiddleware)
     .input(z.object({ coordId: z.string() }))
     .query(async ({ ctx, input }) => {
+      const requester = _getRequesterUserId(ctx.user);
       const hasComp = await ctx.mappingService.items.query.hasComposition({
         coordId: input.coordId,
+        requester,
       });
       return { hasComposition: hasComp };
     }),

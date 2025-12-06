@@ -10,6 +10,7 @@ export interface WidgetHandlers {
   handleDeleteChildren?: () => void;
   handleDeleteComposed?: () => void;
   handleDeleteExecutionHistory?: () => void;
+  handleToggleVisibility?: () => void;
   handleTileSave?: (title: string, preview: string, content: string) => void;
   handleTileClose?: () => void;
   handleSave?: (name: string, preview: string, content: string) => void;

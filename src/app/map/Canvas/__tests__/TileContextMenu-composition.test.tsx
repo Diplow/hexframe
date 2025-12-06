@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { TileContextMenu } from '~/app/map/Canvas/TileContextMenu';
 import type { TileData } from '~/app/map/types/tile-data';
 import { Direction } from '~/app/map/constants';
+import { Visibility } from '~/lib/domains/mapping/utils';
 
 // Helper to create mock tile data
 function createMockTileData(overrides?: Partial<TileData>): TileData {
@@ -27,6 +28,7 @@ function createMockTileData(overrides?: Partial<TileData>): TileData {
       preview: 'Test preview',
       link: '',
       color: 'primary',
+      visibility: Visibility.PRIVATE,
     },
     state: {
       isDragged: false,

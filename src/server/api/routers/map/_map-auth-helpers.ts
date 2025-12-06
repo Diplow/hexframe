@@ -1,4 +1,9 @@
 import { TRPCError } from "@trpc/server";
+import {
+  type RequesterUserId,
+  asRequesterUserId,
+  ANONYMOUS_REQUESTER,
+} from "~/lib/domains/mapping";
 
 interface AuthUser {
   id: string;
@@ -35,6 +40,19 @@ export function _getUserId(user: unknown): string {
 export function _getUserName(user: unknown): string {
   _ensureUserAuthenticated(user);
   return user.name ?? user.email ?? "User";
+}
+
+/**
+ * Get a RequesterUserId from user session context.
+ * Returns ANONYMOUS_REQUESTER for unauthenticated users.
+ *
+ * This is the primary way to create a RequesterUserId for visibility filtering
+ * in API routes.
+ */
+export function _getRequesterUserId(
+  user: { id: string } | null | undefined
+): RequesterUserId {
+  return user?.id ? asRequesterUserId(user.id) : ANONYMOUS_REQUESTER;
 }
 
 export function _createSuccessResponse<T = Record<string, unknown>>(
