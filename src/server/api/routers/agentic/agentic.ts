@@ -4,6 +4,7 @@ import { createTRPCRouter, protectedProcedure, publicProcedure, mappingServiceMi
 import { verificationAwareRateLimit, verificationAwareAuthLimit } from '~/server/api/middleware'
 import { createAgenticService, type CompositionConfig, PreviewGeneratorService, OpenRouterRepository, type ChatMessageContract } from '~/lib/domains/agentic'
 import { ContextStrategies } from '~/lib/domains/mapping/utils'
+import { _getRequesterUserId } from '~/server/api/routers/map/_map-auth-helpers'
 import { EventBus as EventBusImpl } from '~/lib/utils/event-bus'
 import { env } from '~/env'
 import { db, schema } from '~/server/db'
@@ -474,6 +475,7 @@ export const agenticRouter = createTRPCRouter({
     )
     .query(async ({ input, ctx }) => {
       const { instruction, taskCoords, hexPlanInitializerPath } = input
+      const requester = _getRequesterUserId(ctx.user)
 
       // Import utilities
       const { CoordSystem } = await import('~/lib/domains/mapping/utils')
@@ -494,7 +496,8 @@ export const agenticRouter = createTRPCRouter({
       let taskTile
       try {
         taskTile = await ctx.mappingService.items.crud.getItem({
-          coords: taskCoord
+          coords: taskCoord,
+          requester
         })
       } catch (error) {
         throw new TRPCError({
@@ -516,7 +519,8 @@ export const agenticRouter = createTRPCRouter({
         try {
           const childCoords = { ...taskCoord, path: [...taskCoord.path, dir] }
           const child = await ctx.mappingService.items.crud.getItem({
-            coords: childCoords
+            coords: childCoords,
+            requester
           })
           if (child) {
             structuralChildren.push({
@@ -538,7 +542,8 @@ export const agenticRouter = createTRPCRouter({
       try {
         const hexPlanCoord = { ...taskCoord, path: [...taskCoord.path, 0] }
         const hexPlanTile = await ctx.mappingService.items.crud.getItem({
-          coords: hexPlanCoord
+          coords: hexPlanCoord,
+          requester
         })
         if (hexPlanTile.content?.trim()) {
           hexPlan = hexPlanTile.content

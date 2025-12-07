@@ -88,6 +88,7 @@ describe("MappingService - Deep Copy with Negative Directions [Integration - DB]
           groupId: setupParams.groupId,
           path: [Direction.West, Direction.ComposedNorthWest],
         }),
+        requester: SYSTEM_INTERNAL,
       });
 
       const copiedComposedChild2 = await testEnv.service.items.crud.getItem({
@@ -96,6 +97,7 @@ describe("MappingService - Deep Copy with Negative Directions [Integration - DB]
           groupId: setupParams.groupId,
           path: [Direction.West, Direction.ComposedEast],
         }),
+        requester: SYSTEM_INTERNAL,
       });
 
       expect(copiedComposedChild1.title).toBe("Composed Child 1");
@@ -170,6 +172,7 @@ describe("MappingService - Deep Copy with Negative Directions [Integration - DB]
           groupId: setupParams.groupId,
           path: [Direction.SouthWest, Direction.East],
         }),
+        requester: SYSTEM_INTERNAL,
       });
       expect(copiedStructuralChild.title).toBe("Structural Child");
 
@@ -180,6 +183,7 @@ describe("MappingService - Deep Copy with Negative Directions [Integration - DB]
           groupId: setupParams.groupId,
           path: [Direction.SouthWest, Direction.ComposedWest],
         }),
+        requester: SYSTEM_INTERNAL,
       });
       expect(copiedComposedChild.title).toBe("Composed Child");
     });
@@ -248,6 +252,7 @@ describe("MappingService - Deep Copy with Negative Directions [Integration - DB]
             groupId: setupParams.groupId,
             path: [Direction.West, composedDirections[i]!],
           }),
+          requester: SYSTEM_INTERNAL,
         });
         expect(copiedChild.title).toBe(`Composed Child ${i + 1}`);
       }
@@ -316,6 +321,7 @@ describe("MappingService - Deep Copy with Negative Directions [Integration - DB]
           groupId: setupParams.groupId,
           path: [Direction.SouthEast, Direction.East, Direction.ComposedSouthWest],
         }),
+        requester: SYSTEM_INTERNAL,
       });
       expect(copiedNestedComposedChild.title).toBe("Nested Composed Child");
     });

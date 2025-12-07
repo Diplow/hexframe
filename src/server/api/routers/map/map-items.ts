@@ -119,7 +119,8 @@ export const mapItemsRouter = createTRPCRouter({
       } else if (coords.path.length > 0) {
         // No explicit parent provided, but creating below root: validate inferred parent ownership
         const inferredParentCoords = { ...coords, path: coords.path.slice(0, -1) };
-        const inferredParent = await ctx.mappingService.items.crud.getItem({ coords: inferredParentCoords });
+        const requester = _getRequesterUserId(ctx.user);
+        const inferredParent = await ctx.mappingService.items.crud.getItem({ coords: inferredParentCoords, requester });
         if (inferredParent.ownerId !== currentUserIdString) {
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -436,8 +437,10 @@ export const mapItemsRouter = createTRPCRouter({
       const currentUserIdString = String(currentUserId);
 
       // Verify user owns the parent item
+      const requester = _getRequesterUserId(ctx.user);
       const parentItem = await ctx.mappingService.items.crud.getItem({
         coords: input.coords as Coord,
+        requester,
       });
 
       if (parentItem.ownerId !== currentUserIdString) {

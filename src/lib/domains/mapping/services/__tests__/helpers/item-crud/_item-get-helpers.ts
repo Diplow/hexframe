@@ -4,6 +4,7 @@ import type { Coord } from "~/lib/domains/mapping/utils";
 import type { TestEnvironment } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { _setupBasicMap, _createTestCoordinates } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { MapItemType } from "~/lib/domains/mapping/_objects/map-item";
+import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 export async function _setupItemForRetrieval(
   testEnv: TestEnvironment,
@@ -39,6 +40,7 @@ export async function _validateItemRetrieval(
 ) {
   const retrievedItem = await testEnv.service.items.crud.getItem({
     coords: itemCoords,
+    requester: SYSTEM_INTERNAL,
   });
 
   expect(retrievedItem).toBeDefined();
@@ -56,6 +58,6 @@ export async function _validateItemNotFoundError(
   nonExistentCoords: Coord,
 ) {
   await expect(
-    testEnv.service.items.crud.getItem({ coords: nonExistentCoords }),
+    testEnv.service.items.crud.getItem({ coords: nonExistentCoords, requester: SYSTEM_INTERNAL }),
   ).rejects.toThrow();
 }

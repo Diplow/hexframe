@@ -111,14 +111,14 @@ export class ItemCrudService {
   /**
    * Get a specific item by its coordinates
    * @param coords - Coordinates of the item
-   * @param requester - The requester context for visibility filtering
+   * @param requester - The requester context for visibility filtering (required to prevent visibility bypass)
    */
   async getItem({
     coords,
-    requester = SYSTEM_INTERNAL,
+    requester,
   }: {
     coords: Coord;
-    requester?: RequesterContext;
+    requester: RequesterContext;
   }): Promise<MapItemContract> {
     const item = await this.mapItemRepository.getOneByIdr(
       { idr: { attrs: { coords } } },

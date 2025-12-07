@@ -8,6 +8,7 @@ import {
   _setupBasicMap,
   _createUniqueTestParams,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
+import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 /**
  * Integration tests for tRPC API Router - Negative Direction Support
@@ -67,6 +68,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
       // Query through domain service (simulating tRPC API call)
       const item = await testEnv.service.items.crud.getItem({
         coords: composedCoord,
+        requester: SYSTEM_INTERNAL,
       });
 
       // Verify API contract transformation
@@ -119,6 +121,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
       for (let i = 0; i < 6; i++) {
         const item = await testEnv.service.items.crud.getItem({
           coords: composedCoords[i]!,
+          requester: SYSTEM_INTERNAL,
         });
 
         expect(item.title).toBe(`Composed ${i + 1}`);
@@ -163,6 +166,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
       // Get through API and verify all contract fields
       const item = await testEnv.service.items.crud.getItem({
         coords: composedCoord,
+        requester: SYSTEM_INTERNAL,
       });
 
       // API contract should include all expected fields
@@ -497,6 +501,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
       // Verify moved item has new negative direction coords
       const movedItem = await testEnv.service.items.crud.getItem({
         coords: newComposedCoord,
+        requester: SYSTEM_INTERNAL,
       });
 
       expect(movedItem.title).toBe("Movable Composed");
@@ -557,6 +562,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
 
       const movedComposed = await testEnv.service.items.crud.getItem({
         coords: newComposedCoord,
+        requester: SYSTEM_INTERNAL,
       });
 
       expect(movedComposed.title).toBe("Composed Child");
@@ -620,6 +626,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
 
       const copiedComposed = await testEnv.service.items.crud.getItem({
         coords: destComposedCoord,
+        requester: SYSTEM_INTERNAL,
       });
 
       expect(copiedComposed.title).toBe("Source Composed");

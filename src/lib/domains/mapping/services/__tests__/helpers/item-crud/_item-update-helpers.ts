@@ -3,6 +3,7 @@ import { Direction } from "~/lib/domains/mapping/utils";
 import type { Coord } from "~/lib/domains/mapping/utils";
 import type { TestEnvironment } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { _setupBasicMap, _createTestCoordinates } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
+import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 export async function _setupItemForUpdate(
   testEnv: TestEnvironment,
@@ -42,7 +43,7 @@ export async function _validateItemUpdate(
   expect(updatedItemContract.content).toBe(updateData.content);
   expect(updatedItemContract.link).toBe(updateData.link);
 
-  const fetchedAgain = await testEnv.service.items.crud.getItem({ coords: itemCoords });
+  const fetchedAgain = await testEnv.service.items.crud.getItem({ coords: itemCoords, requester: SYSTEM_INTERNAL });
   expect(fetchedAgain).toBeDefined();
   if (!fetchedAgain) throw new Error("Item not found");
   expect(fetchedAgain.title).toBe(updateData.title);
@@ -99,6 +100,7 @@ export async function _updateAndValidateItem(
 
   const fetchedAgain = await testEnv.service.items.crud.getItem({
     coords: itemCoords,
+    requester: SYSTEM_INTERNAL,
   });
   expect(fetchedAgain.title).toBe(updateData.title);
   expect(fetchedAgain.content).toBe(updateData.content);

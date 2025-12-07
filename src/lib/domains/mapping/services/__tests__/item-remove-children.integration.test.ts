@@ -15,6 +15,7 @@ import {
   _validateNoMatchingChildren,
 } from "~/lib/domains/mapping/services/__tests__/helpers/item-crud/_item-remove-children-helpers";
 import { Direction } from "~/lib/domains/mapping/utils";
+import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
   let testEnv: TestEnvironment;
@@ -90,18 +91,20 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
 
       // Structural should be gone
       await expect(
-        testEnv.service.items.crud.getItem({ coords: structuralCoords }),
+        testEnv.service.items.crud.getItem({ coords: structuralCoords, requester: SYSTEM_INTERNAL }),
       ).rejects.toThrow();
 
       // Composed should still exist
       const composedItem = await testEnv.service.items.crud.getItem({
         coords: composedCoords,
+        requester: SYSTEM_INTERNAL,
       });
       expect(composedItem.id).toBe(composedChild.id);
 
       // Exec history should still exist
       const execItem = await testEnv.service.items.crud.getItem({
         coords: execHistoryCoords,
+        requester: SYSTEM_INTERNAL,
       });
       expect(execItem.id).toBe(execHistory.id);
     });
@@ -176,12 +179,13 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
 
       // Nested hexPlan should be gone
       await expect(
-        testEnv.service.items.crud.getItem({ coords: nestedHexPlanCoords }),
+        testEnv.service.items.crud.getItem({ coords: nestedHexPlanCoords, requester: SYSTEM_INTERNAL }),
       ).rejects.toThrow();
 
       // Structural child should still exist
       const structural = await testEnv.service.items.crud.getItem({
         coords: structuralCoords,
+        requester: SYSTEM_INTERNAL,
       });
       expect(structural.id).toBe(structuralChild.id);
     });
@@ -228,12 +232,13 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
 
       // Nested hexPlan should be gone
       await expect(
-        testEnv.service.items.crud.getItem({ coords: nestedHexPlanCoords }),
+        testEnv.service.items.crud.getItem({ coords: nestedHexPlanCoords, requester: SYSTEM_INTERNAL }),
       ).rejects.toThrow();
 
       // Composed child should still exist
       const composed = await testEnv.service.items.crud.getItem({
         coords: composedCoords,
+        requester: SYSTEM_INTERNAL,
       });
       expect(composed.id).toBe(composedChild.id);
     });
@@ -302,13 +307,13 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
 
       // Deep hexPlan should be gone
       await expect(
-        testEnv.service.items.crud.getItem({ coords: deepHexPlanCoords }),
+        testEnv.service.items.crud.getItem({ coords: deepHexPlanCoords, requester: SYSTEM_INTERNAL }),
       ).rejects.toThrow();
 
       // All structural ancestors should still exist
-      expect((await testEnv.service.items.crud.getItem({ coords: level1Coords })).id).toBe(level1.id);
-      expect((await testEnv.service.items.crud.getItem({ coords: level2Coords })).id).toBe(level2.id);
-      expect((await testEnv.service.items.crud.getItem({ coords: level3Coords })).id).toBe(level3.id);
+      expect((await testEnv.service.items.crud.getItem({ coords: level1Coords, requester: SYSTEM_INTERNAL })).id).toBe(level1.id);
+      expect((await testEnv.service.items.crud.getItem({ coords: level2Coords, requester: SYSTEM_INTERNAL })).id).toBe(level2.id);
+      expect((await testEnv.service.items.crud.getItem({ coords: level3Coords, requester: SYSTEM_INTERNAL })).id).toBe(level3.id);
     });
   });
 
@@ -351,12 +356,13 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
 
       // Child should be gone
       await expect(
-        testEnv.service.items.crud.getItem({ coords: childCoords }),
+        testEnv.service.items.crud.getItem({ coords: childCoords, requester: SYSTEM_INTERNAL }),
       ).rejects.toThrow();
 
       // Parent should still exist
       const parentItem = await testEnv.service.items.crud.getItem({
         coords: parentCoords,
+        requester: SYSTEM_INTERNAL,
       });
       expect(parentItem.id).toBe(parent.id);
     });

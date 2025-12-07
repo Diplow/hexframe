@@ -8,6 +8,7 @@ import {
   _createTestCoordinates,
   _createUniqueTestParams,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
+import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 describe("MappingService - Item Relationships [Integration - DB]", () => {
   let testEnv: TestEnvironment;
@@ -89,6 +90,7 @@ describe("MappingService - Item Relationships [Integration - DB]", () => {
 
     const rootMapContract: Awaited<ReturnType<typeof testEnv.service.items.crud.getItem>> = await testEnv.service.items.crud.getItem({
       coords: hierarchySetup.rootMap.coords,
+      requester: SYSTEM_INTERNAL,
     });
 
     const rootDescendants = await testEnv.service.items.query.getDescendants({
