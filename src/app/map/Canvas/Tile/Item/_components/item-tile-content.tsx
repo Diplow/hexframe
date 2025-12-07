@@ -10,8 +10,8 @@ import { useTileInteraction } from "~/app/map/Canvas";
 // import { useRouter } from "next/navigation"; // Removed unused import
 import { useCanvasTheme } from "~/app/map/Canvas";
 import { TileTooltip } from "~/app/map/Canvas/_shared/TileTooltip";
-import { Globe, Lock } from "lucide-react";
-import { Visibility } from '~/lib/domains/mapping/utils';
+import type { Visibility } from '~/lib/domains/mapping/utils';
+import { VisibilityIndicator } from "~/app/map/Canvas/_shared/VisibilityIndicator";
 
 // Types for drag props
 interface DragProps {
@@ -152,32 +152,14 @@ export function ItemTileContent({
                 depth={item.metadata.depth}
                 isSelected={isSelected}
               />
-              {/* Visibility indicator - shown for center tiles OR when different from parent */}
-              {scale >= 1 && (isCenter || item.data.visibility !== parentVisibility) && (
-                <div
-                  className="absolute top-0 pointer-events-auto"
-                  style={{
-                    left: `calc(50% - ${scale >= 2 ? 7 : 5}px)`,
-                    marginTop: scale >= 2 ? 8 : 4,
-                  }}
-                  title={item.data.visibility === Visibility.PUBLIC
-                    ? "This tile is publicly visible"
-                    : "This tile is private"}
-                >
-                  {item.data.visibility === Visibility.PUBLIC ? (
-                    <Globe
-                      size={scale >= 2 ? 14 : 10}
-                      className="opacity-60 text-neutral-500 dark:text-neutral-400 cursor-help"
-                    />
-                  ) : (
-                    <Lock
-                      size={scale >= 2 ? 14 : 10}
-                      className="opacity-60 text-neutral-500 dark:text-neutral-400 cursor-help"
-                    />
-                  )}
-                </div>
-              )}
             </DynamicBaseTileLayout>
+            {/* Visibility indicator - positioned outside clipped area for proper tooltip rendering */}
+            {scale >= 1 && (isCenter || item.data.visibility !== parentVisibility) && (
+              <VisibilityIndicator
+                visibility={item.data.visibility}
+                scale={scale}
+              />
+            )}
           </div>
         </div>
       </TileTooltip>
