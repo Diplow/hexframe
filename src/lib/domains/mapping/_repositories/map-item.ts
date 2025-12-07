@@ -74,7 +74,7 @@ export interface MapItemRepository extends BaseMapItemRepository {
    */
   getManyByIdr(
     params: { idrs: MapItemIdr[]; limit?: number; offset?: number },
-    requester?: RequesterContext
+    requester: RequesterContext
   ): Promise<MapItemWithId[]>;
 
   /**
@@ -92,15 +92,15 @@ export interface MapItemRepository extends BaseMapItemRepository {
   /**
    * Get all root MapItems (type USER) for a specific user across all their groups.
    * @param userId - The owner's user ID
+   * @param requester - The requester context (RequesterUserId for users, SYSTEM_INTERNAL for internal ops)
    * @param limit - Optional limit for pagination
    * @param offset - Optional offset for pagination
-   * @param requester - The requester context (RequesterUserId for users, SYSTEM_INTERNAL for internal ops)
    */
   getRootItemsForUser(
     userId: string,
+    requester: RequesterContext,
     limit?: number,
-    offset?: number,
-    requester?: RequesterContext
+    offset?: number
   ): Promise<MapItemWithId[]>;
 
   /**

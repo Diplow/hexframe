@@ -72,9 +72,9 @@ export class MapManagementService {
     const params = MappingUtils.validatePaginationParameters(limit, offset);
     const rootItems = await this.mapItemRepository.getRootItemsForUser(
       userId,
+      requester,
       params.limit,
       params.offset,
-      requester,
     );
     const mapContracts = await Promise.all(
       rootItems.map(async (root) => {

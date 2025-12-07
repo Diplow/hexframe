@@ -103,9 +103,9 @@ export class DbMapItemRepository implements MapItemRepository {
 
   async getRootItemsForUser(
     userId: string,
+    requester: RequesterContext,
     limit = 50,
-    offset = 0,
-    requester?: RequesterContext
+    offset = 0
   ): Promise<MapItemWithId[]> {
     const results = await this.specializedQueries.fetchRootItemsForUser(
       userId,
@@ -121,7 +121,7 @@ export class DbMapItemRepository implements MapItemRepository {
       limit?: number;
       offset?: number;
     },
-    requester?: RequesterContext
+    requester: RequesterContext
   ): Promise<MapItemWithId[]> {
     const numericIds = this._extractNumericIds(params.idrs);
     if (numericIds.length === 0) return [];
@@ -330,10 +330,11 @@ export class DbMapItemRepository implements MapItemRepository {
     const newItems = await this.writeQueries.createManyMapItems(dbAttrsArray);
 
     // Fetch all created items with their relations
+    // Use SYSTEM_INTERNAL for internal creation operations
     const createdItems = await this.getManyByIdr({
       idrs: newItems.map((item) => ({ id: item.id })),
       limit: newItems.length,
-    });
+    }, SYSTEM_INTERNAL);
 
     return createdItems;
   }
