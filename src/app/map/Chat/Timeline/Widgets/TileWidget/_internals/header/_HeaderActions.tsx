@@ -16,7 +16,8 @@ interface HeaderActionsProps {
   onDeleteChildren?: () => void;
   onDeleteComposed?: () => void;
   onDeleteExecutionHistory?: () => void;
-  onToggleVisibility?: () => void;
+  onSetVisibility?: (visibility: Visibility) => void;
+  onSetVisibilityWithDescendants?: (visibility: Visibility) => void;
   onClose?: () => void;
   onCopyCoordinates?: () => void;
   onHistory?: () => void;
@@ -33,7 +34,8 @@ export function _HeaderActions({
   onDeleteChildren,
   onDeleteComposed,
   onDeleteExecutionHistory,
-  onToggleVisibility,
+  onSetVisibility,
+  onSetVisibilityWithDescendants,
   onClose,
   onCopyCoordinates,
   onHistory,
@@ -72,7 +74,8 @@ export function _HeaderActions({
       onDeleteChildren={onDeleteChildren}
       onDeleteComposed={onDeleteComposed}
       onDeleteExecutionHistory={onDeleteExecutionHistory}
-      onToggleVisibility={onToggleVisibility}
+      onSetVisibility={onSetVisibility}
+      onSetVisibilityWithDescendants={onSetVisibilityWithDescendants}
       onClose={onClose}
       onCopyCoordinates={onCopyCoordinates}
       onHistory={onHistory}

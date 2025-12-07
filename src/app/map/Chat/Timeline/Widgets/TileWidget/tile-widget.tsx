@@ -42,7 +42,8 @@ interface TileWidgetProps {
   onDeleteChildren?: () => void;
   onDeleteComposed?: () => void;
   onDeleteExecutionHistory?: () => void;
-  onToggleVisibility?: () => void;
+  onSetVisibility?: (visibility: Visibility) => void;
+  onSetVisibilityWithDescendants?: (visibility: Visibility) => void;
   onSave?: (title: string, preview: string, content: string) => void;
   onClose?: () => void;
 }
@@ -83,7 +84,8 @@ export function TileWidget({
   onDeleteChildren,
   onDeleteComposed,
   onDeleteExecutionHistory,
-  onToggleVisibility,
+  onSetVisibility,
+  onSetVisibilityWithDescendants,
   onSave,
   onClose,
 }: TileWidgetProps) {
@@ -172,7 +174,8 @@ export function TileWidget({
         onDeleteChildren={currentMode !== 'create' ? onDeleteChildren : undefined}
         onDeleteComposed={currentMode !== 'create' ? onDeleteComposed : undefined}
         onDeleteExecutionHistory={currentMode !== 'create' ? onDeleteExecutionHistory : undefined}
-        onToggleVisibility={currentMode !== 'create' ? onToggleVisibility : undefined}
+        onSetVisibility={currentMode !== 'create' ? onSetVisibility : undefined}
+        onSetVisibilityWithDescendants={currentMode !== 'create' ? onSetVisibilityWithDescendants : undefined}
         onClose={onClose}
         onCopyCoordinates={currentMode !== 'create' ? () => copyToClipboard(coordId, triggerCopySuccess, triggerCopyError) : undefined}
         onHistory={historyHandler}

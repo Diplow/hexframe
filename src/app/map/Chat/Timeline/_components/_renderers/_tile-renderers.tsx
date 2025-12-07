@@ -15,7 +15,8 @@ export function _renderTileWidget(
     handleDeleteChildren,
     handleDeleteComposed,
     handleDeleteExecutionHistory,
-    handleToggleVisibility,
+    handleSetVisibility,
+    handleSetVisibilityWithDescendants,
     handleTileSave = () => { /* noop */ },
     handleTileClose = () => { /* noop */ }
   } = handlers;
@@ -44,7 +45,8 @@ export function _renderTileWidget(
       onDeleteChildren={handleDeleteChildren}
       onDeleteComposed={handleDeleteComposed}
       onDeleteExecutionHistory={handleDeleteExecutionHistory}
-      onToggleVisibility={handleToggleVisibility}
+      onSetVisibility={handleSetVisibility}
+      onSetVisibilityWithDescendants={handleSetVisibilityWithDescendants}
       onSave={handleTileSave}
       onClose={handleTileClose}
     />

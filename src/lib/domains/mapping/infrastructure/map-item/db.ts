@@ -399,4 +399,15 @@ export class DbMapItemRepository implements MapItemRepository {
     // Use SYSTEM_INTERNAL for internal visibility update operations
     return this.getOne(itemId, SYSTEM_INTERNAL);
   }
+
+  /**
+   * Batch update the visibility of a tile and all its descendants in a single atomic operation.
+   * @returns Number of items updated
+   */
+  async batchUpdateVisibilityWithDescendants(
+    coords: Coord,
+    visibility: Visibility,
+  ): Promise<number> {
+    return this.writeQueries.batchUpdateVisibilityWithDescendants(coords, visibility);
+  }
 }

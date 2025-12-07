@@ -23,7 +23,8 @@ interface TileContextMenuProps {
   onCopy?: () => void;
   onMove?: () => void;
   onCopyCoordinates?: () => void;
-  onToggleVisibility?: () => void;
+  onSetVisibility?: (visibility: Visibility) => void;
+  onSetVisibilityWithDescendants?: (visibility: Visibility) => void;
   visibility?: Visibility;
   canEdit: boolean;
   isEmptyTile?: boolean;
@@ -50,7 +51,8 @@ export function TileContextMenu({
   onCopy,
   onMove,
   onCopyCoordinates,
-  onToggleVisibility,
+  onSetVisibility,
+  onSetVisibilityWithDescendants,
   visibility,
   canEdit,
   isEmptyTile = false,
@@ -79,7 +81,8 @@ export function TileContextMenu({
     onCopy,
     onMove,
     onCopyCoordinates,
-    onToggleVisibility,
+    onSetVisibility,
+    onSetVisibilityWithDescendants,
   });
 
   return (

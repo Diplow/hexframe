@@ -8,6 +8,7 @@ import type { useEventBus } from '~/app/map/Services/EventBus';
 interface HandlerDependencies {
   createItemOptimistic: ReturnType<typeof useMapCache>['createItemOptimistic'];
   updateItemOptimistic: ReturnType<typeof useMapCache>['updateItemOptimistic'];
+  updateVisibilityWithDescendantsOptimistic: ReturnType<typeof useMapCache>['updateVisibilityWithDescendantsOptimistic'];
   getItem: ReturnType<typeof useMapCache>['getItem'];
   eventBus: ReturnType<typeof useEventBus>;
   chatState: ReturnType<typeof useChatOperations>;
@@ -32,9 +33,9 @@ export function _createWidgetHandlers(widget: Widget, deps: HandlerDependencies)
     case 'tile':
       return createTileHandlers(widget, {
         updateItemOptimistic: deps.updateItemOptimistic,
+        updateVisibilityWithDescendantsOptimistic: deps.updateVisibilityWithDescendantsOptimistic,
         eventBus: deps.eventBus,
         chatState: deps.chatState,
-        getItem: deps.getItem,
       });
     case 'creation':
       return createCreationHandlers(widget, deps);

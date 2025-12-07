@@ -1,6 +1,6 @@
 'use client';
 
-import { Edit, Trash2, X, Copy, History, FolderTree, Layers, Clock, Lock, Unlock } from 'lucide-react';
+import { Edit, Trash2, X, Copy, History, FolderTree, Layers, Clock, Lock, Unlock, Eye } from 'lucide-react';
 import { ContextMenu, type ContextMenuItemData } from '~/components/ui/context-menu';
 import { Visibility } from '~/lib/domains/mapping/utils';
 
@@ -16,7 +16,8 @@ interface MenuDropdownProps {
   onHistory?: () => void;
   onMenuClose: () => void;
   visibility?: Visibility;
-  onToggleVisibility?: () => void;
+  onSetVisibility?: (visibility: Visibility) => void;
+  onSetVisibilityWithDescendants?: (visibility: Visibility) => void;
 }
 
 export function _MenuDropdown({
@@ -31,7 +32,8 @@ export function _MenuDropdown({
   onHistory,
   onMenuClose,
   visibility,
-  onToggleVisibility,
+  onSetVisibility,
+  onSetVisibilityWithDescendants,
 }: MenuDropdownProps) {
   // Build delete submenu items
   const deleteSubmenuItems: ContextMenuItemData[] = [];
@@ -86,12 +88,40 @@ export function _MenuDropdown({
     });
   }
 
-  if (onToggleVisibility) {
-    menuItems.push({
-      icon: visibility === Visibility.PRIVATE ? Unlock : Lock,
-      label: visibility === Visibility.PRIVATE ? 'Make Public' : 'Make Private',
-      onClick: onToggleVisibility,
-    });
+  // Build visibility submenu
+  if (visibility && (onSetVisibility || onSetVisibilityWithDescendants)) {
+    const isPrivate = visibility === Visibility.PRIVATE;
+    const targetVisibility = isPrivate ? Visibility.PUBLIC : Visibility.PRIVATE;
+    const actionLabel = isPrivate ? 'Public' : 'Private';
+
+    const visibilitySubmenuItems: ContextMenuItemData[] = [];
+
+    if (onSetVisibility) {
+      visibilitySubmenuItems.push({
+        icon: isPrivate ? Unlock : Lock,
+        label: `Make ${actionLabel}`,
+        onClick: () => onSetVisibility(targetVisibility),
+      });
+    }
+
+    if (onSetVisibilityWithDescendants) {
+      visibilitySubmenuItems.push({
+        icon: isPrivate ? Unlock : Lock,
+        label: `Make ${actionLabel} (with descendants)`,
+        onClick: () => onSetVisibilityWithDescendants(targetVisibility),
+      });
+    }
+
+    // If only one option, show directly; otherwise show submenu
+    if (visibilitySubmenuItems.length === 1) {
+      menuItems.push(visibilitySubmenuItems[0]!);
+    } else if (visibilitySubmenuItems.length > 1) {
+      menuItems.push({
+        icon: Eye,
+        label: 'Visibility',
+        submenu: visibilitySubmenuItems,
+      });
+    }
   }
 
   if (onHistory) {

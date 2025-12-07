@@ -10,7 +10,7 @@ import { useTileInteraction } from "~/app/map/Canvas";
 // import { useRouter } from "next/navigation"; // Removed unused import
 import { useCanvasTheme } from "~/app/map/Canvas";
 import { TileTooltip } from "~/app/map/Canvas/_shared/TileTooltip";
-import { Lock } from "lucide-react";
+import { Globe, Lock } from "lucide-react";
 import { Visibility } from '~/lib/domains/mapping/utils';
 
 // Types for drag props
@@ -42,6 +42,7 @@ interface ItemTileContentProps {
   operationType?: 'create' | 'update' | 'delete' | 'move' | 'copy' | 'swap' | null;
   dragProps?: DragProps; // Drag props from useItemState
   dataAttributes?: DataAttributes; // Data attributes for drag service
+  parentVisibility?: Visibility; // Parent's visibility for comparison
   onNavigate?: (coordId: string) => void;
   onToggleExpansion?: (itemId: string, coordId: string) => void;
 }
@@ -61,11 +62,12 @@ export function ItemTileContent({
   urlInfo: _urlInfo,
   allExpandedItemIds,
   hasChildren,
-  isCenter: _isCenter,
+  isCenter,
   canEdit,
   isSelected,
   dragProps,
   dataAttributes,
+  parentVisibility,
   onNavigate,
   onToggleExpansion,
 }: ItemTileContentProps) {
@@ -116,7 +118,7 @@ export function ItemTileContent({
             // Clip to hexagon shape for precise click detection
             clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
             // Give neighbors higher z-index than center for corner priority
-            zIndex: _isCenter ? 20 : 25,
+            zIndex: isCenter ? 20 : 25,
             pointerEvents: interactive ? "auto" : "none"
           }}
           onClick={interactive ? (e) => void handleClick(e) : undefined}
@@ -150,12 +152,30 @@ export function ItemTileContent({
                 depth={item.metadata.depth}
                 isSelected={isSelected}
               />
-              {/* Private visibility indicator */}
-              {item.data.visibility === Visibility.PRIVATE && scale >= 1 && (
-                <Lock
-                  size={scale >= 2 ? 12 : 8}
-                  className="absolute top-[15%] right-[20%] opacity-60 text-neutral-500 dark:text-neutral-400 pointer-events-none"
-                />
+              {/* Visibility indicator - shown for center tiles OR when different from parent */}
+              {scale >= 1 && (isCenter || item.data.visibility !== parentVisibility) && (
+                <div
+                  className="absolute top-0 pointer-events-auto"
+                  style={{
+                    left: `calc(50% - ${scale >= 2 ? 7 : 5}px)`,
+                    marginTop: scale >= 2 ? 8 : 4,
+                  }}
+                  title={item.data.visibility === Visibility.PUBLIC
+                    ? "This tile is publicly visible"
+                    : "This tile is private"}
+                >
+                  {item.data.visibility === Visibility.PUBLIC ? (
+                    <Globe
+                      size={scale >= 2 ? 14 : 10}
+                      className="opacity-60 text-neutral-500 dark:text-neutral-400 cursor-help"
+                    />
+                  ) : (
+                    <Lock
+                      size={scale >= 2 ? 14 : 10}
+                      className="opacity-60 text-neutral-500 dark:text-neutral-400 cursor-help"
+                    />
+                  )}
+                </div>
               )}
             </DynamicBaseTileLayout>
           </div>

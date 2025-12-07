@@ -15,7 +15,7 @@ import {
   _buildDeleteSubmenu,
   _buildCreateItem,
   _buildCopyCoordinatesItem,
-  _buildVisibilityItem,
+  _buildVisibilitySubmenu,
 } from "~/app/map/Canvas/_internals/menu/_builders/edit-actions";
 
 export type MenuItem = ContextMenuItemData;
@@ -41,7 +41,8 @@ interface MenuItemsConfig {
   onCopy?: () => void;
   onMove?: () => void;
   onCopyCoordinates?: () => void;
-  onToggleVisibility?: () => void;
+  onSetVisibility?: (visibility: Visibility) => void;
+  onSetVisibilityWithDescendants?: (visibility: Visibility) => void;
 }
 
 export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
@@ -66,7 +67,8 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
     onCopy,
     onMove,
     onCopyCoordinates,
-    onToggleVisibility,
+    onSetVisibility,
+    onSetVisibilityWithDescendants,
   } = config;
 
   if (isEmptyTile) {
@@ -87,7 +89,10 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
     ..._buildEditItem(canEdit, onEdit),
     ..._buildCopyItem(canEdit, onCopy),
     ..._buildMoveItem(canEdit, onMove),
-    ..._buildVisibilityItem(canEdit, visibility, onToggleVisibility),
+    ..._buildVisibilitySubmenu(canEdit, visibility, {
+      onSetVisibility,
+      onSetVisibilityWithDescendants,
+    }),
     ..._buildDeleteSubmenu(canEdit, {
       onDelete,
       onDeleteChildren,

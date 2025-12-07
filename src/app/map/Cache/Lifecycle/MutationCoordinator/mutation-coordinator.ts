@@ -61,6 +61,12 @@ export interface MutationCoordinatorConfig {
       directionType: 'structural' | 'composed' | 'hexPlan';
     }) => Promise<{ success: boolean; deletedCount: number }>;
   };
+  updateVisibilityWithDescendantsMutation?: {
+    mutateAsync: (params: {
+      coords: Coord;
+      visibility: Visibility;
+    }) => Promise<{ success: boolean; updatedCount: number }>;
+  };
   eventBus?: EventBusService;
 }
 
@@ -626,6 +632,127 @@ export class MutationCoordinator {
         this._rollbackDeleteChildren(previousChildrenData, changeId);
         throw error;
       }
+    });
+  }
+
+  /**
+   * Update visibility of a tile and all its descendants in a single backend call.
+   * This is more efficient than updating each tile individually.
+   */
+  async updateVisibilityWithDescendants(
+    coordId: string,
+    visibility: Visibility
+  ): Promise<MutationResult & { updatedCount: number }> {
+    if (!this.config.updateVisibilityWithDescendantsMutation) {
+      throw new Error("Update visibility with descendants mutation not configured");
+    }
+
+    return this.trackOperation(coordId, 'update', async () => {
+      const changeId = this.tracker.generateChangeId();
+      const existingItem = this._getExistingItem(coordId);
+
+      // Get all descendants that will be updated for optimistic update
+      const currentState = this.config.getState();
+      const descendants = this._getAllDescendants(coordId, currentState.itemsById);
+
+      // Store previous state for rollback
+      const previousData: MapItemAPIContract[] = [
+        this._reconstructApiData(existingItem),
+        ...descendants.map(d => this._reconstructApiData(d))
+      ];
+
+      try {
+        // Emit operation started event
+        this.config.eventBus?.emit({
+          type: 'map.operation_started',
+          payload: {
+            operation: 'update',
+            tileId: coordId,
+            tileName: `${existingItem.data.title} (and descendants)`,
+          },
+          source: 'map_cache',
+          timestamp: new Date(),
+        });
+
+        // Apply optimistic visibility update to tile and all descendants
+        this._applyOptimisticVisibilityUpdate(existingItem, descendants, visibility, previousData, changeId);
+
+        // Make single server call
+        const coords = CoordSystem.parseId(coordId);
+        const result = await this.config.updateVisibilityWithDescendantsMutation!.mutateAsync({
+          coords,
+          visibility,
+        });
+
+        // Check if server reported failure
+        if (!result.success) {
+          this._rollbackVisibilityUpdate(previousData, changeId);
+          throw new Error(`Server failed to update visibility. Updated count: ${result.updatedCount}`);
+        }
+
+        // Finalize
+        this.tracker.removeChange(changeId);
+
+        // Emit update event
+        this._emitVisibilityUpdateEvent(existingItem, visibility, result.updatedCount);
+
+        return { success: result.success, updatedCount: result.updatedCount };
+      } catch (error) {
+        this._rollbackVisibilityUpdate(previousData, changeId);
+        throw error;
+      }
+    });
+  }
+
+  private _applyOptimisticVisibilityUpdate(
+    rootItem: TileData,
+    descendants: TileData[],
+    visibility: Visibility,
+    previousData: MapItemAPIContract[],
+    changeId: string
+  ): void {
+    // Track for rollback
+    this.tracker.trackChange(changeId, {
+      type: 'update',
+      coordId: rootItem.metadata.coordId,
+      metadata: { previousVisibilityData: previousData }
+    });
+
+    // Create updated items with new visibility
+    const updatedItems: MapItemAPIContract[] = [
+      { ...this._reconstructApiData(rootItem), visibility },
+      ...descendants.map(d => ({ ...this._reconstructApiData(d), visibility }))
+    ];
+
+    // Apply to cache
+    this.config.dispatch(cacheActions.loadRegion(updatedItems, rootItem.metadata.coordId, 1));
+  }
+
+  private _rollbackVisibilityUpdate(previousData: MapItemAPIContract[], changeId: string): void {
+    if (previousData.length > 0 && previousData[0]) {
+      this.config.dispatch(cacheActions.loadRegion(previousData, previousData[0].coordinates, 1));
+    }
+    this.tracker.removeChange(changeId);
+  }
+
+  private _emitVisibilityUpdateEvent(
+    rootItem: TileData,
+    visibility: Visibility,
+    updatedCount: number
+  ): void {
+    if (!this.config.eventBus) return;
+
+    // Use existing map.tile_updated event type with visibility change info
+    this.config.eventBus.emit({
+      type: 'map.tile_updated',
+      source: 'map_cache',
+      payload: {
+        tileId: String(rootItem.metadata.dbId),
+        tileName: rootItem.data.title,
+        coordId: rootItem.metadata.coordId,
+        changes: { visibility, descendantsUpdated: updatedCount },
+      },
+      timestamp: new Date(),
     });
   }
 

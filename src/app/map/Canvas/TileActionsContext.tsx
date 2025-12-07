@@ -13,6 +13,7 @@ import { useTileClickHandlers } from "~/app/map/Canvas/_internals/tile-click-han
 import { ContextMenuContainer } from "~/app/map/Canvas/_components/ContextMenuContainer";
 import { simulateDragStart } from "~/app/map/Canvas/_internals/drag-simulator";
 import { CopyFeedback, useCopyFeedback } from "~/components/ui/copy-feedback";
+import type { Visibility } from '~/lib/domains/mapping/utils';
 
 export interface TileActionsContextValue {
   // Click handlers
@@ -62,7 +63,8 @@ interface TileActionsProviderProps {
   onDeleteComposedClick?: (tileData: TileData) => void;
   onDeleteExecutionHistoryClick?: (tileData: TileData) => void;
   onCompositionToggle?: (tileData: TileData) => void;
-  onToggleVisibility?: (tileData: TileData) => void;
+  onSetVisibility?: (tileData: TileData, visibility: Visibility) => void;
+  onSetVisibilityWithDescendants?: (tileData: TileData, visibility: Visibility) => void;
   // Composition state - for context menu
   hasComposition?: (coordId: string) => boolean;
   isCompositionExpanded?: (coordId: string) => boolean;
@@ -88,7 +90,8 @@ export function TileActionsProvider({
   onDeleteComposedClick,
   onDeleteExecutionHistoryClick,
   onCompositionToggle,
-  onToggleVisibility,
+  onSetVisibility,
+  onSetVisibilityWithDescendants,
   hasComposition,
   isCompositionExpanded,
   canShowComposition,
@@ -206,7 +209,8 @@ export function TileActionsProvider({
         onCopyCoordinatesSuccess={triggerCopySuccess}
         onCopyCoordinatesError={triggerCopyError}
         onCompositionToggle={onCompositionToggle}
-        onToggleVisibility={onToggleVisibility}
+        onSetVisibility={onSetVisibility}
+        onSetVisibilityWithDescendants={onSetVisibilityWithDescendants}
         hasComposition={hasComposition}
         isCompositionExpanded={isCompositionExpanded}
         canShowComposition={canShowComposition}

@@ -191,6 +191,43 @@ export class ItemCrudService {
   }
 
   /**
+   * Update visibility of a tile and all its descendants in a single atomic operation.
+   * This is more efficient than updating each tile individually.
+   *
+   * @param coords - Coordinates of the root tile
+   * @param visibility - New visibility value
+   * @param requester - The requester context for ownership validation
+   * @returns Number of items updated
+   */
+  async updateVisibilityWithDescendants({
+    coords,
+    visibility,
+    requester,
+  }: {
+    coords: Coord;
+    visibility: Visibility;
+    requester: RequesterContext;
+  }): Promise<{ updatedCount: number }> {
+    // Validate ownership - only the owner can change visibility
+    if (requester !== SYSTEM_INTERNAL && requester !== coords.userId) {
+      throw new Error("Only the owner can change tile visibility.");
+    }
+
+    // Validate visibility inheritance if setting to public
+    if (visibility === Visibility.PUBLIC) {
+      await this._validateVisibilityInheritance(coords, visibility);
+    }
+
+    // Perform the batch update
+    const updatedCount = await this.mapItemRepository.batchUpdateVisibilityWithDescendants(
+      coords,
+      visibility,
+    );
+
+    return { updatedCount };
+  }
+
+  /**
    * Remove a specific item (and its descendants)
    */
   async removeItem({ coords }: { coords: Coord }): Promise<void> {

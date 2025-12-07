@@ -228,4 +228,17 @@ export interface MapItemRepository extends BaseMapItemRepository {
    * @returns The updated map item
    */
   updateVisibility(itemId: number, visibility: Visibility): Promise<MapItemWithId>;
+
+  /**
+   * Batch update the visibility of a tile and all its descendants in a single atomic operation.
+   * Descendants are identified by path prefix matching.
+   *
+   * @param coords - Coordinates of the root tile
+   * @param visibility - New visibility value
+   * @returns Number of items updated
+   */
+  batchUpdateVisibilityWithDescendants(
+    coords: Coord,
+    visibility: Visibility,
+  ): Promise<number>;
 }

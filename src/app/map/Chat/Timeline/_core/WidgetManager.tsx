@@ -12,7 +12,7 @@ interface WidgetManagerProps {
 }
 
 export function WidgetManager({ widgets, focusChatInput: focusChatInputProp }: WidgetManagerProps) {
-  const { createItemOptimistic, updateItemOptimistic, getItem } = useMapCache();
+  const { createItemOptimistic, updateItemOptimistic, updateVisibilityWithDescendantsOptimistic, getItem } = useMapCache();
   const eventBus = useEventBus();
   const chatState = useChatState();
 
@@ -22,6 +22,7 @@ export function WidgetManager({ widgets, focusChatInput: focusChatInputProp }: W
   const deps = {
     createItemOptimistic,
     updateItemOptimistic,
+    updateVisibilityWithDescendantsOptimistic,
     getItem,
     eventBus,
     chatState,

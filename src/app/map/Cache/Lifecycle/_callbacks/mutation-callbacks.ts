@@ -73,11 +73,21 @@ export function createMutationCallbacks(mutationOperations: MutationOperations) 
     return result;
   };
 
+  const updateVisibilityWithDescendantsOptimistic = async (
+    coordId: string,
+    visibility: "public" | "private"
+  ) => {
+    const visibilityEnum = toVisibilityEnum(visibility)!;
+    const result = await mutationOperations.updateVisibilityWithDescendants(coordId, visibilityEnum);
+    return result;
+  };
+
   return {
     createItemOptimistic,
     updateItemOptimistic,
     deleteItemOptimistic,
     deleteChildrenByTypeOptimistic,
+    updateVisibilityWithDescendantsOptimistic,
     moveItemOptimistic,
     copyItemOptimistic,
     rollbackOptimisticChange: mutationOperations.rollbackOptimisticChange,

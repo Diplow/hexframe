@@ -454,4 +454,38 @@ export const mapItemsRouter = createTRPCRouter({
 
       return { success: true, deletedCount: result.deletedCount };
     }),
+
+  // Update visibility for a tile and all its descendants in a single operation
+  updateVisibilityWithDescendants: dualAuthProcedure
+    .use(mappingServiceMiddleware)
+    .input(z.object({
+      coords: hexCoordSchema,
+      visibility: z.enum(['public', 'private']),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const currentUserId = _getUserId(ctx.user);
+      const currentUserIdString = String(currentUserId);
+      const requester = _getRequesterUserId(ctx.user);
+
+      // Verify user owns the root item
+      const item = await ctx.mappingService.items.crud.getItem({
+        coords: input.coords as Coord,
+        requester,
+      });
+
+      if (item.ownerId !== currentUserIdString) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You can only change visibility of items you own",
+        });
+      }
+
+      const result = await ctx.mappingService.items.crud.updateVisibilityWithDescendants({
+        coords: input.coords as Coord,
+        visibility: toVisibilityEnum(input.visibility)!,
+        requester,
+      });
+
+      return { success: true, updatedCount: result.updatedCount };
+    }),
 });

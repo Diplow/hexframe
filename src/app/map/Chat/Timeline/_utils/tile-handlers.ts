@@ -11,18 +11,18 @@ interface TileHandlerDeps {
     description?: string;
     visibility?: "public" | "private";
   }) => Promise<void>;
+  updateVisibilityWithDescendantsOptimistic: (coordId: string, visibility: "public" | "private") => Promise<unknown>;
   eventBus: EventBusService | null;
   chatState: {
     closeWidget: (id: string) => void;
   };
-  getItem?: (coordId: string) => { data: { visibility?: Visibility } } | null;
 }
 
 export function createTileHandlers(
   widget: Widget,
   deps: TileHandlerDeps
 ) {
-  const { updateItemOptimistic, eventBus, chatState, getItem } = deps;
+  const { updateItemOptimistic, updateVisibilityWithDescendantsOptimistic, eventBus, chatState } = deps;
 
   const handleEdit = () => {
     // The TileWidget component handles edit mode internally
@@ -115,12 +115,10 @@ export function createTileHandlers(
     }
   };
 
-  const handleToggleVisibility = async () => {
+  const handleSetVisibility = async (visibility: Visibility) => {
     const tileData = widget.data as TileSelectedPayload;
     try {
-      const currentTile = getItem?.(tileData.tileId);
-      const currentVisibility = currentTile?.data.visibility ?? Visibility.PRIVATE;
-      const newVisibility = currentVisibility === Visibility.PRIVATE ? "public" : "private";
+      const newVisibility = visibility === Visibility.PUBLIC ? "public" : "private";
       await updateItemOptimistic(tileData.tileId, {
         visibility: newVisibility,
       });
@@ -138,13 +136,36 @@ export function createTileHandlers(
     }
   };
 
+  const handleSetVisibilityWithDescendants = async (visibility: Visibility) => {
+    const tileData = widget.data as TileSelectedPayload;
+    const coordId = tileData.tileId;
+    const newVisibility = visibility === Visibility.PUBLIC ? "public" : "private";
+
+    try {
+      // Use single optimized backend call to update tile and all descendants
+      await updateVisibilityWithDescendantsOptimistic(coordId, newVisibility);
+    } catch (error) {
+      eventBus?.emit({
+        type: 'error.occurred',
+        payload: {
+          error: error instanceof Error ? error.message : 'Unknown error',
+          context: { operation: 'update', tileId: coordId },
+          retryable: true,
+        },
+        source: 'map_cache',
+        timestamp: new Date(),
+      });
+    }
+  };
+
   return {
     handleEdit,
     handleDelete,
     handleDeleteChildren,
     handleDeleteComposed,
     handleDeleteExecutionHistory,
-    handleToggleVisibility,
+    handleSetVisibility,
+    handleSetVisibilityWithDescendants,
     handleTileSave,
     handleTileClose,
   };

@@ -10,7 +10,7 @@ import { useMapCache, type MapCacheHook } from '~/app/map/Cache';
 import { useRouter } from "next/navigation";
 import { useEventBus, type EventBusService } from '~/app/map';
 import { CoordSystem } from "~/lib/domains/mapping/utils";
-import { Visibility } from '~/lib/domains/mapping/utils';
+import type { Visibility } from '~/lib/domains/mapping/utils';
 // Removed drag service import - using global service
 
 const CACHE_CONFIG = {
@@ -226,12 +226,15 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
     router
   );
 
-  const handleToggleVisibility = useCallback((tileData: TileData) => {
-    const currentVisibility = tileData.data.visibility ?? Visibility.PRIVATE;
-    const newVisibility = currentVisibility === Visibility.PRIVATE ? "public" : "private";
+  const handleSetVisibility = useCallback((tileData: TileData, visibility: Visibility) => {
     void cache.updateItemOptimistic(tileData.metadata.coordId, {
-      visibility: newVisibility,
+      visibility,
     });
+  }, [cache]);
+
+  const handleSetVisibilityWithDescendants = useCallback((tileData: TileData, visibility: Visibility) => {
+    // Use optimized backend call that updates tile and all descendants in a single request
+    void cache.updateVisibilityWithDescendantsOptimistic(tileData.metadata.coordId, visibility);
   }, [cache]);
 
   // Composition state checkers
@@ -280,7 +283,8 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
       onDeleteComposedClick={handleDeleteComposedClick}
       onDeleteExecutionHistoryClick={handleDeleteExecutionHistoryClick}
       onCompositionToggle={handleCompositionToggle}
-      onToggleVisibility={handleToggleVisibility}
+      onSetVisibility={handleSetVisibility}
+      onSetVisibilityWithDescendants={handleSetVisibilityWithDescendants}
       hasComposition={hasComposition}
       isCompositionExpanded={isCompositionExpandedForTile}
       canShowComposition={canShowComposition}

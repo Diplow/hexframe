@@ -8,6 +8,7 @@ import { ItemTileContent } from "~/app/map/Canvas/Tile/Item/_components/item-til
 import { useEffect } from "react";
 import { loggers } from "~/lib/debug/debug-logger";
 import { calculateTileDimensions } from "~/app/map/Canvas/Tile/utils/dimensions";
+import type { Visibility } from "~/lib/domains/mapping/utils";
 
 export interface DynamicItemTileProps {
   item: TileData;
@@ -20,6 +21,7 @@ export interface DynamicItemTileProps {
   interactive?: boolean;
   currentUserId?: string;
   isSelected?: boolean;
+  parentVisibility?: Visibility; // Parent's visibility for comparison
   onNavigate?: (coordId: string) => void;
   onToggleExpansion?: (itemId: string, coordId: string) => void;
 }
