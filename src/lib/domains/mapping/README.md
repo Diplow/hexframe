@@ -58,8 +58,8 @@ All tile content changes are automatically tracked with immutable version snapsh
 
 **Tile Visibility System:**
 Each tile has a visibility setting that controls who can access it:
-- `PUBLIC` - Visible to everyone (default for new tiles)
-- `PRIVATE` - Visible only to the owner
+- `PRIVATE` - Visible only to the owner (default for new tiles)
+- `PUBLIC` - Visible to everyone
 
 Visibility filtering is enforced at the repository layer using `RequesterContext`:
 - `RequesterUserId` - A branded type representing an authenticated user's ID
