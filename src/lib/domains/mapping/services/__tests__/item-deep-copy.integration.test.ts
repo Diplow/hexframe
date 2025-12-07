@@ -8,6 +8,7 @@ import {
   type TestEnvironment,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { Direction } from "~/lib/domains/mapping/utils";
+import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 describe("MappingService - Deep Copy [Integration - DB]", () => {
   let testEnv: TestEnvironment;
@@ -72,6 +73,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       // Verify source item is unchanged
       const sourceItemAfter = await testEnv.service.items.crud.getItem({
         coords: sourceCoords,
+        requester: SYSTEM_INTERNAL,
       });
       expect(sourceItemAfter.title).toBe("Source Item");
       expect(sourceItemAfter.depth).toBe(1);
@@ -154,10 +156,12 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
 
       const copiedChild1 = await testEnv.service.items.crud.getItem({
         coords: copiedChild1Coords,
+        requester: SYSTEM_INTERNAL,
       });
 
       const copiedChild2 = await testEnv.service.items.crud.getItem({
         coords: copiedChild2Coords,
+        requester: SYSTEM_INTERNAL,
       });
 
       expect(copiedChild1.title).toBe("Child 1");
@@ -169,6 +173,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       // Verify source tree is unchanged
       const sourceParentAfter = await testEnv.service.items.crud.getItem({
         coords: parentSourceCoords,
+        requester: SYSTEM_INTERNAL,
       });
       expect(sourceParentAfter.title).toBe("Parent Item");
 
@@ -180,6 +185,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
 
       const sourceChild1After = await testEnv.service.items.crud.getItem({
         coords: child1Coords,
+        requester: SYSTEM_INTERNAL,
       });
       expect(sourceChild1After.title).toBe("Child 1");
     });
@@ -248,6 +254,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
           groupId: setupParams.groupId,
           path: [Direction.SouthWest],
         }),
+        requester: SYSTEM_INTERNAL,
       });
       expect(copiedL1.title).toBe("Level 1");
       expect(copiedL1.depth).toBe(1);
@@ -258,6 +265,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
           groupId: setupParams.groupId,
           path: [Direction.SouthWest, Direction.NorthEast],
         }),
+        requester: SYSTEM_INTERNAL,
       });
       expect(copiedL2.title).toBe("Level 2");
       expect(copiedL2.depth).toBe(2);
@@ -268,6 +276,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
           groupId: setupParams.groupId,
           path: [Direction.SouthWest, Direction.NorthEast, Direction.West],
         }),
+        requester: SYSTEM_INTERNAL,
       });
       expect(copiedL3.title).toBe("Level 3");
       expect(copiedL3.depth).toBe(3);
@@ -429,6 +438,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
         parentPath: destinationCoords.path,
         parentUserId: setupParams.userId,
         parentGroupId: setupParams.groupId,
+        requester: SYSTEM_INTERNAL,
       });
 
       expect(descendants.length).toBe(0);
@@ -495,6 +505,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       // Verify the original item at destination still exists and is unchanged
       const itemAtDestination = await testEnv.service.items.crud.getItem({
         coords: destinationCoords,
+        requester: SYSTEM_INTERNAL,
       });
 
       expect(itemAtDestination.id).toBe(existingDestItem.id);
@@ -560,7 +571,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
             },
           },
         },
-      });
+      }, SYSTEM_INTERNAL);
 
       // Get the copied child MapItem from repository
       const copiedChildMapItem = await testEnv.repositories.mapItem.getOneByIdr({
@@ -573,7 +584,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
             },
           },
         },
-      });
+      }, SYSTEM_INTERNAL);
 
       // CRITICAL ASSERTIONS: Verify parent-child relationships
       // Parent should point to the destination parent (rootMap)

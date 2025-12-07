@@ -3,6 +3,7 @@ import type { TileData } from '~/app/map/types';
 import { _renderTileWidget, _renderCreationWidget, _renderDeleteWidget, _renderDeleteChildrenWidget } from '~/app/map/Chat/Timeline/_components/_renderers/_tile-renderers';
 import { _renderLoginWidget, _renderErrorWidget } from '~/app/map/Chat/Timeline/_components/_renderers/_auth-error-renderers';
 import { _renderLoadingWidget, _renderAIResponseWidget, _renderMcpKeysWidget, _renderDebugLogsWidget } from '~/app/map/Chat/Timeline/_components/_renderers/_ai-debug-renderers';
+import type { Visibility } from '~/lib/domains/mapping/utils';
 
 export interface WidgetHandlers {
   handleEdit?: () => void;
@@ -10,6 +11,8 @@ export interface WidgetHandlers {
   handleDeleteChildren?: () => void;
   handleDeleteComposed?: () => void;
   handleDeleteExecutionHistory?: () => void;
+  handleSetVisibility?: (visibility: Visibility) => void;
+  handleSetVisibilityWithDescendants?: (visibility: Visibility) => void;
   handleTileSave?: (title: string, preview: string, content: string) => void;
   handleTileClose?: () => void;
   handleSave?: (name: string, preview: string, content: string) => void;

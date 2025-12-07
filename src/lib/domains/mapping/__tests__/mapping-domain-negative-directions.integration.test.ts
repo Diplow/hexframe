@@ -8,6 +8,7 @@ import {
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { Direction, CoordSystem } from "~/lib/domains/mapping/utils";
 import type { Coord } from "~/lib/domains/mapping/utils";
+import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 /**
  * Integration tests for Mapping Domain - Negative Direction Support
@@ -100,7 +101,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
       // LAYER 4: Repositories - Verify repository methods work
       const parentFromRepo = await testEnv.repositories.mapItem.getOneByIdr({
         idr: { attrs: { coords: parentCoord } }
-      });
+      }, SYSTEM_INTERNAL);
       expect(parentFromRepo).toBeDefined();
 
       // LAYER 5: Infrastructure - Verify database persistence
@@ -108,7 +109,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
       // Now verify the coords were stored correctly with negative directions
       const child1FromDb = await testEnv.repositories.mapItem.getOneByIdr({
         idr: { attrs: { coords: composedCoords[0] } }
-      });
+      }, SYSTEM_INTERNAL);
       expect(child1FromDb).toBeDefined();
       expect(child1FromDb.attrs.coords).toEqual(composedCoords[0]);
 
@@ -247,7 +248,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
 
       const copiedComposed = await testEnv.repositories.mapItem.getOneByIdr({
         idr: { attrs: { coords: destComposedChildCoord } }
-      });
+      }, SYSTEM_INTERNAL);
       expect(copiedComposed).toBeDefined();
       expect(copiedComposed.ref.attrs.title).toBe("Composed Child");
 
@@ -317,7 +318,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
       for (let i = 0; i < 6; i++) {
         const child = await testEnv.repositories.mapItem.getOneByIdr({
           idr: { attrs: { coords: composedCoords[i]! } }
-        });
+        }, SYSTEM_INTERNAL);
         expect(child.attrs.coords.path[child.attrs.coords.path.length - 1]).toBe(expectedDirections[i]);
         expect(child.attrs.coords.path[child.attrs.coords.path.length - 1]).toBe(-(i + 1));
       }
@@ -391,7 +392,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
       // Verify nested coord has multiple negative directions
       const nestedFromDb = await testEnv.repositories.mapItem.getOneByIdr({
         idr: { attrs: { coords: nestedComposedCoord } }
-      });
+      }, SYSTEM_INTERNAL);
       expect(nestedFromDb.attrs.coords.path).toEqual([
         Direction.NorthWest,
         Direction.ComposedEast,
@@ -497,6 +498,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
         includeComposed: true,
         includeChildren: false,
         includeGrandchildren: false,
+        requester: SYSTEM_INTERNAL,
       });
       expect(repoResult.composed).toHaveLength(1);
       expect(repoResult.composed[0]?.ref.attrs.title).toBe("Composed Child");

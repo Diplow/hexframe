@@ -1,6 +1,6 @@
 import type { Dispatch } from "react";
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
-import type { MapItemUpdateAttributes, MapItemCreateAttributes } from "~/lib/domains/mapping/utils";
+import type { MapItemUpdateAttributes, MapItemCreateAttributes, Visibility } from "~/lib/domains/mapping/utils";
 
 // Common handler dependencies
 export interface HandlerConfig {
@@ -96,6 +96,7 @@ export interface MutationOperations {
   updateItem: (coordId: string, data: MapItemUpdateAttributes) => Promise<MutationResult>;
   deleteItem: (coordId: string) => Promise<MutationResult>;
   deleteChildrenByType: (coordId: string, directionType: 'structural' | 'composed' | 'hexPlan') => Promise<MutationResult & { deletedCount: number }>;
+  updateVisibilityWithDescendants: (coordId: string, visibility: Visibility) => Promise<MutationResult & { updatedCount: number }>;
   moveItem: (sourceCoordId: string, targetCoordId: string) => Promise<MutationResult & { isSwap?: boolean }>;
   copyItem: (sourceCoordId: string, destinationCoordId: string, destinationParentId: string) => Promise<MutationResult>;
   rollbackOptimisticChange: (changeId: string) => void;

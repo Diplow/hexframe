@@ -5,6 +5,7 @@ import {
   _setupBasicMap,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { Direction, CoordSystem } from "~/lib/domains/mapping/utils";
+import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 interface HierarchySetupParams {
   userId: string;
@@ -264,6 +265,7 @@ export async function _validateStructuralChildrenRemoval(
     await expect(
       testEnv.service.items.crud.getItem({
         coords: CoordSystem.parseId(child.coordId),
+        requester: SYSTEM_INTERNAL,
       }),
     ).rejects.toThrow();
   }
@@ -272,6 +274,7 @@ export async function _validateStructuralChildrenRemoval(
   for (const child of setupData.composedChildren) {
     const item = await testEnv.service.items.crud.getItem({
       coords: CoordSystem.parseId(child.coordId),
+      requester: SYSTEM_INTERNAL,
     });
     expect(item).toBeDefined();
     expect(item.title).toBe(child.title);
@@ -281,6 +284,7 @@ export async function _validateStructuralChildrenRemoval(
   for (const hp of setupData.hexPlans) {
     const item = await testEnv.service.items.crud.getItem({
       coords: CoordSystem.parseId(hp.coordId),
+      requester: SYSTEM_INTERNAL,
     });
     expect(item).toBeDefined();
   }
@@ -321,6 +325,7 @@ export async function _validateComposedChildrenRemoval(
     await expect(
       testEnv.service.items.crud.getItem({
         coords: CoordSystem.parseId(child.coordId),
+        requester: SYSTEM_INTERNAL,
       }),
     ).rejects.toThrow();
   }
@@ -329,6 +334,7 @@ export async function _validateComposedChildrenRemoval(
   for (const child of setupData.structuralChildren) {
     const item = await testEnv.service.items.crud.getItem({
       coords: CoordSystem.parseId(child.coordId),
+      requester: SYSTEM_INTERNAL,
     });
     expect(item).toBeDefined();
     expect(item.title).toBe(child.title);
@@ -366,6 +372,7 @@ export async function _validateHexPlanRemoval(
     await expect(
       testEnv.service.items.crud.getItem({
         coords: CoordSystem.parseId(hp.coordId),
+        requester: SYSTEM_INTERNAL,
       }),
     ).rejects.toThrow();
   }
@@ -375,6 +382,7 @@ export async function _validateHexPlanRemoval(
     await expect(
       testEnv.service.items.crud.getItem({
         coords: CoordSystem.parseId(hp.coordId),
+        requester: SYSTEM_INTERNAL,
       }),
     ).rejects.toThrow();
   }
@@ -383,6 +391,7 @@ export async function _validateHexPlanRemoval(
   for (const child of setupData.structuralChildren) {
     const item = await testEnv.service.items.crud.getItem({
       coords: CoordSystem.parseId(child.coordId),
+      requester: SYSTEM_INTERNAL,
     });
     expect(item).toBeDefined();
     expect(item.title).toBe(child.title);
@@ -392,6 +401,7 @@ export async function _validateHexPlanRemoval(
   for (const child of setupData.composedChildren) {
     const item = await testEnv.service.items.crud.getItem({
       coords: CoordSystem.parseId(child.coordId),
+      requester: SYSTEM_INTERNAL,
     });
     expect(item).toBeDefined();
     expect(item.title).toBe(child.title);
@@ -422,7 +432,7 @@ export async function _validateNoMatchingChildren(
   expect(result.deletedCount).toBe(0);
 
   // Root should still exist
-  const root = await testEnv.service.items.crud.getItem({ coords });
+  const root = await testEnv.service.items.crud.getItem({ coords, requester: SYSTEM_INTERNAL });
   expect(root).toBeDefined();
   // Note: root.id is string from contract, rootMap.id is number from MapContract
   expect(root.id).toBe(String(rootMap.id));

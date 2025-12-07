@@ -10,6 +10,7 @@ export interface OptimisticChange {
   metadata?: {
     optimisticCoordIds?: string[];
     previousChildrenData?: MapItemAPIContract[];
+    previousVisibilityData?: MapItemAPIContract[];
   };
 }
 

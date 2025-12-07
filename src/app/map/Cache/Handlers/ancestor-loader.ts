@@ -5,6 +5,7 @@ import type { ServerService } from "~/app/map/Cache/Services";
 import type { TileData } from "~/app/map/types";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 import { getColor } from "~/app/map/types";
+import { Visibility } from '~/lib/domains/mapping/utils';
 
 export interface AncestorCheckResult {
   hasAllAncestors: boolean;
@@ -73,9 +74,10 @@ export async function loadAncestorsForItem(
           data: {
             title: ancestor.title,
             content: ancestor.content,
-        preview: ancestor.preview,
+            preview: ancestor.preview,
             link: ancestor.link,
             color: getColor(ancestorCoords),
+            visibility: ancestor.visibility ?? Visibility.PRIVATE,
           },
           metadata: {
             coordId,

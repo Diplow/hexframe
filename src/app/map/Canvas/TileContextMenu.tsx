@@ -3,6 +3,7 @@
 import type { TileData } from "~/app/map/types/tile-data";
 import { ContextMenu } from "~/components/ui/context-menu";
 import { buildMenuItems } from "~/app/map/Canvas/_internals/menu/items-builder";
+import type { Visibility } from '~/lib/domains/mapping/utils';
 
 interface TileContextMenuProps {
   tileData: TileData;
@@ -22,6 +23,9 @@ interface TileContextMenuProps {
   onCopy?: () => void;
   onMove?: () => void;
   onCopyCoordinates?: () => void;
+  onSetVisibility?: (visibility: Visibility) => void;
+  onSetVisibilityWithDescendants?: (visibility: Visibility) => void;
+  visibility?: Visibility;
   canEdit: boolean;
   isEmptyTile?: boolean;
   hasComposition?: boolean;
@@ -47,6 +51,9 @@ export function TileContextMenu({
   onCopy,
   onMove,
   onCopyCoordinates,
+  onSetVisibility,
+  onSetVisibilityWithDescendants,
+  visibility,
   canEdit,
   isEmptyTile = false,
   hasComposition: _hasComposition = false,
@@ -59,6 +66,7 @@ export function TileContextMenu({
     isEmptyTile,
     isCompositionExpanded,
     canShowComposition,
+    visibility,
     onSelect,
     onExpand,
     onNavigate,
@@ -73,6 +81,8 @@ export function TileContextMenu({
     onCopy,
     onMove,
     onCopyCoordinates,
+    onSetVisibility,
+    onSetVisibilityWithDescendants,
   });
 
   return (

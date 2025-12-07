@@ -1,4 +1,5 @@
 import type { Coord } from "~/lib/domains/mapping/utils";
+import { Visibility } from "~/lib/domains/mapping/utils";
 import type { MapItemUpdateAttributes, MapItemCreateAttributes } from "~/lib/domains/mapping/utils";
 import type { MapItemAPIContract } from "~/server/api";
 
@@ -35,6 +36,10 @@ export function _wrapTRPCMutations(mutations: {
     coords: Coord;
     directionType: 'structural' | 'composed' | 'hexPlan';
   }) => Promise<{ success: boolean; deletedCount: number }> };
+  updateVisibilityWithDescendantsMutation: { mutateAsync: (params: {
+    coords: Coord;
+    visibility: 'public' | 'private';
+  }) => Promise<{ success: boolean; updatedCount: number }> };
 }) {
   const wrappedAddItemMutation = {
     mutateAsync: async (params: { coords: Coord; parentId?: number | null } & MapItemCreateAttributes) => {
@@ -58,6 +63,7 @@ export function _wrapTRPCMutations(mutations: {
           content: params.content,
           preview: params.preview,
           link: params.link,
+          visibility: params.visibility,
         },
       });
     },
@@ -88,6 +94,16 @@ export function _wrapTRPCMutations(mutations: {
     },
   };
 
+  const wrappedUpdateVisibilityWithDescendantsMutation = {
+    mutateAsync: async (params: { coords: Coord; visibility: Visibility }) => {
+      const visibilityString = params.visibility === Visibility.PUBLIC ? 'public' : 'private';
+      return mutations.updateVisibilityWithDescendantsMutation.mutateAsync({
+        coords: params.coords,
+        visibility: visibilityString,
+      });
+    },
+  };
+
   return {
     addItemMutation: wrappedAddItemMutation,
     updateItemMutation: wrappedUpdateItemMutation,
@@ -95,5 +111,6 @@ export function _wrapTRPCMutations(mutations: {
     moveItemMutation: wrappedMoveItemMutation,
     copyItemMutation: wrappedCopyItemMutation,
     removeChildrenByTypeMutation: wrappedRemoveChildrenByTypeMutation,
+    updateVisibilityWithDescendantsMutation: wrappedUpdateVisibilityWithDescendantsMutation,
   };
 }

@@ -7,6 +7,7 @@ import {
   _createUniqueTestParams,
   _setupBasicMap,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
+import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 export async function _validateItemMovementToEmptyCell(
   testEnv: TestEnvironment,
@@ -37,7 +38,7 @@ export async function _validateOldLocationEmpty(
   oldCoords: Coord,
 ) {
   await expect(
-    testEnv.service.items.crud.getItem({ coords: oldCoords }),
+    testEnv.service.items.crud.getItem({ coords: oldCoords, requester: SYSTEM_INTERNAL }),
   ).rejects.toThrow();
 }
 
@@ -48,6 +49,7 @@ export async function _validateNewLocationOccupied(
 ) {
   const itemAtNewLocation = await testEnv.service.items.crud.getItem({
     coords: newCoords,
+    requester: SYSTEM_INTERNAL,
   });
   expect(itemAtNewLocation.id).toBe(expectedItemId);
 }
@@ -68,11 +70,13 @@ export async function _validateItemSwapping(
 
   const firstItemAtNewLoc = await testEnv.service.items.crud.getItem({
     coords: swapSetup.secondItemCoords,
+    requester: SYSTEM_INTERNAL,
   });
   expect(firstItemAtNewLoc.id).toBe(swapSetup.firstItem.id);
 
   const secondItemAtNewLoc = await testEnv.service.items.crud.getItem({
     coords: swapSetup.firstItemCoords,
+    requester: SYSTEM_INTERNAL,
   });
   expect(secondItemAtNewLoc.id).toBe(swapSetup.secondItem.id);
 }
@@ -114,6 +118,7 @@ export async function _validateParentNewPosition(
 ) {
   const movedParent = await testEnv.service.items.crud.getItem({
     coords: parentNewCoords,
+    requester: SYSTEM_INTERNAL,
   });
   expect(movedParent.id).toBe(parentItemId);
 }
@@ -143,6 +148,7 @@ export async function _validateChildRelativePosition(
 
   const movedChild = await testEnv.service.items.crud.getItem({
     coords: expectedChildNewCoords,
+    requester: SYSTEM_INTERNAL,
   });
   expect(movedChild.id).toBe(hierarchySetup.childItem.id);
   expect(movedChild.parentId).toBe(hierarchySetup.parentItem.id);
@@ -158,11 +164,13 @@ export async function _validateOldPositionsEmpty(
   await expect(
     testEnv.service.items.crud.getItem({
       coords: hierarchySetup.parentInitialCoords,
+      requester: SYSTEM_INTERNAL,
     }),
   ).rejects.toThrow();
   await expect(
     testEnv.service.items.crud.getItem({
       coords: hierarchySetup.childInitialCoords,
+      requester: SYSTEM_INTERNAL,
     }),
   ).rejects.toThrow();
 }
@@ -241,6 +249,7 @@ export async function _validateCompositionMovement(
 
   const movedComposition = await testEnv.service.items.crud.getItem({
     coords: compositionNewCoords,
+    requester: SYSTEM_INTERNAL,
   });
   expect(movedComposition.id).toBe(compositionSetup.compositionContainer.id);
   expect(movedComposition.parentId).toBe(compositionSetup.parentItem.id);
@@ -253,6 +262,7 @@ export async function _validateCompositionMovement(
 
   const movedChild1 = await testEnv.service.items.crud.getItem({
     coords: composedChild1NewCoords,
+    requester: SYSTEM_INTERNAL,
   });
   expect(movedChild1.id).toBe(compositionSetup.composedChild1.id);
   expect(movedChild1.parentId).toBe(compositionSetup.compositionContainer.id);
@@ -265,6 +275,7 @@ export async function _validateCompositionMovement(
 
   const movedChild2 = await testEnv.service.items.crud.getItem({
     coords: composedChild2NewCoords,
+    requester: SYSTEM_INTERNAL,
   });
   expect(movedChild2.id).toBe(compositionSetup.composedChild2.id);
   expect(movedChild2.parentId).toBe(compositionSetup.compositionContainer.id);

@@ -2,6 +2,7 @@ import { expect } from "vitest";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 import { MapItemType } from "~/lib/domains/mapping/types/contracts";
 import type { TestEnvironment } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
+import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 export async function _createAndValidateMap(
   testEnv: TestEnvironment,
@@ -31,6 +32,7 @@ export async function _validateMapInRepository(
   const rootItem = await testEnv.repositories.mapItem.getRootItem(
     params.userId,
     params.groupId,
+    SYSTEM_INTERNAL,
   );
   expect(rootItem).not.toBeNull();
   if (rootItem) {
@@ -125,6 +127,7 @@ export async function _validateUpdatedMapInRepository(
   const rootItem = await testEnv.repositories.mapItem.getRootItem(
     params.userId,
     params.groupId,
+    SYSTEM_INTERNAL,
   );
   expect(rootItem?.ref.attrs.title).toBe(updateData.title);
 }
@@ -137,6 +140,7 @@ export async function _validateMapRemoval(
   const rootItem = await testEnv.repositories.mapItem.getRootItem(
     params.userId,
     params.groupId,
+    SYSTEM_INTERNAL,
   );
   expect(rootItem).toBeNull();
 }

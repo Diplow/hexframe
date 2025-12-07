@@ -21,6 +21,7 @@ import { TileHistoryView } from '~/app/map/Chat/Timeline/Widgets/TileHistoryWidg
 import { useMapCache } from '~/app/map/Cache';
 import { CoordSystem } from '~/lib/domains/mapping/utils';
 import { getColor } from '~/app/map/types';
+import type { Visibility } from '~/lib/domains/mapping/utils';
 
 interface TileWidgetProps {
   mode?: 'view' | 'edit' | 'create' | 'delete' | 'delete_children' | 'history';
@@ -35,11 +36,14 @@ interface TileWidgetProps {
   parentName?: string;
   parentCoordId?: string;
   directionType?: 'structural' | 'composed' | 'hexPlan';
+  visibility?: Visibility;
   onEdit?: () => void;
   onDelete?: () => void;
   onDeleteChildren?: () => void;
   onDeleteComposed?: () => void;
   onDeleteExecutionHistory?: () => void;
+  onSetVisibility?: (visibility: Visibility) => void;
+  onSetVisibilityWithDescendants?: (visibility: Visibility) => void;
   onSave?: (title: string, preview: string, content: string) => void;
   onClose?: () => void;
 }
@@ -74,11 +78,14 @@ export function TileWidget({
   parentName: _parentName,
   parentCoordId: _parentCoordId,
   directionType = 'structural',
+  visibility,
   onEdit,
   onDelete: _onDelete,
   onDeleteChildren,
   onDeleteComposed,
   onDeleteExecutionHistory,
+  onSetVisibility,
+  onSetVisibilityWithDescendants,
   onSave,
   onClose,
 }: TileWidgetProps) {
@@ -158,6 +165,7 @@ export function TileWidget({
         editTitle={editTitle}
         hasContent={!!content}
         tileColor={tileColor}
+        visibility={visibility}
         onToggleExpansion={() => setIsExpanded(!isExpanded)}
         onTitleChange={setEditTitle}
         onTitleKeyDown={handleTitleKeyDown}
@@ -166,6 +174,8 @@ export function TileWidget({
         onDeleteChildren={currentMode !== 'create' ? onDeleteChildren : undefined}
         onDeleteComposed={currentMode !== 'create' ? onDeleteComposed : undefined}
         onDeleteExecutionHistory={currentMode !== 'create' ? onDeleteExecutionHistory : undefined}
+        onSetVisibility={currentMode !== 'create' ? onSetVisibility : undefined}
+        onSetVisibilityWithDescendants={currentMode !== 'create' ? onSetVisibilityWithDescendants : undefined}
         onClose={onClose}
         onCopyCoordinates={currentMode !== 'create' ? () => copyToClipboard(coordId, triggerCopySuccess, triggerCopyError) : undefined}
         onHistory={historyHandler}

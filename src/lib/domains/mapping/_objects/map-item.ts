@@ -14,6 +14,11 @@ export enum MapItemType {
   BASE = "base",
 }
 
+export enum Visibility {
+  PUBLIC = "public",
+  PRIVATE = "private",
+}
+
 export interface Attrs extends Record<string, unknown> {
   parentId: number | null; // The parent mapItem this is a child of.
   coords: Coord; // Updated to new Coord structure
@@ -22,6 +27,7 @@ export interface Attrs extends Record<string, unknown> {
     itemId: number;
   };
   itemType: MapItemType; // Explicitly store item type here
+  visibility: Visibility; // Whether the tile is publicly visible
 }
 
 export type ShallNotUpdate = {
@@ -100,6 +106,7 @@ export class MapItem extends GenericAggregate<
           itemId: ref.id,
         },
         itemType: attrs.itemType, // itemType is now mandatory
+        visibility: attrs.visibility ?? Visibility.PRIVATE,
       },
       relatedLists: { neighbors },
       relatedItems: { ref, parent },

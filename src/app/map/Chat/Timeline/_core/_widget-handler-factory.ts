@@ -8,6 +8,8 @@ import type { useEventBus } from '~/app/map/Services/EventBus';
 interface HandlerDependencies {
   createItemOptimistic: ReturnType<typeof useMapCache>['createItemOptimistic'];
   updateItemOptimistic: ReturnType<typeof useMapCache>['updateItemOptimistic'];
+  updateVisibilityWithDescendantsOptimistic: ReturnType<typeof useMapCache>['updateVisibilityWithDescendantsOptimistic'];
+  getItem: ReturnType<typeof useMapCache>['getItem'];
   eventBus: ReturnType<typeof useEventBus>;
   chatState: ReturnType<typeof useChatOperations>;
   focusChatInput: () => void;
@@ -29,7 +31,12 @@ function _createSimpleCloseHandler(
 export function _createWidgetHandlers(widget: Widget, deps: HandlerDependencies): WidgetHandlers {
   switch (widget.type) {
     case 'tile':
-      return createTileHandlers(widget, deps);
+      return createTileHandlers(widget, {
+        updateItemOptimistic: deps.updateItemOptimistic,
+        updateVisibilityWithDescendantsOptimistic: deps.updateVisibilityWithDescendantsOptimistic,
+        eventBus: deps.eventBus,
+        chatState: deps.chatState,
+      });
     case 'creation':
       return createCreationHandlers(widget, deps);
     case 'mcp-keys':

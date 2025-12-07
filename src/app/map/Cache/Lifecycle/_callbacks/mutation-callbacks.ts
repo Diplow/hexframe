@@ -1,4 +1,13 @@
 import type { MutationOperations } from "~/app/map/Cache/types/handlers";
+import { Visibility } from '~/lib/domains/mapping/utils';
+
+/**
+ * Convert string visibility to Visibility enum
+ */
+function toVisibilityEnum(visibility: "public" | "private" | undefined): Visibility | undefined {
+  if (!visibility) return undefined;
+  return visibility === "public" ? Visibility.PUBLIC : Visibility.PRIVATE;
+}
 
 /**
  * Create mutation operation callbacks with clean public API naming
@@ -30,6 +39,7 @@ export function createMutationCallbacks(mutationOperations: MutationOperations) 
     description?: string;
     content?: string;
     url?: string;
+    visibility?: "public" | "private";
   }) => {
     // Normalize legacy field names to canonical domain names
     await mutationOperations.updateItem(coordId, {
@@ -37,6 +47,7 @@ export function createMutationCallbacks(mutationOperations: MutationOperations) 
       content: data.description ?? data.content,
       preview: data.preview,
       link: data.url,
+      visibility: toVisibilityEnum(data.visibility),
     });
   };
 
@@ -62,11 +73,21 @@ export function createMutationCallbacks(mutationOperations: MutationOperations) 
     return result;
   };
 
+  const updateVisibilityWithDescendantsOptimistic = async (
+    coordId: string,
+    visibility: "public" | "private"
+  ) => {
+    const visibilityEnum = toVisibilityEnum(visibility)!;
+    const result = await mutationOperations.updateVisibilityWithDescendants(coordId, visibilityEnum);
+    return result;
+  };
+
   return {
     createItemOptimistic,
     updateItemOptimistic,
     deleteItemOptimistic,
     deleteChildrenByTypeOptimistic,
+    updateVisibilityWithDescendantsOptimistic,
     moveItemOptimistic,
     copyItemOptimistic,
     rollbackOptimisticChange: mutationOperations.rollbackOptimisticChange,

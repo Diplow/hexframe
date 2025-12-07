@@ -7,6 +7,8 @@ import { MapItemType } from "~/lib/domains/mapping/_objects/map-item";
 import type { Direction } from "~/lib/domains/mapping/utils";
 import type { DbMapItemWithBase } from "~/lib/domains/mapping/infrastructure/map-item/types";
 import { pathToString } from "~/lib/domains/mapping/infrastructure/map-item/mappers";
+import { buildVisibilityFilter } from "~/lib/domains/mapping/infrastructure/map-item/queries/visibility-filter";
+import { type RequesterContext } from "~/lib/domains/mapping/types";
 
 /**
  * Field selection configuration for optimized queries
@@ -21,6 +23,7 @@ export interface ContextQueryConfig {
   includeComposed: boolean;
   includeChildren: boolean;
   includeGrandchildren: boolean;
+  requester: RequesterContext;
 }
 
 export class SpecializedQueries {
@@ -69,19 +72,28 @@ export class SpecializedQueries {
   async fetchRootItem(
     userId: string,
     groupId: number,
+    requester: RequesterContext
   ): Promise<DbMapItemWithBase | null> {
+    // Build visibility filter for the owner of this tile
+    const visibilityFilter = buildVisibilityFilter(requester, userId);
+
+    const conditions: SQL[] = [
+      eq(mapItems.coord_user_id, userId),
+      eq(mapItems.coord_group_id, groupId),
+      eq(mapItems.item_type, MapItemType.USER),
+      eq(mapItems.path, ""),
+    ];
+
+    // Add visibility filter if present
+    if (visibilityFilter) {
+      conditions.push(visibilityFilter);
+    }
+
     const result = await this.db
       .select()
       .from(mapItems)
       .leftJoin(baseItems, eq(mapItems.refItemId, baseItems.id))
-      .where(
-        and(
-          eq(mapItems.coord_user_id, userId),
-          eq(mapItems.coord_group_id, groupId),
-          eq(mapItems.item_type, MapItemType.USER),
-          eq(mapItems.path, ""),
-        ),
-      )
+      .where(and(...conditions))
       .limit(1);
 
     if (!result[0]?.map_items || !result[0]?.base_items) {
@@ -94,18 +106,29 @@ export class SpecializedQueries {
   async fetchRootItemsForUser(
     userId: string,
     { limit = 50, offset = 0 }: { limit?: number; offset?: number },
+    requester?: RequesterContext
   ): Promise<DbMapItemWithBase[]> {
+    // Build visibility filter for the owner of this tile
+    const visibilityFilter = requester
+      ? buildVisibilityFilter(requester, userId)
+      : undefined;
+
+    const conditions: SQL[] = [
+      eq(mapItems.coord_user_id, userId),
+      eq(mapItems.item_type, MapItemType.USER),
+      eq(mapItems.path, ""),
+    ];
+
+    // Add visibility filter if present
+    if (visibilityFilter) {
+      conditions.push(visibilityFilter);
+    }
+
     const results = await this.db
       .select()
       .from(mapItems)
       .leftJoin(baseItems, eq(mapItems.refItemId, baseItems.id))
-      .where(
-        and(
-          eq(mapItems.coord_user_id, userId),
-          eq(mapItems.item_type, MapItemType.USER),
-          eq(mapItems.path, ""),
-        ),
-      )
+      .where(and(...conditions))
       .orderBy(mapItems.coord_group_id)
       .limit(limit)
       .offset(offset);
@@ -121,6 +144,7 @@ export class SpecializedQueries {
     parentGroupId: number;
     limit?: number;
     offset?: number;
+    requester: RequesterContext;
   }): Promise<DbMapItemWithBase[]> {
     const {
       parentPath,
@@ -128,6 +152,7 @@ export class SpecializedQueries {
       parentGroupId,
       limit = 1000,
       offset = 0,
+      requester,
     } = params;
 
     const conditions = this._buildDescendantsConditions(
@@ -135,6 +160,12 @@ export class SpecializedQueries {
       parentUserId,
       parentGroupId,
     );
+
+    // Build visibility filter for the owner of these tiles
+    const visibilityFilter = buildVisibilityFilter(requester, parentUserId);
+    if (visibilityFilter) {
+      conditions.push(visibilityFilter);
+    }
 
     const results = await this.db
       .select()
@@ -157,6 +188,7 @@ export class SpecializedQueries {
     maxGenerations: number;
     limit?: number;
     offset?: number;
+    requester: RequesterContext;
   }): Promise<DbMapItemWithBase[]> {
     const {
       parentPath,
@@ -165,6 +197,7 @@ export class SpecializedQueries {
       maxGenerations,
       limit = 1000,
       offset = 0,
+      requester,
     } = params;
 
     // Validate maxGenerations to prevent unbounded queries
@@ -178,6 +211,12 @@ export class SpecializedQueries {
       parentGroupId,
       maxGenerations,
     );
+
+    // Build visibility filter for the owner of these tiles
+    const visibilityFilter = buildVisibilityFilter(requester, parentUserId);
+    if (visibilityFilter) {
+      conditions.push(visibilityFilter);
+    }
 
     const results = await this.db
       .select()
@@ -264,9 +303,12 @@ export class SpecializedQueries {
     children: DbMapItemWithBase[];
     grandchildren: DbMapItemWithBase[];
   }> {
-    const { centerPath, userId, groupId } = config;
+    const { centerPath, userId, groupId, requester } = config;
     const centerPathString = pathToString(centerPath);
     const centerDepth = centerPath.length;
+
+    // Build visibility filter for the owner of these tiles
+    const visibilityFilter = buildVisibilityFilter(requester, userId);
 
     // QUERY 1: Center + Parent + Composed (FULL content - needed for AI)
     const fullContentConditions: SQL[] = [];
@@ -299,6 +341,16 @@ export class SpecializedQueries {
       );
     }
 
+    // Build base conditions including visibility filter
+    const baseConditions: SQL[] = [
+      eq(mapItems.coord_user_id, userId),
+      eq(mapItems.coord_group_id, groupId),
+      or(...fullContentConditions)!,
+    ];
+    if (visibilityFilter) {
+      baseConditions.push(visibilityFilter);
+    }
+
     const fullContentResults = await this.db
       .select({
         map_items: {
@@ -307,6 +359,7 @@ export class SpecializedQueries {
           coord_group_id: mapItems.coord_group_id,
           path: mapItems.path,
           item_type: mapItems.item_type,
+          visibility: mapItems.visibility,
           parentId: mapItems.parentId,
           refItemId: mapItems.refItemId,
           createdAt: mapItems.createdAt,
@@ -315,7 +368,7 @@ export class SpecializedQueries {
         base_items: {
           id: baseItems.id,
           title: baseItems.title,
-          content: baseItems.content,      // ← FULL content
+          content: baseItems.content,      // <- FULL content
           preview: baseItems.preview,
           link: baseItems.link,
           originId: baseItems.originId,
@@ -325,18 +378,24 @@ export class SpecializedQueries {
       })
       .from(mapItems)
       .leftJoin(baseItems, eq(mapItems.refItemId, baseItems.id))
-      .where(
-        and(
-          eq(mapItems.coord_user_id, userId),
-          eq(mapItems.coord_group_id, groupId),
-          or(...fullContentConditions)
-        )
-      );
+      .where(and(...baseConditions));
 
     // QUERY 2: Children (title + preview, NO content)
     let childrenResults: Array<{ map_items: unknown; base_items: unknown }> = [];
     if (config.includeChildren) {
       const childPattern = centerPathString ? `${centerPathString},%` : '%';
+
+      // Build children conditions including visibility filter
+      const childConditions: SQL[] = [
+        eq(mapItems.coord_user_id, userId),
+        eq(mapItems.coord_group_id, groupId),
+        like(mapItems.path, childPattern),
+        eq(this._pathDepth(), centerDepth + 1),
+        this._isPositiveDirection()
+      ];
+      if (visibilityFilter) {
+        childConditions.push(visibilityFilter);
+      }
 
       childrenResults = await this.db
         .select({
@@ -346,6 +405,7 @@ export class SpecializedQueries {
             coord_group_id: mapItems.coord_group_id,
             path: mapItems.path,
             item_type: mapItems.item_type,
+            visibility: mapItems.visibility,
             parentId: mapItems.parentId,
             refItemId: mapItems.refItemId,
             createdAt: mapItems.createdAt,
@@ -354,7 +414,7 @@ export class SpecializedQueries {
           base_items: {
             id: baseItems.id,
             title: baseItems.title,
-            content: sql<string>`''`.as('content'),  // ← Empty string (don't fetch)
+            content: sql<string>`''`.as('content'),  // <- Empty string (don't fetch)
             preview: baseItems.preview,
             link: baseItems.link,
             originId: baseItems.originId,
@@ -364,21 +424,25 @@ export class SpecializedQueries {
         })
         .from(mapItems)
         .leftJoin(baseItems, eq(mapItems.refItemId, baseItems.id))
-        .where(
-          and(
-            eq(mapItems.coord_user_id, userId),
-            eq(mapItems.coord_group_id, groupId),
-            like(mapItems.path, childPattern),
-            eq(this._pathDepth(), centerDepth + 1),
-            this._isPositiveDirection()
-          )
-        );
+        .where(and(...childConditions));
     }
 
     // QUERY 3: Grandchildren (title only, NO content or preview)
     let grandchildrenResults: Array<{ map_items: unknown; base_items: unknown }> = [];
     if (config.includeGrandchildren) {
       const grandchildPattern = centerPathString ? `${centerPathString},%` : '%';
+
+      // Build grandchildren conditions including visibility filter
+      const grandchildConditions: SQL[] = [
+        eq(mapItems.coord_user_id, userId),
+        eq(mapItems.coord_group_id, groupId),
+        like(mapItems.path, grandchildPattern),
+        eq(this._pathDepth(), centerDepth + 2),
+        this._isPositiveDirection()
+      ];
+      if (visibilityFilter) {
+        grandchildConditions.push(visibilityFilter);
+      }
 
       grandchildrenResults = await this.db
         .select({
@@ -388,6 +452,7 @@ export class SpecializedQueries {
             coord_group_id: mapItems.coord_group_id,
             path: mapItems.path,
             item_type: mapItems.item_type,
+            visibility: mapItems.visibility,
             parentId: mapItems.parentId,
             refItemId: mapItems.refItemId,
             createdAt: mapItems.createdAt,
@@ -396,8 +461,8 @@ export class SpecializedQueries {
           base_items: {
             id: baseItems.id,
             title: baseItems.title,
-            content: sql<string>`''`.as('content'),         // ← Empty
-            preview: sql<string | null>`NULL`.as('preview'), // ← NULL
+            content: sql<string>`''`.as('content'),         // <- Empty
+            preview: sql<string | null>`NULL`.as('preview'), // <- NULL
             link: baseItems.link,
             originId: baseItems.originId,
             createdAt: baseItems.createdAt,
@@ -406,15 +471,7 @@ export class SpecializedQueries {
         })
         .from(mapItems)
         .leftJoin(baseItems, eq(mapItems.refItemId, baseItems.id))
-        .where(
-          and(
-            eq(mapItems.coord_user_id, userId),
-            eq(mapItems.coord_group_id, groupId),
-            like(mapItems.path, grandchildPattern),
-            eq(this._pathDepth(), centerDepth + 2),
-            this._isPositiveDirection()
-          )
-        );
+        .where(and(...grandchildConditions));
     }
 
     // Extract from full content results

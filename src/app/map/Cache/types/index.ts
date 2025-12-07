@@ -100,9 +100,11 @@ export interface MapCacheHook {
     description?: string;
     content?: string;
     url?: string;
+    visibility?: "public" | "private";
   }) => Promise<void>;
   deleteItemOptimistic: (coordId: string) => Promise<void>;
   deleteChildrenByTypeOptimistic: (coordId: string, directionType: 'structural' | 'composed' | 'hexPlan') => Promise<{ success: boolean; deletedCount: number }>;
+  updateVisibilityWithDescendantsOptimistic: (coordId: string, visibility: "public" | "private") => Promise<{ success: boolean; updatedCount: number }>;
   moveItemOptimistic: (sourceCoordId: string, targetCoordId: string) => Promise<{ success: boolean; isSwap?: boolean }>;
   rollbackOptimisticChange: (changeId: string) => void;
   rollbackAllOptimistic: () => void;

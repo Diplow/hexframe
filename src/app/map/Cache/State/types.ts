@@ -27,6 +27,9 @@ export interface CacheState {
   error: Error | null;
   lastUpdated: number;
 
+  // Auth transition state - blocks auto-refetch during login/logout
+  isAuthTransitioning: boolean;
+
   // Cache configuration
   cacheConfig: {
     maxAge: number;
@@ -72,6 +75,7 @@ export const ACTION_TYPES = {
   UPDATE_CACHE_CONFIG: "UPDATE_CACHE_CONFIG",
   REMOVE_ITEM: "REMOVE_ITEM",
   UPDATE_ITEMS: "UPDATE_ITEMS",
+  SET_AUTH_TRANSITIONING: "SET_AUTH_TRANSITIONING",
 } as const;
 
 // Action types using ACTION_TYPES constants for better type safety
@@ -101,6 +105,7 @@ export type CacheAction =
   | {
       type: typeof ACTION_TYPES.UPDATE_ITEMS;
       payload: Record<string, TileData | undefined>;
-    };
+    }
+  | { type: typeof ACTION_TYPES.SET_AUTH_TRANSITIONING; payload: boolean };
 
 // Action creators moved to actions.ts for better separation of concerns

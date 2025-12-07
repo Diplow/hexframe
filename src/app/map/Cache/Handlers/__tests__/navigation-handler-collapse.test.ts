@@ -7,6 +7,7 @@ import type { DataOperations } from "~/app/map/Cache/types/handlers";
 import type { TileData } from "~/app/map/types/tile-data";
 import { initialCacheState } from "~/app/map/Cache/State/reducer";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
+import { Visibility } from '~/lib/domains/mapping/utils';
 
 describe("NavigationHandler - Collapse distant tiles", () => {
   let dispatch: MockedFunction<Dispatch<CacheAction>>;
@@ -31,9 +32,10 @@ describe("NavigationHandler - Collapse distant tiles", () => {
     data: {
       title: "Test Tile",
       content: "Test Description",
-        preview: undefined,
+      preview: undefined,
       link: "",
       color: "zinc-50",
+      visibility: Visibility.PRIVATE,
     },
     state: {
       isDragged: false,

@@ -1,6 +1,7 @@
 import type { TileData } from "~/app/map/types/tile-data";
 import { TileContextMenu } from "~/app/map/Canvas/TileContextMenu";
 import { copyToClipboard } from "~/components/ui/copy-feedback";
+import type { Visibility } from '~/lib/domains/mapping/utils';
 
 interface ContextMenuState {
   tileData: TileData;
@@ -26,6 +27,8 @@ interface ContextMenuContainerProps {
   onCopyCoordinatesSuccess?: () => void;
   onCopyCoordinatesError?: () => void;
   onCompositionToggle?: (tileData: TileData) => void;
+  onSetVisibility?: (tileData: TileData, visibility: Visibility) => void;
+  onSetVisibilityWithDescendants?: (tileData: TileData, visibility: Visibility) => void;
   hasComposition?: (coordId: string) => boolean;
   isCompositionExpanded?: (coordId: string) => boolean;
   canShowComposition?: (tileData: TileData) => boolean;
@@ -48,6 +51,8 @@ export function ContextMenuContainer({
   onCopyCoordinatesSuccess,
   onCopyCoordinatesError,
   onCompositionToggle,
+  onSetVisibility,
+  onSetVisibilityWithDescendants,
   hasComposition,
   isCompositionExpanded,
   canShowComposition,
@@ -77,6 +82,9 @@ export function ContextMenuContainer({
           () => onCopyCoordinatesError?.()
         );
       }}
+      onSetVisibility={(visibility) => onSetVisibility?.(contextMenu.tileData, visibility)}
+      onSetVisibilityWithDescendants={(visibility) => onSetVisibilityWithDescendants?.(contextMenu.tileData, visibility)}
+      visibility={contextMenu.tileData.data.visibility}
       onCompositionToggle={onCompositionToggle}
       canEdit={contextMenu.canEdit}
       isEmptyTile={contextMenu.isEmptyTile}

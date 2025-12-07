@@ -8,6 +8,7 @@ import {
   _createTestCoordinates,
   _createUniqueTestParams,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
+import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 describe("tRPC Map Items Router - Copy Operations [Integration - DB]", () => {
   let testEnv: TestEnvironment;
@@ -45,6 +46,7 @@ describe("tRPC Map Items Router - Copy Operations [Integration - DB]", () => {
       // Verify source item is unchanged
       const sourceItemAfter = await testEnv.service.items.crud.getItem({
         coords: setup.sourceCoords,
+        requester: SYSTEM_INTERNAL,
       });
       expect(sourceItemAfter.title).toBe("Source Item");
     });
@@ -173,6 +175,7 @@ describe("tRPC Map Items Router - Copy Operations [Integration - DB]", () => {
       );
       const compositionContainer = await testEnv.service.items.crud.getItem({
         coords: compositionCoords,
+        requester: SYSTEM_INTERNAL,
       });
 
       expect(compositionContainer.title).toBe("Composition Container");
@@ -197,6 +200,7 @@ describe("tRPC Map Items Router - Copy Operations [Integration - DB]", () => {
       );
       const compositionContainer = await testEnv.service.items.crud.getItem({
         coords: compositionCoords,
+        requester: SYSTEM_INTERNAL,
       });
 
       expect(compositionContainer.title).toBe("Empty Composition");

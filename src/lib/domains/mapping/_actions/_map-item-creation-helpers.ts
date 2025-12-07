@@ -9,8 +9,10 @@ import {
   MapItem,
   type MapItemWithId,
   MapItemType,
+  Visibility,
 } from "~/lib/domains/mapping/_objects";
 import { type Coord } from "~/lib/domains/mapping/utils";
+import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 export class MapItemCreationHelpers {
   constructor(
@@ -26,6 +28,7 @@ export class MapItemCreationHelpers {
     preview,
     link,
     parentId,
+    visibility = Visibility.PRIVATE,
   }: {
     itemType: MapItemType;
     coords: Coord;
@@ -34,12 +37,13 @@ export class MapItemCreationHelpers {
     preview?: string;
     link?: string;
     parentId?: number;
+    visibility?: Visibility;
   }): Promise<MapItemWithId> {
     const parent = await this._validateAndGetParent(itemType, parentId);
     this._validateItemTypeConstraints(itemType, parent, coords);
 
     const ref = await this._createReference(title, content, preview, link);
-    const mapItem = this._buildMapItem(itemType, coords, parent, ref);
+    const mapItem = this._buildMapItem(itemType, coords, parent, ref, visibility);
     const result = await this.mapItems.create(mapItem);
     return result;
   }
@@ -60,7 +64,8 @@ export class MapItemCreationHelpers {
       return null;
     }
 
-    const parent = await this.mapItems.getOne(parentId);
+    // Use SYSTEM_INTERNAL for internal creation operations - no visibility filtering
+    const parent = await this.mapItems.getOne(parentId, SYSTEM_INTERNAL);
     if (!parent) {
       throw new Error(`Parent MapItem with id ${parentId} not found.`);
     }
@@ -105,6 +110,7 @@ export class MapItemCreationHelpers {
     coords: Coord,
     parent: MapItemWithId | null,
     ref: BaseItemWithId,
+    visibility: Visibility = Visibility.PRIVATE,
   ): MapItem {
     return new MapItem({
       attrs: {
@@ -113,6 +119,7 @@ export class MapItemCreationHelpers {
         parentId: parent?.id ?? null,
         originId: null,
         ref: { itemType: MapItemType.BASE, itemId: ref.id },
+        visibility,
       },
       ref,
       parent,

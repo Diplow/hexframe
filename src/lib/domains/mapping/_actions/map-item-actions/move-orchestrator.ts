@@ -5,6 +5,7 @@ import type { MapItemQueryHelpers } from "~/lib/domains/mapping/_actions/_map-it
 import type { MapItemMovementHelpers } from "~/lib/domains/mapping/_actions/_map-item-movement-helpers";
 import type { ValidationStrategy } from "~/lib/domains/mapping/_actions/map-item-actions/validation-strategy";
 import { MapItemType } from "~/lib/domains/mapping/_objects";
+import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 interface MoveContext {
   oldCoords: Coord;
@@ -104,8 +105,9 @@ export class MoveOrchestrator {
     mapItems: MapItemRepository,
     coords: Coord
   ): Promise<MapItemWithId | null> {
+    // Use SYSTEM_INTERNAL for internal move operations - no visibility filtering
     return await mapItems
-      .getOneByIdr({ idr: { attrs: { coords } } })
+      .getOneByIdr({ idr: { attrs: { coords } } }, SYSTEM_INTERNAL)
       .catch(() => null);
   }
 
@@ -199,7 +201,8 @@ export class MoveOrchestrator {
     mapItems: MapItemRepository,
     itemId: number
   ): Promise<MapItemWithId> {
-    const movedItem = await mapItems.getOne(itemId);
+    // Use SYSTEM_INTERNAL for internal move operations - no visibility filtering
+    const movedItem = await mapItems.getOne(itemId, SYSTEM_INTERNAL);
     if (!movedItem) {
       throw new Error("Failed to retrieve moved item");
     }
@@ -214,7 +217,8 @@ export class MoveOrchestrator {
     queryHelpers: MapItemQueryHelpers,
     mapItems: MapItemRepository
   ): Promise<void> {
-    const targetItemAtTemp = await mapItems.getOne(targetItem.id);
+    // Use SYSTEM_INTERNAL for internal move operations - no visibility filtering
+    const targetItemAtTemp = await mapItems.getOne(targetItem.id, SYSTEM_INTERNAL);
     if (!targetItemAtTemp) {
       throw new Error("Failed to retrieve target item after moving to temporary position");
     }
@@ -233,14 +237,15 @@ export class MoveOrchestrator {
     queryHelpers: MapItemQueryHelpers
   ): Promise<MapItemWithId[]> {
     const swappedItems: MapItemWithId[] = [];
-    const swappedTargetItem = await mapItems.getOne(targetItemId);
-    
+    // Use SYSTEM_INTERNAL for internal move operations - no visibility filtering
+    const swappedTargetItem = await mapItems.getOne(targetItemId, SYSTEM_INTERNAL);
+
     if (swappedTargetItem) {
       swappedItems.push(swappedTargetItem);
-      const targetDescendants = await queryHelpers.getDescendants(targetItemId);
+      const targetDescendants = await queryHelpers.getDescendants(targetItemId, SYSTEM_INTERNAL);
       swappedItems.push(...targetDescendants);
     }
-    
+
     return swappedItems;
   }
 }

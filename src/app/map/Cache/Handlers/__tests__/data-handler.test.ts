@@ -9,6 +9,7 @@ import type { DataHandlerConfig, DataHandlerServices } from "~/app/map/Cache/Han
 import type { CacheState } from "~/app/map/Cache/State/types";
 import type { MapItemAPIContract } from "~/server/api/types/contracts";
 import { MapItemType } from "~/lib/domains/mapping";
+import { Visibility } from '~/lib/domains/mapping/utils';
 
 describe("Data Handler", () => {
   let mockDispatch: ReturnType<typeof vi.fn>;
@@ -45,6 +46,7 @@ describe("Data Handler", () => {
       itemType: MapItemType.BASE,
       ownerId: "test-owner",
       originId: null,
+      visibility: Visibility.PRIVATE,
     },
     {
       id: "2",
@@ -58,6 +60,7 @@ describe("Data Handler", () => {
       itemType: MapItemType.BASE,
       ownerId: "test-owner",
       originId: null,
+      visibility: Visibility.PRIVATE,
     },
   ];
 

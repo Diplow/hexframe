@@ -10,6 +10,8 @@ import { useTileInteraction } from "~/app/map/Canvas";
 // import { useRouter } from "next/navigation"; // Removed unused import
 import { useCanvasTheme } from "~/app/map/Canvas";
 import { TileTooltip } from "~/app/map/Canvas/_shared/TileTooltip";
+import type { Visibility } from '~/lib/domains/mapping/utils';
+import { VisibilityIndicator } from "~/app/map/Canvas/_shared/VisibilityIndicator";
 
 // Types for drag props
 interface DragProps {
@@ -40,6 +42,7 @@ interface ItemTileContentProps {
   operationType?: 'create' | 'update' | 'delete' | 'move' | 'copy' | 'swap' | null;
   dragProps?: DragProps; // Drag props from useItemState
   dataAttributes?: DataAttributes; // Data attributes for drag service
+  parentVisibility?: Visibility; // Parent's visibility for comparison
   onNavigate?: (coordId: string) => void;
   onToggleExpansion?: (itemId: string, coordId: string) => void;
 }
@@ -59,11 +62,12 @@ export function ItemTileContent({
   urlInfo: _urlInfo,
   allExpandedItemIds,
   hasChildren,
-  isCenter: _isCenter,
+  isCenter,
   canEdit,
   isSelected,
   dragProps,
   dataAttributes,
+  parentVisibility,
   onNavigate,
   onToggleExpansion,
 }: ItemTileContentProps) {
@@ -114,7 +118,7 @@ export function ItemTileContent({
             // Clip to hexagon shape for precise click detection
             clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)",
             // Give neighbors higher z-index than center for corner priority
-            zIndex: _isCenter ? 20 : 25,
+            zIndex: isCenter ? 20 : 25,
             pointerEvents: interactive ? "auto" : "none"
           }}
           onClick={interactive ? (e) => void handleClick(e) : undefined}
@@ -149,6 +153,13 @@ export function ItemTileContent({
                 isSelected={isSelected}
               />
             </DynamicBaseTileLayout>
+            {/* Visibility indicator - positioned outside clipped area for proper tooltip rendering */}
+            {scale >= 1 && (isCenter || item.data.visibility !== parentVisibility) && (
+              <VisibilityIndicator
+                visibility={item.data.visibility}
+                scale={scale}
+              />
+            )}
           </div>
         </div>
       </TileTooltip>

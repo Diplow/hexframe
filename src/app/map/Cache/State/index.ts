@@ -23,6 +23,7 @@ export {
   setError,
   invalidateRegion,
   invalidateAll,
+  setAuthTransitioning,
   updateCacheConfig,
   removeItem,
   updateItems,

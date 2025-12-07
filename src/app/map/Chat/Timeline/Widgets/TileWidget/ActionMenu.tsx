@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { MoreVertical } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { _MenuDropdown } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/menu/_MenuDropdown';
+import type { Visibility } from '~/lib/domains/mapping/utils';
 
 interface ActionMenuProps {
   onEdit?: () => void;
@@ -14,6 +15,9 @@ interface ActionMenuProps {
   onClose?: () => void;
   onCopyCoordinates?: () => void;
   onHistory?: () => void;
+  visibility?: Visibility;
+  onSetVisibility?: (visibility: Visibility) => void;
+  onSetVisibilityWithDescendants?: (visibility: Visibility) => void;
 }
 
 export function ActionMenu({
@@ -25,12 +29,15 @@ export function ActionMenu({
   onClose,
   onCopyCoordinates,
   onHistory,
+  visibility,
+  onSetVisibility,
+  onSetVisibilityWithDescendants,
 }: ActionMenuProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
-  const hasActions = onEdit ?? onDelete ?? onDeleteChildren ?? onDeleteComposed ?? onDeleteExecutionHistory ?? onClose ?? onCopyCoordinates ?? onHistory;
+  const hasActions = onEdit ?? onDelete ?? onDeleteChildren ?? onDeleteComposed ?? onDeleteExecutionHistory ?? onClose ?? onCopyCoordinates ?? onHistory ?? onSetVisibility ?? onSetVisibilityWithDescendants;
 
   const _calculateMenuPosition = () => {
     if (!menuButtonRef.current) return null;
@@ -99,6 +106,9 @@ export function ActionMenu({
           onCopyCoordinates={onCopyCoordinates}
           onHistory={onHistory}
           onMenuClose={_handleMenuClose}
+          visibility={visibility}
+          onSetVisibility={onSetVisibility}
+          onSetVisibilityWithDescendants={onSetVisibilityWithDescendants}
         />
       )}
     </>

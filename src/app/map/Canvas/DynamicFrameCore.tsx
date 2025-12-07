@@ -90,6 +90,11 @@ export const DynamicFrameCore = (props: DynamicFrameCoreProps) => {
 
   // Not expanded = regular tile + neighbors (if enabled)
   if (!isExpanded) {
+    // Get parent visibility for non-root tiles
+    const parentCoordId = CoordSystem.getParentCoordFromId(center);
+    const parentItem = parentCoordId ? mapItems[parentCoordId] : undefined;
+    const parentVisibility = parentItem?.data.visibility;
+
     const centerTile = (
       <DynamicItemTile
         item={centerItem}
@@ -101,6 +106,7 @@ export const DynamicFrameCore = (props: DynamicFrameCoreProps) => {
         interactive={props.interactive}
         currentUserId={props.currentUserId}
         isSelected={props.selectedTileId === centerItem.metadata.coordId}
+        parentVisibility={parentVisibility}
         onNavigate={props.onNavigate}
         onToggleExpansion={props.onToggleExpansion}
       />
@@ -423,6 +429,7 @@ const CompositionFrame = (props: {
               }
 
               // Tile exists (direction 0 or composed child)
+              // Parent visibility is the parent of the composition frame
               return (
                 <DynamicItemTile
                   key={position}
@@ -435,6 +442,7 @@ const CompositionFrame = (props: {
                   interactive={props.interactive}
                   currentUserId={props.currentUserId}
                   isSelected={props.selectedTileId === item.metadata.coordId}
+                  parentVisibility={parentItem.data.visibility}
                   onNavigate={props.onNavigate}
                   onToggleExpansion={props.onToggleExpansion}
                 />
@@ -553,6 +561,10 @@ const FrameSlot = (props: {
       />;
     }
 
+    // Get parent visibility for the center tile in frame
+    const frameParentCoordId = CoordSystem.getParentCoordFromId(coordId);
+    const frameParentItem = frameParentCoordId ? mapItems[frameParentCoordId] : undefined;
+
     return (
       <DynamicItemTile
         item={item}
@@ -564,6 +576,7 @@ const FrameSlot = (props: {
         interactive={props.interactive}
         currentUserId={props.currentUserId}
         isSelected={props.selectedTileId === item.metadata.coordId}
+        parentVisibility={frameParentItem?.data.visibility}
         onNavigate={props.onNavigate}
         onToggleExpansion={props.onToggleExpansion}
       />
@@ -593,6 +606,10 @@ const FrameSlot = (props: {
   }
 
   // Not expanded = regular ItemTile
+  // Get parent visibility
+  const parentCoordId = CoordSystem.getParentCoordFromId(coordId);
+  const parentItem = parentCoordId ? mapItems[parentCoordId] : undefined;
+
   return (
     <DynamicItemTile
       item={item}
@@ -604,6 +621,7 @@ const FrameSlot = (props: {
       interactive={props.interactive}
       currentUserId={props.currentUserId}
       isSelected={props.selectedTileId === item.metadata.coordId}
+      parentVisibility={parentItem?.data.visibility}
       onNavigate={props.onNavigate}
       onToggleExpansion={props.onToggleExpansion}
     />

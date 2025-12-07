@@ -1,0 +1,9 @@
+{
+  "$schema": "~/scripts/checks/architecture/dependencies.schema.json",
+  "allowed": [
+    "drizzle-orm",
+    "~/lib/domains/mapping/_objects",
+    "~/server/db"
+  ],
+  "exceptions": {}
+}

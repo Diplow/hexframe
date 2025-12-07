@@ -3,10 +3,12 @@
 import { Check, X } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { ActionMenu } from '~/app/map/Chat/Timeline/Widgets/TileWidget/ActionMenu';
+import type { Visibility } from '~/lib/domains/mapping/utils';
 
 interface HeaderActionsProps {
   mode: 'view' | 'edit' | 'create' | 'history';
   isEditing: boolean;
+  visibility?: Visibility;
   onSave: () => void;
   onCancel: () => void;
   onEdit?: () => void;
@@ -14,6 +16,8 @@ interface HeaderActionsProps {
   onDeleteChildren?: () => void;
   onDeleteComposed?: () => void;
   onDeleteExecutionHistory?: () => void;
+  onSetVisibility?: (visibility: Visibility) => void;
+  onSetVisibilityWithDescendants?: (visibility: Visibility) => void;
   onClose?: () => void;
   onCopyCoordinates?: () => void;
   onHistory?: () => void;
@@ -22,6 +26,7 @@ interface HeaderActionsProps {
 export function _HeaderActions({
   mode,
   isEditing,
+  visibility,
   onSave,
   onCancel,
   onEdit,
@@ -29,6 +34,8 @@ export function _HeaderActions({
   onDeleteChildren,
   onDeleteComposed,
   onDeleteExecutionHistory,
+  onSetVisibility,
+  onSetVisibilityWithDescendants,
   onClose,
   onCopyCoordinates,
   onHistory,
@@ -61,11 +68,14 @@ export function _HeaderActions({
 
   return (
     <ActionMenu
+      visibility={visibility}
       onEdit={onEdit}
       onDelete={onDelete}
       onDeleteChildren={onDeleteChildren}
       onDeleteComposed={onDeleteComposed}
       onDeleteExecutionHistory={onDeleteExecutionHistory}
+      onSetVisibility={onSetVisibility}
+      onSetVisibilityWithDescendants={onSetVisibilityWithDescendants}
       onClose={onClose}
       onCopyCoordinates={onCopyCoordinates}
       onHistory={onHistory}

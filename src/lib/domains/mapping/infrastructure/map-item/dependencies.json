@@ -1,12 +1,13 @@
 {
   "$schema": "~/scripts/checks/architecture/dependencies.schema.json",
   "allowed": [
-    "drizzle-orm", 
+    "drizzle-orm",
     "zod",
     "~/lib/domains/mapping/_objects",
     "~/lib/domains/mapping/_repositories",
     "~/lib/domains/mapping/types",
     "~/server/db"
   ],
+  "subsystems": ["./queries"],
   "exceptions": {}
 }

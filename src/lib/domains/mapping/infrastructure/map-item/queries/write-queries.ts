@@ -6,6 +6,7 @@ const { mapItems } = schemaImport;
 import type {
   MapItemIdr,
   Attrs,
+  Visibility,
 } from "~/lib/domains/mapping/_objects/map-item";
 import type { CreateMapItemDbAttrs, UpdateMapItemDbAttrs } from "~/lib/domains/mapping/infrastructure/map-item/types";
 import { pathToString } from "~/lib/domains/mapping/infrastructure/map-item/mappers";
@@ -176,4 +177,48 @@ export class WriteQueries {
     }
   }
 
+  /**
+   * Update the visibility of a map item.
+   */
+  async updateVisibility(itemId: number, visibility: Visibility): Promise<void> {
+    await this.db
+      .update(mapItems)
+      .set({ visibility })
+      .where(eq(mapItems.id, itemId));
+  }
+
+  /**
+   * Batch update the visibility of a tile and all its descendants in a single atomic operation.
+   * Descendants are identified by path prefix matching (e.g., path "1,3" includes "1,3,2", "1,3,2,4", etc.)
+   *
+   * @param coords - Coordinates of the root tile
+   * @param visibility - New visibility value
+   * @returns Number of items updated
+   */
+  async batchUpdateVisibilityWithDescendants(
+    coords: Coord,
+    visibility: Visibility,
+  ): Promise<number> {
+    const pathString = pathToString(coords.path);
+
+    // For empty path (user root tile), all items under that user/group are descendants
+    // For non-empty path, use prefix matching
+    const pathCondition = pathString === ""
+      ? sql`TRUE`  // Empty path = root tile, matches all items for this user/group
+      : sql`(${mapItems.path} = ${pathString} OR ${mapItems.path} LIKE ${sql.raw(`'${pathString},%'`)})`;
+
+    const result = await this.db
+      .update(mapItems)
+      .set({ visibility })
+      .where(
+        and(
+          eq(mapItems.coord_user_id, coords.userId),
+          eq(mapItems.coord_group_id, coords.groupId),
+          pathCondition
+        )
+      )
+      .returning({ id: mapItems.id });
+
+    return result.length;
+  }
 }

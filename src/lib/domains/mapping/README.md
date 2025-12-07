@@ -16,6 +16,7 @@ Like a hexagonal filing cabinet with built-in version control, where knowledge i
 - Provide version retrieval with pagination support for historical tile states
 - Preserve version history integrity across tile moves and updates
 - Provide both server-side domain services and client-safe interfaces for map operations
+- **Enforce tile visibility** - Filter private tiles based on requester identity at the repository layer
 
 ## Non-Responsibilities
 - User authentication and identity management → See `~/lib/domains/iam/README.md`
@@ -54,5 +55,35 @@ All tile content changes are automatically tracked with immutable version snapsh
 - Get complete version history with `getItemHistory(coords, { limit, offset })`
 - Retrieve specific versions with `getItemVersion(coords, versionNumber)`
 - Version history is preserved across tile moves and always ordered newest-first
+
+**Tile Visibility System:**
+Each tile has a visibility setting that controls who can access it:
+- `PRIVATE` - Visible only to the owner (default for new tiles)
+- `PUBLIC` - Visible to everyone
+
+Visibility filtering is enforced at the repository layer using `RequesterContext`:
+- `RequesterUserId` - A branded type representing an authenticated user's ID
+- `SYSTEM_INTERNAL` - A sentinel value for internal operations that bypass visibility filtering
+- `ANONYMOUS_REQUESTER` - Represents unauthenticated users (empty string)
+
+**Security Architecture:**
+1. All read operations require a `RequesterContext` parameter
+2. The repository layer applies SQL visibility filters automatically
+3. For public tiles or when requester matches owner: all tiles visible
+4. For anonymous users viewing others' maps: only public tiles visible
+5. Internal operations (server-to-server) use `SYSTEM_INTERNAL` to bypass filtering
+6. ESLint rule prevents direct Drizzle imports outside infrastructure layer
+
+Example usage:
+```typescript
+// In API router - get requester from session
+const requester = _getRequesterUserId(ctx.user);  // Returns branded RequesterUserId
+const items = await mappingService.items.query.getItems({
+  userId, groupId, requester
+});
+
+// In internal service - use SYSTEM_INTERNAL
+const item = await repository.getOne(id, SYSTEM_INTERNAL);
+```
 
 Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.

@@ -3,6 +3,7 @@ import type { MapItemWithId } from "~/lib/domains/mapping/_objects/map-item";
 import type { Coord, Direction } from "~/lib/domains/mapping/utils";
 import type { MapItemAttributes } from "~/lib/domains/mapping/types/item-attributes";
 import { MapItemType } from "~/lib/domains/mapping/_objects";
+import type { Visibility } from "~/lib/domains/mapping/_objects";
 
 /**
  * Prepare BaseItems for copying by extracting their attributes and setting originId
@@ -46,6 +47,7 @@ export function _prepareMapItemsForCopy(
   sourceRefId: number;
   sourceMapItemId: number;
   sourceParentId: number | null;
+  visibility: Visibility;
 }> {
   if (mapItems.length === 0) {
     return [];
@@ -94,6 +96,7 @@ export function _prepareMapItemsForCopy(
       sourceRefId: mapItem.ref.id,
       sourceMapItemId: mapItem.id,
       sourceParentId,
+      visibility: mapItem.attrs.visibility,
     };
   });
 }
@@ -134,6 +137,7 @@ export function _buildMapItemsWithCopiedRefs(
     coords: Coord;
     parentId: number;
     sourceRefId: number;
+    visibility: Visibility;
   }>,
   baseItemMapping: Map<number, number>,
   copiedBaseItems: BaseItemWithId[]
@@ -143,6 +147,7 @@ export function _buildMapItemsWithCopiedRefs(
     parentId: number;
     ref: { itemType: MapItemType; itemId: number };
     itemType: MapItemType;
+    visibility: Visibility;
   };
   ref: BaseItemWithId;
 }> {
@@ -177,6 +182,7 @@ export function _buildMapItemsWithCopiedRefs(
           itemId: copiedBaseItemId,
         },
         itemType: MapItemType.BASE,
+        visibility: prepared.visibility,
       },
       ref: copiedBaseItem,
     };

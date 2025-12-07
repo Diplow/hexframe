@@ -9,12 +9,14 @@ import {
   CoordSystem,
   Direction,
 } from "~/lib/domains/mapping/utils";
-import { MapItemType } from "~/lib/domains/mapping/_objects";
+import { MapItemType, Visibility, type MapItemWithId } from "~/lib/domains/mapping/_objects";
 import type { MapItemContract } from "~/lib/domains/mapping/types/contracts";
 import { TransactionManager } from "~/lib/domains/mapping/infrastructure";
+import { type RequesterContext, SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 export class ItemCrudService {
   private readonly actions: MapItemActions;
+  private readonly mapItemRepository: MapItemRepository;
 
   constructor(repositories: {
     mapItem: MapItemRepository;
@@ -24,10 +26,19 @@ export class ItemCrudService {
       mapItem: repositories.mapItem,
       baseItem: repositories.baseItem,
     });
+    this.mapItemRepository = repositories.mapItem;
   }
 
   /**
    * Adds a child (BASE type) MapItem to an existing parent MapItem within a tree.
+   *
+   * @param parentId - ID of the parent item (null for root)
+   * @param coords - Coordinates for the new item
+   * @param title - Optional title
+   * @param content - Optional content
+   * @param preview - Optional preview text
+   * @param link - Optional URL
+   * @param visibility - Visibility setting (defaults to "private")
    */
   async addItemToMap({
     parentId,
@@ -36,6 +47,7 @@ export class ItemCrudService {
     content,
     preview,
     link,
+    visibility = Visibility.PRIVATE,
   }: {
     parentId: number | null;
     coords: Coord;
@@ -43,10 +55,12 @@ export class ItemCrudService {
     content?: string;
     preview?: string;
     link?: string;
+    visibility?: Visibility;
   }): Promise<MapItemContract> {
     let parentItem = null;
     if (parentId !== null) {
-      parentItem = await this.actions.mapItems.getOne(parentId);
+      // Use SYSTEM_INTERNAL for internal operations - no visibility filtering
+      parentItem = await this.mapItemRepository.getOne(parentId, SYSTEM_INTERNAL);
       if (!parentItem) {
         throw new Error(`Parent MapItem with ID ${parentId} not found.`);
       }
@@ -74,6 +88,11 @@ export class ItemCrudService {
       }
     }
 
+    // Validate visibility inheritance: cannot create public tile under private ancestor
+    if (visibility === Visibility.PUBLIC && parentItem) {
+      await this._validateVisibilityInheritance(coords, visibility);
+    }
+
     const createParams = {
       itemType: MapItemType.BASE,
       coords,
@@ -82,6 +101,7 @@ export class ItemCrudService {
       preview,
       link,
       parentId: parentItem?.id,
+      visibility,
     };
 
     const newItem = await this.actions.createMapItem(createParams);
@@ -90,14 +110,33 @@ export class ItemCrudService {
 
   /**
    * Get a specific item by its coordinates
+   * @param coords - Coordinates of the item
+   * @param requester - The requester context for visibility filtering (required to prevent visibility bypass)
    */
-  async getItem({ coords }: { coords: Coord }): Promise<MapItemContract> {
-    const item = await this.actions.getMapItem({ coords });
+  async getItem({
+    coords,
+    requester,
+  }: {
+    coords: Coord;
+    requester: RequesterContext;
+  }): Promise<MapItemContract> {
+    const item = await this.mapItemRepository.getOneByIdr(
+      { idr: { attrs: { coords } } },
+      requester,
+    );
     return adapt.mapItem(item, item.attrs.coords.userId);
   }
 
   /**
    * Update attributes (like BaseItem ref) of an existing item
+   *
+   * @param coords - Coordinates of the item to update
+   * @param title - Optional new title
+   * @param content - Optional new content
+   * @param preview - Optional new preview
+   * @param link - Optional new link
+   * @param visibility - Optional new visibility setting
+   * @param requester - The requester context for visibility filtering (required for visibility changes)
    */
   async updateItem({
     coords,
@@ -105,14 +144,34 @@ export class ItemCrudService {
     content,
     preview,
     link,
+    visibility,
+    requester = SYSTEM_INTERNAL,
   }: {
     coords: Coord;
     title?: string;
     content?: string;
     preview?: string;
     link?: string;
+    visibility?: Visibility;
+    requester?: RequesterContext;
   }): Promise<MapItemContract> {
-    const item = await this.actions.getMapItem({ coords });
+    const item = await this.actions.getMapItem({ coords, requester });
+
+    // Validate ownership for visibility changes
+    if (visibility !== undefined) {
+      // Only check ownership if requester is a user (not SYSTEM_INTERNAL)
+      if (requester !== SYSTEM_INTERNAL && requester !== coords.userId) {
+        throw new Error("Only the owner can change tile visibility.");
+      }
+
+      // Validate visibility inheritance: cannot set public if any ancestor is private
+      if (visibility === Visibility.PUBLIC) {
+        await this._validateVisibilityInheritance(coords, visibility);
+      }
+
+      // Update visibility on the map item
+      await this.mapItemRepository.updateVisibility(item.id, visibility);
+    }
 
     if (title !== undefined || content !== undefined || preview !== undefined || link !== undefined) {
       const updateAttrs = {
@@ -123,11 +182,49 @@ export class ItemCrudService {
       };
       await this.actions.updateRef(item.ref, updateAttrs);
     }
-    const updatedItem = await this.actions.mapItems.getOne(item.id);
+    // Use SYSTEM_INTERNAL for fetching the updated item after update
+    const updatedItem = await this.mapItemRepository.getOne(item.id, SYSTEM_INTERNAL);
     if (!updatedItem) {
       throw new Error(`Failed to retrieve updated item with ID ${item.id}`);
     }
     return adapt.mapItem(updatedItem, updatedItem.attrs.coords.userId);
+  }
+
+  /**
+   * Update visibility of a tile and all its descendants in a single atomic operation.
+   * This is more efficient than updating each tile individually.
+   *
+   * @param coords - Coordinates of the root tile
+   * @param visibility - New visibility value
+   * @param requester - The requester context for ownership validation
+   * @returns Number of items updated
+   */
+  async updateVisibilityWithDescendants({
+    coords,
+    visibility,
+    requester,
+  }: {
+    coords: Coord;
+    visibility: Visibility;
+    requester: RequesterContext;
+  }): Promise<{ updatedCount: number }> {
+    // Validate ownership - only the owner can change visibility
+    if (requester !== SYSTEM_INTERNAL && requester !== coords.userId) {
+      throw new Error("Only the owner can change tile visibility.");
+    }
+
+    // Validate visibility inheritance if setting to public
+    if (visibility === Visibility.PUBLIC) {
+      await this._validateVisibilityInheritance(coords, visibility);
+    }
+
+    // Perform the batch update
+    const updatedCount = await this.mapItemRepository.batchUpdateVisibilityWithDescendants(
+      coords,
+      visibility,
+    );
+
+    return { updatedCount };
   }
 
   /**
@@ -245,5 +342,70 @@ export class ItemCrudService {
           return false;
       }
     });
+  }
+
+  /**
+   * Validates that a tile can be set to public by checking all ancestors.
+   * A tile cannot be public if any ancestor is private (restrictive inheritance).
+   *
+   * Uses unfiltered ancestor fetch to ensure all ancestors are checked regardless
+   * of requester visibility permissions.
+   *
+   * @throws Error if any ancestor is private and visibility is PUBLIC
+   */
+  private async _validateVisibilityInheritance(
+    coords: Coord,
+    visibility: Visibility,
+  ): Promise<void> {
+    // Only validate for public visibility
+    if (visibility !== Visibility.PUBLIC) {
+      return;
+    }
+
+    // Get all ancestors WITHOUT visibility filtering (undefined requesterUserId)
+    // This ensures we check all ancestors regardless of their visibility
+    const ancestors = await this._getAncestorsUnfiltered(coords);
+
+    // Check if any ancestor is private
+    const privateAncestor = ancestors.find(
+      (ancestor) => ancestor.attrs.visibility === Visibility.PRIVATE
+    );
+
+    if (privateAncestor) {
+      throw new Error(
+        "Cannot set tile to public: one or more ancestors are private. " +
+        "Make the ancestor tiles public first."
+      );
+    }
+  }
+
+  /**
+   * Get all ancestors without visibility filtering.
+   * Used for internal validation where we need to see all ancestors.
+   */
+  private async _getAncestorsUnfiltered(
+    coords: Coord
+  ): Promise<MapItemWithId[]> {
+    const ancestors: MapItemWithId[] = [];
+    let currentCoords = coords;
+
+    while (!CoordSystem.isCenter(currentCoords)) {
+      const parentCoords = CoordSystem.getParentCoord(currentCoords);
+      if (!parentCoords) break;
+
+      try {
+        // Use SYSTEM_INTERNAL to bypass visibility filtering for internal validation
+        const parent = await this.mapItemRepository.getOneByIdr(
+          { idr: { attrs: { coords: parentCoords } } },
+          SYSTEM_INTERNAL,
+        );
+        ancestors.unshift(parent);
+        currentCoords = parent.attrs.coords;
+      } catch {
+        break;
+      }
+    }
+
+    return ancestors;
   }
 }

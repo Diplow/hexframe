@@ -9,6 +9,7 @@ import {
   type ContextStrategy,
   type MapContext,
 } from "~/lib/domains/mapping/utils";
+import { type RequesterContext, SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 /**
  * Service for fetching map context for AI operations
@@ -21,6 +22,7 @@ import {
  */
 export class ItemContextService {
   private readonly actions: MapItemActions;
+  private readonly mapItemRepository: MapItemRepository;
 
   constructor(repositories: {
     mapItem: MapItemRepository;
@@ -30,6 +32,7 @@ export class ItemContextService {
       mapItem: repositories.mapItem,
       baseItem: repositories.baseItem,
     });
+    this.mapItemRepository = repositories.mapItem;
   }
 
   /**
@@ -42,18 +45,20 @@ export class ItemContextService {
    *
    * @param centerCoordId - Coordinate ID of the center tile
    * @param strategy - Which surrounding tiles to include
+   * @param requester - The requester context for visibility filtering
    * @returns MapContext with center and surrounding tiles
    */
   async getContextForCenter(
     centerCoordId: string,
-    strategy: ContextStrategy
+    strategy: ContextStrategy,
+    requester: RequesterContext = SYSTEM_INTERNAL
   ): Promise<MapContext> {
     // Parse center coordinates
     const centerCoord = CoordSystem.parseId(centerCoordId);
     const userId = centerCoord.userId;
 
     // Use optimized repository method - single query with pattern matching
-    const contextData = await this.actions.mapItems.getContextForCenter({
+    const contextData = await this.mapItemRepository.getContextForCenter({
       centerPath: centerCoord.path,
       userId: centerCoord.userId,
       groupId: centerCoord.groupId,
@@ -61,6 +66,7 @@ export class ItemContextService {
       includeComposed: strategy.includeComposed,
       includeChildren: strategy.includeChildren,
       includeGrandchildren: strategy.includeGrandchildren,
+      requester,
     });
 
     // Convert to contracts
@@ -72,5 +78,4 @@ export class ItemContextService {
       grandchildren: contextData.grandchildren.map((item) => adapt.mapItem(item, userId)),
     };
   }
-
 }
