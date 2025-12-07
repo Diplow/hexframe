@@ -693,6 +693,9 @@ export class MutationCoordinator {
         // Finalize
         this.tracker.removeChange(changeId);
 
+        // Persist updated items to storage
+        await this._persistVisibilityUpdate(existingItem, descendants, visibility);
+
         // Emit update event
         this._emitVisibilityUpdateEvent(existingItem, visibility, result.updatedCount);
 
@@ -733,6 +736,26 @@ export class MutationCoordinator {
       this.config.dispatch(cacheActions.loadRegion(previousData, previousData[0].coordinates, 1));
     }
     this.tracker.removeChange(changeId);
+  }
+
+  private async _persistVisibilityUpdate(
+    rootItem: TileData,
+    descendants: TileData[],
+    visibility: Visibility
+  ): Promise<void> {
+    // Reconstruct API objects with updated visibility and persist to storage
+    const updatedItems: MapItemAPIContract[] = [
+      { ...this._reconstructApiData(rootItem), visibility },
+      ...descendants.map(d => ({ ...this._reconstructApiData(d), visibility }))
+    ];
+
+    try {
+      for (const item of updatedItems) {
+        await this.config.storageService.save(`item:${item.id}`, item);
+      }
+    } catch (e) {
+      console.warn('MapCache storage save failed on visibility update:', e);
+    }
   }
 
   private _emitVisibilityUpdateEvent(
