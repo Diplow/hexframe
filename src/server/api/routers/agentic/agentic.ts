@@ -4,7 +4,7 @@ import { createTRPCRouter, protectedProcedure, publicProcedure, mappingServiceMi
 import { verificationAwareRateLimit, verificationAwareAuthLimit } from '~/server/api/middleware'
 import { createAgenticService, type CompositionConfig, PreviewGeneratorService, OpenRouterRepository, type ChatMessageContract } from '~/lib/domains/agentic'
 import { ContextStrategies } from '~/lib/domains/mapping/utils'
-import { _getRequesterUserId } from '~/server/api/routers/map/_map-auth-helpers'
+import { _getRequesterUserId } from '~/server/api/routers/map'
 import { EventBus as EventBusImpl } from '~/lib/utils/event-bus'
 import { env } from '~/env'
 import { db, schema } from '~/server/db'
