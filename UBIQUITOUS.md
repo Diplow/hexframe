@@ -162,8 +162,8 @@ The separation between what belongs to the current Map (visible) and what belong
 
 A setting on each tile that controls who can access it:
 
-- **Public** - Visible to everyone, including anonymous users (default for new tiles)
-- **Private** - Visible only to the tile owner
+- **Public** - Visible to everyone, including anonymous users
+- **Private** - Visible only to the tile owner (default for new tiles)
 
 Visibility is enforced at the data layer. When viewing someone else's map, only their public tiles are visible. Private tiles are filtered out before data reaches the client.
 
