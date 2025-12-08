@@ -145,8 +145,8 @@ dependencies:
     specifier: ^2.0.3
     version: 2.0.7(react-dom@18.3.1)(react@18.3.1)
   superjson:
-    specifier: ^2.2.1
-    version: 2.2.5
+    specifier: ^2.2.6
+    version: 2.2.6
   svix:
     specifier: ^1.69.0
     version: 1.81.0
@@ -1936,8 +1936,8 @@ packages:
     dev: true
     optional: true
 
-  /@napi-rs/wasm-runtime@1.0.7:
-    resolution: {integrity: sha512-SeDnOO0Tk7Okiq6DbXmmBODgOAb9dp9gjlphokTUxmt8U3liIP1ZsozBahH69j/RJv+Rfs6IwUKHTgQYJ/HBAw==}
+  /@napi-rs/wasm-runtime@1.1.0:
+    resolution: {integrity: sha512-Fq6DJW+Bb5jaWE69/qOE0D1TUN9+6uWhCeZpdnSBk14pjLcCWR7Q8n49PTSPHazM37JqrsdpEthXy2xn6jWWiA==}
     requiresBuild: true
     dependencies:
       '@emnapi/core': 1.7.1
@@ -3390,7 +3390,7 @@ packages:
     cpu: [wasm32]
     requiresBuild: true
     dependencies:
-      '@napi-rs/wasm-runtime': 1.0.7
+      '@napi-rs/wasm-runtime': 1.1.0
     dev: true
     optional: true
 
@@ -11062,8 +11062,8 @@ packages:
       pirates: 4.0.7
       ts-interface-checker: 0.1.13
 
-  /superjson@2.2.5:
-    resolution: {integrity: sha512-zWPTX96LVsA/eVYnqOM2+ofcdPqdS1dAF1LN4TS2/MWuUpfitd9ctTa87wt4xrYnZnkLtS69xpBdSxVBP5Rm6w==}
+  /superjson@2.2.6:
+    resolution: {integrity: sha512-H+ue8Zo4vJmV2nRjpx86P35lzwDT3nItnIsocgumgr0hHMQ+ZGq5vrERg9kJBo5AWGmxZDhzDo+WVIJqkB0cGA==}
     engines: {node: '>=16'}
     dependencies:
       copy-anything: 4.0.5

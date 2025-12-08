@@ -99,7 +99,7 @@
     "remark-gfm": "^4.0.1",
     "server-only": "^0.0.1",
     "sonner": "^2.0.3",
-    "superjson": "^2.2.1",
+    "superjson": "^2.2.6",
     "svix": "^1.69.0",
     "tailwind-merge": "^3.3.0",
     "tailwindcss-animate": "^1.0.7",
