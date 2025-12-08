@@ -99,9 +99,8 @@ describe('useChatState', () => {
       result.current.clearChat();
     });
 
-    // Should clear all messages and add logout message
-    expect(result.current.messages).toHaveLength(1);
-    expect(result.current.messages[0]?.content).toBe('You have been logged out');
+    // Should clear all messages
+    expect(result.current.messages).toHaveLength(0);
   });
 
   it('should track events properly', () => {
