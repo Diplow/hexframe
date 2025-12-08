@@ -239,6 +239,77 @@ const timingMiddleware = t.middleware(async ({ next, path, ctx, input, type }) =
 export const publicProcedure = t.procedure.use(timingMiddleware);
 
 /**
+ * Soft Authentication Procedure
+ *
+ * Extracts user identity if authentication is present (session OR API key),
+ * but does NOT fail if unauthenticated. This enables:
+ * - Anonymous users to access public resources
+ * - Authenticated users (via session or API key) to access their private resources
+ *
+ * Use this for read operations that need to support both anonymous and authenticated access.
+ */
+export const softAuthProcedure = t.procedure.use(timingMiddleware).use(async ({ ctx, next }) => {
+  // First, check if session auth already succeeded in createContext
+  if (ctx.user) {
+    return next({
+      ctx: {
+        ...ctx,
+        authMethod: 'session' as const,
+      },
+    });
+  }
+
+  // Try API key authentication
+  const apiKey = getApiKeyFromHeaders(ctx.headers);
+  if (apiKey) {
+    try {
+      // Try internal API key first (from IAM domain, for MCP server-to-server auth)
+      const { validateInternalApiKey } = await import('~/lib/domains/iam');
+      const userIdHint = ctx.headers instanceof Headers
+        ? ctx.headers.get('x-user-id') ?? undefined
+        : (Array.isArray(ctx.headers['x-user-id']) ? ctx.headers['x-user-id'][0] : ctx.headers['x-user-id']);
+      const internalResult = await validateInternalApiKey(apiKey, userIdHint);
+
+      if (internalResult) {
+        return next({
+          ctx: {
+            ...ctx,
+            user: { id: internalResult.userId },
+            authMethod: 'internal-api-key' as const,
+          },
+        });
+      }
+
+      // Try external API key (better-auth)
+      const result = await auth.api.verifyApiKey({
+        body: { key: apiKey }
+      });
+
+      if (result.valid && result.key?.userId) {
+        return next({
+          ctx: {
+            ...ctx,
+            user: { id: result.key.userId },
+            authMethod: 'external-api-key' as const,
+          },
+        });
+      }
+    } catch {
+      // API key validation failed - continue as anonymous
+    }
+  }
+
+  // No valid authentication - continue as anonymous
+  return next({
+    ctx: {
+      ...ctx,
+      user: null,
+      authMethod: 'anonymous' as const,
+    },
+  });
+});
+
+/**
  * Protected (authenticated) procedure
  *
  * This procedure ensures that the user is authenticated before executing.
