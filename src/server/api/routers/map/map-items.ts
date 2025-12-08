@@ -1,7 +1,7 @@
 import { z } from "zod";
 import {
   createTRPCRouter,
-  publicProcedure,
+  softAuthProcedure,
   dualAuthProcedure,
   mappingServiceMiddleware,
 } from "~/server/api/trpc";
@@ -28,7 +28,7 @@ function toVisibilityEnum(visibility?: "public" | "private"): Visibility | undef
 
 export const mapItemsRouter = createTRPCRouter({
   // Get root MapItem by ID
-  getRootItemById: publicProcedure
+  getRootItemById: softAuthProcedure
     .use(mappingServiceMiddleware)
     .input(z.object({ mapItemId: z.number() }))
     .query(async ({ ctx, input }) => {
@@ -41,7 +41,7 @@ export const mapItemsRouter = createTRPCRouter({
     }),
 
   // Get item by coordinates
-  getItemByCoords: publicProcedure
+  getItemByCoords: softAuthProcedure
     .use(mappingServiceMiddleware)
     .input(z.object({
       coords: hexCoordSchema,
@@ -68,7 +68,7 @@ export const mapItemsRouter = createTRPCRouter({
     }),
 
   // Get all items for a root item (was getItems)
-  getItemsForRootItem: publicProcedure
+  getItemsForRootItem: softAuthProcedure
     .use(mappingServiceMiddleware)
     .input(
       z.object({
@@ -273,7 +273,7 @@ export const mapItemsRouter = createTRPCRouter({
     }),
 
   // Get descendants
-  getDescendants: publicProcedure
+  getDescendants: softAuthProcedure
     .use(mappingServiceMiddleware)
     .input(z.object({ itemId: z.number() }))
     .query(async ({ ctx, input }) => {
@@ -286,7 +286,7 @@ export const mapItemsRouter = createTRPCRouter({
     }),
 
   // Get ancestors of an item (all items in the path from root to the item)
-  getAncestors: publicProcedure
+  getAncestors: softAuthProcedure
     .use(mappingServiceMiddleware)
     .input(z.object({ itemId: z.number() }))
     .query(async ({ ctx, input }) => {
@@ -299,7 +299,7 @@ export const mapItemsRouter = createTRPCRouter({
     }),
 
   // Get composed children for a tile (direction 0 container and its children)
-  getComposedChildren: publicProcedure
+  getComposedChildren: softAuthProcedure
     .use(mappingServiceMiddleware)
     .input(z.object({ coordId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -312,7 +312,7 @@ export const mapItemsRouter = createTRPCRouter({
     }),
 
   // Check if a tile has composition (direction 0 child)
-  hasComposition: publicProcedure
+  hasComposition: softAuthProcedure
     .use(mappingServiceMiddleware)
     .input(z.object({ coordId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -325,7 +325,7 @@ export const mapItemsRouter = createTRPCRouter({
     }),
 
   // Get version history for a tile
-  getItemHistory: publicProcedure
+  getItemHistory: softAuthProcedure
     .use(mappingServiceMiddleware)
     .input(
       z.object({
@@ -352,7 +352,7 @@ export const mapItemsRouter = createTRPCRouter({
     }),
 
   // Get a specific historical version of a tile
-  getItemVersion: publicProcedure
+  getItemVersion: softAuthProcedure
     .use(mappingServiceMiddleware)
     .input(
       z.object({
