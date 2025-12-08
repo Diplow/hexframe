@@ -72,7 +72,10 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
   } = config;
 
   if (isEmptyTile) {
-    return _buildCreateItem(canEdit, onCreate);
+    return [
+      ..._buildCreateItem(canEdit, onCreate),
+      ..._buildCopyCoordinatesItem(onCopyCoordinates),
+    ];
   }
 
   return [
