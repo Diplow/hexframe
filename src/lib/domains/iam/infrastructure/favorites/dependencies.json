@@ -1,0 +1,8 @@
+{
+  "description": "Drizzle repository implementation for favorites",
+  "allowedDependencies": [
+    "~/server/db",
+    "~/server/db/schema",
+    "~/lib/domains/iam/_repositories"
+  ]
+}

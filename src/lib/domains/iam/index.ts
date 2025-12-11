@@ -8,7 +8,7 @@
 export { User, type UserProps, type CreateUserProps } from '~/lib/domains/iam/_objects';
 
 // Domain services
-export { IAMService } from '~/lib/domains/iam/services';
+export { IAMService, FavoritesService } from '~/lib/domains/iam/services';
 
 // Repository interfaces (for testing/mocking)
 export type {
@@ -16,6 +16,9 @@ export type {
   CreateUserInput,
   AuthenticateUserInput,
   AuthenticationResult,
+  FavoritesRepository,
+  Favorite,
+  CreateFavoriteInput,
 } from '~/lib/domains/iam/_repositories';
 
 // Domain types
@@ -31,13 +34,16 @@ export {
   InvalidCredentialsError,
   UserNotFoundError,
   WeakPasswordError,
+  DuplicateShortcutNameError,
+  InvalidShortcutNameError,
+  FavoriteNotFoundError,
 } from '~/lib/domains/iam/types';
 
 // Server actions (for Next.js forms)
 export { loginAction, registerAction } from '~/lib/domains/iam/actions';
 
 // Infrastructure (for service instantiation)
-export { BetterAuthUserRepository } from '~/lib/domains/iam/infrastructure';
+export { BetterAuthUserRepository, DrizzleFavoritesRepository } from '~/lib/domains/iam/infrastructure';
 
 // Internal API key management (server-only, for MCP and other internal services)
 export {
