@@ -12,7 +12,8 @@ import {
   renderDeleteChildrenWidget,
   renderAIResponseWidget,
   renderMcpKeysWidget,
-  renderDebugLogsWidget
+  renderDebugLogsWidget,
+  renderFavoritesWidget
 } from '~/app/map/Chat/Timeline/_components/_renderers/widget-renderers';
 
 export function _renderWidget(
@@ -41,6 +42,8 @@ export function _renderWidget(
       return renderMcpKeysWidget(widget, handlers);
     case 'debug-logs':
       return renderDebugLogsWidget(widget, handlers);
+    case 'favorites':
+      return renderFavoritesWidget(widget, handlers);
     default:
       return null;
   }

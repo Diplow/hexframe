@@ -2,7 +2,7 @@ import type { Widget } from '~/app/map/Chat/_state';
 import type { TileData } from '~/app/map/types';
 import { _renderTileWidget, _renderCreationWidget, _renderDeleteWidget, _renderDeleteChildrenWidget } from '~/app/map/Chat/Timeline/_components/_renderers/_tile-renderers';
 import { _renderLoginWidget, _renderErrorWidget } from '~/app/map/Chat/Timeline/_components/_renderers/_auth-error-renderers';
-import { _renderLoadingWidget, _renderAIResponseWidget, _renderMcpKeysWidget, _renderDebugLogsWidget } from '~/app/map/Chat/Timeline/_components/_renderers/_ai-debug-renderers';
+import { _renderLoadingWidget, _renderAIResponseWidget, _renderMcpKeysWidget, _renderDebugLogsWidget, _renderFavoritesWidget } from '~/app/map/Chat/Timeline/_components/_renderers/_ai-debug-renderers';
 import type { Visibility } from '~/lib/domains/mapping/utils';
 
 export interface WidgetHandlers {
@@ -17,6 +17,7 @@ export interface WidgetHandlers {
   handleTileClose?: () => void;
   handleSave?: (name: string, preview: string, content: string) => void;
   handleCancel?: () => void;
+  onInsertToChat?: (text: string) => void;
 }
 
 export function renderTileWidget(
@@ -61,4 +62,8 @@ export function renderMcpKeysWidget(widget: Widget, handlers: WidgetHandlers) {
 
 export function renderDebugLogsWidget(widget: Widget, handlers: WidgetHandlers) {
   return _renderDebugLogsWidget(widget, handlers);
+}
+
+export function renderFavoritesWidget(widget: Widget, handlers: WidgetHandlers) {
+  return _renderFavoritesWidget(widget, handlers);
 }

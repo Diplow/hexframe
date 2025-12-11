@@ -43,7 +43,7 @@ export interface Message {
 
 export interface Widget {
   id: string;
-  type: 'tile' | 'creation' | 'delete' | 'delete_children' | 'login' | 'loading' | 'error' | 'ai-response' | 'mcp-keys' | 'debug-logs';
+  type: 'tile' | 'creation' | 'delete' | 'delete_children' | 'login' | 'loading' | 'error' | 'ai-response' | 'mcp-keys' | 'debug-logs' | 'favorites';
   data: unknown;
   priority: 'info' | 'action' | 'critical';
   timestamp: Date;

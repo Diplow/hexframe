@@ -1,5 +1,5 @@
 import type { Widget } from '~/app/map/Chat/_state';
-import { AIResponseWidget, McpKeysWidget, DebugLogsWidget, LoadingWidget } from '~/app/map/Chat/Timeline/Widgets';
+import { AIResponseWidget, McpKeysWidget, DebugLogsWidget, LoadingWidget, FavoritesWidget } from '~/app/map/Chat/Timeline/Widgets';
 import type { AIResponseWidgetData } from '~/app/map/Chat/types';
 import type { WidgetHandlers } from '~/app/map/Chat/Timeline/_components/_renderers/widget-renderers';
 
@@ -42,6 +42,18 @@ export function _renderDebugLogsWidget(widget: Widget, handlers: WidgetHandlers)
       title={data.title}
       content={data.content}
       onClose={handleCancel}
+    />
+  );
+}
+
+export function _renderFavoritesWidget(widget: Widget, handlers: WidgetHandlers) {
+  const { handleCancel = () => { /* noop */ }, onInsertToChat } = handlers;
+  const data = widget.data as { editShortcutForMapItemId?: string };
+  return (
+    <FavoritesWidget
+      onClose={handleCancel}
+      editShortcutForMapItemId={data.editShortcutForMapItemId}
+      onInsertToChat={onInsertToChat}
     />
   );
 }

@@ -17,6 +17,7 @@ import {
   mapDeleteRequestedEventSchema,
   mapDeleteChildrenRequestedEventSchema,
   mapCreateRequestedEventSchema,
+  mapFavoritesWidgetRequestedEventSchema,
   safeValidateEvent,
 } from '~/app/map/types';
 
@@ -371,6 +372,26 @@ function _transformOperationEvents(validEvent: AppEvent, baseEvent: Partial<Chat
               parentName: payload.parentName,
               parentId: payload.parentId,
               parentCoordId: payload.parentCoordId,
+            },
+            priority: 'action',
+            timestamp: baseEvent.timestamp,
+          },
+        },
+      } as ChatEvent;
+    }
+
+    case 'map.favorites_widget_requested': {
+      const payload = mapFavoritesWidgetRequestedEventSchema.parse(validEvent).payload;
+      // Create favorites widget for managing tile shortcuts
+      return {
+        ...baseEvent,
+        type: 'widget_created',
+        payload: {
+          widget: {
+            id: `favorites-${Date.now()}`,
+            type: 'favorites',
+            data: {
+              editShortcutForMapItemId: payload.editShortcutForMapItemId,
             },
             priority: 'action',
             timestamp: baseEvent.timestamp,

@@ -40,3 +40,38 @@ export function focusChatInput(delay = DEFAULT_FOCUS_DELAY): void {
     delay
   );
 }
+
+/**
+ * Inserts text into the chat input and focuses it
+ * Appends text to existing value, simulating a natural typing action
+ * @param text - The text to insert into the chat input
+ * @param delay - Delay in milliseconds before inserting (default: 100)
+ */
+export function insertTextIntoChatInput(text: string, delay = DEFAULT_FOCUS_DELAY): void {
+  setTimeout(() => {
+    const textarea = document.querySelector<HTMLTextAreaElement>(FOCUS_TARGETS.CHAT_INPUT);
+    if (textarea) {
+      // Get current value and cursor position
+      const currentValue = textarea.value;
+      const cursorPosition = textarea.selectionStart ?? currentValue.length;
+
+      // Insert text at cursor position
+      const newValue = currentValue.slice(0, cursorPosition) + text + currentValue.slice(cursorPosition);
+
+      // Set new value using native value setter to trigger React's onChange
+      const descriptor = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value');
+      if (descriptor?.set) {
+        descriptor.set.call(textarea, newValue);
+
+        // Dispatch input event to notify React of the change
+        const inputEvent = new Event('input', { bubbles: true });
+        textarea.dispatchEvent(inputEvent);
+      }
+
+      // Focus and set cursor position after the inserted text
+      textarea.focus();
+      const newCursorPosition = cursorPosition + text.length;
+      textarea.setSelectionRange(newCursorPosition, newCursorPosition);
+    }
+  }, delay);
+}
