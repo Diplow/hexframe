@@ -32,6 +32,14 @@ interface ContextMenuContainerProps {
   hasComposition?: (coordId: string) => boolean;
   isCompositionExpanded?: (coordId: string) => boolean;
   canShowComposition?: (tileData: TileData) => boolean;
+  /** Callback when user adds a tile to favorites */
+  onAddFavorite?: (tileData: TileData) => void;
+  /** Callback when user removes a tile from favorites */
+  onRemoveFavorite?: (tileData: TileData) => void;
+  /** Check if a tile is favorited by its coordId */
+  isFavorited?: (coordId: string) => boolean;
+  /** Callback when user wants to edit the shortcut for a favorited tile */
+  onEditShortcut?: (tileData: TileData) => void;
 }
 
 export function ContextMenuContainer({
@@ -56,6 +64,10 @@ export function ContextMenuContainer({
   hasComposition,
   isCompositionExpanded,
   canShowComposition,
+  onAddFavorite,
+  onRemoveFavorite,
+  isFavorited,
+  onEditShortcut,
 }: ContextMenuContainerProps) {
   if (!contextMenu) return null;
 
@@ -95,6 +107,10 @@ export function ContextMenuContainer({
         isCompositionExpanded?.(contextMenu.tileData.metadata.coordId) ?? false
       }
       canShowComposition={canShowComposition?.(contextMenu.tileData) ?? false}
+      isFavorited={isFavorited?.(contextMenu.tileData.metadata.coordId) ?? false}
+      onAddFavorite={() => onAddFavorite?.(contextMenu.tileData)}
+      onRemoveFavorite={() => onRemoveFavorite?.(contextMenu.tileData)}
+      onEditShortcut={() => onEditShortcut?.(contextMenu.tileData)}
     />
   );
 }

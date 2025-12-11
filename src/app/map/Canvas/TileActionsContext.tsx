@@ -38,6 +38,9 @@ export interface TileActionsContextValue {
   onTileDragStart: (tileData: TileData) => void;
   onTileDrop: (tileData: TileData) => void;
   isDragging: boolean;
+
+  // Favorites - check if a tile is favorited by coordId
+  isFavorited?: (coordId: string) => boolean;
 }
 
 const TileActionsContext = createContext<TileActionsContextValue | null>(null);
@@ -69,6 +72,12 @@ interface TileActionsProviderProps {
   hasComposition?: (coordId: string) => boolean;
   isCompositionExpanded?: (coordId: string) => boolean;
   canShowComposition?: (tileData: TileData) => boolean;
+  // Favorites - for context menu
+  onAddFavorite?: (tileData: TileData) => void;
+  onRemoveFavorite?: (tileData: TileData) => void;
+  isFavorited?: (coordId: string) => boolean;
+  /** Callback when user wants to edit a favorite's shortcut (opens favorites panel) */
+  onEditShortcut?: (tileData: TileData) => void;
 }
 
 interface ContextMenuState {
@@ -95,6 +104,10 @@ export function TileActionsProvider({
   hasComposition,
   isCompositionExpanded,
   canShowComposition,
+  onAddFavorite,
+  onRemoveFavorite,
+  isFavorited,
+  onEditShortcut,
 }: TileActionsProviderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
@@ -169,6 +182,8 @@ export function TileActionsProvider({
     onDeleteComposedClick,
     onDeleteExecutionHistoryClick,
     onCompositionToggle,
+    // Favorites
+    isFavorited,
   }), [
     onTileClick,
     onTileDoubleClick,
@@ -187,6 +202,7 @@ export function TileActionsProvider({
     onDeleteComposedClick,
     onDeleteExecutionHistoryClick,
     onCompositionToggle,
+    isFavorited,
   ]);
 
   return (
@@ -214,6 +230,10 @@ export function TileActionsProvider({
         hasComposition={hasComposition}
         isCompositionExpanded={isCompositionExpanded}
         canShowComposition={canShowComposition}
+        onAddFavorite={onAddFavorite}
+        onRemoveFavorite={onRemoveFavorite}
+        isFavorited={isFavorited}
+        onEditShortcut={onEditShortcut}
       />
       {showCopyFeedback && (
         <CopyFeedback

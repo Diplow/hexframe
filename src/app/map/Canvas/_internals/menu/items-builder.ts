@@ -17,6 +17,7 @@ import {
   _buildCopyCoordinatesItem,
   _buildVisibilitySubmenu,
 } from "~/app/map/Canvas/_internals/menu/_builders/edit-actions";
+import { _buildFavoriteMenuItem } from "~/app/map/Canvas/_internals/menu/_builders/favorite-actions";
 
 export type MenuItem = ContextMenuItemData;
 
@@ -27,6 +28,8 @@ interface MenuItemsConfig {
   isCompositionExpanded: boolean;
   canShowComposition: boolean;
   visibility?: Visibility;
+  /** Whether this tile is currently in the user's favorites list (defaults to false) */
+  isFavorited?: boolean;
   onSelect?: () => void;
   onExpand?: () => void;
   onNavigate?: () => void;
@@ -43,6 +46,12 @@ interface MenuItemsConfig {
   onCopyCoordinates?: () => void;
   onSetVisibility?: (visibility: Visibility) => void;
   onSetVisibilityWithDescendants?: (visibility: Visibility) => void;
+  /** Callback when user selects "Add to Favorites" (available for all authenticated users) */
+  onAddFavorite?: () => void;
+  /** Callback when user selects "Remove from Favorites" (available for all authenticated users) */
+  onRemoveFavorite?: () => void;
+  /** Callback when user selects "Edit Shortcut" (opens favorites panel to edit this tile's shortcut) */
+  onEditShortcut?: () => void;
 }
 
 export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
@@ -53,6 +62,7 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
     isCompositionExpanded,
     canShowComposition,
     visibility,
+    isFavorited = false,
     onSelect,
     onExpand,
     onNavigate,
@@ -69,6 +79,9 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
     onCopyCoordinates,
     onSetVisibility,
     onSetVisibilityWithDescendants,
+    onAddFavorite,
+    onRemoveFavorite,
+    onEditShortcut,
   } = config;
 
   if (isEmptyTile) {
@@ -89,6 +102,12 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
     ),
     ..._buildNavigateItem(onNavigate),
     ..._buildViewHistoryItem(onViewHistory),
+    ..._buildFavoriteMenuItem({
+      isFavorited,
+      onAddFavorite,
+      onRemoveFavorite,
+      onEditShortcut,
+    }),
     ..._buildEditItem(canEdit, onEdit),
     ..._buildCopyItem(canEdit, onCopy),
     ..._buildMoveItem(canEdit, onMove),
