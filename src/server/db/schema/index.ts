@@ -21,6 +21,7 @@ export * from "~/server/db/schema/_tables/auth/sessions";
 export * from "~/server/db/schema/_tables/auth/verificationTokens";
 export * from "~/server/db/schema/_tables/auth/api-keys";
 export * from "~/server/db/schema/_tables/auth/internal-api-keys";
+export * from "~/server/db/schema/_tables/auth/tile-favorites";
 
 // Mapping/domain-specific tables
 export * from "~/server/db/schema/_tables/mapping/base-items";

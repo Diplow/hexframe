@@ -85,6 +85,13 @@
       "when": 1764800000000,
       "tag": "0011_add_visibility_column",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1765500000000,
+      "tag": "0012_add_tile_favorites",
+      "breakpoints": true
     }
   ]
 }
