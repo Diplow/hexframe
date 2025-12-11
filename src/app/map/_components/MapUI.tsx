@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { DynamicMapCanvas, MapLoadingSpinner } from "~/app/map/Canvas";
 import type { TileData } from "~/app/map/types/tile-data";
 import { ParentHierarchy } from "~/app/map/Hierarchy";
@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { useEventBus, type EventBusService } from '~/app/map';
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 import type { Visibility } from '~/lib/domains/mapping/utils';
+import { api } from "~/commons/trpc/react";
 // Removed drag service import - using global service
 
 const CACHE_CONFIG = {
@@ -202,6 +203,39 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
   const router = useRouter();
   const eventBus = useEventBus();
 
+  // Favorites state and mutations
+  const [favoritedMapItemIds, setFavoritedMapItemIds] = useState<Set<string>>(new Set());
+  const favoritesQuery = api.favorites.list.useQuery(undefined);
+
+  // Sync favorites data to local state when query data changes
+  useEffect(() => {
+    if (favoritesQuery.data) {
+      setFavoritedMapItemIds(new Set(favoritesQuery.data.map(f => f.mapItemId)));
+    }
+  }, [favoritesQuery.data]);
+  const addFavoriteMutation = api.favorites.add.useMutation({
+    onSuccess: (newFavorite) => {
+      setFavoritedMapItemIds(prev => new Set([...prev, newFavorite.mapItemId]));
+      void favoritesQuery.refetch();
+    },
+    onError: (error) => {
+      console.error("Failed to add favorite:", error);
+    },
+  });
+  const removeFavoriteMutation = api.favorites.removeByMapItem.useMutation({
+    onSuccess: (_data, variables) => {
+      setFavoritedMapItemIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(variables.mapItemId);
+        return newSet;
+      });
+      void favoritesQuery.refetch();
+    },
+    onError: (error) => {
+      console.error("Failed to remove favorite:", error);
+    },
+  });
+
   // Drag service no longer needed - using global service
 
   const centerCoordinate = center;
@@ -236,6 +270,45 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
     // Use optimized backend call that updates tile and all descendants in a single request
     void cache.updateVisibilityWithDescendantsOptimistic(tileData.metadata.coordId, visibility);
   }, [cache]);
+
+  // Favorites handlers
+  const handleAddFavorite = useCallback((tileData: TileData) => {
+    // Generate a shortcut name from the tile title (sanitized)
+    const baseName = tileData.data.title
+      .toLowerCase()
+      .replace(/[^a-z0-9_]/g, '_')
+      .replace(/_+/g, '_')
+      .slice(0, 30) || 'favorite';
+
+    const shortcutName = `${baseName}_${Date.now()}`;
+
+    addFavoriteMutation.mutate({
+      mapItemId: tileData.metadata.coordId,
+      shortcutName,
+    });
+  }, [addFavoriteMutation]);
+
+  const handleRemoveFavorite = useCallback((tileData: TileData) => {
+    removeFavoriteMutation.mutate({
+      mapItemId: tileData.metadata.coordId,
+    });
+  }, [removeFavoriteMutation]);
+
+  const isFavorited = useCallback((coordId: string): boolean => {
+    return favoritedMapItemIds.has(coordId);
+  }, [favoritedMapItemIds]);
+
+  const handleEditShortcut = useCallback((tileData: TileData) => {
+    // Emit event to open favorites widget with this tile's shortcut in edit mode
+    eventBus.emit({
+      type: 'map.favorites_widget_requested',
+      source: 'canvas',
+      payload: {
+        editShortcutForMapItemId: tileData.metadata.coordId,
+      },
+      timestamp: new Date(),
+    });
+  }, [eventBus]);
 
   // Composition state checkers
   const hasComposition = (coordId: string): boolean => {
@@ -288,6 +361,10 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
       hasComposition={hasComposition}
       isCompositionExpanded={isCompositionExpandedForTile}
       canShowComposition={canShowComposition}
+      onAddFavorite={handleAddFavorite}
+      onRemoveFavorite={handleRemoveFavorite}
+      isFavorited={isFavorited}
+      onEditShortcut={handleEditShortcut}
     >
       <>
         {/* Canvas layer - extends full width, positioned behind chat panel */}
