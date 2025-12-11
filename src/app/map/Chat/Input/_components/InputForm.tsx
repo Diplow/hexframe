@@ -1,10 +1,12 @@
 'use client';
 
 import type { RefObject } from "react";
+import type { FavoriteMatch } from '~/app/map/Chat/Input/_hooks/autocomplete/use-favorites-autocomplete';
 
 import { Send, Lock } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { CommandAutocomplete } from '~/app/map/Chat/Input/_components/CommandAutocomplete';
+import { FavoritesAutocomplete } from '~/app/map/Chat/Input/_components/FavoritesAutocomplete';
 
 interface CommandSuggestion {
   command: string;
@@ -12,41 +14,57 @@ interface CommandSuggestion {
   isExact?: boolean;
 }
 
+type AutocompleteMode = 'none' | 'command' | 'favorites';
+
 interface InputFormProps {
   message: string;
   showAutocomplete: boolean;
-  suggestions: CommandSuggestion[];
+  autocompleteMode: AutocompleteMode;
+  commandSuggestions: CommandSuggestion[];
+  favoritesSuggestions: FavoriteMatch[];
   selectedSuggestionIndex: number;
-  textareaRef: RefObject<HTMLTextAreaElement>;
+  textareaRef: RefObject<HTMLTextAreaElement | null>;
   isDisabled?: boolean;
   onMessageChange: (value: string) => void;
   onKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
   onSend: () => void;
-  onSelectSuggestion: (command: string) => void;
+  onSelectCommandSuggestion: (command: string) => void;
+  onSelectFavoriteSuggestion: (shortcutName: string) => void;
   onCloseAutocomplete: () => void;
 }
 
 export function InputForm({
   message,
   showAutocomplete,
-  suggestions,
+  autocompleteMode,
+  commandSuggestions,
+  favoritesSuggestions,
   selectedSuggestionIndex,
   textareaRef,
   isDisabled = false,
   onMessageChange,
   onKeyDown,
   onSend,
-  onSelectSuggestion,
+  onSelectCommandSuggestion,
+  onSelectFavoriteSuggestion,
   onCloseAutocomplete
 }: InputFormProps) {
   return (
     <div className="relative">
-      {showAutocomplete && (
+      {showAutocomplete && autocompleteMode === 'command' && (
         <CommandAutocomplete
-          suggestions={suggestions}
+          suggestions={commandSuggestions}
           selectedIndex={selectedSuggestionIndex}
-          onSelect={onSelectSuggestion}
+          onSelect={onSelectCommandSuggestion}
           _onClose={onCloseAutocomplete}
+          inputRef={textareaRef}
+        />
+      )}
+      {showAutocomplete && autocompleteMode === 'favorites' && (
+        <FavoritesAutocomplete
+          suggestions={favoritesSuggestions}
+          selectedIndex={selectedSuggestionIndex}
+          onSelect={onSelectFavoriteSuggestion}
           inputRef={textareaRef}
         />
       )}
@@ -60,7 +78,7 @@ export function InputForm({
       )}
       <div className="flex items-end gap-2 p-4 border-t border-[color:var(--stroke-color-950)]">
         <textarea
-          ref={textareaRef}
+          ref={textareaRef as React.RefObject<HTMLTextAreaElement>}
           value={message}
           onChange={(e) => onMessageChange(e.target.value)}
           onKeyDown={onKeyDown}

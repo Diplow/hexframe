@@ -1,31 +1,24 @@
 'use client';
 
 import type { RefObject } from "react";
+import type { FavoriteMatch } from '~/app/map/Chat/Input/_hooks/autocomplete/use-favorites-autocomplete';
 
 import { useEffect, useRef } from 'react';
-import { Command, Terminal } from 'lucide-react';
+import { Star } from 'lucide-react';
 
-interface CommandSuggestion {
-  command: string;
-  description: string;
-  isExact?: boolean;
-}
-
-interface CommandAutocompleteProps {
-  suggestions: CommandSuggestion[];
+interface FavoritesAutocompleteProps {
+  suggestions: FavoriteMatch[];
   selectedIndex: number;
-  onSelect: (command: string) => void;
-  _onClose: () => void;
+  onSelect: (shortcutName: string) => void;
   inputRef: RefObject<HTMLTextAreaElement | null>;
 }
 
-export function CommandAutocomplete({ 
-  suggestions, 
-  selectedIndex, 
-  onSelect, 
-  _onClose,
-  inputRef 
-}: CommandAutocompleteProps) {
+export function FavoritesAutocomplete({
+  suggestions,
+  selectedIndex,
+  onSelect,
+  inputRef
+}: FavoritesAutocompleteProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Position dropdown relative to input
@@ -34,7 +27,7 @@ export function CommandAutocomplete({
 
     const inputRect = inputRef.current.getBoundingClientRect();
     const dropdown = dropdownRef.current;
-    
+
     dropdown.style.position = 'fixed';
     dropdown.style.top = `${inputRect.top - dropdown.offsetHeight - 4}px`;
     dropdown.style.left = `${inputRect.left}px`;
@@ -47,19 +40,19 @@ export function CommandAutocomplete({
   return (
     <div
       ref={dropdownRef}
-      data-testid="command-autocomplete"
+      data-testid="favorites-autocomplete"
       className="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg max-h-64 overflow-y-auto"
     >
       <div className="p-2">
         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
-          <Terminal className="w-3 h-3" />
-          Commands
+          <Star className="w-3 h-3" />
+          Favorites
         </div>
         {suggestions.map((suggestion, index) => (
           <button
-            key={suggestion.command}
-            data-testid="command-suggestion"
-            onClick={() => onSelect(suggestion.command)}
+            key={suggestion.mapItemId}
+            data-testid="favorite-suggestion"
+            onClick={() => onSelect(suggestion.shortcutName)}
             className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${
               index === selectedIndex
                 ? 'bg-primary text-primary-foreground'
@@ -67,16 +60,11 @@ export function CommandAutocomplete({
             }`}
           >
             <div className="flex items-center gap-2">
-              <Command className="w-3 h-3 flex-shrink-0" />
+              <Star className="w-3 h-3 flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="font-mono font-medium">
-                  {suggestion.command}
+                  @{suggestion.shortcutName}
                 </div>
-                {suggestion.description && (
-                  <div className="text-xs text-muted-foreground truncate">
-                    {suggestion.description}
-                  </div>
-                )}
               </div>
             </div>
           </button>

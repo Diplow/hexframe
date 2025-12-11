@@ -4,7 +4,8 @@
     "~/components/ui/button",
     "~/lib/auth",
     "~/lib/debug/debug-logger",
-    "~/app/map/Services/EventBus"
+    "~/app/map/Services/EventBus",
+    "~/lib/domains/iam/_repositories"
   ],
   "exceptions": {}
 }
