@@ -32,7 +32,7 @@ The response will contain one of:
 - `<execution-instructions>` → Continue to step 3
 
 ### 3. Spawn a subagent
-Use the Task tool with `subagent_type: "general-purpose"` to execute the prompt.
+Use the Task tool with `subagent_type: "general-purpose"` to execute the prompt. Use opus model.
 
 **CRITICAL**: Pass the EXACT prompt returned by hexecute to the subagent. Do NOT summarize, interpret, or craft your own prompt. The hexecute output already includes `<execution-instructions>` that tell the subagent to execute only one step.
 
