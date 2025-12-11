@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildPrompt, type PromptData } from '~/lib/domains/agentic/services/prompt-executor.service'
+import { buildPrompt, type PromptData } from '~/lib/domains/agentic/utils'
 
 describe('buildPrompt - v3 Simplified Structure', () => {
   // ==================== BASIC STRUCTURE TESTS ====================

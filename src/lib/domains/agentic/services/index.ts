@@ -13,5 +13,6 @@ export type { TokenizerService } from '~/lib/domains/agentic/services/tokenizer.
 export { PreviewGeneratorService } from '~/lib/domains/agentic/services/preview-generator.service'
 export type { GeneratePreviewInput, GeneratePreviewResult } from '~/lib/domains/agentic/services/preview-generator.service'
 
-export { buildPrompt } from '~/lib/domains/agentic/services/prompt-executor.service'
-export type { PromptData } from '~/lib/domains/agentic/services/prompt-executor.service'
+// Re-export from utils for backwards compatibility
+export { buildPrompt } from '~/lib/domains/agentic/utils'
+export type { PromptData } from '~/lib/domains/agentic/utils'

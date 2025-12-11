@@ -302,6 +302,7 @@ export class SpecializedQueries {
     composed: DbMapItemWithBase[];
     children: DbMapItemWithBase[];
     grandchildren: DbMapItemWithBase[];
+    hexPlan: DbMapItemWithBase | null;
   }> {
     const { centerPath, userId, groupId, requester } = config;
     const centerPathString = pathToString(centerPath);
@@ -488,6 +489,12 @@ export class SpecializedQueries {
       ? this._filterComposed(fullContentResults, centerPathString, centerDepth)
       : [];
 
+    // Extract hexPlan (direction-0) from the full content results if includeComposed is true
+    // Direction-0 is already fetched in the same query, we just need to extract it separately
+    const hexPlan = config.includeComposed
+      ? this._findHexPlan(fullContentResults, centerPath)
+      : null;
+
     // Filter children and grandchildren from their respective queries
     const children = childrenResults.filter((r) => {
       if (!r.map_items || typeof r.map_items !== 'object') return false;
@@ -507,6 +514,7 @@ export class SpecializedQueries {
       composed,
       children,
       grandchildren,
+      hexPlan,
     };
   }
 
@@ -554,6 +562,27 @@ export class SpecializedQueries {
       const directionValue = parseInt(lastDirection, 10);
       return directionValue < 0;
     }) as DbMapItemWithBase[];
+  }
+
+  /**
+   * Find the hexPlan tile (direction-0) from the full content results
+   */
+  private _findHexPlan(
+    results: Array<{ map_items: unknown; base_items: unknown }>,
+    centerPath: Direction[]
+  ): DbMapItemWithBase | null {
+    const hexPlanPath = [...centerPath, 0];
+    const hexPlanPathString = pathToString(hexPlanPath);
+
+    const hexPlan = results.find((r) => {
+      if (!r.map_items || typeof r.map_items !== 'object') return false;
+      if (!('path' in r.map_items)) return false;
+      return r.map_items.path === hexPlanPathString;
+    });
+
+    return hexPlan?.map_items && hexPlan?.base_items
+      ? (hexPlan as DbMapItemWithBase)
+      : null;
   }
 
 }
