@@ -16,6 +16,8 @@
   "subsystems": [
     "./Tile",
     "./OperationOverlay",
-    "./_internals"
+    "./Interactions",
+    "./Menu",
+    "./HexGeometry"
   ]
 }

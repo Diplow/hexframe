@@ -26,9 +26,22 @@ import { useEventBus } from '~/app/map';
 import {
   setupKeyboardHandlers,
   createTileActions,
-  shouldShowLoadingState,
   createEventCallbacks,
-} from "~/app/map/Canvas/_internals";
+} from "~/app/map/Canvas/Interactions";
+import type { TileData } from "~/app/map/types/tile-data";
+
+/** Determines if loading state should be shown */
+function _shouldShowLoadingState(
+  isLoading: boolean,
+  centerItem: TileData | undefined,
+  itemsCount: number
+): boolean {
+  // Only show loading if:
+  // 1. We're loading AND
+  // 2. We don't have the center item AND
+  // 3. We don't have any items at all (initial load)
+  return isLoading && !centerItem && itemsCount === 0;
+}
 
 // Import all shared contexts to ensure tiles and canvas use the same context instances
 import {
@@ -182,7 +195,7 @@ export function DynamicMapCanvas({
   // Get the center item to check if we have data
   const centerItem = items[center ?? centerInfo.center];
 
-  if (shouldShowLoadingState(isLoading, centerItem, Object.keys(items).length)) {
+  if (_shouldShowLoadingState(isLoading, centerItem, Object.keys(items).length)) {
     return <CanvasLoadingState fallback={fallback} />;
   }
 

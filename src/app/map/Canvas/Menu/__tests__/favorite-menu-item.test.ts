@@ -1,6 +1,6 @@
 import '~/test/setup';
 import { describe, it, expect, vi } from 'vitest';
-import { _buildFavoriteMenuItem } from '~/app/map/Canvas/_internals/menu/_builders/favorite-actions';
+import { _buildFavoriteMenuItem } from '~/app/map/Canvas/Menu/_builders/favorite-actions';
 
 describe('_buildFavoriteMenuItem', () => {
   describe('when tile is not favorited', () => {

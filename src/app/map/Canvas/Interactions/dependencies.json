@@ -3,6 +3,5 @@
   "allowed": [
     "react",
     "~/app/map/types"
-  ],
-  "exceptions": {}
+  ]
 }

@@ -6,7 +6,7 @@ import {
   _buildExpandItem,
   _buildCompositionItem,
   _buildNavigateItem,
-} from "~/app/map/Canvas/_internals/menu/_builders/view-actions";
+} from "~/app/map/Canvas/Menu/_builders/view-actions";
 import {
   _buildViewHistoryItem,
   _buildEditItem,
@@ -16,8 +16,8 @@ import {
   _buildCreateItem,
   _buildCopyCoordinatesItem,
   _buildVisibilitySubmenu,
-} from "~/app/map/Canvas/_internals/menu/_builders/edit-actions";
-import { _buildFavoriteMenuItem } from "~/app/map/Canvas/_internals/menu/_builders/favorite-actions";
+} from "~/app/map/Canvas/Menu/_builders/edit-actions";
+import { _buildFavoriteMenuItem } from "~/app/map/Canvas/Menu/_builders/favorite-actions";
 
 export type MenuItem = ContextMenuItemData;
 

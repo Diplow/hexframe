@@ -1,6 +1,6 @@
 import type { TileData } from "~/app/map/types/tile-data";
 import { Eye, Maximize2, Navigation, Layers } from "lucide-react";
-import type { MenuItem } from "~/app/map/Canvas/_internals/menu/items-builder";
+import type { MenuItem } from "~/app/map/Canvas/Menu/items-builder";
 
 /**
  * View-related menu item builders (Preview, Expand, Navigate, Composition)

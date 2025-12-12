@@ -1,5 +1,5 @@
 import { Star, StarOff, Settings } from "lucide-react";
-import type { MenuItem } from "~/app/map/Canvas/_internals/menu/items-builder";
+import type { MenuItem } from "~/app/map/Canvas/Menu/items-builder";
 
 /**
  * Parameters for building the favorite menu item.

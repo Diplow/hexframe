@@ -2,7 +2,7 @@
 
 import type { TileData } from "~/app/map/types/tile-data";
 import { ContextMenu } from "~/components/ui/context-menu";
-import { buildMenuItems } from "~/app/map/Canvas/_internals";
+import { buildMenuItems } from "~/app/map/Canvas/Menu";
 import type { Visibility } from '~/lib/domains/mapping/utils';
 
 interface TileContextMenuProps {

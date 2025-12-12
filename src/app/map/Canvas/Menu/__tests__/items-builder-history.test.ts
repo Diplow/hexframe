@@ -1,6 +1,6 @@
 import '~/test/setup';
 import { describe, it, expect, vi } from 'vitest';
-import { buildMenuItems } from '~/app/map/Canvas/_internals/menu/items-builder';
+import { buildMenuItems } from '~/app/map/Canvas/Menu/items-builder';
 import type { TileData } from '~/app/map/types/tile-data';
 import { History } from 'lucide-react';
 import { Visibility } from '~/lib/domains/mapping/utils';

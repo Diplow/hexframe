@@ -1,0 +1,7 @@
+{
+  "$schema": "../../../../../scripts/checks/architecture/dependencies.schema.json",
+  "allowed": [
+    "~/app/map/types",
+    "~/components/ui/context-menu"
+  ]
+}

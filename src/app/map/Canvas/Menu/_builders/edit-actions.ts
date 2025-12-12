@@ -1,6 +1,6 @@
 import { Edit, Trash2, Move, Copy, Plus, History, Layers, FolderTree, Clock, Clipboard, Lock, Unlock, Eye } from "lucide-react";
 import { Visibility } from '~/lib/domains/mapping/utils';
-import type { MenuItem } from "~/app/map/Canvas/_internals/menu/items-builder";
+import type { MenuItem } from "~/app/map/Canvas/Menu/items-builder";
 
 /**
  * Edit-related menu item builders (Edit, Copy, Move, Delete, Create, History)

@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import type { TileData } from "~/app/map/types/tile-data";
-import { useTileClickHandlers, simulateDragStart } from "~/app/map/Canvas/_internals";
+import { useTileClickHandlers, simulateDragStart } from "~/app/map/Canvas/Interactions";
 import { ContextMenuContainer } from "~/app/map/Canvas/_components/ContextMenuContainer";
 import { CopyFeedback, useCopyFeedback } from "~/components/ui/copy-feedback";
 import type { Visibility } from '~/lib/domains/mapping/utils';

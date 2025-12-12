@@ -16,7 +16,7 @@ import {
   getParentCoordId,
   calculateNeighborPositions,
   calculateSpatialDirection,
-} from "~/app/map/Canvas/_internals";
+} from "~/app/map/Canvas/HexGeometry";
 
 export interface NeighborTilesProps {
   centerItem: TileData;
