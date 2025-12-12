@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { MapLoadingSpinner } from "~/app/map/Canvas/LifeCycle/loading-spinner";
+import { MapLoadingSpinner } from "~/app/map/Canvas/_internals/CanvasStates/loading-spinner";
 
 interface CanvasLoadingStateProps {
   fallback?: ReactNode;

@@ -2,7 +2,7 @@
 
 import { Globe, Lock } from 'lucide-react';
 import { Visibility } from '~/lib/domains/mapping/utils';
-import { TileTooltip } from '~/app/map/Canvas/_shared/TileTooltip';
+import { TileTooltip } from '~/app/map/Canvas/_internals/TileTooltip';
 
 interface VisibilityIndicatorProps {
   visibility: Visibility;

@@ -2,7 +2,7 @@ import '~/test/setup';
 import { describe, it, expect } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { FavoriteIndicator } from '~/app/map/Canvas/_shared/FavoriteIndicator';
+import { FavoriteIndicator } from '~/app/map/Canvas/_internals/Indicators/FavoriteIndicator';
 
 describe('FavoriteIndicator', () => {
   describe('when tile is favorited', () => {

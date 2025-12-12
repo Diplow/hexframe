@@ -9,10 +9,10 @@ import { DynamicTileContent } from "~/app/map/Canvas/Tile/Item/content";
 import { useTileInteraction, useTileActions } from "~/app/map/Canvas";
 // import { useRouter } from "next/navigation"; // Removed unused import
 import { useCanvasTheme } from "~/app/map/Canvas";
-import { TileTooltip } from "~/app/map/Canvas/_shared/TileTooltip";
+import { TileTooltip } from "~/app/map/Canvas/_internals/TileTooltip";
 import type { Visibility } from '~/lib/domains/mapping/utils';
-import { VisibilityIndicator } from "~/app/map/Canvas/_shared/VisibilityIndicator";
-import { FavoriteIndicator } from "~/app/map/Canvas/_shared/FavoriteIndicator";
+import { VisibilityIndicator } from "~/app/map/Canvas/_internals/Indicators/VisibilityIndicator";
+import { FavoriteIndicator } from "~/app/map/Canvas/_internals/Indicators/FavoriteIndicator";
 
 // Types for drag props
 interface DragProps {

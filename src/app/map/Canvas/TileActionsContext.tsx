@@ -1,27 +1,17 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  useMemo,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from "react";
 import type { TileData } from "~/app/map/types/tile-data";
 import { useTileClickHandlers, simulateDragStart } from "~/app/map/Canvas/Interactions";
-import { ContextMenuContainer } from "~/app/map/Canvas/_components/ContextMenuContainer";
+import { ContextMenuContainer } from "~/app/map/Canvas/_internals/ContextMenuContainer";
 import { CopyFeedback, useCopyFeedback } from "~/components/ui/copy-feedback";
 import type { Visibility } from '~/lib/domains/mapping/utils';
 
 export interface TileActionsContextValue {
-  // Click handlers
   onTileClick: (tileData: TileData, event: React.MouseEvent) => void;
   onTileDoubleClick: (tileData: TileData) => void;
   onTileRightClick: (tileData: TileData, event: React.MouseEvent) => void;
   onTileHover: (tileData: TileData) => void;
-
-  // Action handlers
   onSelectClick?: (tileData: TileData) => void;
   onNavigateClick?: (tileData: TileData) => void;
   onExpandClick?: (tileData: TileData) => void;
@@ -32,13 +22,9 @@ export interface TileActionsContextValue {
   onDeleteComposedClick?: (tileData: TileData) => void;
   onDeleteExecutionHistoryClick?: (tileData: TileData) => void;
   onCompositionToggle?: (tileData: TileData) => void;
-
-  // Drag and drop
   onTileDragStart: (tileData: TileData) => void;
   onTileDrop: (tileData: TileData) => void;
   isDragging: boolean;
-
-  // Favorites - check if a tile is favorited by coordId
   isFavorited?: (coordId: string) => boolean;
 }
 
@@ -54,7 +40,6 @@ export function useTileActions() {
 
 interface TileActionsProviderProps {
   children: ReactNode;
-  // Optional handlers
   onSelectClick?: (tileData: TileData) => void;
   onNavigateClick?: (tileData: TileData) => void;
   onExpandClick?: (tileData: TileData) => void;
@@ -67,15 +52,12 @@ interface TileActionsProviderProps {
   onCompositionToggle?: (tileData: TileData) => void;
   onSetVisibility?: (tileData: TileData, visibility: Visibility) => void;
   onSetVisibilityWithDescendants?: (tileData: TileData, visibility: Visibility) => void;
-  // Composition state - for context menu
   hasComposition?: (coordId: string) => boolean;
   isCompositionExpanded?: (coordId: string) => boolean;
   canShowComposition?: (tileData: TileData) => boolean;
-  // Favorites - for context menu
   onAddFavorite?: (tileData: TileData) => void;
   onRemoveFavorite?: (tileData: TileData) => void;
   isFavorited?: (coordId: string) => boolean;
-  /** Callback when user wants to edit a favorite's shortcut (opens favorites panel) */
   onEditShortcut?: (tileData: TileData) => void;
 }
 
@@ -86,122 +68,61 @@ interface ContextMenuState {
   isEmptyTile?: boolean;
 }
 
-export function TileActionsProvider({
-  children,
-  onSelectClick,
-  onNavigateClick,
-  onExpandClick,
-  onCreateClick,
-  onEditClick,
-  onDeleteClick,
-  onDeleteChildrenClick,
-  onDeleteComposedClick,
-  onDeleteExecutionHistoryClick,
-  onCompositionToggle,
-  onSetVisibility,
-  onSetVisibilityWithDescendants,
-  hasComposition,
-  isCompositionExpanded,
-  canShowComposition,
-  onAddFavorite,
-  onRemoveFavorite,
-  isFavorited,
-  onEditShortcut,
-}: TileActionsProviderProps) {
-  const [isDragging, setIsDragging] = useState(false);
-  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
-  const { show: showCopyFeedback, isError: isCopyError, triggerSuccess: triggerCopySuccess, triggerError: triggerCopyError } = useCopyFeedback();
-
-  const { onTileClick, onTileDoubleClick } = useTileClickHandlers({
-    onNavigateClick,
-    onSelectClick,
-    onExpandClick,
-    onCompositionToggle,
-  });
-
-  const onTileRightClick = useCallback((tileData: TileData, event: React.MouseEvent) => {
-    // Right-click shows context menu
+/** Creates a right-click handler that shows the context menu */
+function _useRightClickHandler(setContextMenu: (state: ContextMenuState | null) => void) {
+  return useCallback((tileData: TileData, event: React.MouseEvent) => {
     event.preventDefault();
-    
     const canEdit = 'state' in tileData && tileData.state?.canEdit === true;
     const isEmptyTile = !tileData.metadata.dbId || tileData.metadata.dbId === "0";
-    
-    setContextMenu({
-      tileData,
-      position: { x: event.clientX, y: event.clientY },
-      canEdit,
-      isEmptyTile,
-    });
-  }, []);
+    setContextMenu({ tileData, position: { x: event.clientX, y: event.clientY }, canEdit, isEmptyTile });
+  }, [setContextMenu]);
+}
 
-  const onTileHover = useCallback((_tileData: TileData) => {
-    // Tool-specific hover behavior can be added here
-  }, []);
-
-  const onTileDragStart = useCallback((_tileData: TileData) => {
-    setIsDragging(true);
-  }, []);
-
-  const onTileDrop = useCallback((_tileData: TileData) => {
-    setIsDragging(false);
-  }, []);
-
-  const closeContextMenu = useCallback(() => {
-    setContextMenu(null);
-  }, []);
-
+/** Creates drag handlers for simulated drag operations */
+function _useDragMenuHandlers(closeContextMenu: () => void) {
   const handleCopyToClick = useCallback((tileData: TileData) => {
-    // Start drag in copy mode (no ctrl)
     simulateDragStart(tileData.metadata.coordId, { ctrlKey: false });
     closeContextMenu();
   }, [closeContextMenu]);
 
   const handleMoveToClick = useCallback((tileData: TileData) => {
-    // Start drag in move mode (with ctrl)
     simulateDragStart(tileData.metadata.coordId, { ctrlKey: true });
     closeContextMenu();
   }, [closeContextMenu]);
 
+  return { handleCopyToClick, handleMoveToClick };
+}
+
+export function TileActionsProvider(props: TileActionsProviderProps) {
+  const {
+    children, onSelectClick, onNavigateClick, onExpandClick, onCreateClick, onEditClick,
+    onDeleteClick, onDeleteChildrenClick, onDeleteComposedClick, onDeleteExecutionHistoryClick,
+    onCompositionToggle, onSetVisibility, onSetVisibilityWithDescendants, hasComposition,
+    isCompositionExpanded, canShowComposition, onAddFavorite, onRemoveFavorite, isFavorited, onEditShortcut,
+  } = props;
+
+  const [isDragging, setIsDragging] = useState(false);
+  const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
+  const { show: showCopyFeedback, isError: isCopyError, triggerSuccess, triggerError } = useCopyFeedback();
+
+  const { onTileClick, onTileDoubleClick } = useTileClickHandlers({
+    onNavigateClick, onSelectClick, onExpandClick, onCompositionToggle,
+  });
+  const onTileRightClick = _useRightClickHandler(setContextMenu);
+  const onTileHover = useCallback((_tileData: TileData) => {}, []);
+  const onTileDragStart = useCallback(() => setIsDragging(true), []);
+  const onTileDrop = useCallback(() => setIsDragging(false), []);
+  const closeContextMenu = useCallback(() => setContextMenu(null), []);
+  const { handleCopyToClick, handleMoveToClick } = _useDragMenuHandlers(closeContextMenu);
+
   const value = useMemo(() => ({
-    onTileClick,
-    onTileDoubleClick,
-    onTileRightClick,
-    onTileHover,
-    onTileDragStart,
-    onTileDrop,
-    isDragging,
-    // Include optional handlers
-    onSelectClick,
-    onNavigateClick,
-    onExpandClick,
-    onCreateClick,
-    onEditClick,
-    onDeleteClick,
-    onDeleteChildrenClick,
-    onDeleteComposedClick,
-    onDeleteExecutionHistoryClick,
-    onCompositionToggle,
-    // Favorites
-    isFavorited,
+    onTileClick, onTileDoubleClick, onTileRightClick, onTileHover, onTileDragStart, onTileDrop, isDragging,
+    onSelectClick, onNavigateClick, onExpandClick, onCreateClick, onEditClick, onDeleteClick,
+    onDeleteChildrenClick, onDeleteComposedClick, onDeleteExecutionHistoryClick, onCompositionToggle, isFavorited,
   }), [
-    onTileClick,
-    onTileDoubleClick,
-    onTileRightClick,
-    onTileHover,
-    onTileDragStart,
-    onTileDrop,
-    isDragging,
-    onSelectClick,
-    onNavigateClick,
-    onExpandClick,
-    onCreateClick,
-    onEditClick,
-    onDeleteClick,
-    onDeleteChildrenClick,
-    onDeleteComposedClick,
-    onDeleteExecutionHistoryClick,
-    onCompositionToggle,
-    isFavorited,
+    onTileClick, onTileDoubleClick, onTileRightClick, onTileHover, onTileDragStart, onTileDrop, isDragging,
+    onSelectClick, onNavigateClick, onExpandClick, onCreateClick, onEditClick, onDeleteClick,
+    onDeleteChildrenClick, onDeleteComposedClick, onDeleteExecutionHistoryClick, onCompositionToggle, isFavorited,
   ]);
 
   return (
@@ -221,8 +142,8 @@ export function TileActionsProvider({
         onDeleteExecutionHistoryClick={onDeleteExecutionHistoryClick}
         onCopyClick={handleCopyToClick}
         onMoveClick={handleMoveToClick}
-        onCopyCoordinatesSuccess={triggerCopySuccess}
-        onCopyCoordinatesError={triggerCopyError}
+        onCopyCoordinatesSuccess={triggerSuccess}
+        onCopyCoordinatesError={triggerError}
         onCompositionToggle={onCompositionToggle}
         onSetVisibility={onSetVisibility}
         onSetVisibilityWithDescendants={onSetVisibilityWithDescendants}

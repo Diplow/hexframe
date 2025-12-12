@@ -3,33 +3,24 @@
  * Provides default implementations for tile interactions
  */
 
-// Constant no-op function for legacy compatibility
-const _noop = () => { /* No-op for backward compatibility */ };
+// Shared no-op and utility functions
+function _noop() { /* No-op */ }
+function _returnTrue() { return true as const; }
+function _returnFalse() { return false as const; }
+function _returnNull() { return null as null; }
 
 // Pre-built tile action object for reuse
 const TILE_ACTIONS = {
-  handleTileClick: (_coordId: string, _event: MouseEvent) => {
-    // Default tile click behavior (can be enhanced later)
-  },
-  handleTileHover: (_coordId: string, _isHovering: boolean) => {
-    // TODO: Handle hover state
-  },
-  onCreateTileRequested: (_coordId: string) => {
-    // This callback is used by empty tiles to signal create requests
-  },
-  dragHandlers: {
-    onDragStart: _noop,
-    onDragOver: _noop,
-    onDragLeave: _noop,
-    onDrop: _noop,
-    onDragEnd: _noop,
-  },
-  canDragTile: () => true,
-  isDraggingTile: () => false,
-  isDropTarget: () => false,
-  isValidDropTarget: () => false,
+  handleTileClick: _noop as (coordId: string, event: MouseEvent) => void,
+  handleTileHover: _noop as (coordId: string, isHovering: boolean) => void,
+  onCreateTileRequested: _noop as (coordId: string) => void,
+  dragHandlers: { onDragStart: _noop, onDragOver: _noop, onDragLeave: _noop, onDrop: _noop, onDragEnd: _noop },
+  canDragTile: _returnTrue,
+  isDraggingTile: _returnFalse,
+  isDropTarget: _returnFalse,
+  isValidDropTarget: _returnFalse,
   isDragging: false,
-  getDropOperation: () => null,
+  getDropOperation: _returnNull,
 };
 
 export function createTileActions() {

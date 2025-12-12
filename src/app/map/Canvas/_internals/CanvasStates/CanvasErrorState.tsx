@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { MapErrorBoundary } from "~/app/map/Canvas/LifeCycle/error-boundary";
+import { MapErrorBoundary } from "~/app/map/Canvas/_internals/CanvasStates/error-boundary";
 
 interface CanvasErrorStateProps {
   error: Error;
