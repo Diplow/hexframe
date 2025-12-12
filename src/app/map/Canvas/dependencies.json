@@ -15,6 +15,7 @@
   ],
   "subsystems": [
     "./Tile",
-    "./OperationOverlay"
+    "./OperationOverlay",
+    "./_internals"
   ]
 }

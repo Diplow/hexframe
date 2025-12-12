@@ -1,0 +1,13 @@
+{
+  "$schema": "../../../../../../scripts/checks/architecture/dependencies.schema.json",
+  "allowed": [
+    "react",
+    "~/app/map/Chat/Input/_commands",
+    "~/app/map/Chat/Input/mention-parser",
+    "~/app/map/Services/EventBus",
+    "~/lib/domains/iam",
+    "~/lib/debug/debug-logger",
+    "~/lib/auth"
+  ],
+  "exceptions": {}
+}

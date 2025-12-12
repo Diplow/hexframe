@@ -5,10 +5,8 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Star, RefreshCw, AlertCircle } from 'lucide-react';
 import { api } from '~/commons/trpc/react';
 import { BaseWidget, WidgetHeader, WidgetContent } from '~/app/map/Chat/Timeline/Widgets/_shared';
-import { FavoriteListItem } from '~/app/map/Favorites/FavoriteListItem';
-import { FavoritesSearchControls } from '~/app/map/Favorites/_components/_panel/FavoritesSearchControls';
-import { filterFavorites, sortFavorites, type FavoritesSortOrder } from '~/app/map/Favorites/_utils';
-import { useMapCacheNavigation } from '~/app/map/Cache/use-map-cache';
+import { FavoriteListItem, FavoritesSearchControls, filterFavorites, sortFavorites, type FavoritesSortOrder } from '~/app/map/Favorites';
+import { useMapCacheNavigation } from '~/app/map/Cache';
 
 interface FavoritesWidgetProps {
   onClose?: () => void;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import type { Favorite } from '~/lib/domains/iam/_repositories';
+import type { Favorite } from '~/lib/domains/iam';
 import type { TileDataMap } from '~/app/map/Favorites/_utils/favorites-filters';
 
 export interface UseFavoritesStateOptions {

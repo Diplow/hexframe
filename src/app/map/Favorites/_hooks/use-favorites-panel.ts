@@ -13,7 +13,7 @@ import {
   type FavoritesSortOrder,
   type TileDataMap,
 } from '~/app/map/Favorites/_utils';
-import type { Favorite } from '~/lib/domains/iam/_repositories';
+import type { Favorite } from '~/lib/domains/iam';
 import type { FavoriteTileData } from '~/app/map/Favorites/FavoriteListItem';
 
 export type { FavoritesSortOrder, TileDataMap, FavoriteTileData };

@@ -7,7 +7,7 @@ import { Button } from '~/components/ui/button';
 import { FavoriteItemContent } from '~/app/map/Favorites/_components/_item/FavoriteItemContent';
 import { FavoriteItemSkeleton } from '~/app/map/Favorites/_components/_item/FavoriteItemSkeleton';
 import { ShortcutEditor } from '~/app/map/Favorites/_components/_item/ShortcutEditor';
-import type { Favorite } from '~/lib/domains/iam/_repositories';
+import type { Favorite } from '~/lib/domains/iam';
 
 /**
  * Tile data associated with a favorite.

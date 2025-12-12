@@ -5,7 +5,10 @@
     "~/lib/auth",
     "~/lib/debug/debug-logger",
     "~/app/map/Services/EventBus",
-    "~/lib/domains/iam/_repositories"
+    "~/lib/domains/iam"
+  ],
+  "subsystems": [
+    "./_hooks"
   ],
   "exceptions": {}
 }

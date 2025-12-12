@@ -2,7 +2,7 @@
 
 import { useCallback } from 'react';
 import { useEventBus } from '~/app/map/Services/EventBus';
-import type { Favorite } from '~/lib/domains/iam/_repositories';
+import type { Favorite } from '~/lib/domains/iam';
 
 export interface UseFavoritesActionsOptions {
   favorites: Favorite[];

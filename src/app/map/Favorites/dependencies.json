@@ -4,7 +4,7 @@
   "allowed": [
     "~/app/map/Services/EventBus",
     "~/components/ui/button",
-    "~/lib/domains/iam/_repositories",
+    "~/lib/domains/iam",
     "~/lib/utils"
   ],
   "subsystems": []

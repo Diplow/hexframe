@@ -6,7 +6,7 @@ import { FavoritesPanelHeader } from '~/app/map/Favorites/_components/_panel/Fav
 import { FavoritesPanelContent } from '~/app/map/Favorites/_components/_panel/FavoritesPanelContent';
 import { usePanelHandlers } from '~/app/map/Favorites/_hooks/use-panel-handlers';
 import { filterFavorites, sortFavorites, type FavoritesSortOrder, type TileDataMap } from '~/app/map/Favorites/_utils';
-import type { Favorite } from '~/lib/domains/iam/_repositories';
+import type { Favorite } from '~/lib/domains/iam';
 import type { FavoriteTileData } from '~/app/map/Favorites/FavoriteListItem';
 
 export type { TileDataMap, FavoritesSortOrder, FavoriteTileData };

@@ -23,10 +23,12 @@ import { CanvasTileGrid } from "~/app/map/Canvas/_components/CanvasTileGrid";
 // Removed unused drag imports
 import { loggers } from "~/lib/debug/debug-logger";
 import { useEventBus } from '~/app/map';
-import { setupKeyboardHandlers } from "~/app/map/Canvas/_internals/keyboard-handlers";
-import { createTileActions } from "~/app/map/Canvas/_internals/tile-actions";
-import { shouldShowLoadingState } from "~/app/map/Canvas/_internals/loading-state-helpers";
-import { createEventCallbacks } from "~/app/map/Canvas/_internals/event-callbacks";
+import {
+  setupKeyboardHandlers,
+  createTileActions,
+  shouldShowLoadingState,
+  createEventCallbacks,
+} from "~/app/map/Canvas/_internals";
 
 // Import all shared contexts to ensure tiles and canvas use the same context instances
 import {

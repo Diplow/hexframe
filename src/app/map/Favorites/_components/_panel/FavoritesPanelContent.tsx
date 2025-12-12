@@ -4,7 +4,7 @@ import { ErrorState, LoadingState, EmptyState, NoResultsState } from '~/app/map/
 import { FavoritesSearchControls } from '~/app/map/Favorites/_components/_panel/FavoritesSearchControls';
 import { FavoritesConfirmDialog } from '~/app/map/Favorites/_components/_panel/FavoritesConfirmDialog';
 import { FavoritesList } from '~/app/map/Favorites/_components/_panel/FavoritesList';
-import type { Favorite } from '~/lib/domains/iam/_repositories';
+import type { Favorite } from '~/lib/domains/iam';
 import type { FavoritesSortOrder, TileDataMap } from '~/app/map/Favorites/_utils';
 
 export interface FavoritesPanelContentProps {

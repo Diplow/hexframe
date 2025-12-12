@@ -60,3 +60,17 @@ export type {
   UseFavoritesPanelReturn,
   FavoritesSortOrder,
 } from '~/app/map/Favorites/_hooks/use-favorites-panel';
+
+// -----------------------------------------------------------------------------
+// Internal Components (exposed for advanced use cases)
+// -----------------------------------------------------------------------------
+
+/** Search and sort controls component */
+export { FavoritesSearchControls } from '~/app/map/Favorites/_components/_panel/FavoritesSearchControls';
+
+// -----------------------------------------------------------------------------
+// Utilities
+// -----------------------------------------------------------------------------
+
+/** Filter and sort functions for favorites */
+export { filterFavorites, sortFavorites } from '~/app/map/Favorites/_utils';

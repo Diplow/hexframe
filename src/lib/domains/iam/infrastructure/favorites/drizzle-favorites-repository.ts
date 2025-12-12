@@ -1,7 +1,7 @@
 import { eq, and } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import type { db as dbType } from "~/server/db";
-import { tileFavorites } from "~/server/db/schema";
+import { db as dbType, schema } from "~/server/db";
+const { tileFavorites } = schema;
 import type {
   FavoritesRepository,
   Favorite,

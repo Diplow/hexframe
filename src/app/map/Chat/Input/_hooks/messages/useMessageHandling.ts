@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { parseMentions } from '~/app/map/Chat/Input/mention-parser';
-import type { Favorite } from '~/lib/domains/iam/_repositories';
+import type { Favorite } from '~/lib/domains/iam';
 
 interface UseMessageHandlingProps {
   executeCommand: (command: string) => Promise<string>;

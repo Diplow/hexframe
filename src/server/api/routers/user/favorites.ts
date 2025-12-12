@@ -5,8 +5,8 @@ import {
   protectedProcedure,
   t,
 } from "~/server/api/trpc";
-import { db } from "~/server/db";
-import { tileFavorites, mapItems, baseItems } from "~/server/db/schema";
+import { db, schema } from "~/server/db";
+const { tileFavorites, mapItems, baseItems } = schema;
 import {
   FavoritesService,
   DrizzleFavoritesRepository,

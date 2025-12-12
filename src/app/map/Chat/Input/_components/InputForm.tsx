@@ -1,7 +1,7 @@
 'use client';
 
 import type { RefObject } from "react";
-import type { FavoriteMatch } from '~/app/map/Chat/Input/_hooks/autocomplete/use-favorites-autocomplete';
+import type { FavoriteMatch } from '~/app/map/Chat/Input/_hooks';
 
 import { Send, Lock } from 'lucide-react';
 import { Button } from '~/components/ui/button';

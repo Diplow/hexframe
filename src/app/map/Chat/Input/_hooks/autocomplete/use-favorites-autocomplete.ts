@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import type { Favorite } from '~/lib/domains/iam/_repositories';
+import type { Favorite } from '~/lib/domains/iam';
 
 /**
  * Represents a favorite that matches the current autocomplete query.

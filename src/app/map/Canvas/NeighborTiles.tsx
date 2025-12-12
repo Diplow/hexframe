@@ -11,9 +11,12 @@ import type { TileData } from "~/app/map/types/tile-data";
 import type { URLInfo } from "~/app/map/types/url-info";
 import { useEffect } from "react";
 import { loggers } from "~/lib/debug/debug-logger";
-import { getSiblingCoordIds, getParentCoordId } from "~/app/map/Canvas/_internals/neighbor-helpers/coordinate-calculations";
-import { calculateNeighborPositions } from "~/app/map/Canvas/_internals/neighbor-helpers/positioning";
-import { calculateSpatialDirection } from "~/app/map/Canvas/_internals/neighbor-helpers/spatial-direction";
+import {
+  getSiblingCoordIds,
+  getParentCoordId,
+  calculateNeighborPositions,
+  calculateSpatialDirection,
+} from "~/app/map/Canvas/_internals";
 
 export interface NeighborTilesProps {
   centerItem: TileData;

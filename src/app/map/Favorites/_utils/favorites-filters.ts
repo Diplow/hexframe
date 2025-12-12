@@ -1,4 +1,4 @@
-import type { Favorite } from '~/lib/domains/iam/_repositories';
+import type { Favorite } from '~/lib/domains/iam';
 import type { FavoriteTileData } from '~/app/map/Favorites/FavoriteListItem';
 
 /**

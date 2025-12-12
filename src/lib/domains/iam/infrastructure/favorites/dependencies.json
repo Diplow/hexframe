@@ -1,8 +1,10 @@
 {
-  "description": "Drizzle repository implementation for favorites",
-  "allowedDependencies": [
+  "$schema": "../../../../../../scripts/checks/architecture/dependencies.schema.json",
+  "allowed": [
+    "drizzle-orm",
+    "nanoid",
     "~/server/db",
-    "~/server/db/schema",
     "~/lib/domains/iam/_repositories"
-  ]
+  ],
+  "exceptions": {}
 }

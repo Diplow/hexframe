@@ -2,13 +2,15 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useChatState } from '~/app/map/Chat/_state';
-import { useCommandHandling } from '~/app/map/Chat/Input/_hooks/commands/useCommandHandling';
-import { useInputHistory } from '~/app/map/Chat/Input/_hooks/input-control/useInputHistory';
-import { useTextareaController } from '~/app/map/Chat/Input/_hooks/input-control/useTextareaController';
+import {
+  useCommandHandling,
+  useInputHistory,
+  useTextareaController,
+  useEventProcessor,
+  useAutocompleteLogic,
+  useMessageHandling,
+} from '~/app/map/Chat/Input/_hooks';
 import { useChatInputService } from '~/app/map/Chat/Input/_services/chatInputService';
-import { useEventProcessor } from '~/app/map/Chat/Input/_hooks/messages/useEventProcessor';
-import { useAutocompleteLogic } from '~/app/map/Chat/Input/_hooks/autocomplete/useAutocompleteLogic';
-import { useMessageHandling } from '~/app/map/Chat/Input/_hooks/messages/useMessageHandling';
 import { loggers } from '~/lib/debug/debug-logger';
 import { InputForm } from '~/app/map/Chat/Input/_components/InputForm';
 import { useMapCacheCenter } from '~/app/map/Cache';

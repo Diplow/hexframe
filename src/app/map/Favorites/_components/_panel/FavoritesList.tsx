@@ -1,7 +1,7 @@
 'use client';
 
 import { FavoriteListItem } from '~/app/map/Favorites/FavoriteListItem';
-import type { Favorite } from '~/lib/domains/iam/_repositories';
+import type { Favorite } from '~/lib/domains/iam';
 import type { TileDataMap } from '~/app/map/Favorites/_utils/favorites-filters';
 
 export interface FavoritesListProps {
