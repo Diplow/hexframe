@@ -1,6 +1,20 @@
 import { useCallback } from 'react';
 import { parseMentions } from '~/app/map/Chat/Input/mention-parser';
-import type { Favorite } from '~/lib/domains/iam';
+
+/**
+ * Enriched favorite with coordinate info for task execution.
+ * This is the shape returned by favorites.listWithPreviews
+ */
+interface EnrichedFavorite {
+  id: string;
+  userId: string;
+  mapItemId: number;
+  shortcutName: string;
+  createdAt: Date;
+  title: string;
+  preview?: string;
+  coordId: string; // Coordinate string for task execution
+}
 
 interface UseMessageHandlingProps {
   executeCommand: (command: string) => Promise<string>;
@@ -11,7 +25,7 @@ interface UseMessageHandlingProps {
   setMessage: (message: string) => void;
   closeAutocomplete: () => void;
   resetTextareaHeight: () => void;
-  favorites: Favorite[];
+  favorites: EnrichedFavorite[];
   executeTask: (taskCoords: string, instruction: string) => void;
   showSystemMessage: (message: string, level?: 'info' | 'warning' | 'error') => void;
 }
@@ -80,8 +94,8 @@ export function useMessageHandling({
           );
 
           if (favorite) {
-            // Execute task with the favorite's mapItemId (which is the coord string)
-            executeTask(favorite.mapItemId, instruction);
+            // Execute task with the favorite's coordId (coordinate string)
+            executeTask(favorite.coordId, instruction);
             setMessage('');
             closeAutocomplete();
             resetTextareaHeight();

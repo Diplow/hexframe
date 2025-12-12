@@ -193,18 +193,19 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
   const eventBus = useEventBus();
 
   // Favorites state and mutations
-  const [favoritedMapItemIds, setFavoritedMapItemIds] = useState<Set<string>>(new Set());
-  const favoritesQuery = api.favorites.list.useQuery(undefined);
+  // Store by coordId (string) for efficient lookup from tile context
+  const [favoritedCoordIds, setFavoritedCoordIds] = useState<Set<string>>(new Set());
+  const favoritesQuery = api.favorites.listWithPreviews.useQuery(undefined);
 
   // Sync favorites data to local state when query data changes
   useEffect(() => {
     if (favoritesQuery.data) {
-      setFavoritedMapItemIds(new Set(favoritesQuery.data.map(f => f.mapItemId)));
+      setFavoritedCoordIds(new Set(favoritesQuery.data.map(f => f.coordId)));
     }
   }, [favoritesQuery.data]);
   const addFavoriteMutation = api.favorites.add.useMutation({
-    onSuccess: (newFavorite) => {
-      setFavoritedMapItemIds(prev => new Set([...prev, newFavorite.mapItemId]));
+    onSuccess: () => {
+      // Refetch to get the new favorite with its coordId
       void favoritesQuery.refetch();
     },
     onError: (error) => {
@@ -212,12 +213,8 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
     },
   });
   const removeFavoriteMutation = api.favorites.removeByMapItem.useMutation({
-    onSuccess: (_data, variables) => {
-      setFavoritedMapItemIds(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(variables.mapItemId);
-        return newSet;
-      });
+    onSuccess: () => {
+      // Refetch to update the favorites list
       void favoritesQuery.refetch();
     },
     onError: (error) => {
@@ -270,22 +267,26 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
       .slice(0, 30) || 'favorite';
 
     const shortcutName = `${baseName}_${Date.now()}`;
+    // dbId is a string from API, parse to number for mutation
+    const mapItemId = parseInt(tileData.metadata.dbId, 10);
 
     addFavoriteMutation.mutate({
-      mapItemId: tileData.metadata.coordId,
+      mapItemId,
       shortcutName,
     });
   }, [addFavoriteMutation]);
 
   const handleRemoveFavorite = useCallback((tileData: TileData) => {
+    // dbId is a string from API, parse to number for mutation
+    const mapItemId = parseInt(tileData.metadata.dbId, 10);
     removeFavoriteMutation.mutate({
-      mapItemId: tileData.metadata.coordId,
+      mapItemId,
     });
   }, [removeFavoriteMutation]);
 
   const isFavorited = useCallback((coordId: string): boolean => {
-    return favoritedMapItemIds.has(coordId);
-  }, [favoritedMapItemIds]);
+    return favoritedCoordIds.has(coordId);
+  }, [favoritedCoordIds]);
 
   const handleEditShortcut = useCallback((tileData: TileData) => {
     // Emit event to open favorites widget with this tile's shortcut in edit mode

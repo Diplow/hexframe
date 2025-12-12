@@ -22,31 +22,31 @@ describe('FavoritesPanel', () => {
     {
       id: 'fav-1',
       shortcutName: 'project_plan',
-      mapItemId: 'item-1',
+      mapItemId: 1,
       userId: 'user-1',
       createdAt: new Date('2024-01-15'),
     },
     {
       id: 'fav-2',
       shortcutName: 'review_checklist',
-      mapItemId: 'item-2',
+      mapItemId: 2,
       userId: 'user-1',
       createdAt: new Date('2024-01-10'),
     },
     {
       id: 'fav-3',
       shortcutName: 'daily_tasks',
-      mapItemId: 'item-3',
+      mapItemId: 3,
       userId: 'user-1',
       createdAt: new Date('2024-01-20'),
     },
   ];
 
-  // Mock tile data that matches the favorites
+  // Mock tile data that matches the favorites (keyed by mapItemId number)
   const mockTileData = {
-    'item-1': { title: 'Project Plan', preview: 'Q1 planning overview' },
-    'item-2': { title: 'Review Checklist', preview: 'Code review standards' },
-    'item-3': { title: 'Daily Tasks', preview: 'Morning routine tasks' },
+    1: { title: 'Project Plan', preview: 'Q1 planning overview' },
+    2: { title: 'Review Checklist', preview: 'Code review standards' },
+    3: { title: 'Daily Tasks', preview: 'Morning routine tasks' },
   };
 
   beforeEach(() => {

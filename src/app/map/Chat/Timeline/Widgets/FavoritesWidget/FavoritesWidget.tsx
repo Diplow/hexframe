@@ -88,9 +88,10 @@ export function FavoritesWidget({ onClose, editShortcutForMapItemId, onInsertToC
   }, [favoritesQuery]);
 
   // Scroll to the target favorite if editShortcutForMapItemId is provided
+  // Note: editShortcutForMapItemId is actually a coordId string, not a mapItemId
   useEffect(() => {
     if (editShortcutForMapItemId && favorites.length > 0) {
-      const targetFavorite = favorites.find(f => f.mapItemId === editShortcutForMapItemId);
+      const targetFavorite = favorites.find(f => f.coordId === editShortcutForMapItemId);
       if (targetFavorite) {
         // For now just log - in a future iteration we'd scroll and highlight
         console.log('Should highlight favorite:', targetFavorite.shortcutName);

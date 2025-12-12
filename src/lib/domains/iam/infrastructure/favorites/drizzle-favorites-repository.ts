@@ -100,7 +100,7 @@ export class DrizzleFavoritesRepository implements FavoritesRepository {
    */
   async findByUserAndMapItem(
     userId: string,
-    mapItemId: string
+    mapItemId: number
   ): Promise<Favorite | null> {
     const [result] = await this.db
       .select()
@@ -130,7 +130,7 @@ export class DrizzleFavoritesRepository implements FavoritesRepository {
    */
   async deleteByUserAndMapItem(
     userId: string,
-    mapItemId: string
+    mapItemId: number
   ): Promise<void> {
     await this.db
       .delete(tileFavorites)

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import {
   createTRPCRouter,
   protectedProcedure,
@@ -34,7 +34,7 @@ const favoritesServiceMiddleware = t.middleware(async ({ ctx, next }) => {
 
 // Input validation schemas
 const addFavoriteSchema = z.object({
-  mapItemId: z.string().min(1, "Map item ID is required"),
+  mapItemId: z.number().int().positive("Map item ID must be a positive integer"),
   shortcutName: z.string().min(1, "Shortcut name is required"),
 });
 
@@ -43,7 +43,7 @@ const removeFavoriteSchema = z.object({
 });
 
 const removeFavoriteByMapItemSchema = z.object({
-  mapItemId: z.string().min(1, "Map item ID is required"),
+  mapItemId: z.number().int().positive("Map item ID must be a positive integer"),
 });
 
 const getFavoriteByShortcutSchema = z.object({
@@ -51,7 +51,7 @@ const getFavoriteByShortcutSchema = z.object({
 });
 
 const isFavoritedSchema = z.object({
-  mapItemId: z.string().min(1, "Map item ID is required"),
+  mapItemId: z.number().int().positive("Map item ID must be a positive integer"),
 });
 
 const updateShortcutSchema = z.object({
@@ -141,65 +141,48 @@ export const favoritesRouter = createTRPCRouter({
     }),
 
   /**
-   * List all favorites with tile title and preview data
-   * Enriches favorites with data from the associated map items
+   * List all favorites with tile title, preview, and coordinate data
+   * Uses JOIN to efficiently enrich favorites with map item data
    */
   listWithPreviews: protectedProcedure
     .query(async ({ ctx }) => {
-      // Get all favorites for the user
-      const favorites = await db
+      // Single query with JOINs to get favorites + map item + base item data
+      const results = await db
         .select({
           id: tileFavorites.id,
           userId: tileFavorites.userId,
           mapItemId: tileFavorites.mapItemId,
           shortcutName: tileFavorites.shortcutName,
           createdAt: tileFavorites.createdAt,
+          // Map item coordinates for building coordId
+          coordUserId: mapItems.coord_user_id,
+          coordGroupId: mapItems.coord_group_id,
+          path: mapItems.path,
+          // Base item content
+          title: baseItems.title,
+          preview: baseItems.preview,
         })
         .from(tileFavorites)
+        .innerJoin(mapItems, eq(tileFavorites.mapItemId, mapItems.id))
+        .innerJoin(baseItems, eq(mapItems.refItemId, baseItems.id))
         .where(eq(tileFavorites.userId, ctx.user.id));
 
-      // Enrich each favorite with tile data
-      const enrichedFavorites = await Promise.all(
-        favorites.map(async (favorite) => {
-          try {
-            // Parse the coordId to get coordinates
-            const coords = CoordSystem.parseId(favorite.mapItemId);
-
-            // Query for the map item by coordinates
-            const mapItemResults = await db
-              .select({
-                title: baseItems.title,
-                preview: baseItems.preview,
-              })
-              .from(mapItems)
-              .innerJoin(baseItems, eq(mapItems.refItemId, baseItems.id))
-              .where(
-                and(
-                  eq(mapItems.coord_user_id, coords.userId),
-                  eq(mapItems.coord_group_id, coords.groupId),
-                  eq(mapItems.path, coords.path.length > 0 ? coords.path.join(",") : "")
-                )
-              )
-              .limit(1);
-
-            const tileData = mapItemResults[0];
-            return {
-              ...favorite,
-              title: tileData?.title ?? undefined,
-              preview: tileData?.preview ?? undefined,
-            };
-          } catch {
-            // If coordinate parsing fails, return without enrichment
-            return {
-              ...favorite,
-              title: undefined,
-              preview: undefined,
-            };
-          }
-        })
-      );
-
-      return enrichedFavorites;
+      // Transform results to include coordId for navigation
+      return results.map((row) => ({
+        id: row.id,
+        userId: row.userId,
+        mapItemId: row.mapItemId,
+        shortcutName: row.shortcutName,
+        createdAt: row.createdAt,
+        title: row.title,
+        preview: row.preview ?? undefined,
+        // Build coordId from map item coordinates for client navigation
+        coordId: CoordSystem.createId({
+          userId: row.coordUserId,
+          groupId: row.coordGroupId,
+          path: row.path ? row.path.split(",").map(Number) : [],
+        }),
+      }));
     }),
 
   /**

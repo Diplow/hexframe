@@ -27,8 +27,8 @@ export function Input() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const textareaRefInternal = useRef<HTMLTextAreaElement | null>(null);
 
-  // Fetch user favorites for autocomplete and message handling
-  const favoritesQuery = api.favorites.list.useQuery(undefined, {
+  // Fetch user favorites with coordinates for autocomplete and task execution
+  const favoritesQuery = api.favorites.listWithPreviews.useQuery(undefined, {
     enabled: isAuthenticated,
   });
   const favorites = favoritesQuery.data ?? [];

@@ -1,5 +1,13 @@
-import type { Favorite } from '~/lib/domains/iam';
 import type { FavoriteMatch } from '~/app/map/Chat/Input/_hooks/autocomplete/use-favorites-autocomplete';
+
+/**
+ * Base favorite fields needed for filtering.
+ */
+interface BaseFavorite {
+  id: string;
+  shortcutName: string;
+  mapItemId: number;
+}
 
 /**
  * Extracts the current @mention query from text at the cursor position.
@@ -61,10 +69,10 @@ export function extractMentionQueryAtCursor(
  * @param prefix - The prefix to match against (without the @ symbol)
  * @returns Array of FavoriteMatch objects for matching favorites
  */
-export function filterFavoritesByPrefix(
-  favorites: Favorite[],
+export function filterFavoritesByPrefix<T extends BaseFavorite>(
+  favorites: T[],
   prefix: string
-): FavoriteMatch[] {
+): FavoriteMatch<T>[] {
   const lowerPrefix = prefix.toLowerCase();
   return favorites
     .filter((favorite) =>

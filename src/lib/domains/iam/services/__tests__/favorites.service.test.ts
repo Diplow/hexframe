@@ -11,7 +11,7 @@ import {
 interface Favorite {
   id: string;
   userId: string;
-  mapItemId: string;
+  mapItemId: number;
   shortcutName: string;
   createdAt: Date;
 }
@@ -38,7 +38,7 @@ describe("FavoritesService", () => {
   describe("addFavorite", () => {
     const validInput = {
       userId: "user-123",
-      mapItemId: "item-456",
+      mapItemId: 456,
       shortcutName: "my_project",
     };
 
@@ -226,7 +226,7 @@ describe("FavoritesService", () => {
       const existingFavorite: Favorite = {
         id: "fav-789",
         userId: "user-123",
-        mapItemId: "item-456",
+        mapItemId: 456,
         shortcutName: "my_project",
         createdAt: new Date(),
       };
@@ -249,7 +249,7 @@ describe("FavoritesService", () => {
       const existingFavorite: Favorite = {
         id: "fav-789",
         userId: "user-123",
-        mapItemId: "item-456",
+        mapItemId: 456,
         shortcutName: "my_project",
         createdAt: new Date(),
       };
@@ -282,7 +282,7 @@ describe("FavoritesService", () => {
       const existingFavorite: Favorite = {
         id: "fav-789",
         userId: "user-123",
-        mapItemId: "item-456",
+        mapItemId: 456,
         shortcutName: "my_project",
         createdAt: new Date(),
       };
@@ -304,7 +304,7 @@ describe("FavoritesService", () => {
       const existingFavorite: Favorite = {
         id: "fav-789",
         userId: "user-123",
-        mapItemId: "item-456",
+        mapItemId: 456,
         shortcutName: "my_project",
         createdAt: new Date(),
       };
@@ -336,21 +336,21 @@ describe("FavoritesService", () => {
         {
           id: "fav-001",
           userId: "user-123",
-          mapItemId: "item-111",
+          mapItemId: 111,
           shortcutName: "project_a",
           createdAt: new Date("2024-01-01"),
         },
         {
           id: "fav-002",
           userId: "user-123",
-          mapItemId: "item-222",
+          mapItemId: 222,
           shortcutName: "project_b",
           createdAt: new Date("2024-01-02"),
         },
         {
           id: "fav-003",
           userId: "user-123",
-          mapItemId: "item-333",
+          mapItemId: 333,
           shortcutName: "project_c",
           createdAt: new Date("2024-01-03"),
         },
@@ -380,7 +380,7 @@ describe("FavoritesService", () => {
     it("should validate shortcut names starting with numbers", async () => {
       const inputWithNumberStart = {
         userId: "user-123",
-        mapItemId: "item-456",
+        mapItemId: 456,
         shortcutName: "123project",
       };
 
@@ -403,7 +403,7 @@ describe("FavoritesService", () => {
     it("should validate shortcut names starting with underscore", async () => {
       const inputWithUnderscoreStart = {
         userId: "user-123",
-        mapItemId: "item-456",
+        mapItemId: 456,
         shortcutName: "_private",
       };
 
@@ -426,7 +426,7 @@ describe("FavoritesService", () => {
     it("should validate shortcut names with consecutive underscores", async () => {
       const inputWithConsecutiveUnderscores = {
         userId: "user-123",
-        mapItemId: "item-456",
+        mapItemId: 456,
         shortcutName: "my__project",
       };
 

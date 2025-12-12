@@ -1,17 +1,26 @@
 import { useState, useCallback, useRef } from 'react';
-import type { Favorite } from '~/lib/domains/iam';
+
+/**
+ * Base favorite fields needed for autocomplete.
+ * Works with both domain Favorite type and enriched favorites from API.
+ */
+interface BaseFavorite {
+  id: string;
+  shortcutName: string;
+  mapItemId: number;
+}
 
 /**
  * Represents a favorite that matches the current autocomplete query.
  *
  * @property shortcutName - The shortcut name used for @mention matching
- * @property mapItemId - The unique identifier of the associated map item
+ * @property mapItemId - The database ID of the associated map item
  * @property favorite - The full Favorite object for additional context
  */
-export interface FavoriteMatch {
+export interface FavoriteMatch<T extends BaseFavorite = BaseFavorite> {
   shortcutName: string;
-  mapItemId: string;
-  favorite: Favorite;
+  mapItemId: number;
+  favorite: T;
 }
 
 /**
@@ -19,8 +28,8 @@ export interface FavoriteMatch {
  *
  * @property favorites - Array of user favorites to search through for autocomplete suggestions
  */
-interface UseFavoritesAutocompleteParams {
-  favorites: Favorite[];
+interface UseFavoritesAutocompleteParams<T extends BaseFavorite> {
+  favorites: T[];
 }
 
 /**
@@ -36,13 +45,13 @@ interface UseFavoritesAutocompleteParams {
  * @property updateQuery - Updates suggestions based on a simple query string (e.g., "@plan")
  * @property updateQueryWithCursor - Updates suggestions based on text and cursor position
  */
-interface UseFavoritesAutocompleteReturn {
-  suggestions: FavoriteMatch[];
+interface UseFavoritesAutocompleteReturn<T extends BaseFavorite> {
+  suggestions: FavoriteMatch<T>[];
   selectedIndex: number;
   isActive: boolean;
   navigateDown: () => void;
   navigateUp: () => void;
-  getSelectedFavorite: () => FavoriteMatch | null;
+  getSelectedFavorite: () => FavoriteMatch<T> | null;
   close: () => void;
   updateQuery: (query: string) => void;
   updateQueryWithCursor: (text: string, cursorPosition: number) => void;
@@ -124,10 +133,10 @@ function _extractMentionQueryAtCursor(
  * @param prefix - The prefix to match against (without the @ symbol)
  * @returns Array of FavoriteMatch objects for matching favorites
  */
-function _filterFavoritesByPrefix(
-  favorites: Favorite[],
+function _filterFavoritesByPrefix<T extends BaseFavorite>(
+  favorites: T[],
   prefix: string
-): FavoriteMatch[] {
+): FavoriteMatch<T>[] {
   const lowerPrefix = prefix.toLowerCase();
   return favorites
     .filter((favorite) =>
@@ -169,14 +178,14 @@ function _filterFavoritesByPrefix(
  * // On enter/tab to select
  * const selected = getSelectedFavorite();
  */
-export function useFavoritesAutocomplete({
+export function useFavoritesAutocomplete<T extends BaseFavorite>({
   favorites,
-}: UseFavoritesAutocompleteParams): UseFavoritesAutocompleteReturn {
-  const [suggestions, setSuggestions] = useState<FavoriteMatch[]>([]);
+}: UseFavoritesAutocompleteParams<T>): UseFavoritesAutocompleteReturn<T> {
+  const [suggestions, setSuggestions] = useState<FavoriteMatch<T>[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isActive, setIsActive] = useState(false);
   // Ref tracks suggestions for navigation callbacks (ensures latest value in same act() block)
-  const suggestionsRef = useRef<FavoriteMatch[]>([]);
+  const suggestionsRef = useRef<FavoriteMatch<T>[]>([]);
 
   const resetState = useCallback(() => {
     setIsActive(false);
@@ -185,7 +194,7 @@ export function useFavoritesAutocomplete({
     setSelectedIndex(0);
   }, []);
 
-  const activateWithMatches = useCallback((matches: FavoriteMatch[]) => {
+  const activateWithMatches = useCallback((matches: FavoriteMatch<T>[]) => {
     setIsActive(true);
     setSuggestions(matches);
     suggestionsRef.current = matches;
@@ -206,7 +215,7 @@ export function useFavoritesAutocomplete({
     );
   }, []);
 
-  const getSelectedFavorite = useCallback((): FavoriteMatch | null => {
+  const getSelectedFavorite = useCallback((): FavoriteMatch<T> | null => {
     const currentSuggestions = suggestionsRef.current;
     return selectedIndex >= 0 && selectedIndex < currentSuggestions.length
       ? currentSuggestions[selectedIndex] ?? null

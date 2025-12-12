@@ -21,11 +21,20 @@ export interface FavoriteTileData {
 }
 
 /**
+ * Enriched favorite that includes coordinate info for navigation.
+ * Extends base Favorite with coordId from API enrichment.
+ */
+export interface EnrichedFavorite extends Favorite {
+  /** Coordinate ID string for navigation (e.g., "userId,groupId:1,2,3") */
+  coordId: string;
+}
+
+/**
  * Props for the FavoriteListItem component.
  */
 export interface FavoriteListItemProps {
-  /** The favorite object containing id, shortcutName, mapItemId, etc. */
-  favorite: Favorite;
+  /** The favorite object - can be base Favorite or enriched with coordId */
+  favorite: Favorite | EnrichedFavorite;
   /** Optional tile data to display alongside the shortcut name */
   tileData?: FavoriteTileData;
   /** Whether this item is currently selected/highlighted */
@@ -38,8 +47,8 @@ export interface FavoriteListItemProps {
   showRemoveButton?: boolean;
   /** Whether to show the edit shortcut button (default: true) */
   showEditButton?: boolean;
-  /** Callback when the item is clicked (receives mapItemId for navigation) */
-  onClick?: (mapItemId: string) => void;
+  /** Callback when the item is clicked (receives coordId for navigation) */
+  onClick?: (coordId: string) => void;
   /** Callback when the remove button is clicked (receives favoriteId) */
   onRemove?: (favoriteId: string) => void;
   /** Callback when shortcut is saved (receives favoriteId and newShortcutName) */
@@ -90,8 +99,12 @@ export function FavoriteListItem({
 
   const handleContentClick = useCallback(() => {
     if (disabled || isLoading || isEditing) return;
-    onClick?.(favorite.mapItemId);
-  }, [disabled, isLoading, isEditing, onClick, favorite.mapItemId]);
+    // Use coordId if available (enriched favorite), otherwise skip navigation
+    const coordId = 'coordId' in favorite ? favorite.coordId : undefined;
+    if (coordId) {
+      onClick?.(coordId);
+    }
+  }, [disabled, isLoading, isEditing, onClick, favorite]);
 
   const handleRemoveClick = useCallback((event: React.MouseEvent) => {
     event.stopPropagation();

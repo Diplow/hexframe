@@ -18,9 +18,10 @@ describe('FavoriteListItem', () => {
   const mockFavorite = {
     id: 'fav-1',
     shortcutName: 'project_plan',
-    mapItemId: 'item-1',
+    mapItemId: 1,
     userId: 'user-1',
     createdAt: new Date('2024-01-15'),
+    coordId: 'user-1,0:1,2', // Enriched favorite with coord for navigation
   };
 
   const mockTileData = {

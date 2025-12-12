@@ -13,7 +13,7 @@ import {
  */
 interface AddFavoriteInput {
   userId: string;
-  mapItemId: string;
+  mapItemId: number;
   shortcutName: string;
 }
 

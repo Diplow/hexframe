@@ -22,9 +22,10 @@ vi.mock('~/commons/trpc/react', () => ({
 }));
 
 // Helper to create mock favorites
+let nextMockId = 1;
 function createMockFavorite(
   shortcutName: string,
-  mapItemId = `item-${shortcutName}`
+  mapItemId: number = nextMockId++
 ): Favorite {
   return {
     id: `fav-${shortcutName}`,
@@ -414,7 +415,7 @@ describe('useFavoritesAutocomplete', () => {
 
   describe('FavoriteMatch type', () => {
     it('should include favorite data in suggestions', () => {
-      const mockFavorites = [createMockFavorite('plan', 'item-123')];
+      const mockFavorites = [createMockFavorite('plan', 123)];
 
       const { result } = renderHook(() =>
         useFavoritesAutocomplete({ favorites: mockFavorites })
@@ -427,7 +428,7 @@ describe('useFavoritesAutocomplete', () => {
       const suggestion = result.current.suggestions[0];
       expect(suggestion).toMatchObject({
         shortcutName: 'plan',
-        mapItemId: 'item-123',
+        mapItemId: 123,
       });
     });
   });

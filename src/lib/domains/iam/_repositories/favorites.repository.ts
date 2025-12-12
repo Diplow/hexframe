@@ -1,10 +1,14 @@
 /**
  * Favorite entity as returned by the repository
+ *
+ * Note: mapItemId is an opaque integer ID. The IAM domain does not
+ * need to know about the mapping domain - enrichment with coordinates
+ * and tile data happens at the router/API layer.
  */
 export interface Favorite {
   id: string;
   userId: string;
-  mapItemId: string;
+  mapItemId: number;
   shortcutName: string;
   createdAt: Date;
 }
@@ -14,7 +18,7 @@ export interface Favorite {
  */
 export interface CreateFavoriteInput {
   userId: string;
-  mapItemId: string;
+  mapItemId: number;
   shortcutName: string;
 }
 
