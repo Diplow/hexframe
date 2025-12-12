@@ -79,7 +79,7 @@ function _renderExpandedFrame(
       baseHexSize={props.baseHexSize ?? 50}
       scale={scale}
       color={getColorFromItem(centerItem)}
-      coordId={centerItem.metadata.coordId}
+      coordId={center}
       _shallow={true}
       isExpanded={true}
       isDarkMode={isDarkMode}
