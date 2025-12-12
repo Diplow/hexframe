@@ -12,6 +12,8 @@ interface TileInteractionProps {
   type: 'item' | 'empty' | 'user';
   onCreate?: () => void;
   canEdit?: boolean;
+  onNavigate?: () => void;
+  onExpand?: () => void;
 }
 
 /** Creates minimal TileData for empty tiles to support context menu */

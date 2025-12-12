@@ -6,10 +6,10 @@ import { loggers } from "~/lib/debug/debug-logger";
 import type { TileData } from "~/app/map/types/tile-data";
 import type { CenterInfo } from "~/app/map/Canvas/canvas";
 import type { URLInfo } from "~/app/map/types/url-info";
-import type { EventBus } from "~/app/map/EventBus/types";
+import type { EventBusService } from "~/app/map/Services/EventBus/types";
 
 /** Sets up keyboard handlers for ctrl/shift key detection */
-export function _useKeyboardHandlers(): void {
+export function useKeyboardHandlers(): void {
   useEffect(() => {
     const handlers = setupKeyboardHandlers();
 
@@ -27,14 +27,15 @@ export function _useKeyboardHandlers(): void {
 }
 
 /** Listens for tile selection events and returns selected tile ID */
-export function _useTileSelection(eventBus: EventBus): string | null {
+export function useTileSelection(eventBus: EventBusService): string | null {
   const [selectedTileId, setSelectedTileId] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = eventBus.on('map.tile_selected', (event) => {
-      if ('payload' in event && event.payload && typeof event.payload === 'object' && 'tileId' in event.payload) {
-        const tileId = (event.payload as { tileId: string }).tileId;
-        setSelectedTileId(tileId);
+      const payload = event.payload as { tileId?: string } | undefined;
+      if (payload && typeof payload === 'object' && 'tileId' in payload) {
+        const tileId = payload.tileId;
+        if (tileId) setSelectedTileId(tileId);
       }
     });
 
@@ -45,7 +46,7 @@ export function _useTileSelection(eventBus: EventBus): string | null {
 }
 
 /** Handles client-side hydration state */
-export function _useHydration(): boolean {
+export function useHydration(): boolean {
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
@@ -69,7 +70,7 @@ interface DebugLoggingParams {
 }
 
 /** Logs component mount/unmount and render events */
-export function _useDebugLogging(params: DebugLoggingParams): void {
+export function useDebugLogging(params: DebugLoggingParams): void {
   const { centerInfo, expandedItemIds, urlInfo } = params;
 
   // Log component mount/unmount
@@ -100,7 +101,7 @@ export function _useDebugLogging(params: DebugLoggingParams): void {
 }
 
 /** Determines if loading state should be shown */
-export function _shouldShowLoadingState(
+export function shouldShowLoadingState(
   isLoading: boolean,
   centerItem: TileData | undefined,
   itemsCount: number

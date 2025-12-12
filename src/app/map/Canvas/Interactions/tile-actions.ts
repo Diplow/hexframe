@@ -7,7 +7,7 @@
 function _noop() { /* No-op */ }
 function _returnTrue() { return true as const; }
 function _returnFalse() { return false as const; }
-function _returnNull() { return null as null; }
+function _returnNull() { return null; }
 
 // Pre-built tile action object for reuse
 const TILE_ACTIONS = {

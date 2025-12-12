@@ -18,11 +18,11 @@ import { CanvasTileGrid } from "~/app/map/Canvas/_internals/CanvasTileGrid";
 import { useEventBus } from '~/app/map';
 import { createTileActions, createEventCallbacks } from "~/app/map/Canvas/Interactions";
 import {
-  _useKeyboardHandlers,
-  _useTileSelection,
-  _useHydration,
-  _useDebugLogging,
-  _shouldShowLoadingState,
+  useKeyboardHandlers,
+  useTileSelection,
+  useHydration,
+  useDebugLogging,
+  shouldShowLoadingState,
 } from "~/app/map/Canvas/_internals/canvas-hooks";
 
 // Import all shared contexts to ensure tiles and canvas use the same context instances
@@ -62,16 +62,16 @@ export function DynamicMapCanvas({
   const eventBus = useEventBus();
 
   // Use extracted hooks for setup
-  _useKeyboardHandlers();
-  const selectedTileId = _useTileSelection(eventBus);
-  const isHydrated = _useHydration();
+  useKeyboardHandlers();
+  const selectedTileId = useTileSelection(eventBus);
+  const isHydrated = useHydration();
 
   // Derived state
   const currentCenter = center ?? centerInfo.center;
   const currentExpandedItems = expandedItems.length > 0 ? expandedItems : expandedItemIds;
 
   // Debug logging
-  _useDebugLogging({
+  useDebugLogging({
     centerInfo, expandedItemIds, urlInfo, currentCenter, currentExpandedItems,
     itemCount: Object.keys(items).length, isLoading, hasError: !!error, isDarkMode, isHydrated,
   });
@@ -85,7 +85,7 @@ export function DynamicMapCanvas({
   }
 
   const centerItem = items[currentCenter];
-  if (_shouldShowLoadingState(isLoading, centerItem, Object.keys(items).length)) {
+  if (shouldShowLoadingState(isLoading, centerItem, Object.keys(items).length)) {
     return <CanvasLoadingState fallback={fallback} />;
   }
 

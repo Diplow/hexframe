@@ -6,6 +6,7 @@ describe('_buildFavoriteMenuItem', () => {
   describe('when tile is not favorited', () => {
     it('should return "Add to Favorites" menu item', () => {
       const item = _buildFavoriteMenuItem({
+        canEdit: true,
         isFavorited: false,
         onAddFavorite: vi.fn(),
         onRemoveFavorite: vi.fn(),
@@ -17,6 +18,7 @@ describe('_buildFavoriteMenuItem', () => {
 
     it('should include star icon for Add to Favorites', () => {
       const item = _buildFavoriteMenuItem({
+        canEdit: true,
         isFavorited: false,
         onAddFavorite: vi.fn(),
         onRemoveFavorite: vi.fn(),
@@ -33,6 +35,7 @@ describe('_buildFavoriteMenuItem', () => {
       const onRemoveFavorite = vi.fn();
 
       const item = _buildFavoriteMenuItem({
+        canEdit: true,
         isFavorited: false,
         onAddFavorite,
         onRemoveFavorite,
@@ -49,6 +52,7 @@ describe('_buildFavoriteMenuItem', () => {
   describe('when tile is favorited', () => {
     it('should return "Remove from Favorites" menu item', () => {
       const item = _buildFavoriteMenuItem({
+        canEdit: true,
         isFavorited: true,
         onAddFavorite: vi.fn(),
         onRemoveFavorite: vi.fn(),
@@ -60,6 +64,7 @@ describe('_buildFavoriteMenuItem', () => {
 
     it('should include star-off icon for Remove from Favorites', () => {
       const item = _buildFavoriteMenuItem({
+        canEdit: true,
         isFavorited: true,
         onAddFavorite: vi.fn(),
         onRemoveFavorite: vi.fn(),
@@ -76,6 +81,7 @@ describe('_buildFavoriteMenuItem', () => {
       const onRemoveFavorite = vi.fn();
 
       const item = _buildFavoriteMenuItem({
+        canEdit: true,
         isFavorited: true,
         onAddFavorite,
         onRemoveFavorite,
@@ -90,8 +96,20 @@ describe('_buildFavoriteMenuItem', () => {
   });
 
   describe('edge cases', () => {
+    it('should return empty array when canEdit is false', () => {
+      const item = _buildFavoriteMenuItem({
+        canEdit: false,
+        isFavorited: false,
+        onAddFavorite: vi.fn(),
+        onRemoveFavorite: vi.fn(),
+      });
+
+      expect(item).toEqual([]);
+    });
+
     it('should return empty array when onAddFavorite is undefined and tile is not favorited', () => {
       const item = _buildFavoriteMenuItem({
+        canEdit: true,
         isFavorited: false,
         onRemoveFavorite: vi.fn(),
       });
@@ -101,6 +119,7 @@ describe('_buildFavoriteMenuItem', () => {
 
     it('should return empty array when onRemoveFavorite is undefined and tile is favorited', () => {
       const item = _buildFavoriteMenuItem({
+        canEdit: true,
         isFavorited: true,
         onAddFavorite: vi.fn(),
       });
@@ -110,6 +129,7 @@ describe('_buildFavoriteMenuItem', () => {
 
     it('should return empty array when both callbacks are undefined', () => {
       const item = _buildFavoriteMenuItem({
+        canEdit: true,
         isFavorited: false,
       });
 
@@ -120,6 +140,7 @@ describe('_buildFavoriteMenuItem', () => {
       const onAddFavorite = vi.fn();
 
       const item = _buildFavoriteMenuItem({
+        canEdit: true,
         isFavorited: false,
         onAddFavorite,
         onRemoveFavorite: vi.fn(),
@@ -133,6 +154,7 @@ describe('_buildFavoriteMenuItem', () => {
   describe('menu item properties', () => {
     it('should have empty shortcut for Add to Favorites', () => {
       const item = _buildFavoriteMenuItem({
+        canEdit: true,
         isFavorited: false,
         onAddFavorite: vi.fn(),
         onRemoveFavorite: vi.fn(),
@@ -143,6 +165,7 @@ describe('_buildFavoriteMenuItem', () => {
 
     it('should have empty shortcut for Remove from Favorites', () => {
       const item = _buildFavoriteMenuItem({
+        canEdit: true,
         isFavorited: true,
         onAddFavorite: vi.fn(),
         onRemoveFavorite: vi.fn(),
@@ -153,6 +176,7 @@ describe('_buildFavoriteMenuItem', () => {
 
     it('should not have separator for Add to Favorites', () => {
       const item = _buildFavoriteMenuItem({
+        canEdit: true,
         isFavorited: false,
         onAddFavorite: vi.fn(),
         onRemoveFavorite: vi.fn(),

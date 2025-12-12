@@ -12,14 +12,6 @@ import { useEventBus, type EventBusService } from '~/app/map';
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 import type { Visibility } from '~/lib/domains/mapping/utils';
 import { api } from "~/commons/trpc/react";
-// Removed drag service import - using global service
-
-const CACHE_CONFIG = {
-  maxAge: 300000,
-  backgroundRefreshInterval: 30000,
-  enableOptimisticUpdates: true,
-  maxDepth: 3,
-};
 
 interface MapUIProps {
   centerParam?: string;
@@ -179,9 +171,6 @@ function _renderMapContent(
         expandedItems: params.expandedItems,
         focus: params.focus,
       }}
-      enableBackgroundSync={true}
-      syncInterval={30000}
-      cacheConfig={CACHE_CONFIG}
     />
   );
 }

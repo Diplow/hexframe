@@ -69,7 +69,7 @@ interface ContextMenuState {
 }
 
 /** Creates a right-click handler that shows the context menu */
-function _useRightClickHandler(setContextMenu: (state: ContextMenuState | null) => void) {
+function useRightClickHandler(setContextMenu: (state: ContextMenuState | null) => void) {
   return useCallback((tileData: TileData, event: React.MouseEvent) => {
     event.preventDefault();
     const canEdit = 'state' in tileData && tileData.state?.canEdit === true;
@@ -79,7 +79,7 @@ function _useRightClickHandler(setContextMenu: (state: ContextMenuState | null) 
 }
 
 /** Creates drag handlers for simulated drag operations */
-function _useDragMenuHandlers(closeContextMenu: () => void) {
+function useDragMenuHandlers(closeContextMenu: () => void) {
   const handleCopyToClick = useCallback((tileData: TileData) => {
     simulateDragStart(tileData.metadata.coordId, { ctrlKey: false });
     closeContextMenu();
@@ -108,12 +108,13 @@ export function TileActionsProvider(props: TileActionsProviderProps) {
   const { onTileClick, onTileDoubleClick } = useTileClickHandlers({
     onNavigateClick, onSelectClick, onExpandClick, onCompositionToggle,
   });
-  const onTileRightClick = _useRightClickHandler(setContextMenu);
+  const onTileRightClick = useRightClickHandler(setContextMenu);
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   const onTileHover = useCallback((_tileData: TileData) => {}, []);
   const onTileDragStart = useCallback(() => setIsDragging(true), []);
   const onTileDrop = useCallback(() => setIsDragging(false), []);
   const closeContextMenu = useCallback(() => setContextMenu(null), []);
-  const { handleCopyToClick, handleMoveToClick } = _useDragMenuHandlers(closeContextMenu);
+  const { handleCopyToClick, handleMoveToClick } = useDragMenuHandlers(closeContextMenu);
 
   const value = useMemo(() => ({
     onTileClick, onTileDoubleClick, onTileRightClick, onTileHover, onTileDragStart, onTileDrop, isDragging,

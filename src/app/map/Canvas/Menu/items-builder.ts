@@ -103,6 +103,7 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
     ..._buildNavigateItem(onNavigate),
     ..._buildViewHistoryItem(onViewHistory),
     ..._buildFavoriteMenuItem({
+      canEdit,
       isFavorited,
       onAddFavorite,
       onRemoveFavorite,
