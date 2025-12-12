@@ -170,8 +170,7 @@ export const userRouter = createTRPCRouter({
   me: protectedProcedure
     .use(iamServiceMiddleware)
     .query(async ({ ctx }) => {
-      _requireAuth(ctx.user);
-      const user = await ctx.iamService.getCurrentUser(ctx.user.id);
+      const user = await ctx.iamService.getCurrentUser(ctx.user!.id);
       _requireFound(user, "User");
       return ctx.iamService.userToContract(user);
     }),
@@ -195,8 +194,7 @@ export const userRouter = createTRPCRouter({
     .use(iamServiceMiddleware)
     .input(updateProfileSchema)
     .mutation(async ({ ctx, input }) => {
-      _requireAuth(ctx.user);
-      const updatedUser = await ctx.iamService.updateProfile(ctx.user.id, input);
+      const updatedUser = await ctx.iamService.updateProfile(ctx.user!.id, input);
       return ctx.iamService.userToContract(updatedUser);
     }),
 

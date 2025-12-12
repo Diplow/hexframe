@@ -15,7 +15,7 @@ import {
   FavoriteNotFoundError,
 } from "~/lib/domains/iam";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
-import { _requireAuth, _mapDomainError } from "~/server/api/routers/_error-helpers";
+import { _mapDomainError } from "~/server/api/routers/_error-helpers";
 
 /**
  * Middleware that injects the FavoritesService into context
@@ -73,10 +73,9 @@ export const favoritesRouter = createTRPCRouter({
     .use(favoritesServiceMiddleware)
     .input(addFavoriteSchema)
     .mutation(async ({ ctx, input }) => {
-      _requireAuth(ctx.user);
       try {
         return await ctx.favoritesService.addFavorite({
-          userId: ctx.user.id,
+          userId: ctx.user!.id,
           mapItemId: input.mapItemId,
           shortcutName: input.shortcutName,
         });
@@ -95,9 +94,8 @@ export const favoritesRouter = createTRPCRouter({
     .use(favoritesServiceMiddleware)
     .input(removeFavoriteSchema)
     .mutation(async ({ ctx, input }) => {
-      _requireAuth(ctx.user);
       try {
-        await ctx.favoritesService.removeFavorite(ctx.user.id, input.shortcutName);
+        await ctx.favoritesService.removeFavorite(ctx.user!.id, input.shortcutName);
         return { success: true };
       } catch (error) {
         _mapDomainError(error, "Failed to remove favorite", [
@@ -113,8 +111,7 @@ export const favoritesRouter = createTRPCRouter({
     .use(favoritesServiceMiddleware)
     .input(removeFavoriteByMapItemSchema)
     .mutation(async ({ ctx, input }) => {
-      _requireAuth(ctx.user);
-      await ctx.favoritesRepository.deleteByUserAndMapItem(ctx.user.id, input.mapItemId);
+      await ctx.favoritesRepository.deleteByUserAndMapItem(ctx.user!.id, input.mapItemId);
       return { success: true };
     }),
 
@@ -125,9 +122,8 @@ export const favoritesRouter = createTRPCRouter({
     .use(favoritesServiceMiddleware)
     .input(getFavoriteByShortcutSchema)
     .query(async ({ ctx, input }) => {
-      _requireAuth(ctx.user);
       try {
-        return await ctx.favoritesService.getFavoriteByShortcut(ctx.user.id, input.shortcutName);
+        return await ctx.favoritesService.getFavoriteByShortcut(ctx.user!.id, input.shortcutName);
       } catch (error) {
         _mapDomainError(error, "Failed to get favorite", [
           { type: FavoriteNotFoundError, code: "NOT_FOUND", message: `Favorite "${input.shortcutName}" not found` },
@@ -141,8 +137,7 @@ export const favoritesRouter = createTRPCRouter({
   list: protectedProcedure
     .use(favoritesServiceMiddleware)
     .query(async ({ ctx }) => {
-      _requireAuth(ctx.user);
-      return await ctx.favoritesService.listFavorites(ctx.user.id);
+      return await ctx.favoritesService.listFavorites(ctx.user!.id);
     }),
 
   /**
@@ -151,8 +146,6 @@ export const favoritesRouter = createTRPCRouter({
    */
   listWithPreviews: protectedProcedure
     .query(async ({ ctx }) => {
-      _requireAuth(ctx.user);
-
       // Get all favorites for the user
       const favorites = await db
         .select({
@@ -216,8 +209,7 @@ export const favoritesRouter = createTRPCRouter({
     .use(favoritesServiceMiddleware)
     .input(isFavoritedSchema)
     .query(async ({ ctx, input }) => {
-      _requireAuth(ctx.user);
-      const favorite = await ctx.favoritesRepository.findByUserAndMapItem(ctx.user.id, input.mapItemId);
+      const favorite = await ctx.favoritesRepository.findByUserAndMapItem(ctx.user!.id, input.mapItemId);
       return { isFavorited: favorite !== null, favorite };
     }),
 
@@ -228,9 +220,8 @@ export const favoritesRouter = createTRPCRouter({
     .use(favoritesServiceMiddleware)
     .input(updateShortcutSchema)
     .mutation(async ({ ctx, input }) => {
-      _requireAuth(ctx.user);
       try {
-        return await ctx.favoritesService.updateShortcut(ctx.user.id, input.favoriteId, input.newShortcutName);
+        return await ctx.favoritesService.updateShortcut(ctx.user!.id, input.favoriteId, input.newShortcutName);
       } catch (error) {
         _mapDomainError(error, "Failed to update shortcut name", [
           { type: DuplicateShortcutNameError, code: "CONFLICT", message: `Shortcut name "${input.newShortcutName}" already exists` },
