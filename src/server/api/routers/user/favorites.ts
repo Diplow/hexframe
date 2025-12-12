@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { TRPCError } from "@trpc/server";
 import { eq, and } from "drizzle-orm";
 import {
   createTRPCRouter,
@@ -16,6 +15,7 @@ import {
   FavoriteNotFoundError,
 } from "~/lib/domains/iam";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
+import { _requireAuth, _mapDomainError } from "~/server/api/routers/_error-helpers";
 
 /**
  * Middleware that injects the FavoritesService into context
@@ -73,33 +73,18 @@ export const favoritesRouter = createTRPCRouter({
     .use(favoritesServiceMiddleware)
     .input(addFavoriteSchema)
     .mutation(async ({ ctx, input }) => {
-      if (!ctx.user) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authenticated" });
-      }
+      _requireAuth(ctx.user);
       try {
-        const favorite = await ctx.favoritesService.addFavorite({
+        return await ctx.favoritesService.addFavorite({
           userId: ctx.user.id,
           mapItemId: input.mapItemId,
           shortcutName: input.shortcutName,
         });
-        return favorite;
       } catch (error) {
-        if (error instanceof DuplicateShortcutNameError) {
-          throw new TRPCError({
-            code: "CONFLICT",
-            message: `Shortcut name "${input.shortcutName}" already exists`,
-          });
-        }
-        if (error instanceof InvalidShortcutNameError) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: `Invalid shortcut name: only alphanumeric characters and underscores are allowed`,
-          });
-        }
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to add favorite",
-        });
+        _mapDomainError(error, "Failed to add favorite", [
+          { type: DuplicateShortcutNameError, code: "CONFLICT", message: `Shortcut name "${input.shortcutName}" already exists` },
+          { type: InvalidShortcutNameError, code: "BAD_REQUEST", message: "Invalid shortcut name: only alphanumeric characters and underscores are allowed" },
+        ]);
       }
     }),
 
@@ -110,23 +95,14 @@ export const favoritesRouter = createTRPCRouter({
     .use(favoritesServiceMiddleware)
     .input(removeFavoriteSchema)
     .mutation(async ({ ctx, input }) => {
-      if (!ctx.user) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authenticated" });
-      }
+      _requireAuth(ctx.user);
       try {
         await ctx.favoritesService.removeFavorite(ctx.user.id, input.shortcutName);
         return { success: true };
       } catch (error) {
-        if (error instanceof FavoriteNotFoundError) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: `Favorite "${input.shortcutName}" not found`,
-          });
-        }
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to remove favorite",
-        });
+        _mapDomainError(error, "Failed to remove favorite", [
+          { type: FavoriteNotFoundError, code: "NOT_FOUND", message: `Favorite "${input.shortcutName}" not found` },
+        ]);
       }
     }),
 
@@ -137,13 +113,8 @@ export const favoritesRouter = createTRPCRouter({
     .use(favoritesServiceMiddleware)
     .input(removeFavoriteByMapItemSchema)
     .mutation(async ({ ctx, input }) => {
-      if (!ctx.user) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authenticated" });
-      }
-      await ctx.favoritesRepository.deleteByUserAndMapItem(
-        ctx.user.id,
-        input.mapItemId
-      );
+      _requireAuth(ctx.user);
+      await ctx.favoritesRepository.deleteByUserAndMapItem(ctx.user.id, input.mapItemId);
       return { success: true };
     }),
 
@@ -154,26 +125,13 @@ export const favoritesRouter = createTRPCRouter({
     .use(favoritesServiceMiddleware)
     .input(getFavoriteByShortcutSchema)
     .query(async ({ ctx, input }) => {
-      if (!ctx.user) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authenticated" });
-      }
+      _requireAuth(ctx.user);
       try {
-        const favorite = await ctx.favoritesService.getFavoriteByShortcut(
-          ctx.user.id,
-          input.shortcutName
-        );
-        return favorite;
+        return await ctx.favoritesService.getFavoriteByShortcut(ctx.user.id, input.shortcutName);
       } catch (error) {
-        if (error instanceof FavoriteNotFoundError) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: `Favorite "${input.shortcutName}" not found`,
-          });
-        }
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to get favorite",
-        });
+        _mapDomainError(error, "Failed to get favorite", [
+          { type: FavoriteNotFoundError, code: "NOT_FOUND", message: `Favorite "${input.shortcutName}" not found` },
+        ]);
       }
     }),
 
@@ -183,11 +141,8 @@ export const favoritesRouter = createTRPCRouter({
   list: protectedProcedure
     .use(favoritesServiceMiddleware)
     .query(async ({ ctx }) => {
-      if (!ctx.user) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authenticated" });
-      }
-      const favorites = await ctx.favoritesService.listFavorites(ctx.user.id);
-      return favorites;
+      _requireAuth(ctx.user);
+      return await ctx.favoritesService.listFavorites(ctx.user.id);
     }),
 
   /**
@@ -196,9 +151,7 @@ export const favoritesRouter = createTRPCRouter({
    */
   listWithPreviews: protectedProcedure
     .query(async ({ ctx }) => {
-      if (!ctx.user) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authenticated" });
-      }
+      _requireAuth(ctx.user);
 
       // Get all favorites for the user
       const favorites = await db
@@ -263,17 +216,9 @@ export const favoritesRouter = createTRPCRouter({
     .use(favoritesServiceMiddleware)
     .input(isFavoritedSchema)
     .query(async ({ ctx, input }) => {
-      if (!ctx.user) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authenticated" });
-      }
-      const favorite = await ctx.favoritesRepository.findByUserAndMapItem(
-        ctx.user.id,
-        input.mapItemId
-      );
-      return {
-        isFavorited: favorite !== null,
-        favorite: favorite,
-      };
+      _requireAuth(ctx.user);
+      const favorite = await ctx.favoritesRepository.findByUserAndMapItem(ctx.user.id, input.mapItemId);
+      return { isFavorited: favorite !== null, favorite };
     }),
 
   /**
@@ -283,33 +228,14 @@ export const favoritesRouter = createTRPCRouter({
     .use(favoritesServiceMiddleware)
     .input(updateShortcutSchema)
     .mutation(async ({ ctx, input }) => {
-      if (!ctx.user) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Not authenticated" });
-      }
+      _requireAuth(ctx.user);
       try {
-        const favorite = await ctx.favoritesService.updateShortcut(
-          ctx.user.id,
-          input.favoriteId,
-          input.newShortcutName
-        );
-        return favorite;
+        return await ctx.favoritesService.updateShortcut(ctx.user.id, input.favoriteId, input.newShortcutName);
       } catch (error) {
-        if (error instanceof DuplicateShortcutNameError) {
-          throw new TRPCError({
-            code: "CONFLICT",
-            message: `Shortcut name "${input.newShortcutName}" already exists`,
-          });
-        }
-        if (error instanceof InvalidShortcutNameError) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: `Invalid shortcut name: only alphanumeric characters and underscores are allowed`,
-          });
-        }
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to update shortcut name",
-        });
+        _mapDomainError(error, "Failed to update shortcut name", [
+          { type: DuplicateShortcutNameError, code: "CONFLICT", message: `Shortcut name "${input.newShortcutName}" already exists` },
+          { type: InvalidShortcutNameError, code: "BAD_REQUEST", message: "Invalid shortcut name: only alphanumeric characters and underscores are allowed" },
+        ]);
       }
     }),
 });

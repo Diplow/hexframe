@@ -1,11 +1,11 @@
 import { z } from 'zod'
-import { TRPCError } from '@trpc/server'
 import { createTRPCRouter, protectedProcedure, publicProcedure, mappingServiceMiddleware, agenticServiceMiddleware } from '~/server/api/trpc'
 import { verificationAwareRateLimit, verificationAwareAuthLimit } from '~/server/api/middleware'
 import { createAgenticService, type CompositionConfig, PreviewGeneratorService, OpenRouterRepository, type ChatMessageContract } from '~/lib/domains/agentic'
 import { buildPrompt } from '~/lib/domains/agentic/utils'
 import { ContextStrategies } from '~/lib/domains/mapping/utils'
 import { _getRequesterUserId } from '~/server/api/routers/map'
+import { _requireConfigured, _requireFound, _requireOwnership, _throwBadRequest, _throwInternalError } from '~/server/api/routers/_error-helpers'
 import { env } from '~/env'
 import { db, schema } from '~/server/db'
 const { llmJobResults } = schema
@@ -107,12 +107,7 @@ export const agenticRouter = createTRPCRouter({
         userId: ctx.session?.userId ?? 'anonymous'
       })
 
-      if (!agenticService.isConfigured()) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'OpenRouter API key not configured. Please set OPENROUTER_API_KEY environment variable.',
-        })
-      }
+      _requireConfigured(agenticService.isConfigured(), "OPENROUTER_API_KEY");
 
       // Generate the response
       // MCP tools are provided by the HTTP MCP server at /api/mcp
@@ -167,12 +162,7 @@ export const agenticRouter = createTRPCRouter({
         input.centerCoordId
       )
 
-      if (!ctx.agenticService.isConfigured()) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'API key not configured. Please set OPENROUTER_API_KEY or ANTHROPIC_API_KEY environment variable.',
-        })
-      }
+      _requireConfigured(ctx.agenticService.isConfigured(), "OPENROUTER_API_KEY or ANTHROPIC_API_KEY");
 
       // Handle SDK async generator for streaming
       const chunks: Array<{ content: string; isFinished: boolean }> = []
@@ -233,13 +223,8 @@ export const agenticRouter = createTRPCRouter({
         .where(eq(llmJobResults.jobId, input.jobId))
         .limit(1)
       
-      if (!result[0]) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Job not found'
-        })
-      }
-      
+      _requireFound(result[0], "Job");
+
       return {
         jobId: result[0].jobId,
         status: result[0].status,
@@ -314,19 +299,8 @@ export const agenticRouter = createTRPCRouter({
         .where(eq(llmJobResults.jobId, input.jobId))
         .limit(1)
 
-      if (!job[0]) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Job not found'
-        })
-      }
-
-      if (job[0].userId !== ctx.session?.userId) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You can only cancel your own jobs'
-        })
-      }
+      _requireFound(job[0], "Job");
+      _requireOwnership(job[0].userId ?? "", ctx.session?.userId ?? "", "cancel jobs");
 
       // Send cancel event to Inngest
       const { inngest } = await import('~/lib/domains/agentic/infrastructure/inngest/client')
@@ -403,12 +377,7 @@ export const agenticRouter = createTRPCRouter({
       const repository = new OpenRouterRepository(env.OPENROUTER_API_KEY ?? '')
       const previewService = new PreviewGeneratorService(repository)
 
-      if (!repository.isConfigured()) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'OpenRouter API key not configured. Please set OPENROUTER_API_KEY environment variable.',
-        })
-      }
+      _requireConfigured(repository.isConfigured(), "OPENROUTER_API_KEY");
 
       const result = await previewService.generatePreview({ title, content })
 
@@ -446,12 +415,8 @@ export const agenticRouter = createTRPCRouter({
       )
 
       // 2. Validate task tile has a non-empty title
-      if (!hexecuteContext.task.title?.trim()) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: `Task tile at ${taskCoords} has an empty title. A non-empty title is required for prompt generation.`
-        })
-      }
+      if (!hexecuteContext.task.title?.trim())
+        _throwBadRequest(`Task tile at ${taskCoords} has an empty title. A non-empty title is required for prompt generation.`);
 
       // Get MCP server name from environment (defaults to 'hexframe')
       const mcpServerName = process.env.HEXFRAME_MCP_SERVER ?? 'hexframe'
@@ -478,11 +443,7 @@ export const agenticRouter = createTRPCRouter({
         })
       } catch (error) {
         console.error(`Failed to build prompt for task at ${taskCoords}:`, error)
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: `Failed to build prompt for task "${hexecuteContext.task.title}" at ${taskCoords}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          cause: error
-        })
+        _throwInternalError(`Failed to build prompt for task "${hexecuteContext.task.title}" at ${taskCoords}: ${error instanceof Error ? error.message : 'Unknown error'}`, error);
       }
 
       // Reference the task tile for building minimal map context
@@ -506,12 +467,7 @@ export const agenticRouter = createTRPCRouter({
         }) as ChatMessageContract)
       ]
 
-      if (!ctx.agenticService.isConfigured()) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'API key not configured. Please set OPENROUTER_API_KEY or ANTHROPIC_API_KEY environment variable.',
-        })
-      }
+      _requireConfigured(ctx.agenticService.isConfigured(), "OPENROUTER_API_KEY or ANTHROPIC_API_KEY");
 
       // Handle SDK async generator for streaming
       const chunks: Array<{ content: string; isFinished: boolean }> = []
@@ -594,12 +550,8 @@ export const agenticRouter = createTRPCRouter({
       )
 
       // 2. Validate task tile has a non-empty title
-      if (!hexecuteContext.task.title?.trim()) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: `Task tile at ${taskCoords} has an empty title. A non-empty title is required for prompt generation.`
-        })
-      }
+      if (!hexecuteContext.task.title?.trim())
+        _throwBadRequest(`Task tile at ${taskCoords} has an empty title. A non-empty title is required for prompt generation.`);
 
       // Get MCP server name from environment (defaults to 'hexframe')
       const mcpServerName = process.env.HEXFRAME_MCP_SERVER ?? 'hexframe'
@@ -626,15 +578,9 @@ export const agenticRouter = createTRPCRouter({
         })
       } catch (error) {
         console.error(`Failed to build prompt for task at ${taskCoords}:`, error)
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: `Failed to build prompt for task "${hexecuteContext.task.title}" at ${taskCoords}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          cause: error
-        })
+        _throwInternalError(`Failed to build prompt for task "${hexecuteContext.task.title}" at ${taskCoords}: ${error instanceof Error ? error.message : 'Unknown error'}`, error);
       }
 
-      return {
-        prompt: promptResult
-      }
+      return { prompt: promptResult }
     })
 })
