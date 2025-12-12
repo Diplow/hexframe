@@ -1,12 +1,11 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
-import { createTRPCRouter, protectedProcedure, publicProcedure, mappingServiceMiddleware, iamServiceMiddleware } from '~/server/api/trpc'
+import { createTRPCRouter, protectedProcedure, publicProcedure, mappingServiceMiddleware, agenticServiceMiddleware } from '~/server/api/trpc'
 import { verificationAwareRateLimit, verificationAwareAuthLimit } from '~/server/api/middleware'
 import { createAgenticService, type CompositionConfig, PreviewGeneratorService, OpenRouterRepository, type ChatMessageContract } from '~/lib/domains/agentic'
 import { buildPrompt } from '~/lib/domains/agentic/utils'
 import { ContextStrategies } from '~/lib/domains/mapping/utils'
 import { _getRequesterUserId } from '~/server/api/routers/map'
-import { EventBus as EventBusImpl } from '~/lib/utils/event-bus'
 import { env } from '~/env'
 import { db, schema } from '~/server/db'
 const { llmJobResults } = schema
@@ -68,10 +67,11 @@ const compositionConfigSchema = z.object({
 
 
 export const agenticRouter = createTRPCRouter({
+  // This procedure needs dynamic useQueue, so it creates its own service using ctx.eventBus and ctx.mcpApiKey
   generateResponse: protectedProcedure
     .use(verificationAwareRateLimit) // Rate limit: 10 req/5min for verified, 3 req/5min for unverified
     .use(mappingServiceMiddleware) // Add mapping service to context
-    .use(iamServiceMiddleware) // Add IAM service to context
+    .use(agenticServiceMiddleware) // Provides eventBus and mcpApiKey
     .input(
       z.object({
         centerCoordId: z.string(),
@@ -90,29 +90,19 @@ export const agenticRouter = createTRPCRouter({
         input.centerCoordId
       )
 
-      // Create a server-side event bus instance
-      const eventBus = new EventBusImpl()
-
       // Determine if we should use queue based on environment
       const useQueue = process.env.USE_QUEUE === 'true' || process.env.NODE_ENV === 'production'
 
-      // Get or create short-lived session MCP API key (10 min TTL for security)
-      // This limits exposure if AI code steals the key - it expires after the session
-      const { getOrCreateInternalApiKey } = await import('~/lib/domains/iam')
-      const mcpApiKey = ctx.session?.userId
-        ? await getOrCreateInternalApiKey(ctx.session.userId, 'mcp-session', 10)
-        : undefined
-
-      // Create agentic service with Claude SDK (preferred) or OpenRouter fallback
+      // Create agentic service with dynamic useQueue (uses eventBus and mcpApiKey from middleware)
       const agenticService = createAgenticService({
         llmConfig: {
           openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
           anthropicApiKey: env.ANTHROPIC_API_KEY ?? '',
-          preferClaudeSDK: true, // Use Claude Agent SDK when anthropicApiKey is available
-          useSandbox: env.USE_SANDBOX === 'true', // Use Vercel Sandbox in production
-          mcpApiKey // Pass MCP key from IAM domain
+          preferClaudeSDK: true,
+          useSandbox: env.USE_SANDBOX === 'true',
+          mcpApiKey: ctx.mcpApiKey
         },
-        eventBus,
+        eventBus: ctx.eventBus,
         useQueue,
         userId: ctx.session?.userId ?? 'anonymous'
       })
@@ -158,7 +148,7 @@ export const agenticRouter = createTRPCRouter({
   generateStreamingResponse: protectedProcedure
     .use(verificationAwareRateLimit) // Rate limit: 10 req/5min for verified, 3 req/5min for unverified
     .use(mappingServiceMiddleware) // Add mapping service to context
-    .use(iamServiceMiddleware) // Add IAM service to context
+    .use(agenticServiceMiddleware) // Add agentic service to context
     .input(
       z.object({
         centerCoordId: z.string(),
@@ -177,31 +167,7 @@ export const agenticRouter = createTRPCRouter({
         input.centerCoordId
       )
 
-      // Create a server-side event bus instance
-      const eventBus = new EventBusImpl()
-
-      // Get or create short-lived session MCP API key (10 min TTL for security)
-      // This limits exposure if AI code steals the key - it expires after the session
-      const { getOrCreateInternalApiKey } = await import('~/lib/domains/iam')
-      const mcpApiKey = ctx.session?.userId
-        ? await getOrCreateInternalApiKey(ctx.session.userId, 'mcp-session', 10)
-        : undefined
-
-      // Create agentic service with Claude SDK (preferred) or OpenRouter fallback
-      const agenticService = createAgenticService({
-        llmConfig: {
-          openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
-          anthropicApiKey: env.ANTHROPIC_API_KEY ?? '',
-          preferClaudeSDK: true, // Use Claude Agent SDK when anthropicApiKey is available
-          useSandbox: env.USE_SANDBOX === 'true', // Use Vercel Sandbox in production
-          mcpApiKey // Pass MCP key from IAM domain
-        },
-        eventBus,
-        useQueue: false, // Streaming doesn't use queue
-        userId: ctx.session?.userId ?? 'anonymous'
-      })
-
-      if (!agenticService.isConfigured()) {
+      if (!ctx.agenticService.isConfigured()) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'API key not configured. Please set OPENROUTER_API_KEY or ANTHROPIC_API_KEY environment variable.',
@@ -213,7 +179,7 @@ export const agenticRouter = createTRPCRouter({
 
       // Generate streaming response
       // MCP tools are provided by the HTTP MCP server at /api/mcp
-      const response = await agenticService.generateStreamingResponse(
+      const response = await ctx.agenticService.generateStreamingResponse(
         {
           mapContext,
           messages: input.messages as ChatMessageContract[],
@@ -240,25 +206,14 @@ export const agenticRouter = createTRPCRouter({
 
   getAvailableModels: protectedProcedure
     .use(verificationAwareAuthLimit) // Rate limit: 100 req/min for verified, 20 req/min for unverified
-    .query(async () => {
-      const eventBus = new EventBusImpl()
-
-      const agenticService = createAgenticService({
-        llmConfig: {
-          openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
-          anthropicApiKey: env.ANTHROPIC_API_KEY ?? '',
-          preferClaudeSDK: true, // Use Claude Agent SDK when anthropicApiKey is available
-          useSandbox: env.USE_SANDBOX === 'true' // Use Vercel Sandbox in production
-        },
-        eventBus
-      })
-
-      if (!agenticService.isConfigured()) {
+    .use(agenticServiceMiddleware) // Add agentic service to context
+    .query(async ({ ctx }) => {
+      if (!ctx.agenticService.isConfigured()) {
         return []
       }
 
-      const models = await agenticService.getAvailableModels()
-      
+      const models = await ctx.agenticService.getAvailableModels()
+
       // Return a simplified model list for the client
       return models.map(model => ({
         id: model.id,
@@ -469,7 +424,7 @@ export const agenticRouter = createTRPCRouter({
   executeTask: protectedProcedure
     .use(verificationAwareRateLimit)
     .use(mappingServiceMiddleware)
-    .use(iamServiceMiddleware)
+    .use(agenticServiceMiddleware) // Add agentic service to context
     .input(
       z.object({
         taskCoords: z.string(),
@@ -551,30 +506,7 @@ export const agenticRouter = createTRPCRouter({
         }) as ChatMessageContract)
       ]
 
-      // Create a server-side event bus instance
-      const eventBus = new EventBusImpl()
-
-      // Get or create short-lived session MCP API key (10 min TTL for security)
-      const { getOrCreateInternalApiKey } = await import('~/lib/domains/iam')
-      const mcpApiKey = ctx.session?.userId
-        ? await getOrCreateInternalApiKey(ctx.session.userId, 'mcp-session', 10)
-        : undefined
-
-      // Create agentic service with Claude SDK (preferred) or OpenRouter fallback
-      const agenticService = createAgenticService({
-        llmConfig: {
-          openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
-          anthropicApiKey: env.ANTHROPIC_API_KEY ?? '',
-          preferClaudeSDK: true,
-          useSandbox: env.USE_SANDBOX === 'true',
-          mcpApiKey
-        },
-        eventBus,
-        useQueue: false, // Streaming doesn't use queue
-        userId: ctx.session?.userId ?? 'anonymous'
-      })
-
-      if (!agenticService.isConfigured()) {
+      if (!ctx.agenticService.isConfigured()) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'API key not configured. Please set OPENROUTER_API_KEY or ANTHROPIC_API_KEY environment variable.',
@@ -616,7 +548,7 @@ export const agenticRouter = createTRPCRouter({
       }
 
       // Generate streaming response using the hexecute prompt as context
-      const response = await agenticService.generateStreamingResponse(
+      const response = await ctx.agenticService.generateStreamingResponse(
         {
           mapContext: minimalMapContext,
           messages: conversationMessages,
