@@ -158,7 +158,7 @@ export function useAutocompleteLogic(
     }
 
     const currentValue = textarea.value;
-    const cursorPosition = textarea.selectionStart;
+    const cursorPosition = textarea.selectionStart ?? currentValue.length;
     const mentionStart = findMentionStartPosition(currentValue, cursorPosition);
 
     if (mentionStart === -1) {
