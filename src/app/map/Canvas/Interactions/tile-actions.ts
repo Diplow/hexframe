@@ -24,5 +24,8 @@ const TILE_ACTIONS = {
 };
 
 export function createTileActions() {
-  return TILE_ACTIONS;
+  return {
+    ...TILE_ACTIONS,
+    dragHandlers: { ...TILE_ACTIONS.dragHandlers },
+  };
 }
