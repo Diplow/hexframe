@@ -33,6 +33,7 @@ interface FavoriteMenuItemParams {
  * @example
  * // Show "Add to Favorites" option
  * _buildFavoriteMenuItem({
+ *   canEdit: true,
  *   isFavorited: false,
  *   onAddFavorite: () => addTileToFavorites(tileId),
  * });
@@ -40,6 +41,7 @@ interface FavoriteMenuItemParams {
  * @example
  * // Show "Favorites" submenu with remove and edit options
  * _buildFavoriteMenuItem({
+ *   canEdit: true,
  *   isFavorited: true,
  *   onRemoveFavorite: () => removeTileFromFavorites(tileId),
  *   onEditShortcut: () => openFavoritesPanel({ editShortcutFor: tileId }),
