@@ -225,7 +225,9 @@ export function useFavoritesAutocomplete<T extends BaseFavorite>({
   const updateQuery = useCallback(
     (query: string) => {
       if (!query.startsWith('@')) return resetState();
-      activateWithMatches(_filterFavoritesByPrefix(favorites, query.slice(1)));
+      const matches = _filterFavoritesByPrefix(favorites, query.slice(1));
+      if (matches.length === 0) return resetState();
+      activateWithMatches(matches);
     },
     [favorites, resetState, activateWithMatches]
   );
@@ -234,7 +236,9 @@ export function useFavoritesAutocomplete<T extends BaseFavorite>({
     (text: string, cursorPosition: number) => {
       const mentionQuery = _extractMentionQueryAtCursor(text, cursorPosition);
       if (mentionQuery === null) return resetState();
-      activateWithMatches(_filterFavoritesByPrefix(favorites, mentionQuery));
+      const matches = _filterFavoritesByPrefix(favorites, mentionQuery);
+      if (matches.length === 0) return resetState();
+      activateWithMatches(matches);
     },
     [favorites, resetState, activateWithMatches]
   );
