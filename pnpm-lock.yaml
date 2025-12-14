@@ -145,8 +145,8 @@ dependencies:
     specifier: ^2.0.3
     version: 2.0.7(react-dom@18.3.1)(react@18.3.1)
   superjson:
-    specifier: ^2.2.1
-    version: 2.2.5
+    specifier: ^2.2.6
+    version: 2.2.6
   svix:
     specifier: ^1.69.0
     version: 1.81.0
@@ -11062,8 +11062,8 @@ packages:
       pirates: 4.0.7
       ts-interface-checker: 0.1.13
 
-  /superjson@2.2.5:
-    resolution: {integrity: sha512-zWPTX96LVsA/eVYnqOM2+ofcdPqdS1dAF1LN4TS2/MWuUpfitd9ctTa87wt4xrYnZnkLtS69xpBdSxVBP5Rm6w==}
+  /superjson@2.2.6:
+    resolution: {integrity: sha512-H+ue8Zo4vJmV2nRjpx86P35lzwDT3nItnIsocgumgr0hHMQ+ZGq5vrERg9kJBo5AWGmxZDhzDo+WVIJqkB0cGA==}
     engines: {node: '>=16'}
     dependencies:
       copy-anything: 4.0.5
