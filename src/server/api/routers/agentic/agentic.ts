@@ -300,7 +300,8 @@ export const agenticRouter = createTRPCRouter({
         .limit(1)
 
       _requireFound(job[0], "Job");
-      _requireOwnership(job[0].userId ?? "", ctx.session?.userId ?? "", "cancel jobs");
+      _requireFound(job[0].userId, "Job owner");
+      _requireOwnership(job[0].userId, ctx.session?.userId ?? "", "cancel jobs");
 
       // Send cancel event to Inngest
       const { inngest } = await import('~/lib/domains/agentic/infrastructure/inngest/client')
