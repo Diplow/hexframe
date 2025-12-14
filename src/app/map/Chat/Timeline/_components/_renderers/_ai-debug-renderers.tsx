@@ -47,8 +47,11 @@ export function _renderDebugLogsWidget(widget: Widget, handlers: WidgetHandlers)
 }
 
 export function _renderFavoritesWidget(widget: Widget, handlers: WidgetHandlers) {
-  const { handleCancel = () => { /* noop */ }, onInsertToChat } = handlers;
-  const data = widget.data as { editShortcutForMapItemId?: string };
+  const {
+    handleCancel = () => { /* noop */ },
+    onInsertToChat = () => { /* noop */ },
+  } = handlers;
+  const data = (widget.data ?? {}) as { editShortcutForMapItemId?: string };
   return (
     <FavoritesWidget
       onClose={handleCancel}
