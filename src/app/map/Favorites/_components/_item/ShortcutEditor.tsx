@@ -44,9 +44,12 @@ export function ShortcutEditor({
 
   const handleSave = useCallback(() => {
     const trimmedValue = value.trim();
-    if (trimmedValue && trimmedValue !== initialValue) {
+    if (!trimmedValue) {
+      // Empty input, treat as cancel
+      onCancel();
+    } else if (trimmedValue !== initialValue) {
       onSave(trimmedValue);
-    } else if (trimmedValue === initialValue) {
+    } else {
       // No change, just cancel
       onCancel();
     }
