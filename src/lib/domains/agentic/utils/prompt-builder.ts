@@ -1,14 +1,14 @@
 /**
- * Hexframe Prompt Builder v3 - Simplified Structure
+ * Hexframe Prompt Builder v4 - Programmatic Hexplan Generation
  *
  * Generates execution-ready prompts from tile hierarchies.
- * The prompt structure is now minimal - orchestration logic lives in tiles.
+ * The prompt structure is minimal - orchestration logic is derived from tile type.
  *
  * Template:
  * 1. <context> - Composed children (title + content)
  * 2. <subtasks> - Structural children (title + preview + coords)
  * 3. <task> - Goal (title) + requirements (content)
- * 4. <hexplan> - Direction-0 content OR instructions to initialize
+ * 4. <hexplan> / <execution-instructions> - Based on tile type and hexplan state
  */
 
 // ==================== TYPES ====================
@@ -29,16 +29,52 @@ export interface PromptData {
     preview: string | undefined
     coords: string
   }>
-  instruction: string | undefined
-  mcpServerName: string // e.g., 'hexframe', 'debughexframe'
-  hexPlan: string | undefined // Content of direction-0 tile, if exists
-  hexPlanInitializerPath: string | undefined // Custom path for hexPlan initialization tile (e.g., '1,4')
+  hexPlan: string // Content of direction-0 tile (always exists - created by API if missing)
 }
 
-// ==================== CONSTANTS ====================
+// ==================== HEXPLAN CONTENT GENERATION ====================
 
-// Well-known tile path for the "Initialize HexPlan" task
-const INIT_HEXPLAN_TILE_PATH = '1,4'
+/**
+ * Generates hexplan content for a parent tile (tile with subtasks).
+ * This is used by the API to create/initialize the hexplan tile before prompting.
+ */
+export function generateParentHexplanContent(
+  structuralChildren: Array<{ title: string; coords: string }>
+): string {
+  const lines: string[] = []
+  lines.push('🟡 STARTED')
+  lines.push('')
+  lines.push('**Steps:**')
+  structuralChildren.forEach((child, index) => {
+    lines.push(`📋 ${index + 1}. Execute "${child.title}" → ${child.coords}`)
+  })
+  lines.push('')
+  lines.push('**Progress:**')
+  lines.push('(initialized)')
+  return lines.join('\n')
+}
+
+/**
+ * Generates hexplan content for a leaf tile (tile without subtasks).
+ * This is used by the API to create/initialize the hexplan tile before prompting.
+ */
+export function generateLeafHexplanContent(
+  taskTitle: string,
+  instruction: string | undefined
+): string {
+  const lines: string[] = []
+  lines.push(`🟡 STARTED: "${taskTitle}"`)
+  lines.push('')
+  if (instruction) {
+    lines.push(`**Instruction:** ${instruction}`)
+    lines.push('')
+  }
+  lines.push('📋 Execute the task')
+  lines.push('')
+  lines.push('**Progress:**')
+  lines.push('(initialized)')
+  return lines.join('\n')
+}
 
 // ==================== XML ESCAPING ====================
 
@@ -100,65 +136,63 @@ function buildTaskSection(task: PromptData['task']): string {
 }
 
 function buildHexplanSection(
-  hexPlan: string | undefined,
+  hexPlan: string,
   taskCoords: string,
-  instruction: string | undefined,
-  mcpServerName: string,
-  hexPlanInitializerPath: string | undefined
+  hasSubtasks: boolean
 ): string {
   const hexplanCoords = `${taskCoords},0`
 
-  if (hasContent(hexPlan)) {
-    // Check if there are any pending steps (📋)
-    const hasPendingSteps = hexPlan!.includes('📋')
-    const hasBlockedSteps = hexPlan!.includes('🔴')
+  // Check if there are any pending steps (📋)
+  const hasPendingSteps = hexPlan.includes('📋')
+  const hasBlockedSteps = hexPlan.includes('🔴')
 
-    if (!hasPendingSteps) {
-      // No pending steps - task is complete or blocked
-      if (hasBlockedSteps) {
-        return `<hexplan-status>BLOCKED</hexplan-status>\n<message>Task has blocked steps. Review the hexplan at ${escapeXML(hexplanCoords)} and resolve blockers before continuing.</message>\n\n<hexplan coords="${escapeXML(hexplanCoords)}">\n${escapeXML(hexPlan!)}\n</hexplan>`
-      }
-      return `<hexplan-status>COMPLETE</hexplan-status>\n<message>All steps completed for task at ${escapeXML(taskCoords)}.</message>\n\n<hexplan coords="${escapeXML(hexplanCoords)}">\n${escapeXML(hexPlan!)}\n</hexplan>`
+  if (!hasPendingSteps) {
+    // No pending steps - task is complete or blocked
+    if (hasBlockedSteps) {
+      return `<hexplan-status>BLOCKED</hexplan-status>\n<message>Task has blocked steps. Review the hexplan at ${escapeXML(hexplanCoords)} and resolve blockers before continuing.</message>\n\n<hexplan coords="${escapeXML(hexplanCoords)}">\n${escapeXML(hexPlan)}\n</hexplan>`
     }
-
-    // Hexplan exists with pending steps - show it with execution instructions
-    const lines: string[] = []
-    lines.push(`<hexplan coords="${escapeXML(hexplanCoords)}">`)
-    lines.push(escapeXML(hexPlan!))
-    lines.push(`</hexplan>`)
-    lines.push('')
-    lines.push(`<execution-instructions>`)
-    lines.push(`Execute the NEXT PENDING STEP (first 📋) from the hexplan above.`)
-    lines.push(``)
-    lines.push(`After completing the step:`)
-    lines.push(`1. Update the hexplan at ${escapeXML(hexplanCoords)} using updateItem:`)
-    lines.push(`   - Change the step status from 📋 to ✅`)
-    lines.push(`   - If the step created a sub-hexplan, merge its steps into this hexplan`)
-    lines.push(`   - Add a brief note about what was done`)
-    lines.push(`2. Return a SHORT summary (1-2 sentences) of what you accomplished`)
-    lines.push(``)
-    lines.push(`If you cannot complete the step:`)
-    lines.push(`- Update the step status to 🔴 BLOCKED with explanation`)
-    lines.push(`- Return the blocker so the user can intervene`)
-    lines.push(``)
-    lines.push(`IMPORTANT: Execute ONLY ONE step, then return. The orchestrator will call you again for the next step.`)
-    lines.push(`</execution-instructions>`)
-
-    return lines.join('\n')
+    return `<hexplan-status>COMPLETE</hexplan-status>\n<message>All steps completed for task at ${escapeXML(taskCoords)}.</message>\n\n<hexplan coords="${escapeXML(hexplanCoords)}">\n${escapeXML(hexPlan)}\n</hexplan>`
   }
 
-  // Hexplan doesn't exist - provide initialization instructions
-  const userIdAndGroup = taskCoords.split(':')[0]
-  const initPath = hexPlanInitializerPath ?? INIT_HEXPLAN_TILE_PATH
-  const initHexPlanTileCoords = `${userIdAndGroup}:${initPath}`
-  const initInstruction = `Create a hexplan for the task at ${taskCoords}${instruction ? `. User instruction: ${instruction}` : ''}`
-
+  // Hexplan exists with pending steps - show it with execution instructions
   const lines: string[] = []
   lines.push(`<hexplan coords="${escapeXML(hexplanCoords)}">`)
-  lines.push(`No hexplan exists yet. To initialize:`)
-  lines.push(`1. Run ${escapeXML(mcpServerName)}:hexecute("${escapeXML(initHexPlanTileCoords)}", "${escapeXML(initInstruction)}")`)
-  lines.push(`2. Spawn a subagent with the resulting prompt using the Task tool (do NOT execute directly in current session)`)
+  lines.push(escapeXML(hexPlan))
   lines.push(`</hexplan>`)
+  lines.push('')
+  lines.push(`<execution-instructions>`)
+  lines.push(`Execute the NEXT PENDING STEP (first 📋) from the hexplan above.`)
+  lines.push(``)
+
+  if (hasSubtasks) {
+    // Parent tile: instructions for spawning subagents
+    lines.push(`To execute a step:`)
+    lines.push(`1. Call mcp__hexframe__hexecute with the child's coords to get its prompt`)
+    lines.push(`2. Spawn a subagent using the Task tool with the resulting prompt`)
+    lines.push(``)
+    lines.push(`Example for step "Execute 'Clarify the Task' → userId,0:6,1":`)
+    lines.push(`  prompt = mcp__hexframe__hexecute({ taskCoords: "userId,0:6,1" })`)
+    lines.push(`  Task({ subagent_type: "general-purpose", prompt: prompt })`)
+    lines.push(``)
+    lines.push(`After the subagent completes:`)
+  } else {
+    // Leaf tile: instructions for direct execution
+    lines.push(`Execute the task directly using the <task> content and <context> above.`)
+    lines.push(``)
+    lines.push(`After completing:`)
+  }
+
+  lines.push(`- Update the hexplan at ${escapeXML(hexplanCoords)} using updateItem:`)
+  lines.push(`   - Change the step status from 📋 to ✅`)
+  lines.push(`   - Add a brief note about what was done`)
+  lines.push(`- Return a SHORT summary (1-2 sentences) of what you accomplished`)
+  lines.push(``)
+  lines.push(`If you cannot complete the step:`)
+  lines.push(`- Update the step status to 🔴 BLOCKED with explanation`)
+  lines.push(`- Return the blocker so the user can intervene`)
+  lines.push(``)
+  lines.push(`IMPORTANT: Execute ONLY ONE step, then return. The orchestrator will call you again for the next step.`)
+  lines.push(`</execution-instructions>`)
 
   return lines.join('\n')
 }
@@ -178,11 +212,12 @@ function buildHexplanSection(
  * Sections are separated by blank lines.
  */
 export function buildPrompt(data: PromptData): string {
+  const hasSubtasks = data.structuralChildren.length > 0
   const sections = [
     buildContextSection(data.composedChildren),
     buildSubtasksSection(data.structuralChildren),
     buildTaskSection(data.task),
-    buildHexplanSection(data.hexPlan, data.task.coords, data.instruction, data.mcpServerName, data.hexPlanInitializerPath)
+    buildHexplanSection(data.hexPlan, data.task.coords, hasSubtasks)
   ]
 
   // Filter empty sections and join with blank lines

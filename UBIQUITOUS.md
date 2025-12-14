@@ -8,6 +8,16 @@ A living glossary of terms used in the Hexframe project. This document establish
 
 A hexagonal unit representing a single task, information or tool. Like a function in programming, a Tile has a clear name that conveys WHAT it does or WHAT it is about without revealing HOW.
 
+**Critical constraint:** A tile is either a **Leaf Tile** or a **Parent Tile**, never both.
+
+### Leaf Tile
+
+A tile with no subtask children (directions 1-6). Its content describes WHAT to do and WHY. An agent executes the entire task in one session. Leaf tiles may have context children (-1 to -6) that provide reference materials.
+
+### Parent Tile
+
+A tile with subtask children (directions 1-6). The agent's only job is orchestration — execute each child in order. The tile's content (if any) provides context for human reviewers, not instructions for the agent. Only leaf tiles at the bottom of the hierarchy do concrete work.
+
 ### Frame
 
 The result of expanding a Tile. A Frame consists of one CenterTile surrounded by up to 6 child Tiles, revealing HOW the original Tile accomplishes its purpose.
@@ -100,13 +110,18 @@ Children that provide reference materials, constraints, templates, or other cont
 
 ### Hexplan (Direction 0)
 
-A special child that stores execution state and guides agent behavior. The hexplan contains:
-- Status of completed, in-progress, and blocked work
-- Decisions made and rationale
-- Next steps and instructions
-- User adjustments to guide execution
+A special child that stores execution state and progress. The hexplan serves two audiences:
 
-Hexplans are the control interface for autonomous execution — users edit hexplans to steer agent behavior rather than chatting back-and-forth. The "hex" prefix distinguishes Hexframe's execution state from generic "plans" that might be created as task outputs.
+1. **For agents**: Tracks what's done, what's next, and any user adjustments
+2. **For humans**: Provides visibility into task progress for review and course-correction
+
+**Hexplan content differs by tile type:**
+- **Parent tile hexplan**: Ordered list of subtasks to execute (can be generated programmatically from children)
+- **Leaf tile hexplan**: Agent's plan to complete the concrete work
+
+**Status markers:** 📋 Pending | 🟡 In progress | ✅ Completed | 🔴 Blocked
+
+Hexplans are the control interface for autonomous execution — users edit hexplans to steer agent behavior rather than chatting back-and-forth.
 
 ### Tool Tile
 
@@ -218,9 +233,15 @@ The workflow:
 4. To adjust: stop agent, edit hexplan, restart
 5. Agent reads hexplan, skips completed steps, continues
 
-### Hexframe Bootstrapping
+### Hexplan Generation
 
-Since hexplans are central to execution, Hexframe provides a default system for initializing hexplans — using Hexframe's own formalism. This self-referential capability demonstrates the model's power: the system that creates hexplans is itself a Hexframe system.
+The API automatically creates the hexplan tile at direction-0 when `hexecute` is called, if it doesn't already exist:
+
+**Parent tiles** (with subtask children): Hexplan is auto-generated as an ordered list of children to execute. No AI needed — the API creates the tile with steps derived from structural children.
+
+**Leaf tiles** (no subtask children): Hexplan is created with a single "Execute the task" step. The instruction parameter (if provided) is embedded in the hexplan content.
+
+**Existing hexplan**: When a hexplan already exists at direction-0, execution continues from its current state, respecting completed (✅), pending (📋), and blocked (🔴) markers.
 
 ---
 

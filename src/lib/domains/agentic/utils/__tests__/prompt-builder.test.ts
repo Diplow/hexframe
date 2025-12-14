@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { buildPrompt, type PromptData } from '~/lib/domains/agentic/utils'
+import { buildPrompt, generateParentHexplanContent, generateLeafHexplanContent, type PromptData } from '~/lib/domains/agentic/utils'
 
-describe('buildPrompt - v3 Simplified Structure', () => {
+describe('buildPrompt - v5 API-Created Hexplan', () => {
   // ==================== BASIC STRUCTURE TESTS ====================
   describe('Basic Structure', () => {
     it('should generate sections in correct order: context, subtasks, task, hexplan', () => {
@@ -9,10 +9,7 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         task: { title: 'Test Task', content: 'Test content', coords: 'userId,0:1' },
         composedChildren: [{ title: 'Context', content: 'Context info', coords: 'userId,0:1,-1' }],
         structuralChildren: [{ title: 'Subtask 1', preview: 'Preview 1', coords: 'userId,0:1,1' }],
-        instruction: 'Test instruction',
-        mcpServerName: 'hexframe',
-        hexPlan: 'Existing plan content',
-        hexPlanInitializerPath: undefined
+        hexPlan: '📋 Step 1'
       }
 
       const result = buildPrompt(data)
@@ -39,10 +36,7 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
         composedChildren: [{ title: 'C1', content: 'Content 1', coords: 'userId,0:1,-1' }],
         structuralChildren: [{ title: 'S1', preview: 'Preview 1', coords: 'userId,0:1,1' }],
-        instruction: undefined,
-        mcpServerName: 'hexframe',
-        hexPlan: 'Plan content',
-        hexPlanInitializerPath: undefined
+        hexPlan: '📋 Plan content'
       }
 
       const result = buildPrompt(data)
@@ -57,10 +51,7 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [],
-        instruction: undefined,
-        mcpServerName: 'hexframe',
-        hexPlan: undefined,
-        hexPlanInitializerPath: undefined
+        hexPlan: '📋 Execute the task'
       }
 
       const result = buildPrompt(data)
@@ -77,15 +68,13 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [],
-        instruction: undefined,
-        mcpServerName: 'hexframe',
-        hexPlan: undefined,
-        hexPlanInitializerPath: undefined
+        hexPlan: '📋 Execute the task'
       }
 
       const result = buildPrompt(data)
 
-      expect(result).not.toContain('<context')
+      // The context section tag should not appear (prose mentioning <context> is ok)
+      expect(result).not.toContain('<context title=')
     })
 
     it('should include composed children with title, content and coords', () => {
@@ -96,10 +85,7 @@ describe('buildPrompt - v3 Simplified Structure', () => {
           { title: 'Context 2', content: 'Content 2', coords: 'userId,0:1,-2' }
         ],
         structuralChildren: [],
-        instruction: undefined,
-        mcpServerName: 'hexframe',
-        hexPlan: undefined,
-        hexPlanInitializerPath: undefined
+        hexPlan: '📋 Execute the task'
       }
 
       const result = buildPrompt(data)
@@ -120,10 +106,7 @@ describe('buildPrompt - v3 Simplified Structure', () => {
           { title: 'Whitespace', content: '   \n\t  ', coords: 'userId,0:1,-3' }
         ],
         structuralChildren: [],
-        instruction: undefined,
-        mcpServerName: 'hexframe',
-        hexPlan: undefined,
-        hexPlanInitializerPath: undefined
+        hexPlan: '📋 Execute the task'
       }
 
       const result = buildPrompt(data)
@@ -141,10 +124,7 @@ describe('buildPrompt - v3 Simplified Structure', () => {
           { title: 'Title <with> & "special" chars', content: 'Content with <xml> & \'quotes\'', coords: 'userId,0:1,-1' }
         ],
         structuralChildren: [],
-        instruction: undefined,
-        mcpServerName: 'hexframe',
-        hexPlan: undefined,
-        hexPlanInitializerPath: undefined
+        hexPlan: '📋 Execute the task'
       }
 
       const result = buildPrompt(data)
@@ -161,10 +141,7 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [],
-        instruction: undefined,
-        mcpServerName: 'hexframe',
-        hexPlan: undefined,
-        hexPlanInitializerPath: undefined
+        hexPlan: '📋 Execute the task'
       }
 
       const result = buildPrompt(data)
@@ -180,10 +157,7 @@ describe('buildPrompt - v3 Simplified Structure', () => {
           { title: 'Subtask 1', preview: 'Preview 1', coords: 'userId,0:1,1' },
           { title: 'Subtask 2', preview: 'Preview 2', coords: 'userId,0:1,2' }
         ],
-        instruction: undefined,
-        mcpServerName: 'hexframe',
-        hexPlan: undefined,
-        hexPlanInitializerPath: undefined
+        hexPlan: '📋 Step 1'
       }
 
       const result = buildPrompt(data)
@@ -199,10 +173,7 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         structuralChildren: [
           { title: 'My Subtask', preview: 'My Preview', coords: 'userId,0:1,1' }
         ],
-        instruction: undefined,
-        mcpServerName: 'hexframe',
-        hexPlan: undefined,
-        hexPlanInitializerPath: undefined
+        hexPlan: '📋 Step 1'
       }
 
       const result = buildPrompt(data)
@@ -219,10 +190,7 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         structuralChildren: [
           { title: 'Task <with> & chars', preview: 'Preview "with" \'quotes\'', coords: 'userId,0:1,1' }
         ],
-        instruction: undefined,
-        mcpServerName: 'hexframe',
-        hexPlan: undefined,
-        hexPlanInitializerPath: undefined
+        hexPlan: '📋 Step 1'
       }
 
       const result = buildPrompt(data)
@@ -238,10 +206,7 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         structuralChildren: [
           { title: 'User Subtask', preview: 'Preview', coords: 'userId,0:1,1' }
         ],
-        instruction: undefined,
-        mcpServerName: 'hexframe',
-        hexPlan: undefined,
-        hexPlanInitializerPath: undefined
+        hexPlan: '📋 Step 1'
       }
 
       const result = buildPrompt(data)
@@ -259,10 +224,7 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         task: { title: 'Test Task', content: 'Test content', coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [],
-        instruction: undefined,
-        mcpServerName: 'hexframe',
-        hexPlan: undefined,
-        hexPlanInitializerPath: undefined
+        hexPlan: '📋 Execute the task'
       }
 
       const result = buildPrompt(data)
@@ -276,10 +238,7 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         task: { title: 'My Test Goal', content: 'Content', coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [],
-        instruction: undefined,
-        mcpServerName: 'hexframe',
-        hexPlan: undefined,
-        hexPlanInitializerPath: undefined
+        hexPlan: '📋 Execute the task'
       }
 
       const result = buildPrompt(data)
@@ -292,10 +251,7 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         task: { title: 'Title', content: 'This is the task content', coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [],
-        instruction: undefined,
-        mcpServerName: 'hexframe',
-        hexPlan: undefined,
-        hexPlanInitializerPath: undefined
+        hexPlan: '📋 Execute the task'
       }
 
       const result = buildPrompt(data)
@@ -308,10 +264,7 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         task: { title: 'Title', content: '', coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [],
-        instruction: undefined,
-        mcpServerName: 'hexframe',
-        hexPlan: undefined,
-        hexPlanInitializerPath: undefined
+        hexPlan: '📋 Execute the task'
       }
 
       const result = buildPrompt(data)
@@ -330,10 +283,7 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         },
         composedChildren: [],
         structuralChildren: [],
-        instruction: undefined,
-        mcpServerName: 'hexframe',
-        hexPlan: undefined,
-        hexPlanInitializerPath: undefined
+        hexPlan: '📋 Execute the task'
       }
 
       const result = buildPrompt(data)
@@ -345,95 +295,103 @@ describe('buildPrompt - v3 Simplified Structure', () => {
 
   // ==================== HEXPLAN SECTION TESTS ====================
   describe('Hexplan Section', () => {
-    it('should show hexplan content when plan exists', () => {
-      const data: PromptData = {
-        task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
-        composedChildren: [],
-        structuralChildren: [],
-        instruction: undefined,
-        mcpServerName: 'hexframe',
-        hexPlan: '🟡 STARTED: Working on task...',
-        hexPlanInitializerPath: undefined
-      }
+    describe('Pending Steps', () => {
+      it('should show hexplan content when plan has pending steps', () => {
+        const data: PromptData = {
+          task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
+          composedChildren: [],
+          structuralChildren: [],
+          hexPlan: '🟡 STARTED: Working on task...\n📋 Step 1'
+        }
 
-      const result = buildPrompt(data)
+        const result = buildPrompt(data)
 
-      expect(result).toContain('<hexplan coords="userId,0:1,0">')
-      expect(result).toContain('🟡 STARTED: Working on task...')
-      expect(result).toContain('</hexplan>')
+        expect(result).toContain('<hexplan coords="userId,0:1,0">')
+        expect(result).toContain('🟡 STARTED: Working on task...')
+        expect(result).toContain('</hexplan>')
+        expect(result).toContain('<execution-instructions>')
+        expect(result).toContain('Execute the NEXT PENDING STEP')
+      })
+
+      it('should include parent tile orchestration instructions when has subtasks', () => {
+        const data: PromptData = {
+          task: { title: 'Parent', content: 'Content', coords: 'userId,0:1' },
+          composedChildren: [],
+          structuralChildren: [
+            { title: 'Child', preview: 'Preview', coords: 'userId,0:1,1' }
+          ],
+          hexPlan: '🟡 STARTED\n📋 1. Execute "Child" → userId,0:1,1'
+        }
+
+        const result = buildPrompt(data)
+
+        expect(result).toContain('<execution-instructions>')
+        expect(result).toContain('mcp__hexframe__hexecute')
+        expect(result).toContain('Task tool')
+        expect(result).toContain('Execute ONLY ONE step')
+      })
+
+      it('should include leaf tile direct execution instructions when no subtasks', () => {
+        const data: PromptData = {
+          task: { title: 'Leaf', content: 'Content', coords: 'userId,0:1' },
+          composedChildren: [],
+          structuralChildren: [], // No children = leaf tile
+          hexPlan: '🟡 STARTED\n📋 Execute the task'
+        }
+
+        const result = buildPrompt(data)
+
+        expect(result).toContain('<execution-instructions>')
+        expect(result).toContain('Execute the task directly')
+        expect(result).toContain('<task> content and <context>')
+      })
     })
 
-    it('should show initialization instructions when hexplan does not exist', () => {
-      const data: PromptData = {
-        task: { title: 'Test', content: 'Content', coords: 'userId,0:1,2' },
-        composedChildren: [],
-        structuralChildren: [],
-        instruction: 'Build feature X',
-        mcpServerName: 'hexframe',
-        hexPlan: undefined,
-        hexPlanInitializerPath: undefined
-      }
+    describe('Complete Status', () => {
+      it('should show COMPLETE status when no pending steps', () => {
+        const data: PromptData = {
+          task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
+          composedChildren: [],
+          structuralChildren: [],
+          hexPlan: '✅ All done!'
+        }
 
-      const result = buildPrompt(data)
+        const result = buildPrompt(data)
 
-      expect(result).toContain('<hexplan coords="userId,0:1,2,0">')
-      expect(result).toContain('No hexplan exists yet. To initialize:')
-      expect(result).toContain(
-        '1. Run hexframe:hexecute("userId,0:1,4", "Create a hexplan for the task at userId,0:1,2. User instruction: Build feature X")'
-      )
-      expect(result).toContain('2. Spawn a subagent with the resulting prompt')
-      expect(result).toContain('</hexplan>')
+        expect(result).toContain('<hexplan-status>COMPLETE</hexplan-status>')
+        expect(result).toContain('All steps completed')
+      })
     })
 
-    it('should use correct MCP server name in initialization instructions', () => {
-      const data: PromptData = {
-        task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
-        composedChildren: [],
-        structuralChildren: [],
-        instruction: undefined,
-        mcpServerName: 'debughexframe',
-        hexPlan: undefined,
-        hexPlanInitializerPath: undefined
-      }
+    describe('Blocked Status', () => {
+      it('should show BLOCKED status when blocked steps exist', () => {
+        const data: PromptData = {
+          task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
+          composedChildren: [],
+          structuralChildren: [],
+          hexPlan: '🔴 BLOCKED: Need API key'
+        }
 
-      const result = buildPrompt(data)
+        const result = buildPrompt(data)
 
-      expect(result).toContain('debughexframe:hexecute')
-      expect(result).toContain('Create a hexplan for the task at userId,0:1")')
-      expect(result).not.toContain('User instruction:')
+        expect(result).toContain('<hexplan-status>BLOCKED</hexplan-status>')
+        expect(result).toContain('blocked steps')
+      })
     })
 
-    it('should escape XML special characters in hexplan content', () => {
-      const data: PromptData = {
-        task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
-        composedChildren: [],
-        structuralChildren: [],
-        instruction: undefined,
-        mcpServerName: 'hexframe',
-        hexPlan: 'Plan with <tags> & "quotes"',
-        hexPlanInitializerPath: undefined
-      }
+    describe('XML Escaping', () => {
+      it('should escape XML special characters in hexplan content', () => {
+        const data: PromptData = {
+          task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
+          composedChildren: [],
+          structuralChildren: [],
+          hexPlan: 'Plan with <tags> & "quotes"\n📋 Step'
+        }
 
-      const result = buildPrompt(data)
+        const result = buildPrompt(data)
 
-      expect(result).toContain('Plan with &lt;tags&gt; &amp; &quot;quotes&quot;')
-    })
-
-    it('should use custom hexPlanInitializerPath when provided', () => {
-      const data: PromptData = {
-        task: { title: 'Test', content: 'Content', coords: 'userId,0:1,2' },
-        composedChildren: [],
-        structuralChildren: [],
-        instruction: undefined,
-        mcpServerName: 'hexframe',
-        hexPlan: undefined,
-        hexPlanInitializerPath: '2,3' // Custom path instead of default '1,4'
-      }
-
-      const result = buildPrompt(data)
-
-      expect(result).toContain('hexframe:hexecute("userId,0:2,3"')
-      expect(result).not.toContain('userId,0:1,4')
+        expect(result).toContain('Plan with &lt;tags&gt; &amp; &quot;quotes&quot;')
+      })
     })
   })
 
@@ -444,10 +402,7 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         task: { title: 'Minimal Task', content: undefined, coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [],
-        instruction: undefined,
-        mcpServerName: 'hexframe',
-        hexPlan: undefined,
-        hexPlanInitializerPath: undefined
+        hexPlan: '📋 Execute the task'
       }
 
       const result = buildPrompt(data)
@@ -455,7 +410,7 @@ describe('buildPrompt - v3 Simplified Structure', () => {
       // Should have task and hexplan sections only
       expect(result).toContain('<task>')
       expect(result).toContain('<hexplan')
-      expect(result).not.toContain('<context')
+      expect(result).not.toContain('<context title=')
       expect(result).not.toContain('<subtasks>')
     })
 
@@ -468,15 +423,63 @@ describe('buildPrompt - v3 Simplified Structure', () => {
         },
         composedChildren: [],
         structuralChildren: [],
-        instruction: undefined,
-        mcpServerName: 'hexframe',
-        hexPlan: undefined,
-        hexPlanInitializerPath: undefined
+        hexPlan: '📋 Execute the task'
       }
 
       const result = buildPrompt(data)
 
       expect(result).toContain('Line 1\nLine 2\n\nLine 4')
+    })
+  })
+})
+
+// ==================== HEXPLAN CONTENT GENERATORS ====================
+describe('Hexplan Content Generators', () => {
+  describe('generateParentHexplanContent', () => {
+    it('should generate hexplan with numbered steps from children', () => {
+      const children = [
+        { title: 'Step One', coords: 'userId,0:1,1' },
+        { title: 'Step Two', coords: 'userId,0:1,2' }
+      ]
+
+      const result = generateParentHexplanContent(children)
+
+      expect(result).toContain('🟡 STARTED')
+      expect(result).toContain('**Steps:**')
+      expect(result).toContain('📋 1. Execute "Step One" → userId,0:1,1')
+      expect(result).toContain('📋 2. Execute "Step Two" → userId,0:1,2')
+      expect(result).toContain('(initialized)')
+    })
+
+    it('should handle single child', () => {
+      const children = [{ title: 'Only Child', coords: 'userId,0:1,1' }]
+
+      const result = generateParentHexplanContent(children)
+
+      expect(result).toContain('📋 1. Execute "Only Child" → userId,0:1,1')
+      expect(result).not.toContain('📋 2.')
+    })
+  })
+
+  describe('generateLeafHexplanContent', () => {
+    it('should generate hexplan with task title', () => {
+      const result = generateLeafHexplanContent('My Task', undefined)
+
+      expect(result).toContain('🟡 STARTED: "My Task"')
+      expect(result).toContain('📋 Execute the task')
+      expect(result).toContain('(initialized)')
+    })
+
+    it('should include instruction when provided', () => {
+      const result = generateLeafHexplanContent('My Task', 'Focus on performance')
+
+      expect(result).toContain('**Instruction:** Focus on performance')
+    })
+
+    it('should not include instruction section when undefined', () => {
+      const result = generateLeafHexplanContent('My Task', undefined)
+
+      expect(result).not.toContain('**Instruction:**')
     })
   })
 })
