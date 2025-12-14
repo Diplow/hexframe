@@ -7,6 +7,7 @@ import type {
   Favorite,
   CreateFavoriteInput,
 } from "~/lib/domains/iam/_repositories/favorites.repository";
+import { DuplicateShortcutNameError } from "~/lib/domains/iam/types/errors";
 
 /**
  * Drizzle ORM implementation of FavoritesRepository
@@ -18,15 +19,25 @@ export class DrizzleFavoritesRepository implements FavoritesRepository {
 
   async create(input: CreateFavoriteInput): Promise<Favorite> {
     const id = nanoid();
-    const [result] = await this.db
-      .insert(tileFavorites)
-      .values({
-        id,
-        userId: input.userId,
-        mapItemId: input.mapItemId,
-        shortcutName: input.shortcutName,
-      })
-      .returning();
+
+    let result;
+    try {
+      [result] = await this.db
+        .insert(tileFavorites)
+        .values({
+          id,
+          userId: input.userId,
+          mapItemId: input.mapItemId,
+          shortcutName: input.shortcutName,
+        })
+        .returning();
+    } catch (error) {
+      // PostgreSQL unique violation: SQLSTATE 23505
+      if (error instanceof Error && 'code' in error && error.code === '23505') {
+        throw new DuplicateShortcutNameError(input.shortcutName);
+      }
+      throw error;
+    }
 
     if (!result) {
       throw new Error("Failed to create favorite");
