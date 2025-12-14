@@ -175,7 +175,11 @@ export function useFavoritesPanel(
     saveCollapsedState(collapsed);
   }, []);
 
-  const toggleCollapsed = useCallback(() => setIsCollapsed(!isCollapsed), [isCollapsed, setIsCollapsed]);
+  const toggleCollapsed = useCallback(() => setIsCollapsedState((prev) => {
+    const newValue = !prev;
+    saveCollapsedState(newValue);
+    return newValue;
+  }), []);
   const clearSearch = useCallback(() => setSearchTerm(''), []);
   const clearSelectedFavorite = useCallback(() => setSelectedFavoriteId(null), []);
 
