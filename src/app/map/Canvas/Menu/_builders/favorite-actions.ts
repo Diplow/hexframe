@@ -7,8 +7,8 @@ import type { MenuItem } from "~/app/map/Canvas/Menu/items-builder";
 interface FavoriteMenuItemParams {
   /** Whether the user can edit (required to show favorites options) */
   canEdit: boolean;
-  /** Whether the tile is currently marked as a favorite */
-  isFavorited: boolean;
+  /** Whether the tile is currently marked as a favorite (defaults to false) */
+  isFavorited?: boolean;
   /** Callback invoked when user clicks "Add to Favorites" (omit to hide the option) */
   onAddFavorite?: () => void;
   /** Callback invoked when user clicks "Remove from Favorites" (omit to hide the option) */
@@ -46,7 +46,7 @@ interface FavoriteMenuItemParams {
  * });
  */
 export function _buildFavoriteMenuItem(params: FavoriteMenuItemParams): MenuItem[] {
-  const { canEdit, isFavorited, onAddFavorite, onRemoveFavorite, onEditShortcut } = params;
+  const { canEdit, isFavorited = false, onAddFavorite, onRemoveFavorite, onEditShortcut } = params;
 
   // Favorites options require edit permissions (user must be authenticated)
   if (!canEdit) return [];

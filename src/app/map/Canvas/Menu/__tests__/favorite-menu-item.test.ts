@@ -141,7 +141,6 @@ describe('_buildFavoriteMenuItem', () => {
 
       const item = _buildFavoriteMenuItem({
         canEdit: true,
-        isFavorited: false,
         onAddFavorite,
         onRemoveFavorite: vi.fn(),
       });
