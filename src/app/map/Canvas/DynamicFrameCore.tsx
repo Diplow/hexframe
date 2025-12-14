@@ -13,9 +13,99 @@ import type { URLInfo } from "~/app/map/types/url-info";
 import { useCanvasTheme } from "~/app/map/Canvas";
 import { useEffect } from "react";
 import { loggers } from "~/lib/debug/debug-logger";
-import { TileWithNeighbors } from "~/app/map/Canvas/_components/TileWithNeighbors";
+import { TileWithNeighbors } from "~/app/map/Canvas/_internals/TileWithNeighbors";
 
 const CHILD_INDICES = [1, 2, 3, 4, 5, 6] as const;
+
+/** Common props passed to TileWithNeighbors */
+function _buildNeighborProps(props: DynamicFrameCoreProps, scale: TileScale, isDarkMode: boolean) {
+  return {
+    mapItems: props.mapItems,
+    baseHexSize: props.baseHexSize,
+    scale,
+    urlInfo: props.urlInfo,
+    expandedItemIds: props.expandedItemIds,
+    isCompositionExpanded: props.isCompositionExpanded,
+    isDarkMode,
+    interactive: props.interactive,
+    currentUserId: props.currentUserId,
+    selectedTileId: props.selectedTileId,
+    onNavigate: props.onNavigate,
+    onToggleExpansion: props.onToggleExpansion,
+    onCreateRequested: props.onCreateRequested,
+  };
+}
+
+/** Renders a non-expanded center tile */
+function _renderCenterTile(
+  centerItem: TileData,
+  props: DynamicFrameCoreProps,
+  scale: TileScale,
+  mapItems: Record<string, TileData>,
+  center: string
+) {
+  const parentCoordId = CoordSystem.getParentCoordFromId(center);
+  const parentItem = parentCoordId ? mapItems[parentCoordId] : undefined;
+
+  return (
+    <DynamicItemTile
+      item={centerItem}
+      scale={scale}
+      allExpandedItemIds={props.expandedItemIds ?? []}
+      hasChildren={hasChildren(centerItem, mapItems)}
+      isCenter={centerItem.metadata.dbId === props.urlInfo.rootItemId}
+      urlInfo={props.urlInfo}
+      interactive={props.interactive}
+      currentUserId={props.currentUserId}
+      isSelected={props.selectedTileId === centerItem.metadata.coordId}
+      parentVisibility={parentItem?.data.visibility}
+      onNavigate={props.onNavigate}
+      onToggleExpansion={props.onToggleExpansion}
+    />
+  );
+}
+
+/** Renders an expanded frame with children */
+function _renderExpandedFrame(
+  centerItem: TileData,
+  props: DynamicFrameCoreProps,
+  scale: TileScale,
+  nextScale: TileScale,
+  center: string,
+  isDarkMode: boolean
+) {
+  return (
+    <DynamicBaseTileLayout
+      baseHexSize={props.baseHexSize ?? 50}
+      scale={scale}
+      color={getColorFromItem(centerItem)}
+      coordId={center}
+      _shallow={true}
+      isExpanded={true}
+      isDarkMode={isDarkMode}
+    >
+      <div className="scale-95 transform" style={{ position: "relative", zIndex: 5 }}>
+        <FrameInterior
+          centerCoordId={center}
+          centerItem={centerItem}
+          childScale={nextScale}
+          mapItems={props.mapItems}
+          baseHexSize={props.baseHexSize}
+          expandedItemIds={props.expandedItemIds}
+          isCompositionExpanded={props.isCompositionExpanded}
+          urlInfo={props.urlInfo}
+          interactive={props.interactive}
+          currentUserId={props.currentUserId}
+          selectedTileId={props.selectedTileId}
+          onNavigate={props.onNavigate}
+          onToggleExpansion={props.onToggleExpansion}
+          onCreateRequested={props.onCreateRequested}
+          renderNeighbors={props.renderNeighbors}
+        />
+      </div>
+    </DynamicBaseTileLayout>
+  );
+}
 
 export interface DynamicFrameCoreProps {
   center: string;
@@ -67,133 +157,35 @@ export interface DynamicFrameCoreProps {
 export const DynamicFrameCore = (props: DynamicFrameCoreProps) => {
   const { center, mapItems, scale = 3 } = props;
   const { isDarkMode } = useCanvasTheme();
-
   const centerItem = mapItems[center];
 
   // Log frame render
   useEffect(() => {
     loggers.render.canvas('DynamicFrameCore render', {
-      center,
-      scale,
-      hasItem: !!centerItem,
+      center, scale, hasItem: !!centerItem,
       isExpanded: centerItem ? props.expandedItemIds?.includes(centerItem.metadata.dbId) ?? false : false,
       childCount: centerItem ? getChildCoordIds(centerItem).filter(id => mapItems[id]).length : 0,
     });
-  }); // No deps - logs every render
+  });
 
   if (!centerItem) return null;
 
-  // Check expansion state
-  // Also treat composition-expanded tiles as expanded (to show the frame with composition children)
   const isCompositionExpanded = props.isCompositionExpanded ?? false;
   const isExpanded = (props.expandedItemIds?.includes(centerItem.metadata.dbId) ?? false) || isCompositionExpanded;
-
-  // Not expanded = regular tile + neighbors (if enabled)
-  if (!isExpanded) {
-    // Get parent visibility for non-root tiles
-    const parentCoordId = CoordSystem.getParentCoordFromId(center);
-    const parentItem = parentCoordId ? mapItems[parentCoordId] : undefined;
-    const parentVisibility = parentItem?.data.visibility;
-
-    const centerTile = (
-      <DynamicItemTile
-        item={centerItem}
-        scale={scale}
-        allExpandedItemIds={props.expandedItemIds ?? []}
-        hasChildren={hasChildren(centerItem, mapItems)}
-        isCenter={centerItem.metadata.dbId === props.urlInfo.rootItemId}
-        urlInfo={props.urlInfo}
-        interactive={props.interactive}
-        currentUserId={props.currentUserId}
-        isSelected={props.selectedTileId === centerItem.metadata.coordId}
-        parentVisibility={parentVisibility}
-        onNavigate={props.onNavigate}
-        onToggleExpansion={props.onToggleExpansion}
-      />
-    );
-
-    return (
-      <TileWithNeighbors
-        centerTile={centerTile}
-        centerItem={centerItem}
-        showNeighbors={props.showNeighbors ?? false}
-        renderNeighbors={props.renderNeighbors}
-        neighborProps={{
-          mapItems: props.mapItems,
-          baseHexSize: props.baseHexSize,
-          scale,
-          urlInfo: props.urlInfo,
-          expandedItemIds: props.expandedItemIds,
-          isCompositionExpanded: props.isCompositionExpanded,
-          isDarkMode,
-          interactive: props.interactive,
-          currentUserId: props.currentUserId,
-          selectedTileId: props.selectedTileId,
-          onNavigate: props.onNavigate,
-          onToggleExpansion: props.onToggleExpansion,
-          onCreateRequested: props.onCreateRequested,
-        }}
-      />
-    );
-  }
-
-  // Expanded = Frame (shallow tile with children inside)
-  // Scale progression: 3 (center) → 2 (children) → 1 (grandchildren) → 1 (cannot go lower)
   const nextScale: TileScale = scale > 1 ? ((scale - 1) as TileScale) : 1;
+  const neighborProps = _buildNeighborProps(props, scale, isDarkMode);
 
-  const expandedFrame = (
-    <DynamicBaseTileLayout
-      baseHexSize={props.baseHexSize ?? 50}
-      scale={scale}
-      color={getColorFromItem(centerItem)}
-      coordId={centerItem.metadata.coordId}
-      _shallow={true}
-      isExpanded={true}
-      isDarkMode={isDarkMode}
-    >
-      <div className="scale-95 transform" style={{ position: "relative", zIndex: 5 }}>
-        <FrameInterior
-          centerCoordId={center}
-          centerItem={centerItem}
-          childScale={nextScale}
-          mapItems={props.mapItems}
-          baseHexSize={props.baseHexSize}
-          expandedItemIds={props.expandedItemIds}
-          isCompositionExpanded={props.isCompositionExpanded}
-          urlInfo={props.urlInfo}
-          interactive={props.interactive}
-          currentUserId={props.currentUserId}
-          selectedTileId={props.selectedTileId}
-          onNavigate={props.onNavigate}
-          onToggleExpansion={props.onToggleExpansion}
-          onCreateRequested={props.onCreateRequested}
-          renderNeighbors={props.renderNeighbors}
-        />
-      </div>
-    </DynamicBaseTileLayout>
-  );
+  const centerTile = isExpanded
+    ? _renderExpandedFrame(centerItem, props, scale, nextScale, center, isDarkMode)
+    : _renderCenterTile(centerItem, props, scale, mapItems, center);
 
   return (
     <TileWithNeighbors
-      centerTile={expandedFrame}
+      centerTile={centerTile}
       centerItem={centerItem}
       showNeighbors={props.showNeighbors ?? false}
       renderNeighbors={props.renderNeighbors}
-      neighborProps={{
-        mapItems: props.mapItems,
-        baseHexSize: props.baseHexSize,
-        scale,
-        urlInfo: props.urlInfo,
-        expandedItemIds: props.expandedItemIds,
-        isCompositionExpanded: props.isCompositionExpanded,
-        isDarkMode,
-        interactive: props.interactive,
-        currentUserId: props.currentUserId,
-        selectedTileId: props.selectedTileId,
-        onNavigate: props.onNavigate,
-        onToggleExpansion: props.onToggleExpansion,
-        onCreateRequested: props.onCreateRequested,
-      }}
+      neighborProps={neighborProps}
     />
   );
 };

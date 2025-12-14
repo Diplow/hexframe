@@ -1,11 +1,11 @@
 import { z } from 'zod'
-import { TRPCError } from '@trpc/server'
-import { createTRPCRouter, protectedProcedure, publicProcedure, mappingServiceMiddleware, iamServiceMiddleware } from '~/server/api/trpc'
+import { createTRPCRouter, protectedProcedure, publicProcedure, mappingServiceMiddleware, agenticServiceMiddleware } from '~/server/api/trpc'
 import { verificationAwareRateLimit, verificationAwareAuthLimit } from '~/server/api/middleware'
 import { createAgenticService, type CompositionConfig, PreviewGeneratorService, OpenRouterRepository, type ChatMessageContract } from '~/lib/domains/agentic'
+import { buildPrompt } from '~/lib/domains/agentic/utils'
 import { ContextStrategies } from '~/lib/domains/mapping/utils'
 import { _getRequesterUserId } from '~/server/api/routers/map'
-import { EventBus as EventBusImpl } from '~/lib/utils/event-bus'
+import { _requireConfigured, _requireFound, _requireOwnership, _throwBadRequest, _throwInternalError } from '~/server/api/routers/_error-helpers'
 import { env } from '~/env'
 import { db, schema } from '~/server/db'
 const { llmJobResults } = schema
@@ -67,10 +67,11 @@ const compositionConfigSchema = z.object({
 
 
 export const agenticRouter = createTRPCRouter({
+  // This procedure needs dynamic useQueue, so it creates its own service using ctx.eventBus and ctx.mcpApiKey
   generateResponse: protectedProcedure
     .use(verificationAwareRateLimit) // Rate limit: 10 req/5min for verified, 3 req/5min for unverified
     .use(mappingServiceMiddleware) // Add mapping service to context
-    .use(iamServiceMiddleware) // Add IAM service to context
+    .use(agenticServiceMiddleware) // Provides eventBus and mcpApiKey
     .input(
       z.object({
         centerCoordId: z.string(),
@@ -89,39 +90,24 @@ export const agenticRouter = createTRPCRouter({
         input.centerCoordId
       )
 
-      // Create a server-side event bus instance
-      const eventBus = new EventBusImpl()
-
       // Determine if we should use queue based on environment
       const useQueue = process.env.USE_QUEUE === 'true' || process.env.NODE_ENV === 'production'
 
-      // Get or create short-lived session MCP API key (10 min TTL for security)
-      // This limits exposure if AI code steals the key - it expires after the session
-      const { getOrCreateInternalApiKey } = await import('~/lib/domains/iam')
-      const mcpApiKey = ctx.session?.userId
-        ? await getOrCreateInternalApiKey(ctx.session.userId, 'mcp-session', 10)
-        : undefined
-
-      // Create agentic service with Claude SDK (preferred) or OpenRouter fallback
+      // Create agentic service with dynamic useQueue (uses eventBus and mcpApiKey from middleware)
       const agenticService = createAgenticService({
         llmConfig: {
           openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
           anthropicApiKey: env.ANTHROPIC_API_KEY ?? '',
-          preferClaudeSDK: true, // Use Claude Agent SDK when anthropicApiKey is available
-          useSandbox: env.USE_SANDBOX === 'true', // Use Vercel Sandbox in production
-          mcpApiKey // Pass MCP key from IAM domain
+          preferClaudeSDK: true,
+          useSandbox: env.USE_SANDBOX === 'true',
+          mcpApiKey: ctx.mcpApiKey
         },
-        eventBus,
+        eventBus: ctx.eventBus,
         useQueue,
         userId: ctx.session?.userId ?? 'anonymous'
       })
 
-      if (!agenticService.isConfigured()) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'OpenRouter API key not configured. Please set OPENROUTER_API_KEY environment variable.',
-        })
-      }
+      _requireConfigured(agenticService.isConfigured(), "OPENROUTER_API_KEY");
 
       // Generate the response
       // MCP tools are provided by the HTTP MCP server at /api/mcp
@@ -157,7 +143,7 @@ export const agenticRouter = createTRPCRouter({
   generateStreamingResponse: protectedProcedure
     .use(verificationAwareRateLimit) // Rate limit: 10 req/5min for verified, 3 req/5min for unverified
     .use(mappingServiceMiddleware) // Add mapping service to context
-    .use(iamServiceMiddleware) // Add IAM service to context
+    .use(agenticServiceMiddleware) // Add agentic service to context
     .input(
       z.object({
         centerCoordId: z.string(),
@@ -176,43 +162,14 @@ export const agenticRouter = createTRPCRouter({
         input.centerCoordId
       )
 
-      // Create a server-side event bus instance
-      const eventBus = new EventBusImpl()
-
-      // Get or create short-lived session MCP API key (10 min TTL for security)
-      // This limits exposure if AI code steals the key - it expires after the session
-      const { getOrCreateInternalApiKey } = await import('~/lib/domains/iam')
-      const mcpApiKey = ctx.session?.userId
-        ? await getOrCreateInternalApiKey(ctx.session.userId, 'mcp-session', 10)
-        : undefined
-
-      // Create agentic service with Claude SDK (preferred) or OpenRouter fallback
-      const agenticService = createAgenticService({
-        llmConfig: {
-          openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
-          anthropicApiKey: env.ANTHROPIC_API_KEY ?? '',
-          preferClaudeSDK: true, // Use Claude Agent SDK when anthropicApiKey is available
-          useSandbox: env.USE_SANDBOX === 'true', // Use Vercel Sandbox in production
-          mcpApiKey // Pass MCP key from IAM domain
-        },
-        eventBus,
-        useQueue: false, // Streaming doesn't use queue
-        userId: ctx.session?.userId ?? 'anonymous'
-      })
-
-      if (!agenticService.isConfigured()) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'API key not configured. Please set OPENROUTER_API_KEY or ANTHROPIC_API_KEY environment variable.',
-        })
-      }
+      _requireConfigured(ctx.agenticService.isConfigured(), "OPENROUTER_API_KEY or ANTHROPIC_API_KEY");
 
       // Handle SDK async generator for streaming
       const chunks: Array<{ content: string; isFinished: boolean }> = []
 
       // Generate streaming response
       // MCP tools are provided by the HTTP MCP server at /api/mcp
-      const response = await agenticService.generateStreamingResponse(
+      const response = await ctx.agenticService.generateStreamingResponse(
         {
           mapContext,
           messages: input.messages as ChatMessageContract[],
@@ -239,25 +196,14 @@ export const agenticRouter = createTRPCRouter({
 
   getAvailableModels: protectedProcedure
     .use(verificationAwareAuthLimit) // Rate limit: 100 req/min for verified, 20 req/min for unverified
-    .query(async () => {
-      const eventBus = new EventBusImpl()
-
-      const agenticService = createAgenticService({
-        llmConfig: {
-          openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
-          anthropicApiKey: env.ANTHROPIC_API_KEY ?? '',
-          preferClaudeSDK: true, // Use Claude Agent SDK when anthropicApiKey is available
-          useSandbox: env.USE_SANDBOX === 'true' // Use Vercel Sandbox in production
-        },
-        eventBus
-      })
-
-      if (!agenticService.isConfigured()) {
+    .use(agenticServiceMiddleware) // Add agentic service to context
+    .query(async ({ ctx }) => {
+      if (!ctx.agenticService.isConfigured()) {
         return []
       }
 
-      const models = await agenticService.getAvailableModels()
-      
+      const models = await ctx.agenticService.getAvailableModels()
+
       // Return a simplified model list for the client
       return models.map(model => ({
         id: model.id,
@@ -277,13 +223,8 @@ export const agenticRouter = createTRPCRouter({
         .where(eq(llmJobResults.jobId, input.jobId))
         .limit(1)
       
-      if (!result[0]) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Job not found'
-        })
-      }
-      
+      _requireFound(result[0], "Job");
+
       return {
         jobId: result[0].jobId,
         status: result[0].status,
@@ -358,19 +299,9 @@ export const agenticRouter = createTRPCRouter({
         .where(eq(llmJobResults.jobId, input.jobId))
         .limit(1)
 
-      if (!job[0]) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Job not found'
-        })
-      }
-
-      if (job[0].userId !== ctx.session?.userId) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You can only cancel your own jobs'
-        })
-      }
+      _requireFound(job[0], "Job");
+      _requireFound(job[0].userId, "Job owner");
+      _requireOwnership(job[0].userId, ctx.session?.userId ?? "", "cancel jobs");
 
       // Send cancel event to Inngest
       const { inngest } = await import('~/lib/domains/agentic/infrastructure/inngest/client')
@@ -447,12 +378,7 @@ export const agenticRouter = createTRPCRouter({
       const repository = new OpenRouterRepository(env.OPENROUTER_API_KEY ?? '')
       const previewService = new PreviewGeneratorService(repository)
 
-      if (!repository.isConfigured()) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'OpenRouter API key not configured. Please set OPENROUTER_API_KEY environment variable.',
-        })
-      }
+      _requireConfigured(repository.isConfigured(), "OPENROUTER_API_KEY");
 
       const result = await previewService.generatePreview({ title, content })
 
@@ -460,6 +386,147 @@ export const agenticRouter = createTRPCRouter({
         preview: result.preview,
         usedAI: result.usedAI,
         queued: false
+      }
+    }),
+
+  // Execute a task by combining hexecute prompt generation with Claude streaming response
+  // This endpoint enables conversation continuation with follow-up messages
+  executeTask: protectedProcedure
+    .use(verificationAwareRateLimit)
+    .use(mappingServiceMiddleware)
+    .use(agenticServiceMiddleware) // Add agentic service to context
+    .input(
+      z.object({
+        taskCoords: z.string(),
+        instruction: z.string().optional(),
+        messages: z.array(chatMessageSchema).optional(),
+        model: z.string().default('claude-haiku-4-5-20251001'),
+        temperature: z.number().min(0).max(2).optional(),
+        maxTokens: z.number().min(1).max(8192).optional(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { taskCoords, instruction, messages, model, temperature, maxTokens } = input
+      const requester = _getRequesterUserId(ctx.user)
+
+      // 1. Get all data from mapping service (single optimized query)
+      const hexecuteContext = await ctx.mappingService.context.getHexecuteContext(
+        taskCoords,
+        requester
+      )
+
+      // 2. Validate task tile has a non-empty title
+      if (!hexecuteContext.task.title?.trim())
+        _throwBadRequest(`Task tile at ${taskCoords} has an empty title. A non-empty title is required for prompt generation.`);
+
+      // Get MCP server name from environment (defaults to 'hexframe')
+      const mcpServerName = process.env.HEXFRAME_MCP_SERVER ?? 'hexframe'
+
+      // 3. Build the hexecute prompt (pure function, no I/O)
+      let hexecutePrompt: string
+      try {
+        hexecutePrompt = buildPrompt({
+          task: {
+            title: hexecuteContext.task.title,
+            content: hexecuteContext.task.content || undefined,
+            coords: taskCoords
+          },
+          composedChildren: hexecuteContext.composedChildren.map(child => ({
+            title: child.title,
+            content: child.content,
+            coords: child.coords
+          })),
+          structuralChildren: hexecuteContext.structuralChildren,
+          instruction,
+          mcpServerName,
+          hexPlan: hexecuteContext.hexPlan,
+          hexPlanInitializerPath: undefined
+        })
+      } catch (error) {
+        console.error(`Failed to build prompt for task at ${taskCoords}:`, error)
+        _throwInternalError(`Failed to build prompt for task "${hexecuteContext.task.title}" at ${taskCoords}: ${error instanceof Error ? error.message : 'Unknown error'}`, error);
+      }
+
+      // Reference the task tile for building minimal map context
+      const taskTile = hexecuteContext.task
+
+      // Build messages array with hexecute prompt as the user message
+      // The Claude Agent SDK uses the default Claude Code system prompt,
+      // so we pass the hexecute context as the user's prompt (instruction is already embedded in it)
+      const hexecuteUserMessage: ChatMessageContract = {
+        id: `user-${nanoid()}`,
+        type: 'user',
+        content: hexecutePrompt
+      }
+      const conversationMessages: ChatMessageContract[] = [
+        hexecuteUserMessage,
+        ...(messages ?? []).map(msg => ({
+          id: msg.id,
+          type: msg.type,
+          content: msg.content,
+          metadata: msg.metadata
+        }) as ChatMessageContract)
+      ]
+
+      _requireConfigured(ctx.agenticService.isConfigured(), "OPENROUTER_API_KEY or ANTHROPIC_API_KEY");
+
+      // Handle SDK async generator for streaming
+      const chunks: Array<{ content: string; isFinished: boolean }> = []
+
+      // Build a minimal mapContext using the task tile as center
+      // The hexecute prompt is already in the user message, so we disable canvas context
+      const minimalMapContext = {
+        center: {
+          id: taskTile.id,
+          ownerId: taskTile.ownerId,
+          coords: taskCoords,
+          title: taskTile.title,
+          content: taskTile.content ?? '',
+          preview: taskTile.preview ?? undefined,
+          link: taskTile.link ?? '',
+          itemType: taskTile.itemType,
+          visibility: taskTile.visibility,
+          depth: taskTile.depth,
+          parentId: taskTile.parentId ?? null,
+          originId: taskTile.originId ?? null
+        },
+        parent: null,
+        composed: [],
+        children: [],
+        grandchildren: []
+      }
+
+      // Disable canvas context since hexecute prompt already contains all task context
+      // This prevents double context injection
+      const compositionConfigForTask: CompositionConfig = {
+        canvas: { enabled: false, strategy: 'minimal' },
+        chat: { enabled: true, strategy: 'full' },
+        composition: { strategy: 'sequential' }
+      }
+
+      // Generate streaming response using the hexecute prompt as context
+      const response = await ctx.agenticService.generateStreamingResponse(
+        {
+          mapContext: minimalMapContext,
+          messages: conversationMessages,
+          model,
+          temperature,
+          maxTokens,
+          compositionConfig: compositionConfigForTask
+        },
+        (chunk) => {
+          chunks.push(chunk)
+        }
+      )
+
+      return {
+        id: response.id,
+        content: response.content,
+        model: response.model,
+        usage: response.usage,
+        finishReason: response.finishReason,
+        chunks,
+        hexecutePrompt // Include the generated prompt for debugging/transparency
       }
     }),
 
@@ -477,120 +544,44 @@ export const agenticRouter = createTRPCRouter({
       const { instruction, taskCoords, hexPlanInitializerPath } = input
       const requester = _getRequesterUserId(ctx.user)
 
-      // Import utilities
-      const { CoordSystem } = await import('~/lib/domains/mapping/utils')
-      const { buildPrompt } = await import('~/lib/domains/agentic')
-
-      // Parse coordinates
-      let taskCoord
-      try {
-        taskCoord = CoordSystem.parseId(taskCoords)
-      } catch (error) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: `Invalid coordinate format: ${error instanceof Error ? error.message : 'Unknown error'}`
-        })
-      }
-
-      // Read task tile
-      let taskTile
-      try {
-        taskTile = await ctx.mappingService.items.crud.getItem({
-          coords: taskCoord,
-          requester
-        })
-      } catch (error) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: `Task tile not found at ${taskCoords}`,
-          cause: error
-        })
-      }
-
-      // Fetch composed children (-1 to -6)
-      const { composed: composedChildren } = await ctx.mappingService.context.getContextForCenter(
+      // 1. Get all data from mapping service (single optimized query)
+      const hexecuteContext = await ctx.mappingService.context.getHexecuteContext(
         taskCoords,
-        ContextStrategies.STANDARD
+        requester
       )
 
-      // Fetch structural children (1-6) for subtasks with coords
-      const structuralChildren = []
-      for (let dir = 1; dir <= 6; dir++) {
-        try {
-          const childCoords = { ...taskCoord, path: [...taskCoord.path, dir] }
-          const child = await ctx.mappingService.items.crud.getItem({
-            coords: childCoords,
-            requester
-          })
-          if (child) {
-            structuralChildren.push({
-              title: child.title,
-              preview: child.preview ?? undefined,
-              coords: CoordSystem.createId(childCoords)
-            })
-          }
-        } catch {
-          // Child doesn't exist, continue
-        }
-      }
+      // 2. Validate task tile has a non-empty title
+      if (!hexecuteContext.task.title?.trim())
+        _throwBadRequest(`Task tile at ${taskCoords} has an empty title. A non-empty title is required for prompt generation.`);
 
       // Get MCP server name from environment (defaults to 'hexframe')
       const mcpServerName = process.env.HEXFRAME_MCP_SERVER ?? 'hexframe'
 
-      // Fetch hexPlan (direction-0 of current task) if it exists
-      let hexPlan: string | undefined
-      try {
-        const hexPlanCoord = { ...taskCoord, path: [...taskCoord.path, 0] }
-        const hexPlanTile = await ctx.mappingService.items.crud.getItem({
-          coords: hexPlanCoord,
-          requester
-        })
-        if (hexPlanTile.content?.trim()) {
-          hexPlan = hexPlanTile.content
-        }
-      } catch {
-        // HexPlan doesn't exist yet, will be initialized on first execution
-      }
-
-      // Validate task tile has a non-empty title
-      if (!taskTile.title || taskTile.title.trim().length === 0) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: `Task tile at ${taskCoords} has an empty title. A non-empty title is required for prompt generation.`
-        })
-      }
-
-      // Build prompt using new recursive execution model
+      // 3. Build prompt (pure function, no I/O)
       let promptResult: string
       try {
         promptResult = buildPrompt({
           task: {
-            title: taskTile.title,
-            content: taskTile.content || undefined,
+            title: hexecuteContext.task.title,
+            content: hexecuteContext.task.content || undefined,
             coords: taskCoords
           },
-          composedChildren: composedChildren.map(child => ({
+          composedChildren: hexecuteContext.composedChildren.map(child => ({
             title: child.title,
             content: child.content,
             coords: child.coords
           })),
-          structuralChildren,
+          structuralChildren: hexecuteContext.structuralChildren,
           instruction,
           mcpServerName,
-          hexPlan,
+          hexPlan: hexecuteContext.hexPlan,
           hexPlanInitializerPath
         })
       } catch (error) {
         console.error(`Failed to build prompt for task at ${taskCoords}:`, error)
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: `Failed to build prompt for task "${taskTile.title}" at ${taskCoords}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          cause: error
-        })
+        _throwInternalError(`Failed to build prompt for task "${hexecuteContext.task.title}" at ${taskCoords}: ${error instanceof Error ? error.message : 'Unknown error'}`, error);
       }
 
-      return {
-        prompt: promptResult
-      }
+      return { prompt: promptResult }
     })
 })

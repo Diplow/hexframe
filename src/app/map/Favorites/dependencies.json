@@ -1,0 +1,11 @@
+{
+  "$schema": "../../../scripts/checks/architecture/dependencies.schema.json",
+  "allowedChildren": [],
+  "allowed": [
+    "~/app/map/Services/EventBus",
+    "~/components/ui/button",
+    "~/lib/domains/iam",
+    "~/lib/utils"
+  ],
+  "subsystems": []
+}

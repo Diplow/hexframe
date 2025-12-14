@@ -2,7 +2,11 @@
   "$schema": "../../../../../scripts/checks/architecture/dependencies.schema.json",
   "allowed": [
     "zod",
-    "~/server/api/trpc"
+    "drizzle-orm",
+    "~/server/api/trpc",
+    "~/server/api/routers/_error-helpers",
+    "~/server/db",
+    "~/lib/domains/iam"
   ],
   "exceptions": {}
 }

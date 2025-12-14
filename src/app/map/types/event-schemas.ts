@@ -156,6 +156,10 @@ const mapCreateRequestedPayloadSchema = z.object({
   parentCoordId: z.string().optional(),
 });
 
+const mapFavoritesWidgetRequestedPayloadSchema = z.object({
+  editShortcutForMapItemId: z.string().optional(),
+});
+
 // Specific event schemas
 export const mapTileSelectedEventSchema = baseEventSchema.extend({
   type: z.literal('map.tile_selected'),
@@ -302,6 +306,12 @@ export const mapCreateRequestedEventSchema = baseEventSchema.extend({
   payload: mapCreateRequestedPayloadSchema,
 });
 
+export const mapFavoritesWidgetRequestedEventSchema = baseEventSchema.extend({
+  type: z.literal('map.favorites_widget_requested'),
+  source: z.literal('canvas'),
+  payload: mapFavoritesWidgetRequestedPayloadSchema,
+});
+
 // Union of all event schemas for validation
 export const appEventSchema = z.discriminatedUnion('type', [
   // Notification events
@@ -330,6 +340,7 @@ export const appEventSchema = z.discriminatedUnion('type', [
   mapDeleteRequestedEventSchema,
   mapDeleteChildrenRequestedEventSchema,
   mapCreateRequestedEventSchema,
+  mapFavoritesWidgetRequestedEventSchema,
 ]);
 
 // Helper function to validate events

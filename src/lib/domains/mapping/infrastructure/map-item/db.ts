@@ -366,6 +366,7 @@ export class DbMapItemRepository implements MapItemRepository {
     composed: MapItemWithId[];
     children: MapItemWithId[];
     grandchildren: MapItemWithId[];
+    hexPlan: MapItemWithId | null;
   }> {
     const dbResults = await this.specializedQueries.fetchContextForCenter(config);
 
@@ -375,6 +376,7 @@ export class DbMapItemRepository implements MapItemRepository {
       composed: dbResults.composed.map((item) => mapJoinedDbToDomain(item, [])),
       children: dbResults.children.map((item) => mapJoinedDbToDomain(item, [])),
       grandchildren: dbResults.grandchildren.map((item) => mapJoinedDbToDomain(item, [])),
+      hexPlan: dbResults.hexPlan ? mapJoinedDbToDomain(dbResults.hexPlan, []) : null,
     };
   }
 

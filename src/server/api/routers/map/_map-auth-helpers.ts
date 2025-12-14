@@ -1,44 +1,17 @@
-import { TRPCError } from "@trpc/server";
 import {
   type RequesterUserId,
   asRequesterUserId,
   ANONYMOUS_REQUESTER,
 } from "~/lib/domains/mapping";
-
-interface AuthUser {
-  id: string;
-  name?: string;
-  email?: string;
-}
-
-export function _ensureUserAuthenticated(
-  user: unknown,
-): asserts user is AuthUser {
-  if (!user || typeof user !== 'object') {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "User not authenticated",
-    });
-  }
-
-  const authUser = user as Record<string, unknown>;
-  if (!authUser.id || typeof authUser.id !== 'string') {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "Invalid user format",
-    });
-  }
-}
+import { _requireAuth } from "~/server/api/routers/_error-helpers";
 
 export function _getUserId(user: unknown): string {
-  _ensureUserAuthenticated(user);
-
-  // user.id is already a string from better-auth - use it directly
+  _requireAuth(user);
   return user.id;
 }
 
 export function _getUserName(user: unknown): string {
-  _ensureUserAuthenticated(user);
+  _requireAuth(user);
   return user.name ?? user.email ?? "User";
 }
 

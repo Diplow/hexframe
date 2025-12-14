@@ -2,7 +2,7 @@
 
 import type { TileData } from "~/app/map/types/tile-data";
 import { ContextMenu } from "~/components/ui/context-menu";
-import { buildMenuItems } from "~/app/map/Canvas/_internals/menu/items-builder";
+import { buildMenuItems } from "~/app/map/Canvas/Menu";
 import type { Visibility } from '~/lib/domains/mapping/utils';
 
 interface TileContextMenuProps {
@@ -25,7 +25,15 @@ interface TileContextMenuProps {
   onCopyCoordinates?: () => void;
   onSetVisibility?: (visibility: Visibility) => void;
   onSetVisibilityWithDescendants?: (visibility: Visibility) => void;
+  /** Callback when user selects "Add to Favorites" from the context menu */
+  onAddFavorite?: () => void;
+  /** Callback when user selects "Remove from Favorites" from the context menu */
+  onRemoveFavorite?: () => void;
+  /** Callback when user selects "Edit Shortcut" from the context menu (opens favorites panel) */
+  onEditShortcut?: () => void;
   visibility?: Visibility;
+  /** Whether this tile is currently in the user's favorites list */
+  isFavorited?: boolean;
   canEdit: boolean;
   isEmptyTile?: boolean;
   hasComposition?: boolean;
@@ -53,7 +61,11 @@ export function TileContextMenu({
   onCopyCoordinates,
   onSetVisibility,
   onSetVisibilityWithDescendants,
+  onAddFavorite,
+  onRemoveFavorite,
+  onEditShortcut,
   visibility,
+  isFavorited,
   canEdit,
   isEmptyTile = false,
   hasComposition: _hasComposition = false,
@@ -67,6 +79,7 @@ export function TileContextMenu({
     isCompositionExpanded,
     canShowComposition,
     visibility,
+    isFavorited,
     onSelect,
     onExpand,
     onNavigate,
@@ -83,6 +96,9 @@ export function TileContextMenu({
     onCopyCoordinates,
     onSetVisibility,
     onSetVisibilityWithDescendants,
+    onAddFavorite,
+    onRemoveFavorite,
+    onEditShortcut,
   });
 
   return (

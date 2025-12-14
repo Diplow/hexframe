@@ -16,7 +16,7 @@ interface CommandAutocompleteProps {
   selectedIndex: number;
   onSelect: (command: string) => void;
   _onClose: () => void;
-  inputRef: RefObject<HTMLTextAreaElement>;
+  inputRef: RefObject<HTMLTextAreaElement | null>;
 }
 
 export function CommandAutocomplete({ 

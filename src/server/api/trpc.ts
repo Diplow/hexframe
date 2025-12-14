@@ -18,10 +18,14 @@ import {
   DbMapItemRepository, 
   DbBaseItemRepository 
 } from "~/lib/domains/mapping";
-import { 
-  IAMService, 
-  BetterAuthUserRepository 
+import {
+  IAMService,
+  BetterAuthUserRepository,
+  getOrCreateInternalApiKey
 } from "~/lib/domains/iam";
+import { createAgenticService } from "~/lib/domains/agentic";
+import { EventBus as EventBusImpl } from "~/lib/utils/event-bus";
+import { env } from "~/env";
 import type { IncomingHttpHeaders } from "http";
 
 /**
@@ -525,6 +529,37 @@ export const iamServiceMiddleware = t.middleware(async ({ ctx, next }) => {
     ctx: {
       ...ctx,
       iamService,
+    },
+  });
+});
+
+export const agenticServiceMiddleware = t.middleware(async ({ ctx, next }) => {
+  const eventBus = new EventBusImpl();
+
+  // Fetch MCP API key (10-min TTL, cached)
+  const mcpApiKey = ctx.session?.userId
+    ? await getOrCreateInternalApiKey(ctx.session.userId, 'mcp-session', 10)
+    : undefined;
+
+  const agenticService = createAgenticService({
+    llmConfig: {
+      openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
+      anthropicApiKey: env.ANTHROPIC_API_KEY ?? '',
+      preferClaudeSDK: true,
+      useSandbox: env.USE_SANDBOX === 'true',
+      mcpApiKey
+    },
+    eventBus,
+    useQueue: false,
+    userId: ctx.session?.userId ?? 'anonymous'
+  });
+
+  return next({
+    ctx: {
+      ...ctx,
+      agenticService,
+      eventBus,
+      mcpApiKey
     },
   });
 });

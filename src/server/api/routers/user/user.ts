@@ -8,6 +8,8 @@ import {
   mappingServiceMiddleware,
 } from "~/server/api/trpc";
 import { TRPCError } from "@trpc/server";
+import { _requireAuth, _requireFound, _mapDomainError, _throwInternalError, _throwUnauthorized, _throwNotFound } from "~/server/api/routers/_error-helpers";
+import { EmailAlreadyExistsError, WeakPasswordError, InvalidEmailError, InvalidCredentialsError } from "~/lib/domains/iam";
 
 // Input validation schemas
 const registerSchema = z.object({
@@ -109,16 +111,12 @@ export const userRouter = createTRPCRouter({
           defaultMapId,
         };
       } catch (error) {
-        if (error instanceof Error) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: error.message,
-          });
-        }
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Registration failed",
-        });
+        if (error instanceof TRPCError) throw error;
+        _mapDomainError(error, "Registration failed", [
+          { type: EmailAlreadyExistsError, code: "CONFLICT", message: "Email already registered" },
+          { type: WeakPasswordError, code: "BAD_REQUEST", message: "Password does not meet requirements" },
+          { type: InvalidEmailError, code: "BAD_REQUEST", message: "Invalid email format" },
+        ]);
       }
     }),
 
@@ -164,19 +162,10 @@ export const userRouter = createTRPCRouter({
           user: ctx.iamService.userToContract(user),
         };
       } catch (error) {
-        if (error instanceof TRPCError) {
-          throw error;
-        }
-        if (error instanceof Error && error.message.includes("Invalid")) {
-          throw new TRPCError({
-            code: "UNAUTHORIZED",
-            message: "Invalid email or password",
-          });
-        }
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "Login failed",
-        });
+        if (error instanceof TRPCError) throw error;
+        _mapDomainError(error, "Login failed", [
+          { type: InvalidCredentialsError, code: "UNAUTHORIZED", message: "Invalid email or password" },
+        ]);
       }
     }),
 
@@ -186,19 +175,8 @@ export const userRouter = createTRPCRouter({
   me: protectedProcedure
     .use(iamServiceMiddleware)
     .query(async ({ ctx }) => {
-      if (!ctx.user) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "Not authenticated",
-        });
-      }
-      const user = await ctx.iamService.getCurrentUser(ctx.user.id);
-      if (!user) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "User not found",
-        });
-      }
+      const user = await ctx.iamService.getCurrentUser(ctx.user!.id);
+      _requireFound(user, "User");
       return ctx.iamService.userToContract(user);
     }),
 
@@ -208,19 +186,9 @@ export const userRouter = createTRPCRouter({
   getCurrentUser: dualAuthProcedure
     .use(iamServiceMiddleware)
     .query(async ({ ctx }) => {
-      if (!ctx.user) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "Not authenticated",
-        });
-      }
+      _requireAuth(ctx.user);
       const user = await ctx.iamService.getCurrentUser(ctx.user.id);
-      if (!user) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "User not found",
-        });
-      }
+      _requireFound(user, "User");
       return ctx.iamService.userToContract(user);
     }),
 
@@ -231,16 +199,7 @@ export const userRouter = createTRPCRouter({
     .use(iamServiceMiddleware)
     .input(updateProfileSchema)
     .mutation(async ({ ctx, input }) => {
-      if (!ctx.user) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "Not authenticated",
-        });
-      }
-      const updatedUser = await ctx.iamService.updateProfile(
-        ctx.user.id,
-        input
-      );
+      const updatedUser = await ctx.iamService.updateProfile(ctx.user!.id, input);
       return ctx.iamService.userToContract(updatedUser);
     }),
 
@@ -255,10 +214,7 @@ export const userRouter = createTRPCRouter({
         const user = await ctx.iamService.getUserById(input.id);
         return ctx.iamService.userToContract(user);
       } catch {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "User not found",
-        });
+        _throwNotFound("User not found");
       }
     }),
 
@@ -273,11 +229,7 @@ export const userRouter = createTRPCRouter({
         const user = await ctx.iamService.getUserByEmail(input.email);
         return ctx.iamService.userToContract(user);
       } catch {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "User not found",
-        });
+        _throwNotFound("User not found");
       }
     }),
-
 });

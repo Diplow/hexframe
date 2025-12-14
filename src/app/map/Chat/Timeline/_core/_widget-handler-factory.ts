@@ -2,6 +2,7 @@ import type { Widget, useChatOperations } from '~/app/map/Chat/_state';
 import type { WidgetHandlers } from '~/app/map/Chat/Timeline/_components/_renderers/widget-renderers';
 import { createCreationHandlers } from '~/app/map/Chat/Timeline/_utils/creation-handlers';
 import { createTileHandlers } from '~/app/map/Chat/Timeline/_utils/tile-handlers';
+import { insertTextIntoChatInput } from '~/app/map/Chat/Timeline/_utils/focus-helpers';
 import type { useMapCache } from '~/app/map/Cache';
 import type { useEventBus } from '~/app/map/Services/EventBus';
 
@@ -45,6 +46,16 @@ export function _createWidgetHandlers(widget: Widget, deps: HandlerDependencies)
     case 'delete':
     case 'error':
       return _createSimpleCloseHandler(widget.id, deps.chatState, deps.focusChatInput);
+    case 'favorites':
+      return {
+        handleCancel: () => {
+          deps.chatState.closeWidget(widget.id);
+          deps.focusChatInput();
+        },
+        onInsertToChat: (text: string) => {
+          insertTextIntoChatInput(text);
+        }
+      };
     default:
       return {};
   }
