@@ -261,7 +261,7 @@ describe('FavoriteListItem', () => {
       await user.click(navigateButton);
 
       expect(onClick).toHaveBeenCalledTimes(1);
-      expect(onClick).toHaveBeenCalledWith('item-1');
+      expect(onClick).toHaveBeenCalledWith('user-1,0:1,2');
     });
 
     it('should call onShortcutClick when @shortcut is clicked', async () => {

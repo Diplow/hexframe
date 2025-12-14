@@ -25,6 +25,7 @@ describe('FavoritesPanel', () => {
       mapItemId: 1,
       userId: 'user-1',
       createdAt: new Date('2024-01-15'),
+      coordId: 'user-1,0:1',
     },
     {
       id: 'fav-2',
@@ -32,6 +33,7 @@ describe('FavoritesPanel', () => {
       mapItemId: 2,
       userId: 'user-1',
       createdAt: new Date('2024-01-10'),
+      coordId: 'user-1,0:2',
     },
     {
       id: 'fav-3',
@@ -39,6 +41,7 @@ describe('FavoritesPanel', () => {
       mapItemId: 3,
       userId: 'user-1',
       createdAt: new Date('2024-01-20'),
+      coordId: 'user-1,0:3',
     },
   ];
 
@@ -257,7 +260,7 @@ describe('FavoritesPanel', () => {
       await user.click(navigateButtons[0]!);
 
       expect(onNavigate).toHaveBeenCalledTimes(1);
-      expect(onNavigate).toHaveBeenCalledWith('item-3');
+      expect(onNavigate).toHaveBeenCalledWith('user-1,0:3');
     });
 
     it('should emit navigation event via event bus when navigating', async () => {
@@ -270,7 +273,7 @@ describe('FavoritesPanel', () => {
       );
 
       // Click the "Navigate to tile" button (content area), not the shortcut
-      // List is sorted A-Z by default, so first item is daily_tasks (fav-3, item-3)
+      // List is sorted A-Z by default, so first item is daily_tasks (fav-3, coordId: user-1,0:3)
       const navigateButton = screen.getAllByRole('button', { name: /navigate to tile/i })[0];
       await user.click(navigateButton!);
 
@@ -279,7 +282,7 @@ describe('FavoritesPanel', () => {
           expect.objectContaining({
             type: 'favorites.navigate',
             payload: expect.objectContaining({
-              mapItemId: 'item-3',
+              mapItemId: 'user-1,0:3',
             }) as unknown,
           })
         );
