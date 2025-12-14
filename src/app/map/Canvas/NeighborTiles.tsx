@@ -18,6 +18,8 @@ import {
   calculateSpatialDirection,
 } from "~/app/map/Canvas/HexGeometry";
 
+const DEFAULT_BASE_HEX_SIZE = 50;
+
 export interface NeighborTilesProps {
   centerItem: TileData;
   mapItems: Record<string, TileData>;
@@ -50,7 +52,7 @@ interface NeighborTileRenderConfig {
 }
 
 /** Renders a single neighbor tile at its computed position */
-function _renderNeighborTile(config: NeighborTileRenderConfig, props: NeighborTilesProps) {
+function _renderNeighborTile(config: NeighborTileRenderConfig, props: NeighborTilesProps, baseHexSize: number) {
   const { coordId, position, scale, zIndex, expandedIds, canToggleExpansion = true } = config;
   return (
     <div
@@ -61,7 +63,7 @@ function _renderNeighborTile(config: NeighborTileRenderConfig, props: NeighborTi
       <DynamicFrameCore
         center={coordId}
         mapItems={props.mapItems}
-        baseHexSize={props.baseHexSize}
+        baseHexSize={baseHexSize}
         expandedItemIds={expandedIds}
         isCompositionExpanded={false}
         scale={scale}
@@ -80,9 +82,10 @@ function _renderNeighborTile(config: NeighborTileRenderConfig, props: NeighborTi
 
 export const NeighborTiles = (props: NeighborTilesProps) => {
   const { centerItem, mapItems, scale = 3 } = props;
+  const baseHexSize = props.baseHexSize ?? DEFAULT_BASE_HEX_SIZE;
   const siblingCoordIds = getSiblingCoordIds(centerItem);
   const parentCoordId = getParentCoordId(centerItem);
-  const neighborPositions = calculateNeighborPositions(props.baseHexSize ?? 50, scale);
+  const neighborPositions = calculateNeighborPositions(baseHexSize, scale);
 
   useEffect(() => {
     loggers.render.canvas('NeighborTiles render', {
@@ -99,12 +102,13 @@ export const NeighborTiles = (props: NeighborTilesProps) => {
       {siblingCoordIds.map((coordId) => {
         if (!mapItems[coordId]) return null;
         const spatialDirection = calculateSpatialDirection(centerItem.metadata.coordId, coordId);
-        return _renderNeighborTile({ coordId, position: neighborPositions[spatialDirection], scale, zIndex: 5, expandedIds: props.expandedItemIds }, props);
+        return _renderNeighborTile({ coordId, position: neighborPositions[spatialDirection], scale, zIndex: 5, expandedIds: props.expandedItemIds }, props, baseHexSize);
       })}
 
       {parentCoordId && mapItems[parentCoordId] && _renderNeighborTile(
         { coordId: parentCoordId, position: neighborPositions[calculateSpatialDirection(centerItem.metadata.coordId, parentCoordId)], scale, zIndex: 1, expandedIds: [], canToggleExpansion: false },
         props,
+        baseHexSize,
       )}
     </div>
   );
