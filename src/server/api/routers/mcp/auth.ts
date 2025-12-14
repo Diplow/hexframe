@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure, publicProcedure, convertToHeaders } from "~/server/api/trpc";
 import { auth } from "~/server/auth";
-import { TRPCError } from "@trpc/server";
+import { _throwUnauthorized, _throwBadRequest, _throwInternalError } from "~/server/api/routers/_error-helpers";
 
 const createKeySchema = z.object({
   name: z.string().min(1, "Key name is required").max(100, "Key name too long"),
@@ -37,10 +37,7 @@ export const mcpAuthRouter = createTRPCRouter({
           // If we get here without error, the password is correct
         } catch (passwordError) {
           console.error("🔑 Password verification failed:", passwordError);
-          throw new TRPCError({
-            code: "UNAUTHORIZED",
-            message: "Invalid password. Please enter your current password.",
-          });
+          _throwUnauthorized("Invalid password. Please enter your current password.");
         }
         
         // Password verified successfully, proceed with key creation
@@ -68,25 +65,15 @@ export const mcpAuthRouter = createTRPCRouter({
         };
       } catch (error) {
         console.error("Failed to create API key:", error);
-        
+
         // Extract better-auth specific error messages
         if (error && typeof error === 'object' && 'body' in error) {
           const apiError = error as { body?: { message?: string } };
-          if (apiError.body?.message) {
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message: apiError.body.message,
-            });
-          }
+          if (apiError.body?.message) _throwBadRequest(apiError.body.message);
         }
-        
+
         // Extract error message from Error objects
-        const errorMessage = error instanceof Error ? error.message : "Failed to create API key";
-        
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: errorMessage,
-        });
+        _throwInternalError(error instanceof Error ? error.message : "Failed to create API key");
       }
     }),
 
@@ -143,10 +130,7 @@ export const mcpAuthRouter = createTRPCRouter({
         }
       } catch (error) {
         console.error("🔑 Failed to list API keys:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to list API keys: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        });
+        _throwInternalError(`Failed to list API keys: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }),
 
@@ -170,10 +154,7 @@ export const mcpAuthRouter = createTRPCRouter({
         return { success: true };
       } catch (error) {
         console.error("Failed to revoke API key:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to revoke API key",
-        });
+        _throwInternalError("Failed to revoke API key");
       }
     }),
 

@@ -6,6 +6,7 @@
     "@testing-library/react",
     "vitest",
     "~/app/map/Cache",
+    "~/app/map/Services/EventBus",
     "~/app/map/Services/TilePosition",
     "~/app/map/Services/DragAndDrop",
     "~/app/map/Services/Operations",
@@ -15,6 +16,9 @@
   ],
   "subsystems": [
     "./Tile",
-    "./OperationOverlay"
+    "./OperationOverlay",
+    "./Interactions",
+    "./Menu",
+    "./HexGeometry"
   ]
 }

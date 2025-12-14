@@ -52,3 +52,29 @@ export class SessionExpiredError extends IAMError {
     super("Session has expired", "SESSION_EXPIRED");
   }
 }
+
+// Favorites-related errors
+
+export class DuplicateShortcutNameError extends IAMError {
+  constructor(shortcutName: string) {
+    super(
+      `Shortcut name already exists: ${shortcutName}`,
+      "DUPLICATE_SHORTCUT_NAME"
+    );
+  }
+}
+
+export class InvalidShortcutNameError extends IAMError {
+  constructor(shortcutName: string) {
+    super(
+      `Invalid shortcut name: ${shortcutName}. Must contain only alphanumeric characters and underscores.`,
+      "INVALID_SHORTCUT_NAME"
+    );
+  }
+}
+
+export class FavoriteNotFoundError extends IAMError {
+  constructor(shortcutName: string) {
+    super(`Favorite not found: ${shortcutName}`, "FAVORITE_NOT_FOUND");
+  }
+}

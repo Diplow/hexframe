@@ -1,21 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-// import { Send } from 'lucide-react';
-// import { Button } from '~/components/ui/button';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useChatState } from '~/app/map/Chat/_state';
-import { useCommandHandling } from '~/app/map/Chat/Input/_hooks/commands/useCommandHandling';
-import { useInputHistory } from '~/app/map/Chat/Input/_hooks/input-control/useInputHistory';
-import { useTextareaController } from '~/app/map/Chat/Input/_hooks/input-control/useTextareaController';
+import {
+  useCommandHandling,
+  useInputHistory,
+  useTextareaController,
+  useEventProcessor,
+  useAutocompleteLogic,
+  useMessageHandling,
+} from '~/app/map/Chat/Input/_hooks';
 import { useChatInputService } from '~/app/map/Chat/Input/_services/chatInputService';
-import { useEventProcessor } from '~/app/map/Chat/Input/_hooks/messages/useEventProcessor';
-import { useAutocompleteLogic } from '~/app/map/Chat/Input/_hooks/autocomplete/useAutocompleteLogic';
-import { useMessageHandling } from '~/app/map/Chat/Input/_hooks/messages/useMessageHandling';
 import { loggers } from '~/lib/debug/debug-logger';
 import { InputForm } from '~/app/map/Chat/Input/_components/InputForm';
 import { useMapCacheCenter } from '~/app/map/Cache';
 import { authClient } from '~/lib/auth';
 import { useEventBus } from '~/app/map/Services/EventBus';
+import { api } from '~/commons/trpc/react';
 
 
 export function Input() {
@@ -24,6 +25,39 @@ export function Input() {
   const center = useMapCacheCenter();
   const eventBus = useEventBus();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const textareaRefInternal = useRef<HTMLTextAreaElement | null>(null);
+
+  // Fetch user favorites with coordinates for autocomplete and task execution
+  const favoritesQuery = api.favorites.listWithPreviews.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+  const favorites = favoritesQuery.data ?? [];
+
+  // Execute task mutation for @mention handling
+  const executeTaskMutation = api.agentic.executeTask.useMutation({
+    onSuccess: (data) => {
+      // Show the AI response in a widget
+      if (data && chatState.showAIResponseWidget) {
+        chatState.showAIResponseWidget({
+          initialResponse: data.content ?? 'Task executed successfully',
+          model: data.model,
+        });
+      }
+    },
+    onError: (error) => {
+      chatState.showSystemMessage(`Failed to execute task: ${error.message}`, 'error');
+    },
+  });
+
+  // Callback to execute a task by coordinates
+  const executeTask = useCallback((taskCoords: string, instruction: string) => {
+    executeTaskMutation.mutate({
+      taskCoords,
+      instruction: instruction || undefined,
+    });
+    // Show loading indicator
+    chatState.showSystemMessage(`Executing task...`, 'info');
+  }, [executeTaskMutation, chatState]);
 
   // Track authentication state via EventBus
   useEffect(() => {
@@ -58,7 +92,7 @@ export function Input() {
       });
     }
   }, [isAuthenticated, eventBus]);
-  
+
   // Debug logging for Input component renders
   useEffect(() => {
     loggers.render.chat('Input component mounted');
@@ -66,22 +100,22 @@ export function Input() {
       loggers.render.chat('Input component unmounted');
     };
   }, []);
-  
+
   useEffect(() => {
     loggers.render.chat('Input component rendered', {
       messageLength: message.length,
       hasMessage: !!message
     });
   });
-  
+
   // Core functionality hooks
   const { executeCommand, getCommandSuggestions } = useCommandHandling();
   const { addToHistory, navigateHistory } = useInputHistory();
   const { sendMessage, isCommand, validateMessage } = useChatInputService();
-  
+
   // Event processing
   useEventProcessor(chatState.events, executeCommand);
-  
+
   // Textarea controller
   const { textareaRef, handleKeyDown, resetTextareaHeight } = useTextareaController({
     message,
@@ -94,19 +128,34 @@ export function Input() {
     },
     onSubmit: () => handleSend(message),
   });
-  
-  // Autocomplete functionality (now includes keyboard handling)
+
+  // Sync textarea ref
+  useEffect(() => {
+    textareaRefInternal.current = textareaRef.current;
+  }, [textareaRef]);
+
+  // Autocomplete functionality (now includes keyboard handling and favorites)
   const {
     showAutocomplete,
+    autocompleteMode,
     selectedSuggestionIndex,
-    setSelectedSuggestionIndex: _setSelectedSuggestionIndex, // eslint-disable-line @typescript-eslint/no-unused-vars
     closeAutocomplete,
-    selectSuggestion,
+    selectCommandSuggestion,
+    selectFavoriteSuggestion,
+    favoritesSuggestions,
     handleMessageChange: autocompleteHandleMessageChange,
     handleKeyDownWithAutocomplete
-  } = useAutocompleteLogic(setMessage, center, handleKeyDown);
-  
-  // Message handling with proper resetTextareaHeight
+  } = useAutocompleteLogic(setMessage, center, handleKeyDown, favorites, textareaRefInternal);
+
+  // Wrap showSystemMessage to avoid unbound method issue
+  const showSystemMessage = useCallback(
+    (message: string, level?: 'info' | 'warning' | 'error') => {
+      chatState.showSystemMessage(message, level);
+    },
+    [chatState]
+  );
+
+  // Message handling with proper resetTextareaHeight and favorites support
   const { handleSend } = useMessageHandling({
     executeCommand,
     sendMessage,
@@ -115,27 +164,33 @@ export function Input() {
     addToHistory,
     setMessage,
     closeAutocomplete,
-    resetTextareaHeight
+    resetTextareaHeight,
+    favorites,
+    executeTask,
+    showSystemMessage,
   });
-  
+
   const handleMessageChange = (newMessage: string) => {
     autocompleteHandleMessageChange(message, newMessage);
   };
-  
-  const suggestions = showAutocomplete ? getCommandSuggestions(message) : [];
+
+  const commandSuggestions = autocompleteMode === 'command' ? getCommandSuggestions(message) : [];
 
   return (
     <InputForm
       message={message}
       showAutocomplete={showAutocomplete}
-      suggestions={suggestions}
+      autocompleteMode={autocompleteMode}
+      commandSuggestions={commandSuggestions}
+      favoritesSuggestions={favoritesSuggestions}
       selectedSuggestionIndex={selectedSuggestionIndex}
       textareaRef={textareaRef}
       isDisabled={!isAuthenticated}
       onMessageChange={handleMessageChange}
-      onKeyDown={(e) => handleKeyDownWithAutocomplete(e, suggestions)}
+      onKeyDown={(e) => handleKeyDownWithAutocomplete(e, commandSuggestions)}
       onSend={() => handleSend(message)}
-      onSelectSuggestion={selectSuggestion}
+      onSelectCommandSuggestion={selectCommandSuggestion}
+      onSelectFavoriteSuggestion={selectFavoriteSuggestion}
       onCloseAutocomplete={closeAutocomplete}
     />
   );

@@ -63,6 +63,7 @@ export {
   mapDeleteRequestedEventSchema,
   mapDeleteChildrenRequestedEventSchema,
   mapCreateRequestedEventSchema,
+  mapFavoritesWidgetRequestedEventSchema,
   appEventSchema,
   validateEvent,
   safeValidateEvent

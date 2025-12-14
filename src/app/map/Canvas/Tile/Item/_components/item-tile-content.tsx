@@ -6,12 +6,13 @@ import type { URLInfo } from "~/app/map/types/url-info";
 import { DynamicBaseTileLayout } from "~/app/map/Canvas/Tile/Base";
 import type { TileScale, TileColor } from "~/app/map/Canvas/Tile/Base";
 import { DynamicTileContent } from "~/app/map/Canvas/Tile/Item/content";
-import { useTileInteraction } from "~/app/map/Canvas";
+import { useTileInteraction, useTileActions } from "~/app/map/Canvas";
 // import { useRouter } from "next/navigation"; // Removed unused import
 import { useCanvasTheme } from "~/app/map/Canvas";
-import { TileTooltip } from "~/app/map/Canvas/_shared/TileTooltip";
+import { TileTooltip } from "~/app/map/Canvas/_internals/TileTooltip";
 import type { Visibility } from '~/lib/domains/mapping/utils';
-import { VisibilityIndicator } from "~/app/map/Canvas/_shared/VisibilityIndicator";
+import { VisibilityIndicator } from "~/app/map/Canvas/_internals/Indicators/VisibilityIndicator";
+import { FavoriteIndicator } from "~/app/map/Canvas/_internals/Indicators/FavoriteIndicator";
 
 // Types for drag props
 interface DragProps {
@@ -45,6 +46,8 @@ interface ItemTileContentProps {
   parentVisibility?: Visibility; // Parent's visibility for comparison
   onNavigate?: (coordId: string) => void;
   onToggleExpansion?: (itemId: string, coordId: string) => void;
+  isFavorited?: boolean; // Whether this tile is favorited
+  shortcutName?: string; // The shortcut name for the favorite (e.g., "my_project")
 }
 
 /**
@@ -70,10 +73,16 @@ export function ItemTileContent({
   parentVisibility,
   onNavigate,
   onToggleExpansion,
+  isFavorited: isFavoritedProp,
+  shortcutName,
 }: ItemTileContentProps) {
   // const router = useRouter(); // Removed unused variable
   const { isDarkMode } = useCanvasTheme();
-  
+  const { isFavorited: isFavoritedFromContext } = useTileActions();
+
+  // Use prop if provided, otherwise check context
+  const isFavorited = isFavoritedProp ?? isFavoritedFromContext?.(item.metadata.coordId) ?? false;
+
   // Check if this tile is expanded
   const isExpanded = allExpandedItemIds.includes(item.metadata.dbId);
   
@@ -153,16 +162,25 @@ export function ItemTileContent({
                 isSelected={isSelected}
               />
             </DynamicBaseTileLayout>
-            {/* Visibility indicator - positioned outside clipped area for proper tooltip rendering */}
-            {scale >= 1 && (isCenter || item.data.visibility !== parentVisibility) && (
-              <VisibilityIndicator
-                visibility={item.data.visibility}
-                scale={scale}
-              />
-            )}
           </div>
         </div>
       </TileTooltip>
+      {/* Indicators positioned OUTSIDE the clipped hexagon area so they're visible */}
+      {/* Visibility indicator - positioned top-center */}
+      {scale >= 1 && (isCenter || item.data.visibility !== parentVisibility) && (
+        <VisibilityIndicator
+          visibility={item.data.visibility}
+          scale={scale}
+        />
+      )}
+      {/* Favorite indicator - positioned bottom-center */}
+      {scale >= 1 && (
+        <FavoriteIndicator
+          isFavorited={isFavorited}
+          shortcutName={shortcutName}
+          scale={scale}
+        />
+      )}
       {/* Buttons are disabled for now */}
     </>
   );

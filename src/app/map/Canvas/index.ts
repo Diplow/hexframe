@@ -10,8 +10,8 @@ export { DynamicMapCanvas } from '~/app/map/Canvas/canvas';
 export type { CenterInfo } from '~/app/map/Canvas/canvas';
 
 // Lifecycle components for error handling and loading states
-export { MapErrorBoundary } from '~/app/map/Canvas/LifeCycle/error-boundary'
-export { MapLoadingSpinner } from '~/app/map/Canvas/LifeCycle/loading-spinner'
+export { MapErrorBoundary } from '~/app/map/Canvas/_internals/CanvasStates/error-boundary'
+export { MapLoadingSpinner } from '~/app/map/Canvas/_internals/CanvasStates/loading-spinner'
 
 // Tile components - re-exported from Canvas/Tile subsystem
 export {
@@ -34,16 +34,16 @@ export type {
 } from '~/app/map/Canvas/Tile'
 
 // Canvas contexts and hooks (used by tiles and frame)
-export { 
+export {
   LegacyTileActionsContext,
   useCanvasTheme,
   useLegacyTileActionsContext,
   CanvasThemeContext
-} from '~/app/map/Canvas/_shared/contexts'
-export type { 
+} from '~/app/map/Canvas/_internals/contexts'
+export type {
   LegacyTileActionsContextValue,
   ThemeContextValue
-} from '~/app/map/Canvas/_shared/contexts'
+} from '~/app/map/Canvas/_internals/contexts'
 
 // Tile Actions Context and Provider (used by Map components)
 export { TileActionsProvider, useTileActions } from '~/app/map/Canvas/TileActionsContext'
@@ -56,4 +56,4 @@ export type { TileActionsContextValue } from '~/app/map/Canvas/TileActionsContex
 export { useTileInteraction } from '~/app/map/Canvas/hooks/shared/useTileInteraction';
 
 // Shared UI components
-export { TileTooltip } from '~/app/map/Canvas/_shared/TileTooltip';
+export { TileTooltip } from '~/app/map/Canvas/_internals/TileTooltip';

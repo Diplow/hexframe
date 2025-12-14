@@ -28,6 +28,7 @@
     "./Cache",
     "./Canvas",
     "./Chat",
+    "./Favorites",
     "./Hierarchy",
     "./MapResolver",
     "./Services"

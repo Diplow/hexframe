@@ -4,7 +4,7 @@
  * This is a shared utility that can be used by both frontend and backend code.
  */
 
-export type EventSource = 'map_cache' | 'chat_cache' | 'auth' | 'sync' | 'test' | 'debug-logger' | 'canvas' | 'agentic' | 'drag_service';
+export type EventSource = 'map_cache' | 'chat_cache' | 'auth' | 'sync' | 'test' | 'debug-logger' | 'canvas' | 'agentic' | 'drag_service' | 'favorites';
 
 export interface AppEvent {
   type: string;

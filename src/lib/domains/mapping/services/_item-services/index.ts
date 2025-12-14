@@ -2,4 +2,4 @@ export { ItemCrudService } from "~/lib/domains/mapping/services/_item-services/_
 export { ItemHistoryService } from "~/lib/domains/mapping/services/_item-services/_item-history.service";
 export { ItemQueryService } from "~/lib/domains/mapping/services/_item-services/_item-query.service";
 export { ItemManagementService } from "~/lib/domains/mapping/services/_item-services/_item-management.service";
-export { ItemContextService } from "~/lib/domains/mapping/services/_item-services/_item-context.service";
+export { ItemContextService, type HexecuteContext } from "~/lib/domains/mapping/services/_item-services/_item-context.service";

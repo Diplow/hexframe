@@ -201,6 +201,7 @@ export interface MapItemRepository extends BaseMapItemRepository {
     composed: MapItemWithId[];
     children: MapItemWithId[];
     grandchildren: MapItemWithId[];
+    hexPlan: MapItemWithId | null;
   }>;
 
   /**

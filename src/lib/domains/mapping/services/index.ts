@@ -4,6 +4,6 @@ export { ItemManagementService } from "~/lib/domains/mapping/services/_item-serv
 export { ItemCrudService } from "~/lib/domains/mapping/services/_item-services";
 export { ItemQueryService } from "~/lib/domains/mapping/services/_item-services";
 export { ItemHistoryService } from "~/lib/domains/mapping/services/_item-services";
-export { ItemContextService } from "~/lib/domains/mapping/services/_item-services";
+export { ItemContextService, type HexecuteContext } from "~/lib/domains/mapping/services/_item-services";
 export { MappingUtils } from "~/lib/domains/mapping/services/_mapping-utils";
 // export * from "./adapters";

@@ -7,6 +7,7 @@ import {
 import { auth } from "~/server/auth"; // Path to your betterAuth server instance
 import { TRPCError } from "@trpc/server";
 import { convertToHeaders } from "~/server/api/trpc"; // Import the helper
+import { _throwUnauthorized, _throwInternalError } from "~/server/api/routers/_error-helpers";
 
 export const authRouter = createTRPCRouter({
   register: publicProcedure
@@ -29,10 +30,7 @@ export const authRouter = createTRPCRouter({
       // We will rely on client-side signUp for now.
       // If direct server-side registration is required, consult better-auth docs for the method.
       // For this plan, we'll assume client-side handles registration.
-      throw new TRPCError({
-        code: "NOT_IMPLEMENTED",
-        message: "Use client-side registration.",
-      });
+      throw new TRPCError({ code: "NOT_IMPLEMENTED", message: "Use client-side registration." });
     }),
 
   login: publicProcedure
@@ -48,21 +46,11 @@ export const authRouter = createTRPCRouter({
           headers: fetchHeaders, // Pass converted headers
         });
 
-        if (!response.user) {
-          // Check if user object exists as a sign of success
-          throw new TRPCError({
-            code: "UNAUTHORIZED",
-            message: "Login failed: No user data returned.", // Or a more generic message
-          });
-        }
+        if (!response.user) _throwUnauthorized("Login failed: No user data returned.");
         // Return the user and token, or the whole response
         return response; // Contains user, token, redirect, url
       } catch (error) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: (error as Error).message || "Login failed",
-          cause: error,
-        });
+        _throwUnauthorized((error as Error).message || "Login failed", error);
       }
     }),
 
@@ -86,11 +74,7 @@ export const authRouter = createTRPCRouter({
 
         return { success: true };
       } catch (error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: (error as Error).message || "Logout failed",
-          cause: error,
-        });
+        _throwInternalError((error as Error).message || "Logout failed", error);
       }
     }),
 

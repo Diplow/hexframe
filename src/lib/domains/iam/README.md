@@ -9,6 +9,7 @@ Like a hotel's front desk and security system - handles guest check-ins, verifie
 - User-to-mapping ID translation for backward compatibility with legacy systems
 - Session orchestration through better-auth integration and server actions
 - Domain-specific validation and error handling for authentication flows
+- User favorites management (tile shortcuts/bookmarks) via FavoritesService
 
 ## Non-Responsibilities
 - Map/item permissions and authorization → See `~/lib/domains/mapping/README.md`

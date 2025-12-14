@@ -10,6 +10,7 @@ interface CommandHandlers {
   handleRegister: () => void;
   handleClear: () => void;
   handleMcpCommand: (commandPath: string) => void;
+  handleFavoritesCommand: (commandPath: string) => void;
   chatState: ChatOperations;
 }
 
@@ -65,6 +66,9 @@ export function useCommandExecution(
         return '';
       case '/mcp':
         handlers.handleMcpCommand(normalizedPath);
+        return '';
+      case '/favorites':
+        handlers.handleFavoritesCommand(normalizedPath);
         return '';
       default:
         if (command.action) {

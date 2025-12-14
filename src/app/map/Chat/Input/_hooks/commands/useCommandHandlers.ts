@@ -90,11 +90,39 @@ export function useCommandHandlers(chatState: {
     }
   }, [chatState]);
 
+  const handleFavoritesCommand = useCallback((_commandPath: string) => {
+    if (chatState && 'showFavoritesWidget' in chatState && 'closeWidget' in chatState) {
+      const showWidget = chatState.showFavoritesWidget as () => void;
+      const closeWidget = chatState.closeWidget as (widgetId: string) => void;
+
+      // Check if we have access to current widgets to determine toggle behavior
+      if ('getActiveWidgets' in chatState) {
+        const getActiveWidgets = chatState.getActiveWidgets as () => Array<{ id: string; type: string }>;
+        const activeWidgets = getActiveWidgets();
+        const existingFavoritesWidget = activeWidgets.find(widget => widget.type === 'favorites');
+
+        if (existingFavoritesWidget) {
+          // Close existing favorites widget
+          closeWidget(existingFavoritesWidget.id);
+        } else {
+          // Open new favorites widget
+          showWidget();
+        }
+      } else {
+        // Fallback: just open the widget
+        showWidget();
+      }
+    } else {
+      console.error('chatState.showFavoritesWidget or closeWidget not available');
+    }
+  }, [chatState]);
+
   return {
     handleLogout,
     handleLogin,
     handleRegister,
     handleClear,
-    handleMcpCommand
+    handleMcpCommand,
+    handleFavoritesCommand
   };
 }

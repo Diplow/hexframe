@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { TRPCError } from "@trpc/server";
 import {
   createTRPCRouter,
   protectedProcedure,
@@ -18,6 +17,7 @@ import {
   _createSuccessResponse,
   _createErrorResponse,
 } from "~/server/api/routers/map/_map-auth-helpers";
+import { _requireFound } from "~/server/api/routers/_error-helpers";
 
 export const mapUserRouter = createTRPCRouter({
   // Get all root items (user's "maps") for the current user
@@ -56,12 +56,7 @@ export const mapUserRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       _getUserId(ctx.user); // Ensure authenticated
       const map = await ctx.mappingService.maps.updateMapInfo(input);
-      if (!map) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Map not found",
-        });
-      }
+      _requireFound(map, "Map");
       return contractToApiAdapters.mapRootItem(map);
     }),
 

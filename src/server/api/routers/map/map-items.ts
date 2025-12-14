@@ -16,7 +16,7 @@ import {
   itemCopySchema,
 } from "~/server/api/routers/map/map-schemas";
 import { _createSuccessResponse, _getUserId, _getRequesterUserId } from "~/server/api/routers/map/_map-auth-helpers";
-import { TRPCError } from "@trpc/server";
+import { _requireOwnership, _throwForbidden, _throwNotFound, _throwInternalError } from "~/server/api/routers/_error-helpers";
 
 /**
  * Convert string visibility to Visibility enum
@@ -97,36 +97,20 @@ export const mapItemsRouter = createTRPCRouter({
       const currentUserIdString = String(currentUserId);
 
       // If creating a root item, ensure it's in user's own space
-      if (coords.path.length === 0 && coords.userId !== currentUserId) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "You can only create root items in your own space",
-        });
-      }
+      if (coords.path.length === 0 && coords.userId !== currentUserId)
+        _throwForbidden("You can only create root items in your own space");
 
       // If creating a child item, check parent ownership
       const hasExplicitParent = input.parentId !== null && input.parentId !== undefined;
       if (hasExplicitParent) {
-        const parentItem = await ctx.mappingService.items.query.getItemById({
-          itemId: input.parentId!,
-        });
-        if (parentItem.ownerId !== currentUserIdString) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "You can only add items to tiles you own",
-          });
-        }
+        const parentItem = await ctx.mappingService.items.query.getItemById({ itemId: input.parentId! });
+        _requireOwnership(parentItem.ownerId, currentUserIdString, "add items to tiles");
       } else if (coords.path.length > 0) {
         // No explicit parent provided, but creating below root: validate inferred parent ownership
         const inferredParentCoords = { ...coords, path: coords.path.slice(0, -1) };
         const requester = _getRequesterUserId(ctx.user);
         const inferredParent = await ctx.mappingService.items.crud.getItem({ coords: inferredParentCoords, requester });
-        if (inferredParent.ownerId !== currentUserIdString) {
-          throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "You can only add items to tiles you own",
-          });
-        }
+        _requireOwnership(inferredParent.ownerId, currentUserIdString, "add items to tiles");
       }
 
       const mapItem = await ctx.mappingService.items.crud.addItemToMap({
@@ -151,17 +135,8 @@ export const mapItemsRouter = createTRPCRouter({
       const currentUserIdString = String(currentUserId);
       const requester = _getRequesterUserId(ctx.user);
 
-      const item = await ctx.mappingService.items.crud.getItem({
-        coords: input.coords as Coord,
-        requester,
-      });
-
-      if (item.ownerId !== currentUserIdString) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "You can only delete items you own",
-        });
-      }
+      const item = await ctx.mappingService.items.crud.getItem({ coords: input.coords as Coord, requester });
+      _requireOwnership(item.ownerId, currentUserIdString, "delete items");
 
       await ctx.mappingService.items.crud.removeItem({
         coords: input.coords as Coord,
@@ -179,17 +154,8 @@ export const mapItemsRouter = createTRPCRouter({
       const currentUserIdString = String(currentUserId);
       const requester = _getRequesterUserId(ctx.user);
 
-      const existingItem = await ctx.mappingService.items.crud.getItem({
-        coords: input.coords as Coord,
-        requester,
-      });
-
-      if (existingItem.ownerId !== currentUserIdString) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "You can only update items you own",
-        });
-      }
+      const existingItem = await ctx.mappingService.items.crud.getItem({ coords: input.coords as Coord, requester });
+      _requireOwnership(existingItem.ownerId, currentUserIdString, "update items");
 
       const updateParams: {
         coords: Coord;
@@ -225,17 +191,8 @@ export const mapItemsRouter = createTRPCRouter({
       const currentUserIdString = String(currentUserId);
       const requester = _getRequesterUserId(ctx.user);
 
-      const existingItem = await ctx.mappingService.items.crud.getItem({
-        coords: input.oldCoords as Coord,
-        requester,
-      });
-
-      if (existingItem.ownerId !== currentUserIdString) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "You can only move items you own",
-        });
-      }
+      const existingItem = await ctx.mappingService.items.crud.getItem({ coords: input.oldCoords as Coord, requester });
+      _requireOwnership(existingItem.ownerId, currentUserIdString, "move items");
 
       // Also check if they own the destination parent (if moving to a new parent)
       const oldCoords = input.oldCoords as Coord;
@@ -245,17 +202,8 @@ export const mapItemsRouter = createTRPCRouter({
       if (oldCoords.path.slice(0, -1).join() !== newCoords.path.slice(0, -1).join()) {
         if (newCoords.path.length > 0) {
           const newParentCoords = { ...newCoords, path: newCoords.path.slice(0, -1) };
-          const newParentItem = await ctx.mappingService.items.crud.getItem({
-            coords: newParentCoords,
-            requester,
-          });
-
-          if (newParentItem.ownerId !== currentUserIdString) {
-            throw new TRPCError({
-              code: "FORBIDDEN",
-              message: "You can only move items to tiles you own",
-            });
-          }
+          const newParentItem = await ctx.mappingService.items.crud.getItem({ coords: newParentCoords, requester });
+          _requireOwnership(newParentItem.ownerId, currentUserIdString, "move items to tiles");
         }
       }
 
@@ -343,11 +291,7 @@ export const mapItemsRouter = createTRPCRouter({
         });
         return history;
       } catch (error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to retrieve version history",
-          cause: error,
-        });
+        _throwInternalError("Failed to retrieve version history", error);
       }
     }),
 
@@ -368,18 +312,9 @@ export const mapItemsRouter = createTRPCRouter({
         });
         return version;
       } catch (error) {
-        if (error instanceof Error && error.message.includes("not found")) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: `Version ${input.versionNumber} not found`,
-            cause: error,
-          });
-        }
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to retrieve version",
-          cause: error,
-        });
+        if (error instanceof Error && error.message.includes("not found"))
+          _throwNotFound(`Version ${input.versionNumber} not found`, error);
+        _throwInternalError("Failed to retrieve version", error);
       }
     }),
 
@@ -392,28 +327,12 @@ export const mapItemsRouter = createTRPCRouter({
       const currentUserIdString = String(currentUserId);
 
       // Verify user owns the source item
-      const sourceItem = await ctx.mappingService.items.query.getItemByCoords({
-        coords: input.sourceCoords as Coord,
-      });
-
-      if (sourceItem.ownerId !== currentUserIdString) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "You can only copy items you own",
-        });
-      }
+      const sourceItem = await ctx.mappingService.items.query.getItemByCoords({ coords: input.sourceCoords as Coord });
+      _requireOwnership(sourceItem.ownerId, currentUserIdString, "copy items");
 
       // Verify user owns the destination parent
-      const destinationParentItem = await ctx.mappingService.items.query.getItemById({
-        itemId: input.destinationParentId,
-      });
-
-      if (destinationParentItem.ownerId !== currentUserIdString) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "You can only copy items to locations you own",
-        });
-      }
+      const destinationParentItem = await ctx.mappingService.items.query.getItemById({ itemId: input.destinationParentId });
+      _requireOwnership(destinationParentItem.ownerId, currentUserIdString, "copy items to locations");
 
       // Perform the deep copy
       const copiedItem = await ctx.mappingService.items.deepCopyMapItem({
@@ -438,17 +357,8 @@ export const mapItemsRouter = createTRPCRouter({
 
       // Verify user owns the parent item
       const requester = _getRequesterUserId(ctx.user);
-      const parentItem = await ctx.mappingService.items.crud.getItem({
-        coords: input.coords as Coord,
-        requester,
-      });
-
-      if (parentItem.ownerId !== currentUserIdString) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "You can only delete children of items you own",
-        });
-      }
+      const parentItem = await ctx.mappingService.items.crud.getItem({ coords: input.coords as Coord, requester });
+      _requireOwnership(parentItem.ownerId, currentUserIdString, "delete children of items");
 
       const result = await ctx.mappingService.items.crud.removeChildrenByType({
         coords: input.coords as Coord,
@@ -471,17 +381,8 @@ export const mapItemsRouter = createTRPCRouter({
       const requester = _getRequesterUserId(ctx.user);
 
       // Verify user owns the root item
-      const item = await ctx.mappingService.items.crud.getItem({
-        coords: input.coords as Coord,
-        requester,
-      });
-
-      if (item.ownerId !== currentUserIdString) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "You can only change visibility of items you own",
-        });
-      }
+      const item = await ctx.mappingService.items.crud.getItem({ coords: input.coords as Coord, requester });
+      _requireOwnership(item.ownerId, currentUserIdString, "change visibility of items");
 
       const result = await ctx.mappingService.items.crud.updateVisibilityWithDescendants({
         coords: input.coords as Coord,

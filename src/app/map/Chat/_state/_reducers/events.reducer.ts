@@ -7,19 +7,8 @@ import type { ChatEvent } from '~/app/map/Chat/_state/_events/event.types';
 export function eventsReducer(events: ChatEvent[], newEvent: ChatEvent): ChatEvent[] {
   // Handle special events
   if (newEvent.type === 'clear_chat') {
-    // Clear all events and add logout message
-    const logoutMessage: ChatEvent = {
-      id: `logout-message-${Date.now()}`,
-      type: 'system_message',
-      payload: {
-        message: 'You have been logged out',
-        level: 'info',
-      },
-      timestamp: new Date(),
-      actor: 'system',
-    };
-
-    return [logoutMessage];
+    // Clear all events - return empty array
+    return [];
   }
   
   // Simply append the new event to the log
