@@ -8,7 +8,8 @@ import {
   mappingServiceMiddleware,
 } from "~/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { _requireAuth, _requireFound, _throwBadRequest, _throwInternalError, _throwUnauthorized, _throwNotFound } from "~/server/api/routers/_error-helpers";
+import { _requireAuth, _requireFound, _mapDomainError, _throwInternalError, _throwUnauthorized, _throwNotFound } from "~/server/api/routers/_error-helpers";
+import { EmailAlreadyExistsError, WeakPasswordError, InvalidEmailError, InvalidCredentialsError } from "~/lib/domains/iam/types/errors";
 
 // Input validation schemas
 const registerSchema = z.object({
@@ -110,8 +111,12 @@ export const userRouter = createTRPCRouter({
           defaultMapId,
         };
       } catch (error) {
-        if (error instanceof Error) _throwBadRequest(error.message);
-        _throwInternalError("Registration failed");
+        if (error instanceof TRPCError) throw error;
+        _mapDomainError(error, "Registration failed", [
+          { type: EmailAlreadyExistsError, code: "CONFLICT", message: "Email already registered" },
+          { type: WeakPasswordError, code: "BAD_REQUEST", message: "Password does not meet requirements" },
+          { type: InvalidEmailError, code: "BAD_REQUEST", message: "Invalid email format" },
+        ]);
       }
     }),
 
@@ -158,9 +163,9 @@ export const userRouter = createTRPCRouter({
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
-        if (error instanceof Error && error.message.includes("Invalid"))
-          _throwUnauthorized("Invalid email or password");
-        _throwUnauthorized("Login failed");
+        _mapDomainError(error, "Login failed", [
+          { type: InvalidCredentialsError, code: "UNAUTHORIZED", message: "Invalid email or password" },
+        ]);
       }
     }),
 
