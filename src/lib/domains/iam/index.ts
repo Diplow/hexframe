@@ -32,6 +32,7 @@ export type {
 export {
   EmailAlreadyExistsError,
   InvalidCredentialsError,
+  InvalidEmailError,
   UserNotFoundError,
   WeakPasswordError,
   DuplicateShortcutNameError,

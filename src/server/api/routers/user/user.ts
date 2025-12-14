@@ -9,7 +9,7 @@ import {
 } from "~/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { _requireAuth, _requireFound, _mapDomainError, _throwInternalError, _throwUnauthorized, _throwNotFound } from "~/server/api/routers/_error-helpers";
-import { EmailAlreadyExistsError, WeakPasswordError, InvalidEmailError, InvalidCredentialsError } from "~/lib/domains/iam/types/errors";
+import { EmailAlreadyExistsError, WeakPasswordError, InvalidEmailError, InvalidCredentialsError } from "~/lib/domains/iam";
 
 // Input validation schemas
 const registerSchema = z.object({

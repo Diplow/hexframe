@@ -6,7 +6,7 @@ import { loggers } from "~/lib/debug/debug-logger";
 import type { TileData } from "~/app/map/types/tile-data";
 import type { CenterInfo } from "~/app/map/Canvas/canvas";
 import type { URLInfo } from "~/app/map/types/url-info";
-import type { EventBusService } from "~/app/map/Services/EventBus/types";
+import type { EventBusService } from "~/app/map/Services/EventBus";
 
 /** Sets up keyboard handlers for ctrl/shift key detection */
 export function useKeyboardHandlers(): void {
