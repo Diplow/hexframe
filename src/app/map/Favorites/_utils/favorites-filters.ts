@@ -54,13 +54,13 @@ export function filterFavorites(
 
     // Check embedded fields (new API)
     const enrichedFavorite = favorite as FavoriteWithPreview;
-    const matchesEmbeddedTitle = enrichedFavorite.title?.toLowerCase().includes(lowerSearchTerm);
-    const matchesEmbeddedPreview = enrichedFavorite.preview?.toLowerCase().includes(lowerSearchTerm);
+    const matchesEmbeddedTitle = enrichedFavorite.title?.toLowerCase()?.includes(lowerSearchTerm);
+    const matchesEmbeddedPreview = enrichedFavorite.preview?.toLowerCase()?.includes(lowerSearchTerm);
 
     // Check tileData map (legacy API)
     const tileInfo = tileData?.[favorite.mapItemId];
-    const matchesTileTitle = tileInfo?.title?.toLowerCase().includes(lowerSearchTerm);
-    const matchesTilePreview = tileInfo?.preview?.toLowerCase().includes(lowerSearchTerm);
+    const matchesTileTitle = tileInfo?.title?.toLowerCase()?.includes(lowerSearchTerm);
+    const matchesTilePreview = tileInfo?.preview?.toLowerCase()?.includes(lowerSearchTerm);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Using || for boolean OR logic, not default value assignment
     return matchesShortcut || matchesEmbeddedTitle || matchesEmbeddedPreview || matchesTileTitle || matchesTilePreview;
