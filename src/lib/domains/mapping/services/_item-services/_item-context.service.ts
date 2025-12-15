@@ -244,7 +244,7 @@ export class ItemContextService {
     const tilesWithStructuralChildren = new Set<string>();
     for (const desc of descendants) {
       const descPath = desc.attrs.coords.path;
-      const lastDirection = descPath[descPath.length - 1];
+      const lastDirection = descPath[descPath.length - 1] as number | undefined;
       // If this is a structural child (direction 1-6), mark its parent as having children
       if (lastDirection !== undefined && lastDirection >= 1 && lastDirection <= 6) {
         const parentPath = descPath.slice(0, -1);
@@ -256,7 +256,7 @@ export class ItemContextService {
     const leafTasks: NonNullable<HexecuteContext['allLeafTasks']> = [];
     for (const desc of descendants) {
       const descPath = desc.attrs.coords.path;
-      const lastDirection = descPath[descPath.length - 1];
+      const lastDirection = descPath[descPath.length - 1] as number | undefined;
 
       // Only include structural children (directions 1-6), not context (-1 to -6) or hexplan (0)
       if (lastDirection === undefined || lastDirection < 1 || lastDirection > 6) continue;
