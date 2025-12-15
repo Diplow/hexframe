@@ -34,6 +34,8 @@ export const env = createEnv({
     INNGEST_EVENT_KEY: z.string().optional(),
     INNGEST_SIGNING_KEY: z.string().optional(),
     USE_QUEUE: z.enum(["true", "false"]).optional(),
+    // MCP server configuration
+    HEXFRAME_MCP_SERVER: z.string().default("hexframe"),
   },
 
   /**
@@ -75,6 +77,7 @@ export const env = createEnv({
     INNGEST_EVENT_KEY: process.env.INNGEST_EVENT_KEY,
     INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY,
     USE_QUEUE: process.env.USE_QUEUE,
+    HEXFRAME_MCP_SERVER: process.env.HEXFRAME_MCP_SERVER,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

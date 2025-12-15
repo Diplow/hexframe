@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { buildPrompt, generateParentHexplanContent, generateLeafHexplanContent, type PromptData } from '~/lib/domains/agentic/utils'
 
+const DEFAULT_MCP_SERVER = 'hexframe'
+
 describe('buildPrompt - v5 API-Created Hexplan', () => {
   // ==================== BASIC STRUCTURE TESTS ====================
   describe('Basic Structure', () => {
@@ -9,7 +11,8 @@ describe('buildPrompt - v5 API-Created Hexplan', () => {
         task: { title: 'Test Task', content: 'Test content', coords: 'userId,0:1' },
         composedChildren: [{ title: 'Context', content: 'Context info', coords: 'userId,0:1,-1' }],
         structuralChildren: [{ title: 'Subtask 1', preview: 'Preview 1', coords: 'userId,0:1,1' }],
-        hexPlan: '📋 Step 1'
+        hexPlan: '📋 Step 1',
+        mcpServerName: DEFAULT_MCP_SERVER
       }
 
       const result = buildPrompt(data)
@@ -36,7 +39,8 @@ describe('buildPrompt - v5 API-Created Hexplan', () => {
         task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
         composedChildren: [{ title: 'C1', content: 'Content 1', coords: 'userId,0:1,-1' }],
         structuralChildren: [{ title: 'S1', preview: 'Preview 1', coords: 'userId,0:1,1' }],
-        hexPlan: '📋 Plan content'
+        hexPlan: '📋 Plan content',
+        mcpServerName: DEFAULT_MCP_SERVER
       }
 
       const result = buildPrompt(data)
@@ -51,7 +55,8 @@ describe('buildPrompt - v5 API-Created Hexplan', () => {
         task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [],
-        hexPlan: '📋 Execute the task'
+        hexPlan: '📋 Execute the task',
+        mcpServerName: DEFAULT_MCP_SERVER
       }
 
       const result = buildPrompt(data)
@@ -68,7 +73,8 @@ describe('buildPrompt - v5 API-Created Hexplan', () => {
         task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [],
-        hexPlan: '📋 Execute the task'
+        hexPlan: '📋 Execute the task',
+        mcpServerName: DEFAULT_MCP_SERVER
       }
 
       const result = buildPrompt(data)
@@ -85,7 +91,8 @@ describe('buildPrompt - v5 API-Created Hexplan', () => {
           { title: 'Context 2', content: 'Content 2', coords: 'userId,0:1,-2' }
         ],
         structuralChildren: [],
-        hexPlan: '📋 Execute the task'
+        hexPlan: '📋 Execute the task',
+        mcpServerName: DEFAULT_MCP_SERVER
       }
 
       const result = buildPrompt(data)
@@ -106,7 +113,8 @@ describe('buildPrompt - v5 API-Created Hexplan', () => {
           { title: 'Whitespace', content: '   \n\t  ', coords: 'userId,0:1,-3' }
         ],
         structuralChildren: [],
-        hexPlan: '📋 Execute the task'
+        hexPlan: '📋 Execute the task',
+        mcpServerName: DEFAULT_MCP_SERVER
       }
 
       const result = buildPrompt(data)
@@ -124,7 +132,8 @@ describe('buildPrompt - v5 API-Created Hexplan', () => {
           { title: 'Title <with> & "special" chars', content: 'Content with <xml> & \'quotes\'', coords: 'userId,0:1,-1' }
         ],
         structuralChildren: [],
-        hexPlan: '📋 Execute the task'
+        hexPlan: '📋 Execute the task',
+        mcpServerName: DEFAULT_MCP_SERVER
       }
 
       const result = buildPrompt(data)
@@ -141,7 +150,8 @@ describe('buildPrompt - v5 API-Created Hexplan', () => {
         task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [],
-        hexPlan: '📋 Execute the task'
+        hexPlan: '📋 Execute the task',
+        mcpServerName: DEFAULT_MCP_SERVER
       }
 
       const result = buildPrompt(data)
@@ -157,7 +167,8 @@ describe('buildPrompt - v5 API-Created Hexplan', () => {
           { title: 'Subtask 1', preview: 'Preview 1', coords: 'userId,0:1,1' },
           { title: 'Subtask 2', preview: 'Preview 2', coords: 'userId,0:1,2' }
         ],
-        hexPlan: '📋 Step 1'
+        hexPlan: '📋 Step 1',
+        mcpServerName: DEFAULT_MCP_SERVER
       }
 
       const result = buildPrompt(data)
@@ -173,7 +184,8 @@ describe('buildPrompt - v5 API-Created Hexplan', () => {
         structuralChildren: [
           { title: 'My Subtask', preview: 'My Preview', coords: 'userId,0:1,1' }
         ],
-        hexPlan: '📋 Step 1'
+        hexPlan: '📋 Step 1',
+        mcpServerName: DEFAULT_MCP_SERVER
       }
 
       const result = buildPrompt(data)
@@ -190,7 +202,8 @@ describe('buildPrompt - v5 API-Created Hexplan', () => {
         structuralChildren: [
           { title: 'Task <with> & chars', preview: 'Preview "with" \'quotes\'', coords: 'userId,0:1,1' }
         ],
-        hexPlan: '📋 Step 1'
+        hexPlan: '📋 Step 1',
+        mcpServerName: DEFAULT_MCP_SERVER
       }
 
       const result = buildPrompt(data)
@@ -206,7 +219,8 @@ describe('buildPrompt - v5 API-Created Hexplan', () => {
         structuralChildren: [
           { title: 'User Subtask', preview: 'Preview', coords: 'userId,0:1,1' }
         ],
-        hexPlan: '📋 Step 1'
+        hexPlan: '📋 Step 1',
+        mcpServerName: DEFAULT_MCP_SERVER
       }
 
       const result = buildPrompt(data)
@@ -224,7 +238,8 @@ describe('buildPrompt - v5 API-Created Hexplan', () => {
         task: { title: 'Test Task', content: 'Test content', coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [],
-        hexPlan: '📋 Execute the task'
+        hexPlan: '📋 Execute the task',
+        mcpServerName: DEFAULT_MCP_SERVER
       }
 
       const result = buildPrompt(data)
@@ -238,7 +253,8 @@ describe('buildPrompt - v5 API-Created Hexplan', () => {
         task: { title: 'My Test Goal', content: 'Content', coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [],
-        hexPlan: '📋 Execute the task'
+        hexPlan: '📋 Execute the task',
+        mcpServerName: DEFAULT_MCP_SERVER
       }
 
       const result = buildPrompt(data)
@@ -251,7 +267,8 @@ describe('buildPrompt - v5 API-Created Hexplan', () => {
         task: { title: 'Title', content: 'This is the task content', coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [],
-        hexPlan: '📋 Execute the task'
+        hexPlan: '📋 Execute the task',
+        mcpServerName: DEFAULT_MCP_SERVER
       }
 
       const result = buildPrompt(data)
@@ -264,7 +281,8 @@ describe('buildPrompt - v5 API-Created Hexplan', () => {
         task: { title: 'Title', content: '', coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [],
-        hexPlan: '📋 Execute the task'
+        hexPlan: '📋 Execute the task',
+        mcpServerName: DEFAULT_MCP_SERVER
       }
 
       const result = buildPrompt(data)
@@ -283,7 +301,8 @@ describe('buildPrompt - v5 API-Created Hexplan', () => {
         },
         composedChildren: [],
         structuralChildren: [],
-        hexPlan: '📋 Execute the task'
+        hexPlan: '📋 Execute the task',
+        mcpServerName: DEFAULT_MCP_SERVER
       }
 
       const result = buildPrompt(data)
@@ -301,7 +320,8 @@ describe('buildPrompt - v5 API-Created Hexplan', () => {
           task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
           composedChildren: [],
           structuralChildren: [],
-          hexPlan: '🟡 STARTED: Working on task...\n📋 Step 1'
+          hexPlan: '🟡 STARTED: Working on task...\n📋 Step 1',
+        mcpServerName: DEFAULT_MCP_SERVER
         }
 
         const result = buildPrompt(data)
@@ -320,7 +340,8 @@ describe('buildPrompt - v5 API-Created Hexplan', () => {
           structuralChildren: [
             { title: 'Child', preview: 'Preview', coords: 'userId,0:1,1' }
           ],
-          hexPlan: '🟡 STARTED\n📋 1. Execute "Child" → userId,0:1,1'
+          hexPlan: '🟡 STARTED\n📋 1. Execute "Child" → userId,0:1,1',
+          mcpServerName: DEFAULT_MCP_SERVER
         }
 
         const result = buildPrompt(data)
@@ -331,12 +352,30 @@ describe('buildPrompt - v5 API-Created Hexplan', () => {
         expect(result).toContain('Execute ONLY ONE step')
       })
 
+      it('should use custom MCP server name in orchestration instructions', () => {
+        const data: PromptData = {
+          task: { title: 'Parent', content: 'Content', coords: 'userId,0:1' },
+          composedChildren: [],
+          structuralChildren: [
+            { title: 'Child', preview: 'Preview', coords: 'userId,0:1,1' }
+          ],
+          hexPlan: '🟡 STARTED\n📋 1. Execute "Child" → userId,0:1,1',
+          mcpServerName: 'debughexframe'
+        }
+
+        const result = buildPrompt(data)
+
+        expect(result).toContain('mcp__debughexframe__hexecute')
+        expect(result).not.toContain('mcp__hexframe__hexecute')
+      })
+
       it('should include leaf tile direct execution instructions when no subtasks', () => {
         const data: PromptData = {
           task: { title: 'Leaf', content: 'Content', coords: 'userId,0:1' },
           composedChildren: [],
           structuralChildren: [], // No children = leaf tile
-          hexPlan: '🟡 STARTED\n📋 Execute the task'
+          hexPlan: '🟡 STARTED\n📋 Execute the task',
+        mcpServerName: DEFAULT_MCP_SERVER
         }
 
         const result = buildPrompt(data)
@@ -353,7 +392,8 @@ describe('buildPrompt - v5 API-Created Hexplan', () => {
           task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
           composedChildren: [],
           structuralChildren: [],
-          hexPlan: '✅ All done!'
+          hexPlan: '✅ All done!',
+        mcpServerName: DEFAULT_MCP_SERVER
         }
 
         const result = buildPrompt(data)
@@ -369,7 +409,8 @@ describe('buildPrompt - v5 API-Created Hexplan', () => {
           task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
           composedChildren: [],
           structuralChildren: [],
-          hexPlan: '🔴 BLOCKED: Need API key'
+          hexPlan: '🔴 BLOCKED: Need API key',
+        mcpServerName: DEFAULT_MCP_SERVER
         }
 
         const result = buildPrompt(data)
@@ -385,7 +426,8 @@ describe('buildPrompt - v5 API-Created Hexplan', () => {
           task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
           composedChildren: [],
           structuralChildren: [],
-          hexPlan: 'Plan with <tags> & "quotes"\n📋 Step'
+          hexPlan: 'Plan with <tags> & "quotes"\n📋 Step',
+        mcpServerName: DEFAULT_MCP_SERVER
         }
 
         const result = buildPrompt(data)
@@ -402,7 +444,8 @@ describe('buildPrompt - v5 API-Created Hexplan', () => {
         task: { title: 'Minimal Task', content: undefined, coords: 'userId,0:1' },
         composedChildren: [],
         structuralChildren: [],
-        hexPlan: '📋 Execute the task'
+        hexPlan: '📋 Execute the task',
+        mcpServerName: DEFAULT_MCP_SERVER
       }
 
       const result = buildPrompt(data)
@@ -423,7 +466,8 @@ describe('buildPrompt - v5 API-Created Hexplan', () => {
         },
         composedChildren: [],
         structuralChildren: [],
-        hexPlan: '📋 Execute the task'
+        hexPlan: '📋 Execute the task',
+        mcpServerName: DEFAULT_MCP_SERVER
       }
 
       const result = buildPrompt(data)

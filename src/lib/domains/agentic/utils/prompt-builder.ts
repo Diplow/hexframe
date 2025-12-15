@@ -30,6 +30,7 @@ export interface PromptData {
     coords: string
   }>
   hexPlan: string // Content of direction-0 tile (always exists - created by API if missing)
+  mcpServerName: string // MCP server name for tool calls (e.g., 'hexframe' or 'debughexframe')
 }
 
 // ==================== HEXPLAN CONTENT GENERATION ====================
@@ -138,7 +139,8 @@ function buildTaskSection(task: PromptData['task']): string {
 function buildHexplanSection(
   hexPlan: string,
   taskCoords: string,
-  hasSubtasks: boolean
+  hasSubtasks: boolean,
+  mcpServerName: string
 ): string {
   const hexplanCoords = `${taskCoords},0`
 
@@ -167,11 +169,11 @@ function buildHexplanSection(
   if (hasSubtasks) {
     // Parent tile: instructions for spawning subagents
     lines.push(`To execute a step:`)
-    lines.push(`1. Call mcp__hexframe__hexecute with the child's coords to get its prompt`)
+    lines.push(`1. Call mcp__${mcpServerName}__hexecute with the child's coords to get its prompt`)
     lines.push(`2. Spawn a subagent using the Task tool with the resulting prompt`)
     lines.push(``)
     lines.push(`Example for step "Execute 'Clarify the Task' → userId,0:6,1":`)
-    lines.push(`  prompt = mcp__hexframe__hexecute({ taskCoords: "userId,0:6,1" })`)
+    lines.push(`  prompt = mcp__${mcpServerName}__hexecute({ taskCoords: "userId,0:6,1" })`)
     lines.push(`  Task({ subagent_type: "general-purpose", prompt: prompt })`)
     lines.push(``)
     lines.push(`After the subagent completes:`)
@@ -217,7 +219,7 @@ export function buildPrompt(data: PromptData): string {
     buildContextSection(data.composedChildren),
     buildSubtasksSection(data.structuralChildren),
     buildTaskSection(data.task),
-    buildHexplanSection(data.hexPlan, data.task.coords, hasSubtasks)
+    buildHexplanSection(data.hexPlan, data.task.coords, hasSubtasks, data.mcpServerName)
   ]
 
   // Filter empty sections and join with blank lines

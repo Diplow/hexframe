@@ -459,7 +459,8 @@ export const agenticRouter = createTRPCRouter({
             coords: child.coords
           })),
           structuralChildren: hexecuteContext.structuralChildren,
-          hexPlan: hexPlanContent
+          hexPlan: hexPlanContent,
+          mcpServerName: env.HEXFRAME_MCP_SERVER
         })
       } catch (error) {
         console.error(`Failed to build prompt for task at ${taskCoords}:`, error)
@@ -612,7 +613,8 @@ export const agenticRouter = createTRPCRouter({
             coords: child.coords
           })),
           structuralChildren: hexecuteContext.structuralChildren,
-          hexPlan: hexPlanContent
+          hexPlan: hexPlanContent,
+          mcpServerName: env.HEXFRAME_MCP_SERVER
         })
       } catch (error) {
         console.error(`Failed to build prompt for task at ${taskCoords}:`, error)
