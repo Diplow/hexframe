@@ -83,7 +83,7 @@ function _createMapUIHandlers(
     });
   };
 
-  const handleDeleteExecutionHistoryClick = (tileData: TileData) => {
+  const handleDeleteHexplanClick = (tileData: TileData) => {
     eventBus.emit({
       type: 'map.delete_children_requested',
       source: 'canvas',
@@ -108,7 +108,7 @@ function _createMapUIHandlers(
     handleDeleteClick,
     handleDeleteChildrenClick,
     handleDeleteComposedClick,
-    handleDeleteExecutionHistoryClick,
+    handleDeleteHexplanClick,
     handleCreateClick,
   };
 }
@@ -235,7 +235,7 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
     handleDeleteClick,
     handleDeleteChildrenClick,
     handleDeleteComposedClick,
-    handleDeleteExecutionHistoryClick,
+    handleDeleteHexplanClick,
     handleCreateClick,
   } = _createMapUIHandlers(
     navigateToItem,
@@ -344,7 +344,7 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
       onDeleteClick={handleDeleteClick}
       onDeleteChildrenClick={handleDeleteChildrenClick}
       onDeleteComposedClick={handleDeleteComposedClick}
-      onDeleteExecutionHistoryClick={handleDeleteExecutionHistoryClick}
+      onDeleteHexplanClick={handleDeleteHexplanClick}
       onCompositionToggle={handleCompositionToggle}
       onSetVisibility={handleSetVisibility}
       onSetVisibilityWithDescendants={handleSetVisibilityWithDescendants}
