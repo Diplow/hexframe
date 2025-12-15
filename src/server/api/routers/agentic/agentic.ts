@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createTRPCRouter, protectedProcedure, publicProcedure, mappingServiceMiddleware, agenticServiceMiddleware } from '~/server/api/trpc'
+import { createTRPCRouter, protectedProcedure, softAuthProcedure, mappingServiceMiddleware, agenticServiceMiddleware } from '~/server/api/trpc'
 import { verificationAwareRateLimit, verificationAwareAuthLimit } from '~/server/api/middleware'
 import { createAgenticService, type CompositionConfig, PreviewGeneratorService, OpenRouterRepository, type ChatMessageContract } from '~/lib/domains/agentic'
 import { buildPrompt, generateParentHexplanContent, generateLeafHexplanContent } from '~/lib/domains/agentic/utils'
@@ -553,7 +553,9 @@ export const agenticRouter = createTRPCRouter({
     }),
 
   // Execute a task using its composed children for guidance
-  hexecute: publicProcedure
+  // Uses softAuthProcedure to support both authenticated (API key/session) and anonymous access
+  // This ensures authenticated users can access their private tiles via MCP
+  hexecute: softAuthProcedure
     .use(mappingServiceMiddleware)
     .input(
       z.object({
