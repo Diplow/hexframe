@@ -51,15 +51,15 @@ The subagent will:
 ### 4. Run the Sync Agent
 After each step completes, spawn the sync agent to update the root hexplan:
 
-1. Call hexecute on the sync agent tile with `deleteHexplan: true` to ensure fresh execution:
+1. Call hexecute on the sync agent tile with `deleteHexplan: true` to ensure fresh execution. Use the SAME MCP server prefix that you used for step execution:
    ```
-   mcp__hexframe__hexecute({
+   mcp__{mcp_prefix}__hexecute({
      taskCoords: "fZRHqrORpUkoV14TRmtW0GA5kFV7UN0X,0:1,3",
-     instruction: "root_coords={root_coords} last_step_coords={step_coords_from_subagent}",
+     instruction: "root_coords={root_coords} last_step_coords={step_coords_from_subagent} hexframe_mcp={mcp_prefix}",
      deleteHexplan: true
    })
    ```
-   (Use `mcp__debughexframe__hexecute` if using the debug server)
+   Where `{mcp_prefix}` is either `hexframe` (default) or `debughexframe` based on the MCP server being used.
 
 2. Spawn a subagent with the sync agent prompt (use haiku model - sync is lightweight)
 
@@ -86,10 +86,14 @@ Between each step, the user can:
 
 ## MCP Server Selection
 
-By default, uses `mcp__hexframe__hexecute`. To use the debug server, include it in the instruction:
+By default, uses `mcp__hexframe__*` tools. To use the debug server, include it in the instruction:
 ```
 /hexrun abc123,0:6 Use the debughexframe MCP server
 ```
+
+**Important**: When using a specific MCP server, use it consistently throughout:
+- Step execution: `mcp__{mcp_prefix}__hexecute`
+- Sync agent: Pass `hexframe_mcp={mcp_prefix}` in the instruction so it uses the same server
 
 ## Implementation Notes
 
