@@ -1,15 +1,16 @@
 /**
- * Hexframe Prompt Builder v5 - Top-Down Context + Root Hexplan
+ * Hexframe Prompt Builder v6 - Hexrun Introduction
  *
  * Generates execution-ready prompts from tile hierarchies.
- * The prompt structure supports top-down context flow and root hexplan generation.
+ * The prompt structure supports iterative hexrun execution with feedback loops.
  *
  * Template:
- * 1. <ancestor-context> - Parent content flowing top-down (root → parent)
- * 2. <context> - Composed children (title + content)
- * 3. <subtasks> - Structural children (title + preview + coords)
- * 4. <task> - Goal (title) + requirements (content)
- * 5. <hexplan> / <execution-instructions> - Based on tile type and hexplan state
+ * 1. <hexrun-intro> - Explains the iterative execution model and feedback handling
+ * 2. <ancestor-context> - Parent content flowing top-down (root → parent)
+ * 3. <context> - Composed children (title + content)
+ * 4. <subtasks> - Structural children (title + preview + coords)
+ * 5. <task> - Goal (title) + requirements (content)
+ * 6. <hexplan> / <execution-instructions> - Based on tile type and hexplan state
  */
 
 // ==================== TYPES ====================
@@ -127,6 +128,21 @@ function hasContent(text: string | undefined): boolean {
 // ==================== SECTION BUILDERS ====================
 
 /**
+ * Builds the hexrun introduction explaining the execution model.
+ * This is always shown first to provide context for the prompt.
+ */
+function buildHexrunIntroduction(): string {
+  const lines: string[] = []
+  lines.push(`<hexrun-intro>`)
+  lines.push(`This prompt was generated from Hexframe tiles. You are executing a HEXRUN - an iterative execution loop where:`)
+  lines.push(`- The same tile may be executed multiple times across hexruns`)
+  lines.push(`- The hexplan evolves between hexruns with feedback and progress updates`)
+  lines.push(`- If the hexplan contains "Feedback from last HEXRUN:" notes, incorporate that guidance`)
+  lines.push(`</hexrun-intro>`)
+  return lines.join('\n')
+}
+
+/**
  * Builds ancestor context section for top-down context flow.
  * Parent content is available to children without duplication.
  */
@@ -138,12 +154,14 @@ function buildAncestorContextSection(ancestors: PromptData['ancestors']): string
     return ''
   }
 
+  const intro = `This task is part of a larger goal. The following ancestor tiles provide context (from root to parent):`
+
   const ancestorBlocks = ancestorsWithContent.map(
     ancestor =>
       `<ancestor title="${escapeXML(ancestor.title)}" coords="${escapeXML(ancestor.coords)}">\n${escapeXML(ancestor.content!)}\n</ancestor>`
   )
 
-  return `<ancestor-context>\n${ancestorBlocks.join('\n\n')}\n</ancestor-context>`
+  return `<ancestor-context>\n${intro}\n\n${ancestorBlocks.join('\n\n')}\n</ancestor-context>`
 }
 
 function buildContextSection(composedChildren: PromptData['composedChildren']): string {
@@ -256,19 +274,21 @@ function buildHexplanSection(
 /**
  * Builds execution-ready XML prompt from task data.
  *
- * Template structure (v5 - Top-Down Context):
- * 1. <ancestor-context> - Parent content flowing top-down (root → parent)
- * 2. <context> - Composed children (title + content)
- * 3. <subtasks> - Structural children (title + preview + coords)
- * 4. <task> - Goal (title) + requirements (content)
- * 5. <hexplan> - Direction-0 content with execution instructions
+ * Template structure (v6 - Hexrun Introduction):
+ * 1. <hexrun-intro> - Explains the iterative execution model
+ * 2. <ancestor-context> - Parent content flowing top-down (root → parent)
+ * 3. <context> - Composed children (title + content)
+ * 4. <subtasks> - Structural children (title + preview + coords)
+ * 5. <task> - Goal (title) + requirements (content)
+ * 6. <hexplan> - Direction-0 content with execution instructions
  *
- * Empty sections are omitted.
+ * Empty sections are omitted (except hexrun-intro which is always shown).
  * Sections are separated by blank lines.
  */
 export function buildPrompt(data: PromptData): string {
   const hasSubtasks = data.structuralChildren.length > 0
   const sections = [
+    buildHexrunIntroduction(),
     buildAncestorContextSection(data.ancestors),
     buildContextSection(data.composedChildren),
     buildSubtasksSection(data.structuralChildren),

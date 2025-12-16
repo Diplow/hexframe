@@ -84,6 +84,36 @@ Between each step, the user can:
 - Edit the hexplan to modify upcoming steps
 - Resume by running `/hexrun` again with the same coordinates
 
+## Handling User Input (Hexrun Feedback Loop)
+
+A HEXRUN is an iterative execution loop where the same tile may be executed multiple times. Between hexruns, the hexplan evolves with feedback and progress updates. The executing agent is instructed (via `<hexrun-intro>` in the prompt) to look for "Feedback from last HEXRUN:" notes in the hexplan.
+
+When the user provides feedback or wants to change the agent's behavior:
+
+### 1. Edit the leaf's hexplan with feedback
+Find the step that needs adjustment and update its hexplan tile at `{step_coords},0`:
+- Add feedback using the prefix: `Feedback from last HEXRUN: <the feedback>`
+- The agent will read this on the next hexrun and incorporate the guidance
+
+Example: If step `[1,2,3]` needs adjustment, edit the tile at `[1,2,3,0]` to include the feedback.
+
+### 2. Reset the step in the root hexplan
+Edit the root hexplan at `{root_coords},0` to mark the completed step (✅) back to pending (📋):
+- This tells hexecute to re-run that step
+- Without this, the step would be skipped as "already done"
+
+Example workflow:
+```
+Feedback: "Actually, use TypeScript instead of JavaScript for step 3"
+
+1. Read root hexplan at {root_coords},0
+2. Find "✅ Step 3: Generate code" and change to "📋 Step 3: Generate code"
+3. Edit leaf hexplan at {step_3_coords},0 to add: "Feedback from last HEXRUN: Use TypeScript instead of JavaScript"
+4. Resume with /hexrun {root_coords}
+```
+
+The agent will re-execute the step, see the feedback in the hexplan, and incorporate it.
+
 ## MCP Server Selection
 
 By default, uses `mcp__hexframe__*` tools. To use the debug server, include it in the instruction:
