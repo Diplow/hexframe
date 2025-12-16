@@ -59,13 +59,13 @@ dependencies:
     version: 5.90.9(react@18.3.1)
   '@trpc/client':
     specifier: ^11.0.0-rc.446
-    version: 11.7.1(@trpc/server@11.7.1)(typescript@5.9.3)
+    version: 11.7.1(@trpc/server@11.8.0)(typescript@5.9.3)
   '@trpc/react-query':
     specifier: ^11.0.0-rc.446
-    version: 11.7.1(@tanstack/react-query@5.90.9)(@trpc/client@11.7.1)(@trpc/server@11.7.1)(react-dom@18.3.1)(react@18.3.1)(typescript@5.9.3)
+    version: 11.7.1(@tanstack/react-query@5.90.9)(@trpc/client@11.7.1)(@trpc/server@11.8.0)(react-dom@18.3.1)(react@18.3.1)(typescript@5.9.3)
   '@trpc/server':
-    specifier: ^11.0.0-rc.446
-    version: 11.7.1(typescript@5.9.3)
+    specifier: ^11.8.0
+    version: 11.8.0(typescript@5.9.3)
   '@types/bcryptjs':
     specifier: ^3.0.0
     version: 3.0.0
@@ -4396,17 +4396,17 @@ packages:
       '@testing-library/dom': 10.4.1
     dev: true
 
-  /@trpc/client@11.7.1(@trpc/server@11.7.1)(typescript@5.9.3):
+  /@trpc/client@11.7.1(@trpc/server@11.8.0)(typescript@5.9.3):
     resolution: {integrity: sha512-uOnAjElKI892/U6aQMcBHYs3x7mme3Cvv1F87ytBL56rBvs7+DyK7r43zgaXKf13+GtPEI6ex5xjVUfyDW8XcQ==}
     peerDependencies:
       '@trpc/server': 11.7.1
       typescript: '>=5.7.2'
     dependencies:
-      '@trpc/server': 11.7.1(typescript@5.9.3)
+      '@trpc/server': 11.8.0(typescript@5.9.3)
       typescript: 5.9.3
     dev: false
 
-  /@trpc/react-query@11.7.1(@tanstack/react-query@5.90.9)(@trpc/client@11.7.1)(@trpc/server@11.7.1)(react-dom@18.3.1)(react@18.3.1)(typescript@5.9.3):
+  /@trpc/react-query@11.7.1(@tanstack/react-query@5.90.9)(@trpc/client@11.7.1)(@trpc/server@11.8.0)(react-dom@18.3.1)(react@18.3.1)(typescript@5.9.3):
     resolution: {integrity: sha512-dEHDjIqSTzO8nLlCbtiFBMBwhbSkK1QP7aYVo3nP3sYBna0b+iCtrPXdxVPCSopr9/aIqDTEh+dMRZa7yBgjfQ==}
     peerDependencies:
       '@tanstack/react-query': ^5.80.3
@@ -4417,15 +4417,15 @@ packages:
       typescript: '>=5.7.2'
     dependencies:
       '@tanstack/react-query': 5.90.9(react@18.3.1)
-      '@trpc/client': 11.7.1(@trpc/server@11.7.1)(typescript@5.9.3)
-      '@trpc/server': 11.7.1(typescript@5.9.3)
+      '@trpc/client': 11.7.1(@trpc/server@11.8.0)(typescript@5.9.3)
+      '@trpc/server': 11.8.0(typescript@5.9.3)
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
       typescript: 5.9.3
     dev: false
 
-  /@trpc/server@11.7.1(typescript@5.9.3):
-    resolution: {integrity: sha512-N3U8LNLIP4g9C7LJ/sLkjuPHwqlvE3bnspzC4DEFVdvx2+usbn70P80E3wj5cjOTLhmhRiwJCSXhlB+MHfGeCw==}
+  /@trpc/server@11.8.0(typescript@5.9.3):
+    resolution: {integrity: sha512-DphyQnLuyX2nwJCQGWQ9zYz4hZGvRhSBqDhQ0SH3tDhQ3PU4u68xofA0pJ741Ir4InEAFD+TtJVLAQy+wVOkiQ==}
     peerDependencies:
       typescript: '>=5.7.2'
     dependencies:
