@@ -8,6 +8,7 @@ import { auth } from "~/server/auth"; // Path to your betterAuth server instance
 import { TRPCError } from "@trpc/server";
 import { convertToHeaders } from "~/server/api/trpc"; // Import the helper
 import { _throwUnauthorized, _throwInternalError } from "~/server/api/routers/_error-helpers";
+import { sandboxSessionManager } from "~/lib/domains/agentic";
 
 export const authRouter = createTRPCRouter({
   register: publicProcedure
@@ -57,8 +58,13 @@ export const authRouter = createTRPCRouter({
   logout: publicProcedure // Or protected if a session must exist
     .mutation(async ({ ctx }) => {
       try {
+        // Fire-and-forget sandbox cleanup for the user if session exists
+        if (ctx.session?.userId) {
+          void sandboxSessionManager.cleanupUserSession(ctx.session.userId);
+        }
+
         const fetchHeaders = convertToHeaders(ctx.req.headers);
-        const response = await auth.api.signOut({ 
+        const response = await auth.api.signOut({
           headers: fetchHeaders,
           asResponse: true // Get the full response to handle cookies
         });
