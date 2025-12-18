@@ -23,7 +23,7 @@ import {
   BetterAuthUserRepository,
   getOrCreateInternalApiKey
 } from "~/lib/domains/iam";
-import { createAgenticService } from "~/lib/domains/agentic";
+import { createAgenticServiceAsync } from "~/lib/domains/agentic/services/agentic.factory";
 import { EventBus as EventBusImpl } from "~/lib/utils/event-bus";
 import { env } from "~/env";
 import type { IncomingHttpHeaders } from "http";
@@ -37,6 +37,35 @@ function getApiKeyFromHeaders(headers: IncomingHttpHeaders | Headers): string | 
   }
   const apiKey = headers["x-api-key"];
   return Array.isArray(apiKey) ? apiKey[0] : apiKey;
+}
+
+/**
+ * Derive sandbox session ID from authentication context.
+ *
+ * Derivation rules:
+ * - Web UI sessions (better-auth): Use session.id as sandboxSessionId
+ * - API key auth: Use userId + "-api-key" suffix as sandboxSessionId
+ * - Anonymous users: sandboxSessionId is undefined (ephemeral sandbox)
+ */
+export function deriveSandboxSessionId(context: {
+  session?: { id: string; userId: string } | null;
+  user?: { id: string } | null;
+  authMethod?: "session" | "internal-api-key" | "external-api-key" | "anonymous";
+}): string | undefined {
+  // Web UI session authentication - use the stable session.id
+  if (context.session?.id) {
+    return context.session.id;
+  }
+
+  // API key authentication - derive from userId with suffix
+  if (context.authMethod === "internal-api-key" || context.authMethod === "external-api-key") {
+    if (context.user?.id) {
+      return `${context.user.id}-api-key`;
+    }
+  }
+
+  // Anonymous users get undefined (ephemeral sandbox)
+  return undefined;
 }
 
 /**
@@ -536,12 +565,23 @@ export const iamServiceMiddleware = t.middleware(async ({ ctx, next }) => {
 export const agenticServiceMiddleware = t.middleware(async ({ ctx, next }) => {
   const eventBus = new EventBusImpl();
 
+  // Derive user ID from session or context (may be set by softAuthProcedure)
+  const userId = ctx.session?.userId ?? (ctx.user as { id: string } | null)?.id;
+
   // Fetch MCP API key (10-min TTL, cached)
-  const mcpApiKey = ctx.session?.userId
-    ? await getOrCreateInternalApiKey(ctx.session.userId, 'mcp-session', 10)
+  const mcpApiKey = userId
+    ? await getOrCreateInternalApiKey(userId, 'mcp-session', 10)
     : undefined;
 
-  const agenticService = createAgenticService({
+  // Derive sandbox session ID for persistent sandbox sessions
+  const sandboxSessionId = deriveSandboxSessionId({
+    session: ctx.session,
+    user: ctx.user as { id: string } | null,
+    authMethod: (ctx as { authMethod?: "session" | "internal-api-key" | "external-api-key" | "anonymous" }).authMethod,
+  });
+
+  // Use async factory to support session-based sandbox reuse
+  const agenticService = await createAgenticServiceAsync({
     llmConfig: {
       openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
       anthropicApiKey: env.ANTHROPIC_API_KEY ?? '',
@@ -551,7 +591,8 @@ export const agenticServiceMiddleware = t.middleware(async ({ ctx, next }) => {
     },
     eventBus,
     useQueue: false,
-    userId: ctx.session?.userId ?? 'anonymous'
+    userId: userId ?? 'anonymous',
+    sessionId: sandboxSessionId
   });
 
   return next({
@@ -559,7 +600,8 @@ export const agenticServiceMiddleware = t.middleware(async ({ ctx, next }) => {
       ...ctx,
       agenticService,
       eventBus,
-      mcpApiKey
+      mcpApiKey,
+      sandboxSessionId
     },
   });
 });
