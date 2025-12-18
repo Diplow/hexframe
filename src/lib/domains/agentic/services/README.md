@@ -1,7 +1,7 @@
 # Agentic Services
 
 ## Mental Model
-Like a translation bureau that takes hexagonal map context and chat history, converts them into AI-friendly formats, and orchestrates conversations with language models.
+Like a translation bureau that takes hexagonal map context and chat history, converts them into AI-friendly formats, and orchestrates conversations with language models. The factory can optionally reserve a "meeting room" (sandbox) that persists across multiple conversations using the session manager.
 
 ## Responsibilities
 - Orchestrate AI conversations by combining map context with chat history
@@ -11,13 +11,14 @@ Like a translation bureau that takes hexagonal map context and chat history, con
 - Create and manage subagents with specific configurations and capabilities
 - Handle tokenization and optimize context size to fit model limits
 - Serialize complex domain data into AI-readable formats
-- Select and configure LLM repositories (OpenRouter or Claude Agent SDK)
+- Select and configure LLM repositories (OpenRouter, Claude Agent SDK, or Sandbox)
+- Integrate with sandbox session manager for persistent sandbox reuse via `createAgenticServiceAsync`
 
 ## Non-Responsibilities
 - Canvas strategy implementations -> See `./canvas-strategies/`
 - Chat strategy implementations -> See `./chat-strategies/`
 - Context serialization formats -> See `./serializers/`
-- Sandbox session management -> See `./sandbox-session/`
+- Sandbox session lifecycle management -> See `./sandbox-session/`
 - Unit tests -> See `./__tests__/`
 - Direct AI model communication -> See `~/lib/domains/agentic/repositories`
 - Intent classification logic -> See `~/lib/domains/agentic/intent-classification`
