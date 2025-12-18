@@ -33,26 +33,51 @@ export class SandboxSessionManager implements ISandboxSessionManager {
   }
 
   async getOrCreateSession(userId: string): Promise<Sandbox> {
+    console.log('[SandboxSession] getOrCreateSession called', {
+      userId,
+      hasExistingSession: this.sessions.has(userId),
+      activeSessionCount: this.sessions.size
+    })
+
     // Check if there's a pending creation for this user (race condition handling)
     const pendingCreation = this.pendingCreations.get(userId)
     if (pendingCreation) {
+      console.log('[SandboxSession] Returning pending creation', { userId })
       return pendingCreation
     }
 
     // Check if we have an existing session
     const existingSession = this.sessions.get(userId)
     if (existingSession) {
+      console.log('[SandboxSession] Found existing session, attempting reconnect', {
+        userId,
+        sandboxId: existingSession.sandboxId,
+        createdAt: existingSession.createdAt,
+        lastUsedAt: existingSession.lastUsedAt
+      })
       const sandbox = await this._tryReconnectToSandbox(existingSession.sandboxId)
       if (sandbox && this._isSandboxRunning(sandbox)) {
+        console.log('[SandboxSession] Reusing existing sandbox', {
+          userId,
+          sandboxId: sandbox.sandboxId,
+          status: sandbox.status
+        })
         await this._extendSandboxTimeout(sandbox)
         this._updateSessionLastUsed(userId)
         return sandbox
       }
       // Sandbox is not usable, remove from cache
+      console.log('[SandboxSession] Existing sandbox not usable, removing from cache', {
+        userId,
+        sandboxId: existingSession.sandboxId,
+        sandboxFound: !!sandbox,
+        sandboxStatus: sandbox?.status
+      })
       this.sessions.delete(userId)
     }
 
     // Create a new sandbox
+    console.log('[SandboxSession] Creating new sandbox', { userId })
     return this._createSandboxWithLock(userId)
   }
 
@@ -227,6 +252,7 @@ export class SandboxSessionManager implements ISandboxSessionManager {
    * Initializes the sandbox with Claude Agent SDK installed.
    */
   private async _createNewSandbox(userId: string): Promise<Sandbox> {
+    console.log('[SandboxSession] Creating new sandbox for session', { userId })
     loggers.agentic('Creating new sandbox for session', { userId })
 
     const sandbox = await Sandbox.create({
@@ -237,17 +263,45 @@ export class SandboxSessionManager implements ISandboxSessionManager {
       }
     })
 
+    console.log('[SandboxSession] Sandbox created, installing Claude Agent SDK', {
+      userId,
+      sandboxId: sandbox.sandboxId
+    })
     loggers.agentic('Sandbox created, installing Claude Agent SDK', {
       userId,
       sandboxId: sandbox.sandboxId
     })
 
     // Install Claude Agent SDK in the sandbox
-    await sandbox.runCommand({
+    const installResult = await sandbox.runCommand({
       cmd: 'npm',
       args: ['install', '@anthropic-ai/claude-agent-sdk']
     })
 
+    const installStdout = await installResult.stdout()
+    const installStderr = await installResult.stderr()
+    console.log('[SandboxSession] SDK install result', {
+      userId,
+      sandboxId: sandbox.sandboxId,
+      exitCode: installResult.exitCode,
+      stdout: installStdout.slice(0, 500),
+      stderr: installStderr.slice(0, 500)
+    })
+
+    if (installResult.exitCode !== 0) {
+      console.error('[SandboxSession] SDK installation failed', {
+        userId,
+        sandboxId: sandbox.sandboxId,
+        exitCode: installResult.exitCode,
+        stderr: installStderr
+      })
+      throw new Error(`Failed to install Claude Agent SDK: ${installStderr}`)
+    }
+
+    console.log('[SandboxSession] Claude Agent SDK installed successfully', {
+      userId,
+      sandboxId: sandbox.sandboxId
+    })
     loggers.agentic('Claude Agent SDK installed successfully', {
       userId,
       sandboxId: sandbox.sandboxId

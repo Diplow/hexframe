@@ -580,6 +580,15 @@ export const agenticServiceMiddleware = t.middleware(async ({ ctx, next }) => {
     authMethod: (ctx as { authMethod?: "session" | "internal-api-key" | "external-api-key" | "anonymous" }).authMethod,
   });
 
+  console.log('[AgenticMiddleware] Session context', {
+    userId,
+    sandboxSessionId,
+    hasSession: !!ctx.session,
+    sessionId: ctx.session?.id,
+    authMethod: (ctx as { authMethod?: string }).authMethod,
+    useSandbox: env.USE_SANDBOX === 'true'
+  });
+
   // Use async factory to support session-based sandbox reuse
   const agenticService = await createAgenticServiceAsync({
     llmConfig: {
