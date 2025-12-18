@@ -14,12 +14,13 @@ Like a translation bureau that takes hexagonal map context and chat history, con
 - Select and configure LLM repositories (OpenRouter or Claude Agent SDK)
 
 ## Non-Responsibilities
-- Canvas strategy implementations → See `./canvas-strategies/`
-- Chat strategy implementations → See `./chat-strategies/`
-- Context serialization formats → See `./serializers/`
-- Unit tests → See `./__tests__/`
-- Direct AI model communication → See `~/lib/domains/agentic/repositories`
-- Intent classification logic → See `~/lib/domains/agentic/intent-classification`
+- Canvas strategy implementations -> See `./canvas-strategies/`
+- Chat strategy implementations -> See `./chat-strategies/`
+- Context serialization formats -> See `./serializers/`
+- Sandbox session management -> See `./sandbox-session/`
+- Unit tests -> See `./__tests__/`
+- Direct AI model communication -> See `~/lib/domains/agentic/repositories`
+- Intent classification logic -> See `~/lib/domains/agentic/intent-classification`
 
 ## Interface
 *See `index.ts` for the public API - the ONLY exports other subsystems can use*
