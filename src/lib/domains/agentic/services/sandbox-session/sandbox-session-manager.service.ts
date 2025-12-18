@@ -1,9 +1,11 @@
 import { Sandbox } from '@vercel/sandbox'
+import ms from 'ms'
 import type {
   SandboxSession,
   SandboxSessionManagerConfig,
   ISandboxSessionManager
 } from '~/lib/domains/agentic/services/sandbox-session/sandbox-session.types'
+import { loggers } from '~/lib/debug/debug-logger'
 
 /**
  * SandboxSessionManager maintains a cache of sandbox IDs keyed by user session ID,
@@ -222,9 +224,34 @@ export class SandboxSessionManager implements ISandboxSessionManager {
 
   /**
    * Create a new sandbox and store in session cache.
+   * Initializes the sandbox with Claude Agent SDK installed.
    */
   private async _createNewSandbox(userId: string): Promise<Sandbox> {
-    const sandbox = await Sandbox.create()
+    loggers.agentic('Creating new sandbox for session', { userId })
+
+    const sandbox = await Sandbox.create({
+      runtime: 'node22',
+      timeout: ms('5m'),
+      resources: {
+        vcpus: 2
+      }
+    })
+
+    loggers.agentic('Sandbox created, installing Claude Agent SDK', {
+      userId,
+      sandboxId: sandbox.sandboxId
+    })
+
+    // Install Claude Agent SDK in the sandbox
+    await sandbox.runCommand({
+      cmd: 'npm',
+      args: ['install', '@anthropic-ai/claude-agent-sdk']
+    })
+
+    loggers.agentic('Claude Agent SDK installed successfully', {
+      userId,
+      sandboxId: sandbox.sandboxId
+    })
 
     const now = new Date()
     const session: SandboxSession = {

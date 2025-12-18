@@ -67,6 +67,31 @@ describe('SandboxSessionManager', () => {
       expect(sandbox.sandboxId).toBe(mockSandboxId)
     })
 
+    it('should install Claude Agent SDK when creating a new sandbox', async () => {
+      const mockSandbox = createMockSandbox()
+      mockSandboxCreate.mockResolvedValueOnce(mockSandbox)
+
+      await sessionManager.getOrCreateSession(mockUserId)
+
+      expect(mockSandbox.runCommand).toHaveBeenCalledWith({
+        cmd: 'npm',
+        args: ['install', '@anthropic-ai/claude-agent-sdk']
+      })
+    })
+
+    it('should create sandbox with correct configuration', async () => {
+      const mockSandbox = createMockSandbox()
+      mockSandboxCreate.mockResolvedValueOnce(mockSandbox)
+
+      await sessionManager.getOrCreateSession(mockUserId)
+
+      expect(mockSandboxCreate).toHaveBeenCalledWith({
+        runtime: 'node22',
+        timeout: 300000, // 5 minutes in ms
+        resources: { vcpus: 2 }
+      })
+    })
+
     it('should reuse existing sandbox via Sandbox.get when session exists', async () => {
       const mockSandbox = createMockSandbox()
       mockSandboxCreate.mockResolvedValueOnce(mockSandbox)
