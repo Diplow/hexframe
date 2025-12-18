@@ -23,7 +23,7 @@ import {
   BetterAuthUserRepository,
   getOrCreateInternalApiKey
 } from "~/lib/domains/iam";
-import { createAgenticServiceAsync } from "~/lib/domains/agentic/services/agentic.factory";
+import { createAgenticServiceAsync } from "~/lib/domains/agentic";
 import { EventBus as EventBusImpl } from "~/lib/utils/event-bus";
 import { env } from "~/env";
 import type { IncomingHttpHeaders } from "http";
