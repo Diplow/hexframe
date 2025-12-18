@@ -1,7 +1,7 @@
 # Sandbox Session
 
 ## Mental Model
-A hotel concierge for Vercel Sandboxes - instead of checking guests in and out for every interaction, it keeps their room reserved and remembers their key. When they return, they can pick up exactly where they left off without waiting for a new room setup.
+A hotel concierge for Vercel Sandboxes - instead of checking guests in and out for every interaction, it keeps their room reserved and remembers their key. When they return, they can pick up exactly where they left off without waiting for a new room setup. If their room has expired, the concierge transparently books a new one without the guest noticing.
 
 ## Responsibilities
 - Maintain a cache of sandbox IDs keyed by user ID
@@ -11,6 +11,13 @@ A hotel concierge for Vercel Sandboxes - instead of checking guests in and out f
 - Validate sandbox status before returning from cache
 - Track session lifecycle metadata (created, expires, last used)
 - Cleanup sandboxes when sessions are invalidated or on server shutdown
+
+## Expiration Handling
+The session manager transparently handles sandbox expiration:
+
+- **`isSessionValid(userId)`**: Checks if a sandbox is still running (useful for health checks)
+- **`extendSession(userId)`**: Explicitly extends the sandbox timeout without full reconnection
+- **`getOrCreateSession(userId)`**: The primary method - automatically detects expired/stopped sandboxes and recreates them transparently. Callers don't need to handle expiration themselves.
 
 ## Non-Responsibilities
 - Sandbox creation/configuration details -> See `~/lib/domains/agentic/repositories`
