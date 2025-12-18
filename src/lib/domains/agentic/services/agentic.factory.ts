@@ -1,12 +1,14 @@
 import { OpenRouterRepository } from '~/lib/domains/agentic/repositories/openrouter.repository'
 import { ClaudeAgentSDKRepository } from '~/lib/domains/agentic/repositories/claude-agent-sdk.repository'
 import { ClaudeAgentSDKSandboxRepository } from '~/lib/domains/agentic/repositories/claude-agent-sdk-sandbox.repository'
+import type { SandboxInstance } from '~/lib/domains/agentic/repositories/claude-agent-sdk-sandbox.repository'
 import { QueuedLLMRepository } from '~/lib/domains/agentic/repositories/queued-llm.repository'
 import { CanvasContextBuilder } from '~/lib/domains/agentic/services/canvas-context-builder.service'
 import { ChatContextBuilder } from '~/lib/domains/agentic/services/chat-context-builder.service'
 import { ContextCompositionService } from '~/lib/domains/agentic/services/context-composition.service'
 import { SimpleTokenizerService } from '~/lib/domains/agentic/services/tokenizer.service'
 import { AgenticService } from '~/lib/domains/agentic/services/agentic.service'
+import { sandboxSessionManager } from '~/lib/domains/agentic/services/sandbox-session'
 import { inngest } from '~/lib/domains/agentic/infrastructure'
 import type { ILLMRepository } from '~/lib/domains/agentic/repositories/llm.repository.interface'
 
@@ -20,7 +22,7 @@ import { FullChatStrategy } from '~/lib/domains/agentic/services/chat-strategies
 import { RecentChatStrategy } from '~/lib/domains/agentic/services/chat-strategies/recent.strategy'
 import { RelevantChatStrategy } from '~/lib/domains/agentic/services/chat-strategies/relevant.strategy'
 
-import type { EventBus } from '~/lib/utils/event-bus'
+import type { EventBusService } from '~/lib/utils/event-bus'
 import type { CanvasContextStrategy, ChatContextStrategy } from '~/lib/domains/agentic/types'
 import type { ICanvasStrategy } from '~/lib/domains/agentic/services/canvas-strategies/strategy.interface'
 import type { IChatStrategy } from '~/lib/domains/agentic/services/chat-strategies/strategy.interface'
@@ -35,12 +37,51 @@ export interface LLMConfig {
 
 export interface CreateAgenticServiceOptions {
   llmConfig: LLMConfig
-  eventBus: EventBus
+  eventBus: EventBusService
   useQueue?: boolean
   userId?: string // Required when using queue for rate limiting
+  sessionId?: string // Optional session ID for persistent sandbox sessions
 }
 
+/**
+ * Synchronous factory for creating agentic service.
+ * Does NOT support sessionId - use createAgenticServiceAsync for session-based sandbox reuse.
+ */
 export function createAgenticService(options: CreateAgenticServiceOptions): AgenticService {
+  return _buildAgenticService(options, undefined)
+}
+
+/**
+ * Async factory for creating agentic service with optional session-based sandbox reuse.
+ * When sessionId and useSandbox are both provided, retrieves or creates a persistent
+ * sandbox from the session manager.
+ */
+export async function createAgenticServiceAsync(
+  options: CreateAgenticServiceOptions
+): Promise<AgenticService> {
+  const { llmConfig, sessionId } = options
+  const { useSandbox, anthropicApiKey } = llmConfig
+
+  let externalSandbox: SandboxInstance | undefined
+
+  // Only fetch session sandbox when all conditions are met:
+  // - sessionId is provided
+  // - useSandbox is true
+  // - We have anthropic key (sandbox repositories need it)
+  if (sessionId && useSandbox && anthropicApiKey) {
+    externalSandbox = await sandboxSessionManager.getOrCreateSession(sessionId)
+  }
+
+  return _buildAgenticService(options, externalSandbox)
+}
+
+/**
+ * Internal helper to build the agentic service with optional external sandbox.
+ */
+function _buildAgenticService(
+  options: CreateAgenticServiceOptions,
+  externalSandbox?: SandboxInstance
+): AgenticService {
   const { llmConfig, eventBus, useQueue, userId } = options
   const { openRouterApiKey, anthropicApiKey, preferClaudeSDK, useSandbox, mcpApiKey } = llmConfig
 
@@ -60,7 +101,13 @@ export function createAgenticService(options: CreateAgenticServiceOptions): Agen
     // Pass mcpApiKey for MCP tool access (fetched by API layer from IAM domain)
     if (useSandbox) {
       // Use Vercel Sandbox for production-safe isolated execution
-      baseRepository = new ClaudeAgentSDKSandboxRepository(normalizedAnthropicKey, mcpApiKey, userId)
+      // Pass external sandbox from session manager if available
+      baseRepository = new ClaudeAgentSDKSandboxRepository(
+        normalizedAnthropicKey,
+        mcpApiKey,
+        userId,
+        externalSandbox
+      )
     } else {
       // Use direct SDK for development (not safe for production on Vercel)
       baseRepository = new ClaudeAgentSDKRepository(normalizedAnthropicKey, mcpApiKey, userId)
@@ -71,7 +118,13 @@ export function createAgenticService(options: CreateAgenticServiceOptions): Agen
   } else if (normalizedAnthropicKey) {
     // Fall back to Claude SDK if only anthropic key is provided
     if (useSandbox) {
-      baseRepository = new ClaudeAgentSDKSandboxRepository(normalizedAnthropicKey, mcpApiKey, userId)
+      // Pass external sandbox from session manager if available
+      baseRepository = new ClaudeAgentSDKSandboxRepository(
+        normalizedAnthropicKey,
+        mcpApiKey,
+        userId,
+        externalSandbox
+      )
     } else {
       baseRepository = new ClaudeAgentSDKRepository(normalizedAnthropicKey, mcpApiKey, userId)
     }
