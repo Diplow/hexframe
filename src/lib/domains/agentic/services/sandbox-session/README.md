@@ -19,6 +19,21 @@ The session manager transparently handles sandbox expiration:
 - **`extendSession(userId)`**: Explicitly extends the sandbox timeout without full reconnection
 - **`getOrCreateSession(userId)`**: The primary method - automatically detects expired/stopped sandboxes and recreates them transparently. Callers don't need to handle expiration themselves.
 
+## Session Cleanup
+The session manager provides cleanup mechanisms for releasing sandbox resources:
+
+### User Logout Cleanup
+- **`cleanupUserSession(userId)`**: Fire-and-forget cleanup for user logout/disconnect scenarios. Removes the session from cache immediately, then attempts to stop the sandbox gracefully. Errors are caught silently to ensure logout never blocks on sandbox issues.
+
+This method is integrated with the auth logout router using fire-and-forget pattern - the logout completes immediately while cleanup happens in the background.
+
+### Utility Methods
+- **`getActiveSessionCount()`**: Returns the number of sessions currently in the cache (useful for monitoring/debugging)
+- **`hasActiveSession(userId)`**: Synchronous cache check to see if a user has a session entry (does not validate actual sandbox status)
+
+### Full Cleanup
+- **`cleanup()`**: Stops all sandboxes and clears the cache. Call on server shutdown.
+
 ## Non-Responsibilities
 - Sandbox creation/configuration details -> See `~/lib/domains/agentic/repositories`
 - AI conversation orchestration -> See `../README.md`
