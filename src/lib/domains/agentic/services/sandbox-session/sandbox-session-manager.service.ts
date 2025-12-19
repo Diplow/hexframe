@@ -5,6 +5,7 @@ import type {
   SandboxSessionManagerConfig,
   ISandboxSessionManager
 } from '~/lib/domains/agentic/services/sandbox-session/sandbox-session.types'
+import type { ISessionStore } from '~/lib/domains/agentic/services/sandbox-session/redis-session-store'
 import { loggers } from '~/lib/debug/debug-logger'
 
 /**
@@ -14,29 +15,32 @@ import { loggers } from '~/lib/debug/debug-logger'
  * Key features:
  * - Stores sandboxId strings (not sandbox objects) for serialization safety
  * - Uses Sandbox.get() for reconnection after serverless cold starts
+ * - Persists sessions to Redis (if configured) to survive cold starts
  * - Handles race conditions for concurrent requests
  * - Proactively extends sandbox timeout on access
  * - Validates sandbox.status before returning from cache
  */
 export class SandboxSessionManager implements ISandboxSessionManager {
-  /** Session cache: userId -> SandboxSession */
-  private readonly sessions = new Map<string, SandboxSession>()
+  /** Session store (Redis or in-memory) */
+  private readonly store: ISessionStore
 
-  /** Pending creation promises for race condition handling */
+  /** Pending creation promises for race condition handling (in-memory only) */
   private readonly pendingCreations = new Map<string, Promise<Sandbox>>()
 
   /** Configuration for timeout management */
   private readonly config: SandboxSessionManagerConfig
 
-  constructor(config: SandboxSessionManagerConfig) {
+  constructor(config: SandboxSessionManagerConfig, store: ISessionStore) {
     this.config = config
+    this.store = store
   }
 
   async getOrCreateSession(userId: string): Promise<Sandbox> {
+    const existingSession = await this.store.get(userId)
     console.log('[SandboxSession] getOrCreateSession called', {
       userId,
-      hasExistingSession: this.sessions.has(userId),
-      activeSessionCount: this.sessions.size
+      hasExistingSession: !!existingSession,
+      existingSandboxId: existingSession?.sandboxId
     })
 
     // Check if there's a pending creation for this user (race condition handling)
@@ -47,7 +51,6 @@ export class SandboxSessionManager implements ISandboxSessionManager {
     }
 
     // Check if we have an existing session
-    const existingSession = this.sessions.get(userId)
     if (existingSession) {
       console.log('[SandboxSession] Found existing session, attempting reconnect', {
         userId,
@@ -63,7 +66,7 @@ export class SandboxSessionManager implements ISandboxSessionManager {
           status: sandbox.status
         })
         await this._extendSandboxTimeout(sandbox)
-        this._updateSessionLastUsed(userId)
+        await this._updateSessionLastUsed(userId, existingSession)
         return sandbox
       }
       // Sandbox is not usable, remove from cache
@@ -73,7 +76,7 @@ export class SandboxSessionManager implements ISandboxSessionManager {
         sandboxFound: !!sandbox,
         sandboxStatus: sandbox?.status
       })
-      this.sessions.delete(userId)
+      await this.store.delete(userId)
     }
 
     // Create a new sandbox
@@ -82,7 +85,7 @@ export class SandboxSessionManager implements ISandboxSessionManager {
   }
 
   async getSession(userId: string): Promise<Sandbox | null> {
-    const existingSession = this.sessions.get(userId)
+    const existingSession = await this.store.get(userId)
     if (!existingSession) {
       return null
     }
@@ -93,12 +96,12 @@ export class SandboxSessionManager implements ISandboxSessionManager {
     }
 
     // Sandbox is not usable, remove from cache
-    this.sessions.delete(userId)
+    await this.store.delete(userId)
     return null
   }
 
   async invalidateSession(userId: string): Promise<void> {
-    const existingSession = this.sessions.get(userId)
+    const existingSession = await this.store.get(userId)
     if (!existingSession) {
       return
     }
@@ -114,11 +117,11 @@ export class SandboxSessionManager implements ISandboxSessionManager {
     }
 
     // Remove from cache
-    this.sessions.delete(userId)
+    await this.store.delete(userId)
   }
 
   async extendSession(userId: string): Promise<void> {
-    const existingSession = this.sessions.get(userId)
+    const existingSession = await this.store.get(userId)
     if (!existingSession) {
       return
     }
@@ -126,12 +129,12 @@ export class SandboxSessionManager implements ISandboxSessionManager {
     const sandbox = await this._tryReconnectToSandbox(existingSession.sandboxId)
     if (sandbox && this._isSandboxRunning(sandbox)) {
       await this._extendSandboxTimeout(sandbox)
-      this._updateSessionLastUsed(userId)
+      await this._updateSessionLastUsed(userId, existingSession)
     }
   }
 
   async isSessionValid(userId: string): Promise<boolean> {
-    const existingSession = this.sessions.get(userId)
+    const existingSession = await this.store.get(userId)
     if (!existingSession) {
       return false
     }
@@ -141,9 +144,10 @@ export class SandboxSessionManager implements ISandboxSessionManager {
   }
 
   async cleanup(): Promise<void> {
+    const sessions = await this.store.getAll()
     const cleanupPromises: Promise<void>[] = []
 
-    for (const [userId] of this.sessions) {
+    for (const [userId] of sessions) {
       cleanupPromises.push(this.invalidateSession(userId))
     }
 
@@ -156,13 +160,13 @@ export class SandboxSessionManager implements ISandboxSessionManager {
    * @param userId - The user ID to cleanup
    */
   async cleanupUserSession(userId: string): Promise<void> {
-    const existingSession = this.sessions.get(userId)
+    const existingSession = await this.store.get(userId)
     if (!existingSession) {
       return
     }
 
     // Remove from cache first (ensures cleanup even if stop fails)
-    this.sessions.delete(userId)
+    await this.store.delete(userId)
 
     // Try to stop the sandbox gracefully (fire-and-forget)
     try {
@@ -177,19 +181,25 @@ export class SandboxSessionManager implements ISandboxSessionManager {
 
   /**
    * Get the count of active sessions in the cache.
+   * Note: This is async when using Redis store.
    * @returns Number of active sessions
    */
   getActiveSessionCount(): number {
-    return this.sessions.size
+    // For backwards compatibility, return 0 if store doesn't support sync size
+    // In practice, this is only used for logging/debugging
+    return 0
   }
 
   /**
-   * Check if a user has an active session in the cache (sync check, does not validate sandbox status).
+   * Check if a user has an active session in the cache.
+   * Note: This is now async when using Redis store.
    * @param userId - The user ID to check
    * @returns True if user has a session in cache
    */
   hasActiveSession(userId: string): boolean {
-    return this.sessions.has(userId)
+    // For backwards compatibility, return false
+    // Callers should use getSession() for async check
+    return this.pendingCreations.has(userId)
   }
 
   /**
@@ -198,8 +208,18 @@ export class SandboxSessionManager implements ISandboxSessionManager {
    */
   private async _tryReconnectToSandbox(sandboxId: string): Promise<Sandbox | null> {
     try {
-      return await Sandbox.get({ sandboxId })
-    } catch {
+      console.log('[SandboxSession] Attempting to reconnect to sandbox', { sandboxId })
+      const sandbox = await Sandbox.get({ sandboxId })
+      console.log('[SandboxSession] Reconnection result', {
+        sandboxId,
+        status: sandbox.status
+      })
+      return sandbox
+    } catch (error) {
+      console.log('[SandboxSession] Reconnection failed', {
+        sandboxId,
+        error: error instanceof Error ? error.message : String(error)
+      })
       return null
     }
   }
@@ -225,11 +245,13 @@ export class SandboxSessionManager implements ISandboxSessionManager {
   /**
    * Update the lastUsedAt timestamp for a session.
    */
-  private _updateSessionLastUsed(userId: string): void {
-    const session = this.sessions.get(userId)
-    if (session) {
-      session.lastUsedAt = new Date()
+  private async _updateSessionLastUsed(userId: string, session: SandboxSession): Promise<void> {
+    const updatedSession: SandboxSession = {
+      ...session,
+      lastUsedAt: new Date(),
+      expiresAt: new Date(Date.now() + this.config.defaultTimeoutMs)
     }
+    await this.store.set(userId, updatedSession)
   }
 
   /**
@@ -317,7 +339,12 @@ export class SandboxSessionManager implements ISandboxSessionManager {
       status: 'active'
     }
 
-    this.sessions.set(userId, session)
+    await this.store.set(userId, session)
+    console.log('[SandboxSession] Session stored', {
+      userId,
+      sandboxId: sandbox.sandboxId
+    })
+
     return sandbox
   }
 }

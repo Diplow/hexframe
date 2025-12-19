@@ -36,6 +36,9 @@ export const env = createEnv({
     USE_QUEUE: z.enum(["true", "false"]).optional(),
     // MCP server configuration
     HEXFRAME_MCP_SERVER: z.string().default("hexframe"),
+    // Upstash Redis for sandbox session persistence
+    UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+    UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
   },
 
   /**
@@ -78,6 +81,8 @@ export const env = createEnv({
     INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY,
     USE_QUEUE: process.env.USE_QUEUE,
     HEXFRAME_MCP_SERVER: process.env.HEXFRAME_MCP_SERVER,
+    UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
+    UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
