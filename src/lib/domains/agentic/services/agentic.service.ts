@@ -3,7 +3,7 @@ import type { ILLMRepository } from '~/lib/domains/agentic/repositories/llm.repo
 import type { ContextCompositionService } from '~/lib/domains/agentic/services/context-composition.service'
 import { PromptTemplateService } from '~/lib/domains/agentic/services/prompt-template.service'
 // import { IntentClassifierService } from '../intent-classification/intent-classifier.service'
-import type { EventBus } from '~/lib/utils/event-bus'
+import type { EventBusService } from '~/lib/utils/event-bus'
 import type {
   CompositionConfig,
   LLMResponse,
@@ -46,7 +46,7 @@ export class AgenticService {
   constructor(
     private readonly llmRepository: ILLMRepository,
     private readonly contextComposition: ContextCompositionService,
-    private readonly eventBus: EventBus
+    private readonly eventBus: EventBusService
   ) {
     this.promptTemplate = new PromptTemplateService()
     this.subagents = new Map()

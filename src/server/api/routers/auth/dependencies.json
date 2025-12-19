@@ -1,6 +1,7 @@
 {
   "$schema": "../../../../../scripts/checks/architecture/dependencies.schema.json",
   "allowed": [
+    "~/lib/domains/agentic",
     "~/server/api/trpc",
     "~/server/auth"
   ],

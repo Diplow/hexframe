@@ -41,7 +41,7 @@ interface TileWidgetProps {
   onDelete?: () => void;
   onDeleteChildren?: () => void;
   onDeleteComposed?: () => void;
-  onDeleteExecutionHistory?: () => void;
+  onDeleteHexplan?: () => void;
   onSetVisibility?: (visibility: Visibility) => void;
   onSetVisibilityWithDescendants?: (visibility: Visibility) => void;
   onSave?: (title: string, preview: string, content: string) => void;
@@ -83,7 +83,7 @@ export function TileWidget({
   onDelete: _onDelete,
   onDeleteChildren,
   onDeleteComposed,
-  onDeleteExecutionHistory,
+  onDeleteHexplan,
   onSetVisibility,
   onSetVisibilityWithDescendants,
   onSave,
@@ -173,7 +173,7 @@ export function TileWidget({
         onDelete={currentMode !== 'create' ? () => setCurrentMode('delete') : undefined}
         onDeleteChildren={currentMode !== 'create' ? onDeleteChildren : undefined}
         onDeleteComposed={currentMode !== 'create' ? onDeleteComposed : undefined}
-        onDeleteExecutionHistory={currentMode !== 'create' ? onDeleteExecutionHistory : undefined}
+        onDeleteHexplan={currentMode !== 'create' ? onDeleteHexplan : undefined}
         onSetVisibility={currentMode !== 'create' ? onSetVisibility : undefined}
         onSetVisibilityWithDescendants={currentMode !== 'create' ? onSetVisibilityWithDescendants : undefined}
         onClose={onClose}

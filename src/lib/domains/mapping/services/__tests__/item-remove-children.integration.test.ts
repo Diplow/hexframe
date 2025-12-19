@@ -65,15 +65,15 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
         title: "Composed",
       });
 
-      const execHistoryCoords = _createTestCoordinates({
+      const hexplanCoords = _createTestCoordinates({
         userId: params.userId,
         groupId: params.groupId,
         path: [Direction.Center],
       });
-      const execHistory = await testEnv.service.items.crud.addItemToMap({
+      const hexplan = await testEnv.service.items.crud.addItemToMap({
         parentId: rootMap.id,
-        coords: execHistoryCoords,
-        title: "Exec History",
+        coords: hexplanCoords,
+        title: "Hexplan",
       });
 
       const rootCoords = _createTestCoordinates({
@@ -101,12 +101,12 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
       });
       expect(composedItem.id).toBe(composedChild.id);
 
-      // Exec history should still exist
+      // Hexplan should still exist
       const execItem = await testEnv.service.items.crud.getItem({
-        coords: execHistoryCoords,
+        coords: hexplanCoords,
         requester: SYSTEM_INTERNAL,
       });
-      expect(execItem.id).toBe(execHistory.id);
+      expect(execItem.id).toBe(hexplan.id);
     });
   });
 

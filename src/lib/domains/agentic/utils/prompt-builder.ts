@@ -1,14 +1,16 @@
 /**
- * Hexframe Prompt Builder v4 - Programmatic Hexplan Generation
+ * Hexframe Prompt Builder v6 - Hexrun Introduction
  *
  * Generates execution-ready prompts from tile hierarchies.
- * The prompt structure is minimal - orchestration logic is derived from tile type.
+ * The prompt structure supports iterative hexrun execution with feedback loops.
  *
  * Template:
- * 1. <context> - Composed children (title + content)
- * 2. <subtasks> - Structural children (title + preview + coords)
- * 3. <task> - Goal (title) + requirements (content)
- * 4. <hexplan> / <execution-instructions> - Based on tile type and hexplan state
+ * 1. <hexrun-intro> - Explains the iterative execution model and feedback handling
+ * 2. <ancestor-context> - Parent content flowing top-down (root → parent)
+ * 3. <context> - Composed children (title + content)
+ * 4. <subtasks> - Structural children (title + preview + coords)
+ * 5. <task> - Goal (title) + requirements (content)
+ * 6. <hexplan> / <execution-instructions> - Based on tile type and hexplan state
  */
 
 // ==================== TYPES ====================
@@ -19,6 +21,12 @@ export interface PromptData {
     content: string | undefined
     coords: string
   }
+  /** Ancestors from root to parent - content flows top-down */
+  ancestors: Array<{
+    title: string
+    content: string | undefined
+    coords: string
+  }>
   composedChildren: Array<{
     title: string
     content: string
@@ -31,6 +39,11 @@ export interface PromptData {
   }>
   hexPlan: string // Content of direction-0 tile (always exists - created by API if missing)
   mcpServerName: string // MCP server name for tool calls (e.g., 'hexframe' or 'debughexframe')
+  /** All leaf tasks for root hexplan generation (only provided for root tiles) */
+  allLeafTasks?: Array<{
+    title: string
+    coords: string
+  }>
 }
 
 // ==================== HEXPLAN CONTENT GENERATION ====================
@@ -38,20 +51,40 @@ export interface PromptData {
 /**
  * Generates hexplan content for a parent tile (tile with subtasks).
  * This is used by the API to create/initialize the hexplan tile before prompting.
+ *
+ * For root tiles (when allLeafTasks is provided), generates a flat list of ALL leaf tasks
+ * across the entire hierarchy. This enables single-pass execution tracking.
+ *
+ * For intermediate parent tiles (no allLeafTasks), generates steps for direct children only.
  */
 export function generateParentHexplanContent(
-  structuralChildren: Array<{ title: string; coords: string }>
+  structuralChildren: Array<{ title: string; coords: string }>,
+  allLeafTasks?: Array<{ title: string; coords: string }>
 ): string {
   const lines: string[] = []
   lines.push('🟡 STARTED')
   lines.push('')
-  lines.push('**Steps:**')
-  structuralChildren.forEach((child, index) => {
-    lines.push(`📋 ${index + 1}. Execute "${child.title}" → ${child.coords}`)
-  })
+
+  // Root hexplan: list ALL leaf tasks for single-pass execution tracking
+  if (allLeafTasks && allLeafTasks.length > 0) {
+    lines.push('**Leaf Tasks:**')
+    allLeafTasks.forEach((leaf, index) => {
+      lines.push(`📋 ${index + 1}. "${leaf.title}" → ${leaf.coords}`)
+    })
+  } else {
+    // Intermediate parent: list direct children as steps
+    lines.push('**Steps:**')
+    structuralChildren.forEach((child, index) => {
+      lines.push(`📋 ${index + 1}. Execute "${child.title}" → ${child.coords}`)
+    })
+  }
+
   lines.push('')
   lines.push('**Progress:**')
   lines.push('(initialized)')
+  lines.push('')
+  lines.push('**Findings:**')
+  lines.push('(none yet)')
   return lines.join('\n')
 }
 
@@ -93,6 +126,43 @@ function hasContent(text: string | undefined): boolean {
 }
 
 // ==================== SECTION BUILDERS ====================
+
+/**
+ * Builds the hexrun introduction explaining the execution model.
+ * This is always shown first to provide context for the prompt.
+ */
+function buildHexrunIntroduction(): string {
+  const lines: string[] = []
+  lines.push(`<hexrun-intro>`)
+  lines.push(`This prompt was generated from Hexframe tiles. You are executing a HEXRUN - an iterative execution loop where:`)
+  lines.push(`- The same tile may be executed multiple times across hexruns`)
+  lines.push(`- The hexplan evolves between hexruns with feedback and progress updates`)
+  lines.push(`- If the hexplan contains "Feedback from last HEXRUN:" notes, incorporate that guidance`)
+  lines.push(`</hexrun-intro>`)
+  return lines.join('\n')
+}
+
+/**
+ * Builds ancestor context section for top-down context flow.
+ * Parent content is available to children without duplication.
+ */
+function buildAncestorContextSection(ancestors: PromptData['ancestors']): string {
+  // Filter ancestors that have content
+  const ancestorsWithContent = ancestors.filter(ancestor => hasContent(ancestor.content))
+
+  if (ancestorsWithContent.length === 0) {
+    return ''
+  }
+
+  const intro = `This task is part of a larger goal. The following ancestor tiles provide context (from root to parent):`
+
+  const ancestorBlocks = ancestorsWithContent.map(
+    ancestor =>
+      `<ancestor title="${escapeXML(ancestor.title)}" coords="${escapeXML(ancestor.coords)}">\n${escapeXML(ancestor.content!)}\n</ancestor>`
+  )
+
+  return `<ancestor-context>\n${intro}\n\n${ancestorBlocks.join('\n\n')}\n</ancestor-context>`
+}
 
 function buildContextSection(composedChildren: PromptData['composedChildren']): string {
   const validChildren = composedChildren.filter(child => hasContent(child.content))
@@ -204,18 +274,22 @@ function buildHexplanSection(
 /**
  * Builds execution-ready XML prompt from task data.
  *
- * Template structure (v3 - Simplified):
- * 1. <context> - Composed children (title + content)
- * 2. <subtasks> - Structural children (title + preview + coords)
- * 3. <task> - Goal (title) + requirements (content)
- * 4. <hexplan> - Direction-0 content OR initialization instructions
+ * Template structure (v6 - Hexrun Introduction):
+ * 1. <hexrun-intro> - Explains the iterative execution model
+ * 2. <ancestor-context> - Parent content flowing top-down (root → parent)
+ * 3. <context> - Composed children (title + content)
+ * 4. <subtasks> - Structural children (title + preview + coords)
+ * 5. <task> - Goal (title) + requirements (content)
+ * 6. <hexplan> - Direction-0 content with execution instructions
  *
- * Empty sections are omitted.
+ * Empty sections are omitted (except hexrun-intro which is always shown).
  * Sections are separated by blank lines.
  */
 export function buildPrompt(data: PromptData): string {
   const hasSubtasks = data.structuralChildren.length > 0
   const sections = [
+    buildHexrunIntroduction(),
+    buildAncestorContextSection(data.ancestors),
     buildContextSection(data.composedChildren),
     buildSubtasksSection(data.structuralChildren),
     buildTaskSection(data.task),

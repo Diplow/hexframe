@@ -1,6 +1,6 @@
 /**
  * Public API for Agentic Repositories
- * 
+ *
  * Consumers: Agentic services, Agentic factory
  */
 
@@ -12,3 +12,6 @@ export { OpenRouterRepository } from '~/lib/domains/agentic/repositories/openrou
 export { ClaudeAgentSDKRepository } from '~/lib/domains/agentic/repositories/claude-agent-sdk.repository';
 export { ClaudeAgentSDKSandboxRepository } from '~/lib/domains/agentic/repositories/claude-agent-sdk-sandbox.repository';
 export { QueuedLLMRepository } from '~/lib/domains/agentic/repositories/queued-llm.repository';
+
+// Types for session manager integration
+export type { SandboxInstance } from '~/lib/domains/agentic/repositories/claude-agent-sdk-sandbox.repository';

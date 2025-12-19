@@ -10,7 +10,7 @@ interface MenuDropdownProps {
   onDelete?: () => void;
   onDeleteChildren?: () => void;
   onDeleteComposed?: () => void;
-  onDeleteExecutionHistory?: () => void;
+  onDeleteHexplan?: () => void;
   onClose?: () => void;
   onCopyCoordinates?: () => void;
   onHistory?: () => void;
@@ -26,7 +26,7 @@ export function _MenuDropdown({
   onDelete,
   onDeleteChildren,
   onDeleteComposed,
-  onDeleteExecutionHistory,
+  onDeleteHexplan,
   onClose,
   onCopyCoordinates,
   onHistory,
@@ -65,11 +65,11 @@ export function _MenuDropdown({
     });
   }
 
-  if (onDeleteExecutionHistory) {
+  if (onDeleteHexplan) {
     deleteSubmenuItems.push({
       icon: Clock,
-      label: 'Delete Exec History',
-      onClick: onDeleteExecutionHistory,
+      label: 'Delete Hexplan',
+      onClick: onDeleteHexplan,
       variant: 'destructive',
     });
   }

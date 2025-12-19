@@ -11,7 +11,7 @@ interface ActionMenuProps {
   onDelete?: () => void;
   onDeleteChildren?: () => void;
   onDeleteComposed?: () => void;
-  onDeleteExecutionHistory?: () => void;
+  onDeleteHexplan?: () => void;
   onClose?: () => void;
   onCopyCoordinates?: () => void;
   onHistory?: () => void;
@@ -25,7 +25,7 @@ export function ActionMenu({
   onDelete,
   onDeleteChildren,
   onDeleteComposed,
-  onDeleteExecutionHistory,
+  onDeleteHexplan,
   onClose,
   onCopyCoordinates,
   onHistory,
@@ -37,7 +37,7 @@ export function ActionMenu({
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
-  const hasActions = onEdit ?? onDelete ?? onDeleteChildren ?? onDeleteComposed ?? onDeleteExecutionHistory ?? onClose ?? onCopyCoordinates ?? onHistory ?? onSetVisibility ?? onSetVisibilityWithDescendants;
+  const hasActions = onEdit ?? onDelete ?? onDeleteChildren ?? onDeleteComposed ?? onDeleteHexplan ?? onClose ?? onCopyCoordinates ?? onHistory ?? onSetVisibility ?? onSetVisibilityWithDescendants;
 
   const _calculateMenuPosition = () => {
     if (!menuButtonRef.current) return null;
@@ -101,7 +101,7 @@ export function ActionMenu({
           onDelete={onDelete}
           onDeleteChildren={onDeleteChildren}
           onDeleteComposed={onDeleteComposed}
-          onDeleteExecutionHistory={onDeleteExecutionHistory}
+          onDeleteHexplan={onDeleteHexplan}
           onClose={onClose}
           onCopyCoordinates={onCopyCoordinates}
           onHistory={onHistory}

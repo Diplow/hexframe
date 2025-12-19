@@ -7,7 +7,7 @@
 // Domain services
 export { AgenticService } from '~/lib/domains/agentic/services/agentic.service';
 export { createAgenticService as AgenticFactory } from '~/lib/domains/agentic/services/agentic.factory';
-export { createAgenticService } from '~/lib/domains/agentic/services';
+export { createAgenticService, createAgenticServiceAsync } from '~/lib/domains/agentic/services';
 export { PreviewGeneratorService } from '~/lib/domains/agentic/services/preview-generator.service';
 export type { GeneratePreviewInput, GeneratePreviewResult } from '~/lib/domains/agentic/services/preview-generator.service';
 
@@ -56,3 +56,7 @@ export type {
 
 // Infrastructure (for setup)
 export { inngest, inngestFunctions } from '~/lib/domains/agentic/infrastructure';
+
+// Sandbox Session Manager
+export { sandboxSessionManager, SandboxSessionManager } from '~/lib/domains/agentic/services/sandbox-session';
+export type { SandboxSession, SandboxSessionManagerConfig, ISandboxSessionManager } from '~/lib/domains/agentic/services/sandbox-session';

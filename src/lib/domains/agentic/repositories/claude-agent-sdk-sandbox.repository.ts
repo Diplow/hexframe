@@ -16,6 +16,9 @@ import {
   getClaudeModels
 } from '~/lib/domains/agentic/repositories/_helpers/sdk-helpers'
 
+/** Sandbox instance type for external provision */
+export type SandboxInstance = Awaited<ReturnType<typeof Sandbox.create>>
+
 /**
  * Claude Agent SDK Repository using Vercel Sandbox for isolated execution
  *
@@ -26,26 +29,67 @@ import {
  * - VERCEL_TOKEN: Vercel access token for sandbox authentication
  * - ANTHROPIC_API_KEY: Anthropic API key for Claude models
  * - HEXFRAME_API_BASE_URL: Base URL for MCP server (optional, defaults to localhost)
+ *
+ * The repository can operate in two modes:
+ * 1. Self-owned sandbox: Creates and manages its own sandbox lifecycle (default)
+ * 2. External sandbox: Uses a pre-initialized sandbox provided by a session manager
  */
 export class ClaudeAgentSDKSandboxRepository implements ILLMRepository {
   private readonly apiKey: string
   private readonly mcpApiKey?: string
   private readonly userId?: string
-  private sandbox: Awaited<ReturnType<typeof Sandbox.create>> | null = null
+  private sandbox: SandboxInstance | null = null
+  private readonly sandboxOwnership: 'self' | 'external'
 
-  constructor(apiKey: string, mcpApiKey?: string, userId?: string) {
+  /**
+   * Create a new ClaudeAgentSDKSandboxRepository
+   *
+   * @param apiKey - Anthropic API key for Claude models
+   * @param mcpApiKey - Optional API key for MCP server authentication
+   * @param userId - Optional user ID for request tracking
+   * @param providedSandbox - Optional pre-initialized sandbox instance from session manager.
+   *                          If provided, the repository will use it directly without initialization.
+   *                          The sandbox must already have @anthropic-ai/claude-agent-sdk installed.
+   */
+  constructor(
+    apiKey: string,
+    mcpApiKey?: string,
+    userId?: string,
+    providedSandbox?: SandboxInstance
+  ) {
     this.apiKey = apiKey
     this.mcpApiKey = mcpApiKey
     this.userId = userId
+
+    if (providedSandbox) {
+      this.sandbox = providedSandbox
+      this.sandboxOwnership = 'external'
+      loggers.agentic('Using externally provided sandbox', {
+        sandboxId: providedSandbox.sandboxId,
+        userId
+      })
+    } else {
+      this.sandboxOwnership = 'self'
+    }
   }
 
   /**
-   * Initialize a Vercel Sandbox for isolated code execution
+   * Initialize a Vercel Sandbox for isolated code execution.
+   * Skips initialization if sandbox is already set (either from previous call or externally provided).
    */
   private async _initializeSandbox(): Promise<void> {
+    // Skip if sandbox already exists (either self-created or externally provided)
     if (this.sandbox) return
 
-    loggers.agentic('Initializing Vercel Sandbox', {
+    // External sandbox should have been provided in constructor - this is an error state
+    if (this.sandboxOwnership === 'external') {
+      throw this.createError(
+        'UNKNOWN',
+        'External sandbox was expected but not provided. Ensure session manager provides a valid sandbox instance.'
+      )
+    }
+
+    loggers.agentic('Initializing Vercel Sandbox (self-owned)', {
       hasVercelOidcToken: !!process.env.VERCEL_OIDC_TOKEN
     })
 
@@ -378,18 +422,36 @@ runAgent().catch(error => {
   }
 
   isConfigured(): boolean {
+    // If external sandbox is provided, consider it configured regardless of VERCEL_OIDC_TOKEN
+    // (the session manager handles sandbox creation/authentication)
+    if (this.sandboxOwnership === 'external' && this.sandbox) {
+      return Boolean(this.apiKey)
+    }
+    // For self-owned sandbox, require VERCEL_OIDC_TOKEN for sandbox creation
     return Boolean(this.apiKey) && Boolean(process.env.VERCEL_OIDC_TOKEN)
   }
 
   /**
-   * Cleanup sandbox resources
+   * Cleanup sandbox resources.
+   * Only cleans up self-owned sandboxes. Externally provided sandboxes are managed
+   * by the session manager and should not be terminated here.
    */
   async cleanup(): Promise<void> {
-    if (this.sandbox) {
-      loggers.agentic('Cleaning up Vercel Sandbox')
-      // Sandbox cleanup is handled automatically by Vercel
-      this.sandbox = null
+    if (!this.sandbox) return
+
+    if (this.sandboxOwnership === 'external') {
+      loggers.agentic('Skipping cleanup for externally provided sandbox', {
+        sandboxId: this.sandbox.sandboxId
+      })
+      // Do NOT nullify or terminate - session manager owns the lifecycle
+      return
     }
+
+    loggers.agentic('Cleaning up self-owned Vercel Sandbox', {
+      sandboxId: this.sandbox.sandboxId
+    })
+    // Sandbox cleanup is handled automatically by Vercel
+    this.sandbox = null
   }
 
   private createError(

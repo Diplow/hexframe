@@ -20,7 +20,7 @@ export interface TileActionsContextValue {
   onDeleteClick?: (tileData: TileData) => void;
   onDeleteChildrenClick?: (tileData: TileData) => void;
   onDeleteComposedClick?: (tileData: TileData) => void;
-  onDeleteExecutionHistoryClick?: (tileData: TileData) => void;
+  onDeleteHexplanClick?: (tileData: TileData) => void;
   onCompositionToggle?: (tileData: TileData) => void;
   onTileDragStart: (tileData: TileData) => void;
   onTileDrop: (tileData: TileData) => void;
@@ -48,7 +48,7 @@ interface TileActionsProviderProps {
   onDeleteClick?: (tileData: TileData) => void;
   onDeleteChildrenClick?: (tileData: TileData) => void;
   onDeleteComposedClick?: (tileData: TileData) => void;
-  onDeleteExecutionHistoryClick?: (tileData: TileData) => void;
+  onDeleteHexplanClick?: (tileData: TileData) => void;
   onCompositionToggle?: (tileData: TileData) => void;
   onSetVisibility?: (tileData: TileData, visibility: Visibility) => void;
   onSetVisibilityWithDescendants?: (tileData: TileData, visibility: Visibility) => void;
@@ -96,7 +96,7 @@ function useDragMenuHandlers(closeContextMenu: () => void) {
 export function TileActionsProvider(props: TileActionsProviderProps) {
   const {
     children, onSelectClick, onNavigateClick, onExpandClick, onCreateClick, onEditClick,
-    onDeleteClick, onDeleteChildrenClick, onDeleteComposedClick, onDeleteExecutionHistoryClick,
+    onDeleteClick, onDeleteChildrenClick, onDeleteComposedClick, onDeleteHexplanClick,
     onCompositionToggle, onSetVisibility, onSetVisibilityWithDescendants, hasComposition,
     isCompositionExpanded, canShowComposition, onAddFavorite, onRemoveFavorite, isFavorited, onEditShortcut,
   } = props;
@@ -119,11 +119,11 @@ export function TileActionsProvider(props: TileActionsProviderProps) {
   const value = useMemo(() => ({
     onTileClick, onTileDoubleClick, onTileRightClick, onTileHover, onTileDragStart, onTileDrop, isDragging,
     onSelectClick, onNavigateClick, onExpandClick, onCreateClick, onEditClick, onDeleteClick,
-    onDeleteChildrenClick, onDeleteComposedClick, onDeleteExecutionHistoryClick, onCompositionToggle, isFavorited,
+    onDeleteChildrenClick, onDeleteComposedClick, onDeleteHexplanClick, onCompositionToggle, isFavorited,
   }), [
     onTileClick, onTileDoubleClick, onTileRightClick, onTileHover, onTileDragStart, onTileDrop, isDragging,
     onSelectClick, onNavigateClick, onExpandClick, onCreateClick, onEditClick, onDeleteClick,
-    onDeleteChildrenClick, onDeleteComposedClick, onDeleteExecutionHistoryClick, onCompositionToggle, isFavorited,
+    onDeleteChildrenClick, onDeleteComposedClick, onDeleteHexplanClick, onCompositionToggle, isFavorited,
   ]);
 
   return (
@@ -140,7 +140,7 @@ export function TileActionsProvider(props: TileActionsProviderProps) {
         onDeleteClick={onDeleteClick}
         onDeleteChildrenClick={onDeleteChildrenClick}
         onDeleteComposedClick={onDeleteComposedClick}
-        onDeleteExecutionHistoryClick={onDeleteExecutionHistoryClick}
+        onDeleteHexplanClick={onDeleteHexplanClick}
         onCopyClick={handleCopyToClick}
         onMoveClick={handleMoveToClick}
         onCopyCoordinatesSuccess={triggerSuccess}

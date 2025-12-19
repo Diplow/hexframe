@@ -749,6 +749,11 @@ Returns XML-formatted prompt ready for agent execution.`,
         instruction: {
           type: "string",
           description: "Optional runtime instruction to include in execution"
+        },
+        deleteHexplan: {
+          type: "boolean",
+          description: "If true, removes all hexplan tiles (direction-0) before execution for a fresh start. Default: false",
+          default: false
         }
       },
       required: ["taskCoords"],
@@ -757,6 +762,7 @@ Returns XML-formatted prompt ready for agent execution.`,
       const argsObj = args as Record<string, unknown>;
       const taskCoords = argsObj?.taskCoords as string;
       const instruction = argsObj?.instruction as string | undefined;
+      const deleteHexplan = argsObj?.deleteHexplan as boolean | undefined;
 
       if (!taskCoords) {
         throw new Error("taskCoords parameter is required");
@@ -764,7 +770,8 @@ Returns XML-formatted prompt ready for agent execution.`,
 
       const result = await caller.agentic.hexecute({
         taskCoords,
-        instruction
+        instruction,
+        deleteHexplan: deleteHexplan ?? false
       });
 
       return result;

@@ -41,18 +41,18 @@ interface DeleteSubmenuCallbacks {
   onDelete?: () => void;
   onDeleteChildren?: () => void;
   onDeleteComposed?: () => void;
-  onDeleteExecutionHistory?: () => void;
+  onDeleteHexplan?: () => void;
 }
 
 export function _buildDeleteSubmenu(canEdit: boolean, callbacks: DeleteSubmenuCallbacks): MenuItem[] {
-  const { onDelete, onDeleteChildren, onDeleteComposed, onDeleteExecutionHistory } = callbacks;
+  const { onDelete, onDeleteChildren, onDeleteComposed, onDeleteHexplan } = callbacks;
   if (!canEdit) return [];
 
   const submenuItems: MenuItem[] = [];
   if (onDelete) submenuItems.push({ icon: Trash2, label: "Delete Tile", shortcut: "", onClick: onDelete, variant: "destructive" });
   if (onDeleteChildren) submenuItems.push({ icon: FolderTree, label: "Delete Children", shortcut: "", onClick: onDeleteChildren, variant: "destructive" });
   if (onDeleteComposed) submenuItems.push({ icon: Layers, label: "Delete Composed", shortcut: "", onClick: onDeleteComposed, variant: "destructive" });
-  if (onDeleteExecutionHistory) submenuItems.push({ icon: Clock, label: "Delete Exec History", shortcut: "", onClick: onDeleteExecutionHistory, variant: "destructive" });
+  if (onDeleteHexplan) submenuItems.push({ icon: Clock, label: "Delete Hexplan", shortcut: "", onClick: onDeleteHexplan, variant: "destructive" });
 
   if (submenuItems.length === 1 && onDelete) {
     return [{ icon: Trash2, label: "Delete", shortcut: "", onClick: onDelete, variant: "destructive" }];
