@@ -12,6 +12,7 @@ import { useEventBus, type EventBusService } from '~/app/map';
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 import type { Visibility } from '~/lib/domains/mapping/utils';
 import { api } from "~/commons/trpc/react";
+import { useAuth } from "~/contexts/AuthContext";
 
 interface MapUIProps {
   centerParam?: string;
@@ -191,11 +192,14 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
   } = cache;
   const router = useRouter();
   const eventBus = useEventBus();
+  const { user } = useAuth();
 
   // Favorites state and mutations
   // Store by coordId (string) for efficient lookup from tile context
   const [favoritedCoordIds, setFavoritedCoordIds] = useState<Set<string>>(new Set());
-  const favoritesQuery = api.favorites.listWithPreviews.useQuery(undefined);
+  const favoritesQuery = api.favorites.listWithPreviews.useQuery(undefined, {
+    enabled: !!user,
+  });
 
   // Sync favorites data to local state when query data changes
   useEffect(() => {
