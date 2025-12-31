@@ -9,6 +9,7 @@ import {
   useEventProcessor,
   useAutocompleteLogic,
   useMessageHandling,
+  useStreamingTaskExecution,
 } from '~/app/map/Chat/Input/_hooks';
 import { useChatInputService } from '~/app/map/Chat/Input/_services/chatInputService';
 import { loggers } from '~/lib/debug/debug-logger';
@@ -33,31 +34,8 @@ export function Input() {
   });
   const favorites = favoritesQuery.data ?? [];
 
-  // Execute task mutation for @mention handling
-  const executeTaskMutation = api.agentic.executeTask.useMutation({
-    onSuccess: (data) => {
-      // Show the AI response in a widget
-      if (data && chatState.showAIResponseWidget) {
-        chatState.showAIResponseWidget({
-          initialResponse: data.content ?? 'Task executed successfully',
-          model: data.model,
-        });
-      }
-    },
-    onError: (error) => {
-      chatState.showSystemMessage(`Failed to execute task: ${error.message}`, 'error');
-    },
-  });
-
-  // Callback to execute a task by coordinates
-  const executeTask = useCallback((taskCoords: string, instruction: string) => {
-    executeTaskMutation.mutate({
-      taskCoords,
-      instruction: instruction || undefined,
-    });
-    // Show loading indicator
-    chatState.showSystemMessage(`Executing task...`, 'info');
-  }, [executeTaskMutation, chatState]);
+  // Streaming task execution for @mention handling
+  const { executeTask } = useStreamingTaskExecution({ chatState });
 
   // Track authentication state via EventBus
   useEffect(() => {

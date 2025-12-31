@@ -29,7 +29,7 @@ export interface ConnectionRefs {
   callbacks: React.RefObject<StreamingCallbacks>
 }
 
-const STREAMING_ENDPOINT = '/api/streaming/execute'
+const STREAMING_ENDPOINT = '/api/stream/execute-task'
 
 /** Build the EventSource URL with query parameters */
 export function _buildStreamingUrl(taskCoords: string, instruction?: string): string {

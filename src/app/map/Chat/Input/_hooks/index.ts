@@ -16,3 +16,6 @@ export { useTextareaController } from '~/app/map/Chat/Input/_hooks/input-control
 // Messages
 export { useEventProcessor } from '~/app/map/Chat/Input/_hooks/messages/useEventProcessor';
 export { useMessageHandling } from '~/app/map/Chat/Input/_hooks/messages/useMessageHandling';
+
+// Streaming
+export { useStreamingTaskExecution } from '~/app/map/Chat/Input/_hooks/streaming/useStreamingTaskExecution';
