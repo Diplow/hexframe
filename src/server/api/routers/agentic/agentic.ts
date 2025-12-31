@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createTRPCRouter, protectedProcedure, publicProcedure, mappingServiceMiddleware, agenticServiceMiddleware } from '~/server/api/trpc'
+import { createTRPCRouter, protectedProcedure, softAuthProcedure, mappingServiceMiddleware, agenticServiceMiddleware } from '~/server/api/trpc'
 import { verificationAwareRateLimit, verificationAwareAuthLimit } from '~/server/api/middleware'
 import { createAgenticService, type CompositionConfig, PreviewGeneratorService, OpenRouterRepository, type ChatMessageContract } from '~/lib/domains/agentic'
 import { buildPrompt, generateParentHexplanContent, generateLeafHexplanContent } from '~/lib/domains/agentic/utils'
@@ -432,7 +432,7 @@ export const agenticRouter = createTRPCRouter({
         // Generate hexplan content based on tile type
         const hasSubtasks = hexecuteContext.structuralChildren.length > 0
         hexPlanContent = hasSubtasks
-          ? generateParentHexplanContent(hexecuteContext.structuralChildren)
+          ? generateParentHexplanContent(hexecuteContext.structuralChildren, hexecuteContext.allLeafTasks)
           : generateLeafHexplanContent(hexecuteContext.task.title, instruction)
 
         // Create the hexplan tile
@@ -453,6 +453,7 @@ export const agenticRouter = createTRPCRouter({
             content: hexecuteContext.task.content || undefined,
             coords: taskCoords
           },
+          ancestors: hexecuteContext.ancestors,
           composedChildren: hexecuteContext.composedChildren.map(child => ({
             title: child.title,
             content: child.content,
@@ -460,7 +461,8 @@ export const agenticRouter = createTRPCRouter({
           })),
           structuralChildren: hexecuteContext.structuralChildren,
           hexPlan: hexPlanContent,
-          mcpServerName: env.HEXFRAME_MCP_SERVER
+          mcpServerName: env.HEXFRAME_MCP_SERVER,
+          allLeafTasks: hexecuteContext.allLeafTasks
         })
       } catch (error) {
         console.error(`Failed to build prompt for task at ${taskCoords}:`, error)
@@ -551,17 +553,30 @@ export const agenticRouter = createTRPCRouter({
     }),
 
   // Execute a task using its composed children for guidance
-  hexecute: publicProcedure
+  // Uses softAuthProcedure to support both authenticated (API key/session) and anonymous access
+  // This ensures authenticated users can access their private tiles via MCP
+  hexecute: softAuthProcedure
     .use(mappingServiceMiddleware)
     .input(
       z.object({
         taskCoords: z.string(),
-        instruction: z.string().optional()
+        instruction: z.string().optional(),
+        deleteHexplan: z.boolean().default(false)
       })
     )
     .query(async ({ input, ctx }) => {
-      const { instruction, taskCoords } = input
+      const { instruction, taskCoords, deleteHexplan } = input
       const requester = _getRequesterUserId(ctx.user)
+
+      // If deleteHexplan is true, remove all hexplan tiles (direction-0) before proceeding
+      // Uses existing service method that handles recursive hexplan deletion
+      if (deleteHexplan) {
+        const taskCoord = CoordSystem.parseId(taskCoords)
+        await ctx.mappingService.items.crud.removeChildrenByType({
+          coords: taskCoord,
+          directionType: 'hexPlan'
+        })
+      }
 
       // 1. Get all data from mapping service (single optimized query)
       const hexecuteContext = await ctx.mappingService.context.getHexecuteContext(
@@ -586,7 +601,7 @@ export const agenticRouter = createTRPCRouter({
         // Generate hexplan content based on tile type
         const hasSubtasks = hexecuteContext.structuralChildren.length > 0
         hexPlanContent = hasSubtasks
-          ? generateParentHexplanContent(hexecuteContext.structuralChildren)
+          ? generateParentHexplanContent(hexecuteContext.structuralChildren, hexecuteContext.allLeafTasks)
           : generateLeafHexplanContent(hexecuteContext.task.title, instruction)
 
         // Create the hexplan tile
@@ -607,6 +622,7 @@ export const agenticRouter = createTRPCRouter({
             content: hexecuteContext.task.content || undefined,
             coords: taskCoords
           },
+          ancestors: hexecuteContext.ancestors,
           composedChildren: hexecuteContext.composedChildren.map(child => ({
             title: child.title,
             content: child.content,
@@ -614,7 +630,8 @@ export const agenticRouter = createTRPCRouter({
           })),
           structuralChildren: hexecuteContext.structuralChildren,
           hexPlan: hexPlanContent,
-          mcpServerName: env.HEXFRAME_MCP_SERVER
+          mcpServerName: env.HEXFRAME_MCP_SERVER,
+          allLeafTasks: hexecuteContext.allLeafTasks
         })
       } catch (error) {
         console.error(`Failed to build prompt for task at ${taskCoords}:`, error)

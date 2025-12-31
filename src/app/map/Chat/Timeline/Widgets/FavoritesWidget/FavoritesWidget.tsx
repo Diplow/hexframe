@@ -7,6 +7,7 @@ import { api } from '~/commons/trpc/react';
 import { BaseWidget, WidgetHeader, WidgetContent } from '~/app/map/Chat/Timeline/Widgets/_shared';
 import { FavoriteListItem, FavoritesSearchControls, filterFavorites, sortFavorites, type FavoritesSortOrder } from '~/app/map/Favorites';
 import { useMapCacheNavigation } from '~/app/map/Cache';
+import { useAuth } from '~/contexts/AuthContext';
 
 interface FavoritesWidgetProps {
   onClose?: () => void;
@@ -23,8 +24,11 @@ export function FavoritesWidget({ onClose, editShortcutForMapItemId, onInsertToC
   const [editingFavoriteId, setEditingFavoriteId] = useState<string | null>(null);
   const [shortcutSaveError, setShortcutSaveError] = useState<string | undefined>();
   const { navigateToItem } = useMapCacheNavigation();
+  const { user } = useAuth();
 
-  const favoritesQuery = api.favorites.listWithPreviews.useQuery(undefined);
+  const favoritesQuery = api.favorites.listWithPreviews.useQuery(undefined, {
+    enabled: !!user,
+  });
   const removeFavoriteMutation = api.favorites.removeByMapItem.useMutation({
     onSuccess: () => {
       void favoritesQuery.refetch();
