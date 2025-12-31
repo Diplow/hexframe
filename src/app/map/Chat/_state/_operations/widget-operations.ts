@@ -1,4 +1,4 @@
-import type { ChatEvent } from '~/app/map/Chat/_state/_events/event.types';
+import type { ChatEvent, ToolCallWidgetData } from '~/app/map/Chat/_state/_events/event.types';
 
 /**
  * Widget-related operations
@@ -76,6 +76,38 @@ export function createWidgetOperations(dispatch: (event: ChatEvent) => void) {
         id: `chat-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         timestamp: new Date(),
         actor: 'user',
+      });
+    },
+    showToolCallWidget(data: Omit<ToolCallWidgetData, 'status' | 'result'>) {
+      const widget = {
+        id: `tool-call-${data.toolCallId}`,
+        type: 'tool-call' as const,
+        data: {
+          ...data,
+          status: 'running' as const,
+        },
+        priority: 'info' as const,
+        timestamp: new Date(),
+      };
+      dispatch({
+        type: 'widget_created' as const,
+        payload: { widget },
+        id: `chat-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        timestamp: new Date(),
+        actor: 'assistant' as const,
+      });
+    },
+    updateToolCallWidget(toolCallId: string, result: string, success: boolean) {
+      dispatch({
+        type: 'widget_resolved' as const,
+        payload: {
+          widgetId: `tool-call-${toolCallId}`,
+          result,
+          status: success ? 'completed' : 'failed',
+        },
+        id: `chat-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        timestamp: new Date(),
+        actor: 'assistant' as const,
       });
     },
   };
