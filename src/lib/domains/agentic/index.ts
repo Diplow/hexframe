@@ -54,9 +54,35 @@ export type {
   JobResult,
 } from '~/lib/domains/agentic/types/job.types';
 
+// Streaming types
+export type {
+  StreamEvent,
+  TextDeltaEvent,
+  ToolCallStartEvent,
+  ToolCallDeltaEvent,
+  ToolCallEndEvent,
+  TileMutationEvent,
+  StreamErrorEvent,
+  StreamDoneEvent,
+  StreamEventType,
+  StreamErrorCode,
+  TileCoordinates,
+} from '~/lib/domains/agentic/types/stream.types';
+
+export {
+  isTextDeltaEvent,
+  isToolCallEvent,
+  isTileMutationEvent,
+  isStreamTerminalEvent,
+} from '~/lib/domains/agentic/types/stream.types';
+
 // Infrastructure (for setup)
 export { inngest, inngestFunctions } from '~/lib/domains/agentic/infrastructure';
 
 // Sandbox Session Manager
 export { sandboxSessionManager, SandboxSessionManager } from '~/lib/domains/agentic/services/sandbox-session';
 export type { SandboxSession, SandboxSessionManagerConfig, ISandboxSessionManager } from '~/lib/domains/agentic/services/sandbox-session';
+
+// Stream processor
+export { processTaskStream } from '~/lib/domains/agentic/services/stream-processor.service';
+export type { StreamContext } from '~/lib/domains/agentic/services/stream-processor.service';
