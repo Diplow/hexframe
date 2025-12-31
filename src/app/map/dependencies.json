@@ -15,6 +15,7 @@
     "remark-gfm",
     "~/app/services",
     "~/commons/trpc/react",
+    "~/contexts/AuthContext",
     "~/contexts/UnifiedAuthContext",
     "~/server/api",
     "~/lib/auth",
