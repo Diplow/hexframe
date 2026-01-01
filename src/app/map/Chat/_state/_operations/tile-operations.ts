@@ -1,4 +1,4 @@
-import type { ChatEvent } from '~/app/map/Chat/_state/_events/event.types';
+import type { ChatEvent } from '~/app/map/Chat/_state/_events';
 import type { TileData } from '~/app/map/types';
 
 /**

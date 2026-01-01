@@ -4,7 +4,8 @@
     "~/app/map/Services/EventBus"
   ],
   "subsystems": [
-    "./docs"
+    "./docs",
+    "./_events"
   ],
   "exceptions": {}
 }

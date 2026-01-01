@@ -22,6 +22,7 @@ The types directory is like a "type library" or "contract catalog" - a centraliz
 - **context.types.ts**: Context composition and serialization contracts - canvas/chat contexts, strategies, serialization formats
 - **contracts.ts**: External domain contracts - chat message types shared with other domains
 - **job.types.ts**: Job queue and async processing types - generation job states, queue configurations
+- **stream.types.ts**: Real-time streaming event types - SSE event contracts between backend and frontend
 - **errors.ts**: Error definitions and error handling types
 - **index.ts**: Central export point - re-exports all types for domain-wide consumption
 
@@ -31,6 +32,7 @@ The types directory is like a "type library" or "contract catalog" - a centraliz
 - `SDKQueryOptions`, `SDKStreamEvent`, `SDKResult`: Claude Agent SDK types
 - `ComposedContext`, `ContextStrategy`: Context composition types
 - `StreamChunk`, `ModelInfo`, `LLMError`: Supporting types
+- `StreamEvent`, `TileMutationEvent`, `ToolCallStartEvent`: Real-time streaming event types
 
 **Dependencies**: This subsystem has minimal dependencies and primarily defines types.
 

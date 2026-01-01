@@ -23,6 +23,7 @@ export {
   ItemHistoryService,
   ItemContextService,
   MappingUtils,
+  type HexecuteContext,
 } from '~/lib/domains/mapping/services';
 
 // Infrastructure (server-only - contains database connections)

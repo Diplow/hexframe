@@ -54,9 +54,45 @@ export type {
   JobResult,
 } from '~/lib/domains/agentic/types/job.types';
 
+// Streaming types
+export type {
+  StreamEvent,
+  TextDeltaEvent,
+  ToolCallStartEvent,
+  ToolCallDeltaEvent,
+  ToolCallEndEvent,
+  TileMutationEvent,
+  StreamErrorEvent,
+  StreamDoneEvent,
+  StreamEventType,
+  StreamErrorCode,
+  TileCoordinates,
+} from '~/lib/domains/agentic/types/stream.types';
+
+export {
+  isTextDeltaEvent,
+  isToolCallEvent,
+  isTileMutationEvent,
+  isStreamTerminalEvent,
+} from '~/lib/domains/agentic/types/stream.types';
+
 // Infrastructure (for setup)
 export { inngest, inngestFunctions } from '~/lib/domains/agentic/infrastructure';
 
 // Sandbox Session Manager
 export { sandboxSessionManager, SandboxSessionManager } from '~/lib/domains/agentic/services/sandbox-session';
 export type { SandboxSession, SandboxSessionManagerConfig, ISandboxSessionManager } from '~/lib/domains/agentic/services/sandbox-session';
+
+// Task execution (pure agentic streaming)
+export { executeTaskStreaming } from '~/lib/domains/agentic/services/task-execution.service';
+export type {
+  TaskExecutionInput,
+  TaskTile,
+  ComposedChildTile,
+  StructuralChildTile,
+  AncestorTile,
+  LeafTask,
+} from '~/lib/domains/agentic/services/task-execution.service';
+
+// Note: For hexplan generation utilities (generateParentHexplanContent, generateLeafHexplanContent),
+// import directly from '~/lib/domains/agentic/utils' - the domain index should not reexport utils.

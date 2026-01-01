@@ -34,6 +34,20 @@ The MutationCoordinator manages this entire flow, ensuring:
 - Server is notified
 - Rollback on failure
 
+### Real-time Tile Mutation Handling
+
+The cache subscribes to tile mutation events from external sources (e.g., agent execution via MCP):
+```
+External Mutation → Event Bus → Tile Mutation Handler → Fetch/Delete → Cache Update
+```
+
+Event types handled:
+- `map.tile_created`: Fetches the new tile and adds it to cache
+- `map.tile_updated`: Fetches the updated tile and refreshes cache
+- `map.tile_deleted`: Removes the tile from cache immediately
+
+Only events from external sources (like `agentic`) are processed to avoid double-handling events already managed by the MutationCoordinator.
+
 ## Public API
 
 **Note:** This subsystem is NOT part of the public Cache API. It's used internally by:
@@ -70,6 +84,7 @@ createSyncOperationsAPI(...)
     - `center-change-handler.ts`: Handle center changes and deferred prefetching
     - `drag-handlers.ts`: Drag-and-drop operation handlers
     - `prefetch-operations.ts`: Background prefetch operations
+    - `tile-mutation-handler.ts`: Handle real-time tile mutations from external sources (e.g., agent execution)
 
 - **`MutationCoordinator/`**: Mutation operation coordination (subsystem)
   - See [MutationCoordinator/README.md](./MutationCoordinator/README.md)

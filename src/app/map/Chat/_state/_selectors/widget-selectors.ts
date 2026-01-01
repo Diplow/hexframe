@@ -1,4 +1,4 @@
-import type { ChatEvent, Widget, OperationStartedPayload, OperationCompletedPayload, TileSelectedPayload, AuthRequiredPayload, ErrorOccurredPayload } from '~/app/map/Chat/_state/_events/event.types';
+import type { ChatEvent, Widget, OperationStartedPayload, OperationCompletedPayload, TileSelectedPayload, AuthRequiredPayload, ErrorOccurredPayload } from '~/app/map/Chat/_state/_events';
 import { chatSettings } from '~/app/map/Chat/_settings/chat-settings';
 
 /**
@@ -184,6 +184,52 @@ function _processWidgetStates(events: ChatEvent[]): {
 }
 
 /**
+ * Track widget updates for applying to final widget data
+ */
+interface WidgetUpdates {
+  updates: Map<string, Record<string, unknown>>;
+}
+
+/**
+ * Process widget_updated events to collect updates
+ */
+function _processWidgetUpdates(events: ChatEvent[]): WidgetUpdates {
+  const updates = new Map<string, Record<string, unknown>>();
+
+  for (const event of events) {
+    if (event.type === 'widget_updated') {
+      const payload = event.payload as { widgetId: string; updates: Record<string, unknown> };
+      if (payload && typeof payload === 'object' && 'widgetId' in payload && 'updates' in payload) {
+        // Merge updates for the same widget
+        const existingUpdates = updates.get(payload.widgetId) ?? {};
+        updates.set(payload.widgetId, { ...existingUpdates, ...payload.updates });
+      }
+    }
+  }
+
+  return { updates };
+}
+
+/**
+ * Apply updates to widget data
+ */
+function _applyWidgetUpdates(widgets: Widget[], widgetUpdates: WidgetUpdates): Widget[] {
+  return widgets.map(widget => {
+    const updates = widgetUpdates.updates.get(widget.id);
+    if (updates) {
+      return {
+        ...widget,
+        data: {
+          ...(widget.data as Record<string, unknown>),
+          ...updates,
+        },
+      };
+    }
+    return widget;
+  });
+}
+
+/**
  * Create tile widget from tile selection event
  */
 function _createTileWidget(event: ChatEvent, widgetStates: Map<string, 'active' | 'completed'>): Widget | null {
@@ -363,16 +409,22 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
   // Process events to determine widget states
   const { widgetStates } = _processWidgetStates(events);
 
-  // Convert active widget states to widget objects
-  const widgets = _createWidgetsFromStates(events, widgetStates);
+  // Process widget_updated events
+  const widgetUpdates = _processWidgetUpdates(events);
 
-  // Return only the most recent widget of each type (except AI responses which should all persist)
+  // Convert active widget states to widget objects
+  let widgets = _createWidgetsFromStates(events, widgetStates);
+
+  // Apply updates to widgets
+  widgets = _applyWidgetUpdates(widgets, widgetUpdates);
+
+  // Return only the most recent widget of each type (except AI responses and tool-call which should all persist)
   const latestWidgets = new Map<string, Widget>();
 
   for (const widget of widgets) {
-    // Each AI response widget should be unique (keep all of them)
-    const key = widget.type === 'ai-response'
-      ? widget.id  // Use widget ID to keep all AI responses
+    // Each AI response and tool-call widget should be unique (keep all of them)
+    const key = widget.type === 'ai-response' || widget.type === 'tool-call'
+      ? widget.id  // Use widget ID to keep all of these
       : widget.type === 'tile'
         ? `${widget.type}-${(widget.data as TileSelectedPayload).tileId}`
         : widget.type;
