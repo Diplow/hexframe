@@ -69,16 +69,11 @@ export function createStreamingChatCallbacks(
       chatState.updateToolCallWidget(toolCallId, resultContent, success)
     },
 
-    onDone: (event) => {
+    onDone: (_event) => {
       // Finalize the streaming message with accumulated content
-      // Note: StreamDoneEvent only has totalTokens, not separate input/output
-      chatState.finalizeStreamingMessage(
-        streamId,
-        accumulatedContent,
-        event.totalTokens ? {
-          outputTokens: event.totalTokens,
-        } : undefined
-      )
+      // Note: StreamDoneEvent only has totalTokens (input+output combined),
+      // not separate counts, so we omit token usage rather than report incorrect values
+      chatState.finalizeStreamingMessage(streamId, accumulatedContent)
 
       onDone?.()
     },
