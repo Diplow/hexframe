@@ -70,7 +70,7 @@ export function handleStreamingMessageEvents(
       const messageId = streamState?.startEventId ?? event.id;
 
       // Add finalized message to messages array with isStreaming: false
-      const finalizedMessage = {
+      const finalizedMessage: Message & { isStreaming: false } = {
         id: messageId,
         content: messageContent,
         actor: 'assistant' as const,
