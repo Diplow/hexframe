@@ -75,8 +75,7 @@ describe("TypeSelectorField Component", () => {
       );
 
       const select = screen.getByRole("combobox");
-      await userEvent.click(select);
-      await userEvent.click(screen.getByText("System"));
+      await userEvent.selectOptions(select, "system");
 
       expect(handleChange).toHaveBeenCalledWith("system");
     });
@@ -95,8 +94,7 @@ describe("TypeSelectorField Component", () => {
       );
 
       const select = screen.getByRole("combobox");
-      await userEvent.click(select);
-      await userEvent.click(screen.getByText("Context"));
+      await userEvent.selectOptions(select, "context");
 
       // onChange should not be called for same value
       expect(handleChange).not.toHaveBeenCalled();
@@ -120,24 +118,25 @@ describe("TypeSelectorField Component", () => {
       expect(screen.getByRole("combobox")).toBeDisabled();
     });
 
-    it("should not open dropdown when disabled", async () => {
+    it("should not allow selection when disabled", async () => {
       const { _TypeSelectorField } = await import(
         "~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/form/_TypeSelectorField"
       );
 
+      const handleChange = vi.fn();
       render(
         <_TypeSelectorField
           value="context"
-          onChange={vi.fn()}
+          onChange={handleChange}
           disabled={true}
         />
       );
 
-      const select = screen.getByRole("combobox");
-      await userEvent.click(select);
+      const select = screen.getByRole("combobox") as HTMLSelectElement;
 
-      // Options should not be visible
-      expect(screen.queryByText("Organizational")).not.toBeInTheDocument();
+      // Native selects are always in the DOM, but disabled selects
+      // won't trigger onChange when interacted with
+      expect(select.disabled).toBe(true);
     });
   });
 });
@@ -195,7 +194,7 @@ describe("TileForm with TypeSelector", () => {
         title="Root Tile"
         preview=""
         content=""
-        itemType="user"
+        itemType="context"
         isUserTile={true}
         onPreviewChange={vi.fn()}
         onContentChange={vi.fn()}
@@ -231,128 +230,91 @@ describe("TileForm with TypeSelector", () => {
     );
 
     const select = screen.getByRole("combobox");
-    await userEvent.click(select);
-    await userEvent.click(screen.getByText("System"));
+    await userEvent.selectOptions(select, "system");
 
     expect(handleItemTypeChange).toHaveBeenCalledWith("system");
   });
 });
 
 describe("useTileState hook - itemType state", () => {
-  it("should initialize editItemType from tile prop", async () => {
+  it("should initialize itemType from prop", async () => {
     const { renderHook } = await import("@testing-library/react");
     const { useTileState } = await import(
       "~/app/map/Chat/Timeline/Widgets/TileWidget/useTileState"
     );
 
-    const mockTile = {
-      id: "1",
-      title: "Test Tile",
-      preview: "Preview",
-      content: "Content",
-      itemType: "organizational",
-    };
-
     const { result } = renderHook(() =>
       useTileState({
-        tile: mockTile,
-        isEditing: false,
-        onSave: vi.fn(),
+        title: "Test Tile",
+        preview: "Preview",
+        content: "Content",
+        itemType: "organizational",
+        tileId: "1",
       })
     );
 
-    expect(result.current.editItemType).toBe("organizational");
+    expect(result.current.editing.itemType).toBe("organizational");
   });
 
-  it("should default editItemType to 'context' when tile has no itemType", async () => {
+  it("should default itemType to 'context' when prop is null", async () => {
     const { renderHook } = await import("@testing-library/react");
     const { useTileState } = await import(
       "~/app/map/Chat/Timeline/Widgets/TileWidget/useTileState"
     );
 
-    const mockTile = {
-      id: "1",
-      title: "Test Tile",
-      preview: "Preview",
-      content: "Content",
-      itemType: null,
-    };
-
     const { result } = renderHook(() =>
       useTileState({
-        tile: mockTile,
-        isEditing: false,
-        onSave: vi.fn(),
+        title: "Test Tile",
+        preview: "Preview",
+        content: "Content",
+        itemType: null,
+        tileId: "1",
       })
     );
 
-    expect(result.current.editItemType).toBe("context");
+    expect(result.current.editing.itemType).toBe("context");
   });
 
-  it("should update editItemType when setEditItemType is called", async () => {
+  it("should update itemType when setItemType is called", async () => {
     const { renderHook, act } = await import("@testing-library/react");
     const { useTileState } = await import(
       "~/app/map/Chat/Timeline/Widgets/TileWidget/useTileState"
     );
 
-    const mockTile = {
-      id: "1",
-      title: "Test Tile",
-      preview: "Preview",
-      content: "Content",
-      itemType: "context",
-    };
-
     const { result } = renderHook(() =>
       useTileState({
-        tile: mockTile,
-        isEditing: false,
-        onSave: vi.fn(),
+        title: "Test Tile",
+        preview: "Preview",
+        content: "Content",
+        itemType: "context",
+        tileId: "1",
       })
     );
 
     act(() => {
-      result.current.setEditItemType("system");
+      result.current.editing.setItemType("system");
     });
 
-    expect(result.current.editItemType).toBe("system");
+    expect(result.current.editing.itemType).toBe("system");
   });
 
-  it("should include itemType in save callback", async () => {
-    const { renderHook, act } = await import("@testing-library/react");
+  it("should default itemType to 'context' when prop is user type", async () => {
+    const { renderHook } = await import("@testing-library/react");
     const { useTileState } = await import(
       "~/app/map/Chat/Timeline/Widgets/TileWidget/useTileState"
     );
 
-    const mockOnSave = vi.fn();
-    const mockTile = {
-      id: "1",
-      title: "Test Tile",
-      preview: "Preview",
-      content: "Content",
-      itemType: "context",
-    };
-
     const { result } = renderHook(() =>
       useTileState({
-        tile: mockTile,
-        isEditing: true,
-        onSave: mockOnSave,
+        title: "Root Tile",
+        preview: "",
+        content: "",
+        itemType: "user",
+        tileId: "root",
       })
     );
 
-    act(() => {
-      result.current.setEditItemType("system");
-    });
-
-    act(() => {
-      result.current.handleSave();
-    });
-
-    expect(mockOnSave).toHaveBeenCalledWith(
-      expect.objectContaining({
-        itemType: "system",
-      })
-    );
+    // USER type is not editable, so it defaults to 'context'
+    expect(result.current.editing.itemType).toBe("context");
   });
 });

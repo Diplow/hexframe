@@ -23,6 +23,9 @@ import { CoordSystem } from '~/lib/domains/mapping/utils';
 import { getColor } from '~/app/map/types';
 import type { Visibility } from '~/lib/domains/mapping/utils';
 
+type EditableItemType = 'organizational' | 'context' | 'system';
+type ItemType = EditableItemType | 'user' | null;
+
 interface TileWidgetProps {
   mode?: 'view' | 'edit' | 'create' | 'delete' | 'delete_children' | 'history';
   tileId?: string;
@@ -30,6 +33,7 @@ interface TileWidgetProps {
   title?: string;
   preview?: string;
   content?: string;
+  itemType?: ItemType;
   forceExpanded?: boolean;
   openInEditMode?: boolean;
   tileColor?: string;
@@ -44,7 +48,7 @@ interface TileWidgetProps {
   onDeleteHexplan?: () => void;
   onSetVisibility?: (visibility: Visibility) => void;
   onSetVisibilityWithDescendants?: (visibility: Visibility) => void;
-  onSave?: (title: string, preview: string, content: string) => void;
+  onSave?: (title: string, preview: string, content: string, itemType?: EditableItemType) => void;
   onClose?: () => void;
 }
 
@@ -72,6 +76,7 @@ export function TileWidget({
   title = '',
   preview = '',
   content = '',
+  itemType,
   forceExpanded,
   openInEditMode,
   tileColor: providedTileColor,
@@ -98,7 +103,8 @@ export function TileWidget({
   const tileColor = currentMode === 'create' && coordId ? getColor(CoordSystem.parseId(coordId)) : providedTileColor;
 
   const { expansion, editing } = useTileState({
-    title, preview, content, forceExpanded,
+    title, preview, content, itemType,
+    forceExpanded,
     openInEditMode: currentMode === 'create' ? true : openInEditMode,
     tileId: tileId ?? '',
   });
@@ -106,7 +112,8 @@ export function TileWidget({
   const { isExpanded, setIsExpanded } = expansion;
   const { isEditing, setIsEditing, title: editTitle, setTitle: setEditTitle,
           preview: editPreview, setPreview: setEditPreview,
-          content: editContent, setContent: setEditContent } = editing;
+          content: editContent, setContent: setEditContent,
+          itemType: editItemType, setItemType: setEditItemType } = editing;
 
   useAutoCloseOnDelete(tileId, currentMode, getItem, hasItem, isLoading, onClose);
 
@@ -119,7 +126,7 @@ export function TileWidget({
       _handleEdit(editState);
     }, 0);
   };
-  const handleSave = () => _handleSave(editTitle, editPreview, editContent, currentMode, setIsEditing, onSave);
+  const handleSave = () => _handleSave(editTitle, editPreview, editContent, editItemType, currentMode, setIsEditing, onSave);
   const handleCancel = () => _handleCancel(currentMode, title, preview, content, editState, onClose);
   const handleTitleKeyDown = (e: React.KeyboardEvent) => _handleTitleKeyDown(e, handleCancel);
   const handleConfirmDelete = () => _handleConfirmDelete(tileId, setIsDeleting, setDeleteError, deleteItemOptimistic, onClose);
@@ -185,8 +192,11 @@ export function TileWidget({
 
       {isFormMode && (
         <TileForm mode={currentMode === 'create' ? 'create' : 'edit'} title={editTitle}
-                  preview={editPreview} content={editContent} onPreviewChange={setEditPreview}
-                  onContentChange={setEditContent} onSave={handleSave} onCancel={handleCancel} />
+                  preview={editPreview} content={editContent}
+                  itemType={editItemType} isUserTile={itemType === 'user'}
+                  onPreviewChange={setEditPreview}
+                  onContentChange={setEditContent} onItemTypeChange={setEditItemType}
+                  onSave={handleSave} onCancel={handleCancel} />
       )}
 
       {isViewMode && (
