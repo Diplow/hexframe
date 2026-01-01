@@ -11,7 +11,49 @@ import { db, schema } from '~/server/db'
 const { llmJobResults } = schema
 import { eq } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
-import type { MappingService } from '~/lib/domains/mapping'
+import type { MappingService, HexecuteContext } from '~/lib/domains/mapping'
+
+// =============================================================================
+// Shared Helpers
+// =============================================================================
+
+/**
+ * Creates a hexplan tile if one doesn't exist.
+ * Returns the hexplan content (either existing or newly created).
+ */
+async function _ensureHexplanExists(
+  hexecuteContext: HexecuteContext,
+  taskCoords: string,
+  instruction: string | undefined,
+  mappingService: MappingService
+): Promise<string> {
+  if (hexecuteContext.hexPlan) {
+    return hexecuteContext.hexPlan
+  }
+
+  const taskId = parseInt(hexecuteContext.task.id, 10)
+  const taskCoord = CoordSystem.parseId(taskCoords)
+  const hexplanCoords = {
+    ...taskCoord,
+    path: [...taskCoord.path, Direction.Center]
+  }
+
+  // Generate hexplan content based on tile type
+  const hasSubtasks = hexecuteContext.structuralChildren.length > 0
+  const hexPlanContent = hasSubtasks
+    ? generateParentHexplanContent(hexecuteContext.structuralChildren, hexecuteContext.allLeafTasks)
+    : generateLeafHexplanContent(hexecuteContext.task.title, instruction)
+
+  // Create the hexplan tile
+  await mappingService.items.crud.addItemToMap({
+    parentId: taskId,
+    coords: hexplanCoords,
+    title: 'Hexplan',
+    content: hexPlanContent
+  })
+
+  return hexPlanContent
+}
 
 function getMapContextFromConfig(
   canvasStrategy: string | undefined,
@@ -419,30 +461,13 @@ export const agenticRouter = createTRPCRouter({
       if (!hexecuteContext.task.title?.trim())
         _throwBadRequest(`Task tile at ${taskCoords} has an empty title. A non-empty title is required for prompt generation.`);
 
-      // 3. Create hexplan tile if it doesn't exist
-      let hexPlanContent = hexecuteContext.hexPlan
-      if (!hexPlanContent) {
-        const taskId = parseInt(hexecuteContext.task.id, 10)
-        const taskCoord = CoordSystem.parseId(taskCoords)
-        const hexplanCoords = {
-          ...taskCoord,
-          path: [...taskCoord.path, Direction.Center]
-        }
-
-        // Generate hexplan content based on tile type
-        const hasSubtasks = hexecuteContext.structuralChildren.length > 0
-        hexPlanContent = hasSubtasks
-          ? generateParentHexplanContent(hexecuteContext.structuralChildren, hexecuteContext.allLeafTasks)
-          : generateLeafHexplanContent(hexecuteContext.task.title, instruction)
-
-        // Create the hexplan tile
-        await ctx.mappingService.items.crud.addItemToMap({
-          parentId: taskId,
-          coords: hexplanCoords,
-          title: 'Hexplan',
-          content: hexPlanContent
-        })
-      }
+      // 3. Ensure hexplan tile exists (create if missing)
+      const hexPlanContent = await _ensureHexplanExists(
+        hexecuteContext,
+        taskCoords,
+        instruction,
+        ctx.mappingService
+      )
 
       // 4. Build the hexecute prompt (pure function, no I/O)
       let hexecutePrompt: string
@@ -588,30 +613,13 @@ export const agenticRouter = createTRPCRouter({
       if (!hexecuteContext.task.title?.trim())
         _throwBadRequest(`Task tile at ${taskCoords} has an empty title. A non-empty title is required for prompt generation.`);
 
-      // 3. Create hexplan tile if it doesn't exist
-      let hexPlanContent = hexecuteContext.hexPlan
-      if (!hexPlanContent) {
-        const taskId = parseInt(hexecuteContext.task.id, 10)
-        const taskCoord = CoordSystem.parseId(taskCoords)
-        const hexplanCoords = {
-          ...taskCoord,
-          path: [...taskCoord.path, Direction.Center]
-        }
-
-        // Generate hexplan content based on tile type
-        const hasSubtasks = hexecuteContext.structuralChildren.length > 0
-        hexPlanContent = hasSubtasks
-          ? generateParentHexplanContent(hexecuteContext.structuralChildren, hexecuteContext.allLeafTasks)
-          : generateLeafHexplanContent(hexecuteContext.task.title, instruction)
-
-        // Create the hexplan tile
-        await ctx.mappingService.items.crud.addItemToMap({
-          parentId: taskId,
-          coords: hexplanCoords,
-          title: 'Hexplan',
-          content: hexPlanContent
-        })
-      }
+      // 3. Ensure hexplan tile exists (create if missing)
+      const hexPlanContent = await _ensureHexplanExists(
+        hexecuteContext,
+        taskCoords,
+        instruction,
+        ctx.mappingService
+      )
 
       // 4. Build prompt (pure function, no I/O)
       let promptResult: string
