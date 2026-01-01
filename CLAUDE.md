@@ -163,11 +163,14 @@ The `hexecute` tool transforms any tile into a structured XML prompt using tile 
 - **Parent tile hexplan**: List of subtasks to execute in order (can be generated programmatically from children)
 - **Leaf tile hexplan**: Agent's plan to complete the concrete work
 
-**Status markers:**
-- 📋 Pending (not started)
-- 🟡 In progress
-- ✅ Completed
-- 🔴 Blocked (needs user intervention)
+**Status markers (agent-written tokens):**
+
+When agents update hexplan tiles via `updateItem`, they MUST use these exact emoji-prefixed tokens:
+- 🟡 STARTED — Task execution began
+- ✅ COMPLETED — Task finished successfully
+- 🔴 BLOCKED — Task stuck, needs human intervention
+
+Steps without a prefix are considered pending (📋). The 📋 emoji is for display/human use only — agents don't write it.
 
 **Human-in-the-loop control:**
 - Read `[1, 0]` to see top-level progress
