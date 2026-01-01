@@ -187,6 +187,34 @@ function _createRateLimitStore(): RateLimitStore {
 export const rateLimitStore: RateLimitStore = _createRateLimitStore();
 
 // Clean up expired entries periodically (mainly for in-memory fallback)
-setInterval(() => {
-  void rateLimitStore.cleanup();
-}, 60000);
+let cleanupIntervalId: ReturnType<typeof setInterval> | null = null;
+
+function _startCleanupInterval(): void {
+  if (cleanupIntervalId) return; // Already running
+  cleanupIntervalId = setInterval(() => {
+    void rateLimitStore.cleanup();
+  }, 60000);
+}
+
+/**
+ * Stop the cleanup interval. Use this for:
+ * - Test teardown
+ * - Graceful shutdown
+ * - Preventing memory leaks in HMR environments
+ */
+export function stopCleanupInterval(): void {
+  if (cleanupIntervalId) {
+    clearInterval(cleanupIntervalId);
+    cleanupIntervalId = null;
+  }
+}
+
+/**
+ * Restart the cleanup interval after it was stopped.
+ */
+export function startCleanupInterval(): void {
+  _startCleanupInterval();
+}
+
+// Start cleanup on module load
+_startCleanupInterval();
