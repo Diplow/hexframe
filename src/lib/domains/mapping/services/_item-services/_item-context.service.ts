@@ -215,8 +215,14 @@ export class ItemContextService {
           coords: contract.coords,
         });
         currentPath = parentPath;
-      } catch {
-        break; // Parent not found, stop traversing
+      } catch (error) {
+        // Only break for "not found" errors - these are expected at the top of the tree
+        const isNotFoundError = error instanceof Error && error.message.includes('not found');
+        if (isNotFoundError) {
+          break;
+        }
+        // Rethrow unexpected errors (network, authorization, etc.)
+        throw error;
       }
     }
 
