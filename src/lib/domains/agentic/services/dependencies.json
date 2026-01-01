@@ -7,8 +7,6 @@
     "~/lib/domains/agentic/repositories",
     "~/lib/domains/agentic/types",
     "~/lib/domains/mapping",
-    "~/lib/domains/iam",
-    "~/lib/debug/debug-logger",
     "~/lib/utils/event-bus",
     "~/server/db"
   ],
