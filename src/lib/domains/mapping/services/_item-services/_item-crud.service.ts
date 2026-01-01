@@ -39,6 +39,7 @@ export class ItemCrudService {
    * @param preview - Optional preview text
    * @param link - Optional URL
    * @param visibility - Visibility setting (defaults to "private")
+   * @param itemType - Optional item type (defaults to CONTEXT, cannot be USER)
    */
   async addItemToMap({
     parentId,
@@ -48,6 +49,7 @@ export class ItemCrudService {
     preview,
     link,
     visibility = Visibility.PRIVATE,
+    itemType,
   }: {
     parentId: number | null;
     coords: Coord;
@@ -56,6 +58,7 @@ export class ItemCrudService {
     preview?: string;
     link?: string;
     visibility?: Visibility;
+    itemType?: MapItemType;
   }): Promise<MapItemContract> {
     let parentItem = null;
     if (parentId !== null) {
@@ -93,8 +96,13 @@ export class ItemCrudService {
       await this._validateVisibilityInheritance(coords, visibility);
     }
 
+    // Validate itemType - USER type is system-controlled and cannot be set via API
+    if (itemType === MapItemType.USER) {
+      throw new Error("Cannot set item type to USER - this is system-controlled.");
+    }
+
     const createParams = {
-      itemType: MapItemType.CONTEXT,
+      itemType: itemType ?? MapItemType.CONTEXT,
       coords,
       title,
       content,
@@ -136,6 +144,7 @@ export class ItemCrudService {
    * @param preview - Optional new preview
    * @param link - Optional new link
    * @param visibility - Optional new visibility setting
+   * @param itemType - Optional new item type (cannot change to/from USER)
    * @param requester - The requester context for visibility filtering (required for visibility changes)
    */
   async updateItem({
@@ -145,6 +154,7 @@ export class ItemCrudService {
     preview,
     link,
     visibility,
+    itemType,
     requester = SYSTEM_INTERNAL,
   }: {
     coords: Coord;
@@ -153,6 +163,7 @@ export class ItemCrudService {
     preview?: string;
     link?: string;
     visibility?: Visibility;
+    itemType?: MapItemType;
     requester?: RequesterContext;
   }): Promise<MapItemContract> {
     const item = await this.actions.getMapItem({ coords, requester });
@@ -171,6 +182,19 @@ export class ItemCrudService {
 
       // Update visibility on the map item
       await this.mapItemRepository.updateVisibility(item.id, visibility);
+    }
+
+    // Validate and update itemType
+    if (itemType !== undefined) {
+      // Cannot change to USER type - that's system-controlled
+      if (itemType === MapItemType.USER) {
+        throw new Error("Cannot change item type to USER - this is system-controlled.");
+      }
+      // Cannot change FROM USER type - that's system-controlled
+      if (item.attrs.itemType === MapItemType.USER) {
+        throw new Error("Cannot change item type of USER tiles - this is system-controlled.");
+      }
+      await this.mapItemRepository.updateItemType(item.id, itemType);
     }
 
     if (title !== undefined || content !== undefined || preview !== undefined || link !== undefined) {

@@ -6,6 +6,7 @@ import {
   type RelatedItems,
   type RelatedLists,
   type Visibility,
+  type MapItemType,
 } from "~/lib/domains/mapping/_objects/map-item";
 import {
   type Coord,
@@ -399,6 +400,15 @@ export class DbMapItemRepository implements MapItemRepository {
   async updateVisibility(itemId: number, visibility: Visibility): Promise<MapItemWithId> {
     await this.writeQueries.updateVisibility(itemId, visibility);
     // Use SYSTEM_INTERNAL for internal visibility update operations
+    return this.getOne(itemId, SYSTEM_INTERNAL);
+  }
+
+  /**
+   * Update the item type of a map item.
+   */
+  async updateItemType(itemId: number, itemType: MapItemType): Promise<MapItemWithId> {
+    await this.writeQueries.updateItemType(itemId, itemType);
+    // Use SYSTEM_INTERNAL for internal itemType update operations
     return this.getOne(itemId, SYSTEM_INTERNAL);
   }
 

@@ -42,6 +42,7 @@ export async function addItemHandler(
   preview?: string,
   url?: string,
   visibility?: "public" | "private",
+  itemType?: "organizational" | "context" | "system",
 ): Promise<MapItem> {
   try {
     // For creation, we need parentId if it's not a root item
@@ -80,6 +81,7 @@ export async function addItemHandler(
       preview,
       link: url, // API uses 'link' not 'url'
       visibility,
+      itemType,
     });
 
     return newItem;
@@ -93,7 +95,7 @@ export async function addItemHandler(
 export async function updateItemHandler(
   caller: TRPCCaller,
   coords: { userId: string; groupId: number; path: number[] },
-  updates: { title?: string; content?: string; preview?: string; url?: string; visibility?: "public" | "private" },
+  updates: { title?: string; content?: string; preview?: string; url?: string; visibility?: "public" | "private"; itemType?: "organizational" | "context" | "system" },
 ): Promise<MapItem> {
   try {
     // Convert url to link if present

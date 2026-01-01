@@ -7,6 +7,7 @@ import type {
   MapItemIdr,
   Attrs,
   Visibility,
+  MapItemType,
 } from "~/lib/domains/mapping/_objects/map-item";
 import type { CreateMapItemDbAttrs, UpdateMapItemDbAttrs } from "~/lib/domains/mapping/infrastructure/map-item/types";
 import { pathToString } from "~/lib/domains/mapping/infrastructure/map-item/mappers";
@@ -184,6 +185,16 @@ export class WriteQueries {
     await this.db
       .update(mapItems)
       .set({ visibility })
+      .where(eq(mapItems.id, itemId));
+  }
+
+  /**
+   * Update the item type of a map item.
+   */
+  async updateItemType(itemId: number, itemType: MapItemType): Promise<void> {
+    await this.db
+      .update(mapItems)
+      .set({ item_type: itemType })
       .where(eq(mapItems.id, itemId));
   }
 
