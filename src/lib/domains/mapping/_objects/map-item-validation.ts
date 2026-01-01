@@ -18,9 +18,9 @@ export class MapItemValidation {
         throw new Error(MAPPING_ERRORS.USER_ITEM_CANNOT_HAVE_PARENT);
       }
     } else {
-      // For BASE type items (children)
+      // For non-USER type items (children)
       if (item.attrs.parentId === null && item.parent === null) {
-        throw new Error(MAPPING_ERRORS.BASE_ITEM_MUST_HAVE_PARENT);
+        throw new Error(MAPPING_ERRORS.NON_USER_ITEM_MUST_HAVE_PARENT);
       }
       if (item.parent) {
         // If parent object is available, check its coords

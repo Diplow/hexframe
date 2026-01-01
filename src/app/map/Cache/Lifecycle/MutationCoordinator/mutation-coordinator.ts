@@ -315,7 +315,7 @@ export class MutationCoordinator {
         }
         const result = await this.config.addItemMutation.mutateAsync({
           coords,
-          itemType: MapItemType.BASE,
+          itemType: MapItemType.CONTEXT,
           ...(parentIdNumber !== undefined ? { parentId: parentIdNumber } : {}),
           title: data.title,
           content: data.content,
@@ -1097,7 +1097,7 @@ export class MutationCoordinator {
       link: data.link ?? "",
       depth: coords.path.length,
       parentId,
-      itemType: MapItemType.BASE,
+      itemType: MapItemType.CONTEXT,
       ownerId: this.config.mapContext?.userId ?? "unknown",
       originId: null,
       visibility: Visibility.PRIVATE,
@@ -1253,7 +1253,7 @@ export class MutationCoordinator {
       preview: tile.data.preview,
       link: tile.data.link,
       parentId: null, // We don't store this in TileData
-      itemType: MapItemType.BASE,
+      itemType: MapItemType.CONTEXT,
       ownerId: tile.metadata.ownerId ?? this.config.mapContext?.userId ?? "unknown",
       originId: null,
       visibility: tile.data.visibility ?? Visibility.PRIVATE,

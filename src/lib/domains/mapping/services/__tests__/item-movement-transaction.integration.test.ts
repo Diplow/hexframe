@@ -71,14 +71,14 @@ describe("Item Movement - Transaction Integration Tests", () => {
     });
 
     const item1 = await actions.createMapItem({
-      itemType: MapItemType.BASE,
+      itemType: MapItemType.CONTEXT,
       coords: { userId: testUserId, groupId: testGroupId, path: [1] },
       title: "Item 1",
       parentId: rootItem.id,
     });
 
     const item2 = await actions.createMapItem({
-      itemType: MapItemType.BASE,
+      itemType: MapItemType.CONTEXT,
       coords: { userId: testUserId, groupId: testGroupId, path: [2] },
       title: "Item 2",
       parentId: rootItem.id,
@@ -86,7 +86,7 @@ describe("Item Movement - Transaction Integration Tests", () => {
 
     // Add children to item1
     await actions.createMapItem({
-      itemType: MapItemType.BASE,
+      itemType: MapItemType.CONTEXT,
       coords: { userId: testUserId, groupId: testGroupId, path: [1, 1] },
       title: "Child 1",
       parentId: item1.id,
@@ -129,14 +129,14 @@ describe("Item Movement - Transaction Integration Tests", () => {
     });
 
     const item1 = await actions.createMapItem({
-      itemType: MapItemType.BASE,
+      itemType: MapItemType.CONTEXT,
       coords: { userId: testUserId, groupId: testGroupId, path: [1] },
       title: "Item 1",
       parentId: rootItem.id,
     });
 
     const item2 = await actions.createMapItem({
-      itemType: MapItemType.BASE,
+      itemType: MapItemType.CONTEXT,
       coords: { userId: testUserId, groupId: testGroupId, path: [2] },
       title: "Item 2",
       parentId: rootItem.id,
@@ -144,14 +144,14 @@ describe("Item Movement - Transaction Integration Tests", () => {
 
     // Add children to both items
     await actions.createMapItem({
-      itemType: MapItemType.BASE,
+      itemType: MapItemType.CONTEXT,
       coords: { userId: testUserId, groupId: testGroupId, path: [1, 1] },
       title: "Child of Item 1",
       parentId: item1.id,
     });
 
     await actions.createMapItem({
-      itemType: MapItemType.BASE,
+      itemType: MapItemType.CONTEXT,
       coords: { userId: testUserId, groupId: testGroupId, path: [2, 1] },
       title: "Child of Item 2",
       parentId: item2.id,
@@ -198,7 +198,7 @@ describe("Item Movement - Transaction Integration Tests", () => {
     });
 
     const item1 = await actions.createMapItem({
-      itemType: MapItemType.BASE,
+      itemType: MapItemType.CONTEXT,
       coords: { userId: testUserId, groupId: testGroupId, path: [1] },
       title: "Item 1",
       parentId: rootItem.id,

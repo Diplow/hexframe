@@ -178,7 +178,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         preview: "Preview",
         link: "https://example.com",
         parentId: parentItem.id,
-        itemType: "base",
+        itemType: "context",
         ownerId: expect.any(String) as string,
       });
     });

@@ -35,7 +35,7 @@ describe("Cache Actions", () => {
       depth: 1,
       link: "",
       parentId: null,
-      itemType: MapItemType.BASE,
+      itemType: MapItemType.CONTEXT,
       ownerId: "test-owner",
       originId: null,
       visibility: Visibility.PRIVATE,

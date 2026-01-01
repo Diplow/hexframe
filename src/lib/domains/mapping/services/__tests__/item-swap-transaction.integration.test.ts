@@ -50,14 +50,14 @@ describe("Item Swap Transaction - Integration Test", () => {
     });
 
     const item1 = await actions.createMapItem({
-      itemType: MapItemType.BASE,
+      itemType: MapItemType.CONTEXT,
       coords: { userId: testUserId, groupId: testGroupId, path: [1] },
       title: "Item 1",
       parentId: rootItem.id,
     });
 
     const item2 = await actions.createMapItem({
-      itemType: MapItemType.BASE,
+      itemType: MapItemType.CONTEXT,
       coords: { userId: testUserId, groupId: testGroupId, path: [2] },
       title: "Item 2",
       parentId: rootItem.id,
@@ -103,21 +103,21 @@ describe("Item Swap Transaction - Integration Test", () => {
     });
 
     const item1 = await actions.createMapItem({
-      itemType: MapItemType.BASE,
+      itemType: MapItemType.CONTEXT,
       coords: { userId: testUserId, groupId: testGroupId, path: [1] },
       title: "Item 1",
       parentId: rootItem.id,
     });
 
     const item2 = await actions.createMapItem({
-      itemType: MapItemType.BASE,
+      itemType: MapItemType.CONTEXT,
       coords: { userId: testUserId, groupId: testGroupId, path: [2] },
       title: "Item 2 (Sibling)",
       parentId: rootItem.id,
     });
 
     const item2Child = await actions.createMapItem({
-      itemType: MapItemType.BASE,
+      itemType: MapItemType.CONTEXT,
       coords: { userId: testUserId, groupId: testGroupId, path: [2, 1] },
       title: "Child of Item 2",
       parentId: item2.id,

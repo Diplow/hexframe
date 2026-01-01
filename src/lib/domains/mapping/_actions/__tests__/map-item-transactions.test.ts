@@ -97,7 +97,7 @@ describe("MapItemActions - Transaction Support", () => {
       id: 1,
       attrs: {
         coords: { userId: "user-test-1", groupId: 1, path: [1] },
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
       },
     } as unknown as MapItemWithId;
 
@@ -155,7 +155,7 @@ describe("MapItemActions - Transaction Support", () => {
         id: 1,
         attrs: {
           coords: { userId: "user-test-1", groupId: 1, path: [1] },
-          itemType: MapItemType.BASE,
+          itemType: MapItemType.CONTEXT,
         },
       } as unknown as MapItemWithId;
     });

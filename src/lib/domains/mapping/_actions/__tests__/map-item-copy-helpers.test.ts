@@ -90,7 +90,7 @@ describe("MapItem Copy Helpers", () => {
 
       const preparedItems = _prepareBaseItemsForCopy(
         baseItemsToCopy
-          .filter(mi => mi.attrs.itemType === MapItemType.BASE)
+          .filter(mi => mi.attrs.itemType === MapItemType.CONTEXT)
           .map(mi => mi.ref)
       );
 

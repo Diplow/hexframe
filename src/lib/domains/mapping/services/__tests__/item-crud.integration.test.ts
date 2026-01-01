@@ -95,7 +95,7 @@ describe("MappingService - Item CRUD [Integration - DB]", () => {
       expect(childItemContract.content).toBe(addItemArgs.content);
       expect(childItemContract.preview).toBe(addItemArgs.preview);
       expect(childItemContract.link).toBe(addItemArgs.link);
-      expect(childItemContract.itemType).toBe(MapItemType.BASE);
+      expect(childItemContract.itemType).toBe(MapItemType.CONTEXT);
     });
 
     it("should throw error for mismatched userId/groupId in coords", async () => {

@@ -39,7 +39,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,-1", // Positive direction, then negative direction
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         refItemId: baseItem[0]!.id,
       }).returning();
 
@@ -61,7 +61,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,-1,2,-2", // Mixed positive and negative
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         refItemId: baseItem[0]!.id,
       }).returning();
 
@@ -84,7 +84,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
           coord_user_id: "user-test-1",
           coord_group_id: 0,
           path: `${dir}`,
-          item_type: MapItemType.BASE,
+          item_type: MapItemType.CONTEXT,
           refItemId: baseItem[0]!.id,
         }).returning()
       );
@@ -141,7 +141,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         refItemId: parentBaseItem[0]!.id,
       }).returning();
 
@@ -155,7 +155,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         parentId: parent[0]!.id,
         refItemId: containerBaseItem[0]!.id,
       }).returning();
@@ -176,7 +176,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
           coord_user_id: "user-test-1",
           coord_group_id: 0,
           path: `1,0,${dir}`,
-          item_type: MapItemType.BASE,
+          item_type: MapItemType.CONTEXT,
           parentId: container[0]!.id,
           refItemId: childBaseItem[0]!.id,
         }).returning();
@@ -212,7 +212,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         refItemId: parentBaseItem[0]!.id,
       }).returning();
 
@@ -226,7 +226,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         parentId: parent[0]!.id,
         refItemId: containerBaseItem[0]!.id,
       }).returning();
@@ -258,7 +258,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "0",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         refItemId: containerBaseItem[0]!.id,
       }).returning();
 
@@ -272,7 +272,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "0,1",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         parentId: container[0]!.id,
         refItemId: childBaseItem[0]!.id,
       }).returning();
@@ -310,7 +310,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         refItemId: baseItems[0]!,
       }).returning();
 
@@ -318,7 +318,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,2",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         parentId: level1[0]!.id,
         refItemId: baseItems[1]!,
       }).returning();
@@ -327,7 +327,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,2,0",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         parentId: level2[0]!.id,
         refItemId: baseItems[2]!,
       }).returning();
@@ -336,7 +336,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,2,0,3",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         parentId: container[0]!.id,
         refItemId: baseItems[3]!,
       }).returning();
@@ -367,7 +367,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         refItemId: rootBase[0]!.id,
       }).returning();
 
@@ -382,7 +382,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         parentId: root[0]!.id,
         refItemId: branch1Base[0]!.id,
       }).returning();
@@ -397,7 +397,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         parentId: branch1[0]!.id,
         refItemId: container1Base[0]!.id,
       }).returning();
@@ -412,7 +412,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0,4",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         parentId: container1[0]!.id,
         refItemId: child1Base[0]!.id,
       }).returning();
@@ -428,7 +428,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "2",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         parentId: root[0]!.id,
         refItemId: branch2Base[0]!.id,
       }).returning();
@@ -443,7 +443,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "2,0",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         parentId: branch2[0]!.id,
         refItemId: container2Base[0]!.id,
       }).returning();
@@ -458,7 +458,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "2,0,5",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         parentId: container2[0]!.id,
         refItemId: child2Base[0]!.id,
       }).returning();
@@ -526,7 +526,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,-1",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         refItemId: baseItem[0]!.id,
       }).returning();
 
@@ -554,7 +554,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         refItemId: parentBase[0]!.id,
       }).returning();
 
@@ -568,7 +568,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,2", // Direction 2 without preceding 0
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         parentId: parent[0]!.id,
         refItemId: childBase[0]!.id,
       }).returning();
@@ -600,7 +600,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         refItemId: parentBase[0]!.id,
       }).returning();
 
@@ -615,7 +615,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         parentId: parent[0]!.id,
         refItemId: containerBase[0]!.id,
       }).returning();
@@ -645,7 +645,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         refItemId: parentBase[0]!.id,
       }).returning();
 
@@ -659,7 +659,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         parentId: parent[0]!.id,
         refItemId: containerBase[0]!.id,
       }).returning();
@@ -674,7 +674,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0,1",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         parentId: container[0]!.id,
         refItemId: childBase[0]!.id,
       }).returning();
@@ -709,7 +709,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         refItemId: parentBase[0]!.id,
       }).returning();
 
@@ -723,7 +723,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         parentId: parent[0]!.id,
         refItemId: containerBase[0]!.id,
       }).returning();
@@ -738,7 +738,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0,1",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         parentId: container[0]!.id,
         refItemId: childBase[0]!.id,
       }).returning();
@@ -771,7 +771,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         refItemId: parentBase[0]!.id,
       }).returning();
 
@@ -785,7 +785,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         parentId: parent[0]!.id,
         refItemId: containerBase[0]!.id,
       }).returning();
@@ -800,7 +800,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0,1",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         parentId: container[0]!.id,
         refItemId: childBase[0]!.id,
       }).returning();
@@ -828,7 +828,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         refItemId: parentBase[0]!.id,
       }).returning();
 
@@ -842,7 +842,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         parentId: parent[0]!.id,
         refItemId: containerBase[0]!.id,
       }).returning();
@@ -873,7 +873,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         refItemId: parentBase[0]!.id,
       }).returning();
 
@@ -887,7 +887,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         parentId: parent[0]!.id,
         refItemId: containerBase[0]!.id,
       }).returning();
@@ -902,7 +902,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0,1",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         parentId: container[0]!.id,
         refItemId: childBase[0]!.id,
       }).returning();
@@ -917,7 +917,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1,0,1,2",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         parentId: child[0]!.id,
         refItemId: grandchildBase[0]!.id,
       }).returning();
@@ -1009,7 +1009,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       coord_user_id: "user-test-1",
       coord_group_id: 0,
       path: parentPath,
-      item_type: MapItemType.BASE,
+      item_type: MapItemType.CONTEXT,
       refItemId: parentBase[0]!.id,
     }).returning();
 
@@ -1023,7 +1023,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       coord_user_id: "user-test-1",
       coord_group_id: 0,
       path: containerPath,
-      item_type: MapItemType.BASE,
+      item_type: MapItemType.CONTEXT,
       parentId: parent[0]!.id,
       refItemId: containerBase[0]!.id,
     }).returning();
@@ -1038,7 +1038,7 @@ describe("Migration: Composition to Negative Directions [Integration - DB]", () 
       coord_user_id: "user-test-1",
       coord_group_id: 0,
       path: childPath,
-      item_type: MapItemType.BASE,
+      item_type: MapItemType.CONTEXT,
       parentId: container[0]!.id,
       refItemId: childBase[0]!.id,
     }).returning();

@@ -48,7 +48,7 @@ export async function _validateItemRetrieval(
   expect(retrievedItem.content).toBe(expectedItemData.content);
   expect(retrievedItem.link).toBe(expectedItemData.link);
   expect(retrievedItem.coords).toEqual(CoordSystem.createId(itemCoords));
-  expect(retrievedItem.itemType).toBe(MapItemType.BASE);
+  expect(retrievedItem.itemType).toBe(MapItemType.CONTEXT);
 
   return retrievedItem;
 }

@@ -25,7 +25,7 @@ export async function _addAndValidateChildItem(
   expect(childItemContract.coords).toEqual(
     CoordSystem.createId(addItemArgs.coords),
   );
-  expect(childItemContract.itemType).toBe(MapItemType.BASE);
+  expect(childItemContract.itemType).toBe(MapItemType.CONTEXT);
 
   return childItemContract;
 }

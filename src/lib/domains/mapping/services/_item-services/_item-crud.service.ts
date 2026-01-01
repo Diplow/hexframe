@@ -94,7 +94,7 @@ export class ItemCrudService {
     }
 
     const createParams = {
-      itemType: MapItemType.BASE,
+      itemType: MapItemType.CONTEXT,
       coords,
       title,
       content,

@@ -178,10 +178,10 @@ export function _buildMapItemsWithCopiedRefs(
         coords: prepared.coords,
         parentId: prepared.parentId,
         ref: {
-          itemType: MapItemType.BASE,
+          itemType: MapItemType.CONTEXT,
           itemId: copiedBaseItemId,
         },
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         visibility: prepared.visibility,
       },
       ref: copiedBaseItem,

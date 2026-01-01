@@ -281,7 +281,7 @@ describe("Server Service", () => {
           coordId: "user-test-1,2:1",
           data: {
             coords: { path: [1], userId: "user-test-1", groupId: 0 },
-            itemType: MapItemType.BASE,
+            itemType: MapItemType.CONTEXT,
             title: "New Child Item",
             content: "New Description"
           },
@@ -293,7 +293,7 @@ describe("Server Service", () => {
           coordId: "user-test-1,2:1",
           data: {
             coords: { path: [1], userId: "user-test-1", groupId: 0 },
-            itemType: MapItemType.BASE,
+            itemType: MapItemType.CONTEXT,
             title: "New Child Item",
             content: "New Description"
           },

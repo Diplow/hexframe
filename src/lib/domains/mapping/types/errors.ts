@@ -19,7 +19,7 @@ export const MAPPING_ERRORS = {
 
   // MapItem validation errors
   USER_ITEM_CANNOT_HAVE_PARENT: "USER type MapItem cannot have a parent.",
-  BASE_ITEM_MUST_HAVE_PARENT: "BASE type MapItem must have a parent.",
+  NON_USER_ITEM_MUST_HAVE_PARENT: "Non-USER type MapItem must have a parent.",
   CHILD_COORDS_MUST_MATCH_PARENT:
     "Child item's userId and groupId must match parent's.",
   NULL_PARENT_MUST_BE_USER_TYPE:
