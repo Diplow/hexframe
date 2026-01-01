@@ -112,6 +112,15 @@ export interface ExecuteCommandPayload {
   command: string;
 }
 
+export interface WidgetResolvedPayload {
+  widgetId?: string;
+  widgetType?: string;
+  action?: string;
+  result?: string;
+  status?: 'completed' | 'failed';
+  message?: string;
+}
+
 // Streaming event payload types
 export interface StreamingMessageStartPayload {
   streamId: string;

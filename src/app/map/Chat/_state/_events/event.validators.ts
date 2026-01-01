@@ -1,5 +1,5 @@
 import type { AppEvent } from '~/app/map/types';
-import type { ChatEvent } from '~/app/map/Chat/_state/_events/event.types';
+import type { ChatEvent, WidgetResolvedPayload } from '~/app/map/Chat/_state/_events/event.types';
 import {
   mapTileSelectedEventSchema,
   mapTileCreatedEventSchema,
@@ -255,14 +255,15 @@ function _transformSystemEvents(validEvent: AppEvent, baseEvent: Partial<ChatEve
     }
 
     case 'auth.login': {
+      const payload: WidgetResolvedPayload = {
+        widgetType: 'login',
+        result: 'success',
+        message: 'Login successful!',
+      };
       return {
         ...baseEvent,
         type: 'widget_resolved',
-        payload: {
-          widgetType: 'login',
-          result: 'success',
-          message: 'Login successful!',
-        },
+        payload,
       } as ChatEvent;
     }
 

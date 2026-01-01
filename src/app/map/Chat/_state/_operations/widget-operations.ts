@@ -1,4 +1,4 @@
-import type { ChatEvent, ToolCallWidgetData } from '~/app/map/Chat/_state/_events';
+import type { ChatEvent, ToolCallWidgetData, WidgetResolvedPayload } from '~/app/map/Chat/_state/_events';
 
 /**
  * Widget-related operations
@@ -98,13 +98,14 @@ export function createWidgetOperations(dispatch: (event: ChatEvent) => void) {
       });
     },
     updateToolCallWidget(toolCallId: string, result: string, success: boolean) {
+      const payload: WidgetResolvedPayload = {
+        widgetId: `tool-call-${toolCallId}`,
+        result,
+        status: success ? 'completed' : 'failed',
+      };
       dispatch({
         type: 'widget_resolved' as const,
-        payload: {
-          widgetId: `tool-call-${toolCallId}`,
-          result,
-          status: success ? 'completed' : 'failed',
-        },
+        payload,
         id: `chat-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         timestamp: new Date(),
         actor: 'assistant' as const,

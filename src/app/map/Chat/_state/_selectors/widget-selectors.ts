@@ -1,4 +1,4 @@
-import type { ChatEvent, Widget, OperationStartedPayload, OperationCompletedPayload, TileSelectedPayload, AuthRequiredPayload, ErrorOccurredPayload } from '~/app/map/Chat/_state/_events';
+import type { ChatEvent, Widget, OperationStartedPayload, OperationCompletedPayload, TileSelectedPayload, AuthRequiredPayload, ErrorOccurredPayload, WidgetResolvedPayload } from '~/app/map/Chat/_state/_events';
 import { chatSettings } from '~/app/map/Chat/_settings/chat-settings';
 
 /**
@@ -163,9 +163,16 @@ function _processWidgetStates(events: ChatEvent[]): {
       }
 
       case 'widget_resolved': {
-        const payload = event.payload as { widgetId: string; action: string };
-        if (payload && typeof payload === 'object' && 'widgetId' in payload && typeof payload.widgetId === 'string') {
-          _addToIndex(index, payload.widgetId, 'completed');
+        const payload = event.payload as WidgetResolvedPayload;
+        if (payload && typeof payload === 'object') {
+          // Handle widgetId directly specified (e.g., tool-call widgets)
+          if ('widgetId' in payload && typeof payload.widgetId === 'string') {
+            _addToIndex(index, payload.widgetId, 'completed');
+          }
+          // Handle widgetType for login widgets
+          if ('widgetType' in payload && payload.widgetType === 'login') {
+            _addToIndex(index, 'login-widget', 'completed');
+          }
         }
         break;
       }

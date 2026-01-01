@@ -21,6 +21,7 @@ export type {
   AuthRequiredPayload,
   ErrorOccurredPayload,
   ExecuteCommandPayload,
+  WidgetResolvedPayload,
   StreamingMessageStartPayload,
   StreamingMessageDeltaPayload,
   StreamingMessageEndPayload,
