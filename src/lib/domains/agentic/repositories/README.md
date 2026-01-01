@@ -10,6 +10,7 @@ Like a switchboard operator connecting the agentic domain to various AI provider
 - Manage async queue processing for slow LLM models to prevent request timeouts
 - Provide consistent error handling and logging across all LLM providers
 - Support tools/MCP server integration for agentic capabilities
+- Support sandbox ownership modes for session-based sandbox reuse
 
 ## Non-Responsibilities
 - Context building logic → See `~/lib/domains/agentic/services/README.md`
@@ -17,14 +18,36 @@ Like a switchboard operator connecting the agentic domain to various AI provider
 - LLM type definitions → See `~/lib/domains/agentic/types/README.md`
 - Queue infrastructure → See `~/lib/domains/agentic/infrastructure/inngest/README.md`
 - Helper utilities for SDK operations → See `./_helpers/` (internal utilities, not exported)
+- Sandbox lifecycle management (when external) → Session manager owns lifecycle for externally-provided sandboxes
 
 ## Interface
 **Exports**: See `index.ts` for the complete public API. Key exports:
 - `ILLMRepository`: Repository interface defining the contract
 - `ClaudeAgentSDKRepository`: Implementation using Claude Agent SDK with async generator streaming
+- `ClaudeAgentSDKSandboxRepository`: Sandbox-based implementation with ownership tracking (self vs external)
+- `SandboxInstance`: Type alias for Vercel Sandbox instances (for session manager integration)
 - `OpenRouterRepository`: Implementation using OpenRouter API
 - `QueuedLLMRepository`: Wrapper for async queue processing
 
 **Dependencies**: See `dependencies.json` for allowed imports.
 
 **Boundary Enforcement**: Child subsystems (like `_helpers/`) can access internals. Sibling and parent subsystems must use `index.ts` exports only. The `pnpm check:architecture` CI tool enforces this.
+
+## Sandbox Ownership Pattern
+
+The `ClaudeAgentSDKSandboxRepository` supports two sandbox ownership modes:
+
+### Self-Owned Mode (Default)
+Repository creates and manages its own sandbox lifecycle:
+- Sandbox created lazily on first `generate()` call
+- `cleanup()` nullifies the sandbox reference
+- Requires `VERCEL_OIDC_TOKEN` environment variable
+
+### External Mode (Session Manager)
+Repository receives a pre-initialized sandbox from a session manager:
+- Pass `providedSandbox` to constructor (4th parameter)
+- Repository uses sandbox directly without initialization
+- `cleanup()` skips termination - session manager owns lifecycle
+- `isConfigured()` returns true based on API key only (no VERCEL_OIDC_TOKEN check)
+
+This separation enables sandbox reuse across multiple requests within a session.

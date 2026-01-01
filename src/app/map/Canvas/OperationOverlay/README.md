@@ -1,47 +1,31 @@
-# OperationOverlay Subsystem
+# OperationOverlay
 
-## Purpose
-Renders visual feedback for pending map operations using hexagonal pulse animations positioned above the tile canvas.
+## Mental Model
+Like a status indicator layer on a control panel - renders visual feedback for in-flight operations using pulsing hexagonal animations that appear above the map canvas, showing users where changes are being processed without interfering with normal tile interactions.
 
 ## Responsibilities
-- Display pulsing hexagon outlines at operation positions
-- Support all operation types: create, update, delete, move, copy
-- Work independently of tile existence (survives deletion)
-- Provide operation-specific visual theming
+- Renders pulsing hexagon outlines at operation positions above the tile canvas
+- Supports all operation types: create, update, delete, move, copy, swap
+- Works independently of tile existence (overlay persists even during delete operations)
+- Provides operation-specific visual theming with distinct colors per type
+- Subscribes to pending operations from the Operations service via usePendingOperations hook
+- Maps coordinate IDs to canvas positions for accurate marker placement
+- Uses GPU-accelerated CSS animations for smooth visual feedback
 
-## Dependencies
-See `dependencies.json`
+## Non-Responsibilities
+- Operation state management and lifecycle -> See `../Services/Operations/README.md`
+- Tile data and caching -> See `../../Cache/README.md`
+- Tile rendering and interactions -> See `../Tile/README.md`
+- Canvas layout and positioning logic -> See parent Canvas subsystem
 
-## Public API
-```typescript
-export { OperationOverlay } from './OperationOverlay';
-export type { OperationOverlayProps } from './types';
-```
+## Interface
+*See `index.ts` for the public API - the ONLY exports other subsystems can use*
+*See `dependencies.json` for what this subsystem can import*
 
-## Usage
-```tsx
-import { OperationOverlay } from '~/app/map/Canvas/OperationOverlay';
-
-<div className="canvas-container">
-  <TileCanvas />
-  <OperationOverlay
-    pendingOperations={cache.pendingOperations}
-    getTilePosition={layout.getPosition}
-  />
-</div>
-```
-
-## Architecture Notes
-- **Position-based rendering**: Uses coordId to determine canvas position
-- **SVG overlay**: Absolute positioned, pointer-events-none
-- **GPU-accelerated**: CSS animations for performance
-- **Operation colors**: Distinct colors per operation type
+Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.
 
 ## Visual Design
 - **Create**: Green pulsing hexagon (#22c55e)
 - **Update**: Amber pulsing hexagon (#f59e0b)
 - **Delete**: Red pulsing hexagon (#ef4444)
-- **Move/Copy**: Purple pulsing hexagon (#a855f7)
-
-## Performance
-All animations are GPU-accelerated via CSS. The overlay only renders when operations are active.
+- **Move/Copy/Swap**: Purple pulsing hexagon (#a855f7)

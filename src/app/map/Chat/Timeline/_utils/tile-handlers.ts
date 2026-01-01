@@ -72,7 +72,7 @@ export function createTileHandlers(
     });
   };
 
-  const handleDeleteExecutionHistory = () => {
+  const handleDeleteHexplan = () => {
     const previewData = widget.data as TileSelectedPayload;
 
     eventBus?.emit({
@@ -163,7 +163,7 @@ export function createTileHandlers(
     handleDelete,
     handleDeleteChildren,
     handleDeleteComposed,
-    handleDeleteExecutionHistory,
+    handleDeleteHexplan,
     handleSetVisibility,
     handleSetVisibilityWithDescendants,
     handleTileSave,

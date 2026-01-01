@@ -1,4 +1,4 @@
-import type { ChatEvent, Message, OperationCompletedPayload } from '~/app/map/Chat/_state/_events/event.types';
+import type { ChatEvent, Message, OperationCompletedPayload } from '~/app/map/Chat/_state/_events';
 import type { ChatSettings } from '~/app/map/Chat/_settings/chat-settings';
 
 /**

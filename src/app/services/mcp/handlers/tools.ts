@@ -726,12 +726,10 @@ PROMPT STRUCTURE:
 3. <task>: The tile's goal (title) and requirements (content)
 4. <hexplan>: Direction-0 child tracking execution state and guiding agent decisions
 
-HEXPLAN-DRIVEN EXECUTION: Every task follows the same flow:
-- If no hexplan exists at direction-0, a subagent is spawned to create one using the plan initializer tile
-- Read hexplan from direction-0 for execution state
-- Read context from context children
-- Execute subtasks by calling hexecute recursively
-- Update hexplan with progress after each subtask
+HEXPLAN GENERATION:
+- Parent tiles (with subtasks): Hexplan is auto-generated listing children as steps
+- Leaf tiles (no subtasks): Direct execution instructions provided
+- Existing hexplan: Execution continues from current state
 
 COORDINATES FORMAT: "userId,groupId:path" (e.g., "abc123,0:6" or "userIdString,0:1,1")
 
@@ -750,11 +748,12 @@ Returns XML-formatted prompt ready for agent execution.`,
         },
         instruction: {
           type: "string",
-          description: "Optional runtime instruction to include in hexplan initialization"
+          description: "Optional runtime instruction to include in execution"
         },
-        hexPlanInitializerPath: {
-          type: "string",
-          description: "Optional custom path for the hexPlan initialization tile (default: '1,4'). Use this to customize how hexPlans are created."
+        deleteHexplan: {
+          type: "boolean",
+          description: "If true, removes all hexplan tiles (direction-0) before execution for a fresh start. Default: false",
+          default: false
         }
       },
       required: ["taskCoords"],
@@ -763,7 +762,7 @@ Returns XML-formatted prompt ready for agent execution.`,
       const argsObj = args as Record<string, unknown>;
       const taskCoords = argsObj?.taskCoords as string;
       const instruction = argsObj?.instruction as string | undefined;
-      const hexPlanInitializerPath = argsObj?.hexPlanInitializerPath as string | undefined;
+      const deleteHexplan = argsObj?.deleteHexplan as boolean | undefined;
 
       if (!taskCoords) {
         throw new Error("taskCoords parameter is required");
@@ -772,7 +771,7 @@ Returns XML-formatted prompt ready for agent execution.`,
       const result = await caller.agentic.hexecute({
         taskCoords,
         instruction,
-        hexPlanInitializerPath
+        deleteHexplan: deleteHexplan ?? false
       });
 
       return result;

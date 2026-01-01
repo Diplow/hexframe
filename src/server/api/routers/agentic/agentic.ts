@@ -1,9 +1,9 @@
 import { z } from 'zod'
-import { createTRPCRouter, protectedProcedure, publicProcedure, mappingServiceMiddleware, agenticServiceMiddleware } from '~/server/api/trpc'
+import { createTRPCRouter, protectedProcedure, softAuthProcedure, mappingServiceMiddleware, agenticServiceMiddleware } from '~/server/api/trpc'
 import { verificationAwareRateLimit, verificationAwareAuthLimit } from '~/server/api/middleware'
 import { createAgenticService, type CompositionConfig, PreviewGeneratorService, OpenRouterRepository, type ChatMessageContract } from '~/lib/domains/agentic'
-import { buildPrompt } from '~/lib/domains/agentic/utils'
-import { ContextStrategies } from '~/lib/domains/mapping/utils'
+import { buildPrompt, generateParentHexplanContent, generateLeafHexplanContent } from '~/lib/domains/agentic/utils'
+import { ContextStrategies, CoordSystem, Direction } from '~/lib/domains/mapping/utils'
 import { _getRequesterUserId } from '~/server/api/routers/map'
 import { _requireConfigured, _requireFound, _requireOwnership, _throwBadRequest, _throwInternalError } from '~/server/api/routers/_error-helpers'
 import { env } from '~/env'
@@ -11,7 +11,68 @@ import { db, schema } from '~/server/db'
 const { llmJobResults } = schema
 import { eq } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
-import type { MappingService } from '~/lib/domains/mapping'
+import type { MappingService, HexecuteContext } from '~/lib/domains/mapping'
+
+// =============================================================================
+// Shared Helpers
+// =============================================================================
+
+/**
+ * Creates a hexplan tile if one doesn't exist.
+ * Returns the hexplan content (either existing or newly created).
+ *
+ * Handles race conditions: if concurrent calls attempt to create the hexplan,
+ * the second call will detect the unique constraint violation and fetch the
+ * existing hexplan instead.
+ */
+async function _ensureHexplanExists(
+  hexecuteContext: HexecuteContext,
+  taskCoords: string,
+  instruction: string | undefined,
+  mappingService: MappingService
+): Promise<string> {
+  if (hexecuteContext.hexPlan) {
+    return hexecuteContext.hexPlan
+  }
+
+  const taskId = parseInt(hexecuteContext.task.id, 10)
+  if (Number.isNaN(taskId)) {
+    _throwBadRequest(`Invalid task ID: ${hexecuteContext.task.id}`)
+  }
+
+  const taskCoord = CoordSystem.parseId(taskCoords)
+  const hexplanCoords = {
+    ...taskCoord,
+    path: [...taskCoord.path, Direction.Center]
+  }
+
+  // Generate hexplan content based on tile type
+  const hasSubtasks = hexecuteContext.structuralChildren.length > 0
+  const hexPlanContent = hasSubtasks
+    ? generateParentHexplanContent(hexecuteContext.structuralChildren, hexecuteContext.allLeafTasks)
+    : generateLeafHexplanContent(hexecuteContext.task.title, instruction)
+
+  // Create the hexplan tile, handling race conditions
+  try {
+    await mappingService.items.crud.addItemToMap({
+      parentId: taskId,
+      coords: hexplanCoords,
+      title: 'Hexplan',
+      content: hexPlanContent
+    })
+    return hexPlanContent
+  } catch (error) {
+    // PostgreSQL unique constraint violation (SQLSTATE 23505)
+    // Another concurrent call created the hexplan first - fetch and return it
+    if (error instanceof Error && 'code' in error && error.code === '23505') {
+      const existingHexplan = await mappingService.items.query.getItemByCoords({
+        coords: hexplanCoords
+      })
+      return existingHexplan.content
+    }
+    throw error
+  }
+}
 
 function getMapContextFromConfig(
   canvasStrategy: string | undefined,
@@ -419,10 +480,15 @@ export const agenticRouter = createTRPCRouter({
       if (!hexecuteContext.task.title?.trim())
         _throwBadRequest(`Task tile at ${taskCoords} has an empty title. A non-empty title is required for prompt generation.`);
 
-      // Get MCP server name from environment (defaults to 'hexframe')
-      const mcpServerName = process.env.HEXFRAME_MCP_SERVER ?? 'hexframe'
+      // 3. Ensure hexplan tile exists (create if missing)
+      const hexPlanContent = await _ensureHexplanExists(
+        hexecuteContext,
+        taskCoords,
+        instruction,
+        ctx.mappingService
+      )
 
-      // 3. Build the hexecute prompt (pure function, no I/O)
+      // 4. Build the hexecute prompt (pure function, no I/O)
       let hexecutePrompt: string
       try {
         hexecutePrompt = buildPrompt({
@@ -431,16 +497,16 @@ export const agenticRouter = createTRPCRouter({
             content: hexecuteContext.task.content || undefined,
             coords: taskCoords
           },
+          ancestors: hexecuteContext.ancestors,
           composedChildren: hexecuteContext.composedChildren.map(child => ({
             title: child.title,
             content: child.content,
             coords: child.coords
           })),
           structuralChildren: hexecuteContext.structuralChildren,
-          instruction,
-          mcpServerName,
-          hexPlan: hexecuteContext.hexPlan,
-          hexPlanInitializerPath: undefined
+          hexPlan: hexPlanContent,
+          mcpServerName: env.HEXFRAME_MCP_SERVER,
+          allLeafTasks: hexecuteContext.allLeafTasks
         })
       } catch (error) {
         console.error(`Failed to build prompt for task at ${taskCoords}:`, error)
@@ -531,18 +597,30 @@ export const agenticRouter = createTRPCRouter({
     }),
 
   // Execute a task using its composed children for guidance
-  hexecute: publicProcedure
+  // Uses softAuthProcedure to support both authenticated (API key/session) and anonymous access
+  // This ensures authenticated users can access their private tiles via MCP
+  hexecute: softAuthProcedure
     .use(mappingServiceMiddleware)
     .input(
       z.object({
         taskCoords: z.string(),
         instruction: z.string().optional(),
-        hexPlanInitializerPath: z.string().optional() // Custom path for hexPlan initialization (e.g., '1,4')
+        deleteHexplan: z.boolean().default(false)
       })
     )
     .query(async ({ input, ctx }) => {
-      const { instruction, taskCoords, hexPlanInitializerPath } = input
+      const { instruction, taskCoords, deleteHexplan } = input
       const requester = _getRequesterUserId(ctx.user)
+
+      // If deleteHexplan is true, remove all hexplan tiles (direction-0) before proceeding
+      // Uses existing service method that handles recursive hexplan deletion
+      if (deleteHexplan) {
+        const taskCoord = CoordSystem.parseId(taskCoords)
+        await ctx.mappingService.items.crud.removeChildrenByType({
+          coords: taskCoord,
+          directionType: 'hexPlan'
+        })
+      }
 
       // 1. Get all data from mapping service (single optimized query)
       const hexecuteContext = await ctx.mappingService.context.getHexecuteContext(
@@ -554,10 +632,15 @@ export const agenticRouter = createTRPCRouter({
       if (!hexecuteContext.task.title?.trim())
         _throwBadRequest(`Task tile at ${taskCoords} has an empty title. A non-empty title is required for prompt generation.`);
 
-      // Get MCP server name from environment (defaults to 'hexframe')
-      const mcpServerName = process.env.HEXFRAME_MCP_SERVER ?? 'hexframe'
+      // 3. Ensure hexplan tile exists (create if missing)
+      const hexPlanContent = await _ensureHexplanExists(
+        hexecuteContext,
+        taskCoords,
+        instruction,
+        ctx.mappingService
+      )
 
-      // 3. Build prompt (pure function, no I/O)
+      // 4. Build prompt (pure function, no I/O)
       let promptResult: string
       try {
         promptResult = buildPrompt({
@@ -566,16 +649,16 @@ export const agenticRouter = createTRPCRouter({
             content: hexecuteContext.task.content || undefined,
             coords: taskCoords
           },
+          ancestors: hexecuteContext.ancestors,
           composedChildren: hexecuteContext.composedChildren.map(child => ({
             title: child.title,
             content: child.content,
             coords: child.coords
           })),
           structuralChildren: hexecuteContext.structuralChildren,
-          instruction,
-          mcpServerName,
-          hexPlan: hexecuteContext.hexPlan,
-          hexPlanInitializerPath
+          hexPlan: hexPlanContent,
+          mcpServerName: env.HEXFRAME_MCP_SERVER,
+          allLeafTasks: hexecuteContext.allLeafTasks
         })
       } catch (error) {
         console.error(`Failed to build prompt for task at ${taskCoords}:`, error)

@@ -7,9 +7,14 @@ import { MarkdownRenderer } from '~/app/map/Chat/Timeline/_components/MarkdownRe
 import { CopyButton } from '~/app/map/Chat/Timeline/_components/CopyButton';
 import { authClient } from '~/lib/auth';
 import { useEventBus } from '~/app/map/Services/EventBus';
+import { ThinkingIndicator } from '~/app/map/Chat/Timeline/_components/ThinkingIndicator';
+
+interface StreamingMessage extends Message {
+  isStreaming?: boolean;
+}
 
 interface MessageActorRendererProps {
-  message: Message;
+  message: StreamingMessage;
 }
 
 export function MessageActorRenderer({ message }: MessageActorRendererProps) {
@@ -126,10 +131,14 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
           </span>
         </div>
         <div>
-          <MarkdownRenderer 
-            content={message.content} 
-            isSystemMessage={false} 
-          />
+          {message.isStreaming && !message.content ? (
+            <ThinkingIndicator />
+          ) : (
+            <MarkdownRenderer
+              content={message.content}
+              isSystemMessage={false}
+            />
+          )}
           {renderCopyButtons()}
         </div>
       </div>

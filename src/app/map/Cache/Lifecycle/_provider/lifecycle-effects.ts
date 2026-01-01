@@ -10,6 +10,7 @@ import type { ServerService } from "~/app/map/Cache/Services";
 import type { EventBusService } from "~/app/map/types/events";
 import { executePrefetchRegion } from "~/app/map/Cache/Lifecycle/_provider/_internals/prefetch-operations";
 import { shouldTriggerPrefetch, createDeferredPrefetch } from "~/app/map/Cache/Lifecycle/_provider/_internals/center-change-handler";
+import { useTileMutationEffect } from "~/app/map/Cache/Lifecycle/_provider/_internals/tile-mutation-handler";
 import { clearPreFetchedData } from "~/app/map/Services/PreFetch/pre-fetch-service";
 import { api } from "~/commons/trpc/react";
 
@@ -59,6 +60,9 @@ export function useCacheLifecycle(config: LifecycleHookConfig): void {
 
   // Clear cache on auth state changes
   useAuthStateEffect(config.eventBus, config.dispatch);
+
+  // Update cache on tile mutations from external sources (like agent execution)
+  useTileMutationEffect(config.eventBus, config.dispatch, config.serverService);
 }
 
 /**

@@ -81,19 +81,25 @@ Use `pnpm check:deadcode [path]` to identify unused exports, files, and transiti
 
 ## Tile Hierarchy Architecture
 
-Hexframe tiles have three types of children, each serving a distinct purpose in the execution model:
+### The Fundamental Rule: Leaf or Parent, Never Both
+
+A tile is either a **leaf** (does concrete work) or a **parent** (orchestrates children). Never both.
+
+- **Leaf Tile**: Has no subtask children (directions 1-6). Its content describes WHAT to do and WHY. An agent executes it in one session.
+- **Parent Tile**: Has subtask children. The agent's only job is orchestration — run each child in order. The tile's content (if any) is context for human reviewers, not agent instructions.
+
+This clean separation eliminates ambiguity about what an agent should do when executing a tile.
 
 ### Direction Values
 - **Positive 1-6**: Subtask children (decomposed work units)
 - **Negative -1 to -6**: Context children (reference materials, constraints, templates)
-- **Direction 0**: Hexplan (execution state and agent guidance)
+- **Direction 0**: Hexplan (execution state and progress tracking)
 
 ### Key Characteristics
 - Tiles can have BOTH subtask and context children simultaneously
 - Path example: `[1, -3, 4]` = NW → ContextE → SE (mixed hierarchy)
 - Context children stored as direct children with negative direction values
 - UX: Context expansion controlled by boolean toggle (not per-tile)
-- Storage detail: Negative directions are internal implementation, not exposed in UI
 
 ### Implementation Layers
 All layers support negative directions consistently:
@@ -149,37 +155,30 @@ The `hexecute` tool transforms any tile into a structured XML prompt using tile 
 - Tile `[1, 3]` → hexplan at `[1, 3, 0]`
 - Root tile `[]` → hexplan at `[0]`
 
-**What hexplan tiles contain:**
-- Status: what's completed, in progress, blocked
-- Decisions: why approaches were chosen
-- Blockers: what's preventing progress
-- Next steps: what should happen next
-- **User adjustments**: instructions added by humans to guide execution
+**The hexplan serves two audiences:**
+1. **For agents**: Tracks what's done, what's next, and any user adjustments
+2. **For humans**: Provides visibility into task progress for review and course-correction
 
-**Update protocol:** Agents use standard MCP tools (`getItemByCoords`, `updateItem`) with emoji prefixes:
-- 🟡 STARTED: Task began
-- ✅ COMPLETED: Task finished
-- 🔴 BLOCKED: Task stuck
+**Hexplan content differs by tile type:**
+- **Parent tile hexplan**: List of subtasks to execute in order (can be generated programmatically from children)
+- **Leaf tile hexplan**: Agent's plan to complete the concrete work
+
+**Status markers (agent-written tokens):**
+
+When agents update hexplan tiles via `updateItem`, they MUST use these exact emoji-prefixed tokens:
+- 🟡 STARTED — Task execution began
+- ✅ COMPLETED — Task finished successfully
+- 🔴 BLOCKED — Task stuck, needs human intervention
+
+Steps without a prefix are considered pending (📋). The 📋 emoji is for display/human use only — agents don't write it.
 
 **Human-in-the-loop control:**
 - Read `[1, 0]` to see top-level progress
-- Edit `[1, 2, 0]` to adjust a specific subtask's approach
+- Edit any hexplan to adjust the approach
 - Mark steps as completed to skip them
-- Add instructions at any level — agent incorporates them on next run
+- Add instructions — agent incorporates them on next run
 
-**Implementation:** The MCP `hexecute` tool in `src/app/services/mcp/handlers/tools.ts` reads hexplan tiles and includes them in prompts. Agents update using standard `updateItem` calls.
-
-### Hexplan Initialization: Hexframe Bootstrapping Hexframe
-
-Since the hexplan is central to Hexframe execution, there's a **default Hexframe system for initializing hexplans**. This is Hexframe using its own formalism to define the system that creates hexplans for other systems.
-
-The hexplan initialization system:
-1. Reads a task hierarchy
-2. Analyzes context and subtask structure
-3. Generates initial hexplan tiles at direction-0 for each task
-4. Sets up the execution state for autonomous runs
-
-This bootstrap system is itself a Hexframe system — demonstrating the self-referential power of the model.
+**Implementation:** The MCP `hexecute` tool reads hexplan tiles and includes them in prompts. Agents update using standard `updateItem` calls.
 
 ## Important Notes
 - Always use `pnpm` (not npm or yarn)

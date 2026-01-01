@@ -16,7 +16,14 @@ export type ChatEventType =
   | 'widget_resolved'
   | 'widget_created'
   | 'widget_closed'
-  | 'execute_command';
+  | 'widget_updated'
+  | 'execute_command'
+  // Streaming events
+  | 'streaming_message_start'
+  | 'streaming_message_delta'
+  | 'streaming_message_end'
+  | 'tool_call_start'
+  | 'tool_call_end';
 
 export type ChatEventActor = 'user' | 'system' | 'assistant';
 
@@ -43,7 +50,7 @@ export interface Message {
 
 export interface Widget {
   id: string;
-  type: 'tile' | 'creation' | 'delete' | 'delete_children' | 'login' | 'loading' | 'error' | 'ai-response' | 'mcp-keys' | 'debug-logs' | 'favorites';
+  type: 'tile' | 'creation' | 'delete' | 'delete_children' | 'login' | 'loading' | 'error' | 'ai-response' | 'mcp-keys' | 'debug-logs' | 'favorites' | 'tool-call';
   data: unknown;
   priority: 'info' | 'action' | 'critical';
   timestamp: Date;
@@ -103,4 +110,57 @@ export interface ErrorOccurredPayload {
 
 export interface ExecuteCommandPayload {
   command: string;
+}
+
+export interface WidgetResolvedPayload {
+  widgetId?: string;
+  widgetType?: string;
+  action?: string;
+  result?: string;
+  status?: 'completed' | 'failed';
+  message?: string;
+}
+
+// Streaming event payload types
+export interface StreamingMessageStartPayload {
+  streamId: string;
+  model?: string;
+}
+
+export interface StreamingMessageDeltaPayload {
+  streamId: string;
+  delta: string;
+}
+
+export interface StreamingMessageEndPayload {
+  streamId: string;
+  finalContent: string;
+  usage?: {
+    inputTokens?: number;
+    outputTokens?: number;
+  };
+}
+
+export interface ToolCallStartPayload {
+  streamId: string;
+  toolCallId: string;
+  toolName: string;
+  arguments: Record<string, unknown>;
+}
+
+export interface ToolCallEndPayload {
+  streamId: string;
+  toolCallId: string;
+  result: string;
+  success: boolean;
+}
+
+// Tool call widget data types
+export interface ToolCallWidgetData {
+  toolCallId: string;
+  streamId: string;
+  toolName: string;
+  arguments: Record<string, unknown>;
+  status: 'running' | 'completed' | 'failed';
+  result?: string;
 }

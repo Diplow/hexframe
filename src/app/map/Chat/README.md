@@ -7,6 +7,7 @@ Like a mission control center for a space station - coordinates all communicatio
 - Provide main chat panel interface with header, timeline, and input areas
 - Coordinate authentication state changes and user session management
 - Integrate AI-powered chat capabilities with loading states and response handling
+- **Support real-time streaming execution** with live text, tool calls, and tile mutation feedback
 - Emit and respond to system-wide events through the EventBus
 - Manage overall chat layout and component composition
 
@@ -14,9 +15,11 @@ Like a mission control center for a space station - coordinates all communicatio
 - Text input processing and command parsing → See `./Input/README.md`
 - Message and widget timeline display → See `./Timeline/README.md`
 - Event-driven state management and data persistence → See `./_state/` internal module
+- **SSE streaming client and AI hooks** → See `./_hooks/README.md`
 - Chat configuration and user preferences → See `./_settings/` internal module
 - Authentication logic implementation → See `~/lib/auth` domain
 - Widget-specific rendering and behavior → See `./Timeline/Widgets/` subsystems
+- Backend streaming infrastructure → See `~/server/api/streaming/README.md`
 
 ## Interface
 *See `index.ts` for the public API - the ONLY exports other subsystems can use*

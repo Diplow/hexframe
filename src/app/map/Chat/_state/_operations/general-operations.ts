@@ -1,5 +1,5 @@
-import type { ChatEvent } from '~/app/map/Chat/_state/_events/event.types';
-import { createOperationStartedEvent } from '~/app/map/Chat/_state/_events/event.creators';
+import type { ChatEvent } from '~/app/map/Chat/_state/_events';
+import { createOperationStartedEvent } from '~/app/map/Chat/_state/_events';
 
 /**
  * General operations

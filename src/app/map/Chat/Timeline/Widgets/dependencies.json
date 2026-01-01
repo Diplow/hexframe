@@ -4,6 +4,7 @@
   "allowed": [
     "~/app/map/Services",
     "~/components/ui/button",
+    "~/contexts/AuthContext",
     "~/lib/auth",
     "~/lib/debug/debug-logger",
     "~/lib/domains/agentic",
