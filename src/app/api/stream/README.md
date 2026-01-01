@@ -57,7 +57,7 @@ Streams task execution events via Server-Sent Events.
 |-----------|------|----------|---------|-------------|
 | `taskCoords` | string | Yes | - | Coordinates of the task tile (e.g., `userId,0:1,2`) |
 | `instruction` | string | No | - | Runtime instruction for task execution |
-| `model` | string | No | `claude-opus-4-20250514` | LLM model to use |
+| `model` | string | No | `claude-haiku-4-5-20251001` | LLM model to use |
 | `temperature` | number | No | - | Generation temperature (0-2) |
 | `maxTokens` | number | No | - | Maximum tokens (1-8192) |
 

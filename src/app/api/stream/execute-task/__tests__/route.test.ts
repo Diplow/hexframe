@@ -62,7 +62,7 @@ vi.mock('~/lib/domains/iam', () => ({
 const executeTaskQuerySchema = z.object({
   taskCoords: z.string().min(1, 'taskCoords is required'),
   instruction: z.string().optional(),
-  model: z.string().default('claude-opus-4-20250514'),
+  model: z.string().default('claude-haiku-4-5-20251001'),
   temperature: z.coerce.number().min(0).max(2).optional(),
   maxTokens: z.coerce.number().min(1).max(8192).optional()
 })
@@ -391,7 +391,7 @@ describe('SSE Execute Task Endpoint', () => {
 
         expect(result.success).toBe(true)
         if (result.success) {
-          expect(result.data.model).toBe('claude-opus-4-20250514')
+          expect(result.data.model).toBe('claude-haiku-4-5-20251001')
         }
       })
 
@@ -533,7 +533,7 @@ describe('SSE Execute Task Endpoint', () => {
       const searchParams = new URLSearchParams({
         taskCoords: 'userId123,0:1,2,3',
         instruction: 'Test instruction',
-        model: 'claude-opus-4-20250514',
+        model: 'claude-haiku-4-5-20251001',
         temperature: '0.5',
         maxTokens: '2048'
       })
@@ -552,7 +552,7 @@ describe('SSE Execute Task Endpoint', () => {
       if (result.success) {
         expect(result.data.taskCoords).toBe('userId123,0:1,2,3')
         expect(result.data.instruction).toBe('Test instruction')
-        expect(result.data.model).toBe('claude-opus-4-20250514')
+        expect(result.data.model).toBe('claude-haiku-4-5-20251001')
         expect(result.data.temperature).toBe(0.5)
         expect(result.data.maxTokens).toBe(2048)
       }

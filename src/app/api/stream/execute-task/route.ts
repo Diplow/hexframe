@@ -9,7 +9,7 @@
  * Query Parameters:
  * - taskCoords (required): Coordinates of the task tile to execute
  * - instruction (optional): Runtime instruction for the task
- * - model (optional): LLM model to use (default: claude-opus-4-20250514)
+ * - model (optional): LLM model to use (default: claude-haiku-4-5-20251001)
  * - temperature (optional): Temperature for generation (0-2)
  * - maxTokens (optional): Maximum tokens (1-8192)
  *
@@ -53,7 +53,7 @@ import { EventBus as EventBusImpl } from '~/lib/utils/event-bus'
 const executeTaskQuerySchema = z.object({
   taskCoords: z.string().min(1, 'taskCoords is required'),
   instruction: z.string().optional(),
-  model: z.string().default('claude-opus-4-20250514'),
+  model: z.string().default('claude-haiku-4-5-20251001'),
   temperature: z.coerce.number().min(0).max(2).optional(),
   maxTokens: z.coerce.number().min(1).max(8192).optional()
 })
