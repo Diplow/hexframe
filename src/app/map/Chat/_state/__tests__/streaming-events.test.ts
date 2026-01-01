@@ -8,7 +8,7 @@ import { deriveActiveWidgets } from '~/app/map/Chat/_state/_selectors/widget-sel
  * TDD Tests for Streaming Message Integration
  *
  * These tests define the expected behavior for integrating real-time streaming
- * into the chat UI. Tests are written to FAIL until implementation is complete.
+ * into the chat UI.
  *
  * Test Categories:
  * 1. Streaming Message Event Types - Tests that new event types are recognized
@@ -18,16 +18,7 @@ import { deriveActiveWidgets } from '~/app/map/Chat/_state/_selectors/widget-sel
  * 5. Event Creator Functions - Tests for event creator functions
  * 6. Integration Tests - End-to-end streaming flow tests
  *
- * Implementation Requirements (what needs to be built):
- * - Add new event types to ChatEventType: streaming_message_start, streaming_message_delta, streaming_message_end, tool_call_start, tool_call_end, widget_updated
- * - Add new payload types: StreamingMessageStartPayload, StreamingMessageDeltaPayload, StreamingMessageEndPayload, ToolCallStartPayload, ToolCallEndPayload
- * - Add isStreaming property to Message type
- * - Create streaming-message-creators.ts with event creator functions
- * - Create streaming-message-operations.ts with message operations
- * - Create tool-call-widget-operations.ts with widget operations
- * - Update message.selectors.ts to handle streaming events
- * - Update widget-selectors.ts to handle tool-call widgets and widget_updated events
- * - Add 'tool-call' to Widget type union
+ * Event types and payload types are defined in event.types.ts.
  */
 
 // =============================================================================
@@ -36,19 +27,14 @@ import { deriveActiveWidgets } from '~/app/map/Chat/_state/_selectors/widget-sel
 describe('Streaming Message Event Types', () => {
   describe('StreamingMessageStartPayload', () => {
     it('should define streaming_message_start event type in ChatEventType', () => {
-      // WILL FAIL: ChatEventType doesn't include 'streaming_message_start'
-      // When implemented, this type cast should be unnecessary
       const event: ChatEvent = {
         id: 'test-stream-1',
-        type: 'streaming_message_start' as ChatEvent['type'],
+        type: 'streaming_message_start',
         payload: { streamId: 'stream_abc123', model: 'claude-opus-4-5-20251101' },
         timestamp: new Date(),
         actor: 'assistant',
       }
 
-      // Verify the event type is correctly set
-      // This will pass but only because we use type assertion
-      // The real test is whether TypeScript accepts it without assertion
       expect(event.type).toBe('streaming_message_start')
       expect((event.payload as { streamId: string }).streamId).toBe('stream_abc123')
     })
@@ -76,7 +62,7 @@ describe('Streaming Message Event Types', () => {
     it('should define streaming_message_delta event type', () => {
       const event: ChatEvent = {
         id: 'test-delta-1',
-        type: 'streaming_message_delta' as ChatEvent['type'],
+        type: 'streaming_message_delta',
         payload: { streamId: 'stream_abc123', delta: 'Hello, ' },
         timestamp: new Date(),
         actor: 'assistant',
@@ -106,7 +92,7 @@ describe('Streaming Message Event Types', () => {
     it('should define streaming_message_end event type', () => {
       const event: ChatEvent = {
         id: 'test-end-1',
-        type: 'streaming_message_end' as ChatEvent['type'],
+        type: 'streaming_message_end',
         payload: {
           streamId: 'stream_abc123',
           finalContent: 'Hello, world!',
@@ -151,8 +137,9 @@ describe('Streaming Message Event Types', () => {
     it('should define tool_call_start event type', () => {
       const event: ChatEvent = {
         id: 'test-tool-start-1',
-        type: 'tool_call_start' as ChatEvent['type'],
+        type: 'tool_call_start',
         payload: {
+          streamId: 'stream_abc123',
           toolCallId: 'call_abc123',
           toolName: 'mcp__hexframe__addItem',
           arguments: { title: 'New Tile' }
@@ -162,15 +149,18 @@ describe('Streaming Message Event Types', () => {
       }
 
       expect(event.type).toBe('tool_call_start')
+      expect((event.payload as { streamId: string }).streamId).toBe('stream_abc123')
     })
 
-    it('should require toolCallId, toolName, and arguments', () => {
+    it('should require streamId, toolCallId, toolName, and arguments', () => {
       const payload = {
+        streamId: 'stream_abc123',
         toolCallId: 'call_123',
         toolName: 'mcp__hexframe__updateItem',
         arguments: { content: 'Updated content' }
       }
 
+      expect(payload.streamId).toBeDefined()
       expect(payload.toolCallId).toBeDefined()
       expect(payload.toolName).toBeDefined()
       expect(payload.arguments).toBeDefined()
@@ -181,8 +171,9 @@ describe('Streaming Message Event Types', () => {
     it('should define tool_call_end event type', () => {
       const event: ChatEvent = {
         id: 'test-tool-end-1',
-        type: 'tool_call_end' as ChatEvent['type'],
+        type: 'tool_call_end',
         payload: {
+          streamId: 'stream_abc123',
           toolCallId: 'call_abc123',
           result: '{"success": true}',
           success: true
@@ -212,7 +203,7 @@ describe('Streaming Message Event Types', () => {
     it('should define widget_updated event type', () => {
       const event: ChatEvent = {
         id: 'test-widget-update-1',
-        type: 'widget_updated' as ChatEvent['type'],
+        type: 'widget_updated',
         payload: {
           widgetId: 'tool-call-call_abc123',
           updates: { status: 'completed', result: '{"success": true}' }
@@ -232,11 +223,10 @@ describe('Streaming Message Event Types', () => {
 describe('Message Selector Streaming Event Handling', () => {
   describe('deriveVisibleMessages with streaming events', () => {
     it('should create in-progress message from streaming_message_start', () => {
-      // WILL FAIL: deriveVisibleMessages doesn't handle streaming_message_start
       const events: ChatEvent[] = [
         {
           id: 'stream-start-1',
-          type: 'streaming_message_start' as ChatEvent['type'],
+          type: 'streaming_message_start',
           payload: { streamId: 'stream_abc' },
           timestamp: new Date(),
           actor: 'assistant',
@@ -251,31 +241,29 @@ describe('Message Selector Streaming Event Handling', () => {
         content: '', // Initially empty
         actor: 'assistant',
       })
-      // WILL FAIL: Message type doesn't have isStreaming property
       expect((messages[0] as Message & { isStreaming?: boolean }).isStreaming).toBe(true)
     })
 
     it('should accumulate delta content into streaming message', () => {
-      // WILL FAIL: deriveVisibleMessages doesn't handle streaming_message_delta
       const baseTime = new Date()
       const events: ChatEvent[] = [
         {
           id: 'stream-start-1',
-          type: 'streaming_message_start' as ChatEvent['type'],
+          type: 'streaming_message_start',
           payload: { streamId: 'stream_abc' },
           timestamp: baseTime,
           actor: 'assistant',
         },
         {
           id: 'stream-delta-1',
-          type: 'streaming_message_delta' as ChatEvent['type'],
+          type: 'streaming_message_delta',
           payload: { streamId: 'stream_abc', delta: 'Hello, ' },
           timestamp: new Date(baseTime.getTime() + 100),
           actor: 'assistant',
         },
         {
           id: 'stream-delta-2',
-          type: 'streaming_message_delta' as ChatEvent['type'],
+          type: 'streaming_message_delta',
           payload: { streamId: 'stream_abc', delta: 'world!' },
           timestamp: new Date(baseTime.getTime() + 200),
           actor: 'assistant',
@@ -292,26 +280,25 @@ describe('Message Selector Streaming Event Handling', () => {
     })
 
     it('should finalize streaming message on streaming_message_end', () => {
-      // WILL FAIL: deriveVisibleMessages doesn't handle streaming_message_end
       const baseTime = new Date()
       const events: ChatEvent[] = [
         {
           id: 'stream-start-1',
-          type: 'streaming_message_start' as ChatEvent['type'],
+          type: 'streaming_message_start',
           payload: { streamId: 'stream_abc' },
           timestamp: baseTime,
           actor: 'assistant',
         },
         {
           id: 'stream-delta-1',
-          type: 'streaming_message_delta' as ChatEvent['type'],
+          type: 'streaming_message_delta',
           payload: { streamId: 'stream_abc', delta: 'Hello' },
           timestamp: new Date(baseTime.getTime() + 100),
           actor: 'assistant',
         },
         {
           id: 'stream-end-1',
-          type: 'streaming_message_end' as ChatEvent['type'],
+          type: 'streaming_message_end',
           payload: { streamId: 'stream_abc', finalContent: 'Hello, world!' },
           timestamp: new Date(baseTime.getTime() + 200),
           actor: 'assistant',
@@ -328,33 +315,32 @@ describe('Message Selector Streaming Event Handling', () => {
     })
 
     it('should handle multiple concurrent streaming messages', () => {
-      // WILL FAIL: deriveVisibleMessages doesn't handle multiple streams
       const baseTime = new Date()
       const events: ChatEvent[] = [
         {
           id: 'stream-start-1',
-          type: 'streaming_message_start' as ChatEvent['type'],
+          type: 'streaming_message_start',
           payload: { streamId: 'stream_1' },
           timestamp: baseTime,
           actor: 'assistant',
         },
         {
           id: 'stream-start-2',
-          type: 'streaming_message_start' as ChatEvent['type'],
+          type: 'streaming_message_start',
           payload: { streamId: 'stream_2' },
           timestamp: new Date(baseTime.getTime() + 50),
           actor: 'assistant',
         },
         {
           id: 'stream-delta-1',
-          type: 'streaming_message_delta' as ChatEvent['type'],
+          type: 'streaming_message_delta',
           payload: { streamId: 'stream_1', delta: 'First ' },
           timestamp: new Date(baseTime.getTime() + 100),
           actor: 'assistant',
         },
         {
           id: 'stream-delta-2',
-          type: 'streaming_message_delta' as ChatEvent['type'],
+          type: 'streaming_message_delta',
           payload: { streamId: 'stream_2', delta: 'Second ' },
           timestamp: new Date(baseTime.getTime() + 150),
           actor: 'assistant',
@@ -369,11 +355,10 @@ describe('Message Selector Streaming Event Handling', () => {
     })
 
     it('should ignore delta events for unknown streamId', () => {
-      // WILL FAIL: deriveVisibleMessages should gracefully handle orphan deltas
       const events: ChatEvent[] = [
         {
           id: 'stream-delta-orphan',
-          type: 'streaming_message_delta' as ChatEvent['type'],
+          type: 'streaming_message_delta',
           payload: { streamId: 'unknown_stream', delta: 'Orphan delta' },
           timestamp: new Date(),
           actor: 'assistant',
@@ -387,7 +372,6 @@ describe('Message Selector Streaming Event Handling', () => {
     })
 
     it('should preserve regular messages alongside streaming', () => {
-      // WILL FAIL: deriveVisibleMessages needs to interleave streaming and regular messages
       const baseTime = new Date()
       const events: ChatEvent[] = [
         {
@@ -399,14 +383,14 @@ describe('Message Selector Streaming Event Handling', () => {
         },
         {
           id: 'stream-start-1',
-          type: 'streaming_message_start' as ChatEvent['type'],
+          type: 'streaming_message_start',
           payload: { streamId: 'stream_abc' },
           timestamp: new Date(baseTime.getTime() + 100),
           actor: 'assistant',
         },
         {
           id: 'stream-delta-1',
-          type: 'streaming_message_delta' as ChatEvent['type'],
+          type: 'streaming_message_delta',
           payload: { streamId: 'stream_abc', delta: 'Hi there!' },
           timestamp: new Date(baseTime.getTime() + 200),
           actor: 'assistant',
@@ -430,7 +414,6 @@ describe('Message Selector Streaming Event Handling', () => {
 describe('Widget Selector Tool Call Handling', () => {
   describe('deriveActiveWidgets with tool-call widgets', () => {
     it('should create tool-call widget from widget_created event', () => {
-      // WILL FAIL: Widget type doesn't include 'tool-call'
       const events: ChatEvent[] = [
         {
           id: 'tool-call-1',
@@ -438,7 +421,7 @@ describe('Widget Selector Tool Call Handling', () => {
           payload: {
             widget: {
               id: 'tool-call-call_abc123',
-              type: 'tool-call' as Widget['type'],
+              type: 'tool-call',
               data: {
                 toolCallId: 'call_abc123',
                 toolName: 'mcp__hexframe__addItem',
@@ -467,7 +450,6 @@ describe('Widget Selector Tool Call Handling', () => {
     })
 
     it('should handle widget_updated event to update widget status', () => {
-      // WILL FAIL: deriveActiveWidgets doesn't handle widget_updated event
       const baseTime = new Date()
       const events: ChatEvent[] = [
         {
@@ -476,7 +458,7 @@ describe('Widget Selector Tool Call Handling', () => {
           payload: {
             widget: {
               id: 'tool-call-call_abc123',
-              type: 'tool-call' as Widget['type'],
+              type: 'tool-call',
               data: {
                 toolCallId: 'call_abc123',
                 toolName: 'mcp__hexframe__addItem',
@@ -491,7 +473,7 @@ describe('Widget Selector Tool Call Handling', () => {
         },
         {
           id: 'tool-call-update',
-          type: 'widget_updated' as ChatEvent['type'],
+          type: 'widget_updated',
           payload: {
             widgetId: 'tool-call-call_abc123',
             updates: {
@@ -507,13 +489,11 @@ describe('Widget Selector Tool Call Handling', () => {
       const widgets = deriveActiveWidgets(events)
 
       expect(widgets).toHaveLength(1)
-      // WILL FAIL: widget data should be updated with the new status
       expect((widgets[0]!.data as { status: string }).status).toBe('completed')
       expect((widgets[0]!.data as { result: string }).result).toBe('{"success": true}')
     })
 
     it('should keep completed tool-call widgets visible', () => {
-      // WILL FAIL: deriveActiveWidgets doesn't handle widget_updated
       const baseTime = new Date()
       const events: ChatEvent[] = [
         {
@@ -522,7 +502,7 @@ describe('Widget Selector Tool Call Handling', () => {
           payload: {
             widget: {
               id: 'tool-call-call_abc123',
-              type: 'tool-call' as Widget['type'],
+              type: 'tool-call',
               data: {
                 toolCallId: 'call_abc123',
                 toolName: 'Read',
@@ -537,7 +517,7 @@ describe('Widget Selector Tool Call Handling', () => {
         },
         {
           id: 'tool-call-update',
-          type: 'widget_updated' as ChatEvent['type'],
+          type: 'widget_updated',
           payload: {
             widgetId: 'tool-call-call_abc123',
             updates: { status: 'completed' }
@@ -561,7 +541,6 @@ describe('Widget Selector Tool Call Handling', () => {
 // =============================================================================
 describe('Streaming Message Flow Integration', () => {
   it('should handle complete streaming message lifecycle', () => {
-    // WILL FAIL: Full streaming support not implemented
     const baseTime = new Date()
     const events: ChatEvent[] = []
 
@@ -577,7 +556,7 @@ describe('Streaming Message Flow Integration', () => {
     // Assistant starts streaming
     events.push({
       id: 'stream-start',
-      type: 'streaming_message_start' as ChatEvent['type'],
+      type: 'streaming_message_start',
       payload: { streamId: 'stream_1' },
       timestamp: new Date(baseTime.getTime() + 100),
       actor: 'assistant',
@@ -588,7 +567,7 @@ describe('Streaming Message Flow Integration', () => {
     chunks.forEach((chunk, index) => {
       events.push({
         id: `stream-delta-${index}`,
-        type: 'streaming_message_delta' as ChatEvent['type'],
+        type: 'streaming_message_delta',
         payload: { streamId: 'stream_1', delta: chunk },
         timestamp: new Date(baseTime.getTime() + 200 + (index * 50)),
         actor: 'assistant',
@@ -598,7 +577,7 @@ describe('Streaming Message Flow Integration', () => {
     // Complete stream
     events.push({
       id: 'stream-end',
-      type: 'streaming_message_end' as ChatEvent['type'],
+      type: 'streaming_message_end',
       payload: {
         streamId: 'stream_1',
         finalContent: 'Hi there! How can I help?',
@@ -623,13 +602,12 @@ describe('Streaming Message Flow Integration', () => {
   })
 
   it('should handle streaming with tool calls interleaved', () => {
-    // WILL FAIL: Full streaming with widgets support not implemented
     const baseTime = new Date()
     const events: ChatEvent[] = [
       // Start streaming
       {
         id: 'stream-start',
-        type: 'streaming_message_start' as ChatEvent['type'],
+        type: 'streaming_message_start',
         payload: { streamId: 'stream_1' },
         timestamp: baseTime,
         actor: 'assistant',
@@ -637,7 +615,7 @@ describe('Streaming Message Flow Integration', () => {
       // Text chunk
       {
         id: 'stream-delta-1',
-        type: 'streaming_message_delta' as ChatEvent['type'],
+        type: 'streaming_message_delta',
         payload: { streamId: 'stream_1', delta: 'Let me create a tile...' },
         timestamp: new Date(baseTime.getTime() + 100),
         actor: 'assistant',
@@ -649,7 +627,7 @@ describe('Streaming Message Flow Integration', () => {
         payload: {
           widget: {
             id: 'tool-call-call_1',
-            type: 'tool-call' as Widget['type'],
+            type: 'tool-call',
             data: { toolCallId: 'call_1', toolName: 'addItem', status: 'running' },
             priority: 'info',
             timestamp: new Date(baseTime.getTime() + 200)
@@ -661,7 +639,7 @@ describe('Streaming Message Flow Integration', () => {
       // Tool call completes
       {
         id: 'tool-widget-update',
-        type: 'widget_updated' as ChatEvent['type'],
+        type: 'widget_updated',
         payload: {
           widgetId: 'tool-call-call_1',
           updates: { status: 'completed', result: '{"id": "tile_1"}' }
@@ -672,7 +650,7 @@ describe('Streaming Message Flow Integration', () => {
       // More text
       {
         id: 'stream-delta-2',
-        type: 'streaming_message_delta' as ChatEvent['type'],
+        type: 'streaming_message_delta',
         payload: { streamId: 'stream_1', delta: '\n\nDone!' },
         timestamp: new Date(baseTime.getTime() + 500),
         actor: 'assistant',
@@ -680,7 +658,7 @@ describe('Streaming Message Flow Integration', () => {
       // Stream ends
       {
         id: 'stream-end',
-        type: 'streaming_message_end' as ChatEvent['type'],
+        type: 'streaming_message_end',
         payload: { streamId: 'stream_1', finalContent: 'Let me create a tile...\n\nDone!' },
         timestamp: new Date(baseTime.getTime() + 600),
         actor: 'assistant',
