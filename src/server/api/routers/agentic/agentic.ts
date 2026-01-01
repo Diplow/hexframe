@@ -20,6 +20,10 @@ import type { MappingService, HexecuteContext } from '~/lib/domains/mapping'
 /**
  * Creates a hexplan tile if one doesn't exist.
  * Returns the hexplan content (either existing or newly created).
+ *
+ * Handles race conditions: if concurrent calls attempt to create the hexplan,
+ * the second call will detect the unique constraint violation and fetch the
+ * existing hexplan instead.
  */
 async function _ensureHexplanExists(
   hexecuteContext: HexecuteContext,
@@ -32,6 +36,10 @@ async function _ensureHexplanExists(
   }
 
   const taskId = parseInt(hexecuteContext.task.id, 10)
+  if (Number.isNaN(taskId)) {
+    _throwBadRequest(`Invalid task ID: ${hexecuteContext.task.id}`)
+  }
+
   const taskCoord = CoordSystem.parseId(taskCoords)
   const hexplanCoords = {
     ...taskCoord,
@@ -44,15 +52,26 @@ async function _ensureHexplanExists(
     ? generateParentHexplanContent(hexecuteContext.structuralChildren, hexecuteContext.allLeafTasks)
     : generateLeafHexplanContent(hexecuteContext.task.title, instruction)
 
-  // Create the hexplan tile
-  await mappingService.items.crud.addItemToMap({
-    parentId: taskId,
-    coords: hexplanCoords,
-    title: 'Hexplan',
-    content: hexPlanContent
-  })
-
-  return hexPlanContent
+  // Create the hexplan tile, handling race conditions
+  try {
+    await mappingService.items.crud.addItemToMap({
+      parentId: taskId,
+      coords: hexplanCoords,
+      title: 'Hexplan',
+      content: hexPlanContent
+    })
+    return hexPlanContent
+  } catch (error) {
+    // PostgreSQL unique constraint violation (SQLSTATE 23505)
+    // Another concurrent call created the hexplan first - fetch and return it
+    if (error instanceof Error && 'code' in error && error.code === '23505') {
+      const existingHexplan = await mappingService.items.query.getItemByCoords({
+        coords: hexplanCoords
+      })
+      return existingHexplan.content
+    }
+    throw error
+  }
 }
 
 function getMapContextFromConfig(

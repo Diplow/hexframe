@@ -41,7 +41,7 @@ export function _requireOwnership(ownerId: string, userId: string, action: strin
   if (ownerId !== userId) {
     throw new TRPCError({
       code: "FORBIDDEN",
-      message: `You can only ${action} you own`,
+      message: `You can only ${action} that you own`,
     });
   }
 }

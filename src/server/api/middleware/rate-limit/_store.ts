@@ -102,30 +102,41 @@ class RedisRateLimitStore implements RateLimitStore {
 
     const redisKey = this._getKey(key);
     const now = Date.now();
+    const ttlSeconds = Math.ceil(windowMs / 1000);
 
     try {
-      // Use Redis transaction for atomic read-modify-write
-      const existing = await this.redis.get<RateLimitEntry>(redisKey);
+      // Lua script for atomic increment with expiration check
+      // Returns [count, resetTime] as array
+      const result: [number, number] = await this.redis.eval(
+        `
+        local key = KEYS[1]
+        local now = tonumber(ARGV[1])
+        local windowMs = tonumber(ARGV[2])
+        local ttlSeconds = tonumber(ARGV[3])
 
-      // If entry exists and not expired, increment
-      if (existing && existing.resetTime >= now) {
-        const updatedEntry: RateLimitEntry = {
-          count: existing.count + 1,
-          resetTime: existing.resetTime,
-        };
-        const remainingTtlSeconds = Math.ceil((existing.resetTime - now) / 1000);
-        await this.redis.set(redisKey, updatedEntry, { ex: remainingTtlSeconds });
-        return updatedEntry;
-      }
+        local data = redis.call('GET', key)
 
-      // Create new entry with TTL
-      const newEntry: RateLimitEntry = {
-        count: 1,
-        resetTime: now + windowMs,
-      };
-      const ttlSeconds = Math.ceil(windowMs / 1000);
-      await this.redis.set(redisKey, newEntry, { ex: ttlSeconds });
-      return newEntry;
+        if data then
+          local entry = cjson.decode(data)
+          if entry.resetTime >= now then
+            -- Entry exists and not expired: increment
+            entry.count = entry.count + 1
+            local remainingTtl = math.ceil((entry.resetTime - now) / 1000)
+            redis.call('SET', key, cjson.encode(entry), 'EX', remainingTtl)
+            return {entry.count, entry.resetTime}
+          end
+        end
+
+        -- No entry or expired: create new
+        local newEntry = {count = 1, resetTime = now + windowMs}
+        redis.call('SET', key, cjson.encode(newEntry), 'EX', ttlSeconds)
+        return {1, newEntry.resetTime}
+        `,
+        [redisKey],
+        [now, windowMs, ttlSeconds]
+      );
+
+      return { count: result[0], resetTime: result[1] };
     } catch (error) {
       console.error(LOG_PREFIX, "Redis increment failed, using fallback", { key, error });
       this._handleRedisError();
