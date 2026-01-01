@@ -3,7 +3,6 @@ import type { Context } from "~/server/api/trpc";
 export interface RateLimitConfig {
   windowMs: number; // Time window in milliseconds
   maxRequests: number; // Max requests per window
-  skipSuccessfulRequests?: boolean; // Don't count successful requests
   keyGenerator?: (ctx: Context) => string; // Custom key generator
 }
 

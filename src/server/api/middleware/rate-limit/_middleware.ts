@@ -1,20 +1,12 @@
 import { t } from "~/server/api/trpc";
 import { loggers } from "~/lib/debug/debug-logger";
 import type { RateLimitConfig } from "~/server/api/middleware/rate-limit/_types";
-import { _performRateLimit, _handlePostRequest } from "~/server/api/middleware/rate-limit/_core";
+import { _performRateLimit } from "~/server/api/middleware/rate-limit/_core";
 
 export function createRateLimitMiddleware(config: RateLimitConfig) {
   return t.middleware(async ({ ctx, next }) => {
     await _performRateLimit(config, ctx);
-
-    try {
-      const result = await next();
-      await _handlePostRequest(config, ctx, true);
-      return result;
-    } catch (error) {
-      await _handlePostRequest(config, ctx, false);
-      throw error;
-    }
+    return next();
   });
 }
 
@@ -37,14 +29,6 @@ export function createVerificationAwareRateLimit(
 
     // Perform rate limiting with verification context
     await _performRateLimit(config, ctx, isVerified);
-
-    try {
-      const result = await next();
-      await _handlePostRequest(config, ctx, true);
-      return result;
-    } catch (error) {
-      await _handlePostRequest(config, ctx, false);
-      throw error;
-    }
+    return next();
   });
 }

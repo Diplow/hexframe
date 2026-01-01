@@ -47,22 +47,3 @@ export async function _performRateLimit(
   return rateLimit;
 }
 
-/**
- * Helper function to handle post-request rate limit logic.
- * Used when skipSuccessfulRequests is enabled - we need to decrement on success.
- */
-export async function _handlePostRequest(
-  config: RateLimitConfig,
-  ctx: Context,
-  success: boolean
-): Promise<void> {
-  // Only relevant for skipSuccessfulRequests mode
-  // In the new design, we increment upfront, so on success we would need to decrement
-  // However, this creates complexity with Redis atomicity
-  // For now, skipSuccessfulRequests is deprecated in favor of simpler counting
-  if (config.skipSuccessfulRequests && success) {
-    // The count was already incremented; we'd need to decrement on success
-    // This is a no-op for now as implementing decrement adds complexity
-    // Consider removing skipSuccessfulRequests feature if not used
-  }
-}
