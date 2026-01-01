@@ -132,11 +132,11 @@ describe("TypeSelectorField Component", () => {
         />
       );
 
-      const select = screen.getByRole("combobox") as HTMLSelectElement;
+      const select = screen.getByRole("combobox");
 
       // Native selects are always in the DOM, but disabled selects
       // won't trigger onChange when interacted with
-      expect(select.disabled).toBe(true);
+      expect(select).toBeDisabled();
     });
   });
 });
