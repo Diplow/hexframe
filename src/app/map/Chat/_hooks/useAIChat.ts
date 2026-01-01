@@ -33,9 +33,10 @@ export function useAIChat(options: UseAIChatOptions = {}) {
   const cacheState = context?.state
 
   // Create streaming callbacks that connect to chat state
+  // Pass the ref so callbacks read streamIdRef.current lazily (avoiding stale closures)
   const streamingCallbacks = createStreamingChatCallbacks({
     chatState,
-    streamId: streamIdRef.current ?? '',
+    streamIdRef,
     onDone: () => {
       setIsGenerating(false)
       streamIdRef.current = null
@@ -138,7 +139,7 @@ export function useAIChat(options: UseAIChatOptions = {}) {
     sendToAI,
     isGenerating,
     isStreaming: streamingExecution.isStreaming,
-    isError: generateResponseMutation.isError ?? !!streamingExecution.error,
+    isError: generateResponseMutation.isError || !!streamingExecution.error,
     error: generateResponseMutation.error ?? streamingExecution.error,
     abortStreaming,
   }

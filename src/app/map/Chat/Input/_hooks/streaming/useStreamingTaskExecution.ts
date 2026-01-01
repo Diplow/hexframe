@@ -61,17 +61,22 @@ export function useStreamingTaskExecution(
     const streamId = `stream-${nanoid()}`
     chatState.startStreamingMessage(streamId)
 
+    // Create a ref-like object to hold the stream ID for callbacks
+    const streamIdRef: { current: string | null } = { current: streamId }
+
     // Create callbacks for this execution
     const callbacks = createStreamingChatCallbacks({
       chatState,
-      streamId,
+      streamIdRef,
       onDone: () => {
         if (isMountedRef.current) setIsStreaming(false)
         eventSourceRef.current = null
+        streamIdRef.current = null
       },
       onError: () => {
         if (isMountedRef.current) setIsStreaming(false)
         eventSourceRef.current = null
+        streamIdRef.current = null
       },
     })
 

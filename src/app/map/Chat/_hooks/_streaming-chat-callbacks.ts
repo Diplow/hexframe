@@ -4,12 +4,14 @@
  * @module _streaming-chat-callbacks
  */
 
+import type { MutableRefObject } from 'react'
 import type { StreamingCallbacks } from '~/app/map/Chat/_hooks/_streaming-utils'
 import type { useChatOperations } from '~/app/map/Chat/_state'
 
 interface StreamingChatCallbacksOptions {
   chatState: ReturnType<typeof useChatOperations>
-  streamId: string
+  /** Ref to the stream ID - derefenced lazily to avoid stale closures */
+  streamIdRef: MutableRefObject<string | null>
   onDone?: () => void
   onError?: (error: string) => void
 }
@@ -26,15 +28,18 @@ interface StreamingChatCallbacksOptions {
 export function createStreamingChatCallbacks(
   options: StreamingChatCallbacksOptions
 ): StreamingCallbacks {
-  const { chatState, streamId, onDone, onError } = options
+  const { chatState, streamIdRef, onDone, onError } = options
 
   // Track accumulated content for finalization
   let accumulatedContent = ''
 
+  // Helper to get current stream ID with safe default
+  const getStreamId = (): string => streamIdRef.current ?? ''
+
   return {
     onTextDelta: (delta: string) => {
       accumulatedContent += delta
-      chatState.appendToStreamingMessage(streamId, delta)
+      chatState.appendToStreamingMessage(getStreamId(), delta)
     },
 
     onToolCallStart: (toolName: string, toolCallId: string, argsString: string) => {
@@ -46,13 +51,15 @@ export function createStreamingChatCallbacks(
         // Keep empty object if parsing fails
       }
 
+      const currentStreamId = getStreamId()
+
       // Start tool call in message operations
-      chatState.startToolCall(streamId, toolCallId, toolName, parsedArguments)
+      chatState.startToolCall(currentStreamId, toolCallId, toolName, parsedArguments)
 
       // Show tool call widget
       chatState.showToolCallWidget({
         toolCallId,
-        streamId,
+        streamId: currentStreamId,
         toolName,
         arguments: parsedArguments,
       })
@@ -63,7 +70,7 @@ export function createStreamingChatCallbacks(
       const resultContent = result ?? error ?? ''
 
       // End tool call in message operations
-      chatState.endToolCall(streamId, toolCallId, resultContent, success)
+      chatState.endToolCall(getStreamId(), toolCallId, resultContent, success)
 
       // Update tool call widget
       chatState.updateToolCallWidget(toolCallId, resultContent, success)
@@ -73,7 +80,7 @@ export function createStreamingChatCallbacks(
       // Finalize the streaming message with accumulated content
       // Note: StreamDoneEvent only has totalTokens (input+output combined),
       // not separate counts, so we omit token usage rather than report incorrect values
-      chatState.finalizeStreamingMessage(streamId, accumulatedContent)
+      chatState.finalizeStreamingMessage(getStreamId(), accumulatedContent)
 
       onDone?.()
     },
@@ -84,7 +91,7 @@ export function createStreamingChatCallbacks(
 
       // If not recoverable, finalize with what we have
       if (!event.recoverable && accumulatedContent) {
-        chatState.finalizeStreamingMessage(streamId, accumulatedContent)
+        chatState.finalizeStreamingMessage(getStreamId(), accumulatedContent)
       }
 
       onError?.(event.message)
