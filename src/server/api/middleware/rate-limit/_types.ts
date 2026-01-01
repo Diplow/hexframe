@@ -7,9 +7,14 @@ export interface RateLimitConfig {
   keyGenerator?: (ctx: Context) => string; // Custom key generator
 }
 
+export interface RateLimitEntry {
+  count: number;
+  resetTime: number;
+}
+
 export interface RateLimitStore {
-  get(key: string): { count: number; resetTime: number } | undefined;
-  set(key: string, value: { count: number; resetTime: number }): void;
-  delete(key: string): void;
-  entries(): IterableIterator<[string, { count: number; resetTime: number }]>;
+  get(key: string): Promise<RateLimitEntry | undefined>;
+  increment(key: string, windowMs: number): Promise<RateLimitEntry>;
+  delete(key: string): Promise<void>;
+  cleanup(): Promise<void>;
 }

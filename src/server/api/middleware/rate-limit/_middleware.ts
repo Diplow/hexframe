@@ -5,14 +5,14 @@ import { _performRateLimit, _handlePostRequest } from "~/server/api/middleware/r
 
 export function createRateLimitMiddleware(config: RateLimitConfig) {
   return t.middleware(async ({ ctx, next }) => {
-    _performRateLimit(config, ctx);
+    await _performRateLimit(config, ctx);
 
     try {
       const result = await next();
-      _handlePostRequest(config, ctx, true);
+      await _handlePostRequest(config, ctx, true);
       return result;
     } catch (error) {
-      _handlePostRequest(config, ctx, false);
+      await _handlePostRequest(config, ctx, false);
       throw error;
     }
   });
@@ -36,14 +36,14 @@ export function createVerificationAwareRateLimit(
     const config = isVerified ? verifiedConfig : unverifiedConfig;
 
     // Perform rate limiting with verification context
-    _performRateLimit(config, ctx, isVerified);
+    await _performRateLimit(config, ctx, isVerified);
 
     try {
       const result = await next();
-      _handlePostRequest(config, ctx, true);
+      await _handlePostRequest(config, ctx, true);
       return result;
     } catch (error) {
-      _handlePostRequest(config, ctx, false);
+      await _handlePostRequest(config, ctx, false);
       throw error;
     }
   });
