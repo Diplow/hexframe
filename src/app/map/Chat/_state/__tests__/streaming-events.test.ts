@@ -1,6 +1,6 @@
 import '~/test/setup'
 import { describe, it, expect } from 'vitest'
-import type { ChatEvent, Message, Widget } from '~/app/map/Chat/_state/_events/event.types'
+import type { ChatEvent, Message } from '~/app/map/Chat/_state/_events/event.types'
 import { deriveVisibleMessages } from '~/app/map/Chat/_state/_selectors/message.selectors'
 import { deriveActiveWidgets } from '~/app/map/Chat/_state/_selectors/widget-selectors'
 
