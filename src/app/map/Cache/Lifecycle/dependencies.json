@@ -9,6 +9,7 @@
     "~/app/map/types",
     "~/commons/trpc/react",
     "~/lib/domains/mapping",
+    "~/lib/utils/event-bus/types",
     "~/server/api",
     "~/app/map/Services/DragAndDrop"
   ],

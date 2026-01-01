@@ -1,4 +1,4 @@
-import type { ChatEvent, Message, SystemMessagePayload, UserMessagePayload, NavigationPayload } from '~/app/map/Chat/_state/_events/event.types';
+import type { ChatEvent, Message, SystemMessagePayload, UserMessagePayload, NavigationPayload } from '~/app/map/Chat/_state/_events';
 
 /**
  * Handle basic message events

@@ -6,7 +6,7 @@ import type { CacheAction } from "~/app/map/Cache/State";
 import type { ServerService } from "~/app/map/Cache/Services";
 import type { EventBusService } from "~/app/map/types/events";
 import type { AppEvent } from "~/lib/utils/event-bus/types";
-import { loadRegion, removeItem } from "~/app/map/Cache/State/actions/data";
+import { loadRegion, removeItem } from "~/app/map/Cache/State";
 
 /**
  * Allowed event sources for tile mutations from external systems.

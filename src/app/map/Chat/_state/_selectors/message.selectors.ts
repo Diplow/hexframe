@@ -1,4 +1,4 @@
-import type { ChatEvent, Message } from '~/app/map/Chat/_state/_events/event.types';
+import type { ChatEvent, Message } from '~/app/map/Chat/_state/_events';
 import { chatSettings } from '~/app/map/Chat/_settings/chat-settings';
 import { handleBasicMessageEvents, handleNavigationMessages } from '~/app/map/Chat/_state/_selectors/basic-message-handlers';
 import { handleOperationMessages } from '~/app/map/Chat/_state/_selectors/operation-message-handlers';

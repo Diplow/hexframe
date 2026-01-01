@@ -1,4 +1,4 @@
-import type { ChatEvent, Widget, OperationStartedPayload, OperationCompletedPayload, TileSelectedPayload, AuthRequiredPayload, ErrorOccurredPayload } from '~/app/map/Chat/_state/_events/event.types';
+import type { ChatEvent, Widget, OperationStartedPayload, OperationCompletedPayload, TileSelectedPayload, AuthRequiredPayload, ErrorOccurredPayload } from '~/app/map/Chat/_state/_events';
 import { chatSettings } from '~/app/map/Chat/_settings/chat-settings';
 
 /**

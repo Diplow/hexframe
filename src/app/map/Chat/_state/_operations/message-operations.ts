@@ -1,4 +1,4 @@
-import type { ChatEvent } from '~/app/map/Chat/_state/_events/event.types';
+import type { ChatEvent } from '~/app/map/Chat/_state/_events';
 import {
   createUserMessageEvent,
   createSystemMessageEvent,
@@ -8,7 +8,7 @@ import {
   createStreamingMessageEndEvent,
   createToolCallStartEvent,
   createToolCallEndEvent,
-} from '~/app/map/Chat/_state/_events/event.creators';
+} from '~/app/map/Chat/_state/_events';
 
 /**
  * Message-related operations

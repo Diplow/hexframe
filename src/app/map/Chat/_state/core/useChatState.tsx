@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useReducer, useMemo, useCallback, type ReactNode } from 'react';
-import type { ChatEvent, ChatUIState } from '~/app/map/Chat/_state/_events/event.types';
+import type { ChatEvent, ChatUIState } from '~/app/map/Chat/_state/_events';
 import { eventsReducer } from '~/app/map/Chat/_state/_reducers/events.reducer';
 import { deriveVisibleMessages, deriveActiveWidgets } from '~/app/map/Chat/_state/_selectors/message.selectors';
 import { useChatOperations } from '~/app/map/Chat/_state/_operations';

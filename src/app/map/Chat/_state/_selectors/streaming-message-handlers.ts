@@ -4,7 +4,7 @@ import type {
   StreamingMessageStartPayload,
   StreamingMessageDeltaPayload,
   StreamingMessageEndPayload,
-} from '~/app/map/Chat/_state/_events/event.types';
+} from '~/app/map/Chat/_state/_events';
 
 /**
  * State for tracking streaming messages during derivation

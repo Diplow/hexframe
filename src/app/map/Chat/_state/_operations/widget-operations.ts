@@ -1,4 +1,4 @@
-import type { ChatEvent, ToolCallWidgetData } from '~/app/map/Chat/_state/_events/event.types';
+import type { ChatEvent, ToolCallWidgetData } from '~/app/map/Chat/_state/_events';
 
 /**
  * Widget-related operations
