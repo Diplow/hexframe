@@ -1,6 +1,6 @@
 import { describe, beforeEach, it, expect, vi, afterEach } from 'vitest'
 import { z } from 'zod'
-import type { StreamEvent, TextDeltaEvent, StreamDoneEvent, StreamErrorEvent } from '~/lib/domains/agentic/types/stream.types'
+import type { StreamEvent, TextDeltaEvent, StreamDoneEvent, StreamErrorEvent } from '~/lib/domains/agentic'
 
 /**
  * Unit tests for SSE streaming endpoint: GET /api/stream/execute-task

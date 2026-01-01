@@ -30,12 +30,17 @@ Client                                  Server
   - Internal API keys for MCP sessions
   - External API keys via better-auth
 
-### 2. Streaming
+### 2. Orchestration
+- Creates domain services (MappingService, AgenticService)
+- Fetches hexecute context from mapping domain
+- Ensures hexplan exists (creates if missing)
+
+### 3. Streaming
 - Creates ReadableStream for SSE transport
-- Delegates to `stream-processor.service.ts` for business logic
+- Calls pure agentic service for LLM streaming
 - Maintains connection until completion or error
 
-### 3. Event Formatting
+### 4. Event Formatting
 - SSE format: `data: {json}\n\n`
 - JSON-serialized event payloads
 - Proper escaping of newlines and special characters
@@ -189,26 +194,37 @@ curl -N "http://localhost:3000/api/stream/execute-task?taskCoords=userId,0:1" \
 ## Architecture
 
 ```
-route.ts                          stream-processor.service.ts
-    |                                       |
-    |-- Validate params                     |
-    |-- Authenticate                        |
-    |-- Create ReadableStream ------------->|
-    |                                       |-- Initialize agentic service
-    |                                       |-- Load hexecute context
-    |                                       |-- Ensure hexplan exists
-    |                                       |-- Stream LLM response
-    |<-- SSE events ------------------------|
-    |                                       |
+route.ts (API layer - orchestration)
+    |
+    |-- Validate params
+    |-- Authenticate
+    |-- Create services (orchestration)
+    |   |-- IAM: getOrCreateInternalApiKey()
+    |   |-- Mapping: MappingService
+    |   |-- Agentic: AgenticService
+    |
+    |-- Get hexecute context (mapping domain)
+    |-- Ensure hexplan exists (mapping domain)
+    |
+    |-- Create ReadableStream
+    |   |
+    |   v
+    |   executeTaskStreaming() (agentic domain - pure)
+    |   |-- Build hexecute prompt
+    |   |-- Stream LLM response
+    |   |-- Callback emits SSE events
+    |
+    |<-- SSE events to client
 ```
 
 ### Key Components
 
 | File | Responsibility |
 |------|----------------|
-| `route.ts` | HTTP handling, auth, validation, response creation |
-| `stream-processor.service.ts` | Business logic, LLM streaming, hexplan management |
-| `~/lib/domains/agentic/types/stream.types.ts` | Event type definitions |
+| `route.ts` | HTTP handling, auth, validation, orchestration, SSE response |
+| `~/lib/domains/agentic` | Pure LLM streaming via `executeTaskStreaming()` |
+| `~/lib/domains/mapping` | Hexecute context, hexplan tile creation |
+| `~/lib/domains/iam` | Internal API key management |
 
 ## Subsystems
 

@@ -22,9 +22,29 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { z } from 'zod'
 import { auth } from '~/server/auth'
+import { db } from '~/server/db'
+import { env } from '~/env'
 import { loggers } from '~/lib/debug/debug-logger'
-import { validateInternalApiKey } from '~/lib/domains/iam'
-import { processTaskStream, type StreamContext } from '~/lib/domains/agentic'
+
+// Domain imports (API layer orchestrates domains)
+import { getOrCreateInternalApiKey, validateInternalApiKey } from '~/lib/domains/iam'
+import {
+  MappingService,
+  DbMapItemRepository,
+  DbBaseItemRepository,
+  asRequesterUserId,
+  type HexecuteContext
+} from '~/lib/domains/mapping'
+import { CoordSystem, Direction } from '~/lib/domains/mapping/utils'
+import {
+  createAgenticServiceAsync,
+  executeTaskStreaming,
+  type StreamErrorEvent,
+  type StreamDoneEvent,
+  type TextDeltaEvent
+} from '~/lib/domains/agentic'
+import { generateParentHexplanContent, generateLeafHexplanContent } from '~/lib/domains/agentic/utils'
+import { EventBus as EventBusImpl } from '~/lib/utils/event-bus'
 
 // =============================================================================
 // Input Validation Schema
@@ -100,6 +120,98 @@ async function _authenticateRequest(request: NextRequest): Promise<AuthResult | 
 }
 
 // =============================================================================
+// SSE Helpers
+// =============================================================================
+
+interface SSEController {
+  enqueue: (chunk: Uint8Array) => void
+  close: () => void
+}
+
+function _emitError(controller: SSEController, encoder: TextEncoder, code: StreamErrorEvent['code'], message: string): void {
+  const errorEvent: StreamErrorEvent = { type: 'error', code, message, recoverable: false }
+  controller.enqueue(encoder.encode(`data: ${JSON.stringify(errorEvent)}\n\n`))
+  controller.close()
+}
+
+function _emitTextDelta(controller: SSEController, encoder: TextEncoder, text: string): void {
+  const textDeltaEvent: TextDeltaEvent = { type: 'text_delta', text }
+  controller.enqueue(encoder.encode(`data: ${JSON.stringify(textDeltaEvent)}\n\n`))
+}
+
+function _emitDone(controller: SSEController, encoder: TextEncoder, totalTokens: number | undefined, durationMs: number): void {
+  const doneEvent: StreamDoneEvent = { type: 'done', totalTokens, durationMs }
+  controller.enqueue(encoder.encode(`data: ${JSON.stringify(doneEvent)}\n\n`))
+  controller.close()
+}
+
+// =============================================================================
+// Service Initialization (Orchestration)
+// =============================================================================
+
+function _deriveSandboxSessionId(
+  session: { id: string } | null,
+  userId: string,
+  authMethod: string
+): string | undefined {
+  if (session?.id) return session.id
+  if (authMethod === 'internal-api-key' || authMethod === 'external-api-key') {
+    return `${userId}-api-key`
+  }
+  return undefined
+}
+
+async function _createAgenticService(userId: string, sandboxSessionId: string | undefined) {
+  const mcpApiKey = await getOrCreateInternalApiKey(userId, 'mcp-session', 10)
+  const eventBus = new EventBusImpl()
+
+  return createAgenticServiceAsync({
+    llmConfig: {
+      openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
+      anthropicApiKey: env.ANTHROPIC_API_KEY ?? '',
+      preferClaudeSDK: true,
+      useSandbox: env.USE_SANDBOX === 'true',
+      mcpApiKey
+    },
+    eventBus,
+    useQueue: false,
+    userId,
+    sessionId: sandboxSessionId
+  })
+}
+
+// =============================================================================
+// Hexplan Management (Orchestration)
+// =============================================================================
+
+async function _ensureHexplan(
+  mappingService: MappingService,
+  hexecuteContext: HexecuteContext,
+  taskCoords: string,
+  instruction?: string
+): Promise<string> {
+  if (hexecuteContext.hexPlan) return hexecuteContext.hexPlan
+
+  const taskId = parseInt(hexecuteContext.task.id, 10)
+  const taskCoord = CoordSystem.parseId(taskCoords)
+  const hexplanCoords = { ...taskCoord, path: [...taskCoord.path, Direction.Center] }
+
+  const hasSubtasks = hexecuteContext.structuralChildren.length > 0
+  const hexPlanContent = hasSubtasks
+    ? generateParentHexplanContent(hexecuteContext.structuralChildren, hexecuteContext.allLeafTasks)
+    : generateLeafHexplanContent(hexecuteContext.task.title, instruction)
+
+  await mappingService.items.crud.addItemToMap({
+    parentId: taskId,
+    coords: hexplanCoords,
+    title: 'Hexplan',
+    content: hexPlanContent
+  })
+
+  return hexPlanContent
+}
+
+// =============================================================================
 // Main Route Handler
 // =============================================================================
 
@@ -136,24 +248,70 @@ export async function GET(request: NextRequest): Promise<Response> {
 
   loggers.api('SSE Stream: Request authenticated', { userId, authMethod, taskCoords, model })
 
-  // Build stream context
-  const streamContext: StreamContext = {
-    userId,
-    session,
-    authMethod,
-    taskCoords,
-    instruction,
-    model,
-    temperature,
-    maxTokens,
-    startTime
-  }
-
   // Create encoder and readable stream
   const encoder = new TextEncoder()
   const stream = new ReadableStream({
     async start(controller) {
-      await processTaskStream(streamContext, controller, encoder)
+      try {
+        // 1. Create services (orchestration)
+        const sandboxSessionId = _deriveSandboxSessionId(session, userId, authMethod)
+        const agenticService = await _createAgenticService(userId, sandboxSessionId)
+
+        if (!agenticService.isConfigured()) {
+          _emitError(controller, encoder, 'INVALID_API_KEY', 'LLM service not configured: missing API key')
+          return
+        }
+
+        const repositories = { mapItem: new DbMapItemRepository(db), baseItem: new DbBaseItemRepository(db) }
+        const mappingService = new MappingService(repositories)
+
+        // 2. Get hexecute context from mapping domain
+        const hexecuteContext = await mappingService.context.getHexecuteContext(
+          taskCoords,
+          asRequesterUserId(userId)
+        )
+
+        if (!hexecuteContext.task.title?.trim()) {
+          _emitError(controller, encoder, 'UNKNOWN', `Task tile at ${taskCoords} has an empty title`)
+          return
+        }
+
+        // 3. Ensure hexplan exists (mapping domain operation)
+        const hexPlanContent = await _ensureHexplan(mappingService, hexecuteContext, taskCoords, instruction)
+
+        // 4. Execute task via pure agentic service
+        const response = await executeTaskStreaming(
+          {
+            task: hexecuteContext.task,
+            taskCoords,
+            composedChildren: hexecuteContext.composedChildren,
+            structuralChildren: hexecuteContext.structuralChildren,
+            ancestors: hexecuteContext.ancestors,
+            allLeafTasks: hexecuteContext.allLeafTasks,
+            hexPlanContent,
+            model,
+            temperature,
+            maxTokens
+          },
+          agenticService,
+          (chunk) => {
+            if (chunk.content) {
+              _emitTextDelta(controller, encoder, chunk.content)
+            }
+          }
+        )
+
+        // 5. Emit completion
+        const durationMs = Date.now() - startTime
+        _emitDone(controller, encoder, response.usage?.totalTokens, durationMs)
+        loggers.api('SSE Stream: Completed', { userId, taskCoords, durationMs, totalTokens: response.usage?.totalTokens })
+      } catch (error) {
+        console.error('SSE Stream: Error', {
+          error: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
+        })
+        _emitError(controller, encoder, 'UNKNOWN', error instanceof Error ? error.message : 'Internal server error')
+      }
     }
   })
 

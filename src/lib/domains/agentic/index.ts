@@ -83,6 +83,16 @@ export { inngest, inngestFunctions } from '~/lib/domains/agentic/infrastructure'
 export { sandboxSessionManager, SandboxSessionManager } from '~/lib/domains/agentic/services/sandbox-session';
 export type { SandboxSession, SandboxSessionManagerConfig, ISandboxSessionManager } from '~/lib/domains/agentic/services/sandbox-session';
 
-// Stream processor
-export { processTaskStream } from '~/lib/domains/agentic/services/stream-processor.service';
-export type { StreamContext } from '~/lib/domains/agentic/services/stream-processor.service';
+// Task execution (pure agentic streaming)
+export { executeTaskStreaming } from '~/lib/domains/agentic/services/task-execution.service';
+export type {
+  TaskExecutionInput,
+  TaskTile,
+  ComposedChildTile,
+  StructuralChildTile,
+  AncestorTile,
+  LeafTask,
+} from '~/lib/domains/agentic/services/task-execution.service';
+
+// Note: For hexplan generation utilities (generateParentHexplanContent, generateLeafHexplanContent),
+// import directly from '~/lib/domains/agentic/utils' - the domain index should not reexport utils.
