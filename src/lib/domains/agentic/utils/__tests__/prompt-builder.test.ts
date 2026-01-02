@@ -186,8 +186,9 @@ describe('buildPrompt - v5 Top-Down Context + Root Hexplan', () => {
 
       const result = buildPrompt(data)
 
+      // Only attributes are escaped, content bodies preserve raw text for LLM processing
       expect(result).toContain('title="Title &lt;with&gt; &amp; &quot;special&quot; chars"')
-      expect(result).toContain('Content with &lt;xml&gt; &amp; &apos;quotes&apos;')
+      expect(result).toContain('Content with <xml> & \'quotes\'')
     })
   })
 
@@ -246,8 +247,9 @@ describe('buildPrompt - v5 Top-Down Context + Root Hexplan', () => {
 
       const result = buildPrompt(data)
 
+      // Only attributes are escaped, content bodies preserve raw text for LLM processing
       expect(result).toContain('title="Task &lt;with&gt; &amp; chars"')
-      expect(result).toContain('Preview &quot;with&quot; &apos;quotes&apos;')
+      expect(result).toContain('Preview "with" \'quotes\'')
     })
 
     it('should not include meta tasks (read history, mark done)', () => {
@@ -323,8 +325,9 @@ describe('buildPrompt - v5 Top-Down Context + Root Hexplan', () => {
 
       const result = buildPrompt(data)
 
+      // Title in <goal> is escaped, content body preserves raw text for LLM processing
       expect(result).toContain('Title &lt;with&gt; &amp; chars')
-      expect(result).toContain('Content &quot;with&quot; &apos;special&apos; characters')
+      expect(result).toContain('Content "with" \'special\' characters')
     })
   })
 
@@ -422,7 +425,7 @@ describe('buildPrompt - v5 Top-Down Context + Root Hexplan', () => {
     })
 
     describe('XML Escaping', () => {
-      it('should escape XML special characters in hexplan content', () => {
+      it('should preserve raw text in hexplan content for LLM processing', () => {
         const data = createTestData({
           task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
           hexPlan: 'Plan with <tags> & "quotes"\n📋 Step'
@@ -430,7 +433,8 @@ describe('buildPrompt - v5 Top-Down Context + Root Hexplan', () => {
 
         const result = buildPrompt(data)
 
-        expect(result).toContain('Plan with &lt;tags&gt; &amp; &quot;quotes&quot;')
+        // Content bodies preserve raw text for LLM processing
+        expect(result).toContain('Plan with <tags> & "quotes"')
       })
     })
   })
