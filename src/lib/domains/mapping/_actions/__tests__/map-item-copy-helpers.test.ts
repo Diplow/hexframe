@@ -382,6 +382,7 @@ describe("MapItem Copy Helpers", () => {
           parentId: rootMap.id,
           sourceRefId: originalMapItem.ref.id,
           visibility: Visibility.PRIVATE,
+          itemType: MapItemType.ORGANIZATIONAL,
         },
       ];
 
@@ -392,9 +393,10 @@ describe("MapItem Copy Helpers", () => {
       );
 
       expect(builtMapItems).toHaveLength(1);
-      expect(builtMapItems[0]!.attrs.ref.itemId).toBe(copiedBaseItem.id);
+      expect(builtMapItems[0]!.attrs.baseItemId).toBe(copiedBaseItem.id);
       expect(builtMapItems[0]!.attrs.coords.path).toEqual([Direction.West]);
       expect(builtMapItems[0]!.attrs.parentId).toBe(rootMap.id);
+      expect(builtMapItems[0]!.attrs.itemType).toBe(MapItemType.ORGANIZATIONAL);
     });
   });
 });

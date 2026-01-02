@@ -101,8 +101,8 @@ export class WriteQueries {
       updateValues.parentId = attrs.parentId;
     }
 
-    if (attrs.ref?.itemId !== undefined) {
-      updateValues.refItemId = attrs.ref.itemId;
+    if (attrs.baseItemId !== undefined) {
+      updateValues.refItemId = attrs.baseItemId;
     }
 
     return updateValues;

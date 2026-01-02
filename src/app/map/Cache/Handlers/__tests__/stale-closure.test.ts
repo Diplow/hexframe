@@ -83,7 +83,7 @@ describe("Stale State Closure Bug", () => {
       ...state,
       itemsById: {
         "1,2:0": {
-          data: { title: "Test", content: "", preview: undefined, link: "", color: "#000000", visibility: Visibility.PRIVATE, itemType: MapItemType.CONTEXT },
+          data: { title: "Test", content: "", preview: undefined, link: "", color: "#000000", visibility: Visibility.PRIVATE, itemType: MapItemType.USER },
           metadata: {
             coordId: "1,2:0",
             dbId: "123",

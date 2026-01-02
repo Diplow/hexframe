@@ -2,8 +2,7 @@ import type { BaseItemWithId } from "~/lib/domains/mapping/_objects/base-item";
 import type { MapItemWithId } from "~/lib/domains/mapping/_objects/map-item";
 import type { Coord, Direction } from "~/lib/domains/mapping/utils";
 import type { MapItemAttributes } from "~/lib/domains/mapping/types/item-attributes";
-import { MapItemType } from "~/lib/domains/mapping/_objects";
-import type { Visibility } from "~/lib/domains/mapping/_objects";
+import type { MapItemType, Visibility } from "~/lib/domains/mapping/_objects";
 
 /**
  * Prepare BaseItems for copying by extracting their attributes and setting originId
@@ -48,6 +47,7 @@ export function _prepareMapItemsForCopy(
   sourceMapItemId: number;
   sourceParentId: number | null;
   visibility: Visibility;
+  itemType: MapItemType;
 }> {
   if (mapItems.length === 0) {
     return [];
@@ -97,6 +97,7 @@ export function _prepareMapItemsForCopy(
       sourceMapItemId: mapItem.id,
       sourceParentId,
       visibility: mapItem.attrs.visibility,
+      itemType: mapItem.attrs.itemType,
     };
   });
 }
@@ -138,6 +139,7 @@ export function _buildMapItemsWithCopiedRefs(
     parentId: number;
     sourceRefId: number;
     visibility: Visibility;
+    itemType: MapItemType;
   }>,
   baseItemMapping: Map<number, number>,
   copiedBaseItems: BaseItemWithId[]
@@ -145,7 +147,7 @@ export function _buildMapItemsWithCopiedRefs(
   attrs: {
     coords: Coord;
     parentId: number;
-    ref: { itemType: MapItemType; itemId: number };
+    baseItemId: number;
     itemType: MapItemType;
     visibility: Visibility;
   };
@@ -177,11 +179,8 @@ export function _buildMapItemsWithCopiedRefs(
       attrs: {
         coords: prepared.coords,
         parentId: prepared.parentId,
-        ref: {
-          itemType: MapItemType.CONTEXT,
-          itemId: copiedBaseItemId,
-        },
-        itemType: MapItemType.CONTEXT,
+        baseItemId: copiedBaseItemId,
+        itemType: prepared.itemType,
         visibility: prepared.visibility,
       },
       ref: copiedBaseItem,

@@ -348,7 +348,7 @@ export class DbMapItemRepository implements MapItemRepository {
       path: pathToString(attrs.coords.path),
       item_type: attrs.itemType,
       visibility: attrs.visibility,
-      refItemId: attrs.ref.itemId,
+      refItemId: attrs.baseItemId,
     };
   }
 

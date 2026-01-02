@@ -63,10 +63,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               groupId: setupParams.groupId,
               path: [Direction.East],
             }),
-            ref: {
-              itemType: MapItemType.CONTEXT,
-              itemId: baseItem1.id,
-            },
+            baseItemId: baseItem1.id,
             itemType: MapItemType.CONTEXT,
             visibility: Visibility.PRIVATE,
           },
@@ -80,10 +77,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               groupId: setupParams.groupId,
               path: [Direction.West],
             }),
-            ref: {
-              itemType: MapItemType.CONTEXT,
-              itemId: baseItem2.id,
-            },
+            baseItemId: baseItem2.id,
             itemType: MapItemType.CONTEXT,
             visibility: Visibility.PRIVATE,
           },
@@ -140,10 +134,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               groupId: setupParams.groupId,
               path: [Direction.NorthEast],
             }),
-            ref: {
-              itemType: MapItemType.CONTEXT,
-              itemId: baseItem.id,
-            },
+            baseItemId: baseItem.id,
             itemType: MapItemType.CONTEXT,
             visibility: Visibility.PRIVATE,
           },
@@ -199,10 +190,7 @@ describe("MapItemRepository - bulk createMany method", () => {
             groupId: setupParams.groupId,
             path: [Direction.East],
           }),
-          ref: {
-            itemType: MapItemType.CONTEXT,
-            itemId: baseItems[0]!.id,
-          },
+          baseItemId: baseItems[0]!.id,
           itemType: MapItemType.CONTEXT,
           visibility: Visibility.PRIVATE,
         },
@@ -225,10 +213,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               groupId: setupParams.groupId,
               path: [Direction.East, Direction.NorthEast],
             }),
-            ref: {
-              itemType: MapItemType.CONTEXT,
-              itemId: baseItems[1]!.id,
-            },
+            baseItemId: baseItems[1]!.id,
             itemType: MapItemType.CONTEXT,
             visibility: Visibility.PRIVATE,
           },
@@ -242,10 +227,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               groupId: setupParams.groupId,
               path: [Direction.East, Direction.SouthEast],
             }),
-            ref: {
-              itemType: MapItemType.CONTEXT,
-              itemId: baseItems[2]!.id,
-            },
+            baseItemId: baseItems[2]!.id,
             itemType: MapItemType.CONTEXT,
             visibility: Visibility.PRIVATE,
           },
@@ -301,10 +283,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               groupId: setupParams.groupId,
               path,
             }),
-            ref: {
-              itemType: MapItemType.CONTEXT,
-              itemId: baseItem.id,
-            },
+            baseItemId: baseItem.id,
             itemType: MapItemType.CONTEXT,
             visibility: Visibility.PRIVATE,
           },
@@ -347,10 +326,7 @@ describe("MapItemRepository - bulk createMany method", () => {
         attrs: {
           parentId: rootMap.id,
           coords: parentCoords,
-          ref: {
-            itemType: MapItemType.CONTEXT,
-            itemId: parentBaseItem.id,
-          },
+          baseItemId: parentBaseItem.id,
           itemType: MapItemType.CONTEXT,
           visibility: Visibility.PRIVATE,
         },
@@ -395,10 +371,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               groupId: setupParams.groupId,
               path: [Direction.NorthEast, Direction.ComposedNorthWest],
             }),
-            ref: {
-              itemType: MapItemType.CONTEXT,
-              itemId: composedBaseItems[0]!.id,
-            },
+            baseItemId: composedBaseItems[0]!.id,
             itemType: MapItemType.CONTEXT,
             visibility: Visibility.PRIVATE,
           },
@@ -412,10 +385,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               groupId: setupParams.groupId,
               path: [Direction.NorthEast, Direction.ComposedNorthEast],
             }),
-            ref: {
-              itemType: MapItemType.CONTEXT,
-              itemId: composedBaseItems[1]!.id,
-            },
+            baseItemId: composedBaseItems[1]!.id,
             itemType: MapItemType.CONTEXT,
             visibility: Visibility.PRIVATE,
           },
@@ -429,10 +399,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               groupId: setupParams.groupId,
               path: [Direction.NorthEast, Direction.ComposedEast],
             }),
-            ref: {
-              itemType: MapItemType.CONTEXT,
-              itemId: composedBaseItems[2]!.id,
-            },
+            baseItemId: composedBaseItems[2]!.id,
             itemType: MapItemType.CONTEXT,
             visibility: Visibility.PRIVATE,
           },
@@ -496,10 +463,7 @@ describe("MapItemRepository - bulk createMany method", () => {
         attrs: {
           parentId: rootMap.id,
           coords: parentCoords,
-          ref: {
-            itemType: MapItemType.CONTEXT,
-            itemId: parentBaseItem.id,
-          },
+          baseItemId: parentBaseItem.id,
           itemType: MapItemType.CONTEXT,
           visibility: Visibility.PRIVATE,
         },
@@ -541,10 +505,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               groupId: setupParams.groupId,
               path: [Direction.West, dir],
             }),
-            ref: {
-              itemType: MapItemType.CONTEXT,
-              itemId: composedBaseItems[index]!.id,
-            },
+            baseItemId: composedBaseItems[index]!.id,
             itemType: MapItemType.CONTEXT,
             visibility: Visibility.PRIVATE,
           },
@@ -595,10 +556,7 @@ describe("MapItemRepository - bulk createMany method", () => {
         attrs: {
           parentId: rootMap.id,
           coords: parentCoords,
-          ref: {
-            itemType: MapItemType.CONTEXT,
-            itemId: parentBaseItem.id,
-          },
+          baseItemId: parentBaseItem.id,
           itemType: MapItemType.CONTEXT,
           visibility: Visibility.PRIVATE,
         },
@@ -629,10 +587,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               groupId: setupParams.groupId,
               path: [Direction.SouthEast, Direction.NorthEast], // Structural: positive
             }),
-            ref: {
-              itemType: MapItemType.CONTEXT,
-              itemId: baseItems[0]!.id,
-            },
+            baseItemId: baseItems[0]!.id,
             itemType: MapItemType.CONTEXT,
             visibility: Visibility.PRIVATE,
           },
@@ -646,10 +601,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               groupId: setupParams.groupId,
               path: [Direction.SouthEast, Direction.ComposedNorthWest], // Composed: negative
             }),
-            ref: {
-              itemType: MapItemType.CONTEXT,
-              itemId: baseItems[1]!.id,
-            },
+            baseItemId: baseItems[1]!.id,
             itemType: MapItemType.CONTEXT,
             visibility: Visibility.PRIVATE,
           },
@@ -663,10 +615,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               groupId: setupParams.groupId,
               path: [Direction.SouthEast, Direction.East], // Structural: positive
             }),
-            ref: {
-              itemType: MapItemType.CONTEXT,
-              itemId: baseItems[2]!.id,
-            },
+            baseItemId: baseItems[2]!.id,
             itemType: MapItemType.CONTEXT,
             visibility: Visibility.PRIVATE,
           },
@@ -680,10 +629,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               groupId: setupParams.groupId,
               path: [Direction.SouthEast, Direction.ComposedSouthEast], // Composed: negative
             }),
-            ref: {
-              itemType: MapItemType.CONTEXT,
-              itemId: baseItems[3]!.id,
-            },
+            baseItemId: baseItems[3]!.id,
             itemType: MapItemType.CONTEXT,
             visibility: Visibility.PRIVATE,
           },
@@ -733,10 +679,7 @@ describe("MapItemRepository - bulk createMany method", () => {
         attrs: {
           parentId: rootMap.id,
           coords: level1Coords,
-          ref: {
-            itemType: MapItemType.CONTEXT,
-            itemId: level1BaseItem.id,
-          },
+          baseItemId: level1BaseItem.id,
           itemType: MapItemType.CONTEXT,
           visibility: Visibility.PRIVATE,
         },
@@ -768,10 +711,7 @@ describe("MapItemRepository - bulk createMany method", () => {
         attrs: {
           parentId: level1Item.id,
           coords: level2Coords,
-          ref: {
-            itemType: MapItemType.CONTEXT,
-            itemId: level2BaseItem.id,
-          },
+          baseItemId: level2BaseItem.id,
           itemType: MapItemType.CONTEXT,
           visibility: Visibility.PRIVATE,
         },
@@ -799,10 +739,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               groupId: setupParams.groupId,
               path: [Direction.NorthWest, Direction.East, Direction.ComposedWest],
             }),
-            ref: {
-              itemType: MapItemType.CONTEXT,
-              itemId: deepComposedBaseItems[0]!.id,
-            },
+            baseItemId: deepComposedBaseItems[0]!.id,
             itemType: MapItemType.CONTEXT,
             visibility: Visibility.PRIVATE,
           },
@@ -816,10 +753,7 @@ describe("MapItemRepository - bulk createMany method", () => {
               groupId: setupParams.groupId,
               path: [Direction.NorthWest, Direction.East, Direction.ComposedSouthWest],
             }),
-            ref: {
-              itemType: MapItemType.CONTEXT,
-              itemId: deepComposedBaseItems[1]!.id,
-            },
+            baseItemId: deepComposedBaseItems[1]!.id,
             itemType: MapItemType.CONTEXT,
             visibility: Visibility.PRIVATE,
           },

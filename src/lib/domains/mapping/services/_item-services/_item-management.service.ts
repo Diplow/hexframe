@@ -234,10 +234,7 @@ export class ItemManagementService {
           attrs: {
             coords: prepared.coords,
             parentId: finalParentId,
-            ref: {
-              itemType: MapItemType.CONTEXT,
-              itemId: copiedBaseItemId,
-            },
+            baseItemId: copiedBaseItemId,
             itemType: MapItemType.CONTEXT,
             visibility: prepared.visibility,
           },

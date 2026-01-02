@@ -64,10 +64,7 @@ export type VisibilityString = "public" | "private";
 export interface Attrs extends Record<string, unknown> {
   parentId: number | null; // The parent mapItem this is a child of.
   coords: Coord; // Updated to new Coord structure
-  ref: {
-    itemType: MapItemType; // Reference marker (typically CONTEXT for non-USER items)
-    itemId: number;
-  };
+  baseItemId: number; // Foreign key to the BaseItem containing title, content, etc.
   itemType: MapItemType; // Semantic tile type: USER, ORGANIZATIONAL, CONTEXT, or SYSTEM
   visibility: Visibility; // Whether the tile is publicly visible
 }
@@ -141,12 +138,7 @@ export class MapItem extends GenericAggregate<
       attrs: {
         parentId: attrs.parentId ?? parent?.id ?? null,
         coords: attrs.coords, // coords is now mandatory
-        ref: attrs.ref ?? {
-          // ref.itemType is an internal marker. Use CONTEXT as default for non-USER items.
-          // The actual semantic type is stored directly in attrs.itemType
-          itemType: MapItemType.CONTEXT,
-          itemId: ref.id,
-        },
+        baseItemId: attrs.baseItemId ?? ref.id,
         itemType: attrs.itemType, // itemType is now mandatory
         visibility: attrs.visibility ?? Visibility.PRIVATE,
       },
