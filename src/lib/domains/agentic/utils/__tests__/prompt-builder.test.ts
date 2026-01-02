@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { buildPrompt, generateParentHexplanContent, generateLeafHexplanContent, type PromptData } from '~/lib/domains/agentic/utils'
+import { MapItemType } from '~/lib/domains/mapping'
 
 const DEFAULT_MCP_SERVER = 'hexframe'
 
-// Helper to create test data with default ancestors
+// Helper to create test data with defaults
 function createTestData(overrides: Partial<PromptData> & { task: PromptData['task'] }): PromptData {
   return {
     ancestors: [],
@@ -11,6 +12,7 @@ function createTestData(overrides: Partial<PromptData> & { task: PromptData['tas
     structuralChildren: [],
     hexPlan: '📋 Execute the task',
     mcpServerName: DEFAULT_MCP_SERVER,
+    itemType: MapItemType.SYSTEM,
     ...overrides
   }
 }
@@ -535,5 +537,35 @@ describe('Hexplan Content Generators', () => {
 
       expect(result).not.toContain('**Instruction:**')
     })
+  })
+})
+
+// ==================== UNSUPPORTED ITEM TYPES ====================
+describe('buildPrompt error handling for unsupported itemTypes', () => {
+  it('should throw error for ORGANIZATIONAL itemType', () => {
+    const data = createTestData({
+      task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
+      itemType: MapItemType.ORGANIZATIONAL
+    })
+
+    expect(() => buildPrompt(data)).toThrow('ORGANIZATIONAL tiles cannot be executed')
+  })
+
+  it('should throw error for USER itemType', () => {
+    const data = createTestData({
+      task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
+      itemType: MapItemType.USER
+    })
+
+    expect(() => buildPrompt(data)).toThrow('USER tile templates not yet implemented')
+  })
+
+  it('should throw error for CONTEXT itemType', () => {
+    const data = createTestData({
+      task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
+      itemType: MapItemType.CONTEXT
+    })
+
+    expect(() => buildPrompt(data)).toThrow('CONTEXT tile templates not yet implemented')
   })
 })
