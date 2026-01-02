@@ -41,7 +41,8 @@ import {
   executeTaskStreaming,
   type StreamErrorEvent,
   type StreamDoneEvent,
-  type TextDeltaEvent
+  type TextDeltaEvent,
+  type PromptGeneratedEvent
 } from '~/lib/domains/agentic'
 import { generateParentHexplanContent, generateLeafHexplanContent } from '~/lib/domains/agentic/utils'
 import { EventBus as EventBusImpl } from '~/lib/utils/event-bus'
@@ -143,6 +144,11 @@ function _emitDone(controller: SSEController, encoder: TextEncoder, totalTokens:
   const doneEvent: StreamDoneEvent = { type: 'done', totalTokens, durationMs }
   controller.enqueue(encoder.encode(`data: ${JSON.stringify(doneEvent)}\n\n`))
   controller.close()
+}
+
+function _emitPromptGenerated(controller: SSEController, encoder: TextEncoder, prompt: string): void {
+  const promptEvent: PromptGeneratedEvent = { type: 'prompt_generated', prompt }
+  controller.enqueue(encoder.encode(`data: ${JSON.stringify(promptEvent)}\n\n`))
 }
 
 // =============================================================================
@@ -298,6 +304,11 @@ export async function GET(request: NextRequest): Promise<Response> {
           (chunk) => {
             if (chunk.content) {
               _emitTextDelta(controller, encoder, chunk.content)
+            }
+          },
+          {
+            onPromptBuilt: (prompt) => {
+              _emitPromptGenerated(controller, encoder, prompt)
             }
           }
         )

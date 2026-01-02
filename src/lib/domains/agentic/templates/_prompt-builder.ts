@@ -67,7 +67,7 @@ function _buildContextSection(composedChildren: PromptData['composedChildren']):
 
   const contexts = validChildren.map(
     child =>
-      `<context title="${_escapeXML(child.title)}" coords="${_escapeXML(child.coords)}">\n${_escapeXML(child.content)}\n</context>`
+      `<context title="${_escapeXML(child.title)}" coords="${_escapeXML(child.coords)}">\n${child.content}\n</context>`
   )
 
   return contexts.join('\n\n')
@@ -80,7 +80,7 @@ function _buildSubtasksSection(structuralChildren: PromptData['structuralChildre
 
   const subtasks = structuralChildren.map(child => {
     const preview = child.preview ?? ''
-    return `<subtask-preview title="${_escapeXML(child.title)}" coords="${_escapeXML(child.coords)}">\n${_escapeXML(preview)}\n</subtask-preview>`
+    return `<subtask-preview title="${_escapeXML(child.title)}" coords="${_escapeXML(child.coords)}">\n${preview}\n</subtask-preview>`
   })
 
   return `<subtasks>\n${subtasks.join('\n\n')}\n</subtasks>`
@@ -97,7 +97,7 @@ function _buildAncestorContextSection(ancestors: PromptData['ancestors']): strin
 
   const ancestorBlocks = ancestorsWithContent.map(
     ancestor =>
-      `<ancestor title="${_escapeXML(ancestor.title)}" coords="${_escapeXML(ancestor.coords)}">\n${_escapeXML(ancestor.content!)}\n</ancestor>`
+      `<ancestor title="${_escapeXML(ancestor.title)}" coords="${_escapeXML(ancestor.coords)}">\n${ancestor.content!}\n</ancestor>`
   )
 
   return `<ancestor-context>\n${ANCESTOR_INTRO}\n\n${ancestorBlocks.join('\n\n')}\n</ancestor-context>`
@@ -169,7 +169,7 @@ function _prepareSystemTemplateData(data: PromptData): SystemTemplateData {
     task: {
       title: _escapeXML(data.task.title),
       hasContent: _hasContent(data.task.content),
-      content: data.task.content ? _escapeXML(data.task.content) : ''
+      content: data.task.content ?? ''
     },
 
     hexplanPending: hasPendingSteps,
@@ -177,7 +177,7 @@ function _prepareSystemTemplateData(data: PromptData): SystemTemplateData {
     hexplanBlocked: !hasPendingSteps && hasBlockedSteps,
 
     hexplanCoords: _escapeXML(hexplanCoords),
-    hexPlan: _escapeXML(data.hexPlan),
+    hexPlan: data.hexPlan,
     taskCoords: _escapeXML(data.task.coords),
 
     isParentTile: data.structuralChildren.length > 0,

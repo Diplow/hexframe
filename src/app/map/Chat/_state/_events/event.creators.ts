@@ -32,6 +32,7 @@ export {
   createStreamingMessageStartEvent,
   createStreamingMessageDeltaEvent,
   createStreamingMessageEndEvent,
+  createStreamingMessagePromptEvent,
   createToolCallStartEvent,
   createToolCallEndEvent,
 } from '~/app/map/Chat/_state/_events/_creators/streaming-creators';

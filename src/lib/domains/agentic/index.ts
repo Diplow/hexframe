@@ -58,6 +58,7 @@ export type {
 export type {
   StreamEvent,
   TextDeltaEvent,
+  PromptGeneratedEvent,
   ToolCallStartEvent,
   ToolCallDeltaEvent,
   ToolCallEndEvent,
@@ -71,6 +72,7 @@ export type {
 
 export {
   isTextDeltaEvent,
+  isPromptGeneratedEvent,
   isToolCallEvent,
   isTileMutationEvent,
   isStreamTerminalEvent,
@@ -87,6 +89,7 @@ export type { SandboxSession, SandboxSessionManagerConfig, ISandboxSessionManage
 export { executeTaskStreaming } from '~/lib/domains/agentic/services/task-execution.service';
 export type {
   TaskExecutionInput,
+  TaskExecutionCallbacks,
   TaskTile,
   ComposedChildTile,
   StructuralChildTile,

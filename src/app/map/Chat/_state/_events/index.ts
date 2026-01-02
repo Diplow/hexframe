@@ -25,6 +25,7 @@ export type {
   StreamingMessageStartPayload,
   StreamingMessageDeltaPayload,
   StreamingMessageEndPayload,
+  StreamingMessagePromptPayload,
   ToolCallStartPayload,
   ToolCallEndPayload,
   ToolCallWidgetData,
@@ -40,6 +41,7 @@ export {
   createStreamingMessageStartEvent,
   createStreamingMessageDeltaEvent,
   createStreamingMessageEndEvent,
+  createStreamingMessagePromptEvent,
   createToolCallStartEvent,
   createToolCallEndEvent,
 } from '~/app/map/Chat/_state/_events/event.creators';

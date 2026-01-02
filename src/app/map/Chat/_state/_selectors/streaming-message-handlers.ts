@@ -4,6 +4,7 @@ import type {
   StreamingMessageStartPayload,
   StreamingMessageDeltaPayload,
   StreamingMessageEndPayload,
+  StreamingMessagePromptPayload,
 } from '~/app/map/Chat/_state/_events';
 
 /**
@@ -14,6 +15,8 @@ export interface StreamingMessageState {
   startEventId: string;
   timestamp: Date;
   model?: string;
+  /** The hexecute prompt for task executions */
+  prompt?: string;
 }
 
 /**
@@ -58,6 +61,18 @@ export function handleStreamingMessageEvents(
       break;
     }
 
+    case 'streaming_message_prompt': {
+      const payload = event.payload as StreamingMessagePromptPayload;
+      if (!payload || typeof payload !== 'object' || !('streamId' in payload) || !('prompt' in payload)) {
+        return;
+      }
+      const currentState = streamingState.get(payload.streamId);
+      if (currentState) {
+        currentState.prompt = payload.prompt;
+      }
+      break;
+    }
+
     case 'streaming_message_end': {
       const payload = event.payload as StreamingMessageEndPayload;
       if (!payload || typeof payload !== 'object' || !('streamId' in payload)) {
@@ -76,6 +91,7 @@ export function handleStreamingMessageEvents(
         actor: 'assistant' as const,
         timestamp: messageTimestamp,
         isStreaming: false,
+        prompt: streamState?.prompt,
       };
       messages.push(finalizedMessage);
 
@@ -103,6 +119,7 @@ export function buildInProgressStreamingMessages(
       actor: 'assistant',
       timestamp: state.timestamp,
       isStreaming: true,
+      prompt: state.prompt,
     });
   }
 

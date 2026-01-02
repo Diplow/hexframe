@@ -6,6 +6,7 @@ import {
   createStreamingMessageStartEvent,
   createStreamingMessageDeltaEvent,
   createStreamingMessageEndEvent,
+  createStreamingMessagePromptEvent,
   createToolCallStartEvent,
   createToolCallEndEvent,
 } from '~/app/map/Chat/_state/_events';
@@ -37,6 +38,9 @@ export function createMessageOperations(dispatch: (event: ChatEvent) => void) {
       usage?: { inputTokens?: number; outputTokens?: number }
     ) {
       dispatch(createStreamingMessageEndEvent(streamId, finalContent, usage));
+    },
+    setMessagePrompt(streamId: string, prompt: string) {
+      dispatch(createStreamingMessagePromptEvent(streamId, prompt));
     },
     // Tool call operations
     startToolCall(streamId: string, toolCallId: string, toolName: string, toolArguments: Record<string, unknown>) {

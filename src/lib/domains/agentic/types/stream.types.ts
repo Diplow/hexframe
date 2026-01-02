@@ -30,6 +30,16 @@ export interface TextDeltaEvent {
 }
 
 /**
+ * The hexecute prompt sent to the LLM
+ * Emitted before streaming begins so the UI can display it
+ */
+export interface PromptGeneratedEvent {
+  type: 'prompt_generated'
+  /** The full XML prompt sent to the LLM */
+  prompt: string
+}
+
+/**
  * Indicates a tool call has begun
  */
 export interface ToolCallStartEvent {
@@ -147,6 +157,7 @@ export interface StreamDoneEvent {
  */
 export type StreamEvent =
   | TextDeltaEvent
+  | PromptGeneratedEvent
   | ToolCallStartEvent
   | ToolCallDeltaEvent
   | ToolCallEndEvent
@@ -169,6 +180,13 @@ export type StreamEventType = StreamEvent['type']
  */
 export function isTextDeltaEvent(event: StreamEvent): event is TextDeltaEvent {
   return event.type === 'text_delta'
+}
+
+/**
+ * Type guard for prompt generated events
+ */
+export function isPromptGeneratedEvent(event: StreamEvent): event is PromptGeneratedEvent {
+  return event.type === 'prompt_generated'
 }
 
 /**
