@@ -13,7 +13,7 @@ export interface WidgetHandlers {
   handleDeleteHexplan?: () => void;
   handleSetVisibility?: (visibility: Visibility) => void;
   handleSetVisibilityWithDescendants?: (visibility: Visibility) => void;
-  handleTileSave?: (title: string, preview: string, content: string) => void;
+  handleTileSave?: (title: string, preview: string, content: string, itemType?: "organizational" | "context" | "system") => void;
   handleTileClose?: () => void;
   handleSave?: (name: string, preview: string, content: string) => void;
   handleCancel?: () => void;

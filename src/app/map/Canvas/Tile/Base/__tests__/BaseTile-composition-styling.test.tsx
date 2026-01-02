@@ -4,7 +4,7 @@ import { render } from "@testing-library/react";
 import { BaseItemTile } from "~/app/map/Canvas/Tile/Base/_components/BaseItemTile";
 import type { TileData } from "~/app/map/types/tile-data";
 import { createTestSetup } from '~/app/test-utils/providers';
-import { Visibility } from '~/lib/domains/mapping/utils';
+import { Visibility, MapItemType } from '~/lib/domains/mapping/utils';
 
 describe("BaseTile - Composition Styling", () => {
   const { wrapper } = createTestSetup();
@@ -24,7 +24,7 @@ describe("BaseTile - Composition Styling", () => {
       preview: undefined,
       link: "",
       color: "zinc-500",
-      visibility: Visibility.PRIVATE,
+      visibility: Visibility.PRIVATE, itemType: MapItemType.CONTEXT,
     },
     state: {
       isDragged: false,

@@ -10,6 +10,7 @@ interface TileHandlerDeps {
     preview?: string;
     description?: string;
     visibility?: "public" | "private";
+    itemType?: "organizational" | "context" | "system";
   }) => Promise<void>;
   updateVisibilityWithDescendantsOptimistic: (coordId: string, visibility: "public" | "private") => Promise<unknown>;
   eventBus: EventBusService | null;
@@ -92,7 +93,7 @@ export function createTileHandlers(
     focusChatInput();
   };
 
-  const handleTileSave = async (title: string, preview: string, content: string) => {
+  const handleTileSave = async (title: string, preview: string, content: string, itemType?: "organizational" | "context" | "system") => {
     const tileData = widget.data as TileSelectedPayload;
     try {
       // updateItemOptimistic already emits map.tile_updated via MutationCoordinator
@@ -100,6 +101,7 @@ export function createTileHandlers(
         title,
         preview,
         description: content,
+        itemType,
       });
     } catch (error) {
       eventBus?.emit({

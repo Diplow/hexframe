@@ -10,7 +10,7 @@ import type { NavigationHandlerConfig } from "~/app/map/Cache/Handlers/Navigatio
 import type { CacheState } from "~/app/map/Cache/State/types";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";
 import { createMockEventBus, expectEventEmitted } from "~/test-utils/event-bus";
-import { Visibility } from '~/lib/domains/mapping/utils';
+import { Visibility, MapItemType } from '~/lib/domains/mapping/utils';
 
 describe("Navigation Handler", () => {
   let mockDispatch: ReturnType<typeof vi.fn>;
@@ -67,6 +67,7 @@ describe("Navigation Handler", () => {
             link: "",
             color: "#000000",
             visibility: Visibility.PRIVATE,
+            itemType: MapItemType.CONTEXT,
           },
           metadata: {
             coordId: "0,0",
@@ -93,6 +94,7 @@ describe("Navigation Handler", () => {
             link: "",
             color: "#000000",
             visibility: Visibility.PRIVATE,
+            itemType: MapItemType.CONTEXT,
           },
           metadata: {
             coordId: "1,2",

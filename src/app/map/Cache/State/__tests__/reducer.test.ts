@@ -21,6 +21,7 @@ describe("Cache Reducer", () => {
       ownerId: "test-owner",
       originId: null,
       visibility: Visibility.PRIVATE,
+      
     },
     {
       id: "2",
@@ -35,6 +36,7 @@ describe("Cache Reducer", () => {
       ownerId: "test-owner",
       originId: null,
       visibility: Visibility.PRIVATE,
+      
     },
   ];
 
@@ -162,6 +164,7 @@ describe("Cache Reducer", () => {
           ownerId: "test-owner",
           originId: null,
           visibility: Visibility.PRIVATE,
+      
         },
       ];
 
@@ -194,6 +197,7 @@ describe("Cache Reducer", () => {
               link: "",
               color: "#000000",
               visibility: Visibility.PRIVATE,
+              itemType: MapItemType.CONTEXT,
             },
             metadata: {
               coordId: "1,2",
@@ -259,6 +263,7 @@ describe("Cache Reducer", () => {
               link: "",
               color: "#000000",
               visibility: Visibility.PRIVATE,
+              itemType: MapItemType.CONTEXT,
             },
             metadata: {
               coordId: "1,2",
@@ -285,6 +290,7 @@ describe("Cache Reducer", () => {
               link: "",
               color: "#000000",
               visibility: Visibility.PRIVATE,
+              itemType: MapItemType.CONTEXT,
             },
             metadata: {
               coordId: "1,3",
@@ -333,6 +339,7 @@ describe("Cache Reducer", () => {
               link: "",
               color: "#000000",
               visibility: Visibility.PRIVATE,
+              itemType: MapItemType.CONTEXT,
             },
             metadata: {
               coordId: "1,2",
@@ -527,7 +534,7 @@ describe("Cache Reducer", () => {
         ...mockState,
         itemsById: { 
           "1,2": {
-            data: { title: "Test", content: "", preview: undefined, link: "", color: "#000000", visibility: Visibility.PRIVATE },
+            data: { title: "Test", content: "", preview: undefined, link: "", color: "#000000", visibility: Visibility.PRIVATE, itemType: MapItemType.CONTEXT },
             metadata: { 
               coordId: "1,2", 
               dbId: "1", 
@@ -636,6 +643,7 @@ describe("Cache Reducer", () => {
           ownerId: "",
           originId: null,
           visibility: Visibility.PRIVATE,
+      
         },
       ];
 

@@ -101,6 +101,7 @@ export interface MapCacheHook {
     content?: string;
     url?: string;
     visibility?: "public" | "private";
+    itemType?: "organizational" | "context" | "system";
   }) => Promise<void>;
   deleteItemOptimistic: (coordId: string) => Promise<void>;
   deleteChildrenByTypeOptimistic: (coordId: string, directionType: 'structural' | 'composed' | 'hexPlan') => Promise<{ success: boolean; deletedCount: number }>;

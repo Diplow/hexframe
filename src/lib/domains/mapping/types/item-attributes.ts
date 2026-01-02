@@ -29,6 +29,8 @@ export interface MapItemUpdateAttributes {
   link?: string;
   originId?: number | null;
   visibility?: "public" | "private";
+  /** Semantic tile type (excludes "user" which is system-controlled) */
+  itemType?: "organizational" | "context" | "system";
 }
 
 /**

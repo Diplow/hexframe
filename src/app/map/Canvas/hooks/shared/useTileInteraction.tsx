@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { useTileActions } from "~/app/map/Canvas/TileActionsContext";
 import type { TileData } from "~/app/map/types";
 import type { TileCursor } from "~/app/map/Canvas/Tile";
-import { Visibility } from '~/lib/domains/mapping/utils';
+import { Visibility, MapItemType } from '~/lib/domains/mapping/utils';
 
 interface TileInteractionProps {
   tileData?: TileData | null;
@@ -25,7 +25,7 @@ function _createEmptyTileData(coordId: string, canEdit: boolean): TileData {
     },
     data: {
       title: '', content: '', preview: undefined, link: '',
-      color: 'gray-500', visibility: Visibility.PRIVATE,
+      color: 'gray-500', visibility: Visibility.PRIVATE, itemType: MapItemType.CONTEXT,
     },
     state: {
       canEdit, isDragged: false, isHovered: false, isSelected: false,

@@ -64,6 +64,7 @@ export function _wrapTRPCMutations(mutations: {
           preview: params.preview,
           link: params.link,
           visibility: params.visibility,
+          itemType: params.itemType,
         },
       });
     },

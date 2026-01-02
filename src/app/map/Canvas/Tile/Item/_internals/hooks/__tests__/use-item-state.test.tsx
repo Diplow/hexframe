@@ -5,7 +5,7 @@ import React from "react";
 import { useItemState } from "~/app/map/Canvas/Tile/Item/_internals/hooks/use-item-state";
 import type { TileData } from "~/app/map/types/tile-data";
 import { LegacyTileActionsContext } from "~/app/map/Canvas";
-import { Visibility } from '~/lib/domains/mapping/utils';
+import { Visibility, MapItemType } from '~/lib/domains/mapping/utils';
 
 // Mock the dependencies - start with a variable we can control
 let mockIsDraggable = true;
@@ -66,7 +66,7 @@ describe("useItemState - Drag Functionality", () => {
       preview: undefined,
       link: "",
       color: "blue",
-      visibility: Visibility.PRIVATE,
+      visibility: Visibility.PRIVATE, itemType: MapItemType.CONTEXT,
     },
     state: {
       isDragged: false,

@@ -368,6 +368,7 @@ export class MutationCoordinator {
           preview: data.preview,
           link: data.link,
           visibility: data.visibility,
+          itemType: data.itemType,
         });
 
         // Finalize with real data
@@ -1171,6 +1172,7 @@ export class MutationCoordinator {
       preview?: string;
       link?: string;
       visibility?: "public" | "private";
+      itemType?: MapItemType;
     }
   ): { optimisticItem: MapItemAPIContract; previousData: MapItemAPIContract } {
     const previousData = this._reconstructApiData(existingItem);
@@ -1181,6 +1183,7 @@ export class MutationCoordinator {
       preview: data.preview ?? existingItem.data.preview,
       link: data.link ?? existingItem.data.link,
       visibility: data.visibility ? (data.visibility === "public" ? Visibility.PUBLIC : Visibility.PRIVATE) : previousData.visibility,
+      itemType: data.itemType ?? previousData.itemType,
     };
     return { optimisticItem, previousData };
   }

@@ -30,6 +30,7 @@ export function convertToTileData(item: {
       link: item.link ?? '',
       color: getColor(itemCoords),
       visibility: Visibility.PRIVATE,
+      itemType: item.itemType,
     },
     metadata: {
       coordId,

@@ -1,5 +1,5 @@
 import type { MutationOperations } from "~/app/map/Cache/types/handlers";
-import { Visibility } from '~/lib/domains/mapping/utils';
+import { Visibility, MapItemType } from '~/lib/domains/mapping/utils';
 
 /**
  * Convert string visibility to Visibility enum
@@ -7,6 +7,18 @@ import { Visibility } from '~/lib/domains/mapping/utils';
 function toVisibilityEnum(visibility: "public" | "private" | undefined): Visibility | undefined {
   if (!visibility) return undefined;
   return visibility === "public" ? Visibility.PUBLIC : Visibility.PRIVATE;
+}
+
+/**
+ * Convert string itemType to MapItemType enum
+ */
+function toItemTypeEnum(itemType: "organizational" | "context" | "system" | undefined): MapItemType.ORGANIZATIONAL | MapItemType.CONTEXT | MapItemType.SYSTEM | undefined {
+  if (!itemType) return undefined;
+  switch (itemType) {
+    case "organizational": return MapItemType.ORGANIZATIONAL;
+    case "context": return MapItemType.CONTEXT;
+    case "system": return MapItemType.SYSTEM;
+  }
 }
 
 /**
@@ -40,6 +52,7 @@ export function createMutationCallbacks(mutationOperations: MutationOperations) 
     content?: string;
     url?: string;
     visibility?: "public" | "private";
+    itemType?: "organizational" | "context" | "system";
   }) => {
     // Normalize legacy field names to canonical domain names
     await mutationOperations.updateItem(coordId, {
@@ -48,6 +61,7 @@ export function createMutationCallbacks(mutationOperations: MutationOperations) 
       preview: data.preview,
       link: data.url,
       visibility: toVisibilityEnum(data.visibility),
+      itemType: toItemTypeEnum(data.itemType),
     });
   };
 
