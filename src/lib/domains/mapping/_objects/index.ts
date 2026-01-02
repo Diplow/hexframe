@@ -4,7 +4,10 @@ export {
   type RelatedItems as MapItemRelatedItems,
   type RelatedLists as MapItemRelatedLists,
   MapItemType,
+  type NonUserMapItemType,
+  type NonUserMapItemTypeString,
   Visibility,
+  type VisibilityString,
   type MapItemIdr,
   type MapItemWithId,
 } from "~/lib/domains/mapping/_objects/map-item";

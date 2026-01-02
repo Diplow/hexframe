@@ -35,10 +35,31 @@ export enum MapItemType {
   SYSTEM = "system",
 }
 
+/**
+ * Non-user item types that can be created/modified via API.
+ * USER type is system-controlled and excluded from this type.
+ */
+export type NonUserMapItemType =
+  | MapItemType.ORGANIZATIONAL
+  | MapItemType.CONTEXT
+  | MapItemType.SYSTEM;
+
+/**
+ * String literals for non-user item types (for API contracts).
+ * Use when interfacing with external systems that expect string literals.
+ */
+export type NonUserMapItemTypeString = "organizational" | "context" | "system";
+
 export enum Visibility {
   PUBLIC = "public",
   PRIVATE = "private",
 }
+
+/**
+ * String literal type for visibility (for API contracts).
+ * Use when interfacing with external systems that expect string literals.
+ */
+export type VisibilityString = "public" | "private";
 
 export interface Attrs extends Record<string, unknown> {
   parentId: number | null; // The parent mapItem this is a child of.

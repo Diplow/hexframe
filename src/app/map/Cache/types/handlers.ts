@@ -1,6 +1,6 @@
 import type { Dispatch } from "react";
 import type { CacheAction, CacheState } from "~/app/map/Cache/State";
-import type { MapItemUpdateAttributes, MapItemCreateAttributes, Visibility } from "~/lib/domains/mapping/utils";
+import type { MapItemUpdateAttributes, MapItemCreateAttributes, Visibility, NonUserMapItemTypeString } from "~/lib/domains/mapping/utils";
 
 // Common handler dependencies
 export interface HandlerConfig {
@@ -92,7 +92,7 @@ export interface NavigationOperations {
 }
 
 export interface MutationOperations {
-  createItem: (coordId: string, data: Omit<MapItemCreateAttributes, 'coords' | 'itemType'> & { parentId?: number; itemType: "organizational" | "context" | "system" }) => Promise<MutationResult>;
+  createItem: (coordId: string, data: Omit<MapItemCreateAttributes, 'coords' | 'itemType'> & { parentId?: number; itemType: NonUserMapItemTypeString }) => Promise<MutationResult>;
   updateItem: (coordId: string, data: MapItemUpdateAttributes) => Promise<MutationResult>;
   deleteItem: (coordId: string) => Promise<MutationResult>;
   deleteChildrenByType: (coordId: string, directionType: 'structural' | 'composed' | 'hexPlan') => Promise<MutationResult & { deletedCount: number }>;

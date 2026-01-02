@@ -21,7 +21,7 @@ describe("tRPC Map Items Router - ItemType API Exposure [Integration - DB]", () 
   });
 
   describe("addItem mutation - itemType parameter", () => {
-    it("should accept optional itemType parameter with value 'organizational'", async () => {
+    it("should accept itemType parameter with value 'organizational'", async () => {
       const setup = await _setupMapWithParent();
 
       const childCoords: Coord = _createTestCoordinates({
@@ -40,7 +40,7 @@ describe("tRPC Map Items Router - ItemType API Exposure [Integration - DB]", () 
       expect(result.itemType).toBe(MapItemType.ORGANIZATIONAL);
     });
 
-    it("should accept optional itemType parameter with value 'context'", async () => {
+    it("should accept itemType parameter with value 'context'", async () => {
       const setup = await _setupMapWithParent();
 
       const childCoords: Coord = _createTestCoordinates({
@@ -59,7 +59,7 @@ describe("tRPC Map Items Router - ItemType API Exposure [Integration - DB]", () 
       expect(result.itemType).toBe(MapItemType.CONTEXT);
     });
 
-    it("should accept optional itemType parameter with value 'system'", async () => {
+    it("should accept itemType parameter with value 'system'", async () => {
       const setup = await _setupMapWithParent();
 
       const childCoords: Coord = _createTestCoordinates({
@@ -184,6 +184,462 @@ describe("tRPC Map Items Router - ItemType API Exposure [Integration - DB]", () 
     });
   });
 
+  describe("itemType hierarchy constraints", () => {
+    it("should enforce SYSTEM children under SYSTEM parent", async () => {
+      const testParams = _createUniqueTestParams();
+      const { userId, groupId } = testParams;
+      const rootMap = await _setupBasicMap(testEnv.service, testParams);
+
+      // Create a SYSTEM parent
+      const parentCoords: Coord = _createTestCoordinates({
+        userId,
+        groupId,
+        path: [Direction.NorthWest],
+      });
+      const parent = await createTestItem(testEnv, {
+        parentId: rootMap.id,
+        coords: parentCoords,
+        title: "System Parent",
+        itemType: MapItemType.SYSTEM,
+      });
+
+      // Try to create a CONTEXT child under SYSTEM parent - should fail
+      const childCoords: Coord = _createTestCoordinates({
+        userId,
+        groupId,
+        path: [Direction.NorthWest, Direction.East],
+      });
+
+      await expect(
+        testEnv.service.items.crud.addItemToMap({
+          parentId: parseInt(parent.id),
+          coords: childCoords,
+          title: "Context Child",
+          itemType: MapItemType.CONTEXT,
+        })
+      ).rejects.toThrow("Structural children of SYSTEM tiles must also be SYSTEM tiles");
+    });
+
+    it("should enforce CONTEXT children under CONTEXT parent", async () => {
+      const testParams = _createUniqueTestParams();
+      const { userId, groupId } = testParams;
+      const rootMap = await _setupBasicMap(testEnv.service, testParams);
+
+      // Create a CONTEXT parent
+      const parentCoords: Coord = _createTestCoordinates({
+        userId,
+        groupId,
+        path: [Direction.East],
+      });
+      const parent = await createTestItem(testEnv, {
+        parentId: rootMap.id,
+        coords: parentCoords,
+        title: "Context Parent",
+        itemType: MapItemType.CONTEXT,
+      });
+
+      // Try to create an ORGANIZATIONAL child under CONTEXT parent - should fail
+      const childCoords: Coord = _createTestCoordinates({
+        userId,
+        groupId,
+        path: [Direction.East, Direction.SouthEast],
+      });
+
+      await expect(
+        testEnv.service.items.crud.addItemToMap({
+          parentId: parseInt(parent.id),
+          coords: childCoords,
+          title: "Organizational Child",
+          itemType: MapItemType.ORGANIZATIONAL,
+        })
+      ).rejects.toThrow("ORGANIZATIONAL tiles can only be created under USER or ORGANIZATIONAL parents");
+    });
+
+    it("should allow any non-USER itemType under ORGANIZATIONAL parent", async () => {
+      const testParams = _createUniqueTestParams();
+      const { userId, groupId } = testParams;
+      const rootMap = await _setupBasicMap(testEnv.service, testParams);
+
+      // Create an ORGANIZATIONAL parent
+      const parentCoords: Coord = _createTestCoordinates({
+        userId,
+        groupId,
+        path: [Direction.SouthEast],
+      });
+      const parent = await createTestItem(testEnv, {
+        parentId: rootMap.id,
+        coords: parentCoords,
+        title: "Organizational Parent",
+        itemType: MapItemType.ORGANIZATIONAL,
+      });
+
+      // Create children with different itemTypes - all should succeed
+      const contextChild = await createTestItem(testEnv, {
+        parentId: parseInt(parent.id),
+        coords: _createTestCoordinates({
+          userId,
+          groupId,
+          path: [Direction.SouthEast, Direction.NorthWest],
+        }),
+        title: "Context Child",
+        itemType: MapItemType.CONTEXT,
+      });
+
+      const systemChild = await createTestItem(testEnv, {
+        parentId: parseInt(parent.id),
+        coords: _createTestCoordinates({
+          userId,
+          groupId,
+          path: [Direction.SouthEast, Direction.East],
+        }),
+        title: "System Child",
+        itemType: MapItemType.SYSTEM,
+      });
+
+      expect(contextChild.itemType).toBe(MapItemType.CONTEXT);
+      expect(systemChild.itemType).toBe(MapItemType.SYSTEM);
+    });
+
+    it("should allow composition children (negative directions) with any itemType", async () => {
+      const testParams = _createUniqueTestParams();
+      const { userId, groupId } = testParams;
+      const rootMap = await _setupBasicMap(testEnv.service, testParams);
+
+      // Create a SYSTEM parent
+      const parentCoords: Coord = _createTestCoordinates({
+        userId,
+        groupId,
+        path: [Direction.West],
+      });
+      const parent = await createTestItem(testEnv, {
+        parentId: rootMap.id,
+        coords: parentCoords,
+        title: "System Parent",
+        itemType: MapItemType.SYSTEM,
+      });
+
+      // Create a CONTEXT composition child (negative direction) - should succeed
+      // Composition children are not subject to structural hierarchy constraints
+      const composedChild = await createTestItem(testEnv, {
+        parentId: parseInt(parent.id),
+        coords: _createTestCoordinates({
+          userId,
+          groupId,
+          path: [Direction.West, -Direction.East], // Negative direction = composition
+        }),
+        title: "Context Composed Child",
+        itemType: MapItemType.CONTEXT,
+      });
+
+      expect(composedChild.itemType).toBe(MapItemType.CONTEXT);
+    });
+  });
+
+  describe("itemType update constraints - preventing hierarchy breaks", () => {
+    it("should NOT allow changing SYSTEM tile to non-SYSTEM when parent is SYSTEM", async () => {
+      const testParams = _createUniqueTestParams();
+      const { userId, groupId } = testParams;
+      const rootMap = await _setupBasicMap(testEnv.service, testParams);
+
+      // Create SYSTEM parent
+      const parentCoords: Coord = _createTestCoordinates({
+        userId,
+        groupId,
+        path: [Direction.NorthWest],
+      });
+      const parent = await createTestItem(testEnv, {
+        parentId: rootMap.id,
+        coords: parentCoords,
+        title: "System Parent",
+        itemType: MapItemType.SYSTEM,
+      });
+
+      // Create SYSTEM child
+      const childCoords: Coord = _createTestCoordinates({
+        userId,
+        groupId,
+        path: [Direction.NorthWest, Direction.East],
+      });
+      await createTestItem(testEnv, {
+        parentId: parseInt(parent.id),
+        coords: childCoords,
+        title: "System Child",
+        itemType: MapItemType.SYSTEM,
+      });
+
+      // Try to change child to CONTEXT - should fail
+      await expect(
+        testEnv.service.items.crud.updateItem({
+          coords: childCoords,
+          itemType: MapItemType.CONTEXT,
+        })
+      ).rejects.toThrow("tile is a structural child of a SYSTEM tile");
+    });
+
+    it("should NOT allow changing CONTEXT tile to non-CONTEXT when parent is CONTEXT", async () => {
+      const testParams = _createUniqueTestParams();
+      const { userId, groupId } = testParams;
+      const rootMap = await _setupBasicMap(testEnv.service, testParams);
+
+      // Create CONTEXT parent
+      const parentCoords: Coord = _createTestCoordinates({
+        userId,
+        groupId,
+        path: [Direction.East],
+      });
+      const parent = await createTestItem(testEnv, {
+        parentId: rootMap.id,
+        coords: parentCoords,
+        title: "Context Parent",
+        itemType: MapItemType.CONTEXT,
+      });
+
+      // Create CONTEXT child
+      const childCoords: Coord = _createTestCoordinates({
+        userId,
+        groupId,
+        path: [Direction.East, Direction.SouthEast],
+      });
+      await createTestItem(testEnv, {
+        parentId: parseInt(parent.id),
+        coords: childCoords,
+        title: "Context Child",
+        itemType: MapItemType.CONTEXT,
+      });
+
+      // Try to change child to ORGANIZATIONAL - should fail
+      await expect(
+        testEnv.service.items.crud.updateItem({
+          coords: childCoords,
+          itemType: MapItemType.ORGANIZATIONAL,
+        })
+      ).rejects.toThrow("Cannot change to ORGANIZATIONAL: parent must be USER or ORGANIZATIONAL");
+    });
+
+    it("should NOT allow changing tile to ORGANIZATIONAL when parent is SYSTEM", async () => {
+      const testParams = _createUniqueTestParams();
+      const { userId, groupId } = testParams;
+      const rootMap = await _setupBasicMap(testEnv.service, testParams);
+
+      // Create SYSTEM parent
+      const parentCoords: Coord = _createTestCoordinates({
+        userId,
+        groupId,
+        path: [Direction.SouthEast],
+      });
+      const parent = await createTestItem(testEnv, {
+        parentId: rootMap.id,
+        coords: parentCoords,
+        title: "System Parent",
+        itemType: MapItemType.SYSTEM,
+      });
+
+      // Create SYSTEM child
+      const childCoords: Coord = _createTestCoordinates({
+        userId,
+        groupId,
+        path: [Direction.SouthEast, Direction.West],
+      });
+      await createTestItem(testEnv, {
+        parentId: parseInt(parent.id),
+        coords: childCoords,
+        title: "System Child",
+        itemType: MapItemType.SYSTEM,
+      });
+
+      // Try to change child to ORGANIZATIONAL - should fail (parent is SYSTEM, not USER/ORGANIZATIONAL)
+      await expect(
+        testEnv.service.items.crud.updateItem({
+          coords: childCoords,
+          itemType: MapItemType.ORGANIZATIONAL,
+        })
+      ).rejects.toThrow();
+    });
+
+    it("should NOT allow creating ORGANIZATIONAL tile under SYSTEM parent", async () => {
+      const testParams = _createUniqueTestParams();
+      const { userId, groupId } = testParams;
+      const rootMap = await _setupBasicMap(testEnv.service, testParams);
+
+      // Create SYSTEM parent
+      const parentCoords: Coord = _createTestCoordinates({
+        userId,
+        groupId,
+        path: [Direction.West],
+      });
+      const parent = await createTestItem(testEnv, {
+        parentId: rootMap.id,
+        coords: parentCoords,
+        title: "System Parent",
+        itemType: MapItemType.SYSTEM,
+      });
+
+      // Try to create ORGANIZATIONAL child under SYSTEM parent - should fail
+      const childCoords: Coord = _createTestCoordinates({
+        userId,
+        groupId,
+        path: [Direction.West, Direction.NorthEast],
+      });
+
+      await expect(
+        testEnv.service.items.crud.addItemToMap({
+          parentId: parseInt(parent.id),
+          coords: childCoords,
+          title: "Organizational Child",
+          itemType: MapItemType.ORGANIZATIONAL,
+        })
+      ).rejects.toThrow("ORGANIZATIONAL tiles can only be created under USER or ORGANIZATIONAL parents");
+    });
+
+    it("should NOT allow creating ORGANIZATIONAL tile under CONTEXT parent", async () => {
+      const testParams = _createUniqueTestParams();
+      const { userId, groupId } = testParams;
+      const rootMap = await _setupBasicMap(testEnv.service, testParams);
+
+      // Create CONTEXT parent
+      const parentCoords: Coord = _createTestCoordinates({
+        userId,
+        groupId,
+        path: [Direction.SouthWest],
+      });
+      const parent = await createTestItem(testEnv, {
+        parentId: rootMap.id,
+        coords: parentCoords,
+        title: "Context Parent",
+        itemType: MapItemType.CONTEXT,
+      });
+
+      // Try to create ORGANIZATIONAL child under CONTEXT parent - should fail
+      const childCoords: Coord = _createTestCoordinates({
+        userId,
+        groupId,
+        path: [Direction.SouthWest, Direction.NorthWest],
+      });
+
+      await expect(
+        testEnv.service.items.crud.addItemToMap({
+          parentId: parseInt(parent.id),
+          coords: childCoords,
+          title: "Organizational Child",
+          itemType: MapItemType.ORGANIZATIONAL,
+        })
+      ).rejects.toThrow("ORGANIZATIONAL tiles can only be created under USER or ORGANIZATIONAL parents");
+    });
+  });
+
+  describe("itemType cascade updates", () => {
+    it("should cascade SYSTEM itemType to structural descendants when updating", async () => {
+      const testParams = _createUniqueTestParams();
+      const { userId, groupId } = testParams;
+      const rootMap = await _setupBasicMap(testEnv.service, testParams);
+
+      // Create an ORGANIZATIONAL parent with CONTEXT children
+      const parentCoords: Coord = _createTestCoordinates({
+        userId,
+        groupId,
+        path: [Direction.NorthEast],
+      });
+      const parent = await createTestItem(testEnv, {
+        parentId: rootMap.id,
+        coords: parentCoords,
+        title: "Organizational Parent",
+        itemType: MapItemType.ORGANIZATIONAL,
+      });
+
+      const child1 = await createTestItem(testEnv, {
+        parentId: parseInt(parent.id),
+        coords: _createTestCoordinates({
+          userId,
+          groupId,
+          path: [Direction.NorthEast, Direction.East],
+        }),
+        title: "Child 1",
+        itemType: MapItemType.CONTEXT,
+      });
+
+      const child2 = await createTestItem(testEnv, {
+        parentId: parseInt(parent.id),
+        coords: _createTestCoordinates({
+          userId,
+          groupId,
+          path: [Direction.NorthEast, Direction.West],
+        }),
+        title: "Child 2",
+        itemType: MapItemType.ORGANIZATIONAL,
+      });
+
+      // Update parent to SYSTEM - should cascade to all structural descendants
+      await testEnv.service.items.crud.updateItem({
+        coords: parentCoords,
+        itemType: MapItemType.SYSTEM,
+      });
+
+      // Verify all items are now SYSTEM
+      const updatedParent = await testEnv.service.items.crud.getItem({
+        coords: parentCoords,
+        requester: asRequesterUserId(userId),
+      });
+      const updatedChild1 = await testEnv.service.items.crud.getItem({
+        coords: CoordSystem.parseId(child1.coords),
+        requester: asRequesterUserId(userId),
+      });
+      const updatedChild2 = await testEnv.service.items.crud.getItem({
+        coords: CoordSystem.parseId(child2.coords),
+        requester: asRequesterUserId(userId),
+      });
+
+      expect(updatedParent.itemType).toBe(MapItemType.SYSTEM);
+      expect(updatedChild1.itemType).toBe(MapItemType.SYSTEM);
+      expect(updatedChild2.itemType).toBe(MapItemType.SYSTEM);
+    });
+
+    it("should NOT cascade itemType to composition children when updating to SYSTEM", async () => {
+      const testParams = _createUniqueTestParams();
+      const { userId, groupId } = testParams;
+      const rootMap = await _setupBasicMap(testEnv.service, testParams);
+
+      // Create an ORGANIZATIONAL parent
+      const parentCoords: Coord = _createTestCoordinates({
+        userId,
+        groupId,
+        path: [Direction.SouthWest],
+      });
+      const parent = await createTestItem(testEnv, {
+        parentId: rootMap.id,
+        coords: parentCoords,
+        title: "Organizational Parent",
+        itemType: MapItemType.ORGANIZATIONAL,
+      });
+
+      // Create a composition child (negative direction)
+      const composedChildCoords: Coord = _createTestCoordinates({
+        userId,
+        groupId,
+        path: [Direction.SouthWest, -Direction.NorthWest],
+      });
+      await createTestItem(testEnv, {
+        parentId: parseInt(parent.id),
+        coords: composedChildCoords,
+        title: "Composed Child",
+        itemType: MapItemType.CONTEXT,
+      });
+
+      // Update parent to SYSTEM
+      await testEnv.service.items.crud.updateItem({
+        coords: parentCoords,
+        itemType: MapItemType.SYSTEM,
+      });
+
+      // Composition child should remain CONTEXT (not cascaded)
+      const updatedComposed = await testEnv.service.items.crud.getItem({
+        coords: composedChildCoords,
+        requester: asRequesterUserId(userId),
+      });
+
+      expect(updatedComposed.itemType).toBe(MapItemType.CONTEXT);
+    });
+  });
+
   describe("read endpoints - itemType in responses", () => {
     it("should return itemType in getItemByCoords response", async () => {
       const setup = await _setupTileWithItemType(MapItemType.SYSTEM);
@@ -257,7 +713,7 @@ describe("tRPC Map Items Router - ItemType API Exposure [Integration - DB]", () 
     const { userId, groupId } = testParams;
     const rootMap = await _setupBasicMap(testEnv.service, testParams);
 
-    // Create parent tile
+    // Create parent tile with ORGANIZATIONAL type to allow any child itemType
     const parentCoords: Coord = _createTestCoordinates({
       userId,
       groupId,
@@ -267,6 +723,7 @@ describe("tRPC Map Items Router - ItemType API Exposure [Integration - DB]", () 
       parentId: rootMap.id,
       coords: parentCoords,
       title: "Parent Tile",
+      itemType: MapItemType.ORGANIZATIONAL,
     });
 
     return {

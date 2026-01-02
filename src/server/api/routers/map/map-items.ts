@@ -7,6 +7,7 @@ import {
 } from "~/server/api/trpc";
 import { contractToApiAdapters } from "~/server/api/types/contracts";
 import { type Coord } from "~/lib/domains/mapping/utils";
+import type { NonUserMapItemTypeString, VisibilityString } from '~/lib/domains/mapping/utils';
 import { Visibility, MapItemType } from '~/lib/domains/mapping/utils';
 import {
   hexCoordSchema,
@@ -21,7 +22,7 @@ import { _requireOwnership, _throwForbidden, _throwNotFound, _throwInternalError
 /**
  * Convert string visibility to Visibility enum
  */
-function toVisibilityEnum(visibility?: "public" | "private"): Visibility | undefined {
+function toVisibilityEnum(visibility?: VisibilityString): Visibility | undefined {
   if (!visibility) return undefined;
   return visibility === "public" ? Visibility.PUBLIC : Visibility.PRIVATE;
 }
@@ -29,13 +30,13 @@ function toVisibilityEnum(visibility?: "public" | "private"): Visibility | undef
 /**
  * Convert string itemType to MapItemType enum (excludes USER - system-controlled)
  */
-function toMapItemTypeEnum(itemType: "organizational" | "context" | "system"): MapItemType {
-  const itemTypeMap: Record<string, MapItemType> = {
+function toMapItemTypeEnum(itemType: NonUserMapItemTypeString): MapItemType {
+  const itemTypeMap: Record<NonUserMapItemTypeString, MapItemType> = {
     organizational: MapItemType.ORGANIZATIONAL,
     context: MapItemType.CONTEXT,
     system: MapItemType.SYSTEM,
   };
-  return itemTypeMap[itemType]!;
+  return itemTypeMap[itemType];
 }
 
 export const mapItemsRouter = createTRPCRouter({

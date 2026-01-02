@@ -50,9 +50,9 @@ describe("MCP Tools - ItemType Support", () => {
       expect(itemTypeProperty?.description).toContain("system");
     });
 
-    it("should NOT include itemType in required fields (it is optional)", () => {
+    it("should include itemType in required fields", () => {
       const addItemTool = mcpTools.find(tool => tool.name === "addItem");
-      expect(addItemTool?.inputSchema.required).not.toContain("itemType");
+      expect(addItemTool?.inputSchema.required).toContain("itemType");
     });
   });
 

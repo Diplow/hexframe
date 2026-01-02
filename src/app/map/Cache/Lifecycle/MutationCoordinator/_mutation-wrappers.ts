@@ -1,4 +1,4 @@
-import type { Coord } from "~/lib/domains/mapping/utils";
+import type { Coord, NonUserMapItemTypeString, VisibilityString } from "~/lib/domains/mapping/utils";
 import { Visibility } from "~/lib/domains/mapping/utils";
 import type { MapItemUpdateAttributes, MapItemCreateAttributes } from "~/lib/domains/mapping/utils";
 import type { MapItemAPIContract } from "~/server/api";
@@ -14,7 +14,7 @@ export function _wrapTRPCMutations(mutations: {
     content?: string;
     preview?: string;
     link?: string;
-    itemType: "organizational" | "context" | "system";
+    itemType: NonUserMapItemTypeString;
   }) => Promise<MapItemAPIContract> };
   updateItemMutation: { mutateAsync: (params: {
     coords: Coord;
@@ -39,14 +39,14 @@ export function _wrapTRPCMutations(mutations: {
   }) => Promise<{ success: boolean; deletedCount: number }> };
   updateVisibilityWithDescendantsMutation: { mutateAsync: (params: {
     coords: Coord;
-    visibility: 'public' | 'private';
+    visibility: VisibilityString;
   }) => Promise<{ success: boolean; updatedCount: number }> };
 }) {
   const wrappedAddItemMutation = {
     mutateAsync: async (params: {
       coords: Coord;
       parentId?: number | null;
-      itemType: "organizational" | "context" | "system";
+      itemType: NonUserMapItemTypeString;
       title?: string;
       content?: string;
       preview?: string;

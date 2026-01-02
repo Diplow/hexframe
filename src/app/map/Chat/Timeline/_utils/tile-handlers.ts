@@ -1,6 +1,7 @@
 import type { Widget, TileSelectedPayload } from '~/app/map/Chat/_state';
 import { focusChatInput } from '~/app/map/Chat/Timeline/_utils/focus-helpers';
 import type { EventBusService } from '~/app/map/types';
+import type { NonUserMapItemTypeString, VisibilityString } from '~/lib/domains/mapping/utils';
 import { Visibility } from '~/lib/domains/mapping/utils';
 
 interface TileHandlerDeps {
@@ -9,10 +10,10 @@ interface TileHandlerDeps {
     name?: string;
     preview?: string;
     description?: string;
-    visibility?: "public" | "private";
-    itemType?: "organizational" | "context" | "system";
+    visibility?: VisibilityString;
+    itemType?: NonUserMapItemTypeString;
   }) => Promise<void>;
-  updateVisibilityWithDescendantsOptimistic: (coordId: string, visibility: "public" | "private") => Promise<unknown>;
+  updateVisibilityWithDescendantsOptimistic: (coordId: string, visibility: VisibilityString) => Promise<unknown>;
   eventBus: EventBusService | null;
   chatState: {
     closeWidget: (id: string) => void;
@@ -93,7 +94,7 @@ export function createTileHandlers(
     focusChatInput();
   };
 
-  const handleTileSave = async (title: string, preview: string, content: string, itemType?: "organizational" | "context" | "system") => {
+  const handleTileSave = async (title: string, preview: string, content: string, itemType?: NonUserMapItemTypeString) => {
     const tileData = widget.data as TileSelectedPayload;
     try {
       // updateItemOptimistic already emits map.tile_updated via MutationCoordinator

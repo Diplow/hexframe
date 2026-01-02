@@ -253,4 +253,18 @@ export interface MapItemRepository extends BaseMapItemRepository {
     coords: Coord,
     visibility: Visibility,
   ): Promise<number>;
+
+  /**
+   * Batch update the item type of a tile and all its STRUCTURAL descendants.
+   * Only updates descendants reached via positive directions (1-6), ignoring
+   * hexplans (direction 0) and composition children (negative directions).
+   *
+   * @param coords - Coordinates of the root tile
+   * @param itemType - New item type value
+   * @returns Number of items updated
+   */
+  batchUpdateItemTypeWithStructuralDescendants(
+    coords: Coord,
+    itemType: MapItemType,
+  ): Promise<number>;
 }

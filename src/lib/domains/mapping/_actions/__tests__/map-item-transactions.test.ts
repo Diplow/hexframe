@@ -44,6 +44,7 @@ describe("MapItemActions - Transaction Support", () => {
       updateVisibility: vi.fn(),
       updateItemType: vi.fn(),
       batchUpdateVisibilityWithDescendants: vi.fn(),
+      batchUpdateItemTypeWithStructuralDescendants: vi.fn(),
     };
     
     mapItemRepo = {

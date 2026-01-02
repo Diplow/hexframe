@@ -232,4 +232,56 @@ export class WriteQueries {
 
     return result.length;
   }
+
+  /**
+   * Batch update the item type of a tile and all its STRUCTURAL descendants.
+   * Only updates descendants reached via positive directions (1-6), ignoring:
+   * - Hexplans (direction 0)
+   * - Composition children (negative directions -1 to -6)
+   *
+   * This enforces the constraint that system/context tiles propagate to structural children.
+   *
+   * @param coords - Coordinates of the root tile
+   * @param itemType - New item type value
+   * @returns Number of items updated
+   */
+  async batchUpdateItemTypeWithStructuralDescendants(
+    coords: Coord,
+    itemType: MapItemType,
+  ): Promise<number> {
+    const pathString = pathToString(coords.path);
+    const pathLen = pathString.length;
+
+    // Match the tile itself and structural descendants
+    // Structural descendants: path starts with parent path and the FIRST direction after parent is 1-6
+    // Non-structural: paths where the first direction after parent is 0 (hexplan) or negative (composition)
+    //
+    // For path "2": matches "2", "2,3", "2,3,4", but NOT "2,0", "2,-1", "2,-1,3"
+    const result = await this.db
+      .update(mapItems)
+      .set({ item_type: itemType })
+      .where(
+        and(
+          eq(mapItems.coord_user_id, coords.userId),
+          eq(mapItems.coord_group_id, coords.groupId),
+          // Match tile itself or descendants
+          pathString === ""
+            ? sql`TRUE`
+            : sql`(${mapItems.path} = ${pathString} OR ${mapItems.path} LIKE ${sql.raw(`'${pathString},%'`)})`,
+          // Filter: tile itself OR first direction after parent is positive (1-6)
+          pathString === ""
+            ? sql`(${mapItems.path} = '' OR ${mapItems.path} ~ '^[1-6](,.*)?$')`
+            : sql`(
+                ${mapItems.path} = ${pathString}
+                OR (
+                  LENGTH(${mapItems.path}) > ${sql.raw(String(pathLen))}
+                  AND CAST(SPLIT_PART(SUBSTRING(${mapItems.path} FROM ${sql.raw(String(pathLen + 2))}), ',', 1) AS INTEGER) > 0
+                )
+              )`
+        )
+      )
+      .returning({ id: mapItems.id });
+
+    return result.length;
+  }
 }

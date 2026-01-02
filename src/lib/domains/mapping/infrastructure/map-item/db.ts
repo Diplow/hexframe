@@ -422,4 +422,17 @@ export class DbMapItemRepository implements MapItemRepository {
   ): Promise<number> {
     return this.writeQueries.batchUpdateVisibilityWithDescendants(coords, visibility);
   }
+
+  /**
+   * Batch update the item type of a tile and all its STRUCTURAL descendants.
+   * Only updates descendants reached via positive directions (1-6), ignoring
+   * hexplans (direction 0) and composition children (negative directions).
+   * @returns Number of items updated
+   */
+  async batchUpdateItemTypeWithStructuralDescendants(
+    coords: Coord,
+    itemType: MapItemType,
+  ): Promise<number> {
+    return this.writeQueries.batchUpdateItemTypeWithStructuralDescendants(coords, itemType);
+  }
 }

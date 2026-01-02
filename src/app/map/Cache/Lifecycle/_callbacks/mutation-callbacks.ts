@@ -1,10 +1,11 @@
 import type { MutationOperations } from "~/app/map/Cache/types/handlers";
+import type { NonUserMapItemType, NonUserMapItemTypeString, VisibilityString } from '~/lib/domains/mapping/utils';
 import { Visibility, MapItemType } from '~/lib/domains/mapping/utils';
 
 /**
  * Convert string visibility to Visibility enum
  */
-function toVisibilityEnum(visibility: "public" | "private" | undefined): Visibility | undefined {
+function toVisibilityEnum(visibility: VisibilityString | undefined): Visibility | undefined {
   if (!visibility) return undefined;
   return visibility === "public" ? Visibility.PUBLIC : Visibility.PRIVATE;
 }
@@ -12,7 +13,7 @@ function toVisibilityEnum(visibility: "public" | "private" | undefined): Visibil
 /**
  * Convert string itemType to MapItemType enum
  */
-function toItemTypeEnum(itemType: "organizational" | "context" | "system" | undefined): MapItemType.ORGANIZATIONAL | MapItemType.CONTEXT | MapItemType.SYSTEM | undefined {
+function toItemTypeEnum(itemType: NonUserMapItemTypeString | undefined): NonUserMapItemType | undefined {
   if (!itemType) return undefined;
   switch (itemType) {
     case "organizational": return MapItemType.ORGANIZATIONAL;
@@ -34,7 +35,7 @@ export function createMutationCallbacks(mutationOperations: MutationOperations) 
     description?: string;
     content?: string;
     url?: string;
-    itemType: "organizational" | "context" | "system";
+    itemType: NonUserMapItemTypeString;
   }) => {
     // Normalize legacy field names to canonical domain names
     await mutationOperations.createItem(coordId, {
@@ -53,8 +54,8 @@ export function createMutationCallbacks(mutationOperations: MutationOperations) 
     description?: string;
     content?: string;
     url?: string;
-    visibility?: "public" | "private";
-    itemType?: "organizational" | "context" | "system";
+    visibility?: VisibilityString;
+    itemType?: NonUserMapItemTypeString;
   }) => {
     // Normalize legacy field names to canonical domain names
     await mutationOperations.updateItem(coordId, {
@@ -91,7 +92,7 @@ export function createMutationCallbacks(mutationOperations: MutationOperations) 
 
   const updateVisibilityWithDescendantsOptimistic = async (
     coordId: string,
-    visibility: "public" | "private"
+    visibility: VisibilityString
   ) => {
     const visibilityEnum = toVisibilityEnum(visibility)!;
     const result = await mutationOperations.updateVisibilityWithDescendants(coordId, visibilityEnum);

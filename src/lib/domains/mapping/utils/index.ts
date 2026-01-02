@@ -25,7 +25,13 @@ export {
 
 // Re-export commonly needed types from the domain (client-safe API)
 // This allows client code to import from utils without pulling in server dependencies
-export { MapItemType, Visibility } from '~/lib/domains/mapping/_objects';
+export {
+  MapItemType,
+  type NonUserMapItemType,
+  type NonUserMapItemTypeString,
+  Visibility,
+  type VisibilityString,
+} from '~/lib/domains/mapping/_objects';
 export type { UpdateMapItemAttrs as MapItemUpdateAttributes } from '~/lib/domains/mapping/types/parameters';
 export type { CreateMapItemParams as MapItemCreateAttributes } from '~/lib/domains/mapping/types/parameters';
 export type { MapItemContract } from '~/lib/domains/mapping/types/contracts';

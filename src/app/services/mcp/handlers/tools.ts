@@ -1,4 +1,4 @@
-// Remove unused import
+import type { NonUserMapItemTypeString, VisibilityString } from "~/lib/domains/mapping/utils";
 import {
   getUserMapItemsHandler,
   getItemByCoordsHandler,
@@ -262,8 +262,8 @@ DIRECTION USAGE:
       const content = argsObj?.content as string | undefined;
       const preview = argsObj?.preview as string | undefined;
       const url = argsObj?.url as string | undefined;
-      const visibility = argsObj?.visibility as "public" | "private" | undefined;
-      const itemType = argsObj?.itemType as "organizational" | "context" | "system" | undefined;
+      const visibility = argsObj?.visibility as VisibilityString | undefined;
+      const itemType = argsObj?.itemType as NonUserMapItemTypeString | undefined;
 
       if (!title) {
         throw new Error("title parameter is required");
@@ -322,7 +322,7 @@ DIRECTION USAGE:
     handler: async (args: unknown, caller: TRPCCaller) => {
       const argsObj = args as Record<string, unknown>;
       const coords = normalizeCoordinates(argsObj?.coords);
-      const updates = parseJsonParam(argsObj?.updates) as { title?: string; content?: string; preview?: string; url?: string; visibility?: "public" | "private"; itemType?: "organizational" | "context" | "system" };
+      const updates = parseJsonParam(argsObj?.updates) as { title?: string; content?: string; preview?: string; url?: string; visibility?: VisibilityString; itemType?: NonUserMapItemTypeString };
 
       if (!updates) {
         throw new Error("updates parameter is required");
