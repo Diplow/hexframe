@@ -52,7 +52,7 @@ The subagent will:
 After each step completes, spawn the sync agent to update the root hexplan:
 
 1. Call hexecute on the sync agent tile with `deleteHexplan: true` to ensure fresh execution. Use the SAME MCP server prefix that you used for step execution:
-   ```
+   ```javascript
    mcp__{mcp_prefix}__hexecute({
      taskCoords: "fZRHqrORpUkoV14TRmtW0GA5kFV7UN0X,0:1,3",
      instruction: "root_coords={root_coords} last_step_coords={step_coords_from_subagent} hexframe_mcp={mcp_prefix}",
@@ -103,7 +103,7 @@ Edit the root hexplan at `{root_coords},0` to mark the completed step (✅) back
 - Without this, the step would be skipped as "already done"
 
 Example workflow:
-```
+```text
 Feedback: "Actually, use TypeScript instead of JavaScript for step 3"
 
 1. Read root hexplan at {root_coords},0

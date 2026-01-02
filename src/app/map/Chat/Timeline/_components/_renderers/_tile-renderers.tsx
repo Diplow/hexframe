@@ -28,7 +28,7 @@ export function _renderTileWidget(
   // Get color from the cached tile data (preferred) or generate from coordinates
   const tileColor = tileItem?.data.color;
   const visibility = tileItem?.data.visibility;
-
+  const itemType = tileItem?.data.itemType;
 
   return (
     <TileWidget
@@ -37,6 +37,7 @@ export function _renderTileWidget(
       title={currentTitle}
       preview={currentPreview}
       content={currentContent}
+      itemType={itemType}
       tileColor={tileColor}
       visibility={visibility}
       openInEditMode={tileData.openInEditMode}

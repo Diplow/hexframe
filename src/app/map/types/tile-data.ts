@@ -72,6 +72,7 @@ const adapt = (item: MapItemAPIContract) => {
       link: item.link,
       color: getColor(coordinates),
       visibility: item.visibility ?? Visibility.PRIVATE,
+      itemType: item.itemType,
     },
     state: {
       isDragged: false,

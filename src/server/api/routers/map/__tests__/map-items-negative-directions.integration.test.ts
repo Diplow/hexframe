@@ -7,6 +7,7 @@ import {
   _createTestEnvironment,
   _setupBasicMap,
   _createUniqueTestParams,
+  createTestItem,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
@@ -45,7 +46,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest],
       };
 
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         coords: parentCoord,
         title: "Parent Tile",
         parentId: rootMap.id,
@@ -58,7 +59,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest, Direction.ComposedEast],
       };
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         coords: composedCoord,
         title: "Composed Child",
         content: "This is a composed child",
@@ -91,7 +92,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest],
       };
 
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         coords: parentCoord,
         title: "Parent Tile",
         parentId: rootMap.id,
@@ -109,7 +110,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
       ];
 
       for (let i = 0; i < 6; i++) {
-        await testEnv.service.items.crud.addItemToMap({
+        await createTestItem(testEnv, {
           coords: composedCoords[i]!,
           title: `Composed ${i + 1}`,
           content: `Child at direction ${expectedDirections[i]}`,
@@ -142,7 +143,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest],
       };
 
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         coords: parentCoord,
         title: "Parent",
         parentId: rootMap.id,
@@ -154,7 +155,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest, Direction.ComposedSouthWest],
       };
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         coords: composedCoord,
         title: "Composed Child",
         content: "Content",
@@ -178,7 +179,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         preview: "Preview",
         link: "https://example.com",
         parentId: parentItem.id,
-        itemType: "base",
+        itemType: "context",
         ownerId: expect.any(String) as string,
       });
     });
@@ -198,7 +199,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest],
       };
 
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         coords: parentCoord,
         title: "Parent",
         parentId: rootMap.id,
@@ -211,7 +212,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest, Direction.ComposedEast],
       };
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         coords: composed1Coord,
         title: "Composed 1",
         parentId: parseInt(parentItem.id),
@@ -223,7 +224,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest, Direction.ComposedWest],
       };
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         coords: composed2Coord,
         title: "Composed 2",
         parentId: parseInt(parentItem.id),
@@ -260,7 +261,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest],
       };
 
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         coords: parentCoord,
         title: "Parent",
         parentId: rootMap.id,
@@ -273,7 +274,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest, Direction.East],
       };
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         coords: structuralCoord,
         title: "Structural Child",
         parentId: parseInt(parentItem.id),
@@ -286,7 +287,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest, Direction.ComposedEast],
       };
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         coords: composedCoord,
         title: "Composed Child",
         parentId: parseInt(parentItem.id),
@@ -318,7 +319,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest],
       };
 
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         coords: parentCoord,
         title: "Parent",
         parentId: rootMap.id,
@@ -339,7 +340,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest, Direction.ComposedNorthWest],
       };
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         coords: composedCoord,
         title: "Composed Child",
         parentId: parseInt(parentItem.id),
@@ -367,7 +368,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest],
       };
 
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         coords: parentCoord,
         title: "Parent",
         parentId: rootMap.id,
@@ -380,7 +381,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest, Direction.ComposedSouthEast],
       };
 
-      const createdItem = await testEnv.service.items.crud.addItemToMap({
+      const createdItem = await createTestItem(testEnv, {
         coords: composedCoord,
         title: "Composed via API",
         content: "Created with negative direction",
@@ -407,7 +408,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest],
       };
 
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         coords: parentCoord,
         title: "Parent",
         parentId: rootMap.id,
@@ -419,7 +420,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest, Direction.ComposedNorthEast],
       };
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         coords: composedCoord,
         title: "Original Title",
         content: "Original content",
@@ -455,7 +456,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest],
       };
 
-      const parent1Item = await testEnv.service.items.crud.addItemToMap({
+      const parent1Item = await createTestItem(testEnv, {
         coords: parent1Coord,
         title: "Parent 1",
         parentId: rootMap.id,
@@ -467,7 +468,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.East],
       };
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         coords: parent2Coord,
         title: "Parent 2",
         parentId: rootMap.id,
@@ -480,7 +481,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest, Direction.ComposedWest],
       };
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         coords: oldComposedCoord,
         title: "Movable Composed",
         parentId: parseInt(parent1Item.id),
@@ -522,7 +523,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest],
       };
 
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         coords: oldParentCoord,
         title: "Parent",
         parentId: rootMap.id,
@@ -535,7 +536,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest, Direction.ComposedEast],
       };
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         coords: oldComposedCoord,
         title: "Composed Child",
         parentId: parseInt(parentItem.id),
@@ -584,7 +585,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest],
       };
 
-      const sourceItem = await testEnv.service.items.crud.addItemToMap({
+      const sourceItem = await createTestItem(testEnv, {
         coords: sourceCoord,
         title: "Source Parent",
         parentId: rootMap.id,
@@ -597,7 +598,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest, Direction.ComposedSouthWest],
       };
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         coords: sourceComposedCoord,
         title: "Source Composed",
         content: "Composed content",
@@ -649,7 +650,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest],
       };
 
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         coords: parentCoord,
         title: "Parent",
         parentId: rootMap.id,
@@ -662,7 +663,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest, Direction.East],
       };
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         coords: structuralCoord,
         title: "Structural",
         parentId: parseInt(parentItem.id),
@@ -675,7 +676,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest, Direction.ComposedEast],
       };
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         coords: composedCoord,
         title: "Composed",
         parentId: parseInt(parentItem.id),
@@ -715,7 +716,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         path: [Direction.NorthWest],
       };
 
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         coords: parentCoord,
         title: "Parent",
         parentId: rootMap.id,
@@ -739,7 +740,7 @@ describe("tRPC Map Items Router - Negative Direction Support [Integration - API]
         };
 
         // Schema validation happens through service layer
-        const item = await testEnv.service.items.crud.addItemToMap({
+        const item = await createTestItem(testEnv, {
           coords: coord,
           title: `Child ${negDir}`,
           parentId: parseInt(parentItem.id),

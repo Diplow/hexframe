@@ -1,5 +1,5 @@
 import type { TileData } from "~/app/map/types/tile-data";
-import { CoordSystem } from "~/lib/domains/mapping/utils";
+import { CoordSystem, MapItemType } from "~/lib/domains/mapping/utils";
 import { Visibility } from '~/lib/domains/mapping/utils';
 
 export function createMockTileData(overrides?: Partial<TileData>): TileData {
@@ -22,6 +22,7 @@ export function createMockTileData(overrides?: Partial<TileData>): TileData {
       link: "",
       color: "zinc-50",
       visibility: Visibility.PRIVATE,
+      itemType: MapItemType.CONTEXT,
     },
     state: {
       isDragged: false,

@@ -171,6 +171,30 @@ Each Frame can have at most 6 child Tiles. This constraint forces prioritization
 
 The separation between what belongs to the current Map (visible) and what belongs inside CenterTiles (hidden until navigated to).
 
+## Tile Types (MapItemType)
+
+### Semantic Classification
+
+Every tile has a semantic type (`itemType`) that guides how agents interact with it:
+
+### USER
+
+Root tile for each user's map. Structural constraint: exactly one per user, at the center of their map. This is the only tile type that can have `parentId=null`.
+
+### ORGANIZATIONAL
+
+Structural grouping tiles (e.g., "Plans", "Interests", "Projects"). Used for navigation and categorization. These tiles help orient users and agents within the hierarchy. Always visible during navigation to maintain context.
+
+### CONTEXT
+
+Reference material tiles to explore on-demand. This is the default type for new tiles. Contains background knowledge that agents should explore when relevant to their current task, rather than preloading eagerly. Examples: project documentation, design specs, research notes.
+
+### SYSTEM
+
+Executable capability tiles that can be invoked like a skill. Agents can invoke these via `hexecute` when they need specific capabilities. Examples: code review workflows, deployment procedures, analysis tools.
+
+**Migration note**: Previously there was only USER and BASE. BASE has been split into ORGANIZATIONAL, CONTEXT, and SYSTEM to enable semantic agent behavior. Tiles with null `itemType` should be treated as unclassified legacy tiles.
+
 ## Visibility & Access Control
 
 ### Tile Visibility

@@ -39,6 +39,7 @@ export class ItemCrudService {
    * @param preview - Optional preview text
    * @param link - Optional URL
    * @param visibility - Visibility setting (defaults to "private")
+   * @param itemType - Required item type (cannot be USER)
    */
   async addItemToMap({
     parentId,
@@ -48,6 +49,7 @@ export class ItemCrudService {
     preview,
     link,
     visibility = Visibility.PRIVATE,
+    itemType,
   }: {
     parentId: number | null;
     coords: Coord;
@@ -56,6 +58,7 @@ export class ItemCrudService {
     preview?: string;
     link?: string;
     visibility?: Visibility;
+    itemType: MapItemType;
   }): Promise<MapItemContract> {
     let parentItem = null;
     if (parentId !== null) {
@@ -93,8 +96,18 @@ export class ItemCrudService {
       await this._validateVisibilityInheritance(coords, visibility);
     }
 
+    // Validate itemType - USER type is system-controlled and cannot be set via API
+    if (itemType === MapItemType.USER) {
+      throw new Error("Cannot set item type to USER - this is system-controlled.");
+    }
+
+    // Validate itemType hierarchy constraints for structural children
+    if (parentItem && this._isStructuralChild(coords)) {
+      this._validateItemTypeForCreation(parentItem.attrs.itemType, itemType);
+    }
+
     const createParams = {
-      itemType: MapItemType.BASE,
+      itemType,
       coords,
       title,
       content,
@@ -136,6 +149,7 @@ export class ItemCrudService {
    * @param preview - Optional new preview
    * @param link - Optional new link
    * @param visibility - Optional new visibility setting
+   * @param itemType - Optional new item type (cannot change to/from USER)
    * @param requester - The requester context for visibility filtering (required for visibility changes)
    */
   async updateItem({
@@ -145,6 +159,7 @@ export class ItemCrudService {
     preview,
     link,
     visibility,
+    itemType,
     requester = SYSTEM_INTERNAL,
   }: {
     coords: Coord;
@@ -153,6 +168,7 @@ export class ItemCrudService {
     preview?: string;
     link?: string;
     visibility?: Visibility;
+    itemType?: MapItemType;
     requester?: RequesterContext;
   }): Promise<MapItemContract> {
     const item = await this.actions.getMapItem({ coords, requester });
@@ -171,6 +187,29 @@ export class ItemCrudService {
 
       // Update visibility on the map item
       await this.mapItemRepository.updateVisibility(item.id, visibility);
+    }
+
+    // Validate and update itemType
+    if (itemType !== undefined) {
+      // Cannot change to USER type - that's system-controlled
+      if (itemType === MapItemType.USER) {
+        throw new Error("Cannot change item type to USER - this is system-controlled.");
+      }
+      // Cannot change FROM USER type - that's system-controlled
+      if (item.attrs.itemType === MapItemType.USER) {
+        throw new Error("Cannot change item type of USER tiles - this is system-controlled.");
+      }
+
+      // Validate itemType hierarchy constraints
+      await this._validateItemTypeForUpdate(coords, itemType);
+
+      // For SYSTEM and CONTEXT types, cascade the update to all structural descendants
+      if (itemType === MapItemType.SYSTEM || itemType === MapItemType.CONTEXT) {
+        await this.mapItemRepository.batchUpdateItemTypeWithStructuralDescendants(coords, itemType);
+      } else {
+        // For ORGANIZATIONAL, just update this tile
+        await this.mapItemRepository.updateItemType(item.id, itemType);
+      }
     }
 
     if (title !== undefined || content !== undefined || preview !== undefined || link !== undefined) {
@@ -407,5 +446,142 @@ export class ItemCrudService {
     }
 
     return ancestors;
+  }
+
+  /**
+   * Check if a coordinate represents a structural child (positive direction 1-6).
+   * Composition children (negative directions) and hexplans (direction 0) are not structural.
+   */
+  private _isStructuralChild(coords: Coord): boolean {
+    if (coords.path.length === 0) return false;
+    const lastDirection = coords.path[coords.path.length - 1];
+    return lastDirection !== undefined && lastDirection > Direction.Center;
+  }
+
+  /**
+   * Validate itemType hierarchy constraints when creating a new tile.
+   *
+   * Rules:
+   * - SYSTEM tiles: structural children must also be SYSTEM
+   * - CONTEXT tiles: structural children must also be CONTEXT
+   * - ORGANIZATIONAL tiles: can only be children of USER or ORGANIZATIONAL
+   * - USER tiles: can have any itemType as children
+   */
+  private _validateItemTypeForCreation(
+    parentItemType: MapItemType | null,
+    childItemType: MapItemType,
+  ): void {
+    if (!parentItemType) return;
+
+    // Rule: ORGANIZATIONAL tiles can only be under USER or ORGANIZATIONAL
+    if (childItemType === MapItemType.ORGANIZATIONAL) {
+      if (parentItemType !== MapItemType.USER && parentItemType !== MapItemType.ORGANIZATIONAL) {
+        throw new Error(
+          "ORGANIZATIONAL tiles can only be created under USER or ORGANIZATIONAL parents. " +
+          `Cannot create ORGANIZATIONAL tile under ${parentItemType} parent.`
+        );
+      }
+    }
+
+    switch (parentItemType) {
+      case MapItemType.SYSTEM:
+        if (childItemType !== MapItemType.SYSTEM) {
+          throw new Error(
+            "Structural children of SYSTEM tiles must also be SYSTEM tiles. " +
+            "Use composition children (negative directions) for context materials."
+          );
+        }
+        break;
+
+      case MapItemType.CONTEXT:
+        if (childItemType !== MapItemType.CONTEXT) {
+          throw new Error(
+            "Structural children of CONTEXT tiles must also be CONTEXT tiles. " +
+            "Use composition children (negative directions) for supporting materials."
+          );
+        }
+        break;
+
+      case MapItemType.ORGANIZATIONAL:
+        // ORGANIZATIONAL tiles can have any non-USER children
+        // (ORGANIZATIONAL constraint is checked above)
+        break;
+
+      case MapItemType.USER:
+        // USER tiles (root) can have any itemType as children
+        break;
+    }
+  }
+
+  /**
+   * Validate itemType hierarchy constraints when updating an existing tile.
+   *
+   * Checks that the parent tile's itemType allows the new itemType.
+   * For ORGANIZATIONAL: can only be under USER or ORGANIZATIONAL parents.
+   */
+  private async _validateItemTypeForUpdate(
+    coords: Coord,
+    newItemType: MapItemType,
+  ): Promise<void> {
+    // Get the parent to check constraints
+    const parentCoords = CoordSystem.getParentCoord(coords);
+    if (!parentCoords) return; // Root tile, no parent constraints
+
+    // Only validate for structural children (positive directions)
+    if (!this._isStructuralChild(coords)) return;
+
+    let parent;
+    try {
+      parent = await this.mapItemRepository.getOneByIdr(
+        { idr: { attrs: { coords: parentCoords } } },
+        SYSTEM_INTERNAL,
+      );
+    } catch {
+      // Parent not found, skip validation
+      return;
+    }
+
+    const parentItemType = parent.attrs.itemType;
+
+    // Rule: ORGANIZATIONAL tiles can only be under USER or ORGANIZATIONAL
+    if (newItemType === MapItemType.ORGANIZATIONAL) {
+      if (parentItemType !== MapItemType.USER && parentItemType !== MapItemType.ORGANIZATIONAL) {
+        throw new Error(
+          "Cannot change to ORGANIZATIONAL: parent must be USER or ORGANIZATIONAL. " +
+          `Current parent is ${parentItemType}.`
+        );
+      }
+    }
+
+    // Check constraints based on parent's itemType
+    switch (parentItemType) {
+      case MapItemType.SYSTEM:
+        if (newItemType !== MapItemType.SYSTEM) {
+          throw new Error(
+            "Cannot change itemType: tile is a structural child of a SYSTEM tile. " +
+            "Structural descendants of SYSTEM tiles must remain SYSTEM."
+          );
+        }
+        break;
+
+      case MapItemType.CONTEXT:
+        if (newItemType !== MapItemType.CONTEXT) {
+          throw new Error(
+            "Cannot change itemType: tile is a structural child of a CONTEXT tile. " +
+            "Structural descendants of CONTEXT tiles must remain CONTEXT."
+          );
+        }
+        break;
+
+      case MapItemType.ORGANIZATIONAL:
+        // ORGANIZATIONAL tiles can have any non-USER children
+        // (ORGANIZATIONAL constraint is checked above)
+        // Allow changing to SYSTEM or CONTEXT - will cascade to descendants
+        break;
+
+      case MapItemType.USER:
+        // USER root can have any itemType children
+        break;
+    }
   }
 }

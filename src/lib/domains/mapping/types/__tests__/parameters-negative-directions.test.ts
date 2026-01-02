@@ -11,7 +11,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
   describe("happy path - negative directions in coords.path", () => {
     it("should accept single negative direction in path", () => {
       const params: CreateMapItemParams = {
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         coords: {
           userId: "user-test-1",
           groupId: 0,
@@ -27,7 +27,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
 
     it("should accept negative direction after positive directions", () => {
       const params: CreateMapItemParams = {
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         coords: {
           userId: "user-test-1",
           groupId: 0,
@@ -43,7 +43,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
 
     it("should accept multiple negative directions in path", () => {
       const params: CreateMapItemParams = {
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         coords: {
           userId: "user-test-1",
           groupId: 0,
@@ -73,7 +73,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
 
       negativeDirections.forEach((dir) => {
         const params: CreateMapItemParams = {
-          itemType: MapItemType.BASE,
+          itemType: MapItemType.CONTEXT,
           coords: {
             userId: "user-test-1",
             groupId: 0,
@@ -90,7 +90,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
 
     it("should accept mix of positive, zero, and negative directions", () => {
       const params: CreateMapItemParams = {
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         coords: {
           userId: "user-test-1",
           groupId: 0,
@@ -113,7 +113,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
   describe("happy path - existing positive directions still work", () => {
     it("should accept positive directions 1-6", () => {
       const params: CreateMapItemParams = {
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         coords: {
           userId: "user-test-1",
           groupId: 0,
@@ -136,7 +136,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
 
     it("should accept direction 0 (Center)", () => {
       const params: CreateMapItemParams = {
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         coords: {
           userId: "user-test-1",
           groupId: 0,
@@ -170,7 +170,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
   describe("edge cases - invalid negative directions", () => {
     it("should reject direction less than -6", () => {
       const params = {
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         coords: {
           userId: "user-test-1",
           groupId: 0,
@@ -186,7 +186,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
 
     it("should reject direction greater than 6", () => {
       const params = {
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         coords: {
           userId: "user-test-1",
           groupId: 0,
@@ -204,7 +204,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
   describe("validateCreateMapItemParams function", () => {
     it("should validate params with negative directions successfully", () => {
       const params = {
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         coords: {
           userId: "user-test-1",
           groupId: 0,
@@ -224,7 +224,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
 
     it("should throw error for invalid negative direction", () => {
       const params = {
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         coords: {
           userId: "user-test-1",
           groupId: 0,
@@ -239,7 +239,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
 
     it("should validate all negative direction enum values", () => {
       const params = {
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         coords: {
           userId: "user-test-1",
           groupId: 0,
@@ -265,7 +265,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
   describe("type safety and inference", () => {
     it("should correctly type coords.path to allow Direction enum values", () => {
       const params: CreateMapItemParams = {
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         coords: {
           userId: "user-test-1",
           groupId: 0,
@@ -282,7 +282,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
 
     it("should maintain type safety for mixed direction paths", () => {
       const params: CreateMapItemParams = {
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         coords: {
           userId: "user-test-1",
           groupId: 0,
@@ -306,7 +306,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
   describe("integration with MapItemType", () => {
     it("should work with BASE items having composed children paths", () => {
       const params: CreateMapItemParams = {
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         coords: {
           userId: "user-test-1",
           groupId: 0,
@@ -323,7 +323,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
 
     it("should work with BASE items at composition (direction 0)", () => {
       const params: CreateMapItemParams = {
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         coords: {
           userId: "user-test-1",
           groupId: 0,
@@ -358,7 +358,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
   describe("backwards compatibility", () => {
     it("should not break existing valid params without negative directions", () => {
       const params: CreateMapItemParams = {
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         coords: {
           userId: "user-test-1",
           groupId: 0,
@@ -375,7 +375,7 @@ describe("CreateMapItemParamsSchema - Negative Direction Support", () => {
 
     it("should handle typical BASE item creation scenario", () => {
       const params: CreateMapItemParams = {
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         coords: {
           userId: "user-test-42",
           groupId: 5,

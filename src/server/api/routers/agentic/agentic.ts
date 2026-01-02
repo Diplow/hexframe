@@ -3,7 +3,7 @@ import { createTRPCRouter, protectedProcedure, softAuthProcedure, mappingService
 import { verificationAwareRateLimit, verificationAwareAuthLimit } from '~/server/api/middleware'
 import { createAgenticService, type CompositionConfig, PreviewGeneratorService, OpenRouterRepository, type ChatMessageContract } from '~/lib/domains/agentic'
 import { buildPrompt, generateParentHexplanContent, generateLeafHexplanContent } from '~/lib/domains/agentic/utils'
-import { ContextStrategies, CoordSystem, Direction } from '~/lib/domains/mapping/utils'
+import { ContextStrategies, CoordSystem, Direction, MapItemType } from '~/lib/domains/mapping/utils'
 import { _getRequesterUserId } from '~/server/api/routers/map'
 import { _requireConfigured, _requireFound, _requireOwnership, _throwBadRequest, _throwInternalError } from '~/server/api/routers/_error-helpers'
 import { env } from '~/env'
@@ -58,7 +58,8 @@ async function _ensureHexplanExists(
       parentId: taskId,
       coords: hexplanCoords,
       title: 'Hexplan',
-      content: hexPlanContent
+      content: hexPlanContent,
+      itemType: MapItemType.SYSTEM,
     })
     return hexPlanContent
   } catch (error) {

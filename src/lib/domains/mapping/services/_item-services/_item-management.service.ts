@@ -235,10 +235,10 @@ export class ItemManagementService {
             coords: prepared.coords,
             parentId: finalParentId,
             ref: {
-              itemType: MapItemType.BASE,
+              itemType: MapItemType.CONTEXT,
               itemId: copiedBaseItemId,
             },
-            itemType: MapItemType.BASE,
+            itemType: MapItemType.CONTEXT,
             visibility: prepared.visibility,
           },
           ref: copiedBaseItem,

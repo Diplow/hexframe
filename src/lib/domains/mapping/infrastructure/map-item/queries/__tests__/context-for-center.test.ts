@@ -8,6 +8,7 @@ import {
   _setupBasicMap,
   _createTestCoordinates,
   _createUniqueTestParams,
+  createTestItem,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 
 describe("getContextForCenter [Integration - DB]", () => {
@@ -36,7 +37,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast],
       });
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: parentCoords,
         title: "Parent Tile",
@@ -49,7 +50,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.East],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: childCoords,
         title: "Child Tile",
@@ -93,7 +94,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast],
       });
-      const level1 = await testEnv.service.items.crud.addItemToMap({
+      const level1 = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: level1Coords,
         title: "Level 1",
@@ -104,7 +105,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.NorthWest],
       });
-      const level2 = await testEnv.service.items.crud.addItemToMap({
+      const level2 = await createTestItem(testEnv, {
         parentId: parseInt(level1.id),
         coords: level2Coords,
         title: "Level 2",
@@ -115,7 +116,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.NorthWest, Direction.East],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(level2.id),
         coords: level3Coords,
         title: "Level 3",
@@ -176,7 +177,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.West],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: childCoords,
         title: "Direct Child",
@@ -213,7 +214,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast],
       });
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: parentCoords,
         title: "Parent Tile",
@@ -225,7 +226,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.NorthWest],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: child1Coords,
         title: "Child 1",
@@ -236,7 +237,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.East],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: child2Coords,
         title: "Child 2",
@@ -247,7 +248,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.SouthEast],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: child3Coords,
         title: "Child 3",
@@ -288,7 +289,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast],
       });
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: parentCoords,
         title: "Parent Tile",
@@ -300,7 +301,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.Center],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: composedCoords,
         title: "Composed Container",
@@ -312,7 +313,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.East],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: childCoords,
         title: "Regular Child",
@@ -346,7 +347,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: parentCoords,
         title: "Childless Parent",
@@ -380,7 +381,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast],
       });
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: parentCoords,
         title: "Parent Tile",
@@ -392,7 +393,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.ComposedNorthWest],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: composed1Coords,
         title: "Composed Child 1",
@@ -403,7 +404,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.ComposedEast],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: composed2Coords,
         title: "Composed Child 2",
@@ -448,7 +449,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast],
       });
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: parentCoords,
         title: "Parent Tile",
@@ -460,7 +461,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.Center],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: composedCoords,
         title: "Composed Container",
@@ -472,7 +473,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.East],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: regularChildCoords,
         title: "Regular Child",
@@ -506,7 +507,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: parentCoords,
         title: "Parent Without Composition",
@@ -540,7 +541,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast],
       });
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: parentCoords,
         title: "Parent",
@@ -552,7 +553,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.East],
       });
-      const childItem = await testEnv.service.items.crud.addItemToMap({
+      const childItem = await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: childCoords,
         title: "Child",
@@ -564,7 +565,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.East, Direction.NorthWest],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(childItem.id),
         coords: grandchild1Coords,
         title: "Grandchild 1",
@@ -575,7 +576,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.East, Direction.SouthEast],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(childItem.id),
         coords: grandchild2Coords,
         title: "Grandchild 2",
@@ -617,7 +618,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast],
       });
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: parentCoords,
         title: "Parent",
@@ -629,7 +630,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.East],
       });
-      const childItem = await testEnv.service.items.crud.addItemToMap({
+      const childItem = await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: childCoords,
         title: "Child",
@@ -641,7 +642,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.East, Direction.Center],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(childItem.id),
         coords: composedGrandchildCoords,
         title: "Composed Grandchild",
@@ -653,7 +654,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.East, Direction.NorthWest],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(childItem.id),
         coords: regularGrandchildCoords,
         title: "Regular Grandchild",
@@ -689,7 +690,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: parentCoords,
         title: "Parent Without Grandchildren",
@@ -725,7 +726,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast],
       });
-      const tile1 = await testEnv.service.items.crud.addItemToMap({
+      const tile1 = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: tile1Coords,
         title: "Tile 1",
@@ -736,7 +737,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.Center],
       });
-      const container = await testEnv.service.items.crud.addItemToMap({
+      const container = await createTestItem(testEnv, {
         parentId: parseInt(tile1.id),
         coords: containerCoords,
         title: "Container",
@@ -748,7 +749,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.Center, Direction.NorthWest],
       });
-      const centerItem = await testEnv.service.items.crud.addItemToMap({
+      const centerItem = await createTestItem(testEnv, {
         parentId: parseInt(container.id),
         coords: centerCoords,
         title: "Composed Child Center",
@@ -760,7 +761,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.Center, Direction.NorthWest, Direction.East],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(centerItem.id),
         coords: child1Coords,
         title: "Regular Child 1",
@@ -771,7 +772,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.Center, Direction.NorthWest, Direction.SouthEast],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(centerItem.id),
         coords: child2Coords,
         title: "Regular Child 2",
@@ -783,7 +784,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.Center, Direction.NorthWest, Direction.Center],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(centerItem.id),
         coords: composedContainerCoords,
         title: "Composed Container Under Center",
@@ -827,7 +828,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast],
       });
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: parentCoords,
         title: "Center Tile",
@@ -839,7 +840,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.Center],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: composedCoords,
         title: "Composed Container",
@@ -851,7 +852,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.East],
       });
-      const child1Item = await testEnv.service.items.crud.addItemToMap({
+      const child1Item = await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: child1Coords,
         title: "Child 1",
@@ -862,7 +863,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.West],
       });
-      const child2Item = await testEnv.service.items.crud.addItemToMap({
+      const child2Item = await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: child2Coords,
         title: "Child 2",
@@ -874,7 +875,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.East, Direction.NorthWest],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(child1Item.id),
         coords: grandchild1Coords,
         title: "Grandchild 1",
@@ -885,7 +886,7 @@ describe("getContextForCenter [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, Direction.West, Direction.SouthEast],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(child2Item.id),
         coords: grandchild2Coords,
         title: "Grandchild 2",

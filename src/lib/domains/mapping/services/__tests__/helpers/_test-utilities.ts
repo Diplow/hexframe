@@ -6,10 +6,22 @@ import type {
   BaseItemRepository,
 } from "~/lib/domains/mapping/_repositories";
 import { db } from "~/server/db";
-import { type Coord, Direction } from "~/lib/domains/mapping/utils";
+import { type Coord, Direction, MapItemType } from "~/lib/domains/mapping/utils";
 
-// Re-export SYSTEM_INTERNAL for test files to use
+// Re-export common types for test files
 export { SYSTEM_INTERNAL, type RequesterContext } from "~/lib/domains/mapping/types";
+export { MapItemType } from "~/lib/domains/mapping/utils";
+
+// Re-export test item factory for convenient item creation with defaults
+export {
+  createTestItem,
+  createTestStructuralChild,
+  createTestComposedChild,
+  createTestHexplan,
+  createTestOrganizationalItem,
+  createTestSystemItem,
+  type TestItemParams,
+} from "~/lib/domains/mapping/services/__tests__/helpers/_test-item-factory";
 
 // PostgreSQL error codes for concurrency/lock-related issues
 // See: https://www.postgresql.org/docs/current/errcodes-appendix.html
@@ -137,6 +149,7 @@ export async function _setupMapWithChild(
     groupId: number;
     childPath?: Direction[];
     childTitle?: string;
+    childItemType?: MapItemType;
   },
 ) {
   const rootMap = await _setupBasicMap(service, params);
@@ -150,6 +163,7 @@ export async function _setupMapWithChild(
     parentId: rootMap.id,
     coords: childCoords,
     title: params.childTitle ?? "Child Item",
+    itemType: params.childItemType ?? MapItemType.CONTEXT,
   });
 
   return { rootMap, childItem, childCoords };

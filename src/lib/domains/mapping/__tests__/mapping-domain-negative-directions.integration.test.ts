@@ -5,6 +5,7 @@ import {
   _createTestEnvironment,
   _createUniqueTestParams,
   _setupBasicMap,
+  createTestItem,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { Direction, CoordSystem } from "~/lib/domains/mapping/utils";
 import type { Coord } from "~/lib/domains/mapping/utils";
@@ -57,7 +58,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
       const rootItem = rootMap.items[0];
       if (!rootItem) throw new Error("Root item not found");
 
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         coords: parentCoord,
         title: "Parent Tile",
         content: "Parent content",
@@ -69,14 +70,14 @@ describe("Mapping Domain - Negative Direction Integration", () => {
       const [composedCoord1, composedCoord2] = composedCoords;
       if (!composedCoord1 || !composedCoord2) throw new Error("Expected composed coords");
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         coords: composedCoord1,
         title: "Composed Child 1",
         content: "First composed child",
         parentId: parseInt(parentItem.id),
       });
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         coords: composedCoord2,
         title: "Composed Child 2",
         content: "Second composed child",
@@ -131,7 +132,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
         path: [Direction.NorthWest],
       };
 
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         coords: parentCoord,
         title: "Parent Tile",
         content: "Parent content",
@@ -145,7 +146,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
         path: [Direction.NorthWest, Direction.East],
       };
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         coords: structuralChildCoord,
         title: "Structural Child",
         content: "Regular child",
@@ -159,7 +160,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
         path: [Direction.NorthWest, Direction.ComposedEast],
       };
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         coords: composedChildCoord,
         title: "Composed Child",
         content: "Composed child",
@@ -205,7 +206,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
         path: [Direction.NorthWest],
       };
 
-      const sourceItem = await testEnv.service.items.crud.addItemToMap({
+      const sourceItem = await createTestItem(testEnv, {
         coords: sourceCoord,
         title: "Source Tile",
         content: "Source content",
@@ -219,7 +220,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
         path: [Direction.NorthWest, Direction.ComposedEast],
       };
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         coords: composedChildCoord,
         title: "Composed Child",
         content: "Composed content",
@@ -269,7 +270,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
         path: [Direction.NorthWest],
       };
 
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         coords: parentCoord,
         title: "Parent Tile",
         content: "Parent content",
@@ -288,7 +289,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
       ];
 
       for (let i = 0; i < 6; i++) {
-        await testEnv.service.items.crud.addItemToMap({
+        await createTestItem(testEnv, {
           coords: composedCoords[i]!,
           title: `Composed Child ${i + 1}`,
           content: `Child in direction ${expectedDirections[i]}`,
@@ -338,7 +339,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
         path: [Direction.NorthWest],
       };
 
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         coords: parentCoord,
         title: "Parent",
         content: "Parent content",
@@ -352,7 +353,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
         path: [Direction.NorthWest, Direction.ComposedEast],
       };
 
-      const composedChildItem = await testEnv.service.items.crud.addItemToMap({
+      const composedChildItem = await createTestItem(testEnv, {
         coords: composedChildCoord,
         title: "Composed Child",
         content: "Composed content",
@@ -366,7 +367,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
         path: [Direction.NorthWest, Direction.ComposedEast, Direction.ComposedSouthWest],
       };
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         coords: nestedComposedCoord,
         title: "Nested Composed Child",
         content: "Nested composed content",
@@ -462,7 +463,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
         path: [Direction.NorthWest],
       };
 
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         coords: parentCoord,
         title: "Parent",
         content: "Parent content",
@@ -475,7 +476,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
         path: [Direction.NorthWest, Direction.ComposedEast],
       };
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         coords: composedCoord,
         title: "Composed Child",
         content: "Composed content",
@@ -522,7 +523,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
         path: [Direction.NorthWest],
       };
 
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         coords: parentCoord,
         title: "Parent",
         content: "Parent content",
@@ -546,7 +547,7 @@ describe("Mapping Domain - Negative Direction Integration", () => {
           path: [Direction.NorthWest, structuralDirections[i]!],
         };
 
-        await testEnv.service.items.crud.addItemToMap({
+        await createTestItem(testEnv, {
           coords: childCoord,
           title: `Structural Child ${i + 1}`,
           content: `Child in direction ${structuralDirections[i]}`,

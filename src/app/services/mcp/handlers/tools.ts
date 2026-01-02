@@ -1,4 +1,4 @@
-// Remove unused import
+import type { NonUserMapItemTypeString, VisibilityString } from "~/lib/domains/mapping/utils";
 import {
   getUserMapItemsHandler,
   getItemByCoordsHandler,
@@ -246,9 +246,14 @@ DIRECTION USAGE:
           type: "string",
           enum: ["public", "private"],
           description: "Visibility of the tile (default: private). Public tiles are visible to all users; private tiles are only visible to the owner."
+        },
+        itemType: {
+          type: "string",
+          enum: ["organizational", "context", "system"],
+          description: "Semantic tile type classification (required). 'organizational' = grouping/folder tiles for hierarchy, 'context' = reference materials, notes, documentation, 'system' = executable capabilities, tools, automations. Note: 'user' type is reserved for system-created root tiles."
         }
       },
-      required: ["coords", "title"],
+      required: ["coords", "title", "itemType"],
     },
     handler: async (args: unknown, caller: TRPCCaller) => {
       const argsObj = args as Record<string, unknown>;
@@ -257,19 +262,23 @@ DIRECTION USAGE:
       const content = argsObj?.content as string | undefined;
       const preview = argsObj?.preview as string | undefined;
       const url = argsObj?.url as string | undefined;
-      const visibility = argsObj?.visibility as "public" | "private" | undefined;
+      const visibility = argsObj?.visibility as VisibilityString | undefined;
+      const itemType = argsObj?.itemType as NonUserMapItemTypeString | undefined;
 
       if (!title) {
         throw new Error("title parameter is required");
       }
+      if (!itemType) {
+        throw new Error("itemType parameter is required");
+      }
 
-      return await addItemHandler(caller, coords, title, content, preview, url, visibility);
+      return await addItemHandler(caller, coords, title, itemType, content, preview, url, visibility);
     },
   },
 
   {
     name: "updateItem",
-    description: "Update an existing Hexframe tile's content (title, description, visibility, or URL). Use coordinates to specify which tile to modify.",
+    description: "Update an existing Hexframe tile's content (title, description, visibility, itemType, or URL). Use coordinates to specify which tile to modify.",
     inputSchema: {
       type: "object",
       properties: {
@@ -299,6 +308,11 @@ DIRECTION USAGE:
               type: "string",
               enum: ["public", "private"],
               description: "Visibility of the tile. Public tiles are visible to all users; private tiles are only visible to the owner."
+            },
+            itemType: {
+              type: "string",
+              enum: ["organizational", "context", "system"],
+              description: "Semantic tile type classification. 'organizational' = grouping/folder tiles for hierarchy, 'context' = reference materials, notes, documentation, 'system' = executable capabilities, tools, automations. Note: Cannot change to/from 'user' type (system-controlled for root tiles)."
             }
           }
         }
@@ -308,7 +322,7 @@ DIRECTION USAGE:
     handler: async (args: unknown, caller: TRPCCaller) => {
       const argsObj = args as Record<string, unknown>;
       const coords = normalizeCoordinates(argsObj?.coords);
-      const updates = parseJsonParam(argsObj?.updates) as { title?: string; content?: string; preview?: string; url?: string; visibility?: "public" | "private" };
+      const updates = parseJsonParam(argsObj?.updates) as { title?: string; content?: string; preview?: string; url?: string; visibility?: VisibilityString; itemType?: NonUserMapItemTypeString };
 
       if (!updates) {
         throw new Error("updates parameter is required");

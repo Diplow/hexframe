@@ -2,10 +2,13 @@
 
 import { useState, useEffect } from 'react';
 
+type ItemTypeValue = 'organizational' | 'context' | 'system' | 'user' | null;
+
 interface UseTileStateProps {
   title: string;
   preview?: string;
   content: string;
+  itemType?: ItemTypeValue;
   forceExpanded?: boolean;
   openInEditMode?: boolean;
   tileId: string;
@@ -15,6 +18,7 @@ export function useTileState({
   title,
   preview = '',
   content,
+  itemType,
   forceExpanded,
   openInEditMode,
   tileId,
@@ -25,6 +29,12 @@ export function useTileState({
   const [editTitle, setEditTitle] = useState(title);
   const [editPreview, setEditPreview] = useState(preview);
   const [editContent, setEditContent] = useState(content);
+  // Default to 'context' if itemType is null/undefined
+  const [editItemType, setEditItemType] = useState<'organizational' | 'context' | 'system'>(
+    (itemType === 'organizational' || itemType === 'context' || itemType === 'system')
+      ? itemType
+      : 'context'
+  );
 
   // Update expansion state when forceExpanded changes
   useEffect(() => {
@@ -55,7 +65,12 @@ export function useTileState({
     setEditTitle(title);
     setEditPreview(preview);
     setEditContent(content);
-  }, [title, preview, content]);
+    setEditItemType(
+      (itemType === 'organizational' || itemType === 'context' || itemType === 'system')
+        ? itemType
+        : 'context'
+    );
+  }, [title, preview, content, itemType]);
 
   return {
     expansion: { isExpanded, setIsExpanded },
@@ -68,6 +83,8 @@ export function useTileState({
       setPreview: setEditPreview,
       content: editContent,
       setContent: setEditContent,
+      itemType: editItemType,
+      setItemType: setEditItemType,
     },
   };
 }

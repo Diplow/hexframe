@@ -118,7 +118,7 @@ export class MapItemCreationHelpers {
         coords,
         parentId: parent?.id ?? null,
         originId: null,
-        ref: { itemType: MapItemType.BASE, itemId: ref.id },
+        ref: { itemType: MapItemType.CONTEXT, itemId: ref.id },
         visibility,
       },
       ref,

@@ -4,7 +4,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { TileContextMenu } from '~/app/map/Canvas/TileContextMenu';
 import type { TileData } from '~/app/map/types/tile-data';
-import { Visibility } from '~/lib/domains/mapping/utils';
+import { Visibility, MapItemType } from '~/lib/domains/mapping/utils';
 
 describe('TileContextMenu - History Integration', () => {
   const mockTileData: TileData = {
@@ -22,7 +22,7 @@ describe('TileContextMenu - History Integration', () => {
       preview: 'Test preview',
       link: '',
       color: 'bg-primary-50',
-      visibility: Visibility.PRIVATE,
+      visibility: Visibility.PRIVATE, itemType: MapItemType.CONTEXT,
     },
     state: {
       isExpanded: false,

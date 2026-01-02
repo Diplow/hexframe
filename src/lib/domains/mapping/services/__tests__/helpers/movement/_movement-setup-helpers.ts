@@ -3,6 +3,7 @@ import type { TestEnvironment } from "~/lib/domains/mapping/services/__tests__/h
 import {
   _setupBasicMap,
   _createTestCoordinates,
+  createTestItem,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 
 export async function _setupItemForMovement(
@@ -17,7 +18,7 @@ export async function _setupItemForMovement(
     path: [Direction.East],
   });
 
-  const item = await testEnv.service.items.crud.addItemToMap({
+  const item = await createTestItem(testEnv, {
     parentId: setupData.id,
     coords: initialCoords,
     title: "Test Item",
@@ -44,7 +45,7 @@ export async function _setupTwoItemsForSwap(
     path: [Direction.East],
   });
 
-  const firstItem = await testEnv.service.items.crud.addItemToMap({
+  const firstItem = await createTestItem(testEnv, {
     parentId: setupData.id,
     coords: firstCoords,
     title: "First Item",
@@ -56,7 +57,7 @@ export async function _setupTwoItemsForSwap(
     path: [Direction.West],
   });
 
-  const secondItem = await testEnv.service.items.crud.addItemToMap({
+  const secondItem = await createTestItem(testEnv, {
     parentId: setupData.id,
     coords: secondCoords,
     title: "Second Item",
@@ -83,7 +84,7 @@ export async function _setupParentChildHierarchy(
     path: [Direction.East],
   });
 
-  const parentItem = await testEnv.service.items.crud.addItemToMap({
+  const parentItem = await createTestItem(testEnv, {
     parentId: setupData.id,
     coords: parentCoords,
     title: "Parent Item",
@@ -95,7 +96,7 @@ export async function _setupParentChildHierarchy(
     path: [Direction.East, Direction.NorthEast],
   });
 
-  const childItem = await testEnv.service.items.crud.addItemToMap({
+  const childItem = await createTestItem(testEnv, {
     parentId: parseInt(parentItem.id),
     coords: childCoords,
     title: "Child Item",
@@ -131,7 +132,7 @@ export async function _setupItemWithComposition(
     path: [Direction.East],
   });
 
-  const parentItem = await testEnv.service.items.crud.addItemToMap({
+  const parentItem = await createTestItem(testEnv, {
     parentId: setupData.id,
     coords: parentCoords,
     title: "Parent Item",
@@ -143,7 +144,7 @@ export async function _setupItemWithComposition(
     path: [Direction.East, Direction.Center],
   });
 
-  const compositionContainer = await testEnv.service.items.crud.addItemToMap({
+  const compositionContainer = await createTestItem(testEnv, {
     parentId: parseInt(parentItem.id),
     coords: compositionCoords,
     title: "Composition Container",
@@ -155,7 +156,7 @@ export async function _setupItemWithComposition(
     path: [Direction.East, Direction.Center, Direction.NorthWest],
   });
 
-  const composedChild1 = await testEnv.service.items.crud.addItemToMap({
+  const composedChild1 = await createTestItem(testEnv, {
     parentId: parseInt(compositionContainer.id),
     coords: composedChild1Coords,
     title: "Composed Child 1",
@@ -167,7 +168,7 @@ export async function _setupItemWithComposition(
     path: [Direction.East, Direction.Center, Direction.SouthEast],
   });
 
-  const composedChild2 = await testEnv.service.items.crud.addItemToMap({
+  const composedChild2 = await createTestItem(testEnv, {
     parentId: parseInt(compositionContainer.id),
     coords: composedChild2Coords,
     title: "Composed Child 2",

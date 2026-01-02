@@ -7,7 +7,8 @@ import {
 } from "~/server/api/trpc";
 import { contractToApiAdapters } from "~/server/api/types/contracts";
 import { type Coord } from "~/lib/domains/mapping/utils";
-import { Visibility } from '~/lib/domains/mapping/utils';
+import type { NonUserMapItemTypeString, VisibilityString } from '~/lib/domains/mapping/utils';
+import { Visibility, MapItemType } from '~/lib/domains/mapping/utils';
 import {
   hexCoordSchema,
   itemCreationSchema,
@@ -21,9 +22,21 @@ import { _requireOwnership, _throwForbidden, _throwNotFound, _throwInternalError
 /**
  * Convert string visibility to Visibility enum
  */
-function toVisibilityEnum(visibility?: "public" | "private"): Visibility | undefined {
+function toVisibilityEnum(visibility?: VisibilityString): Visibility | undefined {
   if (!visibility) return undefined;
   return visibility === "public" ? Visibility.PUBLIC : Visibility.PRIVATE;
+}
+
+/**
+ * Convert string itemType to MapItemType enum (excludes USER - system-controlled)
+ */
+function toMapItemTypeEnum(itemType: NonUserMapItemTypeString): MapItemType {
+  const itemTypeMap: Record<NonUserMapItemTypeString, MapItemType> = {
+    organizational: MapItemType.ORGANIZATIONAL,
+    context: MapItemType.CONTEXT,
+    system: MapItemType.SYSTEM,
+  };
+  return itemTypeMap[itemType];
 }
 
 export const mapItemsRouter = createTRPCRouter({
@@ -121,6 +134,7 @@ export const mapItemsRouter = createTRPCRouter({
         preview: input.preview,
         link: input.link,
         visibility: toVisibilityEnum(input.visibility),
+        itemType: toMapItemTypeEnum(input.itemType),
       });
       return contractToApiAdapters.mapItem(mapItem);
     }),
@@ -164,6 +178,7 @@ export const mapItemsRouter = createTRPCRouter({
         preview?: string;
         link?: string;
         visibility?: Visibility;
+        itemType?: MapItemType;
         requester?: typeof requester;
       } = {
         coords: input.coords as Coord,
@@ -176,6 +191,7 @@ export const mapItemsRouter = createTRPCRouter({
       if (input.data.preview !== undefined) updateParams.preview = input.data.preview;
       if (input.data.link !== undefined) updateParams.link = input.data.link;
       if (input.data.visibility !== undefined) updateParams.visibility = toVisibilityEnum(input.data.visibility);
+      if (input.data.itemType !== undefined) updateParams.itemType = toMapItemTypeEnum(input.data.itemType);
 
       const item = await ctx.mappingService.items.crud.updateItem(updateParams);
       return contractToApiAdapters.mapItem(item);

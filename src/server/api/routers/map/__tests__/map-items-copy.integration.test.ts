@@ -7,6 +7,7 @@ import {
   _setupBasicMap,
   _createTestCoordinates,
   _createUniqueTestParams,
+  createTestItem,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
@@ -212,7 +213,7 @@ describe("tRPC Map Items Router - Copy Operations [Integration - DB]", () => {
     const testParams = _createUniqueTestParams();
     const rootMap = await _setupBasicMap(testEnv.service, testParams);
 
-    const sourceItem = await testEnv.service.items.crud.addItemToMap({
+    const sourceItem = await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: _createTestCoordinates({
         userId: testParams.userId,
@@ -255,7 +256,7 @@ describe("tRPC Map Items Router - Copy Operations [Integration - DB]", () => {
       groupId: testParams.groupId,
       path: [Direction.East],
     });
-    const parentItem = await testEnv.service.items.crud.addItemToMap({
+    const parentItem = await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: parentCoords,
       title: "Parent Item",
@@ -268,7 +269,7 @@ describe("tRPC Map Items Router - Copy Operations [Integration - DB]", () => {
       groupId: testParams.groupId,
       path: [Direction.East, Direction.NorthWest],
     });
-    const child1 = await testEnv.service.items.crud.addItemToMap({
+    const child1 = await createTestItem(testEnv, {
       parentId: Number(parentItem.id),
       coords: child1Coords,
       title: "Child 1",
@@ -280,7 +281,7 @@ describe("tRPC Map Items Router - Copy Operations [Integration - DB]", () => {
       groupId: testParams.groupId,
       path: [Direction.East, Direction.NorthEast],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: Number(parentItem.id),
       coords: child2Coords,
       title: "Child 2",
@@ -292,7 +293,7 @@ describe("tRPC Map Items Router - Copy Operations [Integration - DB]", () => {
       groupId: testParams.groupId,
       path: [Direction.East, Direction.NorthWest, Direction.SouthEast],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: Number(child1.id),
       coords: grandchildCoords,
       title: "Grandchild 1",
@@ -321,7 +322,7 @@ describe("tRPC Map Items Router - Copy Operations [Integration - DB]", () => {
       groupId: testParams.groupId,
       path: [Direction.East],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: sourceCoords,
       title: "Source Item",
@@ -333,7 +334,7 @@ describe("tRPC Map Items Router - Copy Operations [Integration - DB]", () => {
       groupId: testParams.groupId,
       path: [Direction.West],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: existingDestCoords,
       title: "Existing Item",
@@ -359,7 +360,7 @@ describe("tRPC Map Items Router - Copy Operations [Integration - DB]", () => {
       groupId: sourceParams.groupId,
       path: [Direction.East],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: sourceRootMap.id,
       coords: sourceCoords,
       title: "Source Item",
@@ -390,7 +391,7 @@ describe("tRPC Map Items Router - Copy Operations [Integration - DB]", () => {
       groupId: testParams.groupId,
       path: [Direction.NorthEast],
     });
-    const parentItem = await testEnv.service.items.crud.addItemToMap({
+    const parentItem = await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: parentCoords,
       title: "Parent Tile",
@@ -402,7 +403,7 @@ describe("tRPC Map Items Router - Copy Operations [Integration - DB]", () => {
       groupId: testParams.groupId,
       path: [Direction.NorthEast, Direction.Center],
     });
-    const containerItem = await testEnv.service.items.crud.addItemToMap({
+    const containerItem = await createTestItem(testEnv, {
       parentId: parseInt(parentItem.id),
       coords: compositionCoords,
       title: "Composition Container",
@@ -414,7 +415,7 @@ describe("tRPC Map Items Router - Copy Operations [Integration - DB]", () => {
       groupId: testParams.groupId,
       path: [Direction.NorthEast, Direction.Center, Direction.NorthWest],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: parseInt(containerItem.id),
       coords: child1Coords,
       title: "Composed Child 1",
@@ -425,7 +426,7 @@ describe("tRPC Map Items Router - Copy Operations [Integration - DB]", () => {
       groupId: testParams.groupId,
       path: [Direction.NorthEast, Direction.Center, Direction.East],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: parseInt(containerItem.id),
       coords: child2Coords,
       title: "Composed Child 2",
@@ -454,7 +455,7 @@ describe("tRPC Map Items Router - Copy Operations [Integration - DB]", () => {
       groupId: testParams.groupId,
       path: [Direction.West],
     });
-    const parentItem = await testEnv.service.items.crud.addItemToMap({
+    const parentItem = await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: parentCoords,
       title: "Parent Tile",
@@ -466,7 +467,7 @@ describe("tRPC Map Items Router - Copy Operations [Integration - DB]", () => {
       groupId: testParams.groupId,
       path: [Direction.West, Direction.Center],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: parseInt(parentItem.id),
       coords: compositionCoords,
       title: "Empty Composition",

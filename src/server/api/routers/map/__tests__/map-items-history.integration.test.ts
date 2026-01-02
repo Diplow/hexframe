@@ -7,6 +7,7 @@ import {
   _setupBasicMap,
   _createTestCoordinates,
   _createUniqueTestParams,
+  createTestItem,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 
 describe("tRPC Map Items Router - History Queries [Integration - DB]", () => {
@@ -291,7 +292,7 @@ describe("tRPC Map Items Router - History Queries [Integration - DB]", () => {
     });
 
     // Create initial tile (version 1)
-    const item = await testEnv.service.items.crud.addItemToMap({
+    const item = await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: tileCoords,
       title: "Version 1 Title",
@@ -323,7 +324,7 @@ describe("tRPC Map Items Router - History Queries [Integration - DB]", () => {
       path: [Direction.East],
     });
 
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: tileCoords,
       title: "Initial Title",
@@ -344,7 +345,7 @@ describe("tRPC Map Items Router - History Queries [Integration - DB]", () => {
     });
 
     // Create initial tile
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: tileCoords,
       title: "Version 1",
@@ -372,7 +373,7 @@ describe("tRPC Map Items Router - History Queries [Integration - DB]", () => {
       path: [Direction.SouthEast],
     });
 
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: tileCoords,
       title: "Title",
@@ -403,7 +404,7 @@ describe("tRPC Map Items Router - History Queries [Integration - DB]", () => {
       path: [Direction.SouthWest],
     });
 
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: tileCoords,
       title: "Initial Title",
@@ -427,7 +428,7 @@ describe("tRPC Map Items Router - History Queries [Integration - DB]", () => {
     });
 
     // Create with all fields
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: tileCoords,
       title: "Original Title",

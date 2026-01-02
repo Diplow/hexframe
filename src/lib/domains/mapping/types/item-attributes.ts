@@ -1,3 +1,8 @@
+import type {
+  NonUserMapItemTypeString,
+  VisibilityString,
+} from "~/lib/domains/mapping/_objects";
+
 /**
  * Canonical MapItem attribute types - Single Source of Truth
  *
@@ -28,7 +33,9 @@ export interface MapItemUpdateAttributes {
   preview?: string;
   link?: string;
   originId?: number | null;
-  visibility?: "public" | "private";
+  visibility?: VisibilityString;
+  /** Semantic tile type (excludes "user" which is system-controlled) */
+  itemType?: NonUserMapItemTypeString;
 }
 
 /**

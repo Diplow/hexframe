@@ -6,7 +6,7 @@ import {
 } from '~/app/map/Services/DragAndDrop/_validators/drag-validators';
 import type { TileData } from '~/app/map/types';
 import { CoordSystem } from '~/lib/domains/mapping/utils';
-import { Visibility } from '~/lib/domains/mapping/utils';
+import { Visibility, MapItemType } from '~/lib/domains/mapping/utils';
 
 /**
  * Test suite for drag-and-drop composition detection with negative directions
@@ -39,7 +39,7 @@ function createMockTile(coordId: string, ownerId: string, overrides?: Partial<Ti
       preview: 'Test preview',
       link: '',
       color: 'amber-500',
-      visibility: Visibility.PRIVATE,
+      visibility: Visibility.PRIVATE, itemType: MapItemType.CONTEXT,
     },
     state: {
       isDragged: false,

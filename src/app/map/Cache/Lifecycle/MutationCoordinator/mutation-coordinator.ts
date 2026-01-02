@@ -1,6 +1,6 @@
 import { type Dispatch } from "react";
 import { CoordSystem, Direction, type Coord } from "~/lib/domains/mapping/utils";
-import type { MapItemUpdateAttributes, MapItemCreateAttributes } from "~/lib/domains/mapping/utils";
+import type { MapItemUpdateAttributes, MapItemCreateAttributes, NonUserMapItemTypeString } from "~/lib/domains/mapping/utils";
 import type { MapItemAPIContract } from "~/server/api";
 import type { CacheAction } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
@@ -27,7 +27,12 @@ export interface MutationCoordinatorConfig {
     mutateAsync: (params: {
       coords: Coord;
       parentId?: number | null;
-    } & MapItemCreateAttributes) => Promise<MapItemAPIContract>;
+      itemType: NonUserMapItemTypeString;
+      title?: string;
+      content?: string;
+      preview?: string;
+      link?: string;
+    }) => Promise<MapItemAPIContract>;
   };
   updateItemMutation: {
     mutateAsync: (params: {
@@ -284,7 +289,7 @@ export class MutationCoordinator {
     }
   }
 
-  async createItem(coordId: string, data: Omit<MapItemCreateAttributes, 'coords' | 'itemType'> & { parentId?: number }): Promise<MutationResult> {
+  async createItem(coordId: string, data: Omit<MapItemCreateAttributes, 'coords' | 'itemType'> & { parentId?: number; itemType: NonUserMapItemTypeString }): Promise<MutationResult> {
     return this.trackOperation(coordId, 'create', async () => {
       const changeId = this.tracker.generateChangeId();
 
@@ -315,7 +320,7 @@ export class MutationCoordinator {
         }
         const result = await this.config.addItemMutation.mutateAsync({
           coords,
-          itemType: MapItemType.BASE,
+          itemType: data.itemType,
           ...(parentIdNumber !== undefined ? { parentId: parentIdNumber } : {}),
           title: data.title,
           content: data.content,
@@ -368,6 +373,7 @@ export class MutationCoordinator {
           preview: data.preview,
           link: data.link,
           visibility: data.visibility,
+          itemType: data.itemType,
         });
 
         // Finalize with real data
@@ -1097,7 +1103,7 @@ export class MutationCoordinator {
       link: data.link ?? "",
       depth: coords.path.length,
       parentId,
-      itemType: MapItemType.BASE,
+      itemType: MapItemType.CONTEXT,
       ownerId: this.config.mapContext?.userId ?? "unknown",
       originId: null,
       visibility: Visibility.PRIVATE,
@@ -1171,6 +1177,7 @@ export class MutationCoordinator {
       preview?: string;
       link?: string;
       visibility?: "public" | "private";
+      itemType?: MapItemType;
     }
   ): { optimisticItem: MapItemAPIContract; previousData: MapItemAPIContract } {
     const previousData = this._reconstructApiData(existingItem);
@@ -1181,6 +1188,7 @@ export class MutationCoordinator {
       preview: data.preview ?? existingItem.data.preview,
       link: data.link ?? existingItem.data.link,
       visibility: data.visibility ? (data.visibility === "public" ? Visibility.PUBLIC : Visibility.PRIVATE) : previousData.visibility,
+      itemType: data.itemType ?? previousData.itemType,
     };
     return { optimisticItem, previousData };
   }
@@ -1253,7 +1261,7 @@ export class MutationCoordinator {
       preview: tile.data.preview,
       link: tile.data.link,
       parentId: null, // We don't store this in TileData
-      itemType: MapItemType.BASE,
+      itemType: MapItemType.CONTEXT,
       ownerId: tile.metadata.ownerId ?? this.config.mapContext?.userId ?? "unknown",
       originId: null,
       visibility: tile.data.visibility ?? Visibility.PRIVATE,

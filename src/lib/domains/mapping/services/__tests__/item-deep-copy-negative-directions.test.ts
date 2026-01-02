@@ -5,6 +5,7 @@ import {
   _setupBasicMap,
   _createTestCoordinates,
   _createUniqueTestParams,
+  createTestItem,
   type TestEnvironment,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { Direction } from "~/lib/domains/mapping/utils";
@@ -24,7 +25,7 @@ describe("MappingService - Deep Copy with Negative Directions [Integration - DB]
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
       // Create parent item
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -36,7 +37,7 @@ describe("MappingService - Deep Copy with Negative Directions [Integration - DB]
       });
 
       // Create composed children
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: Number(parentItem.id),
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -47,7 +48,7 @@ describe("MappingService - Deep Copy with Negative Directions [Integration - DB]
         content: "Composed content 1",
       });
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: Number(parentItem.id),
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -114,7 +115,7 @@ describe("MappingService - Deep Copy with Negative Directions [Integration - DB]
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
       // Create parent
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -125,7 +126,7 @@ describe("MappingService - Deep Copy with Negative Directions [Integration - DB]
       });
 
       // Create structural child
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: Number(parentItem.id),
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -136,7 +137,7 @@ describe("MappingService - Deep Copy with Negative Directions [Integration - DB]
       });
 
       // Create composed child
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: Number(parentItem.id),
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -193,7 +194,7 @@ describe("MappingService - Deep Copy with Negative Directions [Integration - DB]
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
       // Create parent
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -214,7 +215,7 @@ describe("MappingService - Deep Copy with Negative Directions [Integration - DB]
       ];
 
       for (let i = 0; i < composedDirections.length; i++) {
-        await testEnv.service.items.crud.addItemToMap({
+        await createTestItem(testEnv, {
           parentId: Number(parentItem.id),
           coords: _createTestCoordinates({
             userId: setupParams.userId,
@@ -263,7 +264,7 @@ describe("MappingService - Deep Copy with Negative Directions [Integration - DB]
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
       // Create parent
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -274,7 +275,7 @@ describe("MappingService - Deep Copy with Negative Directions [Integration - DB]
       });
 
       // Create structural child
-      const structuralChild = await testEnv.service.items.crud.addItemToMap({
+      const structuralChild = await createTestItem(testEnv, {
         parentId: Number(parentItem.id),
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -285,7 +286,7 @@ describe("MappingService - Deep Copy with Negative Directions [Integration - DB]
       });
 
       // Create composed child of structural child (nested composition)
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: Number(structuralChild.id),
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -331,7 +332,7 @@ describe("MappingService - Deep Copy with Negative Directions [Integration - DB]
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
       // Create parent
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -342,7 +343,7 @@ describe("MappingService - Deep Copy with Negative Directions [Integration - DB]
       });
 
       // Create composed child
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: Number(parentItem.id),
         coords: _createTestCoordinates({
           userId: setupParams.userId,

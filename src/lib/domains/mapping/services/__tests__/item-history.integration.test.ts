@@ -5,6 +5,7 @@ import {
   _createTestEnvironment,
   _createUniqueTestParams,
   _setupMapWithChild,
+  createTestItem,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { Direction } from "~/lib/domains/mapping/utils";
 
@@ -240,7 +241,7 @@ describe("ItemHistoryService [Integration - DB]", () => {
         path: [Direction.NorthWest],
       };
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: childCoords,
         title: "Complete Item",

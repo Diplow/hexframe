@@ -6,6 +6,7 @@ import {
   type RelatedItems,
   type RelatedLists,
   type Visibility,
+  type MapItemType,
 } from "~/lib/domains/mapping/_objects/map-item";
 import {
   type Coord,
@@ -403,6 +404,15 @@ export class DbMapItemRepository implements MapItemRepository {
   }
 
   /**
+   * Update the item type of a map item.
+   */
+  async updateItemType(itemId: number, itemType: MapItemType): Promise<MapItemWithId> {
+    await this.writeQueries.updateItemType(itemId, itemType);
+    // Use SYSTEM_INTERNAL for internal itemType update operations
+    return this.getOne(itemId, SYSTEM_INTERNAL);
+  }
+
+  /**
    * Batch update the visibility of a tile and all its descendants in a single atomic operation.
    * @returns Number of items updated
    */
@@ -411,5 +421,18 @@ export class DbMapItemRepository implements MapItemRepository {
     visibility: Visibility,
   ): Promise<number> {
     return this.writeQueries.batchUpdateVisibilityWithDescendants(coords, visibility);
+  }
+
+  /**
+   * Batch update the item type of a tile and all its STRUCTURAL descendants.
+   * Only updates descendants reached via positive directions (1-6), ignoring
+   * hexplans (direction 0) and composition children (negative directions).
+   * @returns Number of items updated
+   */
+  async batchUpdateItemTypeWithStructuralDescendants(
+    coords: Coord,
+    itemType: MapItemType,
+  ): Promise<number> {
+    return this.writeQueries.batchUpdateItemTypeWithStructuralDescendants(coords, itemType);
   }
 }

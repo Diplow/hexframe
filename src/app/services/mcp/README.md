@@ -34,6 +34,19 @@ const item = await callTrpcEndpoint("map.getItemByCoords", { coords });
 - `services/` - Tool handler implementations (CRUD operations)
 - `index.ts` - Public API exports
 
+### Tile Type Classification
+MCP tools support tile type classification through the `itemType` field:
+
+| Type | Purpose | Agent Behavior |
+|------|---------|----------------|
+| `organizational` | Structural grouping | Always visible, helps orient |
+| `context` | Reference material | Explore when relevant |
+| `system` | Executable capability | Can invoke via hexecute |
+
+- **addItem**: Optional `itemType` parameter to set type on creation
+- **updateItem**: Optional `itemType` in updates object to change type
+- **GET tools**: Include `itemType` in fields enum and default fields
+
 ## Interface
 *See `index.ts` for the public API - the ONLY exports other subsystems can use*
 *See `dependencies.json` for what this subsystem can import*

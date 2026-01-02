@@ -78,6 +78,7 @@ export async function loadAncestorsForItem(
             link: ancestor.link,
             color: getColor(ancestorCoords),
             visibility: ancestor.visibility ?? Visibility.PRIVATE,
+            itemType: ancestor.itemType,
           },
           metadata: {
             coordId,

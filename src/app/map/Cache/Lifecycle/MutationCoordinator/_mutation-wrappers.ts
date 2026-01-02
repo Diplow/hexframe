@@ -1,6 +1,6 @@
-import type { Coord } from "~/lib/domains/mapping/utils";
+import type { Coord, NonUserMapItemTypeString, VisibilityString } from "~/lib/domains/mapping/utils";
 import { Visibility } from "~/lib/domains/mapping/utils";
-import type { MapItemUpdateAttributes, MapItemCreateAttributes } from "~/lib/domains/mapping/utils";
+import type { MapItemUpdateAttributes } from "~/lib/domains/mapping/utils";
 import type { MapItemAPIContract } from "~/server/api";
 
 /**
@@ -14,6 +14,7 @@ export function _wrapTRPCMutations(mutations: {
     content?: string;
     preview?: string;
     link?: string;
+    itemType: NonUserMapItemTypeString;
   }) => Promise<MapItemAPIContract> };
   updateItemMutation: { mutateAsync: (params: {
     coords: Coord;
@@ -38,11 +39,19 @@ export function _wrapTRPCMutations(mutations: {
   }) => Promise<{ success: boolean; deletedCount: number }> };
   updateVisibilityWithDescendantsMutation: { mutateAsync: (params: {
     coords: Coord;
-    visibility: 'public' | 'private';
+    visibility: VisibilityString;
   }) => Promise<{ success: boolean; updatedCount: number }> };
 }) {
   const wrappedAddItemMutation = {
-    mutateAsync: async (params: { coords: Coord; parentId?: number | null } & MapItemCreateAttributes) => {
+    mutateAsync: async (params: {
+      coords: Coord;
+      parentId?: number | null;
+      itemType: NonUserMapItemTypeString;
+      title?: string;
+      content?: string;
+      preview?: string;
+      link?: string;
+    }) => {
       return mutations.addItemMutation.mutateAsync({
         parentId: params.parentId,
         coords: params.coords,
@@ -50,6 +59,7 @@ export function _wrapTRPCMutations(mutations: {
         content: params.content,
         preview: params.preview,
         link: params.link,
+        itemType: params.itemType,
       });
     },
   };
@@ -64,6 +74,7 @@ export function _wrapTRPCMutations(mutations: {
           preview: params.preview,
           link: params.link,
           visibility: params.visibility,
+          itemType: params.itemType,
         },
       });
     },

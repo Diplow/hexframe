@@ -6,7 +6,7 @@ import { ACTION_TYPES } from "~/app/map/Cache/State/types";
 import type { DataOperations } from "~/app/map/Cache/types/handlers";
 import type { TileData } from "~/app/map/types/tile-data";
 import { initialCacheState } from "~/app/map/Cache/State/reducer";
-import { CoordSystem } from "~/lib/domains/mapping/utils";
+import { CoordSystem, MapItemType } from "~/lib/domains/mapping/utils";
 import { Visibility } from '~/lib/domains/mapping/utils';
 
 describe("NavigationHandler - Collapse distant tiles", () => {
@@ -36,6 +36,7 @@ describe("NavigationHandler - Collapse distant tiles", () => {
       link: "",
       color: "zinc-50",
       visibility: Visibility.PRIVATE,
+      itemType: MapItemType.CONTEXT,
     },
     state: {
       isDragged: false,
