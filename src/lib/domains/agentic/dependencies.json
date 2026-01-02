@@ -10,7 +10,8 @@
   "subsystems": [
     "./infrastructure",
     "./repositories",
-    "./services"
+    "./services",
+    "./templates"
   ],
   "exceptions": {}
 }

@@ -137,7 +137,8 @@ function _buildStreamingRequest(input: TaskExecutionInput) {
     structuralChildren,
     hexPlan: hexPlanContent,
     mcpServerName: env.HEXFRAME_MCP_SERVER,
-    allLeafTasks
+    allLeafTasks,
+    itemType: task.itemType
   })
 
   const conversationMessages: ChatMessageContract[] = [
