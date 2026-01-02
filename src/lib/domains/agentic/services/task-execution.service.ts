@@ -137,7 +137,8 @@ function _buildStreamingRequest(input: TaskExecutionInput) {
     structuralChildren,
     hexPlan: hexPlanContent,
     mcpServerName: env.HEXFRAME_MCP_SERVER,
-    allLeafTasks
+    allLeafTasks,
+    itemType: task.itemType
   })
 
   const conversationMessages: ChatMessageContract[] = [
@@ -185,6 +186,12 @@ function _buildStreamingRequest(input: TaskExecutionInput) {
 // Main Execution Function
 // =============================================================================
 
+/** Optional callbacks for task execution lifecycle events */
+export interface TaskExecutionCallbacks {
+  /** Called after the prompt is built, before streaming starts */
+  onPromptBuilt?: (prompt: string) => void
+}
+
 /**
  * Execute a task with streaming LLM response.
  *
@@ -194,14 +201,20 @@ function _buildStreamingRequest(input: TaskExecutionInput) {
  * @param input - Pre-resolved task execution input
  * @param agenticService - Configured agentic service instance
  * @param onChunk - Callback for streaming chunks
+ * @param callbacks - Optional lifecycle callbacks (e.g., onPromptBuilt)
  * @returns Final LLM response with accumulated content and usage
  */
 export async function executeTaskStreaming(
   input: TaskExecutionInput,
   agenticService: AgenticService,
-  onChunk: (chunk: StreamChunk) => void
+  onChunk: (chunk: StreamChunk) => void,
+  callbacks?: TaskExecutionCallbacks
 ): Promise<LLMResponse> {
   const streamingRequest = _buildStreamingRequest(input)
+
+  // Notify caller of the prompt before streaming starts
+  const prompt = streamingRequest.messages[0]?.content ?? ''
+  callbacks?.onPromptBuilt?.(prompt)
 
   return agenticService.generateStreamingResponse(streamingRequest, onChunk)
 }

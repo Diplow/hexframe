@@ -13,6 +13,7 @@ import type {
 
 /** Callback handlers for streaming events */
 export interface StreamingCallbacks {
+  onPromptGenerated?: (prompt: string) => void
   onTextDelta?: (delta: string) => void
   onToolCallStart?: (toolName: string, toolCallId: string, args: string) => void
   onToolCallDelta?: (toolCallId: string, delta: string) => void
@@ -58,6 +59,9 @@ export function _dispatchStreamEvent(
   callbacks: StreamingCallbacks
 ): { shouldClose: boolean; error?: string } {
   switch (event.type) {
+    case 'prompt_generated':
+      callbacks.onPromptGenerated?.(event.prompt)
+      return { shouldClose: false }
     case 'text_delta':
       callbacks.onTextDelta?.(event.text)
       return { shouldClose: false }

@@ -6,11 +6,28 @@ Like a document viewer with an edit mode toggle - you can view a tile's content 
 ## Responsibilities
 - Display tile content in a collapsible preview interface
 - Manage expansion/collapse state with smooth animations
-- Provide inline editing mode for tile title and content
+- Provide inline editing mode for tile title, content, and type
 - Handle edit state management (save/cancel operations)
 - Auto-close when the previewed tile is deleted from cache
 - Support keyboard shortcuts for save (Ctrl/Cmd+Enter) and cancel (Escape)
 - Delegate drag-and-drop functionality to DraggableTilePreview component
+
+## Tile Type Classification
+
+TileWidget supports tile type selection during creation and editing:
+
+| Type | Purpose | UI Behavior |
+|------|---------|-------------|
+| `organizational` | Structural grouping | Visible in type dropdown |
+| `context` | Reference material (default) | Default for new tiles |
+| `system` | Executable capability | Visible in type dropdown |
+| `user` | Root tiles only | Type selector hidden |
+
+**Key behaviors:**
+- Type selector appears in TileForm for non-USER tiles
+- Hidden for USER tiles (root tiles cannot change type)
+- Default type is `context` for new tiles and null/undefined tiles
+- Type persisted via onSave callback with itemType parameter
 
 ## Non-Responsibilities
 - Tile data persistence → See `~/app/map/Cache/README.md`

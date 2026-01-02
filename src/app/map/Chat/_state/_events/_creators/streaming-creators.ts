@@ -44,6 +44,20 @@ export function createStreamingMessageEndEvent(
 }
 
 /**
+ * Create a streaming message prompt event
+ * Sets the hexecute prompt for the streaming message
+ */
+export function createStreamingMessagePromptEvent(streamId: string, prompt: string): ChatEvent {
+  return {
+    id: `chat-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    type: 'streaming_message_prompt',
+    payload: { streamId, prompt },
+    timestamp: new Date(),
+    actor: 'assistant',
+  };
+}
+
+/**
  * Create a tool call start event
  */
 export function createToolCallStartEvent(

@@ -37,7 +37,7 @@ describe("Migration: originId Lineage Tracking [Integration - DB]", () => {
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         refItemId: baseItem[0]!.id,
       }).returning();
 
@@ -60,7 +60,7 @@ describe("Migration: originId Lineage Tracking [Integration - DB]", () => {
         coord_user_id: "user-test-1",
         coord_group_id: 0,
         path: "1",
-        item_type: MapItemType.BASE,
+        item_type: MapItemType.CONTEXT,
         refItemId: baseItem[0]!.id,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         originId: 999,

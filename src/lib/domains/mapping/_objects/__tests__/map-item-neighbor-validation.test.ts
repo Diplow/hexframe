@@ -49,12 +49,12 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
         return createTestMapItem(
           10 + index,
           { userId: "user-test-1", groupId: 0, path: [...parent.path, direction] },
-          MapItemType.BASE,
+          MapItemType.CONTEXT,
           1,
         );
       });
 
-      const parentItem = createTestMapItem(1, parent, MapItemType.BASE, 999, neighbors);
+      const parentItem = createTestMapItem(1, parent, MapItemType.CONTEXT, 999, neighbors);
       expect(() => MapItemNeighborValidation.validateNeighbors(parentItem)).not.toThrow();
     });
 
@@ -66,13 +66,13 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
           return createTestMapItem(
             10 + index,
             { userId: "user-test-1", groupId: 0, path: [...parent.path, direction] },
-            MapItemType.BASE,
+            MapItemType.CONTEXT,
             1,
           );
         },
       );
 
-      const parentItem = createTestMapItem(1, parent, MapItemType.BASE, 999, neighbors);
+      const parentItem = createTestMapItem(1, parent, MapItemType.CONTEXT, 999, neighbors);
       expect(() => MapItemNeighborValidation.validateNeighbors(parentItem)).not.toThrow();
     });
 
@@ -87,12 +87,12 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
         return createTestMapItem(
           10 + index,
           { userId: "user-test-1", groupId: 0, path: [...parent.path, direction] },
-          MapItemType.BASE,
+          MapItemType.CONTEXT,
           1,
         );
       });
 
-      const parentItem = createTestMapItem(1, parent, MapItemType.BASE, 999, neighbors);
+      const parentItem = createTestMapItem(1, parent, MapItemType.CONTEXT, 999, neighbors);
       expect(() => MapItemNeighborValidation.validateNeighbors(parentItem)).toThrow(
         MAPPING_ERRORS.INVALID_NEIGHBOR_DIRECTION,
       );
@@ -115,12 +115,12 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
         return createTestMapItem(
           10 + index,
           { userId: "user-test-1", groupId: 0, path: [...parent.path, direction] },
-          MapItemType.BASE,
+          MapItemType.CONTEXT,
           1,
         );
       });
 
-      const parentItem = createTestMapItem(1, parent, MapItemType.BASE, 999, neighbors);
+      const parentItem = createTestMapItem(1, parent, MapItemType.CONTEXT, 999, neighbors);
       expect(() => MapItemNeighborValidation.validateNeighbors(parentItem)).not.toThrow();
     });
 
@@ -132,13 +132,13 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
           return createTestMapItem(
             10 + index,
             { userId: "user-test-1", groupId: 0, path: [...parent.path, direction] },
-            MapItemType.BASE,
+            MapItemType.CONTEXT,
             1,
           );
         },
       );
 
-      const parentItem = createTestMapItem(1, parent, MapItemType.BASE, 999, neighbors);
+      const parentItem = createTestMapItem(1, parent, MapItemType.CONTEXT, 999, neighbors);
       expect(() => MapItemNeighborValidation.validateNeighbors(parentItem)).not.toThrow();
     });
 
@@ -149,12 +149,12 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
         createTestMapItem(
           10,
           { userId: "user-test-1", groupId: 0, path: [...parent.path, Direction.Center] },
-          MapItemType.BASE,
+          MapItemType.CONTEXT,
           1,
         ),
       ];
 
-      const parentItem = createTestMapItem(1, parent, MapItemType.BASE, 999, neighbors);
+      const parentItem = createTestMapItem(1, parent, MapItemType.CONTEXT, 999, neighbors);
       expect(() => MapItemNeighborValidation.validateNeighbors(parentItem)).not.toThrow();
     });
 
@@ -170,12 +170,12 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
         return createTestMapItem(
           10 + index,
           { userId: "user-test-1", groupId: 0, path: [...parent.path, direction] },
-          MapItemType.BASE,
+          MapItemType.CONTEXT,
           1,
         );
       });
 
-      const parentItem = createTestMapItem(1, parent, MapItemType.BASE, 999, neighbors);
+      const parentItem = createTestMapItem(1, parent, MapItemType.CONTEXT, 999, neighbors);
       expect(() => MapItemNeighborValidation.validateNeighbors(parentItem)).toThrow(
         MAPPING_ERRORS.INVALID_NEIGHBOR_DIRECTION,
       );
@@ -188,12 +188,12 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
         return createTestMapItem(
           10 + index,
           { userId: "user-test-1", groupId: 0, path: [...parent.path, direction] },
-          MapItemType.BASE,
+          MapItemType.CONTEXT,
           1,
         );
       });
 
-      const parentItem = createTestMapItem(1, parent, MapItemType.BASE, 999, neighbors);
+      const parentItem = createTestMapItem(1, parent, MapItemType.CONTEXT, 999, neighbors);
       expect(() => MapItemNeighborValidation.validateNeighbors(parentItem)).toThrow(
         MAPPING_ERRORS.INVALID_NEIGHBOR_DIRECTION,
       );
@@ -203,7 +203,7 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
   describe("validateNeighbors - edge cases", () => {
     it("should pass validation with no neighbors", () => {
       const parent: Coord = { userId: "user-test-1", groupId: 0, path: [Direction.NorthWest] };
-      const parentItem = createTestMapItem(1, parent, MapItemType.BASE, 999, []);
+      const parentItem = createTestMapItem(1, parent, MapItemType.CONTEXT, 999, []);
       expect(() => MapItemNeighborValidation.validateNeighbors(parentItem)).not.toThrow();
     });
 
@@ -218,12 +218,12 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
         createTestMapItem(
           10,
           { userId: "user-test-1", groupId: 0, path: [...parent.path, Direction.Center] },
-          MapItemType.BASE,
+          MapItemType.CONTEXT,
           1,
         ),
       ];
 
-      const parentItem = createTestMapItem(1, parent, MapItemType.BASE, 999, neighbors);
+      const parentItem = createTestMapItem(1, parent, MapItemType.CONTEXT, 999, neighbors);
       expect(() => MapItemNeighborValidation.validateNeighbors(parentItem)).not.toThrow();
     });
 
@@ -234,12 +234,12 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
         createTestMapItem(
           10,
           { userId: "user-test-42", groupId: 5, path: [...parent.path, Direction.Center] },
-          MapItemType.BASE,
+          MapItemType.CONTEXT,
           1,
         ),
       ];
 
-      const parentItem = createTestMapItem(1, parent, MapItemType.BASE, 999, neighbors);
+      const parentItem = createTestMapItem(1, parent, MapItemType.CONTEXT, 999, neighbors);
       expect(() => MapItemNeighborValidation.validateNeighbors(parentItem)).not.toThrow();
     });
   });
@@ -260,7 +260,7 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
         return createTestMapItem(
           10 + index,
           { userId: "user-test-1", groupId: 0, path: [direction] },
-          MapItemType.BASE,
+          MapItemType.CONTEXT,
           1,
         );
       });
@@ -284,7 +284,7 @@ describe("MapItemNeighborValidation - Direction 0 (Composition) Support", () => 
         return createTestMapItem(
           10 + index,
           { userId: "user-test-1", groupId: 0, path: [direction] },
-          MapItemType.BASE,
+          MapItemType.CONTEXT,
           1,
         );
       });

@@ -35,6 +35,15 @@ export const CreateMapItemParamsSchema = z.object({
 export type CreateMapItemParams = z.infer<typeof CreateMapItemParamsSchema>;
 
 /**
+ * Item type schema for updates (excludes "user" which is system-controlled)
+ */
+const EditableItemTypeSchema = z.enum([
+  MapItemType.ORGANIZATIONAL,
+  MapItemType.CONTEXT,
+  MapItemType.SYSTEM,
+]);
+
+/**
  * Schema for updating map item attributes
  * Uses canonical field names: title, content, preview, link
  */
@@ -44,6 +53,8 @@ export const UpdateMapItemAttrsSchema = z.object({
   preview: z.string().optional(),
   link: z.string().optional(),
   visibility: VisibilitySchema.optional(),
+  /** Semantic tile type (excludes "user" which is system-controlled) */
+  itemType: EditableItemTypeSchema.optional(),
 });
 
 export type UpdateMapItemAttrs = z.infer<typeof UpdateMapItemAttrsSchema>;

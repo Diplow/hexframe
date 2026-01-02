@@ -22,6 +22,7 @@ export type ChatEventType =
   | 'streaming_message_start'
   | 'streaming_message_delta'
   | 'streaming_message_end'
+  | 'streaming_message_prompt'
   | 'tool_call_start'
   | 'tool_call_end';
 
@@ -46,6 +47,8 @@ export interface Message {
   content: string;
   actor: ChatEventActor;
   timestamp: Date;
+  /** The hexecute prompt for task executions (only set for @-mention triggered messages) */
+  prompt?: string;
 }
 
 export interface Widget {
@@ -139,6 +142,11 @@ export interface StreamingMessageEndPayload {
     inputTokens?: number;
     outputTokens?: number;
   };
+}
+
+export interface StreamingMessagePromptPayload {
+  streamId: string;
+  prompt: string;
 }
 
 export interface ToolCallStartPayload {

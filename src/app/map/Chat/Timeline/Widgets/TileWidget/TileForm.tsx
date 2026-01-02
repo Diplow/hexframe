@@ -11,14 +11,20 @@ import {
 } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/_form-utils';
 import { _PreviewField } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/form/_PreviewField';
 import { _ContentField } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/form/_ContentField';
+import { _TypeSelectorField } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/form/_TypeSelectorField';
+
+type EditableItemType = 'organizational' | 'context' | 'system';
 
 interface TileFormProps {
   mode: 'create' | 'edit';
   title: string;
   preview: string;
   content: string;
+  itemType?: EditableItemType;
+  isUserTile?: boolean;
   onPreviewChange: (value: string) => void;
   onContentChange: (value: string) => void;
+  onItemTypeChange?: (value: EditableItemType) => void;
   onSave: () => void;
   onCancel: () => void;
 }
@@ -28,8 +34,11 @@ export function TileForm({
   title,
   preview,
   content,
+  itemType = 'context',
+  isUserTile = false,
   onPreviewChange,
   onContentChange,
+  onItemTypeChange,
   onSave,
   onCancel,
 }: TileFormProps) {
@@ -81,6 +90,13 @@ export function TileForm({
 
   return (
     <div className="p-3 space-y-3">
+      {!isUserTile && onItemTypeChange && (
+        <_TypeSelectorField
+          value={itemType}
+          onChange={onItemTypeChange}
+        />
+      )}
+
       <_PreviewField
         value={preview}
         isGenerating={isGeneratingPreview}

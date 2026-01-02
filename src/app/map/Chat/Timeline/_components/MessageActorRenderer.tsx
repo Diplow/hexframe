@@ -5,6 +5,7 @@ import { TimestampRenderer } from '~/app/map/Chat/Timeline/_components/Timestamp
 import { useUserClickHandler } from '~/app/map/Chat/Timeline/_utils/UserClickHandler';
 import { MarkdownRenderer } from '~/app/map/Chat/Timeline/_components/MarkdownRenderer';
 import { CopyButton } from '~/app/map/Chat/Timeline/_components/CopyButton';
+import { CollapsiblePrompt } from '~/app/map/Chat/Timeline/_components/CollapsiblePrompt';
 import { authClient } from '~/lib/auth';
 import { useEventBus } from '~/app/map/Services/EventBus';
 import { ThinkingIndicator } from '~/app/map/Chat/Timeline/_components/ThinkingIndicator';
@@ -131,6 +132,7 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
           </span>
         </div>
         <div>
+          {message.prompt && <CollapsiblePrompt prompt={message.prompt} />}
           {message.isStreaming && !message.content ? (
             <ThinkingIndicator />
           ) : (

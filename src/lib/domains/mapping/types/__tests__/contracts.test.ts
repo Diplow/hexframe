@@ -288,7 +288,7 @@ describe("adapt object - centralized access", () => {
     const mapItem = createTestMapItem(
       123,
       coords,
-      MapItemType.BASE,
+      MapItemType.CONTEXT,
       456,
       "Map Item Title",
       "Map Item Content",
@@ -358,7 +358,7 @@ describe("adapter function purity", () => {
     const mapItem = createTestMapItem(
       123,
       coords,
-      MapItemType.BASE,
+      MapItemType.CONTEXT,
       456,
       "Map Item Title",
       "Map Item Content",

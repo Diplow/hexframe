@@ -3,6 +3,8 @@ import type { TestEnvironment } from "~/lib/domains/mapping/services/__tests__/h
 import {
   _createTestCoordinates,
   _setupBasicMap,
+  createTestItem,
+  createTestHexplan,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { Direction, CoordSystem } from "~/lib/domains/mapping/utils";
 import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
@@ -53,7 +55,7 @@ export async function _setupHierarchyWithAllDirectionTypes(
     groupId: params.groupId,
     path: [Direction.NorthWest],
   });
-  const structuralChild1 = await testEnv.service.items.crud.addItemToMap({
+  const structuralChild1 = await createTestItem(testEnv, {
     parentId: rootMap.id,
     coords: structuralChild1Coords,
     title: "Structural Child 1",
@@ -71,7 +73,7 @@ export async function _setupHierarchyWithAllDirectionTypes(
     groupId: params.groupId,
     path: [Direction.NorthWest, Direction.Center],
   });
-  const hexPlan1 = await testEnv.service.items.crud.addItemToMap({
+  const hexPlan1 = await createTestHexplan(testEnv, {
     parentId: structuralChild1Id,
     coords: hexPlan1Coords,
     title: "HexPlan for Child 1",
@@ -88,7 +90,7 @@ export async function _setupHierarchyWithAllDirectionTypes(
     groupId: params.groupId,
     path: [Direction.NorthWest, Direction.NorthEast],
   });
-  const grandchild = await testEnv.service.items.crud.addItemToMap({
+  const grandchild = await createTestItem(testEnv, {
     parentId: structuralChild1Id,
     coords: grandchildCoords,
     title: "Grandchild",
@@ -106,7 +108,7 @@ export async function _setupHierarchyWithAllDirectionTypes(
     groupId: params.groupId,
     path: [Direction.NorthWest, Direction.NorthEast, Direction.Center],
   });
-  const hexPlan2 = await testEnv.service.items.crud.addItemToMap({
+  const hexPlan2 = await createTestHexplan(testEnv, {
     parentId: grandchildId,
     coords: hexPlan2Coords,
     title: "HexPlan for Grandchild",
@@ -123,7 +125,7 @@ export async function _setupHierarchyWithAllDirectionTypes(
     groupId: params.groupId,
     path: [Direction.East],
   });
-  const structuralChild2 = await testEnv.service.items.crud.addItemToMap({
+  const structuralChild2 = await createTestItem(testEnv, {
     parentId: rootMap.id,
     coords: structuralChild2Coords,
     title: "Structural Child 2",
@@ -141,7 +143,7 @@ export async function _setupHierarchyWithAllDirectionTypes(
     groupId: params.groupId,
     path: [Direction.East, Direction.Center],
   });
-  const hexPlan3 = await testEnv.service.items.crud.addItemToMap({
+  const hexPlan3 = await createTestHexplan(testEnv, {
     parentId: structuralChild2Id,
     coords: hexPlan3Coords,
     title: "HexPlan for Child 2",
@@ -158,7 +160,7 @@ export async function _setupHierarchyWithAllDirectionTypes(
     groupId: params.groupId,
     path: [Direction.ComposedNorthWest],
   });
-  const composedChild1 = await testEnv.service.items.crud.addItemToMap({
+  const composedChild1 = await createTestItem(testEnv, {
     parentId: rootMap.id,
     coords: composedChild1Coords,
     title: "Composed Child 1",
@@ -176,7 +178,7 @@ export async function _setupHierarchyWithAllDirectionTypes(
     groupId: params.groupId,
     path: [Direction.ComposedNorthWest, Direction.Center],
   });
-  const hexPlan4 = await testEnv.service.items.crud.addItemToMap({
+  const hexPlan4 = await createTestHexplan(testEnv, {
     parentId: composedChild1Id,
     coords: hexPlan4Coords,
     title: "HexPlan for Composed 1",
@@ -193,7 +195,7 @@ export async function _setupHierarchyWithAllDirectionTypes(
     groupId: params.groupId,
     path: [Direction.ComposedEast],
   });
-  const composedChild2 = await testEnv.service.items.crud.addItemToMap({
+  const composedChild2 = await createTestItem(testEnv, {
     parentId: rootMap.id,
     coords: composedChild2Coords,
     title: "Composed Child 2",
@@ -210,7 +212,7 @@ export async function _setupHierarchyWithAllDirectionTypes(
     groupId: params.groupId,
     path: [Direction.Center],
   });
-  const directHexPlan = await testEnv.service.items.crud.addItemToMap({
+  const directHexPlan = await createTestHexplan(testEnv, {
     parentId: rootMap.id,
     coords: directHexPlanCoords,
     title: "Direct HexPlan",

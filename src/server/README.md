@@ -77,6 +77,29 @@ export const hexCoordSchema = z.object({
 });
 ```
 
+### Tile Type Classification (itemType)
+
+The API exposes `itemType` for semantic tile classification in all tile-related responses:
+
+```typescript
+// itemTypeSchema for API-level tile classification
+export const itemTypeSchema = z.enum(["organizational", "context", "system"]);
+```
+
+**Available tile types:**
+- `user` - Root tile for each user's map (system-controlled, cannot be set via API)
+- `organizational` - Structural grouping tiles (e.g., "Plans", "Interests")
+- `context` - Reference material tiles to explore on-demand (default for new tiles)
+- `system` - Executable capability tiles that can be invoked like a skill
+
+**API behavior:**
+- Create/update operations accept `itemType` (optional, defaults to "context")
+- Cannot set `itemType` to "user" - that's system-controlled for root tiles only
+- Cannot change the `itemType` of "user" tiles - root tiles are immutable
+- All tile query responses include the `itemType` field
+
+See `src/server/api/routers/map/map-schemas.ts` for Zod schemas and `src/server/api/types/contracts.ts` for API contract types.
+
 ### Testing Coverage
 
 Comprehensive integration tests verify negative direction support:

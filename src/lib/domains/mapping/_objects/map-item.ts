@@ -9,24 +9,63 @@ import type { BaseItemWithId } from "~/lib/domains/mapping/_objects/base-item";
 import { MAPPING_ERRORS } from "~/lib/domains/mapping/types/errors";
 import { MapItemValidation } from "~/lib/domains/mapping/_objects/map-item-validation";
 
+/**
+ * MapItemType defines the semantic classification of tiles.
+ *
+ * - USER: Root tile for each user's map. Only tile type that can have parentId=null.
+ *   Structural constraint: exactly one per user, at the center of their map.
+ *
+ * - ORGANIZATIONAL: Structural grouping tiles (e.g., "Plans", "Interests").
+ *   Used for navigation and categorization. Always visible to help orient.
+ *
+ * - CONTEXT: Reference material tiles to explore on-demand.
+ *   Background knowledge that agents should explore when relevant, not preload.
+ *
+ * - SYSTEM: Executable capability tiles that can be invoked like a skill.
+ *   Agents can invoke these via hexecute when needed.
+ *
+ * Migration note: Previously there was only USER and BASE. BASE has been split
+ * into ORGANIZATIONAL, CONTEXT, and SYSTEM for semantic agent behavior.
+ * Tiles with null itemType should be treated as unclassified legacy tiles.
+ */
 export enum MapItemType {
   USER = "user",
-  BASE = "base",
+  ORGANIZATIONAL = "organizational",
+  CONTEXT = "context",
+  SYSTEM = "system",
 }
+
+/**
+ * Non-user item types that can be created/modified via API.
+ * USER type is system-controlled and excluded from this type.
+ */
+export type NonUserMapItemType =
+  | MapItemType.ORGANIZATIONAL
+  | MapItemType.CONTEXT
+  | MapItemType.SYSTEM;
+
+/**
+ * String literals for non-user item types (for API contracts).
+ * Use when interfacing with external systems that expect string literals.
+ */
+export type NonUserMapItemTypeString = "organizational" | "context" | "system";
 
 export enum Visibility {
   PUBLIC = "public",
   PRIVATE = "private",
 }
 
+/**
+ * String literal type for visibility (for API contracts).
+ * Use when interfacing with external systems that expect string literals.
+ */
+export type VisibilityString = "public" | "private";
+
 export interface Attrs extends Record<string, unknown> {
   parentId: number | null; // The parent mapItem this is a child of.
   coords: Coord; // Updated to new Coord structure
-  ref: {
-    itemType: MapItemType; // Will be 'BASE' for all items except root
-    itemId: number;
-  };
-  itemType: MapItemType; // Explicitly store item type here
+  baseItemId: number; // Foreign key to the BaseItem containing title, content, etc.
+  itemType: MapItemType; // Semantic tile type: USER, ORGANIZATIONAL, CONTEXT, or SYSTEM
   visibility: Visibility; // Whether the tile is publicly visible
 }
 
@@ -91,7 +130,7 @@ export class MapItem extends GenericAggregate<
       }
     } else if (parent === null && attrs.parentId === null) {
       // This implies it's a root item, which must be USER type
-      throw new Error(MAPPING_ERRORS.BASE_ITEM_MUST_HAVE_PARENT);
+      throw new Error(MAPPING_ERRORS.NON_USER_ITEM_MUST_HAVE_PARENT);
     }
 
     super({
@@ -99,12 +138,7 @@ export class MapItem extends GenericAggregate<
       attrs: {
         parentId: attrs.parentId ?? parent?.id ?? null,
         coords: attrs.coords, // coords is now mandatory
-        ref: attrs.ref ?? {
-          // itemType in ref should always be BASE as per new design
-          // The actual MapItemType is stored directly in attrs.itemType
-          itemType: MapItemType.BASE,
-          itemId: ref.id,
-        },
+        baseItemId: attrs.baseItemId ?? ref.id,
         itemType: attrs.itemType, // itemType is now mandatory
         visibility: attrs.visibility ?? Visibility.PRIVATE,
       },

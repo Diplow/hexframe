@@ -1,6 +1,7 @@
 import type { Widget } from '~/app/map/Chat/_state';
 import { focusChatInput } from '~/app/map/Chat/Timeline/_utils/focus-helpers';
 import type { EventBusService } from '~/app/map/types';
+import type { NonUserMapItemTypeString } from '~/lib/domains/mapping/utils';
 
 interface CreationHandlerDeps {
   createItemOptimistic: (coordId: string, data: {
@@ -9,6 +10,7 @@ interface CreationHandlerDeps {
     name?: string;
     preview?: string;
     description?: string;
+    itemType: NonUserMapItemTypeString;
   }) => Promise<void>;
   eventBus: EventBusService | null;
   chatState: {
@@ -22,7 +24,7 @@ export function createCreationHandlers(
 ) {
   const { createItemOptimistic, eventBus, chatState } = deps;
 
-  const handleSave = async (name: string, preview: string, content: string) => {
+  const handleSave = async (name: string, preview: string, content: string, itemType: NonUserMapItemTypeString = "context") => {
     const creationData = widget.data as { coordId?: string; parentName?: string; parentCoordId?: string; parentId?: string };
 
     try {
@@ -30,7 +32,8 @@ export function createCreationHandlers(
         title: name,
         preview: preview,
         description: content,
-        parentId: creationData.parentId ? parseInt(creationData.parentId, 10) : undefined
+        parentId: creationData.parentId ? parseInt(creationData.parentId, 10) : undefined,
+        itemType,
       });
 
       // Note: map.tile_created event is already emitted by MutationCoordinator

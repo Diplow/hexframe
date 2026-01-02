@@ -2,7 +2,6 @@ import {
   type MapItemWithId,
   MapItem,
   type MapItemConstructorArgs,
-  MapItemType,
 } from "~/lib/domains/mapping/_objects/map-item";
 import {
   BaseItem,
@@ -70,10 +69,7 @@ function _buildMapItemArgs(
       },
       itemType: dbMapItem.item_type,
       visibility: dbMapItem.visibility,
-      ref: {
-        itemType: MapItemType.BASE,
-        itemId: dbMapItem.refItemId,
-      },
+      baseItemId: dbMapItem.refItemId,
     },
     ref: baseItem,
     neighbors: neighbors,

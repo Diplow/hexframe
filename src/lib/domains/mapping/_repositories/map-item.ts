@@ -4,6 +4,7 @@ import {
   type MapItemRelatedLists,
   type MapItemWithId,
   type Visibility,
+  type MapItemType,
 } from "~/lib/domains/mapping/_objects";
 import { type GenericRepository } from "~/lib/domains/utils";
 import { type Coord } from "~/lib/domains/mapping/utils";
@@ -231,6 +232,16 @@ export interface MapItemRepository extends BaseMapItemRepository {
   updateVisibility(itemId: number, visibility: Visibility): Promise<MapItemWithId>;
 
   /**
+   * Update the item type of a map item.
+   * Note: Cannot change to/from USER type - that's system-controlled.
+   *
+   * @param itemId - ID of the item to update
+   * @param itemType - New item type
+   * @returns The updated map item
+   */
+  updateItemType(itemId: number, itemType: MapItemType): Promise<MapItemWithId>;
+
+  /**
    * Batch update the visibility of a tile and all its descendants in a single atomic operation.
    * Descendants are identified by path prefix matching.
    *
@@ -241,5 +252,19 @@ export interface MapItemRepository extends BaseMapItemRepository {
   batchUpdateVisibilityWithDescendants(
     coords: Coord,
     visibility: Visibility,
+  ): Promise<number>;
+
+  /**
+   * Batch update the item type of a tile and all its STRUCTURAL descendants.
+   * Only updates descendants reached via positive directions (1-6), ignoring
+   * hexplans (direction 0) and composition children (negative directions).
+   *
+   * @param coords - Coordinates of the root tile
+   * @param itemType - New item type value
+   * @returns Number of items updated
+   */
+  batchUpdateItemTypeWithStructuralDescendants(
+    coords: Coord,
+    itemType: MapItemType,
   ): Promise<number>;
 }

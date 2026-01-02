@@ -5,6 +5,7 @@ import {
   _setupBasicMap,
   _createTestCoordinates,
   _createUniqueTestParams,
+  createTestItem,
   type TestEnvironment,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { Direction } from "~/lib/domains/mapping/utils";
@@ -24,7 +25,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
       // Create source item
-      const sourceItem = await testEnv.service.items.crud.addItemToMap({
+      const sourceItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -84,7 +85,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
       // Create parent
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -96,7 +97,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       });
 
       // Create children
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: Number(parentItem.id),
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -107,7 +108,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
         content: "Child 1 content",
       });
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: Number(parentItem.id),
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -195,7 +196,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
       // Create 3-level hierarchy
-      const level1 = await testEnv.service.items.crud.addItemToMap({
+      const level1 = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -206,7 +207,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
         content: "L1",
       });
 
-      const level2 = await testEnv.service.items.crud.addItemToMap({
+      const level2 = await createTestItem(testEnv, {
         parentId: Number(level1.id),
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -217,7 +218,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
         content: "L2",
       });
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: Number(level2.id),
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -311,7 +312,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       const setupParams = _createUniqueTestParams();
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -323,7 +324,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       });
 
       // Create item at destination
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -359,7 +360,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       const setupParams = _createUniqueTestParams();
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -401,7 +402,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       const setupParams = _createUniqueTestParams();
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -451,7 +452,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
       // Create source item with a child
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -462,7 +463,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
         content: "Parent content",
       });
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: Number(parentItem.id),
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -486,7 +487,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       });
 
       // Create an item at the destination to force a failure
-      const existingDestItem = await testEnv.service.items.crud.addItemToMap({
+      const existingDestItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: destinationCoords,
         title: "Existing",
@@ -518,7 +519,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
       // Create parent
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -530,7 +531,7 @@ describe("MappingService - Deep Copy [Integration - DB]", () => {
       });
 
       // Create child
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: Number(parentItem.id),
         coords: _createTestCoordinates({
           userId: setupParams.userId,

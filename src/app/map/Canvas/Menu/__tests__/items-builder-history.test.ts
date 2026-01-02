@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { buildMenuItems } from '~/app/map/Canvas/Menu/items-builder';
 import type { TileData } from '~/app/map/types/tile-data';
 import { History } from 'lucide-react';
-import { Visibility } from '~/lib/domains/mapping/utils';
+import { Visibility, MapItemType } from '~/lib/domains/mapping/utils';
 
 describe('buildMenuItems - History Support', () => {
   const mockTileData: TileData = {
@@ -21,7 +21,7 @@ describe('buildMenuItems - History Support', () => {
       preview: 'Test preview',
       link: '',
       color: 'bg-primary-50',
-      visibility: Visibility.PRIVATE,
+      visibility: Visibility.PRIVATE, itemType: MapItemType.CONTEXT,
     },
     state: {
       isExpanded: false,

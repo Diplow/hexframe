@@ -17,10 +17,11 @@ describe("Cache Reducer", () => {
       depth: 1,
       link: "",
       parentId: null,
-      itemType: MapItemType.BASE,
+      itemType: MapItemType.CONTEXT,
       ownerId: "test-owner",
       originId: null,
       visibility: Visibility.PRIVATE,
+      
     },
     {
       id: "2",
@@ -31,10 +32,11 @@ describe("Cache Reducer", () => {
       depth: 2,
       link: "",
       parentId: null,
-      itemType: MapItemType.BASE,
+      itemType: MapItemType.CONTEXT,
       ownerId: "test-owner",
       originId: null,
       visibility: Visibility.PRIVATE,
+      
     },
   ];
 
@@ -158,10 +160,11 @@ describe("Cache Reducer", () => {
           depth: 1,
           link: "",
           parentId: null,
-          itemType: MapItemType.BASE,
+          itemType: MapItemType.CONTEXT,
           ownerId: "test-owner",
           originId: null,
           visibility: Visibility.PRIVATE,
+      
         },
       ];
 
@@ -194,6 +197,7 @@ describe("Cache Reducer", () => {
               link: "",
               color: "#000000",
               visibility: Visibility.PRIVATE,
+              itemType: MapItemType.CONTEXT,
             },
             metadata: {
               coordId: "1,2",
@@ -259,6 +263,7 @@ describe("Cache Reducer", () => {
               link: "",
               color: "#000000",
               visibility: Visibility.PRIVATE,
+              itemType: MapItemType.CONTEXT,
             },
             metadata: {
               coordId: "1,2",
@@ -285,6 +290,7 @@ describe("Cache Reducer", () => {
               link: "",
               color: "#000000",
               visibility: Visibility.PRIVATE,
+              itemType: MapItemType.CONTEXT,
             },
             metadata: {
               coordId: "1,3",
@@ -333,6 +339,7 @@ describe("Cache Reducer", () => {
               link: "",
               color: "#000000",
               visibility: Visibility.PRIVATE,
+              itemType: MapItemType.CONTEXT,
             },
             metadata: {
               coordId: "1,2",
@@ -527,7 +534,7 @@ describe("Cache Reducer", () => {
         ...mockState,
         itemsById: { 
           "1,2": {
-            data: { title: "Test", content: "", preview: undefined, link: "", color: "#000000", visibility: Visibility.PRIVATE },
+            data: { title: "Test", content: "", preview: undefined, link: "", color: "#000000", visibility: Visibility.PRIVATE, itemType: MapItemType.CONTEXT },
             metadata: { 
               coordId: "1,2", 
               dbId: "1", 
@@ -632,10 +639,11 @@ describe("Cache Reducer", () => {
           depth: -1,
           link: "",
           parentId: null,
-          itemType: MapItemType.BASE,
+          itemType: MapItemType.CONTEXT,
           ownerId: "",
           originId: null,
           visibility: Visibility.PRIVATE,
+      
         },
       ];
 
@@ -685,7 +693,7 @@ describe("Cache Reducer", () => {
           depth: i % 5,
           link: "",
           parentId: null,
-          itemType: MapItemType.BASE,
+          itemType: MapItemType.CONTEXT,
           ownerId: "test-owner",
           originId: null,
           visibility: Visibility.PRIVATE,

@@ -7,6 +7,7 @@ import {
   _setupBasicMap,
   _createTestCoordinates,
   _createUniqueTestParams,
+  createTestItem,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 
 describe("ItemQueryService - Composition with Negative Directions [Integration - DB]", () => {
@@ -218,7 +219,7 @@ describe("ItemQueryService - Composition with Negative Directions [Integration -
       groupId,
       path: [Direction.NorthEast],
     });
-    const parentItem = await testEnv.service.items.crud.addItemToMap({
+    const parentItem = await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: parentCoords,
       title: "Parent Tile",
@@ -230,7 +231,7 @@ describe("ItemQueryService - Composition with Negative Directions [Integration -
       groupId,
       path: [Direction.NorthEast, Direction.ComposedNorthWest],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: parseInt(parentItem.id),
       coords: composedChild1Coords,
       title: "Composed Child 1",
@@ -241,7 +242,7 @@ describe("ItemQueryService - Composition with Negative Directions [Integration -
       groupId,
       path: [Direction.NorthEast, Direction.ComposedEast],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: parseInt(parentItem.id),
       coords: composedChild2Coords,
       title: "Composed Child 2",
@@ -263,7 +264,7 @@ describe("ItemQueryService - Composition with Negative Directions [Integration -
       groupId,
       path: [Direction.NorthEast],
     });
-    const parentItem = await testEnv.service.items.crud.addItemToMap({
+    const parentItem = await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: parentCoords,
       title: "Parent Tile",
@@ -284,7 +285,7 @@ describe("ItemQueryService - Composition with Negative Directions [Integration -
       groupId,
       path: [Direction.East],
     });
-    const parentItem = await testEnv.service.items.crud.addItemToMap({
+    const parentItem = await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: parentCoords,
       title: "Parent Tile",
@@ -296,7 +297,7 @@ describe("ItemQueryService - Composition with Negative Directions [Integration -
       groupId,
       path: [Direction.East, Direction.ComposedNorthWest],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: parseInt(parentItem.id),
       coords: composedChildCoords,
       title: "Single Composed Child",
@@ -317,7 +318,7 @@ describe("ItemQueryService - Composition with Negative Directions [Integration -
       groupId,
       path: [Direction.West],
     });
-    const parentItem = await testEnv.service.items.crud.addItemToMap({
+    const parentItem = await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: parentCoords,
       title: "Parent Tile",
@@ -329,7 +330,7 @@ describe("ItemQueryService - Composition with Negative Directions [Integration -
       groupId,
       path: [Direction.West, Direction.NorthEast],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: parseInt(parentItem.id),
       coords: structuralChild1Coords,
       title: "Structural Child 1",
@@ -340,7 +341,7 @@ describe("ItemQueryService - Composition with Negative Directions [Integration -
       groupId,
       path: [Direction.West, Direction.East],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: parseInt(parentItem.id),
       coords: structuralChild2Coords,
       title: "Structural Child 2",
@@ -361,7 +362,7 @@ describe("ItemQueryService - Composition with Negative Directions [Integration -
       groupId,
       path: [Direction.SouthEast],
     });
-    const parentItem = await testEnv.service.items.crud.addItemToMap({
+    const parentItem = await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: parentCoords,
       title: "Parent Tile",
@@ -373,7 +374,7 @@ describe("ItemQueryService - Composition with Negative Directions [Integration -
       groupId,
       path: [Direction.SouthEast, Direction.NorthWest],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: parseInt(parentItem.id),
       coords: structuralChild1Coords,
       title: "Structural Child 1",
@@ -384,7 +385,7 @@ describe("ItemQueryService - Composition with Negative Directions [Integration -
       groupId,
       path: [Direction.SouthEast, Direction.East],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: parseInt(parentItem.id),
       coords: structuralChild2Coords,
       title: "Structural Child 2",
@@ -396,7 +397,7 @@ describe("ItemQueryService - Composition with Negative Directions [Integration -
       groupId,
       path: [Direction.SouthEast, Direction.ComposedNorthEast],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: parseInt(parentItem.id),
       coords: composedChild1Coords,
       title: "Composed Child 1",
@@ -417,7 +418,7 @@ describe("ItemQueryService - Composition with Negative Directions [Integration -
       groupId,
       path: [Direction.SouthWest],
     });
-    const parentItem = await testEnv.service.items.crud.addItemToMap({
+    const parentItem = await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: parentCoords,
       title: "Parent Tile",
@@ -439,7 +440,7 @@ describe("ItemQueryService - Composition with Negative Directions [Integration -
         groupId,
         path: [Direction.SouthWest, dir],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: childCoords,
         title: name,
@@ -462,7 +463,7 @@ describe("ItemQueryService - Composition with Negative Directions [Integration -
       groupId,
       path: [Direction.NorthEast],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: structural1Coords,
       title: "Structural Child 1",
@@ -473,7 +474,7 @@ describe("ItemQueryService - Composition with Negative Directions [Integration -
       groupId,
       path: [Direction.East],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: structural2Coords,
       title: "Structural Child 2",
@@ -485,7 +486,7 @@ describe("ItemQueryService - Composition with Negative Directions [Integration -
       groupId,
       path: [Direction.ComposedNorthWest],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: composed1Coords,
       title: "Composed Child 1",
@@ -496,7 +497,7 @@ describe("ItemQueryService - Composition with Negative Directions [Integration -
       groupId,
       path: [Direction.ComposedSouthEast],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: composed2Coords,
       title: "Composed Child 2",
@@ -518,7 +519,7 @@ describe("ItemQueryService - Composition with Negative Directions [Integration -
       groupId,
       path: [Direction.NorthEast],
     });
-    const structuralChild = await testEnv.service.items.crud.addItemToMap({
+    const structuralChild = await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: structuralCoords,
       title: "Structural Child",
@@ -530,7 +531,7 @@ describe("ItemQueryService - Composition with Negative Directions [Integration -
       groupId,
       path: [Direction.NorthEast, Direction.ComposedEast],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: parseInt(structuralChild.id),
       coords: nestedComposedCoords,
       title: "Nested Composed Item",

@@ -1,3 +1,4 @@
+import type { NonUserMapItemTypeString, VisibilityString } from "~/lib/domains/mapping/utils";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 import type { MapItem } from "~/app/services/mcp/services/hierarchy-utils";
 import type { AppRouter } from '~/server/api';
@@ -38,10 +39,11 @@ export async function addItemHandler(
   caller: TRPCCaller,
   coords: { userId: string; groupId: number; path: number[] },
   title: string,
+  itemType: NonUserMapItemTypeString,
   content?: string,
   preview?: string,
   url?: string,
-  visibility?: "public" | "private",
+  visibility?: VisibilityString,
 ): Promise<MapItem> {
   try {
     // For creation, we need parentId if it's not a root item
@@ -80,6 +82,7 @@ export async function addItemHandler(
       preview,
       link: url, // API uses 'link' not 'url'
       visibility,
+      itemType,
     });
 
     return newItem;
@@ -93,7 +96,7 @@ export async function addItemHandler(
 export async function updateItemHandler(
   caller: TRPCCaller,
   coords: { userId: string; groupId: number; path: number[] },
-  updates: { title?: string; content?: string; preview?: string; url?: string; visibility?: "public" | "private" },
+  updates: { title?: string; content?: string; preview?: string; url?: string; visibility?: VisibilityString; itemType?: NonUserMapItemTypeString },
 ): Promise<MapItem> {
   try {
     // Convert url to link if present

@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { buildPrompt, generateParentHexplanContent, generateLeafHexplanContent, type PromptData } from '~/lib/domains/agentic/utils'
+import { MapItemType } from '~/lib/domains/mapping'
 
 const DEFAULT_MCP_SERVER = 'hexframe'
 
-// Helper to create test data with default ancestors
+// Helper to create test data with defaults
 function createTestData(overrides: Partial<PromptData> & { task: PromptData['task'] }): PromptData {
   return {
     ancestors: [],
@@ -11,6 +12,7 @@ function createTestData(overrides: Partial<PromptData> & { task: PromptData['tas
     structuralChildren: [],
     hexPlan: '📋 Execute the task',
     mcpServerName: DEFAULT_MCP_SERVER,
+    itemType: MapItemType.SYSTEM,
     ...overrides
   }
 }
@@ -184,8 +186,9 @@ describe('buildPrompt - v5 Top-Down Context + Root Hexplan', () => {
 
       const result = buildPrompt(data)
 
+      // Only attributes are escaped, content bodies preserve raw text for LLM processing
       expect(result).toContain('title="Title &lt;with&gt; &amp; &quot;special&quot; chars"')
-      expect(result).toContain('Content with &lt;xml&gt; &amp; &apos;quotes&apos;')
+      expect(result).toContain('Content with <xml> & \'quotes\'')
     })
   })
 
@@ -244,8 +247,9 @@ describe('buildPrompt - v5 Top-Down Context + Root Hexplan', () => {
 
       const result = buildPrompt(data)
 
+      // Only attributes are escaped, content bodies preserve raw text for LLM processing
       expect(result).toContain('title="Task &lt;with&gt; &amp; chars"')
-      expect(result).toContain('Preview &quot;with&quot; &apos;quotes&apos;')
+      expect(result).toContain('Preview "with" \'quotes\'')
     })
 
     it('should not include meta tasks (read history, mark done)', () => {
@@ -321,8 +325,9 @@ describe('buildPrompt - v5 Top-Down Context + Root Hexplan', () => {
 
       const result = buildPrompt(data)
 
+      // Title in <goal> is escaped, content body preserves raw text for LLM processing
       expect(result).toContain('Title &lt;with&gt; &amp; chars')
-      expect(result).toContain('Content &quot;with&quot; &apos;special&apos; characters')
+      expect(result).toContain('Content "with" \'special\' characters')
     })
   })
 
@@ -420,7 +425,7 @@ describe('buildPrompt - v5 Top-Down Context + Root Hexplan', () => {
     })
 
     describe('XML Escaping', () => {
-      it('should escape XML special characters in hexplan content', () => {
+      it('should preserve raw text in hexplan content for LLM processing', () => {
         const data = createTestData({
           task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
           hexPlan: 'Plan with <tags> & "quotes"\n📋 Step'
@@ -428,7 +433,8 @@ describe('buildPrompt - v5 Top-Down Context + Root Hexplan', () => {
 
         const result = buildPrompt(data)
 
-        expect(result).toContain('Plan with &lt;tags&gt; &amp; &quot;quotes&quot;')
+        // Content bodies preserve raw text for LLM processing
+        expect(result).toContain('Plan with <tags> & "quotes"')
       })
     })
   })
@@ -535,5 +541,35 @@ describe('Hexplan Content Generators', () => {
 
       expect(result).not.toContain('**Instruction:**')
     })
+  })
+})
+
+// ==================== UNSUPPORTED ITEM TYPES ====================
+describe('buildPrompt error handling for unsupported itemTypes', () => {
+  it('should throw error for ORGANIZATIONAL itemType', () => {
+    const data = createTestData({
+      task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
+      itemType: MapItemType.ORGANIZATIONAL
+    })
+
+    expect(() => buildPrompt(data)).toThrow('ORGANIZATIONAL tiles cannot be executed')
+  })
+
+  it('should throw error for USER itemType', () => {
+    const data = createTestData({
+      task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
+      itemType: MapItemType.USER
+    })
+
+    expect(() => buildPrompt(data)).toThrow('USER tile templates not yet implemented')
+  })
+
+  it('should throw error for CONTEXT itemType', () => {
+    const data = createTestData({
+      task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
+      itemType: MapItemType.CONTEXT
+    })
+
+    expect(() => buildPrompt(data)).toThrow('CONTEXT tile templates not yet implemented')
   })
 })

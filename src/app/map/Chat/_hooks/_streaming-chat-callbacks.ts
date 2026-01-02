@@ -37,6 +37,10 @@ export function createStreamingChatCallbacks(
   const getStreamId = (): string => streamIdRef.current ?? ''
 
   return {
+    onPromptGenerated: (prompt: string) => {
+      chatState.setMessagePrompt(getStreamId(), prompt)
+    },
+
     onTextDelta: (delta: string) => {
       accumulatedContent += delta
       chatState.appendToStreamingMessage(getStreamId(), delta)

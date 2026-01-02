@@ -2,7 +2,7 @@ import { expect } from "vitest";
 import { Direction, CoordSystem } from "~/lib/domains/mapping/utils";
 import type { Coord } from "~/lib/domains/mapping/utils";
 import type { TestEnvironment } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
-import { _setupBasicMap, _createTestCoordinates } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
+import { _setupBasicMap, _createTestCoordinates, createTestItem } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { MapItemType } from "~/lib/domains/mapping/_objects/map-item";
 import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
@@ -18,7 +18,7 @@ export async function _setupItemForRetrieval(
     path: [Direction.East],
   });
 
-  await testEnv.service.items.crud.addItemToMap({
+  await createTestItem(testEnv, {
     parentId: setupData.id,
     coords: itemCoords,
     title: "Test Retrievable Item",
@@ -48,7 +48,7 @@ export async function _validateItemRetrieval(
   expect(retrievedItem.content).toBe(expectedItemData.content);
   expect(retrievedItem.link).toBe(expectedItemData.link);
   expect(retrievedItem.coords).toEqual(CoordSystem.createId(itemCoords));
-  expect(retrievedItem.itemType).toBe(MapItemType.BASE);
+  expect(retrievedItem.itemType).toBe(MapItemType.CONTEXT);
 
   return retrievedItem;
 }

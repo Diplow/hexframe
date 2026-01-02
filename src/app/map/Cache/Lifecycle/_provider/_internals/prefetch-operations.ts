@@ -124,6 +124,7 @@ async function loadSiblingsForInitialLoad(
             link: item.link,
             color: getColor(itemCoords),
             visibility: item.visibility ?? Visibility.PRIVATE,
+            itemType: item.itemType,
           },
           metadata: {
             coordId,

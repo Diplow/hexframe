@@ -84,8 +84,8 @@ Integrates with the hex coordinate system for spatial mapping:
 const newItem = await repository.create({
   attrs: {
     coords: { userId: 1, groupId: 1, path: [0, 1] },
-    itemType: MapItemType.CONTENT,
-    ref: { itemType: MapItemType.BASE, itemId: 123 },
+    itemType: MapItemType.CONTEXT,
+    ref: { itemType: MapItemType.CONTEXT, itemId: 123 },
     parentId: null,
     originId: null,
   },

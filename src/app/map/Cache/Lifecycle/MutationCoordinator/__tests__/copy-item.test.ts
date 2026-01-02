@@ -24,7 +24,7 @@ describe("MutationCoordinator - copyItem", () => {
       preview: "Source preview",
       link: "https://source.com",
       color: "#000000",
-      visibility: Visibility.PRIVATE,
+      visibility: Visibility.PRIVATE, itemType: MapItemType.CONTEXT,
     },
     metadata: {
       coordId: "user-test-1,0:1",
@@ -51,7 +51,7 @@ describe("MutationCoordinator - copyItem", () => {
       preview: undefined,
       link: "",
       color: "#000000",
-      visibility: Visibility.PRIVATE,
+      visibility: Visibility.PRIVATE, itemType: MapItemType.CONTEXT,
     },
     metadata: {
       coordId: "user-test-1,0:1,2",
@@ -156,10 +156,10 @@ describe("MutationCoordinator - copyItem", () => {
         link: "https://source.com",
         depth: 1,
         parentId: "parent-1",
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         ownerId: "test-owner",
         originId: "source-1",
-          visibility: Visibility.PRIVATE,
+        visibility: Visibility.PRIVATE,
       };
 
       mockCopyItemMutation.mutateAsync.mockResolvedValueOnce(copiedItemResponse);
@@ -183,10 +183,10 @@ describe("MutationCoordinator - copyItem", () => {
         link: "https://source.com",
         depth: 1,
         parentId: "parent-1",
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         ownerId: "test-owner",
         originId: "source-1",
-          visibility: Visibility.PRIVATE,
+        visibility: Visibility.PRIVATE,
       };
 
       mockCopyItemMutation.mutateAsync.mockResolvedValueOnce(copiedItemResponse);
@@ -210,10 +210,10 @@ describe("MutationCoordinator - copyItem", () => {
         link: "https://source.com",
         depth: 1,
         parentId: "parent-1",
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         ownerId: "test-owner",
         originId: "source-1",
-          visibility: Visibility.PRIVATE,
+        visibility: Visibility.PRIVATE,
       };
 
       mockCopyItemMutation.mutateAsync.mockResolvedValueOnce(copiedItemResponse);
@@ -237,10 +237,10 @@ describe("MutationCoordinator - copyItem", () => {
         link: "https://source.com",
         depth: 1,
         parentId: "parent-1",
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         ownerId: "test-owner",
         originId: "source-1",
-          visibility: Visibility.PRIVATE,
+        visibility: Visibility.PRIVATE,
       };
 
       mockCopyItemMutation.mutateAsync.mockResolvedValueOnce(copiedItemResponse);
@@ -266,10 +266,10 @@ describe("MutationCoordinator - copyItem", () => {
         link: "https://source.com",
         depth: 1,
         parentId: "parent-1",
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         ownerId: "test-owner",
         originId: "source-1",
-          visibility: Visibility.PRIVATE,
+        visibility: Visibility.PRIVATE,
       };
 
       mockCopyItemMutation.mutateAsync.mockResolvedValueOnce(copiedItemResponse);
@@ -294,10 +294,10 @@ describe("MutationCoordinator - copyItem", () => {
         link: "https://source.com",
         depth: 1,
         parentId: "parent-1",
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         ownerId: "test-owner",
         originId: "source-1",
-          visibility: Visibility.PRIVATE,
+        visibility: Visibility.PRIVATE,
       };
 
       mockCopyItemMutation.mutateAsync.mockResolvedValueOnce(copiedItemResponse);
@@ -320,7 +320,8 @@ describe("MutationCoordinator - copyItem", () => {
           preview: undefined,
           link: "",
           color: "#000000",
-          visibility: Visibility.PRIVATE,
+        visibility: Visibility.PRIVATE,
+      itemType: MapItemType.CONTEXT,
         },
         metadata: {
           coordId: "user-test-1,0:1,2,4",
@@ -351,10 +352,10 @@ describe("MutationCoordinator - copyItem", () => {
         link: "https://source.com",
         depth: 1,
         parentId: "parent-1",
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         ownerId: "test-owner",
         originId: "source-1",
-          visibility: Visibility.PRIVATE,
+        visibility: Visibility.PRIVATE,
       };
 
       mockCopyItemMutation.mutateAsync.mockResolvedValueOnce(copiedItemResponse);
@@ -460,10 +461,10 @@ describe("MutationCoordinator - copyItem", () => {
         link: "https://source.com",
         depth: 1,
         parentId: "parent-1",
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         ownerId: "test-owner",
         originId: "source-1",
-          visibility: Visibility.PRIVATE,
+        visibility: Visibility.PRIVATE,
       };
 
       mockCopyItemMutation.mutateAsync.mockResolvedValueOnce(copiedItemResponse);
@@ -483,10 +484,10 @@ describe("MutationCoordinator - copyItem", () => {
         link: "https://source.com",
         depth: 3,
         parentId: "parent-1",
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         ownerId: "test-owner",
         originId: "source-1",
-          visibility: Visibility.PRIVATE,
+        visibility: Visibility.PRIVATE,
       };
 
       mockCopyItemMutation.mutateAsync.mockResolvedValueOnce(copiedItemResponse);
@@ -516,10 +517,10 @@ describe("MutationCoordinator - copyItem", () => {
         link: "https://source.com",
         depth: 1,
         parentId: "parent-1",
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         ownerId: "test-owner",
         originId: "source-1",
-          visibility: Visibility.PRIVATE,
+        visibility: Visibility.PRIVATE,
       };
 
       // Make first mutation slow
@@ -547,10 +548,10 @@ describe("MutationCoordinator - copyItem", () => {
         link: "https://source.com",
         depth: 1,
         parentId: "parent-1",
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         ownerId: "test-owner",
         originId: "source-1",
-          visibility: Visibility.PRIVATE,
+        visibility: Visibility.PRIVATE,
       };
 
       const secondCopiedResponse: MapItemAPIContract = {
@@ -562,10 +563,10 @@ describe("MutationCoordinator - copyItem", () => {
         link: "https://source.com",
         depth: 1,
         parentId: "parent-2",
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         ownerId: "test-owner",
         originId: "source-1",
-          visibility: Visibility.PRIVATE,
+        visibility: Visibility.PRIVATE,
       };
 
       mockCopyItemMutation.mutateAsync

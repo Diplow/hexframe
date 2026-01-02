@@ -86,7 +86,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
           depth: 2,
           link: "",
           parentId: "5",
-          itemType: MapItemType.BASE,
+          itemType: MapItemType.CONTEXT,
           ownerId: "1",
           originId: null,
         visibility: Visibility.PRIVATE,
@@ -100,7 +100,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
           depth: 2,
           link: "",
           parentId: "5",
-          itemType: MapItemType.BASE,
+          itemType: MapItemType.CONTEXT,
           ownerId: "1",
           originId: null,
         visibility: Visibility.PRIVATE,
@@ -133,12 +133,12 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
     test("should fetch all 6 composed children when all slots filled", async () => {
       const parentCoordId = "user-test-1,0:1";
       const allComposedChildren: MapItemAPIContract[] = [
-        { id: "1", coordinates: "user-test-1,0:1,-1", title: "NW", content: "", preview: undefined, depth: 2, link: "", parentId: "0", itemType: MapItemType.BASE, ownerId: "1", originId: null, visibility: Visibility.PRIVATE }, // ComposedNorthWest
-        { id: "2", coordinates: "user-test-1,0:1,-2", title: "NE", content: "", preview: undefined, depth: 2, link: "", parentId: "0", itemType: MapItemType.BASE, ownerId: "1", originId: null, visibility: Visibility.PRIVATE }, // ComposedNorthEast
-        { id: "3", coordinates: "user-test-1,0:1,-3", title: "E", content: "", preview: undefined, depth: 2, link: "", parentId: "0", itemType: MapItemType.BASE, ownerId: "1", originId: null, visibility: Visibility.PRIVATE },  // ComposedEast
-        { id: "4", coordinates: "user-test-1,0:1,-4", title: "SE", content: "", preview: undefined, depth: 2, link: "", parentId: "0", itemType: MapItemType.BASE, ownerId: "1", originId: null, visibility: Visibility.PRIVATE }, // ComposedSouthEast
-        { id: "5", coordinates: "user-test-1,0:1,-5", title: "SW", content: "", preview: undefined, depth: 2, link: "", parentId: "0", itemType: MapItemType.BASE, ownerId: "1", originId: null, visibility: Visibility.PRIVATE }, // ComposedSouthWest
-        { id: "6", coordinates: "user-test-1,0:1,-6", title: "W", content: "", preview: undefined, depth: 2, link: "", parentId: "0", itemType: MapItemType.BASE, ownerId: "1", originId: null, visibility: Visibility.PRIVATE },  // ComposedWest
+        { id: "1", coordinates: "user-test-1,0:1,-1", title: "NW", content: "", preview: undefined, depth: 2, link: "", parentId: "0", itemType: MapItemType.CONTEXT, ownerId: "1", originId: null, visibility: Visibility.PRIVATE }, // ComposedNorthWest
+        { id: "2", coordinates: "user-test-1,0:1,-2", title: "NE", content: "", preview: undefined, depth: 2, link: "", parentId: "0", itemType: MapItemType.CONTEXT, ownerId: "1", originId: null, visibility: Visibility.PRIVATE }, // ComposedNorthEast
+        { id: "3", coordinates: "user-test-1,0:1,-3", title: "E", content: "", preview: undefined, depth: 2, link: "", parentId: "0", itemType: MapItemType.CONTEXT, ownerId: "1", originId: null, visibility: Visibility.PRIVATE },  // ComposedEast
+        { id: "4", coordinates: "user-test-1,0:1,-4", title: "SE", content: "", preview: undefined, depth: 2, link: "", parentId: "0", itemType: MapItemType.CONTEXT, ownerId: "1", originId: null, visibility: Visibility.PRIVATE }, // ComposedSouthEast
+        { id: "5", coordinates: "user-test-1,0:1,-5", title: "SW", content: "", preview: undefined, depth: 2, link: "", parentId: "0", itemType: MapItemType.CONTEXT, ownerId: "1", originId: null, visibility: Visibility.PRIVATE }, // ComposedSouthWest
+        { id: "6", coordinates: "user-test-1,0:1,-6", title: "W", content: "", preview: undefined, depth: 2, link: "", parentId: "0", itemType: MapItemType.CONTEXT, ownerId: "1", originId: null, visibility: Visibility.PRIVATE },  // ComposedWest
       ];
 
       mockUtils.map.getComposedChildren.fetch.mockResolvedValue(allComposedChildren);
@@ -296,7 +296,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
         depth: 2,
         link: "",
         parentId: "5",
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         ownerId: "1",
         originId: null,
         visibility: Visibility.PRIVATE,
@@ -330,7 +330,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
           depth: 2,
           link: "",
           parentId: "0",
-          itemType: MapItemType.BASE,
+          itemType: MapItemType.CONTEXT,
           ownerId: "1",
           originId: null,
         visibility: Visibility.PRIVATE,
@@ -345,7 +345,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
           depth: 2,
           link: "",
           parentId: "0",
-          itemType: MapItemType.BASE,
+          itemType: MapItemType.CONTEXT,
           ownerId: "1",
           originId: null,
         visibility: Visibility.PRIVATE,
@@ -384,7 +384,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
           depth: 0,
           link: "",
           parentId: null,
-          itemType: MapItemType.BASE,
+          itemType: MapItemType.CONTEXT,
           ownerId: "1",
           originId: null,
         visibility: Visibility.PRIVATE,
@@ -398,7 +398,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
           depth: 1,
           link: "",
           parentId: "1",
-          itemType: MapItemType.BASE,
+          itemType: MapItemType.CONTEXT,
           ownerId: "1",
           originId: null,
         visibility: Visibility.PRIVATE,
@@ -412,7 +412,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
           depth: 1,
           link: "",
           parentId: "1",
-          itemType: MapItemType.BASE,
+          itemType: MapItemType.CONTEXT,
           ownerId: "1",
           originId: null,
         visibility: Visibility.PRIVATE,
@@ -454,7 +454,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
           depth: 0,
           link: "",
           parentId: null,
-          itemType: MapItemType.BASE,
+          itemType: MapItemType.CONTEXT,
           ownerId: "1",
           originId: null,
         visibility: Visibility.PRIVATE,
@@ -468,7 +468,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
           depth: 1,
           link: "",
           parentId: "1",
-          itemType: MapItemType.BASE,
+          itemType: MapItemType.CONTEXT,
           ownerId: "1",
           originId: null,
         visibility: Visibility.PRIVATE,
@@ -482,7 +482,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
           depth: 1,
           link: "",
           parentId: "1",
-          itemType: MapItemType.BASE,
+          itemType: MapItemType.CONTEXT,
           ownerId: "1",
           originId: null,
         visibility: Visibility.PRIVATE,
@@ -537,7 +537,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
         depth: 5,
         link: "",
         parentId: "5",
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         ownerId: "1",
         originId: null,
         visibility: Visibility.PRIVATE,
@@ -568,7 +568,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
         depth: 1,
         link: "",
         parentId: "0",
-        itemType: MapItemType.BASE,
+        itemType: MapItemType.CONTEXT,
         ownerId: "1",
         originId: null,
         visibility: Visibility.PRIVATE,
@@ -602,7 +602,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
             depth: 1,
             link: "",
             parentId: "0",
-            itemType: MapItemType.BASE,
+            itemType: MapItemType.CONTEXT,
             ownerId: "1",
             originId: null,
         visibility: Visibility.PRIVATE,
@@ -625,7 +625,7 @@ describe("Cache - Composed Children Queries [Negative Directions]", () => {
             depth: 1,
             link: "",
             parentId: "0",
-            itemType: MapItemType.BASE,
+            itemType: MapItemType.CONTEXT,
             ownerId: "1",
             originId: null,
         visibility: Visibility.PRIVATE,
