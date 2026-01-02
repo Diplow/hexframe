@@ -7,6 +7,7 @@ import {
   _setupBasicMap,
   _createTestCoordinates,
   _createUniqueTestParams,
+  createTestItem,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 
 describe("ItemQueryService - Composition Queries [Integration - DB]", () => {
@@ -186,7 +187,7 @@ describe("ItemQueryService - Composition Queries [Integration - DB]", () => {
       groupId,
       path: [Direction.NorthEast],
     });
-    const parentItem = await testEnv.service.items.crud.addItemToMap({
+    const parentItem = await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: parentCoords,
       title: "Parent Tile",
@@ -198,7 +199,7 @@ describe("ItemQueryService - Composition Queries [Integration - DB]", () => {
       groupId,
       path: [Direction.NorthEast, -1], // ComposedNorthWest
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: parseInt(parentItem.id),
       coords: composedChild1Coords,
       title: "Composed Child 1",
@@ -209,7 +210,7 @@ describe("ItemQueryService - Composition Queries [Integration - DB]", () => {
       groupId,
       path: [Direction.NorthEast, -3], // ComposedEast
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: parseInt(parentItem.id),
       coords: composedChild2Coords,
       title: "Composed Child 2",
@@ -231,7 +232,7 @@ describe("ItemQueryService - Composition Queries [Integration - DB]", () => {
       groupId,
       path: [Direction.NorthEast],
     });
-    const parentItem = await testEnv.service.items.crud.addItemToMap({
+    const parentItem = await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: parentCoords,
       title: "Parent Tile",
@@ -253,7 +254,7 @@ describe("ItemQueryService - Composition Queries [Integration - DB]", () => {
       groupId,
       path: [Direction.NorthEast],
     });
-    const parentItem = await testEnv.service.items.crud.addItemToMap({
+    const parentItem = await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: parentCoords,
       title: "Parent Tile",
@@ -265,7 +266,7 @@ describe("ItemQueryService - Composition Queries [Integration - DB]", () => {
       groupId,
       path: [Direction.NorthEast, Direction.East],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: parseInt(parentItem.id),
       coords: structuralChild1Coords,
       title: "Structural Child 1",
@@ -287,7 +288,7 @@ describe("ItemQueryService - Composition Queries [Integration - DB]", () => {
       groupId,
       path: [Direction.NorthEast],
     });
-    const parentItem = await testEnv.service.items.crud.addItemToMap({
+    const parentItem = await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: parentCoords,
       title: "Parent Tile",
@@ -301,7 +302,7 @@ describe("ItemQueryService - Composition Queries [Integration - DB]", () => {
         groupId,
         path: [Direction.NorthEast, negativeDirections[i]!],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: childCoords,
         title: `Composed Child ${i + 1}`,
@@ -324,7 +325,7 @@ describe("ItemQueryService - Composition Queries [Integration - DB]", () => {
       groupId,
       path: [Direction.NorthEast],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: structural1Coords,
       title: "Structural Child 1",
@@ -335,7 +336,7 @@ describe("ItemQueryService - Composition Queries [Integration - DB]", () => {
       groupId,
       path: [Direction.East],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: structural2Coords,
       title: "Structural Child 2",
@@ -347,7 +348,7 @@ describe("ItemQueryService - Composition Queries [Integration - DB]", () => {
       groupId,
       path: [-1], // ComposedNorthWest
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: composed1Coords,
       title: "Composed Child 1",
@@ -358,7 +359,7 @@ describe("ItemQueryService - Composition Queries [Integration - DB]", () => {
       groupId,
       path: [-4], // ComposedSouthEast
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: composed2Coords,
       title: "Composed Child 2",
@@ -380,7 +381,7 @@ describe("ItemQueryService - Composition Queries [Integration - DB]", () => {
       groupId,
       path: [Direction.NorthEast],
     });
-    const structuralChild = await testEnv.service.items.crud.addItemToMap({
+    const structuralChild = await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: structuralCoords,
       title: "Structural Child",
@@ -392,7 +393,7 @@ describe("ItemQueryService - Composition Queries [Integration - DB]", () => {
       groupId,
       path: [Direction.NorthEast, -3], // ComposedEast
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: parseInt(structuralChild.id),
       coords: nestedComposedCoords,
       title: "Nested Composed Item",

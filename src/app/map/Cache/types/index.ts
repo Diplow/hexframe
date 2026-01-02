@@ -93,6 +93,7 @@ export interface MapCacheHook {
     description?: string;
     content?: string;
     url?: string;
+    itemType: "organizational" | "context" | "system";
   }) => Promise<void>;
   updateItemOptimistic: (coordId: string, data: {
     title?: string;

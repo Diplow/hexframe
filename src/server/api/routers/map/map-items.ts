@@ -29,14 +29,13 @@ function toVisibilityEnum(visibility?: "public" | "private"): Visibility | undef
 /**
  * Convert string itemType to MapItemType enum (excludes USER - system-controlled)
  */
-function toMapItemTypeEnum(itemType?: "organizational" | "context" | "system"): MapItemType | undefined {
-  if (!itemType) return undefined;
+function toMapItemTypeEnum(itemType: "organizational" | "context" | "system"): MapItemType {
   const itemTypeMap: Record<string, MapItemType> = {
     organizational: MapItemType.ORGANIZATIONAL,
     context: MapItemType.CONTEXT,
     system: MapItemType.SYSTEM,
   };
-  return itemTypeMap[itemType];
+  return itemTypeMap[itemType]!;
 }
 
 export const mapItemsRouter = createTRPCRouter({

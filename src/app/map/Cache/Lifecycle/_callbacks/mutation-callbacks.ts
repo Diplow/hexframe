@@ -34,6 +34,7 @@ export function createMutationCallbacks(mutationOperations: MutationOperations) 
     description?: string;
     content?: string;
     url?: string;
+    itemType: "organizational" | "context" | "system";
   }) => {
     // Normalize legacy field names to canonical domain names
     await mutationOperations.createItem(coordId, {
@@ -41,6 +42,7 @@ export function createMutationCallbacks(mutationOperations: MutationOperations) 
       content: data.description ?? data.content,
       preview: data.preview,
       link: data.url,
+      itemType: data.itemType,
     });
   };
 

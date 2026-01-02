@@ -9,6 +9,7 @@ import {
   _setupBasicMap,
   _createTestCoordinates,
   _createUniqueTestParams,
+  createTestItem,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 
 describe("tRPC Map Items Router - ItemType API Exposure [Integration - DB]", () => {
@@ -29,7 +30,7 @@ describe("tRPC Map Items Router - ItemType API Exposure [Integration - DB]", () 
         path: [Direction.NorthEast, Direction.East],
       });
 
-      const result = await testEnv.service.items.crud.addItemToMap({
+      const result = await createTestItem(testEnv, {
         parentId: setup.parentId,
         coords: childCoords,
         title: "Organizational Tile",
@@ -48,7 +49,7 @@ describe("tRPC Map Items Router - ItemType API Exposure [Integration - DB]", () 
         path: [Direction.NorthEast, Direction.SouthEast],
       });
 
-      const result = await testEnv.service.items.crud.addItemToMap({
+      const result = await createTestItem(testEnv, {
         parentId: setup.parentId,
         coords: childCoords,
         title: "Context Tile",
@@ -67,7 +68,7 @@ describe("tRPC Map Items Router - ItemType API Exposure [Integration - DB]", () 
         path: [Direction.NorthEast, Direction.West],
       });
 
-      const result = await testEnv.service.items.crud.addItemToMap({
+      const result = await createTestItem(testEnv, {
         parentId: setup.parentId,
         coords: childCoords,
         title: "System Tile",
@@ -77,7 +78,7 @@ describe("tRPC Map Items Router - ItemType API Exposure [Integration - DB]", () 
       expect(result.itemType).toBe(MapItemType.SYSTEM);
     });
 
-    it("should default to CONTEXT when no itemType is provided", async () => {
+    it("should require itemType when creating tiles", async () => {
       const setup = await _setupMapWithParent();
 
       const childCoords: Coord = _createTestCoordinates({
@@ -86,11 +87,12 @@ describe("tRPC Map Items Router - ItemType API Exposure [Integration - DB]", () 
         path: [Direction.NorthEast, Direction.NorthWest],
       });
 
-      const result = await testEnv.service.items.crud.addItemToMap({
+      // itemType is now required - verify explicit CONTEXT works
+      const result = await createTestItem(testEnv, {
         parentId: setup.parentId,
         coords: childCoords,
-        title: "Default Type Tile",
-        // No itemType provided
+        title: "Explicit Context Tile",
+        itemType: MapItemType.CONTEXT,
       });
 
       expect(result.itemType).toBe(MapItemType.CONTEXT);
@@ -107,7 +109,7 @@ describe("tRPC Map Items Router - ItemType API Exposure [Integration - DB]", () 
 
       // USER type should be rejected - it's system-controlled for root tiles only
       await expect(
-        testEnv.service.items.crud.addItemToMap({
+        createTestItem(testEnv, {
           parentId: setup.parentId,
           coords: childCoords,
           title: "Attempted User Tile",
@@ -205,7 +207,7 @@ describe("tRPC Map Items Router - ItemType API Exposure [Integration - DB]", () 
         groupId,
         path: [Direction.NorthWest],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: organizationalCoords,
         title: "Org Tile",
@@ -217,7 +219,7 @@ describe("tRPC Map Items Router - ItemType API Exposure [Integration - DB]", () 
         groupId,
         path: [Direction.East],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: systemCoords,
         title: "System Tile",
@@ -261,7 +263,7 @@ describe("tRPC Map Items Router - ItemType API Exposure [Integration - DB]", () 
       groupId,
       path: [Direction.NorthEast],
     });
-    const parentItem = await testEnv.service.items.crud.addItemToMap({
+    const parentItem = await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: parentCoords,
       title: "Parent Tile",
@@ -287,7 +289,7 @@ describe("tRPC Map Items Router - ItemType API Exposure [Integration - DB]", () 
       path: [Direction.SouthEast],
     });
 
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: tileCoords,
       title: `Tile with ${itemType} type`,

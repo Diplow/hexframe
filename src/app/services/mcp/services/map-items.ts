@@ -38,11 +38,11 @@ export async function addItemHandler(
   caller: TRPCCaller,
   coords: { userId: string; groupId: number; path: number[] },
   title: string,
+  itemType: "organizational" | "context" | "system",
   content?: string,
   preview?: string,
   url?: string,
   visibility?: "public" | "private",
-  itemType?: "organizational" | "context" | "system",
 ): Promise<MapItem> {
   try {
     // For creation, we need parentId if it's not a root item

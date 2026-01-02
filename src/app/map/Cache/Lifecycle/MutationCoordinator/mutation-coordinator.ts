@@ -27,7 +27,12 @@ export interface MutationCoordinatorConfig {
     mutateAsync: (params: {
       coords: Coord;
       parentId?: number | null;
-    } & MapItemCreateAttributes) => Promise<MapItemAPIContract>;
+      itemType: "organizational" | "context" | "system";
+      title?: string;
+      content?: string;
+      preview?: string;
+      link?: string;
+    }) => Promise<MapItemAPIContract>;
   };
   updateItemMutation: {
     mutateAsync: (params: {
@@ -284,7 +289,7 @@ export class MutationCoordinator {
     }
   }
 
-  async createItem(coordId: string, data: Omit<MapItemCreateAttributes, 'coords' | 'itemType'> & { parentId?: number }): Promise<MutationResult> {
+  async createItem(coordId: string, data: Omit<MapItemCreateAttributes, 'coords' | 'itemType'> & { parentId?: number; itemType: "organizational" | "context" | "system" }): Promise<MutationResult> {
     return this.trackOperation(coordId, 'create', async () => {
       const changeId = this.tracker.generateChangeId();
 
@@ -315,7 +320,7 @@ export class MutationCoordinator {
         }
         const result = await this.config.addItemMutation.mutateAsync({
           coords,
-          itemType: MapItemType.CONTEXT,
+          itemType: data.itemType,
           ...(parentIdNumber !== undefined ? { parentId: parentIdNumber } : {}),
           title: data.title,
           content: data.content,

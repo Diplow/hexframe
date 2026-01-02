@@ -250,10 +250,10 @@ DIRECTION USAGE:
         itemType: {
           type: "string",
           enum: ["organizational", "context", "system"],
-          description: "Semantic tile type classification (default: context). 'organizational' = grouping/folder tiles for hierarchy, 'context' = reference materials, notes, documentation, 'system' = executable capabilities, tools, automations. Note: 'user' type is reserved for system-created root tiles."
+          description: "Semantic tile type classification (required). 'organizational' = grouping/folder tiles for hierarchy, 'context' = reference materials, notes, documentation, 'system' = executable capabilities, tools, automations. Note: 'user' type is reserved for system-created root tiles."
         }
       },
-      required: ["coords", "title"],
+      required: ["coords", "title", "itemType"],
     },
     handler: async (args: unknown, caller: TRPCCaller) => {
       const argsObj = args as Record<string, unknown>;
@@ -268,8 +268,11 @@ DIRECTION USAGE:
       if (!title) {
         throw new Error("title parameter is required");
       }
+      if (!itemType) {
+        throw new Error("itemType parameter is required");
+      }
 
-      return await addItemHandler(caller, coords, title, content, preview, url, visibility, itemType);
+      return await addItemHandler(caller, coords, title, itemType, content, preview, url, visibility);
     },
   },
 

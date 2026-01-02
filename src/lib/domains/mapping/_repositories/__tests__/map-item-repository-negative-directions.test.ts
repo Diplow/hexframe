@@ -8,6 +8,7 @@ import {
   _setupBasicMap,
   _createTestCoordinates,
   _createUniqueTestParams,
+  createTestItem,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 
 describe("MapItemRepository - Negative Direction Support", () => {
@@ -30,7 +31,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         groupId,
         path: [Direction.NorthEast],
       });
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: parentCoords,
         title: "Parent Tile",
@@ -42,7 +43,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         groupId,
         path: [Direction.NorthEast, Direction.ComposedNorthWest],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: composed1Coords,
         title: "Composed Child NorthWest",
@@ -53,7 +54,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         groupId,
         path: [Direction.NorthEast, Direction.ComposedEast],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: composed2Coords,
         title: "Composed Child East",
@@ -100,7 +101,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         groupId,
         path: [Direction.NorthWest],
       });
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: parentCoords,
         title: "Parent",
@@ -122,7 +123,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
           groupId,
           path: [Direction.NorthWest, dir],
         });
-        await testEnv.service.items.crud.addItemToMap({
+        await createTestItem(testEnv, {
           parentId: parseInt(parentItem.id),
           coords,
           title: `Composed ${label}`,
@@ -163,7 +164,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         groupId,
         path: [Direction.NorthEast],
       });
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: parentCoords,
         title: "Parent",
@@ -175,7 +176,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         groupId,
         path: [Direction.NorthEast, Direction.ComposedNorthWest],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: composedCoords,
         title: "Composed Child",
@@ -187,7 +188,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         groupId,
         path: [Direction.NorthEast, Direction.East],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: structuralCoords,
         title: "Structural Child",
@@ -221,7 +222,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         groupId,
         path: [Direction.NorthEast],
       });
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: parentCoords,
         title: "Parent",
@@ -233,7 +234,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         groupId,
         path: [Direction.NorthEast, Direction.ComposedNorthWest],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: composedCoords,
         title: "Composed Child",
@@ -245,7 +246,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         groupId,
         path: [Direction.NorthEast, Direction.East],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: structuralCoords,
         title: "Structural Child",
@@ -279,7 +280,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         groupId,
         path: [Direction.NorthEast],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: parentCoords,
         title: "Parent Without Composition",
@@ -311,7 +312,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         groupId,
         path: [Direction.ComposedNorthWest],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: composedCoords,
         title: "Root Composed Child",
@@ -348,7 +349,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         groupId,
         path: [Direction.NorthEast],
       });
-      const l1Item = await testEnv.service.items.crud.addItemToMap({
+      const l1Item = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: l1Coords,
         title: "Level 1",
@@ -359,7 +360,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         groupId,
         path: [Direction.NorthEast, Direction.East],
       });
-      const l2Item = await testEnv.service.items.crud.addItemToMap({
+      const l2Item = await createTestItem(testEnv, {
         parentId: parseInt(l1Item.id),
         coords: l2Coords,
         title: "Level 2",
@@ -371,7 +372,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         groupId,
         path: [Direction.NorthEast, Direction.East, Direction.ComposedSouthEast],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(l2Item.id),
         coords: composedCoords,
         title: "Deep Composed Child",
@@ -410,7 +411,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         groupId,
         path: [Direction.NorthEast],
       });
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: parentCoords,
         title: "Parent",
@@ -422,7 +423,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         groupId,
         path: [Direction.NorthEast, Direction.ComposedNorthWest],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: composedCoords,
         title: "Composed Child",
@@ -434,7 +435,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         groupId,
         path: [Direction.NorthEast, Direction.East],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: structuralCoords,
         title: "Structural Child",
@@ -466,7 +467,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         groupId,
         path: [Direction.NorthEast],
       });
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: parentCoords,
         title: "Parent",
@@ -478,7 +479,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         groupId,
         path: [Direction.NorthEast, Direction.ComposedNorthWest],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: composedCoords,
         title: "Composed Child",
@@ -490,7 +491,7 @@ describe("MapItemRepository - Negative Direction Support", () => {
         groupId,
         path: [Direction.NorthEast, Direction.East],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(parentItem.id),
         coords: structuralCoords,
         title: "Structural Child",

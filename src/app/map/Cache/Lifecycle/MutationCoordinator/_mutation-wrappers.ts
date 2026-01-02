@@ -14,6 +14,7 @@ export function _wrapTRPCMutations(mutations: {
     content?: string;
     preview?: string;
     link?: string;
+    itemType: "organizational" | "context" | "system";
   }) => Promise<MapItemAPIContract> };
   updateItemMutation: { mutateAsync: (params: {
     coords: Coord;
@@ -42,7 +43,15 @@ export function _wrapTRPCMutations(mutations: {
   }) => Promise<{ success: boolean; updatedCount: number }> };
 }) {
   const wrappedAddItemMutation = {
-    mutateAsync: async (params: { coords: Coord; parentId?: number | null } & MapItemCreateAttributes) => {
+    mutateAsync: async (params: {
+      coords: Coord;
+      parentId?: number | null;
+      itemType: "organizational" | "context" | "system";
+      title?: string;
+      content?: string;
+      preview?: string;
+      link?: string;
+    }) => {
       return mutations.addItemMutation.mutateAsync({
         parentId: params.parentId,
         coords: params.coords,
@@ -50,6 +59,7 @@ export function _wrapTRPCMutations(mutations: {
         content: params.content,
         preview: params.preview,
         link: params.link,
+        itemType: params.itemType,
       });
     },
   };

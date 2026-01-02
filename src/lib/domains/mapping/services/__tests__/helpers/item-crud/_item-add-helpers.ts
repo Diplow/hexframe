@@ -2,6 +2,7 @@ import { expect } from "vitest";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 import type { Coord } from "~/lib/domains/mapping/utils";
 import type { TestEnvironment } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
+import { createTestItem } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { MapItemType } from "~/lib/domains/mapping/_objects/map-item";
 
 export async function _addAndValidateChildItem(
@@ -10,13 +11,14 @@ export async function _addAndValidateChildItem(
   addItemArgs: {
     title: string;
     coords: Parameters<typeof CoordSystem.createId>[0];
+    itemType?: typeof MapItemType[keyof typeof MapItemType];
   },
 ) {
-  const childItemContract =
-    await testEnv.service.items.crud.addItemToMap({
-      ...addItemArgs,
-      parentId: Number(setupData.rootMapItem.id),
-    });
+  const childItemContract = await createTestItem(testEnv, {
+    ...addItemArgs,
+    parentId: Number(setupData.rootMapItem.id),
+    itemType: addItemArgs.itemType ?? MapItemType.CONTEXT,
+  });
 
   // Validate the child item contract
   expect(childItemContract).toBeDefined();
@@ -65,7 +67,7 @@ export async function _validateMismatchedCoordinatesError(
   setupData: { rootMapId: number; mismatchedCoords: Coord },
 ) {
   await expect(
-    testEnv.service.items.crud.addItemToMap({
+    createTestItem(testEnv, {
       parentId: setupData.rootMapId,
       coords: setupData.mismatchedCoords,
       title: "Should Fail",
@@ -78,7 +80,7 @@ export async function _validateNonChildCoordinatesError(
   setupData: { rootMapId: number; nonChildCoords: Coord },
 ) {
   await expect(
-    testEnv.service.items.crud.addItemToMap({
+    createTestItem(testEnv, {
       parentId: setupData.rootMapId,
       coords: setupData.nonChildCoords,
       title: "Should Fail",
@@ -91,7 +93,7 @@ export async function _validateNonExistentParentError(
   setupData: { childCoords: Coord },
 ) {
   await expect(
-    testEnv.service.items.crud.addItemToMap({
+    createTestItem(testEnv, {
       parentId: 9999999, // Use a very large non-existent ID
       coords: setupData.childCoords,
       title: "Should Fail",

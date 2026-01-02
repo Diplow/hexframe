@@ -35,7 +35,7 @@ import {
   asRequesterUserId,
   type HexecuteContext
 } from '~/lib/domains/mapping'
-import { CoordSystem, Direction } from '~/lib/domains/mapping/utils'
+import { CoordSystem, Direction, MapItemType } from '~/lib/domains/mapping/utils'
 import {
   createAgenticServiceAsync,
   executeTaskStreaming,
@@ -205,7 +205,8 @@ async function _ensureHexplan(
     parentId: taskId,
     coords: hexplanCoords,
     title: 'Hexplan',
-    content: hexPlanContent
+    content: hexPlanContent,
+    itemType: MapItemType.SYSTEM,
   })
 
   return hexPlanContent

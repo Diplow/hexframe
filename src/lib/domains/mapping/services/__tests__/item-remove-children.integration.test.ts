@@ -6,6 +6,7 @@ import {
   _createUniqueTestParams,
   _createTestCoordinates,
   _setupBasicMap,
+  createTestItem,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import {
   _setupHierarchyWithAllDirectionTypes,
@@ -48,7 +49,7 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
         groupId: params.groupId,
         path: [Direction.East],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: structuralCoords,
         title: "Structural",
@@ -59,7 +60,7 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
         groupId: params.groupId,
         path: [Direction.ComposedEast],
       });
-      const composedChild = await testEnv.service.items.crud.addItemToMap({
+      const composedChild = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: composedCoords,
         title: "Composed",
@@ -70,7 +71,7 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
         groupId: params.groupId,
         path: [Direction.Center],
       });
-      const hexplan = await testEnv.service.items.crud.addItemToMap({
+      const hexplan = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: hexplanCoords,
         title: "Hexplan",
@@ -147,7 +148,7 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
         groupId: params.groupId,
         path: [Direction.NorthWest],
       });
-      const structuralChild = await testEnv.service.items.crud.addItemToMap({
+      const structuralChild = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: structuralCoords,
         title: "Structural Child",
@@ -158,7 +159,7 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
         groupId: params.groupId,
         path: [Direction.NorthWest, Direction.Center],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: Number(structuralChild.id),
         coords: nestedHexPlanCoords,
         title: "Nested HexPlan",
@@ -200,7 +201,7 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
         groupId: params.groupId,
         path: [Direction.ComposedNorthWest],
       });
-      const composedChild = await testEnv.service.items.crud.addItemToMap({
+      const composedChild = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: composedCoords,
         title: "Composed Child",
@@ -211,7 +212,7 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
         groupId: params.groupId,
         path: [Direction.ComposedNorthWest, Direction.Center],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: Number(composedChild.id),
         coords: nestedHexPlanCoords,
         title: "Nested HexPlan",
@@ -253,7 +254,7 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
         groupId: params.groupId,
         path: [Direction.NorthWest],
       });
-      const level1 = await testEnv.service.items.crud.addItemToMap({
+      const level1 = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: level1Coords,
         title: "Level 1",
@@ -264,7 +265,7 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
         groupId: params.groupId,
         path: [Direction.NorthWest, Direction.NorthEast],
       });
-      const level2 = await testEnv.service.items.crud.addItemToMap({
+      const level2 = await createTestItem(testEnv, {
         parentId: Number(level1.id),
         coords: level2Coords,
         title: "Level 2",
@@ -275,7 +276,7 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
         groupId: params.groupId,
         path: [Direction.NorthWest, Direction.NorthEast, Direction.East],
       });
-      const level3 = await testEnv.service.items.crud.addItemToMap({
+      const level3 = await createTestItem(testEnv, {
         parentId: Number(level2.id),
         coords: level3Coords,
         title: "Level 3",
@@ -286,7 +287,7 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
         groupId: params.groupId,
         path: [Direction.NorthWest, Direction.NorthEast, Direction.East, Direction.Center],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: Number(level3.id),
         coords: deepHexPlanCoords,
         title: "Deep HexPlan",
@@ -328,7 +329,7 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
         groupId: params.groupId,
         path: [Direction.NorthWest],
       });
-      const parent = await testEnv.service.items.crud.addItemToMap({
+      const parent = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: parentCoords,
         title: "Parent",
@@ -340,7 +341,7 @@ describe("ItemCrudService.removeChildrenByType [Integration - DB]", () => {
         groupId: params.groupId,
         path: [Direction.NorthWest, Direction.NorthEast],
       });
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: Number(parent.id),
         coords: childCoords,
         title: "Child",

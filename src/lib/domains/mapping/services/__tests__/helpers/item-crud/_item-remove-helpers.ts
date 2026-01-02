@@ -4,6 +4,7 @@ import type { TestEnvironment } from "~/lib/domains/mapping/services/__tests__/h
 import {
   _setupBasicMap,
   _createTestCoordinates,
+  createTestItem,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 
 export async function _setupItemHierarchyForRemoval(
@@ -19,7 +20,7 @@ export async function _setupItemHierarchyForRemoval(
     path: [Direction.East],
   });
 
-  const child1 = await testEnv.service.items.crud.addItemToMap({
+  const child1 = await createTestItem(testEnv, {
     parentId: setupData.id,
     coords: child1Coords,
     title: "Child 1",
@@ -31,7 +32,7 @@ export async function _setupItemHierarchyForRemoval(
     path: [Direction.West],
   });
 
-  await testEnv.service.items.crud.addItemToMap({
+  await createTestItem(testEnv, {
     parentId: setupData.id,
     coords: child2Coords,
     title: "Child 2",

@@ -39,7 +39,7 @@ export class ItemCrudService {
    * @param preview - Optional preview text
    * @param link - Optional URL
    * @param visibility - Visibility setting (defaults to "private")
-   * @param itemType - Optional item type (defaults to CONTEXT, cannot be USER)
+   * @param itemType - Required item type (cannot be USER)
    */
   async addItemToMap({
     parentId,
@@ -58,7 +58,7 @@ export class ItemCrudService {
     preview?: string;
     link?: string;
     visibility?: Visibility;
-    itemType?: MapItemType;
+    itemType: MapItemType;
   }): Promise<MapItemContract> {
     let parentItem = null;
     if (parentId !== null) {
@@ -102,7 +102,7 @@ export class ItemCrudService {
     }
 
     const createParams = {
-      itemType: itemType ?? MapItemType.CONTEXT,
+      itemType,
       coords,
       title,
       content,

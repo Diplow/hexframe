@@ -7,6 +7,7 @@ import {
   _setupBasicMap,
   _createTestCoordinates,
   _createUniqueTestParams,
+  createTestItem,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 
 describe("tRPC Map Items Router - Composition Queries [Integration - DB]", () => {
@@ -68,7 +69,7 @@ describe("tRPC Map Items Router - Composition Queries [Integration - DB]", () =>
         path: [Direction.ComposedNorthWest],
       };
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(rootItem.id),
         coords: composedChildCoord,
         title: "Root Composed Child",
@@ -145,7 +146,7 @@ describe("tRPC Map Items Router - Composition Queries [Integration - DB]", () =>
         path: [Direction.ComposedEast],
       };
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: parseInt(rootItem.id),
         coords: composedChildCoord,
         title: "Root Composition",
@@ -171,7 +172,7 @@ describe("tRPC Map Items Router - Composition Queries [Integration - DB]", () =>
       groupId,
       path: [Direction.NorthEast],
     });
-    const parentItem = await testEnv.service.items.crud.addItemToMap({
+    const parentItem = await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: parentCoords,
       title: "Parent Tile",
@@ -183,7 +184,7 @@ describe("tRPC Map Items Router - Composition Queries [Integration - DB]", () =>
       groupId,
       path: [Direction.NorthEast, Direction.ComposedNorthWest],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: parseInt(parentItem.id),
       coords: child1Coords,
       title: "Composed Child 1",
@@ -194,7 +195,7 @@ describe("tRPC Map Items Router - Composition Queries [Integration - DB]", () =>
       groupId,
       path: [Direction.NorthEast, Direction.ComposedEast],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: parseInt(parentItem.id),
       coords: child2Coords,
       title: "Composed Child 2",
@@ -216,7 +217,7 @@ describe("tRPC Map Items Router - Composition Queries [Integration - DB]", () =>
       groupId,
       path: [Direction.NorthEast],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: parentCoords,
       title: "Parent Without Composition",
@@ -238,7 +239,7 @@ describe("tRPC Map Items Router - Composition Queries [Integration - DB]", () =>
       groupId,
       path: [Direction.SouthEast],
     });
-    const parentItem = await testEnv.service.items.crud.addItemToMap({
+    const parentItem = await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: parentCoords,
       title: "Parent Tile",
@@ -250,7 +251,7 @@ describe("tRPC Map Items Router - Composition Queries [Integration - DB]", () =>
       groupId,
       path: [Direction.SouthEast, Direction.ComposedNorthWest],
     });
-    const childItem = await testEnv.service.items.crud.addItemToMap({
+    const childItem = await createTestItem(testEnv, {
       parentId: parseInt(parentItem.id),
       coords: childCoords,
       title: "Composed Child",
@@ -262,7 +263,7 @@ describe("tRPC Map Items Router - Composition Queries [Integration - DB]", () =>
       groupId,
       path: [Direction.SouthEast, Direction.ComposedNorthWest, Direction.East],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: parseInt(childItem.id),
       coords: grandchildCoords,
       title: "Nested Structural Child",

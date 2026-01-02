@@ -57,7 +57,7 @@ export const itemTypeSchema = z.enum(["organizational", "context", "system"]);
 /**
  * Item creation schema for adding new tiles to the map.
  *
- * @property itemType - Optional semantic classification (defaults to "context").
+ * @property itemType - Required semantic classification for the tile.
  *   Cannot be set to "user" - that's system-controlled for root tiles only.
  */
 export const itemCreationSchema = z.object({
@@ -68,8 +68,8 @@ export const itemCreationSchema = z.object({
   preview: z.string().optional(),
   link: z.string().optional(),
   visibility: z.enum(["public", "private"]).optional(),
-  /** Semantic tile type: "organizational", "context", or "system" (defaults to "context") */
-  itemType: itemTypeSchema.optional(),
+  /** Semantic tile type: "organizational", "context", or "system" - required */
+  itemType: itemTypeSchema,
 });
 
 /**

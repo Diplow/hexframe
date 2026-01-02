@@ -5,6 +5,7 @@ import {
   _setupBasicMap,
   _createTestCoordinates,
   _createUniqueTestParams,
+  createTestItem,
   type TestEnvironment,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { Direction } from "~/lib/domains/mapping/utils";
@@ -25,7 +26,7 @@ describe("MapItem Copy Helpers", () => {
       const setupParams = _createUniqueTestParams();
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
-      const originalItem = await testEnv.service.items.crud.addItemToMap({
+      const originalItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -58,7 +59,7 @@ describe("MapItem Copy Helpers", () => {
       const setupParams = _createUniqueTestParams();
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -69,7 +70,7 @@ describe("MapItem Copy Helpers", () => {
         content: "Content 1",
       });
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -105,7 +106,7 @@ describe("MapItem Copy Helpers", () => {
       const setupParams = _createUniqueTestParams();
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -144,7 +145,7 @@ describe("MapItem Copy Helpers", () => {
       const setupParams = _createUniqueTestParams();
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
-      const originalItem = await testEnv.service.items.crud.addItemToMap({
+      const originalItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -185,7 +186,7 @@ describe("MapItem Copy Helpers", () => {
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
       // Create parent
-      const parentItem = await testEnv.service.items.crud.addItemToMap({
+      const parentItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -197,7 +198,7 @@ describe("MapItem Copy Helpers", () => {
       });
 
       // Create child
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: Number(parentItem.id),
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -264,7 +265,7 @@ describe("MapItem Copy Helpers", () => {
       const setupParams = _createUniqueTestParams();
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
-      const item1 = await testEnv.service.items.crud.addItemToMap({
+      const item1 = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -275,7 +276,7 @@ describe("MapItem Copy Helpers", () => {
         content: "Content 1",
       });
 
-      const item2 = await testEnv.service.items.crud.addItemToMap({
+      const item2 = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,
@@ -335,7 +336,7 @@ describe("MapItem Copy Helpers", () => {
       const setupParams = _createUniqueTestParams();
       const rootMap = await _setupBasicMap(testEnv.service, setupParams);
 
-      const originalItem = await testEnv.service.items.crud.addItemToMap({
+      const originalItem = await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: _createTestCoordinates({
           userId: setupParams.userId,

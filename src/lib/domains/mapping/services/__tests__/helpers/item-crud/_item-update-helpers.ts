@@ -2,7 +2,7 @@ import { expect } from "vitest";
 import { Direction } from "~/lib/domains/mapping/utils";
 import type { Coord } from "~/lib/domains/mapping/utils";
 import type { TestEnvironment } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
-import { _setupBasicMap, _createTestCoordinates } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
+import { _setupBasicMap, _createTestCoordinates, createTestItem } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 export async function _setupItemForUpdate(
@@ -17,7 +17,7 @@ export async function _setupItemForUpdate(
     path: [Direction.East],
   });
 
-  const originalItem = await testEnv.service.items.crud.addItemToMap({
+  const originalItem = await createTestItem(testEnv, {
     parentId: setupData.id,
     coords: itemCoords,
     title: "Original Title",

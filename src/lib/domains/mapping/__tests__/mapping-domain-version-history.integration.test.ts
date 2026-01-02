@@ -5,6 +5,7 @@ import {
   _createTestEnvironment,
   _createUniqueTestParams,
   _setupMapWithChild,
+  createTestItem,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { Direction } from "~/lib/domains/mapping/utils";
 
@@ -102,14 +103,14 @@ describe("Mapping Domain - Version History Integration", () => {
       };
 
       // Create two tiles with content
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: tile1Coords,
         title: "Tile 1 Initial",
         content: "Content 1",
       });
 
-      await testEnv.service.items.crud.addItemToMap({
+      await createTestItem(testEnv, {
         parentId: rootMap.id,
         coords: tile2Coords,
         title: "Tile 2 Initial",

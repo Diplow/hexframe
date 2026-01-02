@@ -6,6 +6,7 @@ import {
   _setupBasicMap,
   _createTestCoordinates,
   _createUniqueTestParams,
+  createTestItem,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import {
   _addAndValidateChildItem,
@@ -87,7 +88,7 @@ describe("MappingService - Item CRUD [Integration - DB]", () => {
         link: "https://example.com/preview-test",
       };
 
-      const childItemContract = await testEnv.service.items.crud.addItemToMap(addItemArgs);
+      const childItemContract = await createTestItem(testEnv, addItemArgs);
 
       // Validate the preview field is properly saved and returned
       expect(childItemContract).toBeDefined();

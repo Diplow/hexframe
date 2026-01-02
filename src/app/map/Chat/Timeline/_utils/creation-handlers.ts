@@ -9,6 +9,7 @@ interface CreationHandlerDeps {
     name?: string;
     preview?: string;
     description?: string;
+    itemType: "organizational" | "context" | "system";
   }) => Promise<void>;
   eventBus: EventBusService | null;
   chatState: {
@@ -22,7 +23,7 @@ export function createCreationHandlers(
 ) {
   const { createItemOptimistic, eventBus, chatState } = deps;
 
-  const handleSave = async (name: string, preview: string, content: string) => {
+  const handleSave = async (name: string, preview: string, content: string, itemType: "organizational" | "context" | "system" = "context") => {
     const creationData = widget.data as { coordId?: string; parentName?: string; parentCoordId?: string; parentId?: string };
 
     try {
@@ -30,7 +31,8 @@ export function createCreationHandlers(
         title: name,
         preview: preview,
         description: content,
-        parentId: creationData.parentId ? parseInt(creationData.parentId, 10) : undefined
+        parentId: creationData.parentId ? parseInt(creationData.parentId, 10) : undefined,
+        itemType,
       });
 
       // Note: map.tile_created event is already emitted by MutationCoordinator

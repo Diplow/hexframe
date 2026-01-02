@@ -92,7 +92,7 @@ export interface NavigationOperations {
 }
 
 export interface MutationOperations {
-  createItem: (coordId: string, data: Omit<MapItemCreateAttributes, 'coords' | 'itemType'> & { parentId?: number }) => Promise<MutationResult>;
+  createItem: (coordId: string, data: Omit<MapItemCreateAttributes, 'coords' | 'itemType'> & { parentId?: number; itemType: "organizational" | "context" | "system" }) => Promise<MutationResult>;
   updateItem: (coordId: string, data: MapItemUpdateAttributes) => Promise<MutationResult>;
   deleteItem: (coordId: string) => Promise<MutationResult>;
   deleteChildrenByType: (coordId: string, directionType: 'structural' | 'composed' | 'hexPlan') => Promise<MutationResult & { deletedCount: number }>;

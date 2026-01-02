@@ -7,6 +7,7 @@ import {
   _setupBasicMap,
   _createTestCoordinates,
   _createUniqueTestParams,
+  createTestItem,
 } from "~/lib/domains/mapping/services/__tests__/helpers/_test-utilities";
 import { SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
@@ -40,7 +41,7 @@ describe("MappingService - Item Relationships [Integration - DB]", () => {
       groupId,
       path: [Direction.NorthEast],
     });
-    const childItem: Awaited<ReturnType<typeof testEnv.service.items.crud.addItemToMap>> = await testEnv.service.items.crud.addItemToMap({
+    const childItem = await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: childCoords,
       title: "Child Item",
@@ -51,7 +52,7 @@ describe("MappingService - Item Relationships [Integration - DB]", () => {
       groupId,
       path: [Direction.NorthEast, Direction.East],
     });
-    const grandchildItem: Awaited<ReturnType<typeof testEnv.service.items.crud.addItemToMap>> = await testEnv.service.items.crud.addItemToMap({
+    const grandchildItem = await createTestItem(testEnv, {
       parentId: parseInt(childItem.id),
       coords: grandchildCoords,
       title: "Grandchild Item",
@@ -62,7 +63,7 @@ describe("MappingService - Item Relationships [Integration - DB]", () => {
       groupId,
       path: [Direction.West],
     });
-    await testEnv.service.items.crud.addItemToMap({
+    await createTestItem(testEnv, {
       parentId: rootMap.id,
       coords: unrelatedChildCoords,
       title: "Unrelated Item (Child of Root)",
