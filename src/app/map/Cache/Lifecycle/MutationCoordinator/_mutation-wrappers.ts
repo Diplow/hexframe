@@ -1,6 +1,6 @@
 import type { Coord, NonUserMapItemTypeString, VisibilityString } from "~/lib/domains/mapping/utils";
 import { Visibility } from "~/lib/domains/mapping/utils";
-import type { MapItemUpdateAttributes, MapItemCreateAttributes } from "~/lib/domains/mapping/utils";
+import type { MapItemUpdateAttributes } from "~/lib/domains/mapping/utils";
 import type { MapItemAPIContract } from "~/server/api";
 
 /**

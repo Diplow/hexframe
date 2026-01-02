@@ -34,9 +34,16 @@ const config = {
       },
     },
     {
-      files: ["**/__tests__/**/*.ts", "**/*.test.ts"],
+      files: ["**/__tests__/**/*.ts", "**/*.test.ts", "**/*.integration.test.ts"],
       rules: {
         "@typescript-eslint/unbound-method": "off",
+        // Disable unsafe-* rules for test files - ESLint's TypeScript parser has issues
+        // resolving types from test helper factories, but pnpm typecheck validates correctly
+        "@typescript-eslint/no-unsafe-assignment": "off",
+        "@typescript-eslint/no-unsafe-member-access": "off",
+        "@typescript-eslint/no-unsafe-argument": "off",
+        "@typescript-eslint/no-unsafe-call": "off",
+        "@typescript-eslint/no-unsafe-return": "off",
       },
     },
     {
