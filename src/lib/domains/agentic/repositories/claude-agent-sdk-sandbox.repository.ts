@@ -251,7 +251,7 @@ async function runAgent() {
       options: {
         model: ${JSON.stringify(model)},
         systemPrompt: ${systemPrompt ? JSON.stringify(systemPrompt) : 'undefined'},
-        maxTurns: 10,
+        maxTurns: 50, // Allow multiple turns for complex agentic workflows
         maxBudgetUsd: 1.0, // Strict budget limit per request
         ${streaming ? 'includePartialMessages: true,' : ''}
         mcpServers: ${mcpServers},
