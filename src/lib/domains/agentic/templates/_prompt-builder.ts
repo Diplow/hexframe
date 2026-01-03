@@ -10,6 +10,10 @@ import Mustache from 'mustache'
 import { MapItemType } from '~/lib/domains/mapping'
 import { SYSTEM_TEMPLATE, type SystemTemplateData, HEXRUN_INTRO, ANCESTOR_INTRO } from '~/lib/domains/agentic/templates/_system-template'
 import { USER_TEMPLATE, type UserTemplateData, USER_INTRO } from '~/lib/domains/agentic/templates/_user-template'
+import {
+  shouldUseOrchestrator,
+  buildOrchestratorPrompt
+} from '~/lib/domains/agentic/templates/_hexrun-orchestrator-template'
 import { preProcess, type TemplateContext, type TileData } from '~/lib/domains/agentic/templates/_pre-processor'
 import { templateRegistry, GenericTile, TileOrFolder } from '~/lib/domains/agentic/templates/_templates'
 
@@ -317,6 +321,11 @@ function _buildPreProcessorContext(data: PromptData): TemplateContext {
  * Empty sections are omitted.
  */
 export function buildPrompt(data: PromptData): string {
+  // For SYSTEM tiles with userMessage (from @-mention), use orchestrator
+  if (shouldUseOrchestrator(data.itemType, data.userMessage)) {
+    return buildOrchestratorPrompt(data)
+  }
+
   const template = _getTemplateByItemType(data.itemType)
 
   // Prepare template data based on item type
