@@ -54,6 +54,7 @@ import { EventBus as EventBusImpl } from '~/lib/utils/event-bus'
 const executeTaskQuerySchema = z.object({
   taskCoords: z.string().min(1, 'taskCoords is required'),
   instruction: z.string().optional(),
+  discussion: z.string().optional(),
   model: z.string().default('claude-haiku-4-5-20251001'),
   temperature: z.coerce.number().min(0).max(2).optional(),
   maxTokens: z.coerce.number().min(1).max(8192).optional()
@@ -230,6 +231,7 @@ export async function GET(request: NextRequest): Promise<Response> {
   const parseResult = executeTaskQuerySchema.safeParse({
     taskCoords: searchParams.get('taskCoords'),
     instruction: searchParams.get('instruction') ?? undefined,
+    discussion: searchParams.get('discussion') ?? undefined,
     model: searchParams.get('model') ?? undefined,
     temperature: searchParams.get('temperature') ?? undefined,
     maxTokens: searchParams.get('maxTokens') ?? undefined
@@ -242,7 +244,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     return NextResponse.json({ error: `Invalid parameters: ${errorMessage}` }, { status: 400 })
   }
 
-  const { taskCoords, instruction, model, temperature, maxTokens } = parseResult.data
+  const { taskCoords, instruction, discussion, model, temperature, maxTokens } = parseResult.data
 
   // Authenticate request
   const authResult = await _authenticateRequest(request)
@@ -298,7 +300,9 @@ export async function GET(request: NextRequest): Promise<Response> {
             hexPlanContent,
             model,
             temperature,
-            maxTokens
+            maxTokens,
+            discussion,
+            userMessage: instruction
           },
           agenticService,
           (chunk) => {

@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import { buildPrompt, generateParentHexplanContent, generateLeafHexplanContent, type PromptData } from '~/lib/domains/agentic/utils'
 import { MapItemType } from '~/lib/domains/mapping'
+import { parseCustomTags, parseParams } from '~/lib/domains/agentic/templates/_pre-processor/_parser'
+import { GenericTile } from '~/lib/domains/agentic/templates/_templates/_generic-tile'
+import { Folder } from '~/lib/domains/agentic/templates/_templates/_folder'
 
 const DEFAULT_MCP_SERVER = 'hexframe'
 
@@ -23,7 +26,7 @@ describe('buildPrompt - v5 Top-Down Context + Root Hexplan', () => {
     it('should generate sections in correct order: ancestor-context, context, subtasks, task, hexplan', () => {
       const data = createTestData({
         task: { title: 'Test Task', content: 'Test content', coords: 'userId,0:1' },
-        ancestors: [{ title: 'Parent', content: 'Parent context', coords: 'userId,0:' }],
+        ancestors: [{ title: 'Parent', content: 'Parent context', coords: 'userId,0:', itemType: MapItemType.SYSTEM }],
         composedChildren: [{ title: 'Context', content: 'Context info', coords: 'userId,0:1,-1' }],
         structuralChildren: [{ title: 'Subtask 1', preview: 'Preview 1', coords: 'userId,0:1,1' }],
         hexPlan: '📋 Step 1'
@@ -95,8 +98,8 @@ describe('buildPrompt - v5 Top-Down Context + Root Hexplan', () => {
       const data = createTestData({
         task: { title: 'Test', content: 'Content', coords: 'userId,0:1,2' },
         ancestors: [
-          { title: 'Root', content: 'Root context', coords: 'userId,0:' },
-          { title: 'Parent', content: 'Parent context', coords: 'userId,0:1' }
+          { title: 'Root', content: 'Root context', coords: 'userId,0:', itemType: MapItemType.SYSTEM },
+          { title: 'Parent', content: 'Parent context', coords: 'userId,0:1', itemType: MapItemType.SYSTEM }
         ]
       })
 
@@ -114,8 +117,8 @@ describe('buildPrompt - v5 Top-Down Context + Root Hexplan', () => {
       const data = createTestData({
         task: { title: 'Test', content: 'Content', coords: 'userId,0:1,2' },
         ancestors: [
-          { title: 'EmptyRoot', content: undefined, coords: 'userId,0:' },
-          { title: 'Parent', content: 'Parent context', coords: 'userId,0:1' }
+          { title: 'EmptyRoot', content: undefined, coords: 'userId,0:', itemType: MapItemType.SYSTEM },
+          { title: 'Parent', content: 'Parent context', coords: 'userId,0:1', itemType: MapItemType.SYSTEM }
         ]
       })
 
@@ -555,13 +558,26 @@ describe('buildPrompt error handling for unsupported itemTypes', () => {
     expect(() => buildPrompt(data)).toThrow('ORGANIZATIONAL tiles cannot be executed')
   })
 
-  it('should throw error for USER itemType', () => {
+  it('should render USER itemType with new structure', () => {
     const data = createTestData({
-      task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
-      itemType: MapItemType.USER
+      task: { title: 'Test', content: 'Content', coords: 'userId,0:' },
+      itemType: MapItemType.USER,
+      hexPlan: 'User goal: Build a project',
+      discussion: 'User asked about creating tiles'
     })
 
-    expect(() => buildPrompt(data)).toThrow('USER tile templates not yet implemented')
+    const result = buildPrompt(data)
+
+    // USER templates have different structure than SYSTEM
+    expect(result).toContain('<user-intro>')
+    expect(result).toContain('default interlocutor')
+    expect(result).not.toContain('<hexrun-intro>')
+    expect(result).not.toContain('<task>')
+    expect(result).not.toContain('<goal>')
+    expect(result).toContain('<recent-history')
+    expect(result).toContain('User goal: Build a project')
+    expect(result).toContain('<discussion>')
+    expect(result).toContain('User asked about creating tiles')
   })
 
   it('should throw error for CONTEXT itemType', () => {
@@ -571,5 +587,322 @@ describe('buildPrompt error handling for unsupported itemTypes', () => {
     })
 
     expect(() => buildPrompt(data)).toThrow('CONTEXT tile templates not yet implemented')
+  })
+})
+
+// ==================== TEMPLATE SYSTEM TESTS ====================
+describe('Template System - Pre-processor and Templates', () => {
+  describe('parseCustomTags and parseParams', () => {
+    it('should parse simple custom tags', () => {
+      const template = '{{@HexPlan}}'
+      const tags = parseCustomTags(template)
+
+      expect(tags).toHaveLength(1)
+      expect(tags[0]!.templateName).toBe('HexPlan')
+    })
+
+    it('should parse custom tags with parameters', () => {
+      const template = "{{@GenericTile fields=['title', 'content'] wrapper='context'}}"
+      const tags = parseCustomTags(template)
+
+      expect(tags).toHaveLength(1)
+      expect(tags[0]!.templateName).toBe('GenericTile')
+      expect(tags[0]!.params.fields).toEqual(['title', 'content'])
+      expect(tags[0]!.params.wrapper).toBe('context')
+    })
+
+    it('should parse array parameters', () => {
+      const result = parseParams("fields=['title', 'content', 'preview']")
+
+      expect(result.fields).toEqual(['title', 'content', 'preview'])
+    })
+
+    it('should parse numeric parameters', () => {
+      const result = parseParams('depth=3')
+
+      expect(result.depth).toBe(3)
+    })
+
+    it('should parse boolean parameters', () => {
+      const resultTrue = parseParams('enabled=true')
+      const resultFalse = parseParams('enabled=false')
+
+      expect(resultTrue.enabled).toBe(true)
+      expect(resultFalse.enabled).toBe(false)
+    })
+  })
+
+  describe('GenericTile template', () => {
+    it('should render tile with title and content', () => {
+      const tile = { title: 'Test Title', content: 'Test content', coords: 'userId,0:1' }
+      const result = GenericTile(tile, ['title', 'content'])
+
+      expect(result).toContain('Test Title')
+      expect(result).toContain('Test content')
+    })
+
+    it('should render with wrapper tag', () => {
+      const tile = { title: 'Test', content: 'Content', coords: 'userId,0:1' }
+      const result = GenericTile(tile, ['title', 'content'], 'context')
+
+      expect(result).toContain('<context title="Test" coords="userId,0:1">')
+      expect(result).toContain('</context>')
+    })
+
+    it('should escape XML in title attribute', () => {
+      const tile = { title: 'Test <>&"\'', content: 'Content', coords: 'userId,0:1' }
+      const result = GenericTile(tile, ['title', 'content'], 'context')
+
+      expect(result).toContain('title="Test &lt;&gt;&amp;&quot;&apos;"')
+    })
+
+    it('should return empty string for undefined tile', () => {
+      const result = GenericTile(undefined, ['title', 'content'])
+
+      expect(result).toBe('')
+    })
+  })
+
+  describe('Folder template', () => {
+    it('should render organizational tile as folder', () => {
+      const tile = {
+        title: 'Projects',
+        itemType: MapItemType.ORGANIZATIONAL,
+        coords: 'userId,0:1',
+        children: [
+          { title: 'Child 1', content: 'Content 1', coords: 'userId,0:1,1' },
+          { title: 'Child 2', content: 'Content 2', coords: 'userId,0:1,2' }
+        ]
+      }
+
+      const result = Folder(tile, ['title', 'content'], 3)
+
+      expect(result).toContain('<folder title="Projects">')
+      expect(result).toContain('Child 1')
+      expect(result).toContain('Child 2')
+      expect(result).toContain('</folder>')
+    })
+
+    it('should render nested organizational tiles recursively', () => {
+      const tile = {
+        title: 'Root',
+        itemType: MapItemType.ORGANIZATIONAL,
+        coords: 'userId,0:1',
+        children: [
+          {
+            title: 'Nested Folder',
+            itemType: MapItemType.ORGANIZATIONAL,
+            coords: 'userId,0:1,1',
+            children: [
+              { title: 'Deep Child', content: 'Deep content', coords: 'userId,0:1,1,1' }
+            ]
+          }
+        ]
+      }
+
+      const result = Folder(tile, ['title', 'content'], 3)
+
+      expect(result).toContain('<folder title="Root">')
+      expect(result).toContain('<folder title="Nested Folder">')
+      expect(result).toContain('Deep Child')
+    })
+
+    it('should respect depth limit', () => {
+      const tile = {
+        title: 'Root',
+        itemType: MapItemType.ORGANIZATIONAL,
+        coords: 'userId,0:1',
+        children: [
+          {
+            title: 'Level 1',
+            itemType: MapItemType.ORGANIZATIONAL,
+            coords: 'userId,0:1,1',
+            children: []
+          }
+        ]
+      }
+
+      const result = Folder(tile, ['title'], 1)
+
+      expect(result).toContain('<folder title="Root">')
+      expect(result).toContain('collapsed="true"')
+    })
+
+    it('should render empty folder when no children', () => {
+      const tile = {
+        title: 'Empty Folder',
+        itemType: MapItemType.ORGANIZATIONAL,
+        coords: 'userId,0:1',
+        children: []
+      }
+
+      const result = Folder(tile, ['title'], 3)
+
+      expect(result).toBe('<folder title="Empty Folder" />')
+    })
+  })
+
+  describe('USER template structure', () => {
+    it('should render organizational context children as folders', () => {
+      const data = createTestData({
+        task: { title: 'User Tile', content: '', coords: 'userId,0:' },
+        itemType: MapItemType.USER,
+        composedChildren: [
+          {
+            title: 'Reference Folder',
+            content: '',
+            coords: 'userId,0:-1',
+            itemType: MapItemType.ORGANIZATIONAL,
+            children: [
+              { title: 'Ref 1', content: 'Reference 1 content', coords: 'userId,0:-1,1' },
+              { title: 'Ref 2', content: 'Reference 2 content', coords: 'userId,0:-1,2' }
+            ]
+          }
+        ],
+        hexPlan: ''
+      })
+
+      const result = buildPrompt(data)
+
+      // Context section should have folders for organizational children
+      expect(result).toContain('<folder title="Reference Folder">')
+      expect(result).toContain('Ref 1')
+      expect(result).toContain('Ref 2')
+    })
+
+    it('should render structural children as sections (not subtasks)', () => {
+      const data = createTestData({
+        task: { title: 'User Tile', content: '', coords: 'userId,0:' },
+        itemType: MapItemType.USER,
+        structuralChildren: [
+          {
+            title: 'Projects',
+            preview: 'My projects folder',
+            coords: 'userId,0:1',
+            itemType: MapItemType.ORGANIZATIONAL
+          },
+          {
+            title: 'Build App',
+            preview: 'Build the app',
+            coords: 'userId,0:2',
+            itemType: MapItemType.SYSTEM
+          }
+        ],
+        hexPlan: ''
+      })
+
+      const result = buildPrompt(data)
+
+      // USER template uses <sections> not <subtasks>
+      expect(result).toContain('<sections>')
+      expect(result).not.toContain('<subtasks>')
+      // Organizational tiles shown as type="folder"
+      expect(result).toContain('<section title="Projects" type="folder"')
+      expect(result).toContain('<section title="Build App"')
+      // Does NOT recurse into children for sections
+      expect(result).not.toContain('<folder')
+    })
+
+    it('should mix regular and organizational context children', () => {
+      const data = createTestData({
+        task: { title: 'User Tile', content: '', coords: 'userId,0:' },
+        itemType: MapItemType.USER,
+        composedChildren: [
+          { title: 'Regular Context', content: 'Some context', coords: 'userId,0:-1' },
+          {
+            title: 'Folder Context',
+            content: '',
+            coords: 'userId,0:-2',
+            itemType: MapItemType.ORGANIZATIONAL,
+            children: [
+              { title: 'Nested', content: 'Nested content', coords: 'userId,0:-2,1' }
+            ]
+          }
+        ],
+        hexPlan: ''
+      })
+
+      const result = buildPrompt(data)
+
+      expect(result).toContain('<context title="Regular Context"')
+      expect(result).toContain('<folder title="Folder Context">')
+    })
+
+    it('should include discussion section when provided', () => {
+      const data = createTestData({
+        task: { title: 'User Tile', content: '', coords: 'userId,0:' },
+        itemType: MapItemType.USER,
+        hexPlan: '',
+        discussion: 'User is working on a new project'
+      })
+
+      const result = buildPrompt(data)
+
+      expect(result).toContain('<discussion>')
+      expect(result).toContain('User is working on a new project')
+    })
+
+    it('should include recent-history with coords', () => {
+      const data = createTestData({
+        task: { title: 'User Tile', content: '', coords: 'userId,0:' },
+        itemType: MapItemType.USER,
+        hexPlan: 'Goal: Complete the tutorial'
+      })
+
+      const result = buildPrompt(data)
+
+      expect(result).toContain('<recent-history coords="userId,0:,0">')
+      expect(result).toContain('Goal: Complete the tutorial')
+    })
+  })
+
+  describe('SYSTEM template ancestor filtering', () => {
+    it('should only include SYSTEM ancestors', () => {
+      const data = createTestData({
+        task: { title: 'Deep Task', content: 'Task content', coords: 'userId,0:1,1,1' },
+        itemType: MapItemType.SYSTEM,
+        ancestors: [
+          { title: 'User Root', content: 'User content', coords: 'userId,0:', itemType: MapItemType.USER },
+          { title: 'Projects', content: '', coords: 'userId,0:1', itemType: MapItemType.ORGANIZATIONAL },
+          { title: 'System Parent', content: 'System context', coords: 'userId,0:1,1', itemType: MapItemType.SYSTEM }
+        ],
+        hexPlan: '📋 Execute'
+      })
+
+      const result = buildPrompt(data)
+
+      // Should include SYSTEM ancestor
+      expect(result).toContain('System Parent')
+      expect(result).toContain('System context')
+      // Should NOT include USER or ORGANIZATIONAL ancestors
+      expect(result).not.toContain('User Root')
+      expect(result).not.toContain('Projects')
+    })
+
+    it('should include chain of SYSTEM ancestors from last SYSTEM up', () => {
+      const data = createTestData({
+        task: { title: 'Task', content: '', coords: 'userId,0:1,1,1,1' },
+        itemType: MapItemType.SYSTEM,
+        ancestors: [
+          { title: 'User', content: 'user', coords: 'userId,0:', itemType: MapItemType.USER },
+          { title: 'System 1', content: 'sys1', coords: 'userId,0:1', itemType: MapItemType.SYSTEM },
+          { title: 'System 2', content: 'sys2', coords: 'userId,0:1,1', itemType: MapItemType.SYSTEM },
+          { title: 'System 3', content: 'sys3', coords: 'userId,0:1,1,1', itemType: MapItemType.SYSTEM }
+        ],
+        hexPlan: '📋 Execute'
+      })
+
+      const result = buildPrompt(data)
+
+      // Should include all SYSTEM ancestors from the first one
+      expect(result).toContain('System 1')
+      expect(result).toContain('sys1')
+      expect(result).toContain('System 2')
+      expect(result).toContain('sys2')
+      expect(result).toContain('System 3')
+      expect(result).toContain('sys3')
+      // Should NOT include USER ancestor
+      expect(result).not.toContain('>user<')
+    })
   })
 })

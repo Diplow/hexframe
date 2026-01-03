@@ -18,6 +18,7 @@ import { useMapCacheCenter } from '~/app/map/Cache';
 import { authClient } from '~/lib/auth';
 import { useEventBus } from '~/app/map/Services/EventBus';
 import { api } from '~/commons/trpc/react';
+import { formatDiscussion } from '~/app/map/Chat/_hooks/_discussion-formatter';
 
 
 export function Input() {
@@ -133,6 +134,11 @@ export function Input() {
     [chatState]
   );
 
+  // Get discussion string for USER tile context using shared formatter
+  const getDiscussion = useCallback((): string | undefined => {
+    return formatDiscussion(chatState.messages);
+  }, [chatState.messages]);
+
   // Message handling with proper resetTextareaHeight and favorites support
   const { handleSend } = useMessageHandling({
     executeCommand,
@@ -146,6 +152,7 @@ export function Input() {
     favorites,
     executeTask,
     showSystemMessage,
+    getDiscussion,
   });
 
   const handleMessageChange = (newMessage: string) => {
