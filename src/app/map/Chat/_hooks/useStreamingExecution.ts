@@ -79,7 +79,7 @@ export function useStreamingExecution(
   const start = useCallback(() => {
     if (eventSourceRef.current) return
     setError(null)
-    const eventSource = new EventSource(_buildStreamingUrl(taskCoords, instruction))
+    const eventSource = new EventSource(_buildStreamingUrl({ taskCoords, instruction }))
     eventSource.onmessage = handleMessage
     eventSource.onerror = handleError
     eventSource.onopen = handleOpen

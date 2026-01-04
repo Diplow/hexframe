@@ -162,7 +162,7 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
         options: {
           model,
           systemPrompt,
-          maxTurns: 10, // Allow multiple turns for tool use and agentic workflows
+          maxTurns: 50, // Allow multiple turns for complex agentic workflows
           mcpServers,
           permissionMode: 'bypassPermissions' // Allow MCP tools without asking for permission
         }
@@ -269,7 +269,7 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
         options: {
           model,
           systemPrompt,
-          maxTurns: 10, // Allow multiple turns for tool use and agentic workflows
+          maxTurns: 50, // Allow multiple turns for complex agentic workflows
           includePartialMessages: true, // Enable real-time streaming
           mcpServers,
           permissionMode: 'bypassPermissions' // Allow MCP tools without asking for permission

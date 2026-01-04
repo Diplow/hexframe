@@ -19,7 +19,7 @@ interface UseStreamingTaskExecutionOptions {
 }
 
 interface UseStreamingTaskExecutionReturn {
-  executeTask: (taskCoords: string, instruction: string) => void
+  executeTask: (taskCoords: string, instruction: string, discussion?: string) => void
   isStreaming: boolean
   abort: () => void
 }
@@ -53,7 +53,7 @@ export function useStreamingTaskExecution(
     if (isMountedRef.current) setIsStreaming(false)
   }, [])
 
-  const executeTask = useCallback((taskCoords: string, instruction: string) => {
+  const executeTask = useCallback((taskCoords: string, instruction: string, discussion?: string) => {
     // Abort any existing connection
     abort()
 
@@ -84,7 +84,7 @@ export function useStreamingTaskExecution(
     const callbacksRef = { current: callbacks }
 
     // Build URL and create EventSource
-    const url = _buildStreamingUrl(taskCoords, instruction)
+    const url = _buildStreamingUrl({ taskCoords, instruction, discussion })
     const eventSource = new EventSource(url)
     eventSourceRef.current = eventSource
 

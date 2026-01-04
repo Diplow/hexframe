@@ -1,59 +1,77 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useChatState } from '~/app/map/Chat'
-import { useAIChat } from '~/app/map/Chat/_hooks/useAIChat'
+import { useStreamingTaskExecution } from '~/app/map/Chat/Input/_hooks'
+import { formatDiscussion } from '~/app/map/Chat/_hooks/_discussion-formatter'
+import { authClient } from '~/lib/auth'
 import { loggers } from '~/lib/debug/debug-logger'
 
 /**
- * Hook that integrates AI chat functionality into the chat system
- * This automatically sends user messages to the AI when they start with specific patterns
+ * Hook that integrates AI chat functionality into the chat system.
+ * Routes all non-command user messages through executeTask to the USER tile.
  */
 export function useAIChatIntegration() {
   const chatState = useChatState()
-  
-  // Always call the hook - it now handles missing context gracefully
-  const aiChat = useAIChat()
-  const sendToAI = aiChat.sendToAI
-  const isGenerating = aiChat.isGenerating
+  const [userId, setUserId] = useState<string | null>(null)
   const lastProcessedMessageId = useRef<string | null>(null)
   const processingMessage = useRef(false)
+
+  // Get user ID from auth session
+  useEffect(() => {
+    void authClient.getSession().then(session => {
+      setUserId(session?.data?.user?.id ?? null)
+    })
+  }, [])
+
+  // Use streaming task execution for USER tile
+  const { executeTask, isStreaming } = useStreamingTaskExecution({ chatState })
+
+  // Compute USER tile coordId: "{userId},0" (root tile with default groupId)
+  const userTileCoordId = userId ? `${userId},0` : null
 
   useEffect(() => {
     // Find the latest message
     const latestMessage = chatState.messages[chatState.messages.length - 1]
-    
+
     // Only process user messages that haven't been processed yet
-    if (latestMessage?.actor !== 'user' || 
+    if (latestMessage?.actor !== 'user' ||
         lastProcessedMessageId.current === latestMessage.id) {
       return
     }
 
     const messageContent = latestMessage.content
-    
+
     // Skip command messages (those starting with /)
     const isCommand = messageContent.startsWith('/')
-    
-    // Skip if already processing or if it's a command
-    if (isCommand || processingMessage.current || !sendToAI) {
+
+    // Skip @-mention messages (those handled by Input component directly)
+    const hasMention = messageContent.includes('@')
+
+    // Skip if already processing, is a command, has a mention, or no user tile available
+    if (isCommand || hasMention || processingMessage.current || !userTileCoordId) {
       return
     }
-    
-    // Send all non-command user messages to AI
+
+    // Send all non-command, non-mention user messages to AI via USER tile
     processingMessage.current = true
     lastProcessedMessageId.current = latestMessage.id
-    
-    loggers.agentic('Sending message to AI', {
+
+    loggers.agentic('Sending message to AI via USER tile', {
       message: messageContent,
       actor: latestMessage.actor,
-      messageId: latestMessage.id
+      messageId: latestMessage.id,
+      userTileCoordId
     })
 
-    // Send to AI (the thinking indicator is shown via isGeneratingAI)
-    void sendToAI(messageContent).finally(() => {
-      processingMessage.current = false
-    })
-  }, [chatState.messages, sendToAI, chatState])
+    // Format existing messages (excluding the latest) as discussion context
+    const previousMessages = chatState.messages.slice(0, -1)
+    const discussion = formatDiscussion(previousMessages)
+
+    // Execute task on USER tile with the user's message as instruction
+    executeTask(userTileCoordId, messageContent, discussion)
+    processingMessage.current = false
+  }, [chatState.messages, executeTask, userTileCoordId, chatState])
 
   return {
-    isGeneratingAI: isGenerating
+    isGeneratingAI: isStreaming
   }
 }

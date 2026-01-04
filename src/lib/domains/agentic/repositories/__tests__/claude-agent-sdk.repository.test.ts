@@ -60,7 +60,7 @@ describe('ClaudeAgentSDKRepository', () => {
         prompt: expect.any(String),
         options: expect.objectContaining({
           model: 'claude-sonnet-4-5-20250929',
-          maxTurns: 10
+          maxTurns: 50
         })
       })
 

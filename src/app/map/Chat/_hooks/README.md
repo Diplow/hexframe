@@ -5,9 +5,9 @@ Like the nervous system of the chat interface - specialized hooks that translate
 
 ## Responsibilities
 - Provide SSE streaming client for real-time execution feedback via `useStreamingExecution`
-- Manage AI chat integration through `useAIChat` and `useAIChatIntegration`
-- Handle message preparation and response processing for AI interactions
+- Route user messages to USER tile execution via `useAIChatIntegration`
 - Dispatch typed streaming events to appropriate UI handlers
+- Format chat discussion for AI context via `_discussion-formatter`
 
 ## Non-Responsibilities
 - Chat state management -> See `../_state/README.md`
@@ -57,15 +57,17 @@ const { isStreaming, error, start, abort } = useStreamingExecution({
 | `start` | `() => void` | Start the SSE connection |
 | `abort` | `() => void` | Close the SSE connection |
 
-### useAIChat
-Handles AI chat interactions via tRPC mutations.
-
-**Purpose**: Sends user messages to the AI backend and processes responses, displaying them as widgets in the chat timeline.
-
 ### useAIChatIntegration
-Automatically routes user messages to AI chat.
+Routes user messages to USER tile for AI execution.
 
-**Purpose**: Watches for new user messages in the chat timeline and automatically sends non-command messages to the AI for processing.
+**Purpose**: Watches for new user messages in the chat timeline and automatically routes non-command, non-@mention messages to the user's USER tile via the executeTask streaming flow.
+
+**How it works**:
+1. Monitors chat messages for new user inputs
+2. Skips commands (messages starting with `/`) and @mentions (handled separately)
+3. Gets user's USER tile coordinates (`{userId},0`)
+4. Formats previous messages as discussion context
+5. Executes task on USER tile with the message as instruction
 
 ## StreamEvent Types
 
@@ -100,20 +102,19 @@ interface StreamingCallbacks {
 The hooks integrate with the chat system through:
 
 1. **Chat State** (`useChatState`): Hooks access shared chat state to add messages and show widgets
-2. **Map Cache** (`MapCacheContext`): Provides tile context for AI interactions
+2. **Streaming Task Execution**: Routes messages to USER tile via `useStreamingTaskExecution`
 3. **EventBus**: Tile mutations can trigger cache invalidation via system events
 
 **Typical Flow**:
 1. User types message in chat input
-2. `useAIChatIntegration` detects new message, calls `useAIChat.sendToAI()`
-3. For streaming execution, `useStreamingExecution` connects to SSE endpoint
+2. `useAIChatIntegration` detects new message, executes task on USER tile
+3. `useStreamingExecution` connects to SSE endpoint
 4. Events flow through callbacks to update UI in real-time
-5. On completion, widgets/messages are added to chat timeline
+5. On completion, response is added to chat timeline
 
 ## Internal Modules
 
 | Module | Purpose |
 |--------|---------|
 | `_streaming-utils.ts` | URL building, event parsing, handler creation |
-| `_ai-message-utils.ts` | Message preparation for AI requests |
-| `_ai-response-handlers.ts` | Success/error response processing |
+| `_discussion-formatter.ts` | Format chat messages as discussion string |

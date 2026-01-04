@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { createTRPCRouter, protectedProcedure, softAuthProcedure, mappingServiceMiddleware, agenticServiceMiddleware } from '~/server/api/trpc'
 import { verificationAwareRateLimit, verificationAwareAuthLimit } from '~/server/api/middleware'
-import { createAgenticService, type CompositionConfig, PreviewGeneratorService, OpenRouterRepository, type ChatMessageContract } from '~/lib/domains/agentic'
+import { type CompositionConfig, PreviewGeneratorService, OpenRouterRepository, type ChatMessageContract } from '~/lib/domains/agentic'
 import { buildPrompt, generateParentHexplanContent, generateLeafHexplanContent } from '~/lib/domains/agentic/utils'
 import { ContextStrategies, CoordSystem, Direction, MapItemType } from '~/lib/domains/mapping/utils'
 import { _getRequesterUserId } from '~/server/api/routers/map'
@@ -129,79 +129,6 @@ const compositionConfigSchema = z.object({
 
 
 export const agenticRouter = createTRPCRouter({
-  // This procedure needs dynamic useQueue, so it creates its own service using ctx.eventBus and ctx.mcpApiKey
-  generateResponse: protectedProcedure
-    .use(verificationAwareRateLimit) // Rate limit: 10 req/5min for verified, 3 req/5min for unverified
-    .use(mappingServiceMiddleware) // Add mapping service to context
-    .use(agenticServiceMiddleware) // Provides eventBus and mcpApiKey
-    .input(
-      z.object({
-        centerCoordId: z.string(),
-        messages: z.array(chatMessageSchema),
-        model: z.string().default('claude-haiku-4-5-20251001'),
-        temperature: z.number().min(0).max(2).optional(),
-        maxTokens: z.number().min(1).max(8192).optional(),
-        compositionConfig: compositionConfigSchema.optional(),
-      })
-    )
-    .mutation(async ({ input, ctx }) => {
-      // Fetch map context using mapping domain service
-      const mapContext = await getMapContextFromConfig(
-        input.compositionConfig?.canvas?.strategy ?? 'standard',
-        ctx.mappingService,
-        input.centerCoordId
-      )
-
-      // Determine if we should use queue based on environment
-      const useQueue = process.env.USE_QUEUE === 'true' || process.env.NODE_ENV === 'production'
-
-      // Create agentic service with dynamic useQueue (uses eventBus and mcpApiKey from middleware)
-      const agenticService = createAgenticService({
-        llmConfig: {
-          openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
-          anthropicApiKey: env.ANTHROPIC_API_KEY ?? '',
-          preferClaudeSDK: true,
-          useSandbox: env.USE_SANDBOX === 'true',
-          mcpApiKey: ctx.mcpApiKey
-        },
-        eventBus: ctx.eventBus,
-        useQueue,
-        userId: ctx.session?.userId ?? 'anonymous'
-      })
-
-      _requireConfigured(agenticService.isConfigured(), "OPENROUTER_API_KEY");
-
-      // Generate the response
-      // MCP tools are provided by the HTTP MCP server at /api/mcp
-      const response = await agenticService.generateResponse({
-        mapContext,
-        messages: input.messages as ChatMessageContract[],
-        model: input.model,
-        temperature: input.temperature,
-        maxTokens: input.maxTokens,
-        compositionConfig: input.compositionConfig as CompositionConfig // Type mismatch due to zod schema limitations
-      })
-
-      // Handle queued responses differently
-      const baseResponse = {
-        id: response.id,
-        content: response.content,
-        model: response.model,
-        usage: response.usage,
-        finishReason: response.finishReason
-      }
-
-      // If this is a queued response, include the jobId
-      if (response.finishReason === 'queued' && response.jobId) {
-        return {
-          ...baseResponse,
-          jobId: response.jobId
-        }
-      }
-
-      return baseResponse
-    }),
-
   generateStreamingResponse: protectedProcedure
     .use(verificationAwareRateLimit) // Rate limit: 10 req/5min for verified, 3 req/5min for unverified
     .use(mappingServiceMiddleware) // Add mapping service to context
