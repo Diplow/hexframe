@@ -16,7 +16,6 @@ export function useAIChatIntegration() {
   const [userId, setUserId] = useState<string | null>(null)
   const [sessionError, setSessionError] = useState(false)
   const lastProcessedMessageId = useRef<string | null>(null)
-  const processingMessage = useRef(false)
 
   // Get user ID from auth session
   useEffect(() => {
@@ -57,13 +56,12 @@ export function useAIChatIntegration() {
     // Skip @-mention messages (those handled by Input component directly)
     const hasMention = messageContent.includes('@')
 
-    // Skip if already processing, is a command, has a mention, or no user tile available
-    if (isCommand || hasMention || processingMessage.current || !userTileCoordId) {
+    // Skip if already streaming, is a command, has a mention, or no user tile available
+    if (isCommand || hasMention || isStreaming || !userTileCoordId) {
       return
     }
 
     // Send all non-command, non-mention user messages to AI via USER tile
-    processingMessage.current = true
     lastProcessedMessageId.current = latestMessage.id
 
     loggers.agentic('Sending message to AI via USER tile', {
@@ -79,8 +77,7 @@ export function useAIChatIntegration() {
 
     // Execute task on USER tile with the user's message as instruction
     executeTask(userTileCoordId, messageContent, discussion)
-    processingMessage.current = false
-  }, [chatState.messages, executeTask, userTileCoordId, chatState])
+  }, [chatState.messages, executeTask, userTileCoordId, chatState, isStreaming])
 
   return {
     isGeneratingAI: isStreaming,
