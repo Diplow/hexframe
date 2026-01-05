@@ -1,10 +1,10 @@
-import type { ILLMRepository } from '~/lib/domains/agentic/repositories/llm.repository.interface'
-import type { 
-  LLMGenerationParams, 
-  LLMResponse, 
-  StreamChunk, 
+import type { ILLMRepository, StreamCallbacks } from '~/lib/domains/agentic/repositories/llm.repository.interface'
+import type {
+  LLMGenerationParams,
+  LLMResponse,
+  StreamChunk,
   ModelInfo,
-  LLMError 
+  LLMError
 } from '~/lib/domains/agentic/types/llm.types'
 import { loggers } from '~/lib/debug/debug-logger'
 
@@ -105,7 +105,8 @@ export class OpenRouterRepository implements ILLMRepository {
 
   async generateStream(
     params: LLMGenerationParams,
-    onChunk: (chunk: StreamChunk) => void
+    onChunk: (chunk: StreamChunk) => void,
+    _callbacks?: StreamCallbacks
   ): Promise<LLMResponse> {
     try {
       const response = await fetch(`${this.baseUrl}/chat/completions`, {

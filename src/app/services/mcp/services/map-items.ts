@@ -2,6 +2,7 @@ import type { NonUserMapItemTypeString, VisibilityString } from "~/lib/domains/m
 import { CoordSystem } from "~/lib/domains/mapping/utils";
 import type { MapItem } from "~/app/services/mcp/services/hierarchy-utils";
 import type { AppRouter } from '~/server/api';
+import type { McpToolContext } from '~/app/services/mcp/handlers/tools';
 
 // Type for tRPC caller
 type TRPCCaller = ReturnType<AppRouter['createCaller']>;
@@ -44,6 +45,7 @@ export async function addItemHandler(
   preview?: string,
   url?: string,
   visibility?: VisibilityString,
+  _context?: McpToolContext,
 ): Promise<MapItem> {
   try {
     // For creation, we need parentId if it's not a root item
@@ -85,6 +87,9 @@ export async function addItemHandler(
       itemType,
     });
 
+    // Note: Cache invalidation now happens via tool_call_end streaming events
+    // The frontend detects hexframe mutation tools and emits EventBus events
+
     return newItem;
   } catch (error) {
     throw error;
@@ -97,6 +102,7 @@ export async function updateItemHandler(
   caller: TRPCCaller,
   coords: { userId: string; groupId: number; path: number[] },
   updates: { title?: string; content?: string; preview?: string; url?: string; visibility?: VisibilityString; itemType?: NonUserMapItemTypeString },
+  _context?: McpToolContext,
 ): Promise<MapItem> {
   try {
     // Convert url to link if present
@@ -108,6 +114,9 @@ export async function updateItemHandler(
       data: dataWithLink,
     });
 
+    // Note: Cache invalidation now happens via tool_call_end streaming events
+    // The frontend detects hexframe mutation tools and emits EventBus events
+
     return updatedItem;
   } catch (error) {
     throw error;
@@ -118,11 +127,15 @@ export async function updateItemHandler(
 export async function deleteItemHandler(
   caller: TRPCCaller,
   coords: { userId: string; groupId: number; path: number[] },
+  _context?: McpToolContext,
 ): Promise<{ success: true }> {
   try {
     const result = await caller.map.removeItem({
       coords,
     });
+
+    // Note: Cache invalidation now happens via tool_call_end streaming events
+    // The frontend detects hexframe mutation tools and emits EventBus events
 
     return result;
   } catch (error) {

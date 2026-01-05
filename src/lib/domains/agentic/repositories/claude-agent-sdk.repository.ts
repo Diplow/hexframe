@@ -1,6 +1,6 @@
 // DON'T import query at module level - it reads env vars on import!
 // import { query } from '@anthropic-ai/claude-agent-sdk'
-import type { ILLMRepository } from '~/lib/domains/agentic/repositories/llm.repository.interface'
+import type { ILLMRepository, StreamCallbacks } from '~/lib/domains/agentic/repositories/llm.repository.interface'
 import type {
   LLMGenerationParams,
   LLMResponse,
@@ -8,6 +8,7 @@ import type {
   ModelInfo,
   LLMError
 } from '~/lib/domains/agentic/types/llm.types'
+import type { ToolCallStartEvent } from '~/lib/domains/agentic/types/stream.types'
 import { loggers } from '~/lib/debug/debug-logger'
 import {
   extractSystemPrompt,
@@ -31,6 +32,95 @@ function extractDeltaText(event: unknown): string | undefined {
     typeof event.delta.text === 'string'
   ) {
     return event.delta.text
+  }
+  return undefined
+}
+
+// Return type for extractToolCallStart including content block index for correlation
+interface ToolCallStartExtraction {
+  event: ToolCallStartEvent
+  contentBlockIndex: number
+}
+
+// Helper function to extract tool_use content block start
+function extractToolCallStart(event: unknown): ToolCallStartExtraction | undefined {
+  if (
+    event &&
+    typeof event === 'object' &&
+    'type' in event &&
+    event.type === 'content_block_start' &&
+    'index' in event &&
+    typeof event.index === 'number' &&
+    'content_block' in event &&
+    event.content_block &&
+    typeof event.content_block === 'object' &&
+    'type' in event.content_block &&
+    event.content_block.type === 'tool_use'
+  ) {
+    const block = event.content_block as { id?: string; name?: string; input?: unknown }
+    return {
+      event: {
+        type: 'tool_call_start',
+        toolCallId: block.id ?? '',
+        toolName: block.name ?? '',
+        arguments: JSON.stringify(block.input ?? {})
+      },
+      contentBlockIndex: event.index
+    }
+  }
+  return undefined
+}
+
+// Track active tool calls to correlate start/end
+interface ActiveToolCall {
+  toolCallId: string
+  toolName: string
+  inputJson: string
+  contentBlockIndex: number
+}
+
+// Helper to extract content_block_stop events that signal tool call completion
+function extractContentBlockStop(event: unknown): number | undefined {
+  if (
+    event &&
+    typeof event === 'object' &&
+    'type' in event &&
+    event.type === 'content_block_stop' &&
+    'index' in event &&
+    typeof event.index === 'number'
+  ) {
+    return event.index
+  }
+  return undefined
+}
+
+// Return type for input_json_delta extraction
+interface InputJsonDeltaExtraction {
+  contentBlockIndex: number
+  partialJson: string
+}
+
+// Helper function to extract input_json_delta from content_block_delta events
+function extractInputJsonDelta(event: unknown): InputJsonDeltaExtraction | undefined {
+  if (
+    event &&
+    typeof event === 'object' &&
+    'type' in event &&
+    event.type === 'content_block_delta' &&
+    'index' in event &&
+    typeof event.index === 'number' &&
+    'delta' in event &&
+    event.delta &&
+    typeof event.delta === 'object' &&
+    'type' in event.delta &&
+    event.delta.type === 'input_json_delta' &&
+    'partial_json' in event.delta &&
+    typeof event.delta.partial_json === 'string'
+  ) {
+    return {
+      contentBlockIndex: event.index,
+      partialJson: event.delta.partial_json
+    }
   }
   return undefined
 }
@@ -218,7 +308,8 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
 
   async generateStream(
     params: LLMGenerationParams,
-    onChunk: (chunk: StreamChunk) => void
+    onChunk: (chunk: StreamChunk) => void,
+    callbacks?: StreamCallbacks
   ): Promise<LLMResponse> {
     try {
       const { messages, model } = params
@@ -277,6 +368,8 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
       })
 
       let fullContent = ''
+      // Track active tool calls by content block index to correlate start/stop events
+      const activeToolCalls = new Map<number, ActiveToolCall>()
 
       // Stream chunks via callback
       for await (const msg of queryResult) {
@@ -287,6 +380,43 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
           if (deltaText) {
             fullContent += deltaText
             onChunk({ content: deltaText, isFinished: false })
+          }
+
+          // Extract tool call start events
+          const toolCallStart = extractToolCallStart(msg.event)
+          if (toolCallStart && callbacks?.onToolCallStart) {
+            activeToolCalls.set(toolCallStart.contentBlockIndex, {
+              toolCallId: toolCallStart.event.toolCallId,
+              toolName: toolCallStart.event.toolName,
+              inputJson: '', // Start with empty string, accumulate via deltas
+              contentBlockIndex: toolCallStart.contentBlockIndex
+            })
+            callbacks.onToolCallStart(toolCallStart.event)
+          }
+
+          // Extract input_json_delta events to accumulate tool arguments
+          const inputDelta = extractInputJsonDelta(msg.event)
+          if (inputDelta) {
+            const activeCall = activeToolCalls.get(inputDelta.contentBlockIndex)
+            if (activeCall) {
+              activeCall.inputJson += inputDelta.partialJson
+            }
+          }
+
+          // Extract content_block_stop events to signal tool call end
+          const stoppedBlockIndex = extractContentBlockStop(msg.event)
+          if (stoppedBlockIndex !== undefined && callbacks?.onToolCallEnd) {
+            const activeCall = activeToolCalls.get(stoppedBlockIndex)
+            if (activeCall) {
+              activeToolCalls.delete(stoppedBlockIndex)
+              callbacks.onToolCallEnd({
+                type: 'tool_call_end',
+                toolCallId: activeCall.toolCallId,
+                toolName: activeCall.toolName,
+                arguments: activeCall.inputJson || undefined
+                // Note: We don't have the result here; it comes later in the stream
+              })
+            }
           }
         } else if (msg.type === 'result' && msg.subtype === 'success') {
           fullContent = msg.result

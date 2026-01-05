@@ -4,6 +4,7 @@ import { useStreamingTaskExecution } from '~/app/map/Chat/Input/_hooks'
 import { formatDiscussion } from '~/app/map/Chat/_hooks/_discussion-formatter'
 import { authClient } from '~/lib/auth'
 import { loggers } from '~/lib/debug/debug-logger'
+import { useEventBus } from '~/app/map/Services/EventBus'
 
 /**
  * Hook that integrates AI chat functionality into the chat system.
@@ -11,6 +12,7 @@ import { loggers } from '~/lib/debug/debug-logger'
  */
 export function useAIChatIntegration() {
   const chatState = useChatState()
+  const eventBus = useEventBus()
   const [userId, setUserId] = useState<string | null>(null)
   const lastProcessedMessageId = useRef<string | null>(null)
   const processingMessage = useRef(false)
@@ -23,7 +25,8 @@ export function useAIChatIntegration() {
   }, [])
 
   // Use streaming task execution for USER tile
-  const { executeTask, isStreaming } = useStreamingTaskExecution({ chatState })
+  // Pass eventBus to enable cache invalidation when hexframe MCP tools complete
+  const { executeTask, isStreaming } = useStreamingTaskExecution({ chatState, eventBus })
 
   // Compute USER tile coordId: "{userId},0" (root tile with default groupId)
   const userTileCoordId = userId ? `${userId},0` : null

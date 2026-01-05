@@ -1,9 +1,9 @@
-import type { ILLMRepository } from '~/lib/domains/agentic/repositories/llm.repository.interface'
-import type { 
-  LLMGenerationParams, 
-  LLMResponse, 
-  StreamChunk, 
-  ModelInfo 
+import type { ILLMRepository, StreamCallbacks } from '~/lib/domains/agentic/repositories/llm.repository.interface'
+import type {
+  LLMGenerationParams,
+  LLMResponse,
+  StreamChunk,
+  ModelInfo
 } from '~/lib/domains/agentic/types/llm.types'
 import type { Inngest } from 'inngest'
 import { loggers } from '~/lib/debug/debug-logger'
@@ -149,7 +149,8 @@ export class QueuedLLMRepository implements ILLMRepository {
 
   async generateStream(
     params: LLMGenerationParams,
-    onChunk: (chunk: StreamChunk) => void
+    onChunk: (chunk: StreamChunk) => void,
+    _callbacks?: StreamCallbacks
   ): Promise<LLMResponse> {
     // For streaming, we can still use the base repository directly
     // as streaming keeps the connection alive and doesn't timeout

@@ -3,7 +3,7 @@ import { z } from 'zod';
 // Base event schema
 const baseEventSchema = z.object({
   type: z.string(),
-  source: z.enum(['map_cache', 'chat_cache', 'auth', 'sync', 'test', 'debug-logger', 'canvas']),
+  source: z.enum(['map_cache', 'chat_cache', 'auth', 'sync', 'test', 'debug-logger', 'canvas', 'agentic']),
   timestamp: z.date().optional(),
 });
 
@@ -169,19 +169,19 @@ export const mapTileSelectedEventSchema = baseEventSchema.extend({
 
 export const mapTileCreatedEventSchema = baseEventSchema.extend({
   type: z.literal('map.tile_created'),
-  source: z.literal('map_cache'),
+  source: z.enum(['map_cache', 'agentic']),
   payload: mapTileCreatedPayloadSchema,
 });
 
 export const mapTileUpdatedEventSchema = baseEventSchema.extend({
   type: z.literal('map.tile_updated'),
-  source: z.literal('map_cache'),
+  source: z.enum(['map_cache', 'agentic']),
   payload: mapTileUpdatedPayloadSchema,
 });
 
 export const mapTileDeletedEventSchema = baseEventSchema.extend({
   type: z.literal('map.tile_deleted'),
-  source: z.literal('map_cache'),
+  source: z.enum(['map_cache', 'agentic']),
   payload: mapTileDeletedPayloadSchema,
 });
 

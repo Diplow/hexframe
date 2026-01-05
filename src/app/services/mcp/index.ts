@@ -22,4 +22,4 @@ export {
 } from '~/app/services/mcp/services/map-items';
 
 // Re-export types for external use
-export type { McpTool } from '~/app/services/mcp/handlers/tools';
+export type { McpTool, McpToolContext } from '~/app/services/mcp/handlers/tools';

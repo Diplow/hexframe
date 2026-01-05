@@ -36,7 +36,8 @@ export function Input() {
   const favorites = favoritesQuery.data ?? [];
 
   // Streaming task execution for @mention handling
-  const { executeTask } = useStreamingTaskExecution({ chatState });
+  // Pass eventBus to enable cache invalidation when hexframe MCP tools complete
+  const { executeTask } = useStreamingTaskExecution({ chatState, eventBus });
 
   // Track authentication state via EventBus
   useEffect(() => {

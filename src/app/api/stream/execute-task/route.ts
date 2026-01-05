@@ -42,7 +42,9 @@ import {
   type StreamErrorEvent,
   type StreamDoneEvent,
   type TextDeltaEvent,
-  type PromptGeneratedEvent
+  type PromptGeneratedEvent,
+  type ToolCallStartEvent,
+  type ToolCallEndEvent
 } from '~/lib/domains/agentic'
 import { generateParentHexplanContent, generateLeafHexplanContent } from '~/lib/domains/agentic/utils'
 import { EventBus as EventBusImpl } from '~/lib/utils/event-bus'
@@ -152,6 +154,14 @@ function _emitPromptGenerated(controller: SSEController, encoder: TextEncoder, p
   controller.enqueue(encoder.encode(`data: ${JSON.stringify(promptEvent)}\n\n`))
 }
 
+function _emitToolCallStart(controller: SSEController, encoder: TextEncoder, event: ToolCallStartEvent): void {
+  controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`))
+}
+
+function _emitToolCallEnd(controller: SSEController, encoder: TextEncoder, event: ToolCallEndEvent): void {
+  controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`))
+}
+
 // =============================================================================
 // Service Initialization (Orchestration)
 // =============================================================================
@@ -172,7 +182,7 @@ async function _createAgenticService(userId: string, sandboxSessionId: string | 
   const mcpApiKey = await getOrCreateInternalApiKey(userId, 'mcp-session', 10)
   const eventBus = new EventBusImpl()
 
-  return createAgenticServiceAsync({
+  const service = await createAgenticServiceAsync({
     llmConfig: {
       openRouterApiKey: env.OPENROUTER_API_KEY ?? '',
       anthropicApiKey: env.ANTHROPIC_API_KEY ?? '',
@@ -185,6 +195,8 @@ async function _createAgenticService(userId: string, sandboxSessionId: string | 
     userId,
     sessionId: sandboxSessionId
   })
+
+  return { service, mcpApiKey }
 }
 
 // =============================================================================
@@ -264,7 +276,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       try {
         // 1. Create services (orchestration)
         const sandboxSessionId = _deriveSandboxSessionId(session, userId, authMethod)
-        const agenticService = await _createAgenticService(userId, sandboxSessionId)
+        const { service: agenticService } = await _createAgenticService(userId, sandboxSessionId)
 
         if (!agenticService.isConfigured()) {
           _emitError(controller, encoder, 'INVALID_API_KEY', 'LLM service not configured: missing API key')
@@ -313,11 +325,20 @@ export async function GET(request: NextRequest): Promise<Response> {
           {
             onPromptBuilt: (prompt) => {
               _emitPromptGenerated(controller, encoder, prompt)
+            },
+            streamCallbacks: {
+              onToolCallStart: (event) => {
+                _emitToolCallStart(controller, encoder, event)
+              },
+              onToolCallEnd: (event) => {
+                _emitToolCallEnd(controller, encoder, event)
+              }
             }
           }
         )
 
         // 5. Emit completion
+        // Note: Cache invalidation now happens via tool_call_end events on the frontend
         const durationMs = Date.now() - startTime
         _emitDone(controller, encoder, response.usage?.totalTokens, durationMs)
         loggers.api('SSE Stream: Completed', { userId, taskCoords, durationMs, totalTokens: response.usage?.totalTokens })

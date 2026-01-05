@@ -17,7 +17,7 @@ export interface StreamingCallbacks {
   onTextDelta?: (delta: string) => void
   onToolCallStart?: (toolName: string, toolCallId: string, args: string) => void
   onToolCallDelta?: (toolCallId: string, delta: string) => void
-  onToolCallEnd?: (toolCallId: string, result?: string, error?: string) => void
+  onToolCallEnd?: (toolCallId: string, toolName?: string, args?: string, result?: string, error?: string) => void
   onTileMutation?: (event: TileMutationEvent) => void
   onDone?: (event: StreamDoneEvent) => void
   onError?: (event: StreamErrorEvent) => void
@@ -80,7 +80,7 @@ export function _dispatchStreamEvent(
       callbacks.onToolCallDelta?.(event.toolCallId, event.argumentsDelta)
       return { shouldClose: false }
     case 'tool_call_end':
-      callbacks.onToolCallEnd?.(event.toolCallId, event.result, event.error)
+      callbacks.onToolCallEnd?.(event.toolCallId, event.toolName, event.arguments, event.result, event.error)
       return { shouldClose: false }
     case 'tile_mutation':
       callbacks.onTileMutation?.(event)

@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto'
-import type { ILLMRepository } from '~/lib/domains/agentic/repositories/llm.repository.interface'
+import type { ILLMRepository, StreamCallbacks } from '~/lib/domains/agentic/repositories/llm.repository.interface'
 import type { ContextCompositionService } from '~/lib/domains/agentic/services/context-composition.service'
 import { PromptTemplateService } from '~/lib/domains/agentic/services/prompt-template.service'
 // import { IntentClassifierService } from '../intent-classification/intent-classifier.service'
@@ -110,7 +110,8 @@ export class AgenticService {
 
   async generateStreamingResponse(
     options: GenerateResponseOptions,
-    onChunk: (chunk: StreamChunk) => void
+    onChunk: (chunk: StreamChunk) => void,
+    streamCallbacks?: StreamCallbacks
   ): Promise<LLMResponse> {
     if (!this.llmRepository.isConfigured()) {
       throw new Error('LLM repository is not configured')
@@ -149,7 +150,7 @@ export class AgenticService {
         stream: true
       }
 
-      const response = await this.llmRepository.generateStream(llmParams, onChunk)
+      const response = await this.llmRepository.generateStream(llmParams, onChunk, streamCallbacks)
 
       // Emit stream completed event
       this.eventBus.emit({
