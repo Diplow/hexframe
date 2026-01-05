@@ -3,7 +3,7 @@
  * @module _discussion-formatter
  */
 
-import type { Message } from '~/app/map/Chat/_state/_events'
+import type { Message } from '~/app/map/Chat/_state'
 
 /**
  * Format chat messages as a discussion string for AI context

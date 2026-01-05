@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useChatState } from '~/app/map/Chat'
-import { useStreamingTaskExecution } from '~/app/map/Chat/Input/_hooks'
+import { useStreamingTaskExecution } from '~/app/map/Chat/Input'
 import { formatDiscussion } from '~/app/map/Chat/_hooks/_discussion-formatter'
 import { authClient } from '~/lib/auth'
 import { loggers } from '~/lib/debug/debug-logger'

@@ -7,5 +7,8 @@
 // Main Input Component
 export { Input } from '~/app/map/Chat/Input/input';
 
+// Streaming hooks
+export { useStreamingTaskExecution } from '~/app/map/Chat/Input/_hooks';
+
 // Debug utilities for external consumers
 export { stripTimestamp } from '~/app/map/Chat/Input/_commands/debug/debug-utils';
