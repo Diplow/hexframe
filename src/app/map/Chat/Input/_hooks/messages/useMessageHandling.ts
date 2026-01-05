@@ -26,8 +26,10 @@ interface UseMessageHandlingProps {
   closeAutocomplete: () => void;
   resetTextareaHeight: () => void;
   favorites: EnrichedFavorite[];
-  executeTask: (taskCoords: string, instruction: string) => void;
+  executeTask: (taskCoords: string, instruction: string, discussion?: string) => void;
   showSystemMessage: (message: string, level?: 'info' | 'warning' | 'error') => void;
+  /** Get current discussion formatted from visible messages */
+  getDiscussion: () => string | undefined;
 }
 
 /**
@@ -60,7 +62,8 @@ export function useMessageHandling({
   resetTextareaHeight,
   favorites,
   executeTask,
-  showSystemMessage
+  showSystemMessage,
+  getDiscussion
 }: UseMessageHandlingProps) {
 
   const handleSend = useCallback((message: string) => {
@@ -95,7 +98,8 @@ export function useMessageHandling({
 
           if (favorite) {
             // Execute task with the favorite's coordId (coordinate string)
-            executeTask(favorite.coordId, instruction);
+            const discussion = getDiscussion();
+            executeTask(favorite.coordId, instruction, discussion);
             setMessage('');
             closeAutocomplete();
             resetTextareaHeight();
@@ -131,7 +135,8 @@ export function useMessageHandling({
     resetTextareaHeight,
     favorites,
     executeTask,
-    showSystemMessage
+    showSystemMessage,
+    getDiscussion
   ]);
 
   return { handleSend };

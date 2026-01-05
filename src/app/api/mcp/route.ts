@@ -90,8 +90,15 @@ export async function POST(request: Request): Promise<Response> {
       }
 
       try {
+        // Extract API key for mutation notification back to SSE stream
+        const apiKey = request.headers.get('x-api-key') ?? undefined;
+        const mcpContext = apiKey ? { apiKey } : undefined;
+
+        console.log('[MCP Route] Tool call:', toolName)
+        console.log('[MCP Route] API key from header:', apiKey ? apiKey.substring(0, 8) + '...' : 'NONE')
+
         // Execute tool with tRPC caller - no HTTP overhead!
-        const result = await tool.handler(toolArgs, caller);
+        const result = await tool.handler(toolArgs, caller, mcpContext);
 
         const response: JsonRpcResponse = {
           jsonrpc: '2.0',

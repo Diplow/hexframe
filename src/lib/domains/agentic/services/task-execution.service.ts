@@ -15,6 +15,7 @@ import { buildPrompt } from '~/lib/domains/agentic/utils'
 import type { AgenticService } from '~/lib/domains/agentic/services/agentic.service'
 import type { CompositionConfig, ChatMessageContract } from '~/lib/domains/agentic/types'
 import type { LLMResponse, StreamChunk } from '~/lib/domains/agentic/types/llm.types'
+import type { StreamCallbacks } from '~/lib/domains/agentic/repositories/llm.repository.interface'
 // Type-only imports from mapping domain (no runtime dependency)
 import type { MapItemType, Visibility } from '~/lib/domains/mapping'
 
@@ -102,6 +103,10 @@ export interface TaskExecutionInput {
   temperature?: number
   /** Optional max tokens */
   maxTokens?: number
+  /** For USER tiles: conversation history summary for session continuity */
+  discussion?: string
+  /** For USER tiles: the user's current message/instruction */
+  userMessage?: string
 }
 
 // =============================================================================
@@ -119,7 +124,9 @@ function _buildStreamingRequest(input: TaskExecutionInput) {
     hexPlanContent,
     model,
     temperature,
-    maxTokens
+    maxTokens,
+    discussion,
+    userMessage
   } = input
 
   const hexecutePrompt = buildPrompt({
@@ -138,7 +145,9 @@ function _buildStreamingRequest(input: TaskExecutionInput) {
     hexPlan: hexPlanContent,
     mcpServerName: env.HEXFRAME_MCP_SERVER,
     allLeafTasks,
-    itemType: task.itemType
+    itemType: task.itemType,
+    discussion,
+    userMessage
   })
 
   const conversationMessages: ChatMessageContract[] = [
@@ -190,6 +199,8 @@ function _buildStreamingRequest(input: TaskExecutionInput) {
 export interface TaskExecutionCallbacks {
   /** Called after the prompt is built, before streaming starts */
   onPromptBuilt?: (prompt: string) => void
+  /** Callbacks for tool call events (start/end) */
+  streamCallbacks?: StreamCallbacks
 }
 
 /**
@@ -216,5 +227,9 @@ export async function executeTaskStreaming(
   const prompt = streamingRequest.messages[0]?.content ?? ''
   callbacks?.onPromptBuilt?.(prompt)
 
-  return agenticService.generateStreamingResponse(streamingRequest, onChunk)
+  return agenticService.generateStreamingResponse(
+    streamingRequest,
+    onChunk,
+    callbacks?.streamCallbacks
+  )
 }

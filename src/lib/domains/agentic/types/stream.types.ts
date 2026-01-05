@@ -71,6 +71,10 @@ export interface ToolCallEndEvent {
   type: 'tool_call_end'
   /** Identifier correlating to the original tool_call_start */
   toolCallId: string
+  /** Tool name for context */
+  toolName?: string
+  /** The tool's arguments (JSON-serialized) - accumulated from streaming deltas */
+  arguments?: string
   /** The tool's result (JSON-serialized) */
   result?: string
   /** Error message if the tool call failed */

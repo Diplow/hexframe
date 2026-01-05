@@ -67,6 +67,15 @@ import type { AppRouter } from '~/server/api';
 // Type for tRPC caller
 type TRPCCaller = ReturnType<AppRouter['createCaller']>;
 
+/**
+ * Context passed from MCP route to tool handlers
+ * Contains the API key for mutation notification back to SSE stream
+ */
+export interface McpToolContext {
+  /** The API key from the x-api-key header, used for SSE mutation notification */
+  apiKey?: string;
+}
+
 export interface McpTool {
   name: string;
   description: string;
@@ -75,7 +84,7 @@ export interface McpTool {
     properties: Record<string, unknown>;
     required?: string[];
   };
-  handler: (args: unknown, caller: TRPCCaller) => Promise<unknown>;
+  handler: (args: unknown, caller: TRPCCaller, context?: McpToolContext) => Promise<unknown>;
 }
 
 export const mcpTools: McpTool[] = [
@@ -255,7 +264,7 @@ DIRECTION USAGE:
       },
       required: ["coords", "title", "itemType"],
     },
-    handler: async (args: unknown, caller: TRPCCaller) => {
+    handler: async (args: unknown, caller: TRPCCaller, context?: McpToolContext) => {
       const argsObj = args as Record<string, unknown>;
       const coords = normalizeCoordinates(argsObj?.coords);
       const title = argsObj?.title as string;
@@ -272,7 +281,7 @@ DIRECTION USAGE:
         throw new Error("itemType parameter is required");
       }
 
-      return await addItemHandler(caller, coords, title, itemType, content, preview, url, visibility);
+      return await addItemHandler(caller, coords, title, itemType, content, preview, url, visibility, context);
     },
   },
 
@@ -319,7 +328,7 @@ DIRECTION USAGE:
       },
       required: ["coords", "updates"],
     },
-    handler: async (args: unknown, caller: TRPCCaller) => {
+    handler: async (args: unknown, caller: TRPCCaller, context?: McpToolContext) => {
       const argsObj = args as Record<string, unknown>;
       const coords = normalizeCoordinates(argsObj?.coords);
       const updates = parseJsonParam(argsObj?.updates) as { title?: string; content?: string; preview?: string; url?: string; visibility?: VisibilityString; itemType?: NonUserMapItemTypeString };
@@ -328,7 +337,7 @@ DIRECTION USAGE:
         throw new Error("updates parameter is required");
       }
 
-      return await updateItemHandler(caller, coords, updates);
+      return await updateItemHandler(caller, coords, updates, context);
     },
   },
 
@@ -382,10 +391,10 @@ Use with extreme caution. Always verify coordinates before deletion. Consider mo
       },
       required: ["coords"],
     },
-    handler: async (args: unknown, caller: TRPCCaller) => {
+    handler: async (args: unknown, caller: TRPCCaller, context?: McpToolContext) => {
       const argsObj = args as Record<string, unknown>;
       const coords = normalizeCoordinates(argsObj?.coords);
-      return await deleteItemHandler(caller, coords);
+      return await deleteItemHandler(caller, coords, context);
     },
   },
 
@@ -810,14 +819,14 @@ export function formatToolResponse(result: unknown): { content: Array<{ type: "t
 /**
  * Helper function to handle tool execution with error handling
  */
-export async function executeTool(toolName: string, args: unknown, caller: TRPCCaller): Promise<{ content: Array<{ type: "text"; text: string }> }> {
+export async function executeTool(toolName: string, args: unknown, caller: TRPCCaller, context?: McpToolContext): Promise<{ content: Array<{ type: "text"; text: string }> }> {
   try {
     const tool = mcpTools.find(t => t.name === toolName);
     if (!tool) {
       throw new Error(`Unknown tool: ${toolName}`);
     }
 
-    const result = await tool.handler(args, caller);
+    const result = await tool.handler(args, caller, context);
     return formatToolResponse(result);
   } catch (error) {
     return {

@@ -362,7 +362,7 @@ while(true) { await fetch('https://api.anthropic.com') }
 - ✅ **Sandbox timeout** (5 minutes max)
 - ✅ **Budget limits** ($1.00 per request)
 - ✅ **Rate limiting** (50-200 req/hour)
-- ✅ **Max turns limit** (10 turns per agent session)
+- ✅ **Max turns limit** (50 turns per agent session)
 
 **Residual Risk:** Low
 

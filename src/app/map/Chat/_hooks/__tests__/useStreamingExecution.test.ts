@@ -496,7 +496,7 @@ describe('useStreamingExecution', () => {
           mockEventSourceInstance?._simulateMessage(JSON.stringify(toolEndEvent))
         })
 
-        expect(onToolCallEnd).toHaveBeenCalledWith('call_abc123', '{"success": true}', undefined)
+        expect(onToolCallEnd).toHaveBeenCalledWith('call_abc123', undefined, undefined, '{"success": true}', undefined)
       })
 
       it('should call onToolCallEnd with error on failure', async () => {
@@ -526,7 +526,7 @@ describe('useStreamingExecution', () => {
           mockEventSourceInstance?._simulateMessage(JSON.stringify(toolEndEvent))
         })
 
-        expect(onToolCallEnd).toHaveBeenCalledWith('call_abc123', undefined, 'Permission denied')
+        expect(onToolCallEnd).toHaveBeenCalledWith('call_abc123', undefined, undefined, undefined, 'Permission denied')
       })
     })
 
@@ -1137,7 +1137,7 @@ describe('Type Safety', () => {
       onTextDelta?: (delta: string) => void
       onToolCallStart?: (toolName: string, toolCallId: string, args: string) => void
       onToolCallDelta?: (toolCallId: string, delta: string) => void
-      onToolCallEnd?: (toolCallId: string, result?: string, error?: string) => void
+      onToolCallEnd?: (toolCallId: string, toolName?: string, args?: string, result?: string, error?: string) => void
       onTileMutation?: (event: TileMutationEvent) => void
       onDone?: (event: StreamDoneEvent) => void
       onError?: (event: StreamErrorEvent) => void
@@ -1166,7 +1166,7 @@ describe('Type Safety', () => {
         onTextDelta?: (delta: string) => void
         onToolCallStart?: (toolName: string, toolCallId: string, args: string) => void
         onToolCallDelta?: (toolCallId: string, delta: string) => void
-        onToolCallEnd?: (toolCallId: string, result?: string, error?: string) => void
+        onToolCallEnd?: (toolCallId: string, toolName?: string, args?: string, result?: string, error?: string) => void
         onTileMutation?: (event: TileMutationEvent) => void
         onDone?: (event: StreamDoneEvent) => void
         onError?: (event: StreamErrorEvent) => void

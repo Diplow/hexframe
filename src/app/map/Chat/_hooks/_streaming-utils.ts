@@ -17,7 +17,7 @@ export interface StreamingCallbacks {
   onTextDelta?: (delta: string) => void
   onToolCallStart?: (toolName: string, toolCallId: string, args: string) => void
   onToolCallDelta?: (toolCallId: string, delta: string) => void
-  onToolCallEnd?: (toolCallId: string, result?: string, error?: string) => void
+  onToolCallEnd?: (toolCallId: string, toolName?: string, args?: string, result?: string, error?: string) => void
   onTileMutation?: (event: TileMutationEvent) => void
   onDone?: (event: StreamDoneEvent) => void
   onError?: (event: StreamErrorEvent) => void
@@ -32,11 +32,19 @@ export interface ConnectionRefs {
 
 const STREAMING_ENDPOINT = '/api/stream/execute-task'
 
+/** Options for building the streaming URL */
+export interface StreamingUrlOptions {
+  taskCoords: string
+  instruction?: string
+  discussion?: string
+}
+
 /** Build the EventSource URL with query parameters */
-export function _buildStreamingUrl(taskCoords: string, instruction?: string): string {
+export function _buildStreamingUrl(options: StreamingUrlOptions): string {
   const params = new URLSearchParams()
-  params.set('taskCoords', taskCoords)
-  if (instruction) params.set('instruction', instruction)
+  params.set('taskCoords', options.taskCoords)
+  if (options.instruction) params.set('instruction', options.instruction)
+  if (options.discussion) params.set('discussion', options.discussion)
   return `${STREAMING_ENDPOINT}?${params.toString()}`
 }
 
@@ -72,7 +80,7 @@ export function _dispatchStreamEvent(
       callbacks.onToolCallDelta?.(event.toolCallId, event.argumentsDelta)
       return { shouldClose: false }
     case 'tool_call_end':
-      callbacks.onToolCallEnd?.(event.toolCallId, event.result, event.error)
+      callbacks.onToolCallEnd?.(event.toolCallId, event.toolName, event.arguments, event.result, event.error)
       return { shouldClose: false }
     case 'tile_mutation':
       callbacks.onTileMutation?.(event)

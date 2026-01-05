@@ -1,6 +1,6 @@
 import { Sandbox } from '@vercel/sandbox'
 import ms from 'ms'
-import type { ILLMRepository } from '~/lib/domains/agentic/repositories/llm.repository.interface'
+import type { ILLMRepository, StreamCallbacks } from '~/lib/domains/agentic/repositories/llm.repository.interface'
 import type {
   LLMGenerationParams,
   LLMResponse,
@@ -251,7 +251,7 @@ async function runAgent() {
       options: {
         model: ${JSON.stringify(model)},
         systemPrompt: ${systemPrompt ? JSON.stringify(systemPrompt) : 'undefined'},
-        maxTurns: 10,
+        maxTurns: 50, // Allow multiple turns for complex agentic workflows
         maxBudgetUsd: 1.0, // Strict budget limit per request
         ${streaming ? 'includePartialMessages: true,' : ''}
         mcpServers: ${mcpServers},
@@ -389,7 +389,8 @@ runAgent().catch(error => {
 
   async generateStream(
     params: LLMGenerationParams,
-    onChunk: (chunk: StreamChunk) => void
+    onChunk: (chunk: StreamChunk) => void,
+    _callbacks?: StreamCallbacks
   ): Promise<LLMResponse> {
     // Note: Streaming from sandbox is complex due to subprocess stdout buffering
     // For now, we'll execute non-streaming and return the full result
