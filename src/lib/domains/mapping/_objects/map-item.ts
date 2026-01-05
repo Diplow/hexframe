@@ -67,6 +67,7 @@ export interface Attrs extends Record<string, unknown> {
   baseItemId: number; // Foreign key to the BaseItem containing title, content, etc.
   itemType: MapItemType; // Semantic tile type: USER, ORGANIZATIONAL, CONTEXT, or SYSTEM
   visibility: Visibility; // Whether the tile is publicly visible
+  templateName?: string | null; // Name of template this tile was created from (optional)
 }
 
 export type ShallNotUpdate = {
@@ -141,6 +142,7 @@ export class MapItem extends GenericAggregate<
         baseItemId: attrs.baseItemId ?? ref.id,
         itemType: attrs.itemType, // itemType is now mandatory
         visibility: attrs.visibility ?? Visibility.PRIVATE,
+        templateName: attrs.templateName ?? null,
       },
       relatedLists: { neighbors },
       relatedItems: { ref, parent },

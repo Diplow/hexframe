@@ -4,6 +4,8 @@
  * Renders the hexplan section with status-based instructions.
  */
 
+import { _escapeXML } from '~/lib/domains/agentic/templates/_internals/utils'
+
 // ==================== PUBLIC TYPES ====================
 
 export type HexPlanStatus = 'pending' | 'complete' | 'blocked'
@@ -12,17 +14,6 @@ export interface HexPlanParams {
   mcpServerName: string
   isParentTile: boolean
   taskCoords: string
-}
-
-// ==================== INTERNAL UTILITIES ====================
-
-function _escapeXML(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;')
 }
 
 // ==================== INTERNAL TEMPLATES ====================

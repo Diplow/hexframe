@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ContextCompositionService } from '~/lib/domains/agentic/services/context-composition.service'
+import { ContextCompositionService } from '~/lib/domains/agentic/services/_context/context-composition.service'
 import { createMockMapContext } from '~/lib/domains/agentic/services/__tests__/__fixtures__/context-mocks'
-import type { CanvasContextBuilder } from '~/lib/domains/agentic/services/canvas-context-builder.service'
-import type { ChatContextBuilder } from '~/lib/domains/agentic/services/chat-context-builder.service'
-import type { TokenizerService } from '~/lib/domains/agentic/services/tokenizer.service'
+import type { CanvasContextBuilder } from '~/lib/domains/agentic/services/_context/canvas-context-builder.service'
+import type { ChatContextBuilder } from '~/lib/domains/agentic/services/_context/chat-context-builder.service'
+import type { TokenizerService } from '~/lib/domains/agentic/services/_context/tokenizer.service'
 import type { CompositionConfig, ChatMessageContract } from '~/lib/domains/agentic/types'
 import { createMockCanvasContext, createMockChatContext } from '~/lib/domains/agentic/services/__tests__/__fixtures__/context-mocks'
 

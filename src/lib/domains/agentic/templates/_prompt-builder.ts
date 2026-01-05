@@ -8,178 +8,26 @@
 
 import Mustache from 'mustache'
 import { MapItemType } from '~/lib/domains/mapping'
-import { SYSTEM_TEMPLATE, type SystemTemplateData, HEXRUN_INTRO, ANCESTOR_INTRO } from '~/lib/domains/agentic/templates/_system-template'
+import { SYSTEM_TEMPLATE, type SystemTemplateData, HEXRUN_INTRO } from '~/lib/domains/agentic/templates/_system-template'
 import { USER_TEMPLATE, type UserTemplateData, USER_INTRO } from '~/lib/domains/agentic/templates/_user-template'
 import {
   shouldUseOrchestrator,
   buildOrchestratorPrompt
 } from '~/lib/domains/agentic/templates/_hexrun-orchestrator-template'
 import { preProcess, type TemplateContext, type TileData } from '~/lib/domains/agentic/templates/_pre-processor'
-import { templateRegistry, GenericTile, TileOrFolder } from '~/lib/domains/agentic/templates/_templates'
+import { templateRegistry } from '~/lib/domains/agentic/templates/_templates'
+import { _escapeXML, _hasContent } from '~/lib/domains/agentic/templates/_internals/utils'
+import {
+  _buildContextSection,
+  _buildSubtasksSection,
+  _filterSystemAncestors,
+  _buildAncestorContextSection,
+  _buildSectionsSection
+} from '~/lib/domains/agentic/templates/_internals/section-builders'
 
-// ==================== PUBLIC TYPES ====================
-
-export interface PromptDataTile {
-  title: string
-  content?: string
-  preview?: string
-  coords: string
-  itemType?: MapItemType
-  children?: PromptDataTile[]
-}
-
-export interface PromptData {
-  task: {
-    title: string
-    content: string | undefined
-    coords: string
-  }
-  /** Ancestors from root to parent - content flows top-down */
-  ancestors: Array<{
-    title: string
-    content: string | undefined
-    coords: string
-    itemType?: MapItemType
-  }>
-  composedChildren: Array<PromptDataTile>
-  structuralChildren: Array<PromptDataTile>
-  hexPlan: string
-  mcpServerName: string
-  allLeafTasks?: Array<{
-    title: string
-    coords: string
-  }>
-  itemType: MapItemType
-  /** For USER tiles: the current discussion/conversation state */
-  discussion?: string
-  /** For USER tiles: the user's current message/instruction */
-  userMessage?: string
-}
-
-// ==================== INTERNAL UTILITIES ====================
-
-function _escapeXML(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;')
-}
-
-function _hasContent(text: string | undefined): boolean {
-  return !!text && text.trim().length > 0
-}
-
-// ==================== INTERNAL SECTION BUILDERS ====================
-
-/**
- * Build context section using GenericTile or TileOrFolder for organizational tiles.
- */
-function _buildContextSection(
-  composedChildren: PromptDataTile[],
-  supportFolders: boolean
-): string {
-  const validChildren = composedChildren.filter(child =>
-    _hasContent(child.content) || child.itemType === MapItemType.ORGANIZATIONAL
-  )
-
-  if (validChildren.length === 0) {
-    return ''
-  }
-
-  const contexts = validChildren.map(child => {
-    if (supportFolders && child.itemType === MapItemType.ORGANIZATIONAL) {
-      return TileOrFolder(child as TileData, ['title', 'content'], 'context', 3)
-    }
-    return GenericTile(child as TileData, ['title', 'content'], 'context')
-  })
-
-  return contexts.filter(c => c.length > 0).join('\n\n')
-}
-
-/**
- * Build subtasks section using GenericTile or TileOrFolder for organizational tiles.
- */
-function _buildSubtasksSection(
-  structuralChildren: PromptDataTile[],
-  supportFolders: boolean
-): string {
-  if (structuralChildren.length === 0) {
-    return ''
-  }
-
-  const subtasks = structuralChildren.map(child => {
-    if (supportFolders && child.itemType === MapItemType.ORGANIZATIONAL) {
-      return TileOrFolder(child as TileData, ['title', 'preview'], 'subtask-preview', 3)
-    }
-    return GenericTile(child as TileData, ['title', 'preview'], 'subtask-preview')
-  })
-
-  return `<subtasks>\n${subtasks.filter(s => s.length > 0).join('\n\n')}\n</subtasks>`
-}
-
-/**
- * Filter ancestors to only include consecutive SYSTEM ancestors from the parent backwards.
- * Ancestors are ordered root → parent, so we walk backwards and stop at first non-SYSTEM.
- *
- * Example: [USER, ORG, SYSTEM1, SYSTEM2, SYSTEM3] → [SYSTEM1, SYSTEM2, SYSTEM3]
- * Example: [USER, SYSTEM1, ORG, SYSTEM2] → [SYSTEM2] (stops at ORG)
- */
-function _filterSystemAncestors(ancestors: PromptData['ancestors']): PromptData['ancestors'] {
-  const systemAncestors: PromptData['ancestors'] = []
-
-  // Walk backward from parent, collecting consecutive SYSTEM ancestors
-  for (let i = ancestors.length - 1; i >= 0; i--) {
-    if (ancestors[i]?.itemType === MapItemType.SYSTEM) {
-      systemAncestors.unshift(ancestors[i]!) // prepend to maintain root→parent order
-    } else {
-      break // stop at first non-SYSTEM
-    }
-  }
-
-  return systemAncestors
-}
-
-/**
- * Build ancestor context section using GenericTile.
- * Only includes SYSTEM ancestors for SYSTEM tiles.
- */
-function _buildAncestorContextSection(ancestors: PromptData['ancestors']): string {
-  const systemAncestors = _filterSystemAncestors(ancestors)
-  const ancestorsWithContent = systemAncestors.filter(ancestor =>
-    _hasContent(ancestor.content)
-  )
-
-  if (ancestorsWithContent.length === 0) {
-    return ''
-  }
-
-  const ancestorBlocks = ancestorsWithContent.map(ancestor =>
-    GenericTile(ancestor as TileData, ['title', 'content'], 'ancestor')
-  )
-
-  return `<ancestor-context>\n${ANCESTOR_INTRO}\n\n${ancestorBlocks.join('\n\n')}\n</ancestor-context>`
-}
-
-/**
- * Build sections for USER template - shows available tiles without going beyond organizational.
- */
-function _buildSectionsSection(structuralChildren: PromptDataTile[]): string {
-  if (structuralChildren.length === 0) {
-    return ''
-  }
-
-  const sections = structuralChildren.map(child => {
-    if (child.itemType === MapItemType.ORGANIZATIONAL) {
-      // For organizational tiles, show as folder but don't recurse into children
-      return `<section title="${_escapeXML(child.title)}" type="folder" coords="${_escapeXML(child.coords)}">\n${_escapeXML(child.preview ?? '')}\n</section>`
-    }
-    return `<section title="${_escapeXML(child.title)}" coords="${_escapeXML(child.coords)}">\n${_escapeXML(child.preview ?? '')}\n</section>`
-  })
-
-  return `<sections>\n${sections.join('\n\n')}\n</sections>`
-}
+// Re-export types from _types.ts for backward compatibility
+export type { PromptDataTile, PromptData } from '~/lib/domains/agentic/templates/_internals/types'
+import type { PromptData } from '~/lib/domains/agentic/templates/_internals/types'
 
 // ==================== INTERNAL TEMPLATE LOOKUP ====================
 

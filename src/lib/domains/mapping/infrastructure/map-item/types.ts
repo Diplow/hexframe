@@ -10,6 +10,7 @@ export type DbMapItemSelect = {
   item_type: MapItemType;
   visibility: Visibility;
   refItemId: number;
+  templateName: string | null;
 };
 
 export type DbBaseItemSelect = {
@@ -35,6 +36,7 @@ export type CreateMapItemDbAttrs = {
   item_type: MapItemType;
   visibility?: Visibility;
   refItemId: number;
+  templateName?: string | null;
 };
 
 export type UpdateMapItemDbAttrs = Partial<{
@@ -45,4 +47,5 @@ export type UpdateMapItemDbAttrs = Partial<{
   item_type: MapItemType;
   visibility: Visibility;
   refItemId: number;
+  templateName: string | null;
 }>;

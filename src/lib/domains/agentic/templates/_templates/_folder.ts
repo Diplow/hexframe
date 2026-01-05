@@ -7,17 +7,7 @@
 import { MapItemType } from '~/lib/domains/mapping'
 import type { TileData } from '~/lib/domains/agentic/templates/_pre-processor'
 import { GenericTile } from '~/lib/domains/agentic/templates/_templates/_generic-tile'
-
-// ==================== INTERNAL UTILITIES ====================
-
-function _escapeXML(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;')
-}
+import { _escapeXML } from '~/lib/domains/agentic/templates/_internals/utils'
 
 // ==================== PUBLIC FUNCTIONS ====================
 

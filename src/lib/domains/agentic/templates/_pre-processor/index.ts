@@ -70,53 +70,11 @@ function _expandTag(
   context: TemplateContext,
   registry: TemplateRegistry
 ): string {
-  const templateFn = registry[templateName as keyof TemplateRegistry]
-
-  if (!templateFn) {
-    const available = Object.keys(registry).join(', ')
-    throw new TemplateError(
-      `Unknown template "${templateName}". Available: ${available}`,
-      templateName,
-      params
-    )
-  }
-
-  const item = resolveItemReference(params.item, context)
-  const fields = params.fields ?? ['title', 'content']
-  const wrapper = params.wrapper
-  const depth = params.depth ?? 3
+  _validateTemplateExists(templateName, params, registry)
+  const resolvedParams = _resolveParams(params, context)
 
   try {
-    // Call the appropriate template function based on its signature
-    switch (templateName) {
-      case 'GenericTile':
-        return registry.GenericTile(item, fields, wrapper)
-
-      case 'Folder':
-        return registry.Folder(item, fields, depth)
-
-      case 'TileOrFolder':
-        return registry.TileOrFolder(item, fields, wrapper, depth)
-
-      case 'HexPlan':
-        return registry.HexPlan(
-          context.hexplanCoords,
-          context.hexPlan,
-          context.hexplanStatus,
-          {
-            mcpServerName: context.mcpServerName,
-            isParentTile: context.isParentTile,
-            taskCoords: context.task.coords
-          }
-        )
-
-      default:
-        throw new TemplateError(
-          `No handler for template "${templateName}"`,
-          templateName,
-          params
-        )
-    }
+    return _invokeTemplate(templateName, resolvedParams, context, registry, params)
   } catch (error) {
     if (error instanceof TemplateError) {
       throw error
@@ -127,5 +85,62 @@ function _expandTag(
       params,
       error instanceof Error ? error : undefined
     )
+  }
+}
+
+interface ResolvedParams {
+  item: ReturnType<typeof resolveItemReference>
+  fields: string[]
+  wrapper: string | undefined
+  depth: number
+}
+
+function _validateTemplateExists(
+  templateName: string,
+  params: ParsedParams,
+  registry: TemplateRegistry
+): void {
+  const templateFn = registry[templateName as keyof TemplateRegistry]
+  if (!templateFn) {
+    const available = Object.keys(registry).join(', ')
+    throw new TemplateError(
+      `Unknown template "${templateName}". Available: ${available}`,
+      templateName,
+      params
+    )
+  }
+}
+
+function _resolveParams(params: ParsedParams, context: TemplateContext): ResolvedParams {
+  return {
+    item: resolveItemReference(params.item, context),
+    fields: params.fields ?? ['title', 'content'],
+    wrapper: params.wrapper,
+    depth: params.depth ?? 3,
+  }
+}
+
+function _invokeTemplate(
+  templateName: string,
+  resolvedParams: ResolvedParams,
+  context: TemplateContext,
+  registry: TemplateRegistry,
+  originalParams: ParsedParams
+): string {
+  switch (templateName) {
+    case 'GenericTile':
+      return registry.GenericTile(resolvedParams.item, resolvedParams.fields, resolvedParams.wrapper)
+    case 'Folder':
+      return registry.Folder(resolvedParams.item, resolvedParams.fields, resolvedParams.depth)
+    case 'TileOrFolder':
+      return registry.TileOrFolder(resolvedParams.item, resolvedParams.fields, resolvedParams.wrapper, resolvedParams.depth)
+    case 'HexPlan':
+      return registry.HexPlan(context.hexplanCoords, context.hexPlan, context.hexplanStatus, {
+        mcpServerName: context.mcpServerName,
+        isParentTile: context.isParentTile,
+        taskCoords: context.task.coords,
+      })
+    default:
+      throw new TemplateError(`No handler for template "${templateName}"`, templateName, originalParams)
   }
 }

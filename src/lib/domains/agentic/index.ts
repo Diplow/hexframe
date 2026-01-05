@@ -12,11 +12,11 @@ export { PreviewGeneratorService } from '~/lib/domains/agentic/services/preview-
 export type { GeneratePreviewInput, GeneratePreviewResult } from '~/lib/domains/agentic/services/preview-generator.service';
 
 // Context builders
-export { CanvasContextBuilder } from '~/lib/domains/agentic/services/canvas-context-builder.service';
-export { ChatContextBuilder } from '~/lib/domains/agentic/services/chat-context-builder.service';
-export { ContextCompositionService } from '~/lib/domains/agentic/services/context-composition.service';
-export { ContextSerializerService } from '~/lib/domains/agentic/services/context-serializer.service';
-export type { TokenizerService } from '~/lib/domains/agentic/services/tokenizer.service';
+export { CanvasContextBuilder } from '~/lib/domains/agentic/services/_context/canvas-context-builder.service';
+export { ChatContextBuilder } from '~/lib/domains/agentic/services/_context/chat-context-builder.service';
+export { ContextCompositionService } from '~/lib/domains/agentic/services/_context/context-composition.service';
+export { ContextSerializerService } from '~/lib/domains/agentic/services/_context/context-serializer.service';
+export type { TokenizerService } from '~/lib/domains/agentic/services/_context/tokenizer.service';
 
 // Repository implementations (for service instantiation)
 export { OpenRouterRepository, ClaudeAgentSDKRepository, QueuedLLMRepository } from '~/lib/domains/agentic/repositories';

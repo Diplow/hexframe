@@ -92,12 +92,23 @@ This clean separation eliminates ambiguity about what an agent should do when ex
 
 ### Tile Types (MapItemType)
 
-Every tile has a semantic type that guides agent behavior:
+Every tile has a semantic type that guides agent behavior. The system supports both built-in enum types and custom string types.
 
+#### Built-in Types
 - **USER**: Root tile for each user's map. The only tile type that can have no parent. Exactly one per user, at the center of their map.
 - **ORGANIZATIONAL**: Structural grouping tiles (e.g., "Plans", "Interests"). Used for navigation and categorization. Always visible to help orient users and agents.
 - **CONTEXT**: Reference material tiles to explore on-demand (default for new tiles). Background knowledge that agents should explore when relevant, not preload eagerly.
 - **SYSTEM**: Executable capability tiles that can be invoked like a skill. Agents can invoke these via hexecute when needed.
+
+#### Custom Types
+Beyond built-in types, arbitrary string values can be used as custom item types (e.g., "template", "project", "workflow"). This enables domain-specific semantic classification.
+
+**Reserved types**: The `user` type is reserved for system-created root tiles and cannot be used via API.
+
+**Type utilities** (in `src/lib/domains/mapping/infrastructure/map-item/item-type-utils.ts`):
+- `isBuiltInItemType()` - Type guard for MapItemType enum values
+- `isReservedItemType()` - Check if type is reserved
+- `isCustomItemType()` - Check if type is custom (non-built-in)
 
 **Migration note**: Previously there was only USER and BASE. BASE has been split into ORGANIZATIONAL, CONTEXT, and SYSTEM for semantic agent behavior. Tiles with null itemType should be treated as unclassified legacy tiles.
 
