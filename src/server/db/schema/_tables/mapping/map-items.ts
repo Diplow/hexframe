@@ -51,7 +51,7 @@ export const mapItems = createTable(
       .default("private" as Visibility),
     parentId: integer("parent_id"),
     refItemId: integer("ref_item_id").notNull(),
-    templateName: varchar("template_name", { length: 255 }),
+    templateName: varchar("template_name", { length: 100 }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
@@ -85,6 +85,9 @@ export const mapItems = createTable(
         table.coord_user_id,
         table.coord_group_id,
         table.path,
+      ),
+      uniqueTemplateName: uniqueIndex("unique_template_name").on(
+        table.templateName,
       ),
     };
   },
