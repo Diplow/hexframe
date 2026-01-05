@@ -173,9 +173,9 @@ function _buildSectionsSection(structuralChildren: PromptDataTile[]): string {
   const sections = structuralChildren.map(child => {
     if (child.itemType === MapItemType.ORGANIZATIONAL) {
       // For organizational tiles, show as folder but don't recurse into children
-      return `<section title="${_escapeXML(child.title)}" type="folder" coords="${_escapeXML(child.coords)}">\n${child.preview ?? ''}\n</section>`
+      return `<section title="${_escapeXML(child.title)}" type="folder" coords="${_escapeXML(child.coords)}">\n${_escapeXML(child.preview ?? '')}\n</section>`
     }
-    return `<section title="${_escapeXML(child.title)}" coords="${_escapeXML(child.coords)}">\n${child.preview ?? ''}\n</section>`
+    return `<section title="${_escapeXML(child.title)}" coords="${_escapeXML(child.coords)}">\n${_escapeXML(child.preview ?? '')}\n</section>`
   })
 
   return `<sections>\n${sections.join('\n\n')}\n</sections>`
