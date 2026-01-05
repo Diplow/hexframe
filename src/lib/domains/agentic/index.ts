@@ -11,10 +11,6 @@ export { createAgenticService, createAgenticServiceAsync } from '~/lib/domains/a
 export { PreviewGeneratorService } from '~/lib/domains/agentic/services/preview-generator.service';
 export type { GeneratePreviewInput, GeneratePreviewResult } from '~/lib/domains/agentic/services/preview-generator.service';
 
-// Note: Mutation notification registry is deprecated - cache invalidation now uses tool_call_end streaming events
-// Legacy exports kept for backwards compatibility (can be removed in future cleanup)
-// export { registerMutationEmitter, notifyMutation, pushMutation, popMutations } from '~/lib/domains/agentic/services/mutation-notification-registry';
-
 // Context builders
 export { CanvasContextBuilder } from '~/lib/domains/agentic/services/canvas-context-builder.service';
 export { ChatContextBuilder } from '~/lib/domains/agentic/services/chat-context-builder.service';

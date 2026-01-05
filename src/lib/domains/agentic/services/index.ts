@@ -12,6 +12,3 @@ export type { TokenizerService } from '~/lib/domains/agentic/services/tokenizer.
 
 export { PreviewGeneratorService } from '~/lib/domains/agentic/services/preview-generator.service'
 export type { GeneratePreviewInput, GeneratePreviewResult } from '~/lib/domains/agentic/services/preview-generator.service'
-
-// Note: Mutation notification registry is deprecated - cache invalidation now uses tool_call_end streaming events
-// export { registerMutationEmitter, notifyMutation } from '~/lib/domains/agentic/services/mutation-notification-registry'
