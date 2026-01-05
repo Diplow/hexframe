@@ -14,14 +14,22 @@ export function useAIChatIntegration() {
   const chatState = useChatState()
   const eventBus = useEventBus()
   const [userId, setUserId] = useState<string | null>(null)
+  const [sessionError, setSessionError] = useState(false)
   const lastProcessedMessageId = useRef<string | null>(null)
   const processingMessage = useRef(false)
 
   // Get user ID from auth session
   useEffect(() => {
-    void authClient.getSession().then(session => {
-      setUserId(session?.data?.user?.id ?? null)
-    })
+    void authClient.getSession()
+      .then(session => {
+        setUserId(session?.data?.user?.id ?? null)
+        setSessionError(false)
+      })
+      .catch((error: unknown) => {
+        loggers.agentic('Failed to get session', { error })
+        setUserId(null)
+        setSessionError(true)
+      })
   }, [])
 
   // Use streaming task execution for USER tile
@@ -75,6 +83,7 @@ export function useAIChatIntegration() {
   }, [chatState.messages, executeTask, userTileCoordId, chatState])
 
   return {
-    isGeneratingAI: isStreaming
+    isGeneratingAI: isStreaming,
+    sessionError
   }
 }
