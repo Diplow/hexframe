@@ -4,7 +4,8 @@
  * Resolves item references (., this, path.to.value) to actual data.
  */
 
-import type { MapItemType } from '~/lib/domains/mapping'
+import type { ItemTypeValue } from '~/lib/domains/mapping'
+import { parseChildRef, type ChildPath } from '~/lib/domains/agentic/templates/_pre-processor/_path-parser'
 
 // ==================== PUBLIC TYPES ====================
 
@@ -13,7 +14,8 @@ export interface TileData {
   content?: string
   preview?: string
   coords: string
-  itemType?: MapItemType
+  itemType?: ItemTypeValue
+  direction?: number  // -6 to 6, for child lookup by direction
   children?: TileData[]
 }
 
@@ -51,6 +53,8 @@ export interface TemplateContext {
  * - `ancestors` - ancestor array
  * - `composedChildren` - composed children array
  * - `structuralChildren` - structural children array
+ * - `child[-3]` - child at direction -3
+ * - `child[-2,-1]` - nested child path
  * - Path expressions like `task.title`
  */
 export function resolveItemReference(
@@ -63,6 +67,12 @@ export function resolveItemReference(
 
   if (ref === 'task') {
     return context.task
+  }
+
+  // Handle child path references like child[-3] or child[-2,-1]
+  const childRef = parseChildRef(ref)
+  if (childRef?.type === 'path') {
+    return resolveChildPath(childRef.path, context.task)
   }
 
   // Handle array access like ancestors[0]
@@ -85,6 +95,77 @@ export function resolveItemReference(
   }
 
   return undefined
+}
+
+/**
+ * Resolve a child path to tile data.
+ *
+ * @param path - The parsed child path (e.g., { directions: [-2, -1] })
+ * @param rootTile - The tile to start resolution from
+ * @returns The tile at the path, or undefined if not found
+ */
+export function resolveChildPath(
+  path: ChildPath,
+  rootTile: TileData
+): TileData | undefined {
+  let current: TileData | undefined = rootTile
+
+  for (const direction of path.directions) {
+    if (!current?.children) {
+      return undefined
+    }
+    current = current.children.find(c => c.direction === direction)
+    if (!current) {
+      return undefined
+    }
+  }
+
+  return current
+}
+
+/**
+ * Resolve a child path and extract a specific field value.
+ *
+ * @param path - The parsed child path with field (e.g., { directions: [-2], field: 'title' })
+ * @param rootTile - The tile to start resolution from
+ * @returns The field value as string, or undefined if not found
+ */
+export function resolveChildPathField(
+  path: ChildPath,
+  rootTile: TileData
+): string | undefined {
+  const tile = resolveChildPath(path, rootTile)
+  if (!tile || !path.field) {
+    return undefined
+  }
+
+  const value = tile[path.field as keyof TileData]
+  return typeof value === 'string' ? value : undefined
+}
+
+/**
+ * Get children in a direction range from a tile.
+ *
+ * @param tile - The tile to get children from
+ * @param start - Start direction (inclusive)
+ * @param end - End direction (inclusive)
+ * @returns Array of children in the range, sorted by direction
+ */
+export function getChildrenInRange(
+  tile: TileData,
+  start: number,
+  end: number
+): TileData[] {
+  if (!tile.children) {
+    return []
+  }
+
+  const minDir = Math.min(start, end)
+  const maxDir = Math.max(start, end)
+
+  return tile.children
+    .filter(c => c.direction !== undefined && c.direction >= minDir && c.direction <= maxDir)
+    .sort((a, b) => (a.direction ?? 0) - (b.direction ?? 0))
 }
 
 /**

@@ -10,6 +10,7 @@ export interface PromptDataTile {
   preview?: string
   coords: string
   itemType?: ItemTypeValue
+  direction?: number  // -6 to 6, for child lookup by direction
   children?: PromptDataTile[]
 }
 

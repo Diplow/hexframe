@@ -7,8 +7,23 @@
 export { parseCustomTags, parseParams } from '~/lib/domains/agentic/templates/_pre-processor/_parser'
 export type { CustomTag, ParsedParams } from '~/lib/domains/agentic/templates/_pre-processor/_parser'
 
-export { resolveItemReference, createChildContext } from '~/lib/domains/agentic/templates/_pre-processor/_resolver'
+export {
+  resolveItemReference,
+  createChildContext,
+  resolveChildPath,
+  resolveChildPathField,
+  getChildrenInRange
+} from '~/lib/domains/agentic/templates/_pre-processor/_resolver'
 export type { TileData, TemplateContext } from '~/lib/domains/agentic/templates/_pre-processor/_resolver'
+
+export {
+  parseChildRef,
+  parseChildPath,
+  parseChildRange,
+  formatChildPath,
+  isChildRef
+} from '~/lib/domains/agentic/templates/_pre-processor/_path-parser'
+export type { ChildPath, ChildRange, ParsedChildRef } from '~/lib/domains/agentic/templates/_pre-processor/_path-parser'
 
 import { parseCustomTags, type ParsedParams } from '~/lib/domains/agentic/templates/_pre-processor/_parser'
 import { resolveItemReference, type TemplateContext } from '~/lib/domains/agentic/templates/_pre-processor/_resolver'
