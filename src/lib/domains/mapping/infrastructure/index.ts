@@ -13,3 +13,6 @@ export { TransactionManager } from '~/lib/domains/mapping/infrastructure/transac
 
 // Utility functions (for testing/debugging)
 export { parsePathString } from '~/lib/domains/mapping/infrastructure/map-item/db';
+
+// Item type utilities
+export { isBuiltInItemType, isReservedItemType, isCustomItemType } from '~/lib/domains/mapping/infrastructure/map-item/item-type-utils';

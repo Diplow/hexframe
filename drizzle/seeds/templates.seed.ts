@@ -93,23 +93,121 @@ const sql = postgres(DATABASE_URL)
 // ==================== SEED FUNCTIONS ====================
 
 /**
- * Find context needed for seeding: parent ID and existing templates.
+ * Find or create the grandparent tile at path [1] if needed.
  */
-async function _findSeedContext(): Promise<{
-  parentId: number | null
-  existingTemplates: Map<string, ExistingTemplate>
-}> {
+async function _ensureGrandparentExists(): Promise<number> {
+  const grandparentPath = TEMPLATES_PARENT_PATH.slice(0, 1).join(',')
+
+  // Check if grandparent exists
+  const existingResult = await sql<Array<{ id: number }>>`
+    SELECT id FROM vde_map_items
+    WHERE coord_user_id = ${SYSTEM_USER_ID}
+      AND coord_group_id = 0
+      AND path = ${grandparentPath}
+    LIMIT 1
+  `
+
+  if (existingResult[0]) {
+    return existingResult[0].id
+  }
+
+  // Find root tile
+  const rootResult = await sql<Array<{ id: number }>>`
+    SELECT id FROM vde_map_items
+    WHERE coord_user_id = ${SYSTEM_USER_ID}
+      AND coord_group_id = 0
+      AND path = ''
+    LIMIT 1
+  `
+  const rootId = rootResult[0]?.id ?? null
+
+  // Create grandparent organizational tile
+  const baseResult = await sql<Array<{ id: number }>>`
+    INSERT INTO vde_base_items (title, content, created_at, updated_at)
+    VALUES ('System', 'System-level organizational tiles', NOW(), NOW())
+    RETURNING id
+  `
+  const baseItemId = baseResult[0]?.id
+  if (!baseItemId) throw new Error('Failed to create grandparent base item')
+
+  const mapResult = await sql<Array<{ id: number }>>`
+    INSERT INTO vde_map_items (
+      coord_user_id, coord_group_id, path, item_type, visibility,
+      parent_id, ref_item_id, created_at, updated_at
+    )
+    VALUES (
+      ${SYSTEM_USER_ID}, 0, ${grandparentPath}, 'organizational', 'public',
+      ${rootId}, ${baseItemId}, NOW(), NOW()
+    )
+    RETURNING id
+  `
+
+  const grandparentId = mapResult[0]?.id
+  if (!grandparentId) throw new Error('Failed to create grandparent map item')
+
+  console.log(`  Created grandparent organizational tile at path: ${grandparentPath}`)
+  return grandparentId
+}
+
+/**
+ * Find or create the Templates organizational tile at TEMPLATES_PARENT_PATH.
+ */
+async function _ensureTemplatesParentExists(): Promise<number> {
   const pathString = TEMPLATES_PARENT_PATH.join(',')
 
-  const parentResult = await sql<Array<{ id: number }>>`
-    SELECT id
-    FROM vde_map_items
+  // Check if parent exists
+  const existingResult = await sql<Array<{ id: number }>>`
+    SELECT id FROM vde_map_items
     WHERE coord_user_id = ${SYSTEM_USER_ID}
       AND coord_group_id = 0
       AND path = ${pathString}
     LIMIT 1
   `
-  const parentId = parentResult[0]?.id ?? null
+
+  if (existingResult[0]) {
+    return existingResult[0].id
+  }
+
+  // Ensure grandparent exists first
+  const grandparentId = await _ensureGrandparentExists()
+
+  // Create Templates organizational tile
+  const baseResult = await sql<Array<{ id: number }>>`
+    INSERT INTO vde_base_items (title, content, created_at, updated_at)
+    VALUES ('Templates', 'Built-in template tiles for prompt rendering', NOW(), NOW())
+    RETURNING id
+  `
+  const baseItemId = baseResult[0]?.id
+  if (!baseItemId) throw new Error('Failed to create Templates base item')
+
+  const mapResult = await sql<Array<{ id: number }>>`
+    INSERT INTO vde_map_items (
+      coord_user_id, coord_group_id, path, item_type, visibility,
+      parent_id, ref_item_id, created_at, updated_at
+    )
+    VALUES (
+      ${SYSTEM_USER_ID}, 0, ${pathString}, 'organizational', 'public',
+      ${grandparentId}, ${baseItemId}, NOW(), NOW()
+    )
+    RETURNING id
+  `
+
+  const parentId = mapResult[0]?.id
+  if (!parentId) throw new Error('Failed to create Templates map item')
+
+  console.log(`  Created Templates organizational tile at path: ${pathString}`)
+  return parentId
+}
+
+/**
+ * Find context needed for seeding: parent ID and existing templates.
+ */
+async function _findSeedContext(): Promise<{
+  parentId: number
+  existingTemplates: Map<string, ExistingTemplate>
+}> {
+  // Ensure Templates parent exists (creates if missing)
+  const parentId = await _ensureTemplatesParentExists()
 
   const templatesResult = await sql<ExistingTemplate[]>`
     SELECT
@@ -140,7 +238,7 @@ async function _findSeedContext(): Promise<{
  */
 async function _createTemplate(
   spec: BuiltinTemplateSpec,
-  parentId: number | null
+  parentId: number
 ): Promise<void> {
   const pathString = [...TEMPLATES_PARENT_PATH, spec.direction].join(',')
 
@@ -173,7 +271,7 @@ async function _createTemplate(
 async function _seedTemplate(
   spec: BuiltinTemplateSpec,
   existingTemplates: Map<string, ExistingTemplate>,
-  parentId: number | null
+  parentId: number
 ): Promise<'created' | 'updated' | 'skipped'> {
   const existing = existingTemplates.get(spec.templateName)
 
@@ -206,13 +304,7 @@ async function seedTemplates(): Promise<SeedResult> {
   console.log('Finding seed context...')
   const { parentId, existingTemplates } = await _findSeedContext()
 
-  if (parentId === null) {
-    console.warn('Templates organizational tile not found at path:', TEMPLATES_PARENT_PATH.join(','))
-    console.warn('Template tiles will be created without a parent reference.')
-  } else {
-    console.log(`Found Templates parent tile with ID: ${parentId}`)
-  }
-
+  console.log(`Templates parent tile ID: ${parentId}`)
   console.log(`Found ${existingTemplates.size} existing template tiles\n`)
 
   console.log('Seeding templates...')

@@ -29,6 +29,7 @@ export {
   MapItemType,
   type NonUserMapItemType,
   type NonUserMapItemTypeString,
+  type ItemTypeValue,
   Visibility,
   type VisibilityString,
 } from '~/lib/domains/mapping/_objects';

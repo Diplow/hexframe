@@ -7,7 +7,8 @@
  */
 
 import Mustache from 'mustache'
-import { MapItemType } from '~/lib/domains/mapping'
+import { MapItemType, type ItemTypeValue } from '~/lib/domains/mapping'
+import { isBuiltInItemType } from '~/lib/domains/mapping/infrastructure'
 import { SYSTEM_TEMPLATE, type SystemTemplateData, HEXRUN_INTRO } from '~/lib/domains/agentic/templates/_system-template'
 import { USER_TEMPLATE, type UserTemplateData, USER_INTRO } from '~/lib/domains/agentic/templates/_user-template'
 import {
@@ -38,9 +39,15 @@ const TEMPLATE_LOOKUP_ERRORS = {
   contextNotImplemented: 'CONTEXT tile templates not yet implemented',
 } as const
 
-function _getTemplateByItemType(itemType: MapItemType | null | undefined): string {
+function _getTemplateByItemType(itemType: ItemTypeValue | null | undefined): string {
   if (itemType === null || itemType === undefined) {
     throw new Error(TEMPLATE_LOOKUP_ERRORS.noItemType)
+  }
+
+  // Handle custom (non-built-in) item types by using SYSTEM template
+  // Custom types like "template" are treated as executable tiles
+  if (!isBuiltInItemType(itemType)) {
+    return SYSTEM_TEMPLATE
   }
 
   switch (itemType) {
@@ -177,7 +184,7 @@ export function buildPrompt(data: PromptData): string {
   const template = _getTemplateByItemType(data.itemType)
 
   // Prepare template data based on item type
-  const templateData = data.itemType === MapItemType.USER
+  const templateData = data.itemType === (MapItemType.USER as ItemTypeValue)
     ? _prepareUserTemplateData(data)
     : _prepareSystemTemplateData(data)
 

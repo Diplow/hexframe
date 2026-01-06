@@ -1,4 +1,4 @@
-import type { Coord, NonUserMapItemTypeString, VisibilityString } from "~/lib/domains/mapping/utils";
+import type { Coord, VisibilityString } from "~/lib/domains/mapping/utils";
 import { Visibility } from "~/lib/domains/mapping/utils";
 import type { MapItemUpdateAttributes } from "~/lib/domains/mapping/utils";
 import type { MapItemAPIContract } from "~/server/api";
@@ -14,7 +14,7 @@ export function _wrapTRPCMutations(mutations: {
     content?: string;
     preview?: string;
     link?: string;
-    itemType: NonUserMapItemTypeString;
+    itemType: string;
   }) => Promise<MapItemAPIContract> };
   updateItemMutation: { mutateAsync: (params: {
     coords: Coord;
@@ -46,7 +46,7 @@ export function _wrapTRPCMutations(mutations: {
     mutateAsync: async (params: {
       coords: Coord;
       parentId?: number | null;
-      itemType: NonUserMapItemTypeString;
+      itemType: string;
       title?: string;
       content?: string;
       preview?: string;

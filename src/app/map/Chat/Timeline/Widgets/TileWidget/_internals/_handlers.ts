@@ -13,16 +13,14 @@ export function _handleEdit(editState: EditState) {
   editState.setIsExpanded(true);
 }
 
-type EditableItemType = 'organizational' | 'context' | 'system';
-
 export function _handleSave(
   editTitle: string,
   editPreview: string,
   editContent: string,
-  editItemType: EditableItemType | undefined,
+  editItemType: string | undefined,
   currentMode: 'view' | 'edit' | 'create' | 'delete' | 'delete_children' | 'history',
   setIsEditing: (value: boolean) => void,
-  onSave?: (title: string, preview: string, content: string, itemType?: EditableItemType) => void
+  onSave?: (title: string, preview: string, content: string, itemType?: string) => void
 ) {
   onSave?.(editTitle, editPreview, editContent, editItemType);
   if (currentMode !== 'create') {

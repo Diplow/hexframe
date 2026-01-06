@@ -43,16 +43,21 @@ export const userMapIdentifierSchema = z.object({
 /**
  * Item type schema for API-level tile classification.
  *
- * Defines the semantic classification of tiles that clients can set:
+ * Accepts any non-empty string except "user" (which is system-controlled).
+ *
+ * Built-in types:
  * - "organizational": Structural grouping tiles (e.g., "Plans", "Interests")
  * - "context": Reference material tiles to explore on-demand
  * - "system": Executable capability tiles that can be invoked like a skill
  *
- * Note: "user" type is excluded as it's system-controlled (root tiles only).
+ * Custom types (e.g., "template") are also supported for user-defined classifications.
  *
- * @see MapItemType in src/lib/domains/mapping/_objects/map-item.ts for full enum
+ * @see MapItemType in src/lib/domains/mapping/_objects/map-item.ts for built-in enum
  */
-export const itemTypeSchema = z.enum(["organizational", "context", "system"]);
+export const itemTypeSchema = z.string().min(1).refine(
+  (val) => val.toLowerCase() !== "user",
+  { message: "The 'user' item type is reserved for system-created root tiles" }
+);
 
 /**
  * Item creation schema for adding new tiles to the map.

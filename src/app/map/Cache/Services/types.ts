@@ -1,5 +1,5 @@
 // Service interface types for dependency injection and mocking
-import type { MapItemType, MapItemUpdateAttributes, MapItemCreateAttributes } from "~/lib/domains/mapping/utils";
+import type { ItemTypeValue, MapItemUpdateAttributes, MapItemCreateAttributes } from "~/lib/domains/mapping/utils";
 import type { Visibility } from '~/lib/domains/mapping/utils';
 
 export interface ServerService {
@@ -16,7 +16,7 @@ export interface ServerService {
     preview: string | undefined;
     link: string;
     parentId: string | null;
-    itemType: MapItemType;
+    itemType: ItemTypeValue;
     ownerId: string;
     originId: string | null;
     visibility: Visibility;
@@ -32,7 +32,7 @@ export interface ServerService {
     preview: string | undefined;
     link: string;
     parentId: string | null;
-    itemType: MapItemType;
+    itemType: ItemTypeValue;
     ownerId: string;
     originId: string | null;
     visibility: Visibility;
@@ -46,7 +46,7 @@ export interface ServerService {
     preview: string | undefined;
     link: string;
     parentId: string | null;
-    itemType: MapItemType;
+    itemType: ItemTypeValue;
     ownerId: string;
     originId: string | null;
     visibility: Visibility;
@@ -60,7 +60,7 @@ export interface ServerService {
     preview: string | undefined;
     link: string;
     parentId: string | null;
-    itemType: MapItemType;
+    itemType: ItemTypeValue;
     ownerId: string;
     originId: string | null;
     visibility: Visibility;
@@ -74,7 +74,7 @@ export interface ServerService {
     preview: string | undefined;
     link: string;
     parentId: string | null;
-    itemType: MapItemType;
+    itemType: ItemTypeValue;
     ownerId: string;
     originId: string | null;
     visibility: Visibility;
@@ -91,7 +91,7 @@ export interface ServerService {
     preview: string | undefined;
     link: string;
     parentId: string | null;
-    itemType: MapItemType;
+    itemType: ItemTypeValue;
     ownerId: string;
     originId: string | null;
     visibility: Visibility;

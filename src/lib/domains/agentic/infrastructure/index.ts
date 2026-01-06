@@ -9,3 +9,6 @@ export { inngest } from '~/lib/domains/agentic/infrastructure/inngest/client';
 
 // Background job functions
 export { inngestFunctions } from '~/lib/domains/agentic/infrastructure/inngest/functions';
+
+// Repository implementations
+export { DrizzleTemplateAllowlistRepository } from '~/lib/domains/agentic/infrastructure/template-allowlist';

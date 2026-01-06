@@ -1,4 +1,4 @@
-import type { MapItemType, Visibility } from "~/lib/domains/mapping/_objects/map-item";
+import type { ItemTypeValue, Visibility } from "~/lib/domains/mapping/_objects/map-item";
 
 // Infer DB types
 export type DbMapItemSelect = {
@@ -7,7 +7,7 @@ export type DbMapItemSelect = {
   coord_user_id: string;
   coord_group_id: number;
   path: string;
-  item_type: MapItemType;
+  item_type: ItemTypeValue;
   visibility: Visibility;
   refItemId: number;
   templateName: string | null;
@@ -33,7 +33,7 @@ export type CreateMapItemDbAttrs = {
   coord_user_id: string;
   coord_group_id: number;
   path: string;
-  item_type: MapItemType;
+  item_type: ItemTypeValue;
   visibility?: Visibility;
   refItemId: number;
   templateName?: string | null;
@@ -44,7 +44,7 @@ export type UpdateMapItemDbAttrs = Partial<{
   coord_user_id: string;
   coord_group_id: number;
   path: string;
-  item_type: MapItemType;
+  item_type: ItemTypeValue;
   visibility: Visibility;
   refItemId: number;
   templateName: string | null;

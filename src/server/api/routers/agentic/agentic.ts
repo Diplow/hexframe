@@ -12,6 +12,8 @@ const { llmJobResults } = schema
 import { eq } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import type { MappingService, HexecuteContext } from '~/lib/domains/mapping'
+import { TemplateAllowlistService } from '~/lib/domains/agentic/services/_templates'
+import { DrizzleTemplateAllowlistRepository } from '~/lib/domains/agentic/infrastructure'
 
 // =============================================================================
 // Shared Helpers
@@ -596,5 +598,88 @@ export const agenticRouter = createTRPCRouter({
       }
 
       return { prompt: promptResult }
+    }),
+
+  // Get effective template allowlist for the current user
+  // Returns built-in templates + user's custom allowed templates
+  getEffectiveAllowlist: protectedProcedure
+    .query(async ({ ctx }) => {
+      const repository = new DrizzleTemplateAllowlistRepository(db)
+      const service = new TemplateAllowlistService(repository)
+
+      const userId = ctx.session?.userId ?? null
+      const allowlist = await service.getEffectiveAllowlist(userId)
+
+      return { allowedTypes: allowlist }
+    }),
+
+  // Add a template to the user's allowlist
+  addToAllowlist: protectedProcedure
+    .input(z.object({ templateName: z.string().min(1) }))
+    .mutation(async ({ input, ctx }) => {
+      const repository = new DrizzleTemplateAllowlistRepository(db)
+      const service = new TemplateAllowlistService(repository)
+
+      const userId = ctx.session?.userId
+      if (!userId) {
+        _throwBadRequest('User ID is required to modify allowlist')
+      }
+
+      // Get current allowlist
+      const currentAllowlist = await service.getUserAllowlist(userId)
+      const currentTemplates = currentAllowlist.filter(
+        t => !service.isBuiltInTemplate(t)
+      )
+
+      // Add new template if not already present
+      const normalizedNewTemplate = input.templateName.toLowerCase()
+      const alreadyExists = currentTemplates.some(
+        t => t.toLowerCase() === normalizedNewTemplate
+      )
+
+      if (!alreadyExists) {
+        await repository.saveUserAllowlist({
+          userId,
+          allowedTemplates: [...currentTemplates, input.templateName]
+        })
+      }
+
+      // Return updated effective allowlist
+      const updatedAllowlist = await service.getEffectiveAllowlist(userId)
+      return { allowedTypes: updatedAllowlist }
+    }),
+
+  // Remove a template from the user's allowlist
+  removeFromAllowlist: protectedProcedure
+    .input(z.object({ templateName: z.string().min(1) }))
+    .mutation(async ({ input, ctx }) => {
+      const repository = new DrizzleTemplateAllowlistRepository(db)
+      const service = new TemplateAllowlistService(repository)
+
+      const userId = ctx.session?.userId
+      if (!userId) {
+        _throwBadRequest('User ID is required to modify allowlist')
+      }
+
+      // Can't remove built-in templates
+      if (service.isBuiltInTemplate(input.templateName)) {
+        _throwBadRequest('Cannot remove built-in templates from allowlist')
+      }
+
+      // Get current allowlist and filter out the template to remove
+      const currentAllowlist = await service.getUserAllowlist(userId)
+      const normalizedToRemove = input.templateName.toLowerCase()
+      const updatedTemplates = currentAllowlist.filter(
+        t => !service.isBuiltInTemplate(t) && t.toLowerCase() !== normalizedToRemove
+      )
+
+      await repository.saveUserAllowlist({
+        userId,
+        allowedTemplates: updatedTemplates
+      })
+
+      // Return updated effective allowlist
+      const updatedAllowlist = await service.getEffectiveAllowlist(userId)
+      return { allowedTypes: updatedAllowlist }
     })
 })

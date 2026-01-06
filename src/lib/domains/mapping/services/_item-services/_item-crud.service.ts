@@ -9,9 +9,9 @@ import {
   CoordSystem,
   Direction,
 } from "~/lib/domains/mapping/utils";
-import { MapItemType, Visibility, type MapItemWithId } from "~/lib/domains/mapping/_objects";
+import { MapItemType, Visibility, type MapItemWithId, type ItemTypeValue } from "~/lib/domains/mapping/_objects";
 import type { MapItemContract } from "~/lib/domains/mapping/types/contracts";
-import { TransactionManager } from "~/lib/domains/mapping/infrastructure";
+import { TransactionManager, isBuiltInItemType } from "~/lib/domains/mapping/infrastructure";
 import { type RequesterContext, SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 export class ItemCrudService {
@@ -58,7 +58,7 @@ export class ItemCrudService {
     preview?: string;
     link?: string;
     visibility?: Visibility;
-    itemType: MapItemType;
+    itemType: ItemTypeValue;
   }): Promise<MapItemContract> {
     let parentItem = null;
     if (parentId !== null) {
@@ -97,7 +97,7 @@ export class ItemCrudService {
     }
 
     // Validate itemType - USER type is system-controlled and cannot be set via API
-    if (itemType === MapItemType.USER) {
+    if (itemType === (MapItemType.USER as ItemTypeValue)) {
       throw new Error("Cannot set item type to USER - this is system-controlled.");
     }
 
@@ -168,7 +168,7 @@ export class ItemCrudService {
     preview?: string;
     link?: string;
     visibility?: Visibility;
-    itemType?: MapItemType;
+    itemType?: ItemTypeValue;
     requester?: RequesterContext;
   }): Promise<MapItemContract> {
     const item = await this.actions.getMapItem({ coords, requester });
@@ -192,11 +192,11 @@ export class ItemCrudService {
     // Validate and update itemType
     if (itemType !== undefined) {
       // Cannot change to USER type - that's system-controlled
-      if (itemType === MapItemType.USER) {
+      if (itemType === (MapItemType.USER as ItemTypeValue)) {
         throw new Error("Cannot change item type to USER - this is system-controlled.");
       }
       // Cannot change FROM USER type - that's system-controlled
-      if (item.attrs.itemType === MapItemType.USER) {
+      if (item.attrs.itemType === (MapItemType.USER as ItemTypeValue)) {
         throw new Error("Cannot change item type of USER tiles - this is system-controlled.");
       }
 
@@ -204,7 +204,7 @@ export class ItemCrudService {
       await this._validateItemTypeForUpdate(coords, itemType);
 
       // For SYSTEM and CONTEXT types, cascade the update to all structural descendants
-      if (itemType === MapItemType.SYSTEM || itemType === MapItemType.CONTEXT) {
+      if (itemType === (MapItemType.SYSTEM as ItemTypeValue) || itemType === (MapItemType.CONTEXT as ItemTypeValue)) {
         await this.mapItemRepository.batchUpdateItemTypeWithStructuralDescendants(coords, itemType);
       } else {
         // For ORGANIZATIONAL, just update this tile
@@ -466,12 +466,19 @@ export class ItemCrudService {
    * - CONTEXT tiles: structural children must also be CONTEXT
    * - ORGANIZATIONAL tiles: can only be children of USER or ORGANIZATIONAL
    * - USER tiles: can have any itemType as children
+   * - Custom types (non-built-in): skip hierarchy validation
    */
   private _validateItemTypeForCreation(
-    parentItemType: MapItemType | null,
-    childItemType: MapItemType,
+    parentItemType: ItemTypeValue | null,
+    childItemType: ItemTypeValue,
   ): void {
     if (!parentItemType) return;
+
+    // Only validate hierarchy for built-in types
+    // Custom types (e.g., "template") skip these constraints
+    if (!isBuiltInItemType(parentItemType) || !isBuiltInItemType(childItemType)) {
+      return;
+    }
 
     // Rule: ORGANIZATIONAL tiles can only be under USER or ORGANIZATIONAL
     if (childItemType === MapItemType.ORGANIZATIONAL) {
@@ -521,7 +528,7 @@ export class ItemCrudService {
    */
   private async _validateItemTypeForUpdate(
     coords: Coord,
-    newItemType: MapItemType,
+    newItemType: ItemTypeValue,
   ): Promise<void> {
     // Get the parent to check constraints
     const parentCoords = CoordSystem.getParentCoord(coords);
@@ -544,8 +551,8 @@ export class ItemCrudService {
     const parentItemType = parent.attrs.itemType;
 
     // Rule: ORGANIZATIONAL tiles can only be under USER or ORGANIZATIONAL
-    if (newItemType === MapItemType.ORGANIZATIONAL) {
-      if (parentItemType !== MapItemType.USER && parentItemType !== MapItemType.ORGANIZATIONAL) {
+    if (newItemType === (MapItemType.ORGANIZATIONAL as ItemTypeValue)) {
+      if (parentItemType !== (MapItemType.USER as ItemTypeValue) && parentItemType !== (MapItemType.ORGANIZATIONAL as ItemTypeValue)) {
         throw new Error(
           "Cannot change to ORGANIZATIONAL: parent must be USER or ORGANIZATIONAL. " +
           `Current parent is ${parentItemType}.`
@@ -553,10 +560,10 @@ export class ItemCrudService {
       }
     }
 
-    // Check constraints based on parent's itemType
-    switch (parentItemType) {
+    // Check constraints based on parent's itemType (only for built-in types)
+    switch (parentItemType as MapItemType) {
       case MapItemType.SYSTEM:
-        if (newItemType !== MapItemType.SYSTEM) {
+        if (newItemType !== (MapItemType.SYSTEM as ItemTypeValue)) {
           throw new Error(
             "Cannot change itemType: tile is a structural child of a SYSTEM tile. " +
             "Structural descendants of SYSTEM tiles must remain SYSTEM."
@@ -565,7 +572,7 @@ export class ItemCrudService {
         break;
 
       case MapItemType.CONTEXT:
-        if (newItemType !== MapItemType.CONTEXT) {
+        if (newItemType !== (MapItemType.CONTEXT as ItemTypeValue)) {
           throw new Error(
             "Cannot change itemType: tile is a structural child of a CONTEXT tile. " +
             "Structural descendants of CONTEXT tiles must remain CONTEXT."

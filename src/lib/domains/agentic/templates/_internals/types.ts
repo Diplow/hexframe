@@ -2,14 +2,14 @@
  * Shared types for prompt building.
  */
 
-import type { MapItemType } from '~/lib/domains/mapping'
+import type { ItemTypeValue } from '~/lib/domains/mapping'
 
 export interface PromptDataTile {
   title: string
   content?: string
   preview?: string
   coords: string
-  itemType?: MapItemType
+  itemType?: ItemTypeValue
   children?: PromptDataTile[]
 }
 
@@ -24,7 +24,7 @@ export interface PromptData {
     title: string
     content: string | undefined
     coords: string
-    itemType?: MapItemType
+    itemType?: ItemTypeValue
   }>
   composedChildren: Array<PromptDataTile>
   structuralChildren: Array<PromptDataTile>
@@ -34,7 +34,7 @@ export interface PromptData {
     title: string
     coords: string
   }>
-  itemType: MapItemType
+  itemType: ItemTypeValue
   /** For USER tiles: the current discussion/conversation state */
   discussion?: string
   /** For USER tiles: the user's current message/instruction */
