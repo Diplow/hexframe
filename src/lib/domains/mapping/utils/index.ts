@@ -37,3 +37,11 @@ export type { UpdateMapItemAttrs as MapItemUpdateAttributes } from '~/lib/domain
 export type { CreateMapItemParams as MapItemCreateAttributes } from '~/lib/domains/mapping/types/parameters';
 export type { MapItemContract } from '~/lib/domains/mapping/types/contracts';
 export type { MapItemAttributes } from '~/lib/domains/mapping/types/item-attributes';
+
+// Item type utilities (cross-domain safe)
+export {
+  isBuiltInItemType,
+  isReservedItemType,
+  isCustomItemType,
+  RESERVED_ITEM_TYPES,
+} from '~/lib/domains/mapping/infrastructure/map-item/item-type-utils';

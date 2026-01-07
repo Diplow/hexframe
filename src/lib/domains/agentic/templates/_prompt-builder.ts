@@ -8,8 +8,7 @@
  */
 
 import Mustache from 'mustache'
-import { MapItemType, type ItemTypeValue } from '~/lib/domains/mapping'
-import { isBuiltInItemType } from '~/lib/domains/mapping/infrastructure'
+import { MapItemType, type ItemTypeValue, isBuiltInItemType } from '~/lib/domains/mapping/utils'
 import { SYSTEM_TEMPLATE, type SystemTemplateData, HEXRUN_INTRO } from '~/lib/domains/agentic/templates/_system-template'
 import {
   USER_TEMPLATE,

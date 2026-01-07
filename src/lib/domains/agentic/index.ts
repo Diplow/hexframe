@@ -99,3 +99,25 @@ export type {
 
 // Note: For hexplan generation utilities (generateParentHexplanContent, generateLeafHexplanContent),
 // import directly from '~/lib/domains/agentic/utils' - the domain index should not reexport utils.
+
+// Template services
+export {
+  TemplateAllowlistService,
+  TemplateNotAllowedError,
+  TemplateVisibilityError,
+  BUILT_IN_TEMPLATES,
+  TemplateResolverService,
+  TemplateNotFoundError,
+  PromptTemplateService,
+} from '~/lib/domains/agentic/services/_templates';
+export type {
+  Visibility as TemplateVisibility,
+  UserAllowlist,
+  TemplateAllowlistRepository,
+  TemplateData,
+  TemplateWithChildren,
+  TemplateRepository,
+} from '~/lib/domains/agentic/services/_templates';
+
+// Infrastructure repositories
+export { DrizzleTemplateAllowlistRepository } from '~/lib/domains/agentic/infrastructure/template-allowlist';

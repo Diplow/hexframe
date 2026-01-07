@@ -12,8 +12,7 @@ const { llmJobResults } = schema
 import { eq } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import type { MappingService, HexecuteContext } from '~/lib/domains/mapping'
-import { TemplateAllowlistService } from '~/lib/domains/agentic/services/_templates'
-import { DrizzleTemplateAllowlistRepository } from '~/lib/domains/agentic/infrastructure'
+import { TemplateAllowlistService, DrizzleTemplateAllowlistRepository } from '~/lib/domains/agentic'
 
 // =============================================================================
 // Shared Helpers
