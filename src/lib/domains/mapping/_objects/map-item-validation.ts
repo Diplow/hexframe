@@ -13,7 +13,7 @@ export class MapItemValidation {
   }
 
   public static validateParentChildRelationship(item: MapItem) {
-    if (item.attrs.itemType === MapItemType.USER) {
+    if ((item.attrs.itemType as MapItemType) === MapItemType.USER) {
       if (item.attrs.parentId !== null || item.parent !== null) {
         throw new Error(MAPPING_ERRORS.USER_ITEM_CANNOT_HAVE_PARENT);
       }
@@ -50,7 +50,7 @@ export class MapItemValidation {
 
     if (
       item.attrs.parentId === null &&
-      item.attrs.itemType !== MapItemType.USER
+      (item.attrs.itemType as MapItemType) !== MapItemType.USER
     ) {
       throw new Error(MAPPING_ERRORS.NULL_PARENT_MUST_BE_USER_TYPE);
     }

@@ -46,7 +46,7 @@ export const mapDomainToContractAdapter = (
   if (rootItem.id === undefined) {
     throw new Error("Cannot adapt map root item without an ID");
   }
-  if (rootItem.attrs.itemType !== MapItemType.USER) {
+  if ((rootItem.attrs.itemType as MapItemType) !== MapItemType.USER) {
     throw new Error(
       "MapContract can only be created from a USER type root MapItem.",
     );

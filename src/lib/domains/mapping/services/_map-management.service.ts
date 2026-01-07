@@ -135,7 +135,7 @@ export class MapManagementService {
         `Map for user ${userId}, group ${groupId} not found for update.`,
       );
     }
-    if (rootItem.attrs.itemType !== MapItemType.USER) {
+    if ((rootItem.attrs.itemType as MapItemType) !== MapItemType.USER) {
       throw new Error("Cannot update map info for a non-root item.");
     }
 
@@ -163,7 +163,7 @@ export class MapManagementService {
       );
       return;
     }
-    if (rootItem.attrs.itemType !== MapItemType.USER) {
+    if ((rootItem.attrs.itemType as MapItemType) !== MapItemType.USER) {
       throw new Error("Attempted to remove a non-root item as a map.");
     }
     await this.actions.removeItem({ idr: { id: rootItem.id } });

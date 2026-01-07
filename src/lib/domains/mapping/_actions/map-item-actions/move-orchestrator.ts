@@ -120,7 +120,7 @@ export class MoveOrchestrator {
   ): Promise<Coord | null> {
     if (!targetItem) return null;
 
-    if (targetItem.attrs.itemType === MapItemType.USER && oldCoords.path.length > 0) {
+    if ((targetItem.attrs.itemType as MapItemType) === MapItemType.USER && oldCoords.path.length > 0) {
       throw new Error("Cannot displace a USER (root) item with a child item.");
     }
 
