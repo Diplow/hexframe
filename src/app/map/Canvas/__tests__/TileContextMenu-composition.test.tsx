@@ -186,8 +186,8 @@ describe('TileContextMenu - Show Composition', () => {
       expect(screen.queryByText('Show Composition')).not.toBeInTheDocument();
     });
 
-    it('should NOT show "Show Composition" for user tiles (empty path)', () => {
-      // User tiles have empty path and should never show composition
+    it('should show "Show Composition" for user tiles (empty path) when canShowComposition is true', () => {
+      // User tiles have empty path and can now show composition
       const userTile = createMockTileData({
         metadata: {
           dbId: '100',
@@ -210,13 +210,13 @@ describe('TileContextMenu - Show Composition', () => {
           onClose={vi.fn()}
           onCompositionToggle={vi.fn()}
           canEdit={true}
-          hasComposition={false}
+          hasComposition={true}
           isCompositionExpanded={false}
-          canShowComposition={false} // Should be false for user tiles
+          canShowComposition={true} // User tiles can now show composition
         />
       );
 
-      expect(screen.queryByText('Show Composition')).not.toBeInTheDocument();
+      expect(screen.getByText('Show Composition')).toBeInTheDocument();
     });
 
     it('should show "Show Composition" when canShowComposition is true (even without existing composition)', () => {
