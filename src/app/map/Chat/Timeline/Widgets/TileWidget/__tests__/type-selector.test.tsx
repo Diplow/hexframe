@@ -1,12 +1,37 @@
 import "~/test/setup";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-// These imports will fail until implementation exists
-// This is expected in TDD - tests are written first
+// Mock the tRPC API for all TypeSelectorField tests
+vi.mock("~/commons/trpc/react", () => ({
+  api: {
+    agentic: {
+      getEffectiveAllowlist: {
+        useQuery: vi.fn(() => ({
+          data: { allowedTypes: ['organizational', 'context', 'system'] },
+          isLoading: false,
+        })),
+      },
+      generatePreview: {
+        useMutation: vi.fn(() => ({
+          mutate: vi.fn(),
+        })),
+      },
+      getJobStatus: {
+        useQuery: vi.fn(() => ({
+          refetch: vi.fn(),
+        })),
+      },
+    },
+  },
+}));
 
 describe("TypeSelectorField Component", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   describe("rendering", () => {
     it("should render a dropdown with label 'Type'", async () => {
       const { _TypeSelectorField } = await import(
@@ -142,23 +167,7 @@ describe("TypeSelectorField Component", () => {
 });
 
 describe("TileForm with TypeSelector", () => {
-  // Mock tRPC before importing
-  vi.mock("~/commons/trpc/react", () => ({
-    api: {
-      agentic: {
-        generatePreview: {
-          useMutation: vi.fn(() => ({
-            mutate: vi.fn(),
-          })),
-        },
-        getJobStatus: {
-          useQuery: vi.fn(() => ({
-            refetch: vi.fn(),
-          })),
-        },
-      },
-    },
-  }));
+  // Uses the mock already defined at the top of the file
 
   it("should include TypeSelectorField in the form", async () => {
     const { TileForm } = await import(
@@ -298,7 +307,7 @@ describe("useTileState hook - itemType state", () => {
     expect(result.current.editing.itemType).toBe("system");
   });
 
-  it("should default itemType to 'context' when prop is user type", async () => {
+  it("should preserve itemType when prop is user type", async () => {
     const { renderHook } = await import("@testing-library/react");
     const { useTileState } = await import(
       "~/app/map/Chat/Timeline/Widgets/TileWidget/useTileState"
@@ -314,7 +323,7 @@ describe("useTileState hook - itemType state", () => {
       })
     );
 
-    // USER type is not editable, so it defaults to 'context'
-    expect(result.current.editing.itemType).toBe("context");
+    // USER type is preserved in state (UI hides the selector via isUserTile prop)
+    expect(result.current.editing.itemType).toBe("user");
   });
 });

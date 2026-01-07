@@ -4,7 +4,7 @@ import { MapItemType } from "~/lib/domains/mapping/_objects";
 
 export class ValidationStrategy {
   validateUserItemMove(item: MapItemWithId, newCoords: Coord): void {
-    if (item.attrs.itemType === MapItemType.USER && newCoords.path.length > 0) {
+    if ((item.attrs.itemType as MapItemType) === MapItemType.USER && newCoords.path.length > 0) {
       throw new Error(
         "USER (root) items cannot be moved to become child items."
       );
@@ -13,7 +13,7 @@ export class ValidationStrategy {
 
   validateUserSpaceMove(item: MapItemWithId, newCoords: Coord): void {
     if (
-      item.attrs.itemType === MapItemType.USER &&
+      (item.attrs.itemType as MapItemType) === MapItemType.USER &&
       (item.attrs.coords.userId !== newCoords.userId ||
         item.attrs.coords.groupId !== newCoords.groupId)
     ) {
@@ -32,7 +32,7 @@ export class ValidationStrategy {
 
   validateTargetDisplacement(targetItem: MapItemWithId, oldCoords: Coord): void {
     if (
-      targetItem.attrs.itemType === MapItemType.USER &&
+      (targetItem.attrs.itemType as MapItemType) === MapItemType.USER &&
       oldCoords.path.length > 0
     ) {
       throw new Error("Cannot displace a USER (root) item with a child item.");

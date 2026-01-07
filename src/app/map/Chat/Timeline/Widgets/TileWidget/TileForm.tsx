@@ -13,18 +13,16 @@ import { _PreviewField } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_inter
 import { _ContentField } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/form/_ContentField';
 import { _TypeSelectorField } from '~/app/map/Chat/Timeline/Widgets/TileWidget/_internals/form/_TypeSelectorField';
 
-type EditableItemType = 'organizational' | 'context' | 'system';
-
 interface TileFormProps {
   mode: 'create' | 'edit';
   title: string;
   preview: string;
   content: string;
-  itemType?: EditableItemType;
+  itemType?: string;
   isUserTile?: boolean;
   onPreviewChange: (value: string) => void;
   onContentChange: (value: string) => void;
-  onItemTypeChange?: (value: EditableItemType) => void;
+  onItemTypeChange?: (value: string) => void;
   onSave: () => void;
   onCancel: () => void;
 }

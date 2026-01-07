@@ -29,6 +29,7 @@ export {
   MapItemType,
   type NonUserMapItemType,
   type NonUserMapItemTypeString,
+  type ItemTypeValue,
   Visibility,
   type VisibilityString,
 } from '~/lib/domains/mapping/_objects';
@@ -36,3 +37,8 @@ export type { UpdateMapItemAttrs as MapItemUpdateAttributes } from '~/lib/domain
 export type { CreateMapItemParams as MapItemCreateAttributes } from '~/lib/domains/mapping/types/parameters';
 export type { MapItemContract } from '~/lib/domains/mapping/types/contracts';
 export type { MapItemAttributes } from '~/lib/domains/mapping/types/item-attributes';
+
+// Item type utilities - re-exported for cross-domain access
+// NOTE: These are lazy-loaded to avoid circular dependency with _objects/map-item.ts
+// which imports Coord from this module
+export { isBuiltInItemType, isReservedItemType, isCustomItemType, RESERVED_ITEM_TYPES } from '~/lib/domains/mapping/utils/item-type-utils';

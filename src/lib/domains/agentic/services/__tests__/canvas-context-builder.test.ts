@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { CanvasContextBuilder } from '~/lib/domains/agentic/services/canvas-context-builder.service'
+import { CanvasContextBuilder } from '~/lib/domains/agentic/services/_context/canvas-context-builder.service'
 import { createMockMapContext } from '~/lib/domains/agentic/services/__tests__/__fixtures__/context-mocks'
 import type { ICanvasStrategy } from '~/lib/domains/agentic/services/canvas-strategies/strategy.interface'
 import type { CanvasContextOptions, TileContextItem, CanvasContextStrategy } from '~/lib/domains/agentic/types'

@@ -7,9 +7,9 @@ import type {
   SerializationFormat
 } from '~/lib/domains/agentic/types'
 import type { MapContext } from '~/lib/domains/mapping/utils'
-import type { CanvasContextBuilder } from '~/lib/domains/agentic/services/canvas-context-builder.service'
-import type { ChatContextBuilder } from '~/lib/domains/agentic/services/chat-context-builder.service'
-import type { TokenizerService } from '~/lib/domains/agentic/services/tokenizer.service'
+import type { CanvasContextBuilder } from '~/lib/domains/agentic/services/_context/canvas-context-builder.service'
+import type { ChatContextBuilder } from '~/lib/domains/agentic/services/_context/chat-context-builder.service'
+import type { TokenizerService } from '~/lib/domains/agentic/services/_context/tokenizer.service'
 import type { ChatMessageContract } from '~/lib/domains/agentic/types'
 
 export class ContextCompositionService {

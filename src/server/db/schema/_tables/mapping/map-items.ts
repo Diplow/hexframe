@@ -11,7 +11,7 @@ import {
 import { sql } from "drizzle-orm";
 import { createTable } from "~/server/db/schema/_utils";
 import { baseItems } from "~/server/db/schema/_tables/mapping/base-items";
-import { type MapItemType, type Visibility } from "~/lib/domains/mapping";
+import { type Visibility } from "~/lib/domains/mapping";
 
 /**
  * Map Items table - stores hexagonal coordinate references to base items
@@ -43,7 +43,6 @@ export const mapItems = createTable(
     coord_group_id: integer("coord_group_id").notNull().default(0),
     path: varchar("path", { length: 255 }).notNull().default(""),
     item_type: varchar("item_type", { length: 50 })
-      .$type<MapItemType>()
       .notNull(),
     visibility: varchar("visibility", { length: 20 })
       .$type<Visibility>()
@@ -51,6 +50,7 @@ export const mapItems = createTable(
       .default("private" as Visibility),
     parentId: integer("parent_id"),
     refItemId: integer("ref_item_id").notNull(),
+    templateName: varchar("template_name", { length: 100 }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
@@ -84,6 +84,9 @@ export const mapItems = createTable(
         table.coord_user_id,
         table.coord_group_id,
         table.path,
+      ),
+      uniqueTemplateName: uniqueIndex("unique_template_name").on(
+        table.templateName,
       ),
     };
   },

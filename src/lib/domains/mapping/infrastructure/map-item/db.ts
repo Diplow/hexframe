@@ -349,6 +349,7 @@ export class DbMapItemRepository implements MapItemRepository {
       item_type: attrs.itemType,
       visibility: attrs.visibility,
       refItemId: attrs.baseItemId,
+      templateName: attrs.templateName,
     };
   }
 
@@ -369,7 +370,18 @@ export class DbMapItemRepository implements MapItemRepository {
     grandchildren: MapItemWithId[];
     hexPlan: MapItemWithId | null;
   }> {
-    const dbResults = await this.specializedQueries.fetchContextForCenter(config);
+    const dbResults = await this.specializedQueries.fetchContextForCenter({
+      centerPath: config.centerPath,
+      userId: config.userId,
+      groupId: config.groupId,
+      include: {
+        parent: config.includeParent,
+        composed: config.includeComposed,
+        children: config.includeChildren,
+        grandchildren: config.includeGrandchildren,
+      },
+      requester: config.requester,
+    });
 
     return {
       parent: dbResults.parent ? mapJoinedDbToDomain(dbResults.parent, []) : null,

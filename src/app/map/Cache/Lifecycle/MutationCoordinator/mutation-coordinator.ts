@@ -1,6 +1,6 @@
 import { type Dispatch } from "react";
 import { CoordSystem, Direction, type Coord } from "~/lib/domains/mapping/utils";
-import type { MapItemUpdateAttributes, MapItemCreateAttributes, NonUserMapItemTypeString } from "~/lib/domains/mapping/utils";
+import type { MapItemUpdateAttributes, MapItemCreateAttributes } from "~/lib/domains/mapping/utils";
 import type { MapItemAPIContract } from "~/server/api";
 import type { CacheAction } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
@@ -27,7 +27,7 @@ export interface MutationCoordinatorConfig {
     mutateAsync: (params: {
       coords: Coord;
       parentId?: number | null;
-      itemType: NonUserMapItemTypeString;
+      itemType: string;
       title?: string;
       content?: string;
       preview?: string;
@@ -289,7 +289,7 @@ export class MutationCoordinator {
     }
   }
 
-  async createItem(coordId: string, data: Omit<MapItemCreateAttributes, 'coords' | 'itemType'> & { parentId?: number; itemType: NonUserMapItemTypeString }): Promise<MutationResult> {
+  async createItem(coordId: string, data: Omit<MapItemCreateAttributes, 'coords' | 'itemType'> & { parentId?: number; itemType: string }): Promise<MutationResult> {
     return this.trackOperation(coordId, 'create', async () => {
       const changeId = this.tracker.generateChangeId();
 
@@ -1177,7 +1177,7 @@ export class MutationCoordinator {
       preview?: string;
       link?: string;
       visibility?: "public" | "private";
-      itemType?: MapItemType;
+      itemType?: string;
     }
   ): { optimisticItem: MapItemAPIContract; previousData: MapItemAPIContract } {
     const previousData = this._reconstructApiData(existingItem);

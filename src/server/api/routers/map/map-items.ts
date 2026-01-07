@@ -7,8 +7,8 @@ import {
 } from "~/server/api/trpc";
 import { contractToApiAdapters } from "~/server/api/types/contracts";
 import { type Coord } from "~/lib/domains/mapping/utils";
-import type { NonUserMapItemTypeString, VisibilityString } from '~/lib/domains/mapping/utils';
-import { Visibility, MapItemType } from '~/lib/domains/mapping/utils';
+import type { VisibilityString } from '~/lib/domains/mapping/utils';
+import { Visibility } from '~/lib/domains/mapping/utils';
 import {
   hexCoordSchema,
   itemCreationSchema,
@@ -28,15 +28,12 @@ function toVisibilityEnum(visibility?: VisibilityString): Visibility | undefined
 }
 
 /**
- * Convert string itemType to MapItemType enum (excludes USER - system-controlled)
+ * Validate and return item type string.
+ * The "user" type is reserved and validated at schema level.
+ * Custom types are passed through as-is.
  */
-function toMapItemTypeEnum(itemType: NonUserMapItemTypeString): MapItemType {
-  const itemTypeMap: Record<NonUserMapItemTypeString, MapItemType> = {
-    organizational: MapItemType.ORGANIZATIONAL,
-    context: MapItemType.CONTEXT,
-    system: MapItemType.SYSTEM,
-  };
-  return itemTypeMap[itemType];
+function toItemTypeValue(itemType: string): string {
+  return itemType;
 }
 
 export const mapItemsRouter = createTRPCRouter({
@@ -134,7 +131,7 @@ export const mapItemsRouter = createTRPCRouter({
         preview: input.preview,
         link: input.link,
         visibility: toVisibilityEnum(input.visibility),
-        itemType: toMapItemTypeEnum(input.itemType),
+        itemType: toItemTypeValue(input.itemType),
       });
       return contractToApiAdapters.mapItem(mapItem);
     }),
@@ -178,7 +175,7 @@ export const mapItemsRouter = createTRPCRouter({
         preview?: string;
         link?: string;
         visibility?: Visibility;
-        itemType?: MapItemType;
+        itemType?: string;
         requester?: typeof requester;
       } = {
         coords: input.coords as Coord,
@@ -191,7 +188,7 @@ export const mapItemsRouter = createTRPCRouter({
       if (input.data.preview !== undefined) updateParams.preview = input.data.preview;
       if (input.data.link !== undefined) updateParams.link = input.data.link;
       if (input.data.visibility !== undefined) updateParams.visibility = toVisibilityEnum(input.data.visibility);
-      if (input.data.itemType !== undefined) updateParams.itemType = toMapItemTypeEnum(input.data.itemType);
+      if (input.data.itemType !== undefined) updateParams.itemType = toItemTypeValue(input.data.itemType);
 
       const item = await ctx.mappingService.items.crud.updateItem(updateParams);
       return contractToApiAdapters.mapItem(item);

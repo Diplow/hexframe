@@ -9,6 +9,7 @@ import {
   MapItem,
   type MapItemWithId,
   MapItemType,
+  type ItemTypeValue,
   Visibility,
 } from "~/lib/domains/mapping/_objects";
 import { type Coord } from "~/lib/domains/mapping/utils";
@@ -30,7 +31,7 @@ export class MapItemCreationHelpers {
     parentId,
     visibility = Visibility.PRIVATE,
   }: {
-    itemType: MapItemType;
+    itemType: ItemTypeValue;
     coords: Coord;
     title?: string;
     content?: string;
@@ -57,7 +58,7 @@ export class MapItemCreationHelpers {
   }
 
   private async _validateAndGetParent(
-    itemType: MapItemType,
+    itemType: ItemTypeValue,
     parentId?: number,
   ): Promise<MapItemWithId | null> {
     if (!parentId) {
@@ -74,11 +75,11 @@ export class MapItemCreationHelpers {
   }
 
   private _validateItemTypeConstraints(
-    itemType: MapItemType,
+    itemType: ItemTypeValue,
     parent: MapItemWithId | null,
     coords: Coord,
   ) {
-    if (itemType === MapItemType.USER) {
+    if (itemType === (MapItemType.USER as ItemTypeValue)) {
       if (parent) {
         throw new Error("USER type item cannot have a parentId.");
       }
@@ -106,7 +107,7 @@ export class MapItemCreationHelpers {
   }
 
   private _buildMapItem(
-    itemType: MapItemType,
+    itemType: ItemTypeValue,
     coords: Coord,
     parent: MapItemWithId | null,
     ref: BaseItemWithId,

@@ -529,8 +529,7 @@ const FrameSlot = (props: {
   // Check if composition should be shown
   if (isCenter) {
     const isCompositionExpanded = props.isCompositionExpanded ?? false;
-    const isUserTile = item.metadata.coordinates.path.length === 0;
-    const canShowComposition = isCompositionExpanded && slotScale > 1 && !isUserTile;
+    const canShowComposition = isCompositionExpanded && slotScale > 1;
 
     if (canShowComposition) {
       // Render composition frame: show direction 0 child (or empty) in center

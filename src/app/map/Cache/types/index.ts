@@ -30,7 +30,7 @@ import type {
 import type { ServerService, StorageService, ServiceConfig } from "~/app/map/Cache/Services";
 import type { SyncOperations, SyncResult, SyncStatus } from "~/app/map/Cache/Sync/types";
 import type { EventBusService } from '~/app/map';
-import type { NonUserMapItemTypeString, VisibilityString } from '~/lib/domains/mapping/utils';
+import type { VisibilityString } from '~/lib/domains/mapping/utils';
 
 // Cache context interface
 export interface MapCacheContextValue {
@@ -94,7 +94,7 @@ export interface MapCacheHook {
     description?: string;
     content?: string;
     url?: string;
-    itemType: NonUserMapItemTypeString;
+    itemType: string;
   }) => Promise<void>;
   updateItemOptimistic: (coordId: string, data: {
     title?: string;
@@ -103,7 +103,7 @@ export interface MapCacheHook {
     content?: string;
     url?: string;
     visibility?: VisibilityString;
-    itemType?: NonUserMapItemTypeString;
+    itemType?: string;
   }) => Promise<void>;
   deleteItemOptimistic: (coordId: string) => Promise<void>;
   deleteChildrenByTypeOptimistic: (coordId: string, directionType: 'structural' | 'composed' | 'hexPlan') => Promise<{ success: boolean; deletedCount: number }>;
