@@ -15,6 +15,8 @@ export interface CompileContext {
   currentPath: number[]
   /** The task tile with full children tree */
   taskTile: TileData
+  /** Ancestors array (from root to parent) */
+  ancestors: TileData[]
   /** Template pool for itemType-based dispatch */
   templatePool: TemplatePool
   /** Maximum recursion depth (default: 10) */

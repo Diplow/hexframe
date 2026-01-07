@@ -39,7 +39,12 @@ describe('Path Parser', () => {
     it('returns null for invalid syntax', () => {
       expect(parseChildPath('notachild')).toBeNull()
       expect(parseChildPath('child[]')).toBeNull()
-      expect(parseChildPath('child[0]')).toBeNull() // 0 is invalid direction
+      expect(parseChildPath('child[7]')).toBeNull() // out of range
+    })
+
+    it('parses direction 0 for hexplan', () => {
+      const result = parseChildPath('child[0]')
+      expect(result).toEqual({ directions: [0], field: undefined })
     })
   })
 
@@ -55,7 +60,13 @@ describe('Path Parser', () => {
     })
 
     it('returns null for invalid range', () => {
-      expect(parseChildRange('child[0..6]')).toBeNull() // 0 is invalid
+      expect(parseChildRange('child[-7..6]')).toBeNull() // -7 is out of range
+      expect(parseChildRange('child[0..7]')).toBeNull() // 7 is out of range
+    })
+
+    it('parses range including 0 for hexplan', () => {
+      const result = parseChildRange('child[0..0]')
+      expect(result).toEqual({ start: 0, end: 0 })
     })
   })
 

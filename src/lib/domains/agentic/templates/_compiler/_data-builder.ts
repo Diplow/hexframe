@@ -68,11 +68,20 @@ export function promptDataToTileData(data: PromptData): TileData {
  * - `task` contains the root tile data
  * - `child[-3]` contains data for child at direction -3
  * - `child[-3,-1]` contains data for nested child
+ * - `ancestor[-1]` contains data for parent (closest ancestor)
+ * - `ancestor[-2]` contains data for grandparent, etc.
+ * - `template[-1]` contains data for template tile's composed child at -1
  *
  * @param taskTile - The root task tile with children
+ * @param ancestors - Optional ancestors array (from root to parent)
+ * @param templateTile - Optional template tile (for accessing template context children)
  * @returns A flat data object for Mustache rendering
  */
-export function buildMustacheData(taskTile: TileData): MustacheData {
+export function buildMustacheData(
+  taskTile: TileData,
+  ancestors: TileData[] = [],
+  templateTile?: TileData
+): MustacheData {
   const data: MustacheData = {
     task: {
       title: taskTile.title,
@@ -83,6 +92,14 @@ export function buildMustacheData(taskTile: TileData): MustacheData {
 
   // Recursively flatten all children
   _flattenChildren(taskTile, [], data)
+
+  // Flatten ancestors with negative indexing
+  _flattenAncestors(ancestors, data)
+
+  // Flatten template's composed children (if template tile provided)
+  if (templateTile) {
+    _flattenTemplateContext(templateTile, data)
+  }
 
   return data
 }
@@ -166,5 +183,59 @@ function _flattenChildren(
 
     // Recursively process grandchildren
     _flattenChildren(child, childPath, data)
+  }
+}
+
+/**
+ * Flatten ancestors into the data object using negative indexing.
+ * ancestor[-1] = parent (closest), ancestor[-2] = grandparent, etc.
+ */
+function _flattenAncestors(ancestors: TileData[], data: MustacheData): void {
+  if (!ancestors || ancestors.length === 0) {
+    return
+  }
+
+  // ancestors[0] = root, ancestors[length-1] = parent
+  // We use negative indexing: -1 = parent, -2 = grandparent
+  for (let arrayIndex = 0; arrayIndex < ancestors.length; arrayIndex++) {
+    const ancestor = ancestors[arrayIndex]!
+    // Convert array index to negative index from current tile
+    const negativeIndex = arrayIndex - ancestors.length
+    const pathKey = `ancestor[${negativeIndex}]`
+
+    data[pathKey] = {
+      title: ancestor.title,
+      content: ancestor.content ?? '',
+      preview: ancestor.preview ?? '',
+      coords: ancestor.coords,
+      itemType: String(ancestor.itemType ?? '')
+    }
+  }
+}
+
+/**
+ * Flatten template tile's composed children (directions -1 to -6).
+ * Accessible via template[-1], template[-2], etc.
+ */
+function _flattenTemplateContext(templateTile: TileData, data: MustacheData): void {
+  if (!templateTile.children) {
+    return
+  }
+
+  // Filter to composed children only (negative directions)
+  const composedChildren = templateTile.children.filter(
+    child => child.direction !== undefined && child.direction < 0
+  )
+
+  for (const child of composedChildren) {
+    const pathKey = `template[${child.direction}]`
+
+    data[pathKey] = {
+      title: child.title,
+      content: child.content ?? '',
+      preview: child.preview ?? '',
+      coords: child.coords,
+      itemType: String(child.itemType ?? '')
+    }
   }
 }

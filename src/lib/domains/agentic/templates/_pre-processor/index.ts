@@ -21,9 +21,18 @@ export {
   parseChildPath,
   parseChildRange,
   formatChildPath,
-  isChildRef
+  isChildRef,
+  parseAncestorPath,
+  formatAncestorPath,
+  isAncestorRef
 } from '~/lib/domains/agentic/templates/_pre-processor/_path-parser'
-export type { ChildPath, ChildRange, ParsedChildRef } from '~/lib/domains/agentic/templates/_pre-processor/_path-parser'
+export type {
+  ChildPath,
+  ChildRange,
+  ParsedChildRef,
+  AncestorPath,
+  ParsedAncestorRef
+} from '~/lib/domains/agentic/templates/_pre-processor/_path-parser'
 
 import { parseCustomTags, type ParsedParams } from '~/lib/domains/agentic/templates/_pre-processor/_parser'
 import { resolveItemReference, type TemplateContext } from '~/lib/domains/agentic/templates/_pre-processor/_resolver'

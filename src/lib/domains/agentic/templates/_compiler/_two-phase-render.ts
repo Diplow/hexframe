@@ -18,6 +18,8 @@ export interface TwoPhaseRenderOptions {
   templateTile: TileData
   /** The task tile to render */
   taskTile: TileData
+  /** Ancestors array (from root to parent) */
+  ancestors?: TileData[]
   /** Name of the fallback template (default: 'generic') */
   fallbackTemplateName?: string
   /** Additional data to merge into Mustache context */
@@ -43,6 +45,7 @@ export function twoPhaseRender(options: TwoPhaseRenderOptions): TwoPhaseRenderRe
   const {
     templateTile,
     taskTile,
+    ancestors = [],
     fallbackTemplateName = 'generic',
     additionalData = {}
   } = options
@@ -52,10 +55,11 @@ export function twoPhaseRender(options: TwoPhaseRenderOptions): TwoPhaseRenderRe
 
   // Phase 1: Compile template
   const templateContent = templateTile.content ?? ''
-  const compiledTemplate = compileTemplate(templateContent, taskTile, templatePool)
+  const compiledTemplate = compileTemplate(templateContent, taskTile, templatePool, ancestors)
 
   // Phase 2: Build data and render with Mustache
-  const mustacheData = buildMustacheData(taskTile)
+  // Pass templateTile to make its composed children accessible via template[-1], etc.
+  const mustacheData = buildMustacheData(taskTile, ancestors, templateTile)
   const mergedData = { ...mustacheData, ...additionalData }
   const rendered = Mustache.render(compiledTemplate, mergedData)
 
@@ -77,23 +81,25 @@ export function twoPhaseRender(options: TwoPhaseRenderOptions): TwoPhaseRenderRe
  * @param templateTile - The template tile with sub-templates
  * @param taskTile - The task tile structure
  * @param fallbackTemplateName - Fallback template name
+ * @param ancestors - Optional ancestors array
  * @returns The compiled structural template
  */
 export function compileOnly(
   templateTile: TileData,
   taskTile: TileData,
-  fallbackTemplateName = 'generic'
+  fallbackTemplateName = 'generic',
+  ancestors: TileData[] = []
 ): string {
   const templatePool = buildPoolFromTemplateTile(templateTile, fallbackTemplateName)
-  return compileTemplate(templateTile.content ?? '', taskTile, templatePool)
+  return compileTemplate(templateTile.content ?? '', taskTile, templatePool, ancestors)
 }
 
 /**
  * Check if a template uses pool-based rendering.
  *
  * @param templateContent - The template content
- * @returns True if the template contains {{@RenderChildren}}
+ * @returns True if the template contains {{@RenderChildren}} or {{@RenderAncestors}}
  */
 export function usesPoolBasedRendering(templateContent: string): boolean {
-  return templateContent.includes('{{@RenderChildren')
+  return templateContent.includes('{{@RenderChildren') || templateContent.includes('{{@RenderAncestors')
 }

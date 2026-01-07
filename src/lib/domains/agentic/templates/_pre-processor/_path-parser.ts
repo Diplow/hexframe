@@ -1,5 +1,5 @@
 /**
- * Child path parser for template variable references.
+ * Path parser for template variable references.
  *
  * Parses expressions like:
  * - child[-3]           → single child at direction -3
@@ -8,12 +8,20 @@
  * - child[-2,-1].content→ content field of nested child
  * - child[-6..-1]       → range of children (composed)
  * - child[1..6]         → range of children (structural)
+ * - ancestor[-1]        → parent (closest ancestor)
+ * - ancestor[-2].title  → grandparent's title
  */
 
 // ==================== PUBLIC TYPES ====================
 
 export interface ChildPath {
   directions: number[]
+  field?: string
+}
+
+export interface AncestorPath {
+  /** Negative index: -1 = parent, -2 = grandparent, etc. */
+  index: number
   field?: string
 }
 
@@ -25,6 +33,9 @@ export interface ChildRange {
 export type ParsedChildRef =
   | { type: 'path'; path: ChildPath }
   | { type: 'range'; range: ChildRange }
+
+export type ParsedAncestorRef =
+  | { type: 'path'; path: AncestorPath }
 
 // ==================== INTERNAL CONSTANTS ====================
 
@@ -41,7 +52,13 @@ const CHILD_PATH_PATTERN = /^child\[([-\d,]+)\](?:\.(\w+))?$/
 const CHILD_RANGE_PATTERN = /^child\[(-?\d+)\.\.(-?\d+)\]$/
 
 /**
- * Valid field names for child access.
+ * Pattern for ancestor path with optional field.
+ * Matches: ancestor[-1], ancestor[-2].title
+ */
+const ANCESTOR_PATH_PATTERN = /^ancestor\[(-\d+)\](?:\.(\w+))?$/
+
+/**
+ * Valid field names for child/ancestor access.
  */
 const VALID_FIELDS = new Set(['title', 'content', 'preview', 'coords', 'itemType'])
 
@@ -101,6 +118,32 @@ export function isChildRef(ref: string): boolean {
   return ref.startsWith('child[')
 }
 
+/**
+ * Parse an ancestor path expression.
+ *
+ * @returns AncestorPath or null if not a valid ancestor path
+ */
+export function parseAncestorPath(ref: string): AncestorPath | null {
+  return _parseAncestorPath(ref)
+}
+
+/**
+ * Format an ancestor path back to string representation.
+ *
+ * @example formatAncestorPath({ index: -1, field: 'title' }) → 'ancestor[-1].title'
+ */
+export function formatAncestorPath(path: AncestorPath): string {
+  const pathStr = `ancestor[${path.index}]`
+  return path.field ? `${pathStr}.${path.field}` : pathStr
+}
+
+/**
+ * Check if a string looks like an ancestor reference.
+ */
+export function isAncestorRef(ref: string): boolean {
+  return ref.startsWith('ancestor[')
+}
+
 // ==================== INTERNAL FUNCTIONS ====================
 
 function _parseChildPath(ref: string): ChildPath | null {
@@ -121,8 +164,9 @@ function _parseChildPath(ref: string): ChildPath | null {
     return null
   }
 
-  // Validate directions are in valid range (-6 to 6, excluding 0)
-  if (directions.some(d => d === 0 || d! < -6 || d! > 6)) {
+  // Validate directions are in valid range (-6 to 6)
+  // Note: 0 is allowed for hexplan tiles
+  if (directions.some(d => d! < -6 || d! > 6)) {
     return null
   }
 
@@ -149,10 +193,31 @@ function _parseChildRange(ref: string): ChildRange | null {
     return null
   }
 
-  // Validate directions are in valid range (-6 to 6, excluding 0)
-  if (start === 0 || end === 0 || start < -6 || start > 6 || end < -6 || end > 6) {
+  // Validate directions are in valid range (-6 to 6)
+  // Note: 0 is allowed for hexplan tiles
+  if (start < -6 || start > 6 || end < -6 || end > 6) {
     return null
   }
 
   return { start, end }
+}
+
+function _parseAncestorPath(ref: string): AncestorPath | null {
+  const match = ANCESTOR_PATH_PATTERN.exec(ref)
+  if (!match) return null
+
+  const index = parseInt(match[1]!, 10)
+  const field = match[2]
+
+  // Index must be negative (e.g., -1 = parent, -2 = grandparent)
+  if (isNaN(index) || index >= 0) {
+    return null
+  }
+
+  // Validate field if present
+  if (field && !VALID_FIELDS.has(field)) {
+    return null
+  }
+
+  return { index, field }
 }

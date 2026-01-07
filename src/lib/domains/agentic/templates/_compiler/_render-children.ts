@@ -101,6 +101,7 @@ function _renderChild(
   const childContext: CompileContext = {
     currentPath: childPath,
     taskTile: context.taskTile,
+    ancestors: context.ancestors,
     templatePool: nextPool,
     maxDepth: context.maxDepth,
     currentDepth: context.currentDepth + 1

@@ -107,7 +107,12 @@ function _prepareSystemTemplateData(data: PromptData): SystemTemplateData {
       title: _escapeXML(data.task.title),
       hasContent: _hasContent(data.task.content),
       content: data.task.content ?? ''
-    }
+    },
+
+    // Simplified HexPlan (for tile-based templates)
+    hasHexplan: _hasContent(data.hexPlan),
+    hexplanCoords: `${data.task.coords},0`,
+    hexPlan: data.hexPlan
   }
 }
 
