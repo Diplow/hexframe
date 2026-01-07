@@ -60,7 +60,7 @@
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^5.1.1",
     "@mistralai/mistralai": "^1.5.2",
-    "@modelcontextprotocol/sdk": "^1.24.3",
+    "@modelcontextprotocol/sdk": "^1.25.2",
     "@neondatabase/serverless": "^1.0.1",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-label": "^2.1.2",
