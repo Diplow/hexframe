@@ -128,8 +128,9 @@ describe('BuiltinTemplateSeed', () => {
       )
 
       expect(userTemplateSpec?.expectedContent).toBe(USER_TEMPLATE)
-      expect(userTemplateSpec?.expectedContent).toContain('{{{userIntro}}}')
-      expect(userTemplateSpec?.expectedContent).toContain('{{{sectionsSection}}}')
+      // Pool-based template uses template context and RenderChildren
+      expect(userTemplateSpec?.expectedContent).toContain('{{{template[-1].content}}}')
+      expect(userTemplateSpec?.expectedContent).toContain('{{@RenderChildren')
     })
   })
 
@@ -303,25 +304,27 @@ describe('Built-in template content verification', () => {
     })
   })
 
-  describe('USER_TEMPLATE', () => {
-    it('should contain userIntro section', () => {
-      expect(USER_TEMPLATE).toContain('{{{userIntro}}}')
+  describe('USER_TEMPLATE (pool-based)', () => {
+    it('should contain template context reference for user intro', () => {
+      // Pool-based template uses template[-1].content for intro
+      expect(USER_TEMPLATE).toContain('{{{template[-1].content}}}')
     })
 
-    it('should contain composed children context section', () => {
-      expect(USER_TEMPLATE).toContain('{{#hasComposedChildren}}')
-      expect(USER_TEMPLATE).toContain('{{{contextSection}}}')
+    it('should contain RenderChildren for composed children context', () => {
+      // Pool-based dispatch for context children
+      expect(USER_TEMPLATE).toContain('{{@RenderChildren range=[-6..-1]')
+      expect(USER_TEMPLATE).toContain('<context>')
     })
 
-    it('should contain sections for navigation', () => {
-      expect(USER_TEMPLATE).toContain('{{#hasSections}}')
-      expect(USER_TEMPLATE).toContain('{{{sectionsSection}}}')
+    it('should contain RenderChildren for sections navigation', () => {
+      // Pool-based dispatch for structural children
+      expect(USER_TEMPLATE).toContain('{{@RenderChildren range=[1..6]')
+      expect(USER_TEMPLATE).toContain('<sections>')
     })
 
-    it('should contain recent history section', () => {
-      expect(USER_TEMPLATE).toContain('{{#hasRecentHistory}}')
-      expect(USER_TEMPLATE).toContain('<recent-history')
-      expect(USER_TEMPLATE).toContain('{{{recentHistory}}}')
+    it('should contain RenderChildren for recent history (direction-0)', () => {
+      // Pool-based dispatch for direction-0 (recent history)
+      expect(USER_TEMPLATE).toContain('{{@RenderChildren range=[0..0]')
     })
 
     it('should contain discussion section', () => {
@@ -336,7 +339,7 @@ describe('Built-in template content verification', () => {
       expect(USER_TEMPLATE).toContain('{{{userMessage}}}')
     })
 
-    it('should NOT contain HexPlan tag (user tiles use discussion, not hexplan)', () => {
+    it('should NOT contain HexPlan tag (user tiles use recent-history via RenderChildren)', () => {
       expect(USER_TEMPLATE).not.toContain('{{@HexPlan}}')
     })
   })

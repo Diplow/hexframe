@@ -127,9 +127,9 @@ describe('buildPrompt template lookup from tiles', () => {
       // WHEN buildPrompt renders a USER tile
       const promptData = createUserPromptData()
 
-      // THEN the rendered output should match current behavior
-      expect(USER_TEMPLATE).toContain('{{{userIntro}}}')
-      expect(USER_TEMPLATE).toContain('{{{sectionsSection}}}')
+      // THEN the rendered output should match current pool-based behavior
+      expect(USER_TEMPLATE).toContain('{{{template[-1].content}}}')
+      expect(USER_TEMPLATE).toContain('{{@RenderChildren')
       expect(promptData.itemType).toBe(MapItemType.USER)
     })
 
@@ -430,25 +430,27 @@ describe('buildPrompt backward compatibility', () => {
     })
   })
 
-  describe('existing USER template behavior', () => {
-    it('should render user intro section', async () => {
-      expect(USER_TEMPLATE).toContain('{{{userIntro}}}')
+  describe('existing USER template behavior (pool-based)', () => {
+    it('should render user intro via template context', async () => {
+      // Pool-based template uses template[-1].content for intro
+      expect(USER_TEMPLATE).toContain('{{{template[-1].content}}}')
     })
 
-    it('should render context section for composed children', async () => {
-      expect(USER_TEMPLATE).toContain('{{#hasComposedChildren}}')
-      expect(USER_TEMPLATE).toContain('{{{contextSection}}}')
+    it('should render context section via RenderChildren', async () => {
+      // Pool-based dispatch for composed children
+      expect(USER_TEMPLATE).toContain('{{@RenderChildren range=[-6..-1]')
+      expect(USER_TEMPLATE).toContain('<context>')
     })
 
-    it('should render sections for structural children', async () => {
-      expect(USER_TEMPLATE).toContain('{{#hasSections}}')
-      expect(USER_TEMPLATE).toContain('{{{sectionsSection}}}')
+    it('should render sections via RenderChildren', async () => {
+      // Pool-based dispatch for structural children
+      expect(USER_TEMPLATE).toContain('{{@RenderChildren range=[1..6]')
+      expect(USER_TEMPLATE).toContain('<sections>')
     })
 
-    it('should render recent history section', async () => {
-      expect(USER_TEMPLATE).toContain('{{#hasRecentHistory}}')
-      expect(USER_TEMPLATE).toContain('<recent-history')
-      expect(USER_TEMPLATE).toContain('{{{recentHistory}}}')
+    it('should render recent history via RenderChildren', async () => {
+      // Pool-based dispatch for direction-0
+      expect(USER_TEMPLATE).toContain('{{@RenderChildren range=[0..0]')
     })
 
     it('should render discussion section', async () => {

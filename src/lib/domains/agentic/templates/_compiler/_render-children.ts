@@ -8,7 +8,8 @@
 import type { TileData } from '~/lib/domains/agentic/templates/_pre-processor'
 import { getChildrenInRange, resolveChildPath } from '~/lib/domains/agentic/templates/_pre-processor'
 import type { ChildPath } from '~/lib/domains/agentic/templates/_pre-processor/_path-parser'
-import { findTemplateForItemType, buildTemplatePool } from '~/lib/domains/agentic/templates/_pool'
+import { buildTemplatePool } from '~/lib/domains/agentic/templates/_pool'
+import type { findTemplateForItemType } from '~/lib/domains/agentic/templates/_pool'
 import type { CompileContext } from '~/lib/domains/agentic/templates/_compiler/types'
 import { prefixVariables } from '~/lib/domains/agentic/templates/_compiler/_variable-prefixer'
 
@@ -79,7 +80,22 @@ function _renderChild(
 ): string {
   // Find matching template in pool
   const itemTypeStr = child.itemType ? String(child.itemType) : undefined
-  const template = findTemplateForItemType(context.templatePool, itemTypeStr)
+  let template: ReturnType<typeof findTemplateForItemType>
+
+  // Try exact match by itemType first (don't use pool's default fallback)
+  if (itemTypeStr) {
+    template = context.templatePool.templates.get(itemTypeStr)
+  }
+
+  // If no exact match, use the tag's specified fallback
+  // This allows tags like {{@RenderChildren fallback='section'}} to specify
+  // which template to use for items that don't have a matching itemType template
+  if (!template && fallbackName) {
+    template = context.templatePool.templates.get(fallbackName)
+  }
+
+  // Final fallback: use the pool's default fallback (if neither exact match nor tag fallback worked)
+  template ??= context.templatePool.fallback
 
   if (!template) {
     // No template found, skip this child
