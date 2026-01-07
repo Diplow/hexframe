@@ -8,10 +8,11 @@ import {
   type Coord,
   CoordSystem,
   Direction,
+  isBuiltInItemType,
 } from "~/lib/domains/mapping/utils";
 import { MapItemType, Visibility, type MapItemWithId, type ItemTypeValue } from "~/lib/domains/mapping/_objects";
 import type { MapItemContract } from "~/lib/domains/mapping/types/contracts";
-import { TransactionManager, isBuiltInItemType } from "~/lib/domains/mapping/infrastructure";
+import { TransactionManager } from "~/lib/domains/mapping/infrastructure";
 import { type RequesterContext, SYSTEM_INTERNAL } from "~/lib/domains/mapping/types";
 
 export class ItemCrudService {
