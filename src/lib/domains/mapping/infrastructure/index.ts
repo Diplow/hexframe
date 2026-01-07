@@ -14,5 +14,5 @@ export { TransactionManager } from '~/lib/domains/mapping/infrastructure/transac
 // Utility functions (for testing/debugging)
 export { parsePathString } from '~/lib/domains/mapping/infrastructure/map-item/db';
 
-// Item type utilities
-export { isBuiltInItemType, isReservedItemType, isCustomItemType } from '~/lib/domains/mapping/infrastructure/map-item/item-type-utils';
+// Note: Item type utilities (isBuiltInItemType, etc.) are now in ~/lib/domains/mapping/utils
+// to avoid circular dependencies. Import from there for cross-domain access.

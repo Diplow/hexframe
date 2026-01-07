@@ -1,13 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { MapItemType } from "~/lib/domains/mapping/_objects/map-item";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import {
   isBuiltInItemType,
   isReservedItemType,
   isCustomItemType,
   RESERVED_ITEM_TYPES,
-} from "~/lib/domains/mapping/infrastructure/map-item/item-type-utils";
+} from "~/lib/domains/mapping/utils/item-type-utils";
 
 describe("Item Type Extension - String Values Support", () => {
   describe("RESERVED_ITEM_TYPES constant", () => {

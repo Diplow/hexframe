@@ -38,10 +38,7 @@ export type { CreateMapItemParams as MapItemCreateAttributes } from '~/lib/domai
 export type { MapItemContract } from '~/lib/domains/mapping/types/contracts';
 export type { MapItemAttributes } from '~/lib/domains/mapping/types/item-attributes';
 
-// Item type utilities (cross-domain safe)
-export {
-  isBuiltInItemType,
-  isReservedItemType,
-  isCustomItemType,
-  RESERVED_ITEM_TYPES,
-} from '~/lib/domains/mapping/infrastructure/map-item/item-type-utils';
+// Item type utilities - re-exported for cross-domain access
+// NOTE: These are lazy-loaded to avoid circular dependency with _objects/map-item.ts
+// which imports Coord from this module
+export { isBuiltInItemType, isReservedItemType, isCustomItemType, RESERVED_ITEM_TYPES } from '~/lib/domains/mapping/utils/item-type-utils';
