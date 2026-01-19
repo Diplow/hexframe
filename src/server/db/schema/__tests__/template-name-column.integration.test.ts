@@ -55,7 +55,10 @@ describe("Schema: templateName column [Integration - DB]", () => {
         parentId: null,
       })
       .returning();
-    testUserId = userItem[0]?.id ?? 0;
+    if (!userItem[0]) {
+      throw new Error('Failed to create test user item');
+    }
+    testUserId = userItem[0].id;
   });
 
   describe("schema includes templateName field", () => {
