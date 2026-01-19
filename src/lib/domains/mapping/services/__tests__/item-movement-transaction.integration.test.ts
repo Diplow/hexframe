@@ -19,6 +19,7 @@ describe("Item Movement - Transaction Integration Tests", () => {
   beforeEach(async () => {
     // Clean up any existing test data thoroughly
     await _cleanupTestData();
+
     // Initialize repositories with main db connection
     mapItemRepo = new DbMapItemRepository(db);
     baseItemRepo = new DbBaseItemRepository(db);
