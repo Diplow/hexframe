@@ -3,7 +3,7 @@ import { createTRPCRouter, protectedProcedure, softAuthProcedure, mappingService
 import { verificationAwareRateLimit, verificationAwareAuthLimit } from '~/server/api/middleware'
 import { type CompositionConfig, PreviewGeneratorService, OpenRouterRepository, type ChatMessageContract } from '~/lib/domains/agentic'
 import { buildPrompt, generateParentHexplanContent, generateLeafHexplanContent } from '~/lib/domains/agentic/utils'
-import { ContextStrategies, CoordSystem, Direction, MapItemType } from '~/lib/domains/mapping/utils'
+import { ContextStrategies, CoordSystem, Direction, MapItemType, isBuiltInItemType, type ItemTypeValue } from '~/lib/domains/mapping/utils'
 import { _getRequesterUserId } from '~/server/api/routers/map'
 import { _requireConfigured, _requireFound, _requireOwnership, _throwBadRequest, _throwInternalError } from '~/server/api/routers/_error-helpers'
 import { env } from '~/env'
@@ -17,6 +17,27 @@ import { TemplateAllowlistService, DrizzleTemplateAllowlistRepository } from '~/
 // =============================================================================
 // Shared Helpers
 // =============================================================================
+
+/**
+ * Check if a tile type should have hexplan auto-created.
+ *
+ * Only SYSTEM tiles and custom (non-built-in) types should have hexplans.
+ * USER tiles use "recent-history" at direction-0 instead.
+ * ORGANIZATIONAL and CONTEXT tiles are not executable.
+ */
+function _shouldAutoCreateHexplan(itemType: ItemTypeValue | null | undefined): boolean {
+  if (itemType === null || itemType === undefined) {
+    return false
+  }
+
+  // Custom (non-built-in) types are treated like SYSTEM tiles
+  if (!isBuiltInItemType(itemType)) {
+    return true
+  }
+
+  // Only SYSTEM tiles get hexplans among built-in types
+  return itemType === MapItemType.SYSTEM
+}
 
 /**
  * Creates a hexplan tile if one doesn't exist.
@@ -409,13 +430,11 @@ export const agenticRouter = createTRPCRouter({
       if (!hexecuteContext.task.title?.trim())
         _throwBadRequest(`Task tile at ${taskCoords} has an empty title. A non-empty title is required for prompt generation.`);
 
-      // 3. Ensure hexplan tile exists (create if missing)
-      const hexPlanContent = await _ensureHexplanExists(
-        hexecuteContext,
-        taskCoords,
-        instruction,
-        ctx.mappingService
-      )
+      // 3. Ensure hexplan tile exists (create if missing) - only for SYSTEM/custom tiles
+      // USER tiles don't auto-create hexplans (they use "recent-history" at direction-0)
+      const hexPlanContent = _shouldAutoCreateHexplan(hexecuteContext.task.itemType)
+        ? await _ensureHexplanExists(hexecuteContext, taskCoords, instruction, ctx.mappingService)
+        : hexecuteContext.hexPlan ?? ''
 
       // 4. Build the hexecute prompt (pure function, no I/O)
       let hexecutePrompt: string
@@ -562,13 +581,11 @@ export const agenticRouter = createTRPCRouter({
       if (!hexecuteContext.task.title?.trim())
         _throwBadRequest(`Task tile at ${taskCoords} has an empty title. A non-empty title is required for prompt generation.`);
 
-      // 3. Ensure hexplan tile exists (create if missing)
-      const hexPlanContent = await _ensureHexplanExists(
-        hexecuteContext,
-        taskCoords,
-        instruction,
-        ctx.mappingService
-      )
+      // 3. Ensure hexplan tile exists (create if missing) - only for SYSTEM/custom tiles
+      // USER tiles don't auto-create hexplans (they use "recent-history" at direction-0)
+      const hexPlanContent = _shouldAutoCreateHexplan(hexecuteContext.task.itemType)
+        ? await _ensureHexplanExists(hexecuteContext, taskCoords, instruction, ctx.mappingService)
+        : hexecuteContext.hexPlan ?? ''
 
       // 4. Build prompt (pure function, no I/O)
       let promptResult: string
