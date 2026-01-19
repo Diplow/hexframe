@@ -105,6 +105,10 @@ export class WriteQueries {
       updateValues.refItemId = attrs.baseItemId;
     }
 
+    if (attrs.templateName !== undefined) {
+      updateValues.templateName = attrs.templateName;
+    }
+
     return updateValues;
   }
 

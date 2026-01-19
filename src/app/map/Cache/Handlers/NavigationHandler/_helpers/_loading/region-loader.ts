@@ -2,7 +2,7 @@ import type { Dispatch } from "react";
 import type { CacheAction } from "~/app/map/Cache/State";
 import { cacheActions } from "~/app/map/Cache/State";
 import type { ServerService } from "~/app/map/Cache/Services";
-import type { MapItemType } from "~/lib/domains/mapping/utils";
+import type { ItemTypeValue } from "~/lib/domains/mapping/utils";
 import type { Visibility } from '~/lib/domains/mapping/utils';
 import { loggers } from "~/lib/debug/debug-logger";
 
@@ -19,7 +19,7 @@ export async function loadRegionForItem(
     preview: string | undefined;
     link: string;
     parentId: string | null;
-    itemType: MapItemType;
+    itemType: ItemTypeValue;
     ownerId: string;
     originId: string | null;
     visibility: Visibility;

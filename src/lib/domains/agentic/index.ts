@@ -12,11 +12,11 @@ export { PreviewGeneratorService } from '~/lib/domains/agentic/services/preview-
 export type { GeneratePreviewInput, GeneratePreviewResult } from '~/lib/domains/agentic/services/preview-generator.service';
 
 // Context builders
-export { CanvasContextBuilder } from '~/lib/domains/agentic/services/canvas-context-builder.service';
-export { ChatContextBuilder } from '~/lib/domains/agentic/services/chat-context-builder.service';
-export { ContextCompositionService } from '~/lib/domains/agentic/services/context-composition.service';
-export { ContextSerializerService } from '~/lib/domains/agentic/services/context-serializer.service';
-export type { TokenizerService } from '~/lib/domains/agentic/services/tokenizer.service';
+export { CanvasContextBuilder } from '~/lib/domains/agentic/services/_context/canvas-context-builder.service';
+export { ChatContextBuilder } from '~/lib/domains/agentic/services/_context/chat-context-builder.service';
+export { ContextCompositionService } from '~/lib/domains/agentic/services/_context/context-composition.service';
+export { ContextSerializerService } from '~/lib/domains/agentic/services/_context/context-serializer.service';
+export type { TokenizerService } from '~/lib/domains/agentic/services/_context/tokenizer.service';
 
 // Repository implementations (for service instantiation)
 export { OpenRouterRepository, ClaudeAgentSDKRepository, QueuedLLMRepository } from '~/lib/domains/agentic/repositories';
@@ -99,3 +99,25 @@ export type {
 
 // Note: For hexplan generation utilities (generateParentHexplanContent, generateLeafHexplanContent),
 // import directly from '~/lib/domains/agentic/utils' - the domain index should not reexport utils.
+
+// Template services
+export {
+  TemplateAllowlistService,
+  TemplateNotAllowedError,
+  TemplateVisibilityError,
+  BUILT_IN_TEMPLATES,
+  TemplateResolverService,
+  TemplateNotFoundError,
+  PromptTemplateService,
+} from '~/lib/domains/agentic/services/_templates';
+export type {
+  Visibility as TemplateVisibility,
+  UserAllowlist,
+  TemplateAllowlistRepository,
+  TemplateData,
+  TemplateWithChildren,
+  TemplateRepository,
+} from '~/lib/domains/agentic/services/_templates';
+
+// Infrastructure repositories
+export { DrizzleTemplateAllowlistRepository } from '~/lib/domains/agentic/infrastructure/template-allowlist';

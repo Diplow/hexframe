@@ -322,10 +322,6 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
     const isCenterTile = tileData.metadata.coordId === centerCoordinate;
     if (!isCenterTile) return false;
 
-    // User tiles (tiles with empty path) cannot have composition
-    const isUserTile = tileData.metadata.coordinates.path.length === 0;
-    if (isUserTile) return false;
-
     // Check if tile has composition children
     const hasComp = hasComposition(tileData.metadata.coordId);
 

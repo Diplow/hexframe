@@ -15,14 +15,18 @@ import { type RequesterContext } from "~/lib/domains/mapping/types";
  */
 export type FieldSelection = 'minimal' | 'standard' | 'full';
 
+export interface ContextQueryIncludeOptions {
+  parent: boolean;
+  composed: boolean;
+  children: boolean;
+  grandchildren: boolean;
+}
+
 export interface ContextQueryConfig {
   centerPath: Direction[];
   userId: string;
   groupId: number;
-  includeParent: boolean;
-  includeComposed: boolean;
-  includeChildren: boolean;
-  includeGrandchildren: boolean;
+  include: ContextQueryIncludeOptions;
   requester: RequesterContext;
 }
 
@@ -318,7 +322,7 @@ export class SpecializedQueries {
     fullContentConditions.push(eq(mapItems.path, centerPathString));
 
     // Parent (if requested and not root)
-    if (config.includeParent && centerPath.length > 0) {
+    if (config.include.parent && centerPath.length > 0) {
       const parentPath = centerPath.slice(0, -1);
       const parentPathString = pathToString(parentPath);
       fullContentConditions.push(eq(mapItems.path, parentPathString));
@@ -326,7 +330,7 @@ export class SpecializedQueries {
 
     // Composed tiles (if requested) - direction 0 + children with negative directions
     // For center at path "1", fetch "1,0" (orchestration) and "1,-1", "1,-2", etc. (composed children)
-    if (config.includeComposed) {
+    if (config.include.composed) {
       // Fetch direction 0 (orchestration tile)
       const direction0Path = [...centerPath, 0];
       const direction0PathString = pathToString(direction0Path);
@@ -363,6 +367,7 @@ export class SpecializedQueries {
           visibility: mapItems.visibility,
           parentId: mapItems.parentId,
           refItemId: mapItems.refItemId,
+          templateName: mapItems.templateName,
           createdAt: mapItems.createdAt,
           updatedAt: mapItems.updatedAt,
         },
@@ -383,7 +388,7 @@ export class SpecializedQueries {
 
     // QUERY 2: Children (title + preview, NO content)
     let childrenResults: Array<{ map_items: unknown; base_items: unknown }> = [];
-    if (config.includeChildren) {
+    if (config.include.children) {
       const childPattern = centerPathString ? `${centerPathString},%` : '%';
 
       // Build children conditions including visibility filter
@@ -409,6 +414,7 @@ export class SpecializedQueries {
             visibility: mapItems.visibility,
             parentId: mapItems.parentId,
             refItemId: mapItems.refItemId,
+            templateName: mapItems.templateName,
             createdAt: mapItems.createdAt,
             updatedAt: mapItems.updatedAt,
           },
@@ -430,7 +436,7 @@ export class SpecializedQueries {
 
     // QUERY 3: Grandchildren (title only, NO content or preview)
     let grandchildrenResults: Array<{ map_items: unknown; base_items: unknown }> = [];
-    if (config.includeGrandchildren) {
+    if (config.include.grandchildren) {
       const grandchildPattern = centerPathString ? `${centerPathString},%` : '%';
 
       // Build grandchildren conditions including visibility filter
@@ -456,6 +462,7 @@ export class SpecializedQueries {
             visibility: mapItems.visibility,
             parentId: mapItems.parentId,
             refItemId: mapItems.refItemId,
+            templateName: mapItems.templateName,
             createdAt: mapItems.createdAt,
             updatedAt: mapItems.updatedAt,
           },
@@ -481,17 +488,17 @@ export class SpecializedQueries {
       throw new Error(`Center tile not found at path: ${centerPathString}`);
     }
 
-    const parent = config.includeParent && centerPath.length > 0
+    const parent = config.include.parent && centerPath.length > 0
       ? this._findParent(fullContentResults, centerPath)
       : null;
 
-    const composed = config.includeComposed
+    const composed = config.include.composed
       ? this._filterComposed(fullContentResults, centerPathString, centerDepth)
       : [];
 
-    // Extract hexPlan (direction-0) from the full content results if includeComposed is true
+    // Extract hexPlan (direction-0) from the full content results if include.composed is true
     // Direction-0 is already fetched in the same query, we just need to extract it separately
-    const hexPlan = config.includeComposed
+    const hexPlan = config.include.composed
       ? this._findHexPlan(fullContentResults, centerPath)
       : null;
 

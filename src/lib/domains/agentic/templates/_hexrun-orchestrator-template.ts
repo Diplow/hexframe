@@ -7,7 +7,7 @@
  */
 
 import Mustache from 'mustache'
-import { MapItemType } from '~/lib/domains/mapping'
+import { type ItemTypeValue } from '~/lib/domains/mapping'
 
 // ==================== PUBLIC TYPES ====================
 
@@ -34,7 +34,7 @@ export interface OrchestratorPromptInput {
     coords: string
   }
   mcpServerName: string
-  itemType: MapItemType
+  itemType: ItemTypeValue
   userMessage?: string
   discussion?: string
 }
@@ -106,8 +106,8 @@ function _hasContent(text: string | undefined): boolean {
  * Check if we should use the orchestrator template for this request.
  * Use orchestrator for SYSTEM tiles when triggered via @-mention (has userMessage).
  */
-export function shouldUseOrchestrator(itemType: MapItemType, userMessage: string | undefined): boolean {
-  return itemType === MapItemType.SYSTEM && _hasContent(userMessage)
+export function shouldUseOrchestrator(itemType: ItemTypeValue, userMessage: string | undefined): boolean {
+  return itemType === 'system' && _hasContent(userMessage)
 }
 
 /**

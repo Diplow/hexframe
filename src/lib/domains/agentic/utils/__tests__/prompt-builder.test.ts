@@ -764,8 +764,8 @@ describe('Template System - Pre-processor and Templates', () => {
 
       const result = buildPrompt(data)
 
-      // Context section should have folders for organizational children
-      expect(result).toContain('<folder title="Reference Folder">')
+      // Context section should have folders for organizational children (pool-based includes coords)
+      expect(result).toContain('<folder title="Reference Folder"')
       expect(result).toContain('Ref 1')
       expect(result).toContain('Ref 2')
     })
@@ -796,11 +796,9 @@ describe('Template System - Pre-processor and Templates', () => {
       // USER template uses <sections> not <subtasks>
       expect(result).toContain('<sections>')
       expect(result).not.toContain('<subtasks>')
-      // Organizational tiles shown as type="folder"
-      expect(result).toContain('<section title="Projects" type="folder"')
+      // Pool-based template: ORGANIZATIONAL items use <folder>, others use <section>
+      expect(result).toContain('<folder title="Projects"')
       expect(result).toContain('<section title="Build App"')
-      // Does NOT recurse into children for sections
-      expect(result).not.toContain('<folder')
     })
 
     it('should mix regular and organizational context children', () => {
@@ -824,8 +822,9 @@ describe('Template System - Pre-processor and Templates', () => {
 
       const result = buildPrompt(data)
 
+      // Pool-based rendering uses <context> for regular items and <folder> for organizational
       expect(result).toContain('<context title="Regular Context"')
-      expect(result).toContain('<folder title="Folder Context">')
+      expect(result).toContain('<folder title="Folder Context"')
     })
 
     it('should include discussion section when provided', () => {
@@ -851,7 +850,8 @@ describe('Template System - Pre-processor and Templates', () => {
 
       const result = buildPrompt(data)
 
-      expect(result).toContain('<recent-history coords="userId,0:,0">')
+      // Pool-based template renders recent-history with coords
+      expect(result).toContain('<recent-history coords=')
       expect(result).toContain('Goal: Complete the tutorial')
     })
   })

@@ -1,7 +1,4 @@
-import type {
-  NonUserMapItemTypeString,
-  VisibilityString,
-} from "~/lib/domains/mapping/_objects";
+import type { VisibilityString } from "~/lib/domains/mapping/_objects";
 
 /**
  * Canonical MapItem attribute types - Single Source of Truth
@@ -34,8 +31,12 @@ export interface MapItemUpdateAttributes {
   link?: string;
   originId?: number | null;
   visibility?: VisibilityString;
-  /** Semantic tile type (excludes "user" which is system-controlled) */
-  itemType?: NonUserMapItemTypeString;
+  /**
+   * Semantic tile type. Built-in types: "organizational", "context", "system".
+   * Custom types (e.g., "template") are also supported.
+   * The "user" type is reserved for system-created root tiles.
+   */
+  itemType?: string;
 }
 
 /**

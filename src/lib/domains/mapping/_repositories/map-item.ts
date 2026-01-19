@@ -4,7 +4,7 @@ import {
   type MapItemRelatedLists,
   type MapItemWithId,
   type Visibility,
-  type MapItemType,
+  type ItemTypeValue,
 } from "~/lib/domains/mapping/_objects";
 import { type GenericRepository } from "~/lib/domains/utils";
 import { type Coord } from "~/lib/domains/mapping/utils";
@@ -239,7 +239,7 @@ export interface MapItemRepository extends BaseMapItemRepository {
    * @param itemType - New item type
    * @returns The updated map item
    */
-  updateItemType(itemId: number, itemType: MapItemType): Promise<MapItemWithId>;
+  updateItemType(itemId: number, itemType: ItemTypeValue): Promise<MapItemWithId>;
 
   /**
    * Batch update the visibility of a tile and all its descendants in a single atomic operation.
@@ -265,6 +265,6 @@ export interface MapItemRepository extends BaseMapItemRepository {
    */
   batchUpdateItemTypeWithStructuralDescendants(
     coords: Coord,
-    itemType: MapItemType,
+    itemType: ItemTypeValue,
   ): Promise<number>;
 }

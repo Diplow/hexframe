@@ -135,6 +135,45 @@ This infrastructure layer works with two main database tables:
 
 The repository automatically handles joins between these tables to provide complete domain objects.
 
+### Map Items Table Schema
+
+Key columns in the `map_items` table:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | integer | Primary key, auto-generated |
+| `coord_user_id` | varchar(255) | User ID component of hexagonal coordinates |
+| `coord_group_id` | integer | Group ID component (default: 0) |
+| `path` | varchar(255) | Hex direction path (e.g., "1,2,-3" for NW→NE→ComposedE) |
+| `item_type` | varchar(50) | Semantic tile type (USER, ORGANIZATIONAL, CONTEXT, SYSTEM) |
+| `visibility` | varchar(20) | Tile visibility (private, public) |
+| `parent_id` | integer | Reference to parent map item (null for USER tiles) |
+| `ref_item_id` | integer | Reference to the base_items table for content |
+| `template_name` | varchar(255) | Template identifier for template provenance tracking |
+| `created_at` | timestamp | Creation timestamp |
+| `updated_at` | timestamp | Last update timestamp |
+
+### Template Name Column
+
+The `template_name` column tracks template provenance for tiles:
+
+**Purpose:**
+- Records which template a tile was created from (if any)
+- Enables "created from template X" features in the UI
+- Supports the Templates-as-Tiles feature where templates are stored as tile data
+
+**Constraints:**
+- Nullable: Most tiles are not created from templates
+- Max length: 255 characters
+- No uniqueness constraint: Multiple tiles can reference the same template
+
+**Usage patterns:**
+- When a tile is instantiated from a template, the template's name is stored here
+- Template tiles themselves use this field to define their lookup identifier
+- Used by the pre-processor to resolve `{{@TemplateName}}` references
+
+See `docs/features/TEMPLATES_AS_TILES.md` for the full feature specification.
+
 ## Error Handling
 
 The repository includes comprehensive error handling:

@@ -4,6 +4,8 @@
 
 # Function line count exceptions
 server/email.ts:sendEmail:150 # Complex email sending with multiple providers, templating, and error handling
+repositories/_helpers/sdk-helpers.ts:getClaudeModels:150 # Static model data array - pure data definition, not logic
+repositories/claude-agent-sdk.repository.ts:onChunk:160 # Stream processing loop with multiple event types - inherent complexity in SDK integration
 
 # File function count exceptions (too many functions errors)
 test/setup.ts:25 # Test setup file requires many utility functions for comprehensive test environment

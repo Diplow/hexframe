@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto'
 import type { ILLMRepository, StreamCallbacks } from '~/lib/domains/agentic/repositories/llm.repository.interface'
-import type { ContextCompositionService } from '~/lib/domains/agentic/services/context-composition.service'
-import { PromptTemplateService } from '~/lib/domains/agentic/services/prompt-template.service'
+import type { ContextCompositionService } from '~/lib/domains/agentic/services/_context/context-composition.service'
+import { PromptTemplateService } from '~/lib/domains/agentic/services/_templates'
 // import { IntentClassifierService } from '../intent-classification/intent-classifier.service'
 import type { EventBusService } from '~/lib/utils/event-bus'
 import type {

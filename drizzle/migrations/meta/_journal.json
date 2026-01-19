@@ -92,6 +92,41 @@
       "when": 1765500000000,
       "tag": "0012_add_tile_favorites",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1765600000000,
+      "tag": "0013_alter_tile_favorites_mapitemid_to_integer",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1765700000000,
+      "tag": "0014_migrate_item_types",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1765800000000,
+      "tag": "0015_add_template_name_column",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1765900000000,
+      "tag": "0016_fix_template_name_constraints",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1766000000000,
+      "tag": "0017_add_user_template_allowlist",
+      "breakpoints": true
     }
   ]
 }

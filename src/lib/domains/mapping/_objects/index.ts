@@ -6,6 +6,7 @@ export {
   MapItemType,
   type NonUserMapItemType,
   type NonUserMapItemTypeString,
+  type ItemTypeValue,
   Visibility,
   type VisibilityString,
   type MapItemIdr,

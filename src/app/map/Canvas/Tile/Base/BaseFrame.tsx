@@ -40,8 +40,7 @@ export const BaseFrame = ({
     : false;
 
   const hasComposition = _hasCompositionChild(center, mapItems);
-  const isUserTile = centerItem?.metadata.coordinates.path.length === 0;
-  const canShowComposition = isExpanded && hasComposition && scale > 1 && !isUserTile;
+  const canShowComposition = isExpanded && hasComposition && scale > 1;
 
   if (!centerItem) {
     // Find parent item for context

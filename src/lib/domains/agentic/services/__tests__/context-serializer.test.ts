@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { ContextSerializerService } from '~/lib/domains/agentic/services/context-serializer.service'
+import { ContextSerializerService } from '~/lib/domains/agentic/services/_context/context-serializer.service'
 import type { ComposedContext, CanvasContext, ChatContext, TileContextItem, ChatContextMessage } from '~/lib/domains/agentic/types'
 
 describe('ContextSerializerService', () => {

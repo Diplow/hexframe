@@ -1,7 +1,7 @@
 import type { TileData } from "~/app/map/types";
 import { getColor } from "~/app/map/types";
 import { CoordSystem } from "~/lib/domains/mapping/utils";
-import type { MapItemType } from "~/lib/domains/mapping/utils";
+import type { ItemTypeValue } from "~/lib/domains/mapping/utils";
 import { Visibility } from '~/lib/domains/mapping/utils';
 
 /**
@@ -17,7 +17,7 @@ export function convertToTileData(item: {
   parentId: string | null;
   ownerId: string;
   depth: number;
-  itemType: MapItemType;
+  itemType: ItemTypeValue;
 }): TileData {
   const coordId = item.coordinates;
   const itemCoords = CoordSystem.parseId(coordId);

@@ -27,6 +27,11 @@ export interface SystemTemplateData {
     hasContent: boolean
     content: string
   }
+
+  // Simplified HexPlan (for tile-based templates)
+  hasHexplan: boolean
+  hexplanCoords: string
+  hexPlan: string
 }
 
 /**

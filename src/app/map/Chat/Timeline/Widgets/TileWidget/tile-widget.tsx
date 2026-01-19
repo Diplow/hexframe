@@ -23,9 +23,6 @@ import { CoordSystem } from '~/lib/domains/mapping/utils';
 import { getColor } from '~/app/map/types';
 import type { Visibility } from '~/lib/domains/mapping/utils';
 
-type EditableItemType = 'organizational' | 'context' | 'system';
-type ItemType = EditableItemType | 'user' | null;
-
 interface TileWidgetProps {
   mode?: 'view' | 'edit' | 'create' | 'delete' | 'delete_children' | 'history';
   tileId?: string;
@@ -33,7 +30,7 @@ interface TileWidgetProps {
   title?: string;
   preview?: string;
   content?: string;
-  itemType?: ItemType;
+  itemType?: string | null;
   forceExpanded?: boolean;
   openInEditMode?: boolean;
   tileColor?: string;
@@ -48,7 +45,7 @@ interface TileWidgetProps {
   onDeleteHexplan?: () => void;
   onSetVisibility?: (visibility: Visibility) => void;
   onSetVisibilityWithDescendants?: (visibility: Visibility) => void;
-  onSave?: (title: string, preview: string, content: string, itemType?: EditableItemType) => void;
+  onSave?: (title: string, preview: string, content: string, itemType?: string) => void;
   onClose?: () => void;
 }
 

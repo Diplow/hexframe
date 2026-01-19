@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ChatContextBuilder } from '~/lib/domains/agentic/services/chat-context-builder.service'
+import { ChatContextBuilder } from '~/lib/domains/agentic/services/_context/chat-context-builder.service'
 import type { IChatStrategy } from '~/lib/domains/agentic/services/chat-strategies/strategy.interface'
 import type { ChatContextOptions, ChatContextMessage, ChatContextStrategy, ChatMessageContract } from '~/lib/domains/agentic/types'
 

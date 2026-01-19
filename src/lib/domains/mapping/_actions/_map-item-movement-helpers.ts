@@ -91,7 +91,7 @@ export class MapItemMovementHelpers {
   ) {
     if (CoordSystem.isCenter(oldCoords) || CoordSystem.isCenter(newCoords)) {
       const item = await getMapItem(oldCoords);
-      if (item.attrs.itemType === MapItemType.USER) {
+      if ((item.attrs.itemType as MapItemType) === MapItemType.USER) {
         throw new Error(
           "Root USER items cannot be moved to become children, and their userId/groupId cannot change via move.",
         );
