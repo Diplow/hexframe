@@ -425,12 +425,15 @@ export function deriveActiveWidgets(events: ChatEvent[]): Widget[] {
   // Apply updates to widgets
   widgets = _applyWidgetUpdates(widgets, widgetUpdates);
 
-  // Return only the most recent widget of each type (except AI responses and tool-call which should all persist)
+  // Filter out tool-call widgets - they are now embedded inside messages
+  const widgetsWithoutToolCalls = widgets.filter(widget => widget.type !== 'tool-call');
+
+  // Return only the most recent widget of each type (except AI responses which should all persist)
   const latestWidgets = new Map<string, Widget>();
 
-  for (const widget of widgets) {
-    // Each AI response and tool-call widget should be unique (keep all of them)
-    const key = widget.type === 'ai-response' || widget.type === 'tool-call'
+  for (const widget of widgetsWithoutToolCalls) {
+    // Each AI response widget should be unique (keep all of them)
+    const key = widget.type === 'ai-response'
       ? widget.id  // Use widget ID to keep all of these
       : widget.type === 'tile'
         ? `${widget.type}-${(widget.data as TileSelectedPayload).tileId}`

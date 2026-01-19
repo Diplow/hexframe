@@ -21,6 +21,7 @@ import {
   extractToolCallStart,
   extractContentBlockStop,
   extractInputJsonDelta,
+  extractToolResult,
   type ActiveToolCall
 } from '~/lib/domains/agentic/repositories/_helpers/stream-event-extractors'
 
@@ -269,6 +270,8 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
       let fullContent = ''
       // Track active tool calls by content block index to correlate start/stop events
       const activeToolCalls = new Map<number, ActiveToolCall>()
+      // Track pending tool calls waiting for results (by toolCallId -> toolName and arguments)
+      const pendingToolCalls = new Map<string, { toolName: string; inputJson: string }>()
 
       // Stream chunks via callback
       for await (const msg of queryResult) {
@@ -302,18 +305,33 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
             }
           }
 
-          // Extract content_block_stop events to signal tool call end
+          // Extract content_block_stop events - move tool call to pending state
           const stoppedBlockIndex = extractContentBlockStop(msg.event)
-          if (stoppedBlockIndex !== undefined && callbacks?.onToolCallEnd) {
+          if (stoppedBlockIndex !== undefined) {
             const activeCall = activeToolCalls.get(stoppedBlockIndex)
             if (activeCall) {
+              // Move to pending - we'll emit tool_call_end when we get the result
+              pendingToolCalls.set(activeCall.toolCallId, {
+                toolName: activeCall.toolName,
+                inputJson: activeCall.inputJson
+              })
               activeToolCalls.delete(stoppedBlockIndex)
+            }
+          }
+
+          // Extract tool_result events to get results/errors
+          const toolResult = extractToolResult(msg.event)
+          if (toolResult && callbacks?.onToolCallEnd) {
+            const pendingCall = pendingToolCalls.get(toolResult.toolUseId)
+            if (pendingCall) {
+              pendingToolCalls.delete(toolResult.toolUseId)
               callbacks.onToolCallEnd({
                 type: 'tool_call_end',
-                toolCallId: activeCall.toolCallId,
-                toolName: activeCall.toolName,
-                arguments: activeCall.inputJson || undefined
-                // Note: We don't have the result here; it comes later in the stream
+                toolCallId: toolResult.toolUseId,
+                toolName: pendingCall.toolName,
+                arguments: pendingCall.inputJson || undefined,
+                result: toolResult.isError ? undefined : toolResult.content,
+                error: toolResult.isError ? toolResult.content : undefined
               })
             }
           }

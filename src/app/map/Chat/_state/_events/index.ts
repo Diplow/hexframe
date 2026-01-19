@@ -29,6 +29,7 @@ export type {
   ToolCallStartPayload,
   ToolCallEndPayload,
   ToolCallWidgetData,
+  ToolCallData,
 } from '~/app/map/Chat/_state/_events/event.types';
 
 // Event creators

@@ -3,6 +3,7 @@ import type { TileData } from '~/app/map/types';
 import { _renderTileWidget, _renderCreationWidget, _renderDeleteWidget, _renderDeleteChildrenWidget } from '~/app/map/Chat/Timeline/_components/_renderers/_tile-renderers';
 import { _renderLoginWidget, _renderErrorWidget } from '~/app/map/Chat/Timeline/_components/_renderers/_auth-error-renderers';
 import { _renderLoadingWidget, _renderAIResponseWidget, _renderMcpKeysWidget, _renderDebugLogsWidget, _renderFavoritesWidget } from '~/app/map/Chat/Timeline/_components/_renderers/_ai-debug-renderers';
+import { _renderToolCallWidget } from '~/app/map/Chat/Timeline/_components/_renderers/_tool-call-renderer';
 import type { Visibility } from '~/lib/domains/mapping/utils';
 
 export interface WidgetHandlers {
@@ -66,4 +67,8 @@ export function renderDebugLogsWidget(widget: Widget, handlers: WidgetHandlers) 
 
 export function renderFavoritesWidget(widget: Widget, handlers: WidgetHandlers) {
   return _renderFavoritesWidget(widget, handlers);
+}
+
+export function renderToolCallWidget(widget: Widget) {
+  return _renderToolCallWidget(widget);
 }

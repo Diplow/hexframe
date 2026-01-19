@@ -118,3 +118,57 @@ export function extractInputJsonDelta(event: unknown): InputJsonDeltaExtraction 
   }
   return undefined
 }
+
+// Return type for tool result extraction
+export interface ToolResultExtraction {
+  toolUseId: string
+  isError: boolean
+  content: string
+  contentBlockIndex: number
+}
+
+/**
+ * Extract tool_result content block start events.
+ * These appear after the SDK executes a tool and receives the result.
+ * Tool results come as content_block_start with type 'tool_result'.
+ */
+export function extractToolResult(event: unknown): ToolResultExtraction | undefined {
+  if (
+    event &&
+    typeof event === 'object' &&
+    'type' in event &&
+    event.type === 'content_block_start' &&
+    'index' in event &&
+    typeof event.index === 'number' &&
+    'content_block' in event &&
+    event.content_block &&
+    typeof event.content_block === 'object' &&
+    'type' in event.content_block &&
+    event.content_block.type === 'tool_result'
+  ) {
+    const block = event.content_block as {
+      tool_use_id?: string
+      is_error?: boolean
+      content?: string | Array<{ type: string; text?: string }>
+    }
+
+    // Content can be a string or an array of content blocks
+    let content = ''
+    if (typeof block.content === 'string') {
+      content = block.content
+    } else if (Array.isArray(block.content)) {
+      content = block.content
+        .filter((c): c is { type: string; text: string } => c.type === 'text' && typeof c.text === 'string')
+        .map(c => c.text)
+        .join('')
+    }
+
+    return {
+      toolUseId: block.tool_use_id ?? '',
+      isError: block.is_error ?? false,
+      content,
+      contentBlockIndex: event.index
+    }
+  }
+  return undefined
+}

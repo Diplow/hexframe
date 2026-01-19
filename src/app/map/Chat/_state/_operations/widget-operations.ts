@@ -1,4 +1,4 @@
-import type { ChatEvent, ToolCallWidgetData, WidgetResolvedPayload } from '~/app/map/Chat/_state/_events';
+import type { ChatEvent, ToolCallWidgetData } from '~/app/map/Chat/_state/_events';
 
 /**
  * Widget-related operations
@@ -97,15 +97,20 @@ export function createWidgetOperations(dispatch: (event: ChatEvent) => void) {
         actor: 'assistant' as const,
       });
     },
-    updateToolCallWidget(toolCallId: string, result: string, success: boolean) {
-      const payload: WidgetResolvedPayload = {
-        widgetId: `tool-call-${toolCallId}`,
-        result,
-        status: success ? 'completed' : 'failed',
-      };
+    updateToolCallWidget(toolCallId: string, result: string, success: boolean, finalArguments?: Record<string, unknown>) {
+      // Use widget_updated instead of widget_resolved to keep the widget visible
+      // widget_resolved marks widgets as 'completed' which removes them from view
       dispatch({
-        type: 'widget_resolved' as const,
-        payload,
+        type: 'widget_updated' as const,
+        payload: {
+          widgetId: `tool-call-${toolCallId}`,
+          updates: {
+            result,
+            status: success ? 'completed' : 'failed',
+            // Update arguments with final accumulated value (args are streamed via deltas)
+            ...(finalArguments && Object.keys(finalArguments).length > 0 ? { arguments: finalArguments } : {}),
+          },
+        },
         id: `chat-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         timestamp: new Date(),
         actor: 'assistant' as const,

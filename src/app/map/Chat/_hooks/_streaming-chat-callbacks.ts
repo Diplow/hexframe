@@ -92,26 +92,26 @@ export function createStreamingChatCallbacks(
       const success = !error
       const resultContent = result ?? error ?? ''
 
+      // Parse the final arguments from the end event (args are streamed via deltas)
+      let parsedArguments: Record<string, unknown> = {}
+      if (argsString) {
+        try {
+          parsedArguments = JSON.parse(argsString) as Record<string, unknown>
+        } catch {
+          // Keep empty object if parsing fails
+        }
+      }
+
       // End tool call in message operations
       chatState.endToolCall(getStreamId(), toolCallId, resultContent, success)
 
-      // Update tool call widget
-      chatState.updateToolCallWidget(toolCallId, resultContent, success)
+      // Update tool call widget with final arguments
+      chatState.updateToolCallWidget(toolCallId, resultContent, success, parsedArguments)
 
       // Check if this was a hexframe mutation tool and notify for cache invalidation
       const mutationType = toolName ? HEXFRAME_MUTATION_TOOLS[toolName] : undefined
 
       if (mutationType && toolName && success && onHexframeMutation) {
-        // Parse the arguments from the end event
-        let parsedArguments: Record<string, unknown> = {}
-        if (argsString) {
-          try {
-            parsedArguments = JSON.parse(argsString) as Record<string, unknown>
-          } catch {
-            // Keep empty object if parsing fails
-          }
-        }
-
         const mutation: HexframeMutationInfo = {
           type: mutationType,
           toolName,
