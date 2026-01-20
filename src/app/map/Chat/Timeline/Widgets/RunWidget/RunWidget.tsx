@@ -32,6 +32,7 @@ export function RunWidget({ tileCoords, tileTitle, onClose }: RunWidgetProps) {
     status,
     instruction,
     currentStep,
+    currentPrompt,
     executedSteps,
     blockageReason,
     error,
@@ -39,6 +40,7 @@ export function RunWidget({ tileCoords, tileTitle, onClose }: RunWidgetProps) {
     setInstruction,
     startRun,
     resumeRun,
+    resumeWithInput,
     stopRun,
   } = useRunWidget({
     tileCoords,
@@ -78,6 +80,7 @@ export function RunWidget({ tileCoords, tileTitle, onClose }: RunWidgetProps) {
           <>
             <RunningState
               currentStep={currentStep}
+              currentPrompt={currentPrompt}
               onNavigateToTile={handleNavigateToTile}
               onStopRun={stopRun}
             />
@@ -94,7 +97,9 @@ export function RunWidget({ tileCoords, tileTitle, onClose }: RunWidgetProps) {
           <>
             <BlockedState
               blockageReason={blockageReason}
+              currentPrompt={currentPrompt}
               onResumeRun={() => void resumeRun()}
+              onResumeWithInput={(input) => void resumeWithInput(input)}
             />
             {executedSteps.length > 0 && (
               <StepsList

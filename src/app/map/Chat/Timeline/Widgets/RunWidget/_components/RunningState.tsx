@@ -1,15 +1,18 @@
 'use client';
 
 import { Loader2, Square, ExternalLink } from 'lucide-react';
+import { PromptDisplay } from '~/app/map/Chat/Timeline/Widgets/RunWidget/_components/PromptDisplay';
 
 interface RunningStateProps {
   currentStep: string | null;
+  currentPrompt?: string | null;
   onNavigateToTile?: (coords: string) => void;
   onStopRun: () => void;
 }
 
 export function RunningState({
   currentStep,
+  currentPrompt,
   onNavigateToTile,
   onStopRun,
 }: RunningStateProps) {
@@ -37,6 +40,8 @@ export function RunningState({
           </button>
         </div>
       )}
+
+      {currentPrompt && <PromptDisplay prompt={currentPrompt} />}
 
       <button
         type="button"

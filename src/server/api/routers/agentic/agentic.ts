@@ -896,7 +896,8 @@ export const agenticRouter = createTRPCRouter({
         stepResult,
         blockageReason: stepResult === 'blocked' ? (reason ?? 'Unknown blockage') : null,
         response: response.content,
-        isComplete: false
+        isComplete: false,
+        hexecutePrompt
       }
     })
 })

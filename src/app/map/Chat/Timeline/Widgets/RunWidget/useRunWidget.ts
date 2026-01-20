@@ -8,6 +8,7 @@ export interface ExecutedStep {
   title: string;
   status: 'completed' | 'blocked' | 'error';
   timestamp: Date;
+  prompt?: string;
 }
 
 export type RunWidgetStatus = 'idle' | 'running' | 'blocked' | 'complete' | 'error';
@@ -23,6 +24,7 @@ interface UseRunWidgetReturn {
   status: RunWidgetStatus;
   instruction: string;
   currentStep: string | null;
+  currentPrompt: string | null;
   executedSteps: ExecutedStep[];
   blockageReason: string | null;
   error: Error | null;
@@ -31,6 +33,7 @@ interface UseRunWidgetReturn {
   setInstruction: (value: string) => void;
   startRun: () => Promise<void>;
   resumeRun: () => Promise<void>;
+  resumeWithInput: (input: string) => Promise<void>;
   stopRun: () => void;
 }
 
@@ -42,9 +45,11 @@ export function useRunWidget(options: UseRunWidgetOptions): UseRunWidgetReturn {
   const [executedSteps, setExecutedSteps] = useState<ExecutedStep[]>([]);
   const [startedAt, setStartedAt] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [currentPrompt, setCurrentPrompt] = useState<string | null>(null);
 
   const instructionRef = useRef(instruction);
   const shouldContinueRef = useRef(false);
+  const lastPromptRef = useRef<string | null>(null);
 
   // Keep instruction ref in sync
   useEffect(() => {
@@ -70,6 +75,10 @@ export function useRunWidget(options: UseRunWidgetOptions): UseRunWidgetReturn {
     blockageReason,
     error,
   } = useRun({
+    onStepStart: (stepCoords, prompt) => {
+      setCurrentPrompt(prompt);
+      lastPromptRef.current = prompt;
+    },
     onStepComplete: (stepCoords) => {
       setExecutedSteps((previous) => [
         ...previous,
@@ -78,6 +87,7 @@ export function useRunWidget(options: UseRunWidgetOptions): UseRunWidgetReturn {
           title: stepCoords,
           status: 'completed',
           timestamp: new Date(),
+          prompt: lastPromptRef.current ?? undefined,
         },
       ]);
     },
@@ -85,9 +95,11 @@ export function useRunWidget(options: UseRunWidgetOptions): UseRunWidgetReturn {
       setStatus('complete');
       shouldContinueRef.current = false;
     },
-    onBlocked: (_reason) => {
+    onBlocked: (_reason, prompt) => {
       setStatus('blocked');
       shouldContinueRef.current = false;
+      setCurrentPrompt(prompt);
+      lastPromptRef.current = prompt;
       const lastStepCoords = currentStep ?? tileCoords;
       setExecutedSteps((previous) => [
         ...previous,
@@ -96,6 +108,7 @@ export function useRunWidget(options: UseRunWidgetOptions): UseRunWidgetReturn {
           title: lastStepCoords,
           status: 'blocked',
           timestamp: new Date(),
+          prompt: prompt || undefined,
         },
       ]);
     },
@@ -137,6 +150,19 @@ export function useRunWidget(options: UseRunWidgetOptions): UseRunWidgetReturn {
     await executeLoop();
   }, [executeLoop]);
 
+  const resumeWithInput = useCallback(async (input: string) => {
+    // Store the user input as the instruction for the next run
+    // This will be passed to the run mutation via instructionRef
+    if (input.trim()) {
+      const resumeInstruction = `[User input on resume]: ${input}`;
+      setInstruction(resumeInstruction);
+      instructionRef.current = resumeInstruction;
+    }
+
+    // Resume execution
+    await resumeRun();
+  }, [resumeRun]);
+
   const stopRun = useCallback(() => {
     shouldContinueRef.current = false;
     setStatus('idle');
@@ -146,6 +172,7 @@ export function useRunWidget(options: UseRunWidgetOptions): UseRunWidgetReturn {
     status,
     instruction,
     currentStep,
+    currentPrompt,
     executedSteps,
     blockageReason,
     error,
@@ -154,6 +181,7 @@ export function useRunWidget(options: UseRunWidgetOptions): UseRunWidgetReturn {
     setInstruction,
     startRun,
     resumeRun,
+    resumeWithInput,
     stopRun,
   };
 }

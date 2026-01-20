@@ -5,12 +5,14 @@ import { api } from '~/commons/trpc/react'
  * Options for configuring the useRun hook callbacks
  */
 interface UseRunOptions {
+  /** Called when a step starts executing with its prompt */
+  onStepStart?: (stepCoords: string, prompt: string) => void
   /** Called when a step completes successfully */
   onStepComplete?: (stepCoords: string) => void
   /** Called when the entire run completes */
   onRunComplete?: () => void
   /** Called when execution is blocked */
-  onBlocked?: (reason: string) => void
+  onBlocked?: (reason: string, prompt: string) => void
   /** Called when an error occurs */
   onError?: (error: Error) => void
 }
@@ -33,6 +35,8 @@ interface UseRunReturn {
   isRunning: boolean
   /** Error that occurred during execution */
   error: Error | null
+  /** The hexecute prompt used for the last executed step */
+  lastPrompt: string | null
 }
 
 /**
@@ -63,6 +67,7 @@ export function useRun(options?: UseRunOptions): UseRunReturn {
   const [currentStep, setCurrentStep] = useState<string | null>(null)
   const [blockageReason, setBlockageReason] = useState<string | null>(null)
   const [error, setError] = useState<Error | null>(null)
+  const [lastPrompt, setLastPrompt] = useState<string | null>(null)
 
   const runMutation = api.agentic.run.useMutation()
 
@@ -79,8 +84,14 @@ export function useRun(options?: UseRunOptions): UseRunReturn {
           instruction,
         })
 
-        // Update current step
+        // Update current step and prompt
         setCurrentStep(result.stepExecuted)
+        setLastPrompt(result.hexecutePrompt ?? null)
+
+        // Notify step started with prompt
+        if (result.stepExecuted && result.hexecutePrompt) {
+          options?.onStepStart?.(result.stepExecuted, result.hexecutePrompt)
+        }
 
         // Handle completion
         if (result.isComplete) {
@@ -93,7 +104,7 @@ export function useRun(options?: UseRunOptions): UseRunReturn {
         if (result.stepResult === 'blocked') {
           setRunStatus('blocked')
           setBlockageReason(result.blockageReason)
-          options?.onBlocked?.(result.blockageReason ?? 'Unknown blockage')
+          options?.onBlocked?.(result.blockageReason ?? 'Unknown blockage', result.hexecutePrompt ?? '')
           return
         }
 
@@ -121,5 +132,6 @@ export function useRun(options?: UseRunOptions): UseRunReturn {
     blockageReason,
     isRunning: runStatus === 'running',
     error,
+    lastPrompt,
   }
 }
