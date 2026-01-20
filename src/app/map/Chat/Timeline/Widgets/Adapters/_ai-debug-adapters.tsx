@@ -1,7 +1,7 @@
 import type { Widget } from '~/app/map/Chat/_state';
 import { AIResponseWidget, McpKeysWidget, DebugLogsWidget, LoadingWidget, FavoritesWidget } from '~/app/map/Chat/Timeline/Widgets';
 import type { AIResponseWidgetData } from '~/app/map/Chat/types';
-import type { WidgetHandlers } from '~/app/map/Chat/Timeline/_components/_renderers/widget-renderers';
+import type { WidgetHandlers } from '~/app/map/Chat/Timeline/Widgets/Adapters';
 
 export function _renderLoadingWidget(widget: Widget) {
   const loadingData = widget.data as { message?: string; operation?: string };

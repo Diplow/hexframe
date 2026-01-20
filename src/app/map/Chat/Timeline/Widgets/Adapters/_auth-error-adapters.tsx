@@ -1,7 +1,7 @@
 import type { Widget, AuthRequiredPayload, ErrorOccurredPayload } from '~/app/map/Chat/_state';
 import { LoginWidget, ErrorWidget } from '~/app/map/Chat/Timeline/Widgets';
-import type { WidgetHandlers } from '~/app/map/Chat/Timeline/_components/_renderers/widget-renderers';
-import { _safeStringify } from '~/app/map/Chat/Timeline/_components/_renderers/_utils';
+import type { WidgetHandlers } from '~/app/map/Chat/Timeline/Widgets/Adapters';
+import { _safeStringify } from '~/app/map/Chat/Timeline/Widgets/Adapters/_utils';
 
 export function _renderLoginWidget(widget: Widget, handlers: WidgetHandlers) {
   const loginData = widget.data as AuthRequiredPayload;

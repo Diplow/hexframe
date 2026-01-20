@@ -11,6 +11,7 @@
     "~/lib/utils/mcp-config"
   ],
   "subsystems": [
+    "./Adapters",
     "./AIResponseWidget",
     "./LoginWidget",
     "./TileWidget"

@@ -15,7 +15,7 @@ import {
   renderDebugLogsWidget,
   renderFavoritesWidget,
   renderToolCallWidget
-} from '~/app/map/Chat/Timeline/_components';
+} from '~/app/map/Chat/Timeline/Widgets';
 
 export function _renderWidget(
   widget: Widget,

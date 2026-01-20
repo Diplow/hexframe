@@ -1,0 +1,9 @@
+{
+  "$schema": "../../../../../../scripts/checks/architecture/dependencies.schema.json",
+  "allowed": [
+    "~/app/map/Chat/_state",
+    "~/app/map/Chat/types",
+    "~/app/map/types"
+  ],
+  "subsystems": []
+}

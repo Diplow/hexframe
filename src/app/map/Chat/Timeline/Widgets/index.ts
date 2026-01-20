@@ -28,12 +28,29 @@ export * from '~/app/map/Chat/Timeline/Widgets/LoginWidget';
 // AI Response Widget Components (re-exported from their subsystem)
 export * from '~/app/map/Chat/Timeline/Widgets/AIResponseWidget';
 
+// Widget Adapters (transform Widget state → Widget components)
+export {
+  type WidgetHandlers,
+  renderTileWidget,
+  renderLoginWidget,
+  renderErrorWidget,
+  renderCreationWidget,
+  renderLoadingWidget,
+  renderDeleteWidget,
+  renderDeleteChildrenWidget,
+  renderAIResponseWidget,
+  renderMcpKeysWidget,
+  renderDebugLogsWidget,
+  renderFavoritesWidget,
+  renderToolCallWidget,
+} from '~/app/map/Chat/Timeline/Widgets/Adapters';
+
 /**
  * Chat Widgets Subsystem Public Interface
- * 
+ *
  * Provides interactive UI components for complex user operations
  * within the chat interface. Widgets handle multi-step interactions,
  * form input, and structured user flows.
- * 
+ *
  * All components are exported above for direct usage.
  */

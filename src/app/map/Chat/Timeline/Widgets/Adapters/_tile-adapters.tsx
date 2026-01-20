@@ -1,7 +1,7 @@
 import type { Widget, TileSelectedPayload } from '~/app/map/Chat/_state';
 import type { TileData } from '~/app/map/types';
 import { TileWidget } from '~/app/map/Chat/Timeline/Widgets';
-import type { WidgetHandlers } from '~/app/map/Chat/Timeline/_components/_renderers/widget-renderers';
+import type { WidgetHandlers } from '~/app/map/Chat/Timeline/Widgets/Adapters';
 
 export function _renderTileWidget(
   widget: Widget,

@@ -11,20 +11,3 @@ export { MarkdownRenderer } from '~/app/map/Chat/Timeline/_components/MarkdownRe
 
 // Hooks
 export { useAuthStateCoordinator } from '~/app/map/Chat/Timeline/_components/_hooks/useAuthStateCoordinator';
-
-// Widget renderers
-export {
-  type WidgetHandlers,
-  renderTileWidget,
-  renderLoginWidget,
-  renderErrorWidget,
-  renderCreationWidget,
-  renderLoadingWidget,
-  renderDeleteWidget,
-  renderDeleteChildrenWidget,
-  renderAIResponseWidget,
-  renderMcpKeysWidget,
-  renderDebugLogsWidget,
-  renderFavoritesWidget,
-  renderToolCallWidget,
-} from '~/app/map/Chat/Timeline/_components/_renderers/widget-renderers';

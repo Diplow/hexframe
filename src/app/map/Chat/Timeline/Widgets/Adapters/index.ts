@@ -1,10 +1,16 @@
+/**
+ * Widget Adapters - Public API
+ *
+ * Transforms Widget state objects into Widget UI components.
+ */
+
 import type { Widget } from '~/app/map/Chat/_state';
 import type { TileData } from '~/app/map/types';
-import { _renderTileWidget, _renderCreationWidget, _renderDeleteWidget, _renderDeleteChildrenWidget } from '~/app/map/Chat/Timeline/_components/_renderers/_tile-renderers';
-import { _renderLoginWidget, _renderErrorWidget } from '~/app/map/Chat/Timeline/_components/_renderers/_auth-error-renderers';
-import { _renderLoadingWidget, _renderAIResponseWidget, _renderMcpKeysWidget, _renderDebugLogsWidget, _renderFavoritesWidget } from '~/app/map/Chat/Timeline/_components/_renderers/_ai-debug-renderers';
-import { _renderToolCallWidget } from '~/app/map/Chat/Timeline/_components/_renderers/_tool-call-renderer';
 import type { Visibility } from '~/lib/domains/mapping/utils';
+import { _renderTileWidget, _renderCreationWidget, _renderDeleteWidget, _renderDeleteChildrenWidget } from '~/app/map/Chat/Timeline/Widgets/Adapters/_tile-adapters';
+import { _renderLoginWidget, _renderErrorWidget } from '~/app/map/Chat/Timeline/Widgets/Adapters/_auth-error-adapters';
+import { _renderLoadingWidget, _renderAIResponseWidget, _renderMcpKeysWidget, _renderDebugLogsWidget, _renderFavoritesWidget } from '~/app/map/Chat/Timeline/Widgets/Adapters/_ai-debug-adapters';
+import { _renderToolCallWidget } from '~/app/map/Chat/Timeline/Widgets/Adapters/_tool-call-adapter';
 
 export interface WidgetHandlers {
   handleEdit?: () => void;

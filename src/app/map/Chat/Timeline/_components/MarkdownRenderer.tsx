@@ -1,6 +1,6 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { _createMarkdownComponents } from '~/app/map/Chat/Timeline/_components/_renderers/_markdown-components';
+import { _createMarkdownComponents } from '~/app/map/Chat/Timeline/_components/_markdown-components';
 
 interface MarkdownRendererProps {
   content: string;
