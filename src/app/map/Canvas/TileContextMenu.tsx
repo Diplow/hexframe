@@ -31,6 +31,8 @@ interface TileContextMenuProps {
   onRemoveFavorite?: () => void;
   /** Callback when user selects "Edit Shortcut" from the context menu (opens favorites panel) */
   onEditShortcut?: () => void;
+  /** Callback when user selects "Run" for SYSTEM tiles */
+  onRun?: () => void;
   visibility?: Visibility;
   /** Whether this tile is currently in the user's favorites list */
   isFavorited?: boolean;
@@ -64,6 +66,7 @@ export function TileContextMenu({
   onAddFavorite,
   onRemoveFavorite,
   onEditShortcut,
+  onRun,
   visibility,
   isFavorited,
   canEdit,
@@ -99,6 +102,7 @@ export function TileContextMenu({
     onAddFavorite,
     onRemoveFavorite,
     onEditShortcut,
+    onRun,
   });
 
   return (

@@ -6,6 +6,7 @@ import type { TileData } from "~/app/map/types/tile-data";
 import { ParentHierarchy } from "~/app/map/Hierarchy";
 import { TileActionsProvider } from "~/app/map/Canvas";
 import { useTileSelectForChat } from "~/app/map/_hooks/use-tile-select-for-chat";
+import { useRun } from "~/app/map/_hooks/use-run";
 import { useMapCache, type MapCacheHook } from '~/app/map/Cache';
 import { useRouter } from "next/navigation";
 import { useEventBus, type EventBusService } from '~/app/map';
@@ -304,6 +305,26 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
     });
   }, [eventBus]);
 
+  // Run handler for SYSTEM tiles
+  const { run: executeRun } = useRun({
+    onStepComplete: (stepCoords) => {
+      console.log('Step completed:', stepCoords);
+    },
+    onRunComplete: () => {
+      console.log('Run completed');
+    },
+    onBlocked: (reason) => {
+      console.warn('Run blocked:', reason);
+    },
+    onError: (error) => {
+      console.error('Run error:', error);
+    },
+  });
+
+  const handleRunClick = useCallback((tileData: TileData) => {
+    void executeRun(tileData.metadata.coordId);
+  }, [executeRun]);
+
   // Composition state checkers
   const hasComposition = (coordId: string): boolean => {
     // Check if tile has any composed children (negative directions)
@@ -355,6 +376,7 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
       onRemoveFavorite={handleRemoveFavorite}
       isFavorited={isFavorited}
       onEditShortcut={handleEditShortcut}
+      onRunClick={handleRunClick}
     >
       <>
         {/* Canvas layer - extends full width, positioned behind chat panel */}

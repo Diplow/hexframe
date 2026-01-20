@@ -22,6 +22,7 @@ export interface TileActionsContextValue {
   onDeleteComposedClick?: (tileData: TileData) => void;
   onDeleteHexplanClick?: (tileData: TileData) => void;
   onCompositionToggle?: (tileData: TileData) => void;
+  onRunClick?: (tileData: TileData) => void;
   onTileDragStart: (tileData: TileData) => void;
   onTileDrop: (tileData: TileData) => void;
   isDragging: boolean;
@@ -59,6 +60,7 @@ interface TileActionsProviderProps {
   onRemoveFavorite?: (tileData: TileData) => void;
   isFavorited?: (coordId: string) => boolean;
   onEditShortcut?: (tileData: TileData) => void;
+  onRunClick?: (tileData: TileData) => void;
 }
 
 interface ContextMenuState {
@@ -99,6 +101,7 @@ export function TileActionsProvider(props: TileActionsProviderProps) {
     onDeleteClick, onDeleteChildrenClick, onDeleteComposedClick, onDeleteHexplanClick,
     onCompositionToggle, onSetVisibility, onSetVisibilityWithDescendants, hasComposition,
     isCompositionExpanded, canShowComposition, onAddFavorite, onRemoveFavorite, isFavorited, onEditShortcut,
+    onRunClick,
   } = props;
 
   const [isDragging, setIsDragging] = useState(false);
@@ -120,10 +123,12 @@ export function TileActionsProvider(props: TileActionsProviderProps) {
     onTileClick, onTileDoubleClick, onTileRightClick, onTileHover, onTileDragStart, onTileDrop, isDragging,
     onSelectClick, onNavigateClick, onExpandClick, onCreateClick, onEditClick, onDeleteClick,
     onDeleteChildrenClick, onDeleteComposedClick, onDeleteHexplanClick, onCompositionToggle, isFavorited,
+    onRunClick,
   }), [
     onTileClick, onTileDoubleClick, onTileRightClick, onTileHover, onTileDragStart, onTileDrop, isDragging,
     onSelectClick, onNavigateClick, onExpandClick, onCreateClick, onEditClick, onDeleteClick,
     onDeleteChildrenClick, onDeleteComposedClick, onDeleteHexplanClick, onCompositionToggle, isFavorited,
+    onRunClick,
   ]);
 
   return (
@@ -155,6 +160,7 @@ export function TileActionsProvider(props: TileActionsProviderProps) {
         onRemoveFavorite={onRemoveFavorite}
         isFavorited={isFavorited}
         onEditShortcut={onEditShortcut}
+        onRunClick={onRunClick}
       />
       {showCopyFeedback && (
         <CopyFeedback

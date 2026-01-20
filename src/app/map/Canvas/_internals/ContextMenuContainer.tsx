@@ -40,6 +40,8 @@ interface ContextMenuContainerProps {
   isFavorited?: (coordId: string) => boolean;
   /** Callback when user wants to edit the shortcut for a favorited tile */
   onEditShortcut?: (tileData: TileData) => void;
+  /** Callback when user runs a SYSTEM tile */
+  onRunClick?: (tileData: TileData) => void;
 }
 
 export function ContextMenuContainer({
@@ -68,6 +70,7 @@ export function ContextMenuContainer({
   onRemoveFavorite,
   isFavorited,
   onEditShortcut,
+  onRunClick,
 }: ContextMenuContainerProps) {
   if (!contextMenu) return null;
 
@@ -111,6 +114,7 @@ export function ContextMenuContainer({
       onAddFavorite={() => onAddFavorite?.(contextMenu.tileData)}
       onRemoveFavorite={() => onRemoveFavorite?.(contextMenu.tileData)}
       onEditShortcut={() => onEditShortcut?.(contextMenu.tileData)}
+      onRun={() => onRunClick?.(contextMenu.tileData)}
     />
   );
 }

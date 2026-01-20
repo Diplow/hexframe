@@ -18,6 +18,7 @@ import {
   _buildVisibilitySubmenu,
 } from "~/app/map/Canvas/Menu/_builders/edit-actions";
 import { _buildFavoriteMenuItem } from "~/app/map/Canvas/Menu/_builders/favorite-actions";
+import { _buildRunItem } from "~/app/map/Canvas/Menu/_builders/run-actions";
 
 export type MenuItem = ContextMenuItemData;
 
@@ -52,6 +53,8 @@ interface MenuItemsConfig {
   onRemoveFavorite?: () => void;
   /** Callback when user selects "Edit Shortcut" (opens favorites panel to edit this tile's shortcut) */
   onEditShortcut?: () => void;
+  /** Callback when user selects "Run" for SYSTEM tiles */
+  onRun?: () => void;
 }
 
 export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
@@ -82,6 +85,7 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
     onAddFavorite,
     onRemoveFavorite,
     onEditShortcut,
+    onRun,
   } = config;
 
   if (isEmptyTile) {
@@ -101,6 +105,7 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
       onCompositionToggle,
     ),
     ..._buildNavigateItem(onNavigate),
+    ..._buildRunItem(tileData, canEdit, onRun),
     ..._buildViewHistoryItem(onViewHistory),
     ..._buildFavoriteMenuItem({
       canEdit,
