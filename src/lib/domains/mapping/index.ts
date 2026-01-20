@@ -23,7 +23,10 @@ export {
   ItemHistoryService,
   ItemContextService,
   MappingUtils,
+  LeafTraversalService,
   type HexecuteContext,
+  type NextLeafResult,
+  type LeafTraversalServiceDeps,
 } from '~/lib/domains/mapping/services';
 
 // Infrastructure (server-only - contains database connections)
