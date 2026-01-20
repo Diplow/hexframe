@@ -11,6 +11,7 @@ import { _renderTileWidget, _renderCreationWidget, _renderDeleteWidget, _renderD
 import { _renderLoginWidget, _renderErrorWidget } from '~/app/map/Chat/Timeline/Widgets/Adapters/_auth-error-adapters';
 import { _renderLoadingWidget, _renderAIResponseWidget, _renderMcpKeysWidget, _renderDebugLogsWidget, _renderFavoritesWidget } from '~/app/map/Chat/Timeline/Widgets/Adapters/_ai-debug-adapters';
 import { _renderToolCallWidget } from '~/app/map/Chat/Timeline/Widgets/Adapters/_tool-call-adapter';
+import { _renderRunWidget } from '~/app/map/Chat/Timeline/Widgets/Adapters/_run-adapter';
 
 export interface WidgetHandlers {
   handleEdit?: () => void;
@@ -77,4 +78,8 @@ export function renderFavoritesWidget(widget: Widget, handlers: WidgetHandlers) 
 
 export function renderToolCallWidget(widget: Widget) {
   return _renderToolCallWidget(widget);
+}
+
+export function renderRunWidget(widget: Widget, handlers: WidgetHandlers) {
+  return _renderRunWidget(widget, handlers);
 }

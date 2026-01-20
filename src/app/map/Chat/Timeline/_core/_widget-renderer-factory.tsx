@@ -14,7 +14,8 @@ import {
   renderMcpKeysWidget,
   renderDebugLogsWidget,
   renderFavoritesWidget,
-  renderToolCallWidget
+  renderToolCallWidget,
+  renderRunWidget,
 } from '~/app/map/Chat/Timeline/Widgets';
 
 export function _renderWidget(
@@ -47,6 +48,8 @@ export function _renderWidget(
       return renderFavoritesWidget(widget, handlers);
     case 'tool-call':
       return renderToolCallWidget(widget);
+    case 'run':
+      return renderRunWidget(widget, handlers);
     default:
       return null;
   }
