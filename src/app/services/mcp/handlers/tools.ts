@@ -800,6 +800,69 @@ Returns XML-formatted prompt ready for agent execution.`,
       return result;
     },
   },
+
+  {
+    name: "run",
+    description: `Execute the next step of a SYSTEM tile run.
+
+Each call executes ONE leaf tile and returns. Call repeatedly until isComplete is true.
+
+WORKFLOW:
+1. First call creates a run and executes the first leaf tile
+2. Subsequent calls execute the next incomplete leaf
+3. When all leaves complete, run is closed and isComplete=true
+4. If a step blocks, runStatus='blocked' and you can resume with the same coords
+
+Returns:
+- runId: Unique identifier for this run
+- runStatus: Current run state (open/blocked/closed)
+- stepExecuted: Coordinates of the step just executed
+- stepResult: Whether the step completed or blocked
+- blockageReason: Why the step blocked (if applicable)
+- response: Agent's response text
+- isComplete: True when all steps are done
+
+Usage pattern:
+\`\`\`
+let result = run({ coords: "userId,0:6" })
+while (!result.isComplete) {
+  if (result.runStatus === 'blocked') {
+    // Handle blockage (wait for human fix)
+  }
+  result = run({ coords: "userId,0:6" })
+}
+\`\`\``,
+    inputSchema: {
+      type: "object",
+      properties: {
+        coords: {
+          type: "string",
+          description: "Root SYSTEM tile coordinates (e.g., 'userId,0:6,3')"
+        },
+        instruction: {
+          type: "string",
+          description: "Optional instruction for the current step"
+        }
+      },
+      required: ["coords"],
+    },
+    handler: async (args: unknown, caller: TRPCCaller) => {
+      const argsObj = args as Record<string, unknown>;
+      const coords = argsObj?.coords as string;
+      const instruction = argsObj?.instruction as string | undefined;
+
+      if (!coords) {
+        throw new Error("coords parameter is required");
+      }
+
+      const result = await caller.agentic.run({
+        coords,
+        instruction
+      });
+
+      return result;
+    },
+  },
 ];
 
 /**

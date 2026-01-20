@@ -1,9 +1,11 @@
 import { z } from 'zod'
+import { TRPCError } from '@trpc/server'
 import { createTRPCRouter, protectedProcedure, softAuthProcedure, mappingServiceMiddleware, agenticServiceMiddleware } from '~/server/api/trpc'
 import { verificationAwareRateLimit, verificationAwareAuthLimit } from '~/server/api/middleware'
-import { type CompositionConfig, PreviewGeneratorService, OpenRouterRepository, type ChatMessageContract } from '~/lib/domains/agentic'
-import { buildPrompt, generateParentHexplanContent, generateLeafHexplanContent } from '~/lib/domains/agentic/utils'
+import { type CompositionConfig, PreviewGeneratorService, OpenRouterRepository, type ChatMessageContract, RunService } from '~/lib/domains/agentic'
+import { buildPrompt, generateParentHexplanContent, generateLeafHexplanContent, parseAgentResponse } from '~/lib/domains/agentic/utils'
 import { ContextStrategies, CoordSystem, Direction, MapItemType, isBuiltInItemType, type ItemTypeValue } from '~/lib/domains/mapping/utils'
+import { LeafTraversalService } from '~/lib/domains/mapping'
 import { _getRequesterUserId } from '~/server/api/routers/map'
 import { _requireConfigured, _requireFound, _requireOwnership, _throwBadRequest, _throwInternalError } from '~/server/api/routers/_error-helpers'
 import { env } from '~/env'
@@ -697,5 +699,204 @@ export const agenticRouter = createTRPCRouter({
       // Return updated effective allowlist
       const updatedAllowlist = await service.getEffectiveAllowlist(userId)
       return { allowedTypes: updatedAllowlist }
+    }),
+
+  // Execute the next step of a SYSTEM tile run
+  // External orchestration: each call executes ONE leaf and returns
+  run: protectedProcedure
+    .use(verificationAwareRateLimit)
+    .use(mappingServiceMiddleware)
+    .use(agenticServiceMiddleware)
+    .input(
+      z.object({
+        coords: z.string().describe('Root SYSTEM tile coordinates'),
+        instruction: z.string().optional().describe('Optional instruction for current step')
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { coords, instruction } = input
+      const userId = ctx.session?.userId ?? ctx.user?.id
+      if (!userId) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'User ID required' })
+      }
+
+      // 1. Validate tile type - only SYSTEM and custom types can be run
+      const tile = await ctx.mappingService.items.query.getItemByCoords({
+        coords: CoordSystem.parseId(coords)
+      })
+
+      const tileItemType = tile.itemType as ItemTypeValue | null
+      const isSystemType = tileItemType === MapItemType.SYSTEM
+      const isCustomType = tileItemType !== null && !isBuiltInItemType(tileItemType)
+
+      if (!isSystemType && !isCustomType) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `Only SYSTEM tiles or custom types can be run. Got: ${tileItemType ?? 'null'}`
+        })
+      }
+
+      // 2. Get or create run
+      const runService = new RunService(db)
+      const run = await runService.getOrCreateRun(userId, coords)
+
+      // 3. If already closed, return completion
+      if (run.status === 'closed') {
+        return {
+          runId: run.id,
+          runStatus: 'closed' as const,
+          stepExecuted: null,
+          stepResult: null,
+          blockageReason: null,
+          response: null,
+          isComplete: true
+        }
+      }
+
+      // 4. Get completed coords from execution log
+      const completedCoords = new Set(
+        run.executionLog
+          .filter(entry => entry.status === 'completed')
+          .map(entry => entry.stepCoords)
+      )
+
+      // 5. Find next incomplete leaf
+      const leafTraversalService = new LeafTraversalService({
+        itemQueryService: ctx.mappingService.items.query
+      })
+      const { leafCoords } = await leafTraversalService.getNextIncompleteLeaf(
+        coords,
+        completedCoords
+      )
+
+      // 6. If no next leaf, close run
+      if (!leafCoords) {
+        await runService.closeRun(run.id)
+        return {
+          runId: run.id,
+          runStatus: 'closed' as const,
+          stepExecuted: null,
+          stepResult: null,
+          blockageReason: null,
+          response: null,
+          isComplete: true
+        }
+      }
+
+      // 7. Start step tracking
+      await runService.startStep(run.id, leafCoords)
+
+      // 8. Build prompt with blockage context if resuming
+      const wasBlocked = run.status === 'blocked'
+      const requester = _getRequesterUserId(ctx.user)
+
+      // Get hexecute context for the leaf tile
+      const hexecuteContext = await ctx.mappingService.context.getHexecuteContext(
+        leafCoords,
+        requester
+      )
+
+      // Build the hexecute prompt
+      let hexecutePrompt: string
+      try {
+        const hexPlanContent = hexecuteContext.hexPlan ?? ''
+
+        hexecutePrompt = buildPrompt({
+          task: {
+            title: hexecuteContext.task.title,
+            content: hexecuteContext.task.content || undefined,
+            coords: leafCoords
+          },
+          ancestors: hexecuteContext.ancestors,
+          composedChildren: hexecuteContext.composedChildren.map(child => ({
+            title: child.title,
+            content: child.content,
+            coords: child.coords
+          })),
+          structuralChildren: hexecuteContext.structuralChildren,
+          hexPlan: hexPlanContent,
+          mcpServerName: env.HEXFRAME_MCP_SERVER,
+          allLeafTasks: hexecuteContext.allLeafTasks,
+          itemType: hexecuteContext.task.itemType,
+          userMessage: instruction,
+          wasBlocked,
+          blockageReason: run.blockageReason ?? undefined
+        })
+      } catch (error) {
+        _throwInternalError(
+          `Failed to build prompt for leaf at ${leafCoords}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          error
+        )
+      }
+
+      // 9. Execute via agentic service
+      _requireConfigured(ctx.agenticService.isConfigured(), "OPENROUTER_API_KEY or ANTHROPIC_API_KEY")
+
+      const leafTile = hexecuteContext.task
+      const minimalMapContext = {
+        center: {
+          id: leafTile.id,
+          ownerId: leafTile.ownerId,
+          coords: leafCoords,
+          title: leafTile.title,
+          content: leafTile.content ?? '',
+          preview: leafTile.preview ?? undefined,
+          link: leafTile.link ?? '',
+          itemType: leafTile.itemType,
+          visibility: leafTile.visibility,
+          depth: leafTile.depth,
+          parentId: leafTile.parentId ?? null,
+          originId: leafTile.originId ?? null
+        },
+        parent: null,
+        composed: [],
+        children: [],
+        grandchildren: []
+      }
+
+      const compositionConfigForRun: CompositionConfig = {
+        canvas: { enabled: false, strategy: 'minimal' },
+        chat: { enabled: true, strategy: 'full' },
+        composition: { strategy: 'sequential' }
+      }
+
+      const chunks: Array<{ content: string; isFinished: boolean }> = []
+      const response = await ctx.agenticService.generateStreamingResponse(
+        {
+          mapContext: minimalMapContext,
+          messages: [{
+            id: `user-${nanoid()}`,
+            type: 'user',
+            content: hexecutePrompt
+          }],
+          model: 'claude-haiku-4-5-20251001',
+          compositionConfig: compositionConfigForRun
+        },
+        (chunk) => {
+          chunks.push(chunk)
+        }
+      )
+
+      // 10. Parse response for status
+      const { result: stepResult, reason } = parseAgentResponse(response.content)
+
+      // 11. Update run based on result
+      if (stepResult === 'completed') {
+        await runService.markStepCompleted(run.id, leafCoords)
+      } else {
+        await runService.markStepBlocked(run.id, leafCoords, reason ?? 'Unknown blockage')
+      }
+
+      // 12. Get updated run and return result
+      const updatedRun = await runService.getRunById(run.id)
+      return {
+        runId: run.id,
+        runStatus: updatedRun?.status ?? 'open',
+        stepExecuted: leafCoords,
+        stepResult,
+        blockageReason: stepResult === 'blocked' ? (reason ?? 'Unknown blockage') : null,
+        response: response.content,
+        isComplete: false
+      }
     })
 })
