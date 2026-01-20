@@ -16,10 +16,6 @@ import {
   USER_TEMPLATE_CONTEXT,
   type UserTemplateData
 } from '~/lib/domains/agentic/templates/_user-template'
-import {
-  shouldUseOrchestrator,
-  buildOrchestratorPrompt
-} from '~/lib/domains/agentic/templates/_hexrun-orchestrator-template'
 import { preProcess, type TemplateContext, type TileData } from '~/lib/domains/agentic/templates/_pre-processor'
 import { templateRegistry } from '~/lib/domains/agentic/templates/_templates'
 import { _escapeXML, _hasContent } from '~/lib/domains/agentic/templates/_internals/utils'
@@ -120,7 +116,11 @@ function _prepareSystemTemplateData(data: PromptData): SystemTemplateData {
     // Simplified HexPlan (for tile-based templates)
     hasHexplan: _hasContent(data.hexPlan),
     hexplanCoords: `${data.task.coords},0`,
-    hexPlan: data.hexPlan
+    hexPlan: data.hexPlan,
+
+    // Execution context for resumed runs
+    wasBlocked: data.wasBlocked ?? false,
+    blockageReason: data.blockageReason ?? ''
   }
 }
 
@@ -198,11 +198,6 @@ function _buildPreProcessorContext(data: PromptData): TemplateContext {
  * Empty sections are omitted.
  */
 export function buildPrompt(data: PromptData): string {
-  // For SYSTEM tiles with userMessage (from @-mention), use orchestrator
-  if (shouldUseOrchestrator(data.itemType, data.userMessage)) {
-    return buildOrchestratorPrompt(data)
-  }
-
   const template = _getTemplateByItemType(data.itemType)
 
   // Check if template uses pool-based rendering ({{@RenderChildren}})

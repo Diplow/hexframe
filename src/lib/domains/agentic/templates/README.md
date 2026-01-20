@@ -48,17 +48,14 @@ Template tiles use a special `itemType: "template"` and include:
 
 **SYSTEM Template** (`_system-template.ts`)
 - Used for executable task tiles
-- Renders: hexrun-intro, ancestor-context, context, subtasks, task, hexplan
+- Renders: hexrun-intro, execution-context (if blocked), ancestor-context, context, subtasks, task, hexplan, execution-instructions
 - Supports iterative hexrun execution pattern
+- Includes status block instructions for API orchestration (agents report completion via `<status>` blocks)
 
 **USER Template** (`_user-template.ts`)
 - Used for user root tiles (interlocutor mode)
 - Renders: user-intro, context, sections, recent-history, discussion, user-message
 - Optimized for conversational interaction
-
-**HEXRUN Orchestrator Template** (`_hexrun-orchestrator-template.ts`)
-- Triggered when SYSTEM tiles are executed via @-mention in chat
-- Wraps task execution in an orchestration loop using MCP tools
 
 ### Seeding Built-in Templates
 
@@ -87,10 +84,6 @@ See `drizzle/seeds/templates.seed.ts` for implementation details.
 // Build execution-ready XML prompt from task data
 function buildPrompt(data: PromptData): string
 
-// Orchestrator functions (for @-mention triggered execution)
-function shouldUseOrchestrator(itemType: MapItemType, userMessage: string | undefined): boolean
-function buildOrchestratorPrompt(data: OrchestratorPromptInput): string
-
 // Input data structure
 interface PromptData {
   task: { title: string; content: string | undefined; coords: string }
@@ -101,8 +94,10 @@ interface PromptData {
   mcpServerName: string
   allLeafTasks?: Array<{ title: string; coords: string }>
   itemType: MapItemType  // Required - determines which template to use
-  discussion?: string    // For USER tiles and orchestrator
-  userMessage?: string   // Triggers orchestrator mode for SYSTEM tiles
+  discussion?: string    // For USER tiles
+  userMessage?: string   // Optional instruction for execution
+  wasBlocked?: boolean   // Whether resuming from blocked state
+  blockageReason?: string // Reason for previous blockage
 }
 ```
 
@@ -118,7 +113,6 @@ templates/
 ├── _prompt-builder.ts        # Core implementation (template lookup, rendering)
 ├── _system-template.ts       # SYSTEM tile template and data types
 ├── _user-template.ts         # USER tile template and data types
-├── _hexrun-orchestrator-template.ts  # @-mention orchestration template
 ├── _pre-processor/           # {{@Template}} tag expansion
 │   ├── index.ts
 │   ├── _parser.ts

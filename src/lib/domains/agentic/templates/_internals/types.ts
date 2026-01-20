@@ -40,4 +40,8 @@ export interface PromptData {
   discussion?: string
   /** For USER tiles: the user's current message/instruction */
   userMessage?: string
+  /** Whether this run is resuming from a blocked state */
+  wasBlocked?: boolean
+  /** The reason for the previous blockage (if wasBlocked is true) */
+  blockageReason?: string
 }

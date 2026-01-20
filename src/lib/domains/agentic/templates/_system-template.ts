@@ -32,7 +32,40 @@ export interface SystemTemplateData {
   hasHexplan: boolean
   hexplanCoords: string
   hexPlan: string
+
+  // Execution context for resumed runs
+  wasBlocked: boolean
+  blockageReason: string
 }
+
+/**
+ * Execution context section - shown when resuming from a blocked state.
+ */
+export const EXECUTION_CONTEXT_SECTION = `{{#wasBlocked}}
+<execution-context>
+<previous-blockage>
+This task was previously blocked with reason: {{{blockageReason}}}
+The blocker has been addressed. Continue execution from where you left off.
+</previous-blockage>
+</execution-context>
+{{/wasBlocked}}`
+
+/**
+ * Execution instructions section - guides agents on completion reporting.
+ */
+export const EXECUTION_INSTRUCTIONS_SECTION = `<execution-instructions>
+Execute this task to completion.
+
+**Planning**: If you need to track multi-step progress:
+1. Create a hexplan tile at direction-0 with your plan
+2. Update the hexplan as you complete steps
+
+**Completion**: When done, end your response with a status block:
+- Success: \`<status>{"result": "completed"}</status>\`
+- Blocked: \`<status>{"result": "blocked", "reason": "description of blocker"}</status>\`
+
+The status block is REQUIRED for proper orchestration.
+</execution-instructions>`
 
 /**
  * Mustache template for SYSTEM tiles.
@@ -40,6 +73,10 @@ export interface SystemTemplateData {
  * The {{@HexPlan}} tag is expanded by the pre-processor before Mustache.
  */
 export const SYSTEM_TEMPLATE = `{{{hexrunIntro}}}
+{{#wasBlocked}}
+
+${EXECUTION_CONTEXT_SECTION}
+{{/wasBlocked}}
 {{#hasAncestorsWithContent}}
 
 {{{ancestorContextSection}}}
@@ -60,7 +97,9 @@ export const SYSTEM_TEMPLATE = `{{{hexrunIntro}}}
 {{/task.hasContent}}
 </task>
 
-{{@HexPlan}}`
+{{@HexPlan}}
+
+${EXECUTION_INSTRUCTIONS_SECTION}`
 
 /**
  * Static hexrun introduction text.
