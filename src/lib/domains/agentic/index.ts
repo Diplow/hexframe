@@ -11,6 +11,9 @@ export { createAgenticService, createAgenticServiceAsync } from '~/lib/domains/a
 export { PreviewGeneratorService } from '~/lib/domains/agentic/services/preview-generator.service';
 export type { GeneratePreviewInput, GeneratePreviewResult } from '~/lib/domains/agentic/services/preview-generator.service';
 
+export { RunService } from '~/lib/domains/agentic/services/_run-services';
+export type { Run, RunStatus, ExecutionLogEntry } from '~/lib/domains/agentic/services/_run-services';
+
 // Context builders
 export { CanvasContextBuilder } from '~/lib/domains/agentic/services/_context/canvas-context-builder.service';
 export { ChatContextBuilder } from '~/lib/domains/agentic/services/_context/chat-context-builder.service';

@@ -12,3 +12,6 @@ export type { TokenizerService } from '~/lib/domains/agentic/services/_context/t
 
 export { PreviewGeneratorService } from '~/lib/domains/agentic/services/preview-generator.service'
 export type { GeneratePreviewInput, GeneratePreviewResult } from '~/lib/domains/agentic/services/preview-generator.service'
+
+export { RunService } from '~/lib/domains/agentic/services/_run-services'
+export type { Run, RunStatus, ExecutionLogEntry } from '~/lib/domains/agentic/services/_run-services'
