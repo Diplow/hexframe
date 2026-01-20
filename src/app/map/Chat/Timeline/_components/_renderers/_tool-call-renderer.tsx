@@ -1,6 +1,5 @@
-import type { Widget } from '~/app/map/Chat/_state';
-import type { ToolCallWidgetData } from '~/app/map/Chat/_state/_events/event.types';
-import { ToolCallWidget } from '~/app/map/Chat/Timeline/Widgets/ToolCallWidget';
+import type { Widget, ToolCallWidgetData } from '~/app/map/Chat/_state';
+import { ToolCallWidget } from '~/app/map/Chat/Timeline/Widgets';
 
 export function _renderToolCallWidget(widget: Widget) {
   const data = widget.data as ToolCallWidgetData;

@@ -5,4 +5,4 @@ export * from '~/app/map/Chat/_state/core';
 export type { useChatOperations } from '~/app/map/Chat/_state/_operations';
 
 // Re-export types from events
-export type { Message } from '~/app/map/Chat/_state/_events';
+export type { Message, ToolCallWidgetData } from '~/app/map/Chat/_state/_events';

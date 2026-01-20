@@ -1,5 +1,5 @@
 import { CheckCircle } from 'lucide-react';
-import { MarkdownRenderer } from '~/app/map/Chat/Timeline/_components/MarkdownRenderer';
+import { MarkdownRenderer } from '~/app/map/Chat/Timeline/_components';
 import { BaseWidget, WidgetHeader, WidgetContent } from '~/app/map/Chat/Timeline/Widgets/_shared';
 
 interface CompletedStatusProps {

@@ -1,5 +1,5 @@
 import type { Widget, useChatOperations } from '~/app/map/Chat/_state';
-import type { WidgetHandlers } from '~/app/map/Chat/Timeline/_components/_renderers/widget-renderers';
+import type { WidgetHandlers } from '~/app/map/Chat/Timeline/_components';
 import { createCreationHandlers } from '~/app/map/Chat/Timeline/_utils/creation-handlers';
 import { createTileHandlers } from '~/app/map/Chat/Timeline/_utils/tile-handlers';
 import { insertTextIntoChatInput } from '~/app/map/Chat/Timeline/_utils/focus-helpers';

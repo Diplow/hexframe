@@ -1,8 +1,8 @@
 import type { Widget } from '~/app/map/Chat/_state';
 import type { TileData } from '~/app/map/types';
 import type { ReactNode } from 'react';
-import type { WidgetHandlers } from '~/app/map/Chat/Timeline/_components/_renderers/widget-renderers';
 import {
+  type WidgetHandlers,
   renderTileWidget,
   renderLoginWidget,
   renderErrorWidget,
@@ -15,7 +15,7 @@ import {
   renderDebugLogsWidget,
   renderFavoritesWidget,
   renderToolCallWidget
-} from '~/app/map/Chat/Timeline/_components/_renderers/widget-renderers';
+} from '~/app/map/Chat/Timeline/_components';
 
 export function _renderWidget(
   widget: Widget,

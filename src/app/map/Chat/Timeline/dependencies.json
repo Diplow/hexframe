@@ -12,6 +12,7 @@
     "~/app/map/Services/EventBus"
   ],
   "subsystems": [
-    "./Widgets"
+    "./Widgets",
+    "./_components"
   ]
 }

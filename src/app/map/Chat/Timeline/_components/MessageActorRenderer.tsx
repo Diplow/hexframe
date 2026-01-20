@@ -9,7 +9,7 @@ import { CollapsiblePrompt } from '~/app/map/Chat/Timeline/_components/Collapsib
 import { authClient } from '~/lib/auth';
 import { useEventBus } from '~/app/map/Services/EventBus';
 import { ThinkingIndicator } from '~/app/map/Chat/Timeline/_components/ThinkingIndicator';
-import { ToolCallWidget } from '~/app/map/Chat/Timeline/Widgets/ToolCallWidget';
+import { ToolCallWidget } from '~/app/map/Chat/Timeline/Widgets';
 
 interface StreamingMessage extends Message {
   isStreaming?: boolean;
