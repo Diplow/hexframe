@@ -42,12 +42,16 @@ function _shouldAutoCreateHexplan(itemType: ItemTypeValue | null | undefined): b
 }
 
 /**
- * Creates a hexplan tile if one doesn't exist.
- * Returns the hexplan content (either existing or newly created).
+ * Creates a hexplan tile if one doesn't exist, or prepends instruction to existing hexplan.
+ * Returns the hexplan content (either existing, newly created, or updated with prepended instruction).
  *
  * Handles race conditions: if concurrent calls attempt to create the hexplan,
  * the second call will detect the unique constraint violation and fetch the
  * existing hexplan instead.
+ *
+ * Prepend behavior: When a hexplan already exists AND instruction is provided,
+ * the instruction is prepended at the TOP of existing hexplan content. This preserves
+ * existing progress/state while adding new guidance.
  */
 async function _ensureHexplanExists(
   hexecuteContext: HexecuteContext,
@@ -55,25 +59,37 @@ async function _ensureHexplanExists(
   instruction: string | undefined,
   mappingService: MappingService
 ): Promise<string> {
-  if (hexecuteContext.hexPlan) {
-    return hexecuteContext.hexPlan
-  }
-
-  const taskId = parseInt(hexecuteContext.task.id, 10)
-  if (Number.isNaN(taskId)) {
-    _throwBadRequest(`Invalid task ID: ${hexecuteContext.task.id}`)
-  }
-
   const taskCoord = CoordSystem.parseId(taskCoords)
   const hexplanCoords = {
     ...taskCoord,
     path: [...taskCoord.path, Direction.Center]
   }
 
+  // If hexplan exists, handle instruction prepending
+  if (hexecuteContext.hexPlan) {
+    // If instruction provided, prepend it to existing hexplan
+    if (instruction) {
+      const updatedContent = `**Instruction:** ${instruction}\n\n${hexecuteContext.hexPlan}`
+      await mappingService.items.crud.updateItem({
+        coords: hexplanCoords,
+        content: updatedContent
+      })
+      return updatedContent
+    }
+    // No instruction, return existing hexplan as-is
+    return hexecuteContext.hexPlan
+  }
+
+  // No hexplan exists - create one with instruction
+  const taskId = parseInt(hexecuteContext.task.id, 10)
+  if (Number.isNaN(taskId)) {
+    _throwBadRequest(`Invalid task ID: ${hexecuteContext.task.id}`)
+  }
+
   // Generate hexplan content based on tile type
   const hasSubtasks = hexecuteContext.structuralChildren.length > 0
   const hexPlanContent = hasSubtasks
-    ? generateParentHexplanContent(hexecuteContext.structuralChildren, hexecuteContext.allLeafTasks)
+    ? generateParentHexplanContent(hexecuteContext.structuralChildren, hexecuteContext.allLeafTasks, instruction)
     : generateLeafHexplanContent(hexecuteContext.task.title, instruction)
 
   // Create the hexplan tile, handling race conditions
@@ -701,6 +717,108 @@ export const agenticRouter = createTRPCRouter({
       return { allowedTypes: updatedAllowlist }
     }),
 
+  // Get current run state with pre-computed next step prompt
+  // Used to restore widget state on open and show prompts early
+  getRunState: protectedProcedure
+    .use(mappingServiceMiddleware)
+    .input(
+      z.object({
+        coords: z.string().describe('Root SYSTEM tile coordinates')
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const userId = ctx.session?.userId ?? ctx.user?.id
+      if (!userId) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'User ID required' })
+      }
+
+      const runService = new RunService(db)
+      const run = await runService.getOpenRun(input.coords)
+
+      // If no run exists, return empty state
+      if (!run) {
+        return {
+          runId: null,
+          status: null,
+          blockageReason: null,
+          executionLog: [],
+          nextStep: null
+        }
+      }
+
+      // Find next incomplete leaf and pre-compute its prompt
+      const completedCoords = new Set(
+        run.executionLog.filter(entry => entry.status === 'completed').map(entry => entry.stepCoords)
+      )
+
+      const leafTraversalService = new LeafTraversalService({
+        itemQueryService: ctx.mappingService.items.query
+      })
+      const { leafCoords } = await leafTraversalService.getNextIncompleteLeaf(
+        input.coords,
+        completedCoords
+      )
+
+      let nextStep: { coords: string; title: string; prompt: string } | null = null
+      let currentStepHexplan: { coords: string; content: string } | null = null
+      let parentHexplan: { coords: string; content: string } | null = null
+
+      if (leafCoords) {
+        const requester = _getRequesterUserId(ctx.user)
+        const hexecuteContext = await ctx.mappingService.context.getHexecuteContext(leafCoords, requester)
+        const hexPlanContent = hexecuteContext.hexPlan ?? ''
+        const prompt = buildPrompt({
+          task: { title: hexecuteContext.task.title, content: hexecuteContext.task.content || undefined, coords: leafCoords },
+          ancestors: hexecuteContext.ancestors,
+          composedChildren: hexecuteContext.composedChildren.map(child => ({ title: child.title, content: child.content, coords: child.coords })),
+          structuralChildren: hexecuteContext.structuralChildren,
+          hexPlan: hexPlanContent,
+          mcpServerName: env.HEXFRAME_MCP_SERVER,
+          allLeafTasks: hexecuteContext.allLeafTasks,
+          itemType: hexecuteContext.task.itemType
+        })
+        nextStep = { coords: leafCoords, title: hexecuteContext.task.title, prompt }
+
+        // Fetch current step hexplan (direction-0 of leaf)
+        const leafCoord = CoordSystem.parseId(leafCoords)
+        const hexplanCoords = { ...leafCoord, path: [...leafCoord.path, Direction.Center] }
+        try {
+          const hexplanTile = await ctx.mappingService.items.query.getItemByCoords({ coords: hexplanCoords })
+          currentStepHexplan = {
+            coords: CoordSystem.createId(hexplanCoords),
+            content: hexplanTile.content ?? ''
+          }
+        } catch {
+          // Hexplan doesn't exist yet - that's fine
+        }
+
+        // Fetch parent hexplan (direction-0 of parent) - if leaf has a parent
+        if (leafCoord.path.length > 0) {
+          const parentPath = leafCoord.path.slice(0, -1)
+          const parentHexplanCoords = { ...leafCoord, path: [...parentPath, Direction.Center] }
+          try {
+            const parentHexplanTile = await ctx.mappingService.items.query.getItemByCoords({ coords: parentHexplanCoords })
+            parentHexplan = {
+              coords: CoordSystem.createId(parentHexplanCoords),
+              content: parentHexplanTile.content ?? ''
+            }
+          } catch {
+            // Parent hexplan doesn't exist - that's fine
+          }
+        }
+      }
+
+      return {
+        runId: run.id,
+        status: run.status,
+        blockageReason: run.blockageReason,
+        executionLog: run.executionLog,
+        nextStep,
+        currentStepHexplan,
+        parentHexplan
+      }
+    }),
+
   // Execute the next step of a SYSTEM tile run
   // External orchestration: each call executes ONE leaf and returns
   run: protectedProcedure
@@ -740,27 +858,38 @@ export const agenticRouter = createTRPCRouter({
       const runService = new RunService(db)
       const run = await runService.getOrCreateRun(userId, coords)
 
-      // 3. If already closed, return completion
+      // 3. Ensure root hexplan exists with instruction (persists instruction for ancestor propagation)
+      // This must happen BEFORE finding leaves so ancestor hexplans are available
+      const requester = _getRequesterUserId(ctx.user)
+      const rootHexecuteContext = await ctx.mappingService.context.getHexecuteContext(
+        coords,
+        requester
+      )
+      await _ensureHexplanExists(rootHexecuteContext, coords, instruction, ctx.mappingService)
+
+      // 4. If already closed, return completion
       if (run.status === 'closed') {
         return {
           runId: run.id,
           runStatus: 'closed' as const,
           stepExecuted: null,
+          stepTitle: null,
           stepResult: null,
           blockageReason: null,
           response: null,
-          isComplete: true
+          isComplete: true,
+          hexecutePrompt: null
         }
       }
 
-      // 4. Get completed coords from execution log
+      // 5. Get completed coords from execution log
       const completedCoords = new Set(
         run.executionLog
           .filter(entry => entry.status === 'completed')
           .map(entry => entry.stepCoords)
       )
 
-      // 5. Find next incomplete leaf
+      // 6. Find next incomplete leaf
       const leafTraversalService = new LeafTraversalService({
         itemQueryService: ctx.mappingService.items.query
       })
@@ -769,28 +898,26 @@ export const agenticRouter = createTRPCRouter({
         completedCoords
       )
 
-      // 6. If no next leaf, close run
+      // 7. If no next leaf, close run
       if (!leafCoords) {
         await runService.closeRun(run.id)
         return {
           runId: run.id,
           runStatus: 'closed' as const,
           stepExecuted: null,
+          stepTitle: null,
           stepResult: null,
           blockageReason: null,
           response: null,
-          isComplete: true
+          isComplete: true,
+          hexecutePrompt: null
         }
       }
 
-      // 7. Start step tracking
-      await runService.startStep(run.id, leafCoords)
-
-      // 8. Build prompt with blockage context if resuming
+      // 8. Build prompt with blockage context if resuming (before startStep to store it)
       const wasBlocked = run.status === 'blocked'
-      const requester = _getRequesterUserId(ctx.user)
 
-      // Get hexecute context for the leaf tile
+      // Get hexecute context for the leaf tile (requester already declared above)
       const hexecuteContext = await ctx.mappingService.context.getHexecuteContext(
         leafCoords,
         requester
@@ -829,7 +956,11 @@ export const agenticRouter = createTRPCRouter({
         )
       }
 
-      // 9. Execute via agentic service
+      // 9. Start step tracking with title and prompt for early visibility
+      const stepTitle = hexecuteContext.task.title
+      await runService.startStep(run.id, leafCoords, stepTitle, hexecutePrompt)
+
+      // 10. Execute via agentic service
       _requireConfigured(ctx.agenticService.isConfigured(), "OPENROUTER_API_KEY or ANTHROPIC_API_KEY")
 
       const leafTile = hexecuteContext.task
@@ -877,27 +1008,40 @@ export const agenticRouter = createTRPCRouter({
         }
       )
 
-      // 10. Parse response for status
+      // 11. Parse response for status
       const { result: stepResult, reason } = parseAgentResponse(response.content)
 
-      // 11. Update run based on result
+      // 12. Update run based on result (storing agent response)
       if (stepResult === 'completed') {
-        await runService.markStepCompleted(run.id, leafCoords)
+        await runService.markStepCompleted(run.id, leafCoords, response.content)
       } else {
-        await runService.markStepBlocked(run.id, leafCoords, reason ?? 'Unknown blockage')
+        await runService.markStepBlocked(run.id, leafCoords, reason ?? 'Unknown blockage', response.content)
       }
 
-      // 12. Get updated run and return result
+      // 13. Fetch hexplan content after execution (agent may have updated it)
+      let stepHexplanContent: string | null = null
+      const leafCoord = CoordSystem.parseId(leafCoords)
+      const hexplanCoords = { ...leafCoord, path: [...leafCoord.path, Direction.Center] }
+      try {
+        const hexplanTile = await ctx.mappingService.items.query.getItemByCoords({ coords: hexplanCoords })
+        stepHexplanContent = hexplanTile.content ?? null
+      } catch {
+        // Hexplan doesn't exist - that's fine
+      }
+
+      // 14. Get updated run and return result
       const updatedRun = await runService.getRunById(run.id)
       return {
         runId: run.id,
         runStatus: updatedRun?.status ?? 'open',
         stepExecuted: leafCoords,
+        stepTitle,
         stepResult,
         blockageReason: stepResult === 'blocked' ? (reason ?? 'Unknown blockage') : null,
         response: response.content,
         isComplete: false,
-        hexecutePrompt
+        hexecutePrompt,
+        stepHexplanContent
       }
     })
 })

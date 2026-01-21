@@ -37,6 +37,8 @@ export function RunWidget({ tileCoords, tileTitle, onClose }: RunWidgetProps) {
     blockageReason,
     error,
     elapsedTime,
+    currentStepHexplan,
+    parentHexplan,
     setInstruction,
     startRun,
     resumeRun,
@@ -98,6 +100,8 @@ export function RunWidget({ tileCoords, tileTitle, onClose }: RunWidgetProps) {
             <BlockedState
               blockageReason={blockageReason}
               currentPrompt={currentPrompt}
+              currentStepHexplan={currentStepHexplan}
+              parentHexplan={parentHexplan}
               onResumeRun={() => void resumeRun()}
               onResumeWithInput={(input) => void resumeWithInput(input)}
             />

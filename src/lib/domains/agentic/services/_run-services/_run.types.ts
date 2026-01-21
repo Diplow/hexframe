@@ -2,10 +2,13 @@ export type RunStatus = "open" | "blocked" | "closed";
 
 export interface ExecutionLogEntry {
   stepCoords: string;
+  stepTitle?: string;
   status: "completed" | "blocked";
   startedAt: string;
   completedAt?: string;
   blockageReason?: string;
+  agentResponse?: string;
+  hexecutePrompt?: string;
 }
 
 export interface Run {

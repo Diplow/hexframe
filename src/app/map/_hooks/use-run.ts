@@ -6,13 +6,13 @@ import { api } from '~/commons/trpc/react'
  */
 interface UseRunOptions {
   /** Called when a step starts executing with its prompt */
-  onStepStart?: (stepCoords: string, prompt: string) => void
+  onStepStart?: (stepCoords: string, stepTitle: string, prompt: string) => void
   /** Called when a step completes successfully */
-  onStepComplete?: (stepCoords: string) => void
+  onStepComplete?: (stepCoords: string, stepTitle: string, response?: string, hexplanContent?: string) => void
   /** Called when the entire run completes */
   onRunComplete?: () => void
   /** Called when execution is blocked */
-  onBlocked?: (reason: string, prompt: string) => void
+  onBlocked?: (reason: string, stepCoords: string, stepTitle: string, prompt: string, response?: string, hexplanContent?: string) => void
   /** Called when an error occurs */
   onError?: (error: Error) => void
 }
@@ -84,13 +84,20 @@ export function useRun(options?: UseRunOptions): UseRunReturn {
           instruction,
         })
 
+        // Extract values for cleaner access (avoids TypeScript narrowing issues)
+        const stepExecuted = result.stepExecuted
+        const stepTitle = result.stepTitle ?? stepExecuted ?? ''
+        const hexecutePrompt = result.hexecutePrompt
+        const agentResponse = result.response
+        const stepHexplanContent = result.stepHexplanContent
+
         // Update current step and prompt
-        setCurrentStep(result.stepExecuted)
-        setLastPrompt(result.hexecutePrompt ?? null)
+        setCurrentStep(stepExecuted)
+        setLastPrompt(hexecutePrompt ?? null)
 
         // Notify step started with prompt
-        if (result.stepExecuted && result.hexecutePrompt) {
-          options?.onStepStart?.(result.stepExecuted, result.hexecutePrompt)
+        if (stepExecuted && hexecutePrompt) {
+          options?.onStepStart?.(stepExecuted, stepTitle, hexecutePrompt)
         }
 
         // Handle completion
@@ -104,13 +111,20 @@ export function useRun(options?: UseRunOptions): UseRunReturn {
         if (result.stepResult === 'blocked') {
           setRunStatus('blocked')
           setBlockageReason(result.blockageReason)
-          options?.onBlocked?.(result.blockageReason ?? 'Unknown blockage', result.hexecutePrompt ?? '')
+          options?.onBlocked?.(
+            result.blockageReason ?? 'Unknown blockage',
+            stepExecuted ?? '',
+            stepTitle,
+            hexecutePrompt ?? '',
+            agentResponse ?? undefined,
+            stepHexplanContent ?? undefined
+          )
           return
         }
 
         // Step completed successfully
-        if (result.stepExecuted) {
-          options?.onStepComplete?.(result.stepExecuted)
+        if (stepExecuted) {
+          options?.onStepComplete?.(stepExecuted, stepTitle, agentResponse ?? undefined, stepHexplanContent ?? undefined)
         }
 
         // Return to idle - caller decides whether to continue

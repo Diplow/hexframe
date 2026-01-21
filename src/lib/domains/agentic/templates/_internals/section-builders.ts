@@ -75,21 +75,50 @@ export function _filterSystemAncestors(ancestors: PromptData['ancestors']): Prom
 }
 
 /**
- * Build ancestor context section using GenericTile.
+ * Build ancestor context section with hexplan rendering.
+ *
+ * For each ancestor, renders:
+ * - The ancestor's content (if any)
+ * - The ancestor's hexplan (if any) inside a nested <hexplan> tag
+ *
+ * This enables instruction propagation: the root hexplan (with instruction)
+ * becomes visible to all subtask prompts via the ancestor section.
  */
 export function _buildAncestorContextSection(ancestors: PromptData['ancestors']): string {
   const systemAncestors = _filterSystemAncestors(ancestors)
-  const ancestorsWithContent = systemAncestors.filter(ancestor =>
-    _hasContent(ancestor.content)
+  // Include ancestors that have content OR hexplan
+  const relevantAncestors = systemAncestors.filter(ancestor =>
+    _hasContent(ancestor.content) || _hasContent(ancestor.hexplan)
   )
 
-  if (ancestorsWithContent.length === 0) {
+  if (relevantAncestors.length === 0) {
     return ''
   }
 
-  const ancestorBlocks = ancestorsWithContent.map(ancestor =>
-    GenericTile(ancestor as TileData, ['title', 'content'], 'ancestor')
-  )
+  const ancestorBlocks = relevantAncestors.map(ancestor => {
+    const titleAttr = _hasContent(ancestor.title) ? ` title="${_escapeXML(ancestor.title)}"` : ''
+    const coordsAttr = _hasContent(ancestor.coords) ? ` coords="${_escapeXML(ancestor.coords)}"` : ''
+
+    const parts: string[] = []
+
+    // Add content if present (NOT escaped - preserve markdown/code)
+    if (_hasContent(ancestor.content)) {
+      parts.push(ancestor.content!)
+    }
+
+    // Add hexplan if present (inside nested tag)
+    if (_hasContent(ancestor.hexplan)) {
+      parts.push(`\n<hexplan>\n${ancestor.hexplan}\n</hexplan>`)
+    }
+
+    const content = parts.join('\n')
+
+    if (!content.trim()) {
+      return `<ancestor${titleAttr}${coordsAttr} />`
+    }
+
+    return `<ancestor${titleAttr}${coordsAttr}>\n${content.trim()}\n</ancestor>`
+  })
 
   return `<ancestor-context>\n${ANCESTOR_INTRO}\n\n${ancestorBlocks.join('\n\n')}\n</ancestor-context>`
 }

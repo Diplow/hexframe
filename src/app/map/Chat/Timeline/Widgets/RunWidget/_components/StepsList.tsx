@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { CheckCircle2, AlertTriangle, XCircle, ExternalLink, ChevronDown, ChevronRight } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, XCircle, ExternalLink, Code2, MessageSquare, FileText } from 'lucide-react';
 import type { ExecutedStep } from '~/app/map/Chat/Timeline/Widgets/RunWidget/useRunWidget';
 
 interface StepsListProps {
@@ -25,8 +25,18 @@ interface StepItemProps {
   onNavigateToTile?: (coords: string) => void;
 }
 
+type ExpandedSection = 'none' | 'prompt' | 'response' | 'hexplan';
+
 function StepItem({ step, onNavigateToTile }: StepItemProps) {
-  const [isPromptExpanded, setIsPromptExpanded] = useState(false);
+  const [expandedSection, setExpandedSection] = useState<ExpandedSection>('none');
+
+  const toggleSection = (section: ExpandedSection) => {
+    setExpandedSection(expandedSection === section ? 'none' : section);
+  };
+
+  const hasPrompt = Boolean(step.prompt);
+  const hasResponse = Boolean(step.agentResponse);
+  const hasHexplan = Boolean(step.hexplanContent);
 
   return (
     <li className="flex flex-col bg-neutral-50 dark:bg-neutral-800/50 rounded-md text-sm">
@@ -40,25 +50,69 @@ function StepItem({ step, onNavigateToTile }: StepItemProps) {
           <span className="truncate">{step.title}</span>
           <ExternalLink className="h-3 w-3 flex-shrink-0" />
         </button>
-        {step.prompt && (
-          <button
-            type="button"
-            onClick={() => setIsPromptExpanded(!isPromptExpanded)}
-            className="ml-auto p-1 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
-            title={isPromptExpanded ? 'Hide prompt' : 'Show prompt'}
-          >
-            {isPromptExpanded ? (
-              <ChevronDown className="h-3 w-3" />
-            ) : (
-              <ChevronRight className="h-3 w-3" />
-            )}
-          </button>
-        )}
+        <div className="ml-auto flex items-center gap-1">
+          {hasPrompt && (
+            <button
+              type="button"
+              onClick={() => toggleSection('prompt')}
+              className={`p-1 rounded transition-colors ${
+                expandedSection === 'prompt'
+                  ? 'text-neutral-700 dark:text-neutral-200 bg-neutral-200 dark:bg-neutral-700'
+                  : 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300'
+              }`}
+              title="Show prompt"
+            >
+              <Code2 className="h-3 w-3" />
+            </button>
+          )}
+          {hasResponse && (
+            <button
+              type="button"
+              onClick={() => toggleSection('response')}
+              className={`p-1 rounded transition-colors ${
+                expandedSection === 'response'
+                  ? 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/50'
+                  : 'text-neutral-400 hover:text-blue-500 dark:hover:text-blue-400'
+              }`}
+              title="Show agent response"
+            >
+              <MessageSquare className="h-3 w-3" />
+            </button>
+          )}
+          {hasHexplan && (
+            <button
+              type="button"
+              onClick={() => toggleSection('hexplan')}
+              className={`p-1 rounded transition-colors ${
+                expandedSection === 'hexplan'
+                  ? 'text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/50'
+                  : 'text-neutral-400 hover:text-amber-500 dark:hover:text-amber-400'
+              }`}
+              title="Show hexplan"
+            >
+              <FileText className="h-3 w-3" />
+            </button>
+          )}
+        </div>
       </div>
-      {isPromptExpanded && step.prompt && (
+      {expandedSection === 'prompt' && step.prompt && (
         <div className="px-2 pb-2">
           <pre className="max-h-[150px] overflow-y-auto p-2 bg-neutral-100 dark:bg-neutral-900 rounded text-xs font-mono text-neutral-600 dark:text-neutral-400 whitespace-pre-wrap break-words">
             {step.prompt}
+          </pre>
+        </div>
+      )}
+      {expandedSection === 'response' && step.agentResponse && (
+        <div className="px-2 pb-2">
+          <pre className="max-h-[150px] overflow-y-auto p-2 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/50 rounded text-xs font-mono text-blue-700 dark:text-blue-300 whitespace-pre-wrap break-words">
+            {step.agentResponse}
+          </pre>
+        </div>
+      )}
+      {expandedSection === 'hexplan' && step.hexplanContent && (
+        <div className="px-2 pb-2">
+          <pre className="max-h-[150px] overflow-y-auto p-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded text-xs font-mono text-amber-700 dark:text-amber-300 whitespace-pre-wrap break-words">
+            {step.hexplanContent}
           </pre>
         </div>
       )}

@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, or } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { schema } from "~/server/db";
 import type { Run, ExecutionLogEntry, RunStatus } from "~/lib/domains/agentic/services/_run-services/_run.types";
@@ -36,6 +36,17 @@ export class RunRepository {
   async findOpenByRootCoords(rootCoords: string): Promise<Run | null> {
     const result = await this.db.query.runs.findFirst({
       where: and(eq(runs.rootCoords, rootCoords), eq(runs.status, "open")),
+    });
+
+    return result ? _mapDbRunToRun(result) : null;
+  }
+
+  async findResumableByRootCoords(rootCoords: string): Promise<Run | null> {
+    const result = await this.db.query.runs.findFirst({
+      where: and(
+        eq(runs.rootCoords, rootCoords),
+        or(eq(runs.status, "open"), eq(runs.status, "blocked"))
+      ),
     });
 
     return result ? _mapDbRunToRun(result) : null;

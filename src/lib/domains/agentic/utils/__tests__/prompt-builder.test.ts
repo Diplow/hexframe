@@ -487,9 +487,9 @@ describe('Hexplan Content Generators', () => {
 
       expect(result).toContain('🟡 STARTED')
       expect(result).toContain('**Steps:**')
-      expect(result).toContain('📋 1. Execute "Step One" → userId,0:1,1')
-      expect(result).toContain('📋 2. Execute "Step Two" → userId,0:1,2')
-      expect(result).toContain('(initialized)')
+      expect(result).toContain('📋 1. "Step One" → userId,0:1,1')
+      expect(result).toContain('📋 2. "Step Two" → userId,0:1,2')
+      expect(result).toContain('(none)')
     })
 
     it('should handle single child', () => {
@@ -497,11 +497,11 @@ describe('Hexplan Content Generators', () => {
 
       const result = generateParentHexplanContent(children)
 
-      expect(result).toContain('📋 1. Execute "Only Child" → userId,0:1,1')
+      expect(result).toContain('📋 1. "Only Child" → userId,0:1,1')
       expect(result).not.toContain('📋 2.')
     })
 
-    it('should generate leaf tasks list when allLeafTasks provided', () => {
+    it('should ignore allLeafTasks and only list immediate children', () => {
       const children = [
         { title: 'Parent 1', coords: 'userId,0:1,1' },
         { title: 'Parent 2', coords: 'userId,0:1,2' }
@@ -515,12 +515,14 @@ describe('Hexplan Content Generators', () => {
       const result = generateParentHexplanContent(children, allLeafTasks)
 
       expect(result).toContain('🟡 STARTED')
-      expect(result).toContain('**Leaf Tasks:**')
-      expect(result).toContain('📋 1. "Leaf A" → userId,0:1,1,1')
-      expect(result).toContain('📋 2. "Leaf B" → userId,0:1,1,2')
-      expect(result).toContain('📋 3. "Leaf C" → userId,0:1,2,1')
-      expect(result).not.toContain('**Steps:**')
-      expect(result).toContain('**Findings:**')
+      expect(result).toContain('**Steps:**')
+      // Should list immediate children, not leaf tasks
+      expect(result).toContain('📋 1. "Parent 1" → userId,0:1,1')
+      expect(result).toContain('📋 2. "Parent 2" → userId,0:1,2')
+      // Should NOT list leaf tasks
+      expect(result).not.toContain('Leaf A')
+      expect(result).not.toContain('Leaf B')
+      expect(result).not.toContain('Leaf C')
     })
   })
 

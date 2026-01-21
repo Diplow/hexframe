@@ -17,37 +17,34 @@ export { buildPrompt, type PromptData } from '~/lib/domains/agentic/templates'
  * Generates hexplan content for a parent tile (tile with subtasks).
  * This is used by the API to create/initialize the hexplan tile before prompting.
  *
- * For root tiles (when allLeafTasks is provided), generates a flat list of ALL leaf tasks
- * across the entire hierarchy. This enables single-pass execution tracking.
+ * Lists only immediate children as steps (not all leaf tasks).
+ * This keeps hexplans concise and instruction-focused.
  *
- * For intermediate parent tiles (no allLeafTasks), generates steps for direct children only.
+ * When instruction is provided, it becomes the root hexplan's instruction section,
+ * which propagates to all subtask prompts via ancestor context.
  */
 export function generateParentHexplanContent(
   structuralChildren: Array<{ title: string; coords: string }>,
-  allLeafTasks?: Array<{ title: string; coords: string }>
+  _allLeafTasks?: Array<{ title: string; coords: string }>,
+  instruction?: string
 ): string {
   const lines: string[] = []
   lines.push('🟡 STARTED')
   lines.push('')
 
-  if (allLeafTasks && allLeafTasks.length > 0) {
-    lines.push('**Leaf Tasks:**')
-    allLeafTasks.forEach((leaf, index) => {
-      lines.push(`📋 ${index + 1}. "${leaf.title}" → ${leaf.coords}`)
-    })
-  } else {
-    lines.push('**Steps:**')
-    structuralChildren.forEach((child, index) => {
-      lines.push(`📋 ${index + 1}. Execute "${child.title}" → ${child.coords}`)
-    })
+  if (instruction) {
+    lines.push(`**Instruction:** ${instruction}`)
+    lines.push('')
   }
+
+  lines.push('**Steps:**')
+  structuralChildren.forEach((child, index) => {
+    lines.push(`📋 ${index + 1}. "${child.title}" → ${child.coords}`)
+  })
 
   lines.push('')
   lines.push('**Progress:**')
-  lines.push('(initialized)')
-  lines.push('')
-  lines.push('**Findings:**')
-  lines.push('(none yet)')
+  lines.push('(none)')
   return lines.join('\n')
 }
 

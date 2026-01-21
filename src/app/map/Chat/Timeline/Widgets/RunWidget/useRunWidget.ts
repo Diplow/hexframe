@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRun } from '~/app/map/_hooks/use-run';
+import { api } from '~/commons/trpc/react';
 
 export interface ExecutedStep {
   coords: string;
@@ -9,6 +10,8 @@ export interface ExecutedStep {
   status: 'completed' | 'blocked' | 'error';
   timestamp: Date;
   prompt?: string;
+  agentResponse?: string;
+  hexplanContent?: string;
 }
 
 export type RunWidgetStatus = 'idle' | 'running' | 'blocked' | 'complete' | 'error';
@@ -18,6 +21,11 @@ interface UseRunWidgetOptions {
   tileTitle: string;
   onClose?: () => void;
   onNavigateToTile?: (coords: string) => void;
+}
+
+interface HexplanData {
+  coords: string;
+  content: string;
 }
 
 interface UseRunWidgetReturn {
@@ -30,6 +38,8 @@ interface UseRunWidgetReturn {
   error: Error | null;
   startedAt: Date | null;
   elapsedTime: number;
+  currentStepHexplan: HexplanData | null;
+  parentHexplan: HexplanData | null;
   setInstruction: (value: string) => void;
   startRun: () => Promise<void>;
   resumeRun: () => Promise<void>;
@@ -46,10 +56,61 @@ export function useRunWidget(options: UseRunWidgetOptions): UseRunWidgetReturn {
   const [startedAt, setStartedAt] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [currentPrompt, setCurrentPrompt] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [currentStepHexplan, setCurrentStepHexplan] = useState<HexplanData | null>(null);
+  const [parentHexplan, setParentHexplan] = useState<HexplanData | null>(null);
 
   const instructionRef = useRef(instruction);
   const shouldContinueRef = useRef(false);
   const lastPromptRef = useRef<string | null>(null);
+  const lastResponseRef = useRef<string | null>(null);
+  const lastHexplanRef = useRef<string | null>(null);
+
+  // Fetch existing run state on mount
+  const { data: runState, refetch: refetchRunState } = api.agentic.getRunState.useQuery(
+    { coords: tileCoords },
+    { refetchOnWindowFocus: false }
+  );
+
+  // Initialize widget state from existing run
+  useEffect(() => {
+    if (runState && !isInitialized) {
+      // Map executionLog to executedSteps
+      const steps = runState.executionLog.map(entry => ({
+        coords: entry.stepCoords,
+        title: entry.stepTitle ?? entry.stepCoords,
+        status: entry.status,
+        timestamp: new Date(entry.startedAt),
+        prompt: entry.hexecutePrompt,
+        agentResponse: entry.agentResponse,
+      }));
+      setExecutedSteps(steps);
+
+      // Set widget status from run status
+      if (runState.status === 'blocked') {
+        setStatus('blocked');
+        // Pre-load the next step's prompt for immediate display
+        if (runState.nextStep) {
+          setCurrentPrompt(runState.nextStep.prompt);
+          lastPromptRef.current = runState.nextStep.prompt;
+        }
+        // Load hexplan data for blocked state editing
+        if (runState.currentStepHexplan) {
+          setCurrentStepHexplan(runState.currentStepHexplan);
+        }
+        if (runState.parentHexplan) {
+          setParentHexplan(runState.parentHexplan);
+        }
+      } else if (runState.status === 'closed') {
+        setStatus('complete');
+      } else if (runState.status === 'open' && steps.length > 0) {
+        // Has steps but still open - was likely interrupted
+        setStatus('idle');
+      }
+
+      setIsInitialized(true);
+    }
+  }, [runState, isInitialized]);
 
   // Keep instruction ref in sync
   useEffect(() => {
@@ -75,42 +136,60 @@ export function useRunWidget(options: UseRunWidgetOptions): UseRunWidgetReturn {
     blockageReason,
     error,
   } = useRun({
-    onStepStart: (stepCoords, prompt) => {
+    onStepStart: (stepCoords, stepTitle, prompt) => {
       setCurrentPrompt(prompt);
       lastPromptRef.current = prompt;
     },
-    onStepComplete: (stepCoords) => {
+    onStepComplete: (stepCoords, stepTitle, response, hexplanContent) => {
+      lastResponseRef.current = response ?? null;
+      lastHexplanRef.current = hexplanContent ?? null;
       setExecutedSteps((previous) => [
         ...previous,
         {
           coords: stepCoords,
-          title: stepCoords,
+          title: stepTitle,
           status: 'completed',
           timestamp: new Date(),
           prompt: lastPromptRef.current ?? undefined,
+          agentResponse: response,
+          hexplanContent: hexplanContent,
         },
       ]);
     },
     onRunComplete: () => {
       setStatus('complete');
       shouldContinueRef.current = false;
+      // Refetch to get final state
+      void refetchRunState();
     },
-    onBlocked: (_reason, prompt) => {
+    onBlocked: (_reason, stepCoords, stepTitle, prompt, response, hexplanContent) => {
       setStatus('blocked');
       shouldContinueRef.current = false;
       setCurrentPrompt(prompt);
       lastPromptRef.current = prompt;
-      const lastStepCoords = currentStep ?? tileCoords;
+      lastResponseRef.current = response ?? null;
+      lastHexplanRef.current = hexplanContent ?? null;
+      // Update hexplan state for editing
+      if (hexplanContent) {
+        setCurrentStepHexplan({
+          coords: `${stepCoords}:0`,  // Hexplan is at direction-0
+          content: hexplanContent
+        });
+      }
       setExecutedSteps((previous) => [
         ...previous,
         {
-          coords: lastStepCoords,
-          title: lastStepCoords,
+          coords: stepCoords,
+          title: stepTitle,
           status: 'blocked',
           timestamp: new Date(),
           prompt: prompt || undefined,
+          agentResponse: response,
+          hexplanContent: hexplanContent,
         },
       ]);
+      // Refetch to get parent hexplan and updated state
+      void refetchRunState();
     },
     onError: (_errorInstance) => {
       setStatus('error');
@@ -140,15 +219,27 @@ export function useRunWidget(options: UseRunWidgetOptions): UseRunWidgetReturn {
     setExecutedSteps([]);
     shouldContinueRef.current = true;
 
+    // Show pre-computed prompt immediately (if available from getRunState)
+    if (runState?.nextStep) {
+      setCurrentPrompt(runState.nextStep.prompt);
+      lastPromptRef.current = runState.nextStep.prompt;
+    }
+
     await executeLoop();
-  }, [executeLoop]);
+  }, [executeLoop, runState]);
 
   const resumeRun = useCallback(async () => {
     setStatus('running');
     shouldContinueRef.current = true;
 
+    // Show pre-computed prompt immediately (if available from getRunState)
+    if (runState?.nextStep) {
+      setCurrentPrompt(runState.nextStep.prompt);
+      lastPromptRef.current = runState.nextStep.prompt;
+    }
+
     await executeLoop();
-  }, [executeLoop]);
+  }, [executeLoop, runState]);
 
   const resumeWithInput = useCallback(async (input: string) => {
     // Store the user input as the instruction for the next run
@@ -178,6 +269,8 @@ export function useRunWidget(options: UseRunWidgetOptions): UseRunWidgetReturn {
     error,
     startedAt,
     elapsedTime,
+    currentStepHexplan,
+    parentHexplan,
     setInstruction,
     startRun,
     resumeRun,

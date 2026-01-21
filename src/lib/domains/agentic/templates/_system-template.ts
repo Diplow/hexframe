@@ -60,9 +60,18 @@ Execute this task to completion.
 1. Create a hexplan tile at direction-0 with your plan
 2. Update the hexplan as you complete steps
 
+**CRITICAL - Blocking Protocol**:
+When you need to block for user input (validation, review, feedback):
+1. FIRST persist your work-in-progress in the hexplan tile at direction-0
+2. Format work-in-progress as: \`**Proposed:**\` followed by the content
+3. THEN return blocked status with reason explaining what you need from user
+
+This ensures the user can SEE what you produced before providing feedback.
+Example: If crafting a preview, save the preview text in hexplan, THEN block.
+
 **Completion**: When done, end your response with a status block:
 - Success: \`<status>{"result": "completed"}</status>\`
-- Blocked: \`<status>{"result": "blocked", "reason": "description of blocker"}</status>\`
+- Blocked: \`<status>{"result": "blocked", "reason": "description"}</status>\`
 
 The status block is REQUIRED for proper orchestration.
 </execution-instructions>`

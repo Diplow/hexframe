@@ -10,8 +10,15 @@ export class RunService {
   }
 
   async getOrCreateRun(userId: string, rootCoords: string): Promise<Run> {
-    const existingRun = await this.repository.findOpenByRootCoords(rootCoords);
+    const existingRun = await this.repository.findResumableByRootCoords(rootCoords);
     if (existingRun) {
+      // If the run was blocked, resume it automatically
+      if (existingRun.status === "blocked") {
+        return this.repository.update(existingRun.id, {
+          status: "open",
+          blockageReason: null,
+        });
+      }
       return existingRun;
     }
 
@@ -32,13 +39,20 @@ export class RunService {
     return this.repository.findById(runId);
   }
 
-  async startStep(runId: string, stepCoords: string): Promise<Run> {
+  async startStep(
+    runId: string,
+    stepCoords: string,
+    stepTitle?: string,
+    hexecutePrompt?: string
+  ): Promise<Run> {
     const run = await this._getRunOrThrow(runId);
 
     const newEntry: ExecutionLogEntry = {
       stepCoords,
+      stepTitle,
       status: "completed",
       startedAt: new Date().toISOString(),
+      hexecutePrompt,
     };
 
     return this.repository.update(runId, {
@@ -46,7 +60,11 @@ export class RunService {
     });
   }
 
-  async markStepCompleted(runId: string, stepCoords: string): Promise<Run> {
+  async markStepCompleted(
+    runId: string,
+    stepCoords: string,
+    agentResponse?: string
+  ): Promise<Run> {
     const run = await this._getRunOrThrow(runId);
 
     const updatedLog = run.executionLog.map((entry) => {
@@ -55,6 +73,7 @@ export class RunService {
           ...entry,
           status: "completed" as const,
           completedAt: new Date().toISOString(),
+          agentResponse,
         };
       }
       return entry;
@@ -68,7 +87,8 @@ export class RunService {
   async markStepBlocked(
     runId: string,
     stepCoords: string,
-    reason: string
+    reason: string,
+    agentResponse?: string
   ): Promise<Run> {
     const run = await this._getRunOrThrow(runId);
 
@@ -78,6 +98,7 @@ export class RunService {
           ...entry,
           status: "blocked" as const,
           blockageReason: reason,
+          agentResponse,
         };
       }
       return entry;

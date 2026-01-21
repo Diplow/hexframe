@@ -65,7 +65,7 @@ describe("RunService [Integration - DB]", () => {
       expect(run2.status).toBe("open");
     });
 
-    it("creates new run if previous run is blocked", async () => {
+    it("resumes blocked run instead of creating new one", async () => {
       const { userId, rootCoords } = createUniqueTestParams();
 
       const run1 = await runService.getOrCreateRun(userId, rootCoords);
@@ -73,8 +73,10 @@ describe("RunService [Integration - DB]", () => {
       await runService.markStepBlocked(run1.id, `${rootCoords},1`, "Test block");
       const run2 = await runService.getOrCreateRun(userId, rootCoords);
 
-      expect(run1.id).not.toBe(run2.id);
+      // Should return the same run, now resumed
+      expect(run1.id).toBe(run2.id);
       expect(run2.status).toBe("open");
+      expect(run2.blockageReason).toBeNull();
     });
 
     it("sets initial status to open", async () => {

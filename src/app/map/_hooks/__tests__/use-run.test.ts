@@ -188,10 +188,13 @@ describe('useRun', () => {
         runId: 'run_123',
         runStatus: 'open',
         stepExecuted: 'userId,0:1,2',
+        stepTitle: 'Test Step',
         stepResult: 'completed',
         blockageReason: null,
         response: 'Step completed',
         isComplete: false,
+        hexecutePrompt: 'Test prompt',
+        stepHexplanContent: 'Hexplan content',
       })
 
       const { result } = renderHook(() => useRun({ onStepComplete }))
@@ -200,7 +203,7 @@ describe('useRun', () => {
         await result.current.run('userId,0:1')
       })
 
-      expect(onStepComplete).toHaveBeenCalledWith('userId,0:1,2')
+      expect(onStepComplete).toHaveBeenCalledWith('userId,0:1,2', 'Test Step', 'Step completed', 'Hexplan content')
     })
   })
 
@@ -322,10 +325,13 @@ describe('useRun', () => {
         runId: 'run_123',
         runStatus: 'blocked',
         stepExecuted: 'userId,0:1,1',
+        stepTitle: 'Blocked Step',
         stepResult: 'blocked',
         blockageReason: 'Missing API key',
         response: 'Could not proceed',
         isComplete: false,
+        hexecutePrompt: 'Blocked prompt',
+        stepHexplanContent: 'Blocked hexplan',
       })
 
       const { result } = renderHook(() => useRun({ onBlocked }))
@@ -334,7 +340,14 @@ describe('useRun', () => {
         await result.current.run('userId,0:1')
       })
 
-      expect(onBlocked).toHaveBeenCalledWith('Missing API key')
+      expect(onBlocked).toHaveBeenCalledWith(
+        'Missing API key',
+        'userId,0:1,1',
+        'Blocked Step',
+        'Blocked prompt',
+        'Could not proceed',
+        'Blocked hexplan'
+      )
     })
   })
 

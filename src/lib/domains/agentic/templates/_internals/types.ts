@@ -26,6 +26,7 @@ export interface PromptData {
     content: string | undefined
     coords: string
     itemType?: ItemTypeValue
+    hexplan?: string
   }>
   composedChildren: Array<PromptDataTile>
   structuralChildren: Array<PromptDataTile>

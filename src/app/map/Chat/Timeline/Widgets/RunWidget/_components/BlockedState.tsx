@@ -3,10 +3,18 @@
 import { useState } from 'react';
 import { AlertTriangle, Play } from 'lucide-react';
 import { PromptDisplay } from '~/app/map/Chat/Timeline/Widgets/RunWidget/_components/PromptDisplay';
+import { HexplanEditor } from '~/app/map/Chat/Timeline/Widgets/RunWidget/_components/HexplanEditor';
+
+interface HexplanData {
+  coords: string;
+  content: string;
+}
 
 interface BlockedStateProps {
   blockageReason: string | null;
   currentPrompt?: string | null;
+  currentStepHexplan?: HexplanData | null;
+  parentHexplan?: HexplanData | null;
   onResumeRun: () => void;
   onResumeWithInput?: (input: string) => void;
 }
@@ -14,6 +22,8 @@ interface BlockedStateProps {
 export function BlockedState({
   blockageReason,
   currentPrompt,
+  currentStepHexplan,
+  parentHexplan,
   onResumeRun,
   onResumeWithInput,
 }: BlockedStateProps) {
@@ -45,6 +55,22 @@ export function BlockedState({
       </div>
 
       {currentPrompt && <PromptDisplay prompt={currentPrompt} />}
+
+      {currentStepHexplan && (
+        <HexplanEditor
+          label="Current Step Hexplan"
+          coords={currentStepHexplan.coords}
+          content={currentStepHexplan.content}
+        />
+      )}
+
+      {parentHexplan && (
+        <HexplanEditor
+          label="Parent Hexplan"
+          coords={parentHexplan.coords}
+          content={parentHexplan.content}
+        />
+      )}
 
       <div className="flex flex-col gap-2">
         <label
