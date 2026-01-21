@@ -9,6 +9,7 @@ export type StatusFilter = 'active' | 'closed' | 'all';
 export interface RunListItem {
   id: string;
   rootCoords: string;
+  title: string;
   status: RunStatus;
   blockageReason: string | null;
   stepsCompleted: number;
@@ -36,6 +37,18 @@ export function useRunsListState() {
     { refetchInterval: 5000 }
   );
 
+  const closeRunMutation = api.agentic.closeRun.useMutation({
+    onSuccess: () => {
+      void runsQuery.refetch();
+    },
+  });
+
+  const reopenRunMutation = api.agentic.reopenRun.useMutation({
+    onSuccess: () => {
+      void runsQuery.refetch();
+    },
+  });
+
   const runs = useMemo(() => runsQuery.data?.runs ?? [], [runsQuery.data]);
   const isLoading = runsQuery.isLoading;
   const error = runsQuery.error?.message;
@@ -44,6 +57,14 @@ export function useRunsListState() {
     void runsQuery.refetch();
   }, [runsQuery]);
 
+  const handleCloseRun = useCallback((runId: string) => {
+    closeRunMutation.mutate({ runId });
+  }, [closeRunMutation]);
+
+  const handleReopenRun = useCallback((runId: string) => {
+    reopenRunMutation.mutate({ runId });
+  }, [reopenRunMutation]);
+
   return {
     runs,
     isLoading,
@@ -51,5 +72,7 @@ export function useRunsListState() {
     statusFilter,
     setStatusFilter,
     handleRefresh,
+    handleCloseRun,
+    handleReopenRun,
   };
 }

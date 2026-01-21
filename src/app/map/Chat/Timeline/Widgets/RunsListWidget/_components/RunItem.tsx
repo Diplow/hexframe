@@ -6,6 +6,8 @@ import type { RunListItem } from '~/app/map/Chat/Timeline/Widgets/RunsListWidget
 interface RunItemProps {
   run: RunListItem;
   onClick: (coords: string) => void;
+  onClose: (runId: string) => void;
+  onReopen: (runId: string) => void;
 }
 
 function _getStatusIndicator(status: string) {
@@ -21,9 +23,19 @@ function _getStatusIndicator(status: string) {
   }
 }
 
-export function RunItem({ run, onClick }: RunItemProps) {
+export function RunItem({ run, onClick, onClose, onReopen }: RunItemProps) {
   const statusIndicator = _getStatusIndicator(run.status);
   const timeAgo = formatDistanceToNow(new Date(run.updatedAt), { addSuffix: true });
+  const isClosed = run.status === 'closed';
+
+  function handleActionClick(event: React.MouseEvent) {
+    event.stopPropagation();
+    if (isClosed) {
+      onReopen(run.id);
+    } else {
+      onClose(run.id);
+    }
+  }
 
   return (
     <button
@@ -39,7 +51,7 @@ export function RunItem({ run, onClick }: RunItemProps) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="font-medium text-sm text-neutral-900 dark:text-neutral-100 truncate">
-              {run.rootCoords}
+              {run.title}
             </span>
             {run.totalSteps > 0 && (
               <span className="text-xs text-neutral-500 dark:text-neutral-400 flex-shrink-0">
@@ -58,6 +70,13 @@ export function RunItem({ run, onClick }: RunItemProps) {
             )}
           </div>
         </div>
+        <button
+          type="button"
+          onClick={handleActionClick}
+          className="flex-shrink-0 px-2 py-1 text-xs rounded border border-neutral-300 dark:border-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+        >
+          {isClosed ? 'Reopen' : 'Close'}
+        </button>
       </div>
     </button>
   );

@@ -54,27 +54,7 @@ The blocker has been addressed. Continue execution from where you left off.
  * Execution instructions section - guides agents on completion reporting.
  */
 export const EXECUTION_INSTRUCTIONS_SECTION = `<execution-instructions>
-Execute this task to completion.
-
-**Hexplan**: The hexplan section at the end of this prompt shows your current execution state.
-- Edit it to track progress and record your work
-- Add your responses under **Agent Response:** sections
-- When blocked, your work-in-progress will be visible there for user feedback
-
-**Discussion Flow**: The hexplan maintains conversation history:
-1. Initial instructions appear at the top
-2. Your responses are recorded as **Agent Response:** entries
-3. User feedback appears as **User Feedback:** entries
-4. Continue from where the last exchange left off
-
-**CRITICAL - Blocking Protocol**:
-When you need to block for user input (validation, review, feedback):
-1. FIRST update the hexplan with your proposed work under **Agent Response:**
-2. THEN return blocked status with reason explaining what you need
-
-**Completion**: When done, end your response with a status block:
-- Success: \`<status>{"result": "completed"}</status>\`
-- Blocked: \`<status>{"result": "blocked", "reason": "description"}</status>\`
+Execute this task. Track progress in the hexplan below. When done: \`<status>{"result": "completed"}</status>\`. When blocked: \`<status>{"result": "blocked", "reason": "..."}</status>\`
 </execution-instructions>`
 
 /**
@@ -124,12 +104,7 @@ ${EXECUTION_CONTEXT_SECTION}
 /**
  * Static hexrun introduction text.
  */
-export const HEXRUN_INTRO = `<hexrun-intro>
-This prompt was generated from Hexframe tiles. You are executing a HEXRUN - an iterative execution loop where:
-- The same tile may be executed multiple times across hexruns
-- The hexplan evolves between hexruns with feedback and progress updates
-- If the hexplan contains "Feedback from last HEXRUN:" notes, incorporate that guidance
-</hexrun-intro>`
+export const HEXRUN_INTRO = `<hexrun-intro>This is a HEXRUN - check the hexplan for prior progress and user feedback.</hexrun-intro>`
 
 /**
  * Ancestor context introduction text.

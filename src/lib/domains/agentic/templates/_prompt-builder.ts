@@ -77,6 +77,7 @@ function _getTemplateByItemType(itemType: ItemTypeValue | null | undefined): str
 // ==================== INTERNAL DATA TRANSFORMATION ====================
 
 function _getHexplanStatus(hexPlan: string): 'pending' | 'complete' | 'blocked' {
+  if (!hexPlan.trim()) return 'pending' // Empty = not started yet
   const hasPendingSteps = hexPlan.includes('📋')
   const hasBlockedSteps = hexPlan.includes('🔴')
 

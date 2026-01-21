@@ -41,6 +41,13 @@ function _renderPendingSection(
   content: string,
   params: HexPlanParams
 ): string {
+  // Empty hexplan = fresh start, just render empty hexplan without step-based instructions
+  if (!content.trim()) {
+    return `<hexplan coords="${_escapeXML(coords)}">
+
+</hexplan>`
+  }
+
   const instructions = params.isParentTile
     ? _renderParentInstructions(coords, params.mcpServerName)
     : _renderLeafInstructions(coords)

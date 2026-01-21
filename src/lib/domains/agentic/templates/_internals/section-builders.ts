@@ -75,14 +75,10 @@ export function _filterSystemAncestors(ancestors: PromptData['ancestors']): Prom
 }
 
 /**
- * Build ancestor context section with hexplan rendering.
+ * Build ancestor context section with hexplan.
  *
- * For each ancestor, renders:
- * - The ancestor's content (if any)
- * - The ancestor's hexplan (if any) inside a nested <hexplan> tag
- *
- * This enables instruction propagation: the root hexplan (with instruction)
- * becomes visible to all subtask prompts via the ancestor section.
+ * For each ancestor, renders the content and hexplan (if any).
+ * The hexplan contains instructions that propagate to subtask execution.
  */
 export function _buildAncestorContextSection(ancestors: PromptData['ancestors']): string {
   const systemAncestors = _filterSystemAncestors(ancestors)
@@ -106,12 +102,12 @@ export function _buildAncestorContextSection(ancestors: PromptData['ancestors'])
       parts.push(ancestor.content!)
     }
 
-    // Add hexplan if present (inside nested tag)
+    // Add hexplan if present (contains instruction that propagates to subtasks)
     if (_hasContent(ancestor.hexplan)) {
-      parts.push(`\n<hexplan>\n${ancestor.hexplan}\n</hexplan>`)
+      parts.push(`<hexplan>\n${ancestor.hexplan}\n</hexplan>`)
     }
 
-    const content = parts.join('\n')
+    const content = parts.join('\n\n')
 
     if (!content.trim()) {
       return `<ancestor${titleAttr}${coordsAttr} />`

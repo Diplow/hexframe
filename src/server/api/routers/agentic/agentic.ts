@@ -720,6 +720,7 @@ export const agenticRouter = createTRPCRouter({
 
   // List runs for the current user with filtering
   listRuns: protectedProcedure
+    .use(mappingServiceMiddleware)
     .input(
       z.object({
         statusFilter: z
@@ -742,18 +743,32 @@ export const agenticRouter = createTRPCRouter({
         offset: input.offset
       })
 
-      return {
-        runs: runs.map(run => ({
-          id: run.id,
-          rootCoords: run.rootCoords,
-          status: run.status,
-          blockageReason: run.blockageReason,
-          stepsCompleted: run.executionLog.filter(e => e.status === 'completed').length,
-          totalSteps: run.executionLog.length,
-          createdAt: run.createdAt,
-          updatedAt: run.updatedAt
-        }))
-      }
+      // Fetch tile titles for each run in parallel
+      const runsWithTitles = await Promise.all(
+        runs.map(async (run) => {
+          let title = run.rootCoords
+          try {
+            const coords = CoordSystem.parseId(run.rootCoords)
+            const tile = await ctx.mappingService.items.query.getItemByCoords({ coords })
+            title = tile.title || run.rootCoords
+          } catch {
+            // Tile may have been deleted, fall back to coords
+          }
+          return {
+            id: run.id,
+            rootCoords: run.rootCoords,
+            title,
+            status: run.status,
+            blockageReason: run.blockageReason,
+            stepsCompleted: run.executionLog.filter(e => e.status === 'completed').length,
+            totalSteps: run.executionLog.length,
+            createdAt: run.createdAt,
+            updatedAt: run.updatedAt
+          }
+        })
+      )
+
+      return { runs: runsWithTitles }
     }),
 
   // Get current run state with pre-computed next step prompt
@@ -1103,5 +1118,43 @@ export const agenticRouter = createTRPCRouter({
         hexecutePrompt,
         stepHexplanContent
       }
+    }),
+
+  // Close a run manually
+  closeRun: protectedProcedure
+    .input(z.object({ runId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.session?.userId ?? ctx.user?.id
+      if (!userId) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'User ID required' })
+      }
+
+      const runService = new RunService(db)
+      const run = await runService.getRunById(input.runId)
+
+      _requireFound(run, 'Run')
+      _requireOwnership(run.userId, userId, 'close runs')
+
+      const updatedRun = await runService.closeRun(input.runId)
+      return { run: updatedRun }
+    }),
+
+  // Reopen a closed run
+  reopenRun: protectedProcedure
+    .input(z.object({ runId: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.session?.userId ?? ctx.user?.id
+      if (!userId) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'User ID required' })
+      }
+
+      const runService = new RunService(db)
+      const run = await runService.getRunById(input.runId)
+
+      _requireFound(run, 'Run')
+      _requireOwnership(run.userId, userId, 'reopen runs')
+
+      const updatedRun = await runService.reopenRun(input.runId)
+      return { run: updatedRun }
     })
 })

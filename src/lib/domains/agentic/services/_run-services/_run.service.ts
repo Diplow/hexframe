@@ -141,6 +141,16 @@ export class RunService {
     return this.repository.update(runId, { status: "closed" });
   }
 
+  async reopenRun(runId: string): Promise<Run> {
+    const run = await this._getRunOrThrow(runId);
+
+    if (run.status !== "closed") {
+      throw new Error(`Cannot reopen run ${runId}: status is ${run.status}, expected 'closed'`);
+    }
+
+    return this.repository.update(runId, { status: "open" });
+  }
+
   async resumeBlockedRun(runId: string): Promise<Run> {
     const run = await this._getRunOrThrow(runId);
 

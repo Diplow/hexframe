@@ -21,6 +21,8 @@ export function RunsListWidget({ onClose, onOpenRun }: RunsListWidgetProps) {
     statusFilter,
     setStatusFilter,
     handleRefresh,
+    handleCloseRun,
+    handleReopenRun,
   } = useRunsListState();
 
   const handleRunClick = useCallback((coords: string) => {
@@ -89,7 +91,13 @@ export function RunsListWidget({ onClose, onOpenRun }: RunsListWidgetProps) {
           {!isLoading && runs.length > 0 && (
             <div className="flex flex-col gap-2 max-h-[400px] overflow-y-auto">
               {runs.map((run) => (
-                <RunItem key={run.id} run={run} onClick={handleRunClick} />
+                <RunItem
+                  key={run.id}
+                  run={run}
+                  onClick={handleRunClick}
+                  onClose={handleCloseRun}
+                  onReopen={handleReopenRun}
+                />
               ))}
             </div>
           )}
