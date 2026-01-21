@@ -42,6 +42,32 @@ function _shouldAutoCreateHexplan(itemType: ItemTypeValue | null | undefined): b
 }
 
 /**
+ * Maximum prompt size in bytes before hitting OS spawn limits.
+ * The Claude Agent SDK spawns a subprocess with the prompt as arguments.
+ * Most systems have a limit around 128KB-2MB for command-line args.
+ * We use 100KB as a conservative limit to avoid E2BIG errors.
+ */
+const MAX_PROMPT_SIZE_BYTES = 100_000
+
+/**
+ * Check if prompt exceeds safe size limits for subprocess spawning.
+ * Throws a helpful error if the prompt is too large.
+ */
+function _checkPromptSize(prompt: string, taskTitle: string): void {
+  const promptSizeBytes = Buffer.byteLength(prompt, 'utf8')
+  if (promptSizeBytes > MAX_PROMPT_SIZE_BYTES) {
+    const sizeKB = Math.round(promptSizeBytes / 1024)
+    const limitKB = Math.round(MAX_PROMPT_SIZE_BYTES / 1024)
+    throw new TRPCError({
+      code: 'PAYLOAD_TOO_LARGE',
+      message: `Prompt for "${taskTitle}" is too large (${sizeKB}KB). ` +
+        `The Claude Agent SDK has a limit of ~${limitKB}KB due to OS subprocess argument limits. ` +
+        `To fix: move large content to a context child tile and have the agent read it via MCP tools.`
+    })
+  }
+}
+
+/**
  * Creates a hexplan tile if one doesn't exist, or prepends instruction to existing hexplan.
  * Returns the hexplan content (either existing, newly created, or updated with prepended instruction).
  *
@@ -481,6 +507,9 @@ export const agenticRouter = createTRPCRouter({
         _throwInternalError(`Failed to build prompt for task "${hexecuteContext.task.title}" at ${taskCoords}: ${error instanceof Error ? error.message : 'Unknown error'}`, error);
       }
 
+      // 5. Check prompt size before proceeding (avoid E2BIG spawn errors)
+      _checkPromptSize(hexecutePrompt, hexecuteContext.task.title)
+
       // Reference the task tile for building minimal map context
       const taskTile = hexecuteContext.task
 
@@ -631,6 +660,9 @@ export const agenticRouter = createTRPCRouter({
         console.error(`Failed to build prompt for task at ${taskCoords}:`, error)
         _throwInternalError(`Failed to build prompt for task "${hexecuteContext.task.title}" at ${taskCoords}: ${error instanceof Error ? error.message : 'Unknown error'}`, error);
       }
+
+      // 5. Check prompt size before returning (warn about potential E2BIG errors)
+      _checkPromptSize(promptResult, hexecuteContext.task.title)
 
       return { prompt: promptResult }
     }),
@@ -1010,7 +1042,10 @@ export const agenticRouter = createTRPCRouter({
         )
       }
 
-      // 9. Start step tracking with title and prompt for early visibility
+      // 9. Check prompt size before proceeding (avoid E2BIG spawn errors)
+      _checkPromptSize(hexecutePrompt, hexecuteContext.task.title)
+
+      // 10. Start step tracking with title and prompt for early visibility
       const stepTitle = hexecuteContext.task.title
       await runService.startStep(run.id, leafCoords, stepTitle, hexecutePrompt)
 
