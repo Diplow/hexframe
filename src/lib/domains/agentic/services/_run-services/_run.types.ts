@@ -1,5 +1,16 @@
 export type RunStatus = "open" | "blocked" | "closed";
 
+export interface ToolCallEntry {
+  toolCallId: string;
+  toolName: string;
+  arguments?: string;
+  result?: string;
+  error?: string;
+  startedAt: string;
+  completedAt?: string;
+  durationMs?: number;
+}
+
 export interface ExecutionLogEntry {
   stepCoords: string;
   stepTitle?: string;
@@ -9,6 +20,8 @@ export interface ExecutionLogEntry {
   blockageReason?: string;
   agentResponse?: string;
   hexecutePrompt?: string;
+  hexplanContent?: string;
+  toolCalls?: ToolCallEntry[];
 }
 
 export interface Run {

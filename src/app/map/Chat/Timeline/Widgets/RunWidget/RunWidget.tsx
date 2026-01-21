@@ -71,11 +71,18 @@ export function RunWidget({ tileCoords, tileTitle, onClose }: RunWidgetProps) {
 
       <WidgetContent>
         {status === 'idle' && (
-          <PreRunState
-            instruction={instruction}
-            onInstructionChange={setInstruction}
-            onStartRun={() => void startRun()}
-          />
+          <>
+            {executedSteps.length > 0 && (
+              <div className="mb-4">
+                <StepsList steps={executedSteps} onNavigateToTile={handleNavigateToTile} />
+              </div>
+            )}
+            <PreRunState
+              instruction={instruction}
+              onInstructionChange={setInstruction}
+              onStartRun={() => void startRun()}
+            />
+          </>
         )}
 
         {status === 'running' && (

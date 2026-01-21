@@ -12,7 +12,7 @@ export { PreviewGeneratorService } from '~/lib/domains/agentic/services/preview-
 export type { GeneratePreviewInput, GeneratePreviewResult } from '~/lib/domains/agentic/services/preview-generator.service';
 
 export { RunService } from '~/lib/domains/agentic/services/_run-services';
-export type { Run, RunStatus, ExecutionLogEntry } from '~/lib/domains/agentic/services/_run-services';
+export type { Run, RunStatus, ExecutionLogEntry, ToolCallEntry } from '~/lib/domains/agentic/services/_run-services';
 
 // Context builders
 export { CanvasContextBuilder } from '~/lib/domains/agentic/services/_context/canvas-context-builder.service';

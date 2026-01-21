@@ -1,6 +1,6 @@
 import { nanoid } from "nanoid";
 import { RunRepository, type DrizzleClient } from "~/lib/domains/agentic/services/_run-services/_run.repository";
-import type { Run, ExecutionLogEntry } from "~/lib/domains/agentic/services/_run-services/_run.types";
+import type { Run, ExecutionLogEntry, ToolCallEntry } from "~/lib/domains/agentic/services/_run-services/_run.types";
 
 export class RunService {
   private readonly repository: RunRepository;
@@ -63,7 +63,9 @@ export class RunService {
   async markStepCompleted(
     runId: string,
     stepCoords: string,
-    agentResponse?: string
+    agentResponse?: string,
+    hexplanContent?: string,
+    toolCalls?: ToolCallEntry[]
   ): Promise<Run> {
     const run = await this._getRunOrThrow(runId);
 
@@ -74,6 +76,8 @@ export class RunService {
           status: "completed" as const,
           completedAt: new Date().toISOString(),
           agentResponse,
+          hexplanContent,
+          toolCalls,
         };
       }
       return entry;
@@ -88,7 +92,9 @@ export class RunService {
     runId: string,
     stepCoords: string,
     reason: string,
-    agentResponse?: string
+    agentResponse?: string,
+    hexplanContent?: string,
+    toolCalls?: ToolCallEntry[]
   ): Promise<Run> {
     const run = await this._getRunOrThrow(runId);
 
@@ -99,6 +105,8 @@ export class RunService {
           status: "blocked" as const,
           blockageReason: reason,
           agentResponse,
+          hexplanContent,
+          toolCalls,
         };
       }
       return entry;

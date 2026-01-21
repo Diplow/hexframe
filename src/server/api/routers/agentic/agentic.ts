@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { createTRPCRouter, protectedProcedure, softAuthProcedure, mappingServiceMiddleware, agenticServiceMiddleware } from '~/server/api/trpc'
 import { verificationAwareRateLimit, verificationAwareAuthLimit } from '~/server/api/middleware'
-import { type CompositionConfig, PreviewGeneratorService, OpenRouterRepository, type ChatMessageContract, RunService } from '~/lib/domains/agentic'
+import { type CompositionConfig, PreviewGeneratorService, OpenRouterRepository, type ChatMessageContract, RunService, type ToolCallEntry } from '~/lib/domains/agentic'
 import { buildPrompt, generateParentHexplanContent, generateLeafHexplanContent, parseAgentResponse } from '~/lib/domains/agentic/utils'
 import { ContextStrategies, CoordSystem, Direction, MapItemType, isBuiltInItemType, type ItemTypeValue } from '~/lib/domains/mapping/utils'
 import { LeafTraversalService } from '~/lib/domains/mapping'
@@ -993,6 +993,7 @@ export const agenticRouter = createTRPCRouter({
       }
 
       const chunks: Array<{ content: string; isFinished: boolean }> = []
+      const toolCalls: ToolCallEntry[] = []
       const response = await ctx.agenticService.generateStreamingResponse(
         {
           mapContext: minimalMapContext,
@@ -1006,20 +1007,32 @@ export const agenticRouter = createTRPCRouter({
         },
         (chunk) => {
           chunks.push(chunk)
+        },
+        {
+          onToolCallStart: (event) => {
+            toolCalls.push({
+              toolCallId: event.toolCallId,
+              toolName: event.toolName,
+              arguments: event.arguments,
+              startedAt: new Date().toISOString()
+            })
+          },
+          onToolCallEnd: (event) => {
+            const existingToolCall = toolCalls.find(tc => tc.toolCallId === event.toolCallId)
+            if (existingToolCall) {
+              existingToolCall.result = event.result
+              existingToolCall.error = event.error
+              existingToolCall.completedAt = new Date().toISOString()
+              existingToolCall.durationMs = new Date(existingToolCall.completedAt).getTime() - new Date(existingToolCall.startedAt).getTime()
+            }
+          }
         }
       )
 
       // 11. Parse response for status
       const { result: stepResult, reason } = parseAgentResponse(response.content)
 
-      // 12. Update run based on result (storing agent response)
-      if (stepResult === 'completed') {
-        await runService.markStepCompleted(run.id, leafCoords, response.content)
-      } else {
-        await runService.markStepBlocked(run.id, leafCoords, reason ?? 'Unknown blockage', response.content)
-      }
-
-      // 13. Fetch hexplan content after execution (agent may have updated it)
+      // 12. Fetch hexplan content after execution (agent may have updated it)
       let stepHexplanContent: string | null = null
       const leafCoord = CoordSystem.parseId(leafCoords)
       const hexplanCoords = { ...leafCoord, path: [...leafCoord.path, Direction.Center] }
@@ -1028,6 +1041,14 @@ export const agenticRouter = createTRPCRouter({
         stepHexplanContent = hexplanTile.content ?? null
       } catch {
         // Hexplan doesn't exist - that's fine
+      }
+
+      // 13. Update run based on result (storing agent response, hexplan content, and tool calls)
+      const toolCallsToStore = toolCalls.length > 0 ? toolCalls : undefined
+      if (stepResult === 'completed') {
+        await runService.markStepCompleted(run.id, leafCoords, response.content, stepHexplanContent ?? undefined, toolCallsToStore)
+      } else {
+        await runService.markStepBlocked(run.id, leafCoords, reason ?? 'Unknown blockage', response.content, stepHexplanContent ?? undefined, toolCallsToStore)
       }
 
       // 14. Get updated run and return result

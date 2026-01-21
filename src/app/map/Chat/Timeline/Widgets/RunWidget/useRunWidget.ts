@@ -4,6 +4,15 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRun } from '~/app/map/_hooks/use-run';
 import { api } from '~/commons/trpc/react';
 
+export interface ToolCallDisplay {
+  toolCallId: string;
+  toolName: string;
+  arguments?: string;
+  result?: string;
+  error?: string;
+  durationMs?: number;
+}
+
 export interface ExecutedStep {
   coords: string;
   title: string;
@@ -12,6 +21,7 @@ export interface ExecutedStep {
   prompt?: string;
   agentResponse?: string;
   hexplanContent?: string;
+  toolCalls?: ToolCallDisplay[];
 }
 
 export type RunWidgetStatus = 'idle' | 'running' | 'blocked' | 'complete' | 'error';
@@ -83,6 +93,8 @@ export function useRunWidget(options: UseRunWidgetOptions): UseRunWidgetReturn {
         timestamp: new Date(entry.startedAt),
         prompt: entry.hexecutePrompt,
         agentResponse: entry.agentResponse,
+        hexplanContent: entry.hexplanContent,
+        toolCalls: entry.toolCalls,
       }));
       setExecutedSteps(steps);
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { CheckCircle2, AlertTriangle, XCircle, ExternalLink, Code2, MessageSquare, FileText } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, XCircle, ExternalLink, Code2, MessageSquare, FileText, Wrench } from 'lucide-react';
 import type { ExecutedStep } from '~/app/map/Chat/Timeline/Widgets/RunWidget/useRunWidget';
 
 interface StepsListProps {
@@ -25,7 +25,7 @@ interface StepItemProps {
   onNavigateToTile?: (coords: string) => void;
 }
 
-type ExpandedSection = 'none' | 'prompt' | 'response' | 'hexplan';
+type ExpandedSection = 'none' | 'prompt' | 'response' | 'hexplan' | 'toolCalls';
 
 function StepItem({ step, onNavigateToTile }: StepItemProps) {
   const [expandedSection, setExpandedSection] = useState<ExpandedSection>('none');
@@ -37,6 +37,7 @@ function StepItem({ step, onNavigateToTile }: StepItemProps) {
   const hasPrompt = Boolean(step.prompt);
   const hasResponse = Boolean(step.agentResponse);
   const hasHexplan = Boolean(step.hexplanContent);
+  const hasToolCalls = Boolean(step.toolCalls && step.toolCalls.length > 0);
 
   return (
     <li className="flex flex-col bg-neutral-50 dark:bg-neutral-800/50 rounded-md text-sm">
@@ -93,6 +94,20 @@ function StepItem({ step, onNavigateToTile }: StepItemProps) {
               <FileText className="h-3 w-3" />
             </button>
           )}
+          {hasToolCalls && (
+            <button
+              type="button"
+              onClick={() => toggleSection('toolCalls')}
+              className={`p-1 rounded transition-colors ${
+                expandedSection === 'toolCalls'
+                  ? 'text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/50'
+                  : 'text-neutral-400 hover:text-purple-500 dark:hover:text-purple-400'
+              }`}
+              title="Show tool calls"
+            >
+              <Wrench className="h-3 w-3" />
+            </button>
+          )}
         </div>
       </div>
       {expandedSection === 'prompt' && step.prompt && (
@@ -114,6 +129,53 @@ function StepItem({ step, onNavigateToTile }: StepItemProps) {
           <pre className="max-h-[150px] overflow-y-auto p-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded text-xs font-mono text-amber-700 dark:text-amber-300 whitespace-pre-wrap break-words">
             {step.hexplanContent}
           </pre>
+        </div>
+      )}
+      {expandedSection === 'toolCalls' && step.toolCalls && step.toolCalls.length > 0 && (
+        <div className="px-2 pb-2 space-y-2">
+          {step.toolCalls.map((toolCall) => (
+            <div
+              key={toolCall.toolCallId}
+              className="p-2 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800/50 rounded text-xs"
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-medium text-purple-700 dark:text-purple-300">
+                  {toolCall.toolName}
+                </span>
+                {toolCall.durationMs !== undefined && (
+                  <span className="text-purple-500 dark:text-purple-400">
+                    {toolCall.durationMs}ms
+                  </span>
+                )}
+              </div>
+              {toolCall.arguments && (
+                <details className="mb-1">
+                  <summary className="cursor-pointer text-purple-600 dark:text-purple-400 hover:underline">
+                    Arguments
+                  </summary>
+                  <pre className="mt-1 p-1 bg-purple-100 dark:bg-purple-900/50 rounded font-mono text-purple-700 dark:text-purple-300 whitespace-pre-wrap break-words max-h-[100px] overflow-y-auto">
+                    {toolCall.arguments}
+                  </pre>
+                </details>
+              )}
+              {toolCall.result && (
+                <details>
+                  <summary className="cursor-pointer text-green-600 dark:text-green-400 hover:underline">
+                    Result
+                  </summary>
+                  <pre className="mt-1 p-1 bg-green-100 dark:bg-green-900/50 rounded font-mono text-green-700 dark:text-green-300 whitespace-pre-wrap break-words max-h-[100px] overflow-y-auto">
+                    {toolCall.result}
+                  </pre>
+                </details>
+              )}
+              {toolCall.error && (
+                <div className="text-destructive">
+                  <span className="font-medium">Error: </span>
+                  <span>{toolCall.error}</span>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </li>
