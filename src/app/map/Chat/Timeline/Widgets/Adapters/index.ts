@@ -12,6 +12,7 @@ import { _renderLoginWidget, _renderErrorWidget } from '~/app/map/Chat/Timeline/
 import { _renderLoadingWidget, _renderAIResponseWidget, _renderMcpKeysWidget, _renderDebugLogsWidget, _renderFavoritesWidget } from '~/app/map/Chat/Timeline/Widgets/Adapters/_ai-debug-adapters';
 import { _renderToolCallWidget } from '~/app/map/Chat/Timeline/Widgets/Adapters/_tool-call-adapter';
 import { _renderRunWidget } from '~/app/map/Chat/Timeline/Widgets/Adapters/_run-adapter';
+import { _renderRunsListWidget } from '~/app/map/Chat/Timeline/Widgets/Adapters/_runs-list-adapter';
 
 export interface WidgetHandlers {
   handleEdit?: () => void;
@@ -26,6 +27,7 @@ export interface WidgetHandlers {
   handleSave?: (name: string, preview: string, content: string) => void;
   handleCancel?: () => void;
   onInsertToChat?: (text: string) => void;
+  showRunWidget?: (coords: string, title: string) => void;
 }
 
 export function renderTileWidget(
@@ -82,4 +84,8 @@ export function renderToolCallWidget(widget: Widget) {
 
 export function renderRunWidget(widget: Widget, handlers: WidgetHandlers) {
   return _renderRunWidget(widget, handlers);
+}
+
+export function renderRunsListWidget(widget: Widget, handlers: WidgetHandlers) {
+  return _renderRunsListWidget(widget, handlers);
 }

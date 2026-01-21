@@ -56,6 +56,21 @@ export function _createWidgetHandlers(widget: Widget, deps: HandlerDependencies)
           insertTextIntoChatInput(text);
         }
       };
+    case 'run':
+      return _createSimpleCloseHandler(widget.id, deps.chatState, deps.focusChatInput);
+    case 'runs-list':
+      return {
+        handleCancel: () => {
+          deps.chatState.closeWidget(widget.id);
+          deps.focusChatInput();
+        },
+        showRunWidget: (coords: string, title: string) => {
+          // Close the runs-list widget first
+          deps.chatState.closeWidget(widget.id);
+          // Open the run widget for the selected run
+          deps.chatState.showRunWidget({ tileCoords: coords, tileTitle: title });
+        }
+      };
     default:
       return {};
   }

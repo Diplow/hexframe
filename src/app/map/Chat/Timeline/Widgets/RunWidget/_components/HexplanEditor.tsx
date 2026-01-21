@@ -13,7 +13,7 @@ interface HexplanEditorProps {
 }
 
 export function HexplanEditor({ label, coords, content, onSaved }: HexplanEditorProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(!label); // Auto-expand when no label (used inside CollapsibleSection)
   const [editedContent, setEditedContent] = useState(content);
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -48,6 +48,47 @@ export function HexplanEditor({ label, coords, content, onSaved }: HexplanEditor
     }
   };
 
+  const editorContent = (
+    <div className="flex flex-col gap-2 p-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-md">
+      <textarea
+        value={editedContent}
+        onChange={(event) => handleContentChange(event.target.value)}
+        placeholder="Hexplan content..."
+        className="w-full min-h-[100px] max-h-[200px] px-2 py-1.5 text-xs font-mono border border-amber-200 dark:border-amber-800 rounded bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-amber-500 resize-y"
+        rows={4}
+      />
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-neutral-400 truncate max-w-[200px]" title={coords}>
+          {coords}
+        </span>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={!hasChanges || updateItemMutation.isPending}
+          className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/50 hover:bg-amber-200 dark:hover:bg-amber-900 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          {updateItemMutation.isPending ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
+          ) : (
+            <Save className="h-3 w-3" />
+          )}
+          Save
+        </button>
+      </div>
+      {updateItemMutation.isError && (
+        <span className="text-xs text-destructive">
+          Failed to save: {updateItemMutation.error?.message}
+        </span>
+      )}
+    </div>
+  );
+
+  // If no label, render editor directly (used inside CollapsibleSection)
+  if (!label) {
+    return editorContent;
+  }
+
+  // Otherwise, render with collapsible header
   return (
     <div className="flex flex-col gap-1">
       <button
@@ -67,40 +108,7 @@ export function HexplanEditor({ label, coords, content, onSaved }: HexplanEditor
         )}
       </button>
 
-      {isExpanded && (
-        <div className="flex flex-col gap-2 p-2 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-md">
-          <textarea
-            value={editedContent}
-            onChange={(event) => handleContentChange(event.target.value)}
-            placeholder="Hexplan content..."
-            className="w-full min-h-[100px] max-h-[200px] px-2 py-1.5 text-xs font-mono border border-amber-200 dark:border-amber-800 rounded bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-1 focus:ring-amber-500 resize-y"
-            rows={4}
-          />
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-neutral-400 truncate max-w-[200px]" title={coords}>
-              {coords}
-            </span>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={!hasChanges || updateItemMutation.isPending}
-              className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/50 hover:bg-amber-200 dark:hover:bg-amber-900 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {updateItemMutation.isPending ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
-              ) : (
-                <Save className="h-3 w-3" />
-              )}
-              Save
-            </button>
-          </div>
-          {updateItemMutation.isError && (
-            <span className="text-xs text-destructive">
-              Failed to save: {updateItemMutation.error?.message}
-            </span>
-          )}
-        </div>
-      )}
+      {isExpanded && editorContent}
     </div>
   );
 }

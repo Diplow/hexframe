@@ -1,6 +1,6 @@
 import { nanoid } from "nanoid";
 import { RunRepository, type DrizzleClient } from "~/lib/domains/agentic/services/_run-services/_run.repository";
-import type { Run, ExecutionLogEntry, ToolCallEntry } from "~/lib/domains/agentic/services/_run-services/_run.types";
+import type { Run, ExecutionLogEntry, ToolCallEntry, RunStatus } from "~/lib/domains/agentic/services/_run-services/_run.types";
 
 export class RunService {
   private readonly repository: RunRepository;
@@ -37,6 +37,23 @@ export class RunService {
 
   async getRunById(runId: string): Promise<Run | null> {
     return this.repository.findById(runId);
+  }
+
+  async listRunsForUser(
+    userId: string,
+    options: {
+      statusFilter?: RunStatus[];
+      limit?: number;
+      offset?: number;
+    } = {}
+  ): Promise<Run[]> {
+    const {
+      statusFilter = ["open", "blocked"],
+      limit = 20,
+      offset = 0,
+    } = options;
+
+    return this.repository.findByUserId(userId, statusFilter, limit, offset);
   }
 
   async startStep(

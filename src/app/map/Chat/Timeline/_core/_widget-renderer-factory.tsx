@@ -16,6 +16,7 @@ import {
   renderFavoritesWidget,
   renderToolCallWidget,
   renderRunWidget,
+  renderRunsListWidget,
 } from '~/app/map/Chat/Timeline/Widgets';
 
 export function _renderWidget(
@@ -50,6 +51,8 @@ export function _renderWidget(
       return renderToolCallWidget(widget);
     case 'run':
       return renderRunWidget(widget, handlers);
+    case 'runs-list':
+      return renderRunsListWidget(widget, handlers);
     default:
       return null;
   }

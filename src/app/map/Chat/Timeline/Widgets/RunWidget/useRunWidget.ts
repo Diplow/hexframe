@@ -3,26 +3,10 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useRun } from '~/app/map/_hooks/use-run';
 import { api } from '~/commons/trpc/react';
+import type { ExecutedStep, ToolCallDisplay } from '~/app/map/Chat/Timeline/Widgets/RunWidget/_subsystems/StepsList';
 
-export interface ToolCallDisplay {
-  toolCallId: string;
-  toolName: string;
-  arguments?: string;
-  result?: string;
-  error?: string;
-  durationMs?: number;
-}
-
-export interface ExecutedStep {
-  coords: string;
-  title: string;
-  status: 'completed' | 'blocked' | 'error';
-  timestamp: Date;
-  prompt?: string;
-  agentResponse?: string;
-  hexplanContent?: string;
-  toolCalls?: ToolCallDisplay[];
-}
+// Re-export types for backward compatibility
+export type { ExecutedStep, ToolCallDisplay };
 
 export type RunWidgetStatus = 'idle' | 'running' | 'blocked' | 'complete' | 'error';
 

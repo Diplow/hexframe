@@ -1,4 +1,4 @@
-import { eq, and, or } from "drizzle-orm";
+import { eq, and, or, inArray, desc } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import { schema } from "~/server/db";
 import type { Run, ExecutionLogEntry, RunStatus } from "~/lib/domains/agentic/services/_run-services/_run.types";
@@ -42,6 +42,25 @@ export class RunRepository {
     });
 
     return result ? _mapDbRunToRun(result) : null;
+  }
+
+  async findByUserId(
+    userId: string,
+    statusFilter: RunStatus[],
+    limit: number,
+    offset: number
+  ): Promise<Run[]> {
+    const results = await this.db
+      .select()
+      .from(runs)
+      .where(
+        and(eq(runs.userId, userId), inArray(runs.status, statusFilter))
+      )
+      .orderBy(desc(runs.updatedAt))
+      .limit(limit)
+      .offset(offset);
+
+    return results.map(_mapDbRunToRun);
   }
 
   async create(data: {

@@ -85,6 +85,22 @@ export function createWidgetOperations(dispatch: (event: ChatEvent) => void) {
         actor: 'system' as const
       });
     },
+    showRunsListWidget() {
+      const widget = {
+        id: `runs-list-${Date.now()}`,
+        type: 'runs-list' as const,
+        data: {},
+        priority: 'action' as const,
+        timestamp: new Date()
+      }
+      dispatch({
+        type: 'widget_created' as const,
+        payload: { widget },
+        id: `chat-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        timestamp: new Date(),
+        actor: 'system' as const
+      });
+    },
     closeWidget(widgetId: string) {
       dispatch({
         type: 'widget_closed',

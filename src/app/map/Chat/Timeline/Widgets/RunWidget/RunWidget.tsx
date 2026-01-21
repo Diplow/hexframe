@@ -109,8 +109,10 @@ export function RunWidget({ tileCoords, tileTitle, onClose }: RunWidgetProps) {
               currentPrompt={currentPrompt}
               currentStepHexplan={currentStepHexplan}
               parentHexplan={parentHexplan}
+              currentToolCalls={executedSteps.at(-1)?.toolCalls}
               onResumeRun={() => void resumeRun()}
               onResumeWithInput={(input) => void resumeWithInput(input)}
+              onStop={stopRun}
             />
             {executedSteps.length > 0 && (
               <StepsList

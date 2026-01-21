@@ -718,6 +718,44 @@ export const agenticRouter = createTRPCRouter({
       return { allowedTypes: updatedAllowlist }
     }),
 
+  // List runs for the current user with filtering
+  listRuns: protectedProcedure
+    .input(
+      z.object({
+        statusFilter: z
+          .array(z.enum(['open', 'blocked', 'closed']))
+          .default(['open', 'blocked']),
+        limit: z.number().min(1).max(100).default(20),
+        offset: z.number().min(0).default(0)
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      const userId = ctx.session?.userId ?? ctx.user?.id
+      if (!userId) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'User ID required' })
+      }
+
+      const runService = new RunService(db)
+      const runs = await runService.listRunsForUser(userId, {
+        statusFilter: input.statusFilter,
+        limit: input.limit,
+        offset: input.offset
+      })
+
+      return {
+        runs: runs.map(run => ({
+          id: run.id,
+          rootCoords: run.rootCoords,
+          status: run.status,
+          blockageReason: run.blockageReason,
+          stepsCompleted: run.executionLog.filter(e => e.status === 'completed').length,
+          totalSteps: run.executionLog.length,
+          createdAt: run.createdAt,
+          updatedAt: run.updatedAt
+        }))
+      }
+    }),
+
   // Get current run state with pre-computed next step prompt
   // Used to restore widget state on open and show prompts early
   getRunState: protectedProcedure
