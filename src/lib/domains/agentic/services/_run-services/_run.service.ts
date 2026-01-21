@@ -31,8 +31,8 @@ export class RunService {
     });
   }
 
-  async getOpenRun(rootCoords: string): Promise<Run | null> {
-    return this.repository.findOpenByRootCoords(rootCoords);
+  async getResumableRun(rootCoords: string): Promise<Run | null> {
+    return this.repository.findResumableByRootCoords(rootCoords);
   }
 
   async getRunById(runId: string): Promise<Run | null> {

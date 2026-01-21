@@ -96,11 +96,11 @@ describe("RunService [Integration - DB]", () => {
     });
   });
 
-  describe("getOpenRun", () => {
-    it("returns null when no open run exists", async () => {
+  describe("getResumableRun", () => {
+    it("returns null when no resumable run exists", async () => {
       const { rootCoords } = createUniqueTestParams();
 
-      const run = await runService.getOpenRun(rootCoords);
+      const run = await runService.getResumableRun(rootCoords);
 
       expect(run).toBeNull();
     });
@@ -109,21 +109,23 @@ describe("RunService [Integration - DB]", () => {
       const { userId, rootCoords } = createUniqueTestParams();
       const created = await runService.getOrCreateRun(userId, rootCoords);
 
-      const run = await runService.getOpenRun(rootCoords);
+      const run = await runService.getResumableRun(rootCoords);
 
       expect(run).not.toBeNull();
       expect(run?.id).toBe(created.id);
     });
 
-    it("does not return blocked runs", async () => {
+    it("returns blocked runs", async () => {
       const { userId, rootCoords } = createUniqueTestParams();
       const created = await runService.getOrCreateRun(userId, rootCoords);
       await runService.startStep(created.id, `${rootCoords},1`);
       await runService.markStepBlocked(created.id, `${rootCoords},1`, "Test block");
 
-      const run = await runService.getOpenRun(rootCoords);
+      const run = await runService.getResumableRun(rootCoords);
 
-      expect(run).toBeNull();
+      expect(run).not.toBeNull();
+      expect(run?.id).toBe(created.id);
+      expect(run?.status).toBe("blocked");
     });
 
     it("does not return closed runs", async () => {
@@ -131,7 +133,7 @@ describe("RunService [Integration - DB]", () => {
       const created = await runService.getOrCreateRun(userId, rootCoords);
       await runService.closeRun(created.id);
 
-      const run = await runService.getOpenRun(rootCoords);
+      const run = await runService.getResumableRun(rootCoords);
 
       expect(run).toBeNull();
     });

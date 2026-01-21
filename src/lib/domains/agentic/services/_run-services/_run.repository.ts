@@ -33,14 +33,6 @@ export class RunRepository {
     return result ? _mapDbRunToRun(result) : null;
   }
 
-  async findOpenByRootCoords(rootCoords: string): Promise<Run | null> {
-    const result = await this.db.query.runs.findFirst({
-      where: and(eq(runs.rootCoords, rootCoords), eq(runs.status, "open")),
-    });
-
-    return result ? _mapDbRunToRun(result) : null;
-  }
-
   async findResumableByRootCoords(rootCoords: string): Promise<Run | null> {
     const result = await this.db.query.runs.findFirst({
       where: and(

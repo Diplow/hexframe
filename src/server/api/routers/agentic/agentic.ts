@@ -734,7 +734,7 @@ export const agenticRouter = createTRPCRouter({
       }
 
       const runService = new RunService(db)
-      const run = await runService.getOpenRun(input.coords)
+      const run = await runService.getResumableRun(input.coords)
 
       // If no run exists, return empty state
       if (!run) {
