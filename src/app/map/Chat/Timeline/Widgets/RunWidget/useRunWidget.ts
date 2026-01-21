@@ -243,11 +243,10 @@ export function useRunWidget(options: UseRunWidgetOptions): UseRunWidgetReturn {
 
   const resumeWithInput = useCallback(async (input: string) => {
     // Store the user input as the instruction for the next run
-    // This will be passed to the run mutation via instructionRef
+    // This will be passed to the run mutation - backend will format as User Feedback
     if (input.trim()) {
-      const resumeInstruction = `[User input on resume]: ${input}`;
-      setInstruction(resumeInstruction);
-      instructionRef.current = resumeInstruction;
+      setInstruction(input.trim());
+      instructionRef.current = input.trim();
     }
 
     // Resume execution

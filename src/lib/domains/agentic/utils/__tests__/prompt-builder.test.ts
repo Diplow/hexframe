@@ -485,11 +485,11 @@ describe('Hexplan Content Generators', () => {
 
       const result = generateParentHexplanContent(children)
 
-      expect(result).toContain('🟡 STARTED')
+      expect(result).toContain('**Status:** 🟡 STARTED')
       expect(result).toContain('**Steps:**')
       expect(result).toContain('📋 1. "Step One" → userId,0:1,1')
       expect(result).toContain('📋 2. "Step Two" → userId,0:1,2')
-      expect(result).toContain('(none)')
+      expect(result).toContain('(Agent will update this section)')
     })
 
     it('should handle single child', () => {
@@ -514,7 +514,7 @@ describe('Hexplan Content Generators', () => {
 
       const result = generateParentHexplanContent(children, allLeafTasks)
 
-      expect(result).toContain('🟡 STARTED')
+      expect(result).toContain('**Status:** 🟡 STARTED')
       expect(result).toContain('**Steps:**')
       // Should list immediate children, not leaf tasks
       expect(result).toContain('📋 1. "Parent 1" → userId,0:1,1')
@@ -530,21 +530,21 @@ describe('Hexplan Content Generators', () => {
     it('should generate hexplan with task title', () => {
       const result = generateLeafHexplanContent('My Task', undefined)
 
-      expect(result).toContain('🟡 STARTED: "My Task"')
-      expect(result).toContain('📋 Execute the task')
-      expect(result).toContain('(initialized)')
+      expect(result).toContain('**Status:** 🟡 STARTED')
+      expect(result).toContain('**Task:** "My Task"')
+      expect(result).toContain('(Agent will update this section)')
     })
 
-    it('should include instruction when provided', () => {
+    it('should include initial instruction when provided', () => {
       const result = generateLeafHexplanContent('My Task', 'Focus on performance')
 
-      expect(result).toContain('**Instruction:** Focus on performance')
+      expect(result).toContain('**Initial Instruction:** Focus on performance')
     })
 
     it('should not include instruction section when undefined', () => {
       const result = generateLeafHexplanContent('My Task', undefined)
 
-      expect(result).not.toContain('**Instruction:**')
+      expect(result).not.toContain('**Initial Instruction:**')
     })
   })
 })
@@ -889,10 +889,9 @@ describe('Template System - Pre-processor and Templates', () => {
       expect(result).toContain('Execute this task to completion')
       expect(result).toContain('<status>{"result": "completed"}</status>')
       expect(result).toContain('<status>{"result": "blocked"')
-      expect(result).toContain('status block is REQUIRED')
     })
 
-    it('should include hexplan creation guidance', () => {
+    it('should include hexplan editing and discussion flow guidance', () => {
       const data = createTestData({
         task: { title: 'Task', content: 'Content', coords: 'userId,0:1' },
         itemType: MapItemType.SYSTEM,
@@ -901,8 +900,9 @@ describe('Template System - Pre-processor and Templates', () => {
 
       const result = buildPrompt(data)
 
-      expect(result).toContain('hexplan tile at direction-0')
-      expect(result).toContain('Update the hexplan as you complete steps')
+      expect(result).toContain('hexplan section at the end of this prompt')
+      expect(result).toContain('Edit it to track progress')
+      expect(result).toContain('Discussion Flow')
     })
 
     it('should include blockage context when wasBlocked is true', () => {

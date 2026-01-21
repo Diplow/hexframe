@@ -65,11 +65,12 @@ async function _ensureHexplanExists(
     path: [...taskCoord.path, Direction.Center]
   }
 
-  // If hexplan exists, handle instruction prepending
+  // If hexplan exists, handle user feedback appending
   if (hexecuteContext.hexPlan) {
-    // If instruction provided, prepend it to existing hexplan
+    // If instruction provided (user feedback), append it to existing hexplan
     if (instruction) {
-      const updatedContent = `**Instruction:** ${instruction}\n\n${hexecuteContext.hexPlan}`
+      const feedbackEntry = `\n\n---\n\n**User Feedback:** ${instruction}`
+      const updatedContent = hexecuteContext.hexPlan + feedbackEntry
       await mappingService.items.crud.updateItem({
         coords: hexplanCoords,
         content: updatedContent

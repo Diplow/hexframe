@@ -61,12 +61,12 @@ describe('SYSTEM template', () => {
       expect(EXECUTION_INSTRUCTIONS_SECTION).toContain('<status>')
       expect(EXECUTION_INSTRUCTIONS_SECTION).toContain('"result": "completed"')
       expect(EXECUTION_INSTRUCTIONS_SECTION).toContain('"result": "blocked"')
-      expect(EXECUTION_INSTRUCTIONS_SECTION).toContain('REQUIRED')
     })
 
-    it('includes hexplan creation guidance', () => {
-      expect(EXECUTION_INSTRUCTIONS_SECTION).toContain('hexplan')
-      expect(EXECUTION_INSTRUCTIONS_SECTION).toContain('direction-0')
+    it('includes hexplan editing guidance', () => {
+      expect(EXECUTION_INSTRUCTIONS_SECTION).toContain('Hexplan')
+      expect(EXECUTION_INSTRUCTIONS_SECTION).toContain('Edit it to track progress')
+      expect(EXECUTION_INSTRUCTIONS_SECTION).toContain('Discussion Flow')
     })
   })
 

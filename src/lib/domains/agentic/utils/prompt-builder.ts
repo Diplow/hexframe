@@ -20,8 +20,13 @@ export { buildPrompt, type PromptData } from '~/lib/domains/agentic/templates'
  * Lists only immediate children as steps (not all leaf tasks).
  * This keeps hexplans concise and instruction-focused.
  *
- * When instruction is provided, it becomes the root hexplan's instruction section,
+ * When instruction is provided, it becomes the root hexplan's initial instruction,
  * which propagates to all subtask prompts via ancestor context.
+ *
+ * Discussion flow format:
+ * - Initial Instruction at top (if provided)
+ * - Status and steps
+ * - Agent responses and user feedback accumulate at end
  */
 export function generateParentHexplanContent(
   structuralChildren: Array<{ title: string; coords: string }>,
@@ -29,13 +34,14 @@ export function generateParentHexplanContent(
   instruction?: string
 ): string {
   const lines: string[] = []
-  lines.push('🟡 STARTED')
-  lines.push('')
 
   if (instruction) {
-    lines.push(`**Instruction:** ${instruction}`)
+    lines.push(`**Initial Instruction:** ${instruction}`)
     lines.push('')
   }
+
+  lines.push('**Status:** 🟡 STARTED')
+  lines.push('')
 
   lines.push('**Steps:**')
   structuralChildren.forEach((child, index) => {
@@ -44,28 +50,34 @@ export function generateParentHexplanContent(
 
   lines.push('')
   lines.push('**Progress:**')
-  lines.push('(none)')
+  lines.push('(Agent will update this section)')
   return lines.join('\n')
 }
 
 /**
  * Generates hexplan content for a leaf tile (tile without subtasks).
  * This is used by the API to create/initialize the hexplan tile before prompting.
+ *
+ * Discussion flow format:
+ * - Initial Instruction at top (if provided)
+ * - Status
+ * - Agent responses and user feedback accumulate at end
  */
 export function generateLeafHexplanContent(
   taskTitle: string,
   instruction: string | undefined
 ): string {
   const lines: string[] = []
-  lines.push(`🟡 STARTED: "${taskTitle}"`)
-  lines.push('')
+
   if (instruction) {
-    lines.push(`**Instruction:** ${instruction}`)
+    lines.push(`**Initial Instruction:** ${instruction}`)
     lines.push('')
   }
-  lines.push('📋 Execute the task')
+
+  lines.push(`**Status:** 🟡 STARTED`)
+  lines.push(`**Task:** "${taskTitle}"`)
   lines.push('')
   lines.push('**Progress:**')
-  lines.push('(initialized)')
+  lines.push('(Agent will update this section)')
   return lines.join('\n')
 }
