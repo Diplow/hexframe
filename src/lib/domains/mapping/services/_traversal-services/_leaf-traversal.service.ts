@@ -37,7 +37,7 @@ export class LeafTraversalService {
    *
    * Traverses the hierarchy depth-first in direction order (1, 2, 3, 4, 5, 6).
    * Returns coordinates of tiles that have no structural children.
-   * The root itself is not included even if it has no children.
+   * If the root itself has no children, it is returned as the only leaf.
    *
    * @param rootCoords - The root coordinate ID to start traversal from
    * @returns Array of leaf coordinate IDs in traversal order
@@ -77,7 +77,7 @@ export class LeafTraversalService {
 
   /**
    * Collect leaf tiles under a root coordinate.
-   * The root itself is not included in the results.
+   * If the root has no structural children, the root itself is a leaf.
    */
   private async _collectLeavesUnderRoot(
     rootCoordId: string,
@@ -92,8 +92,9 @@ export class LeafTraversalService {
     const rootItemIdNum = parseInt(rootItem.id, 10);
     const rootStructuralChildren = await this._getStructuralChildren(rootItemIdNum);
 
-    // If root has no children, return empty (root itself is not a leaf)
+    // If root has no children, the root itself is the leaf to execute
     if (rootStructuralChildren.length === 0) {
+      leaves.push(rootCoordId);
       return;
     }
 

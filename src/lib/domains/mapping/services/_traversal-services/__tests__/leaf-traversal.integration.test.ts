@@ -31,14 +31,15 @@ describe("LeafTraversalService [Integration - DB]", () => {
   });
 
   describe("getAllLeafTiles", () => {
-    it("returns empty array for root with no children", async () => {
+    it("returns root itself as leaf when root has no children", async () => {
       const testParams = _createUniqueTestParams();
       const rootMap = await _setupBasicMap(testEnv.service, testParams);
       const rootCoordId = rootMap.items[0]!.coords;
 
       const leaves = await leafTraversalService.getAllLeafTiles(rootCoordId);
 
-      expect(leaves).toEqual([]);
+      // Root with no children is itself the leaf to execute
+      expect(leaves).toEqual([rootCoordId]);
     });
 
     it("returns leaf coords for root with direct leaf children", async () => {
