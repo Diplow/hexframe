@@ -5,6 +5,8 @@ import { baseItemVersions } from "~/server/db/schema/_tables/mapping/base-item-v
 import { users } from "~/server/db/schema/_tables/auth/users";
 import { accounts } from "~/server/db/schema/_tables/auth/accounts";
 import { sessions } from "~/server/db/schema/_tables/auth/sessions";
+import { runs } from "~/server/db/schema/_tables/agentic/runs";
+import { runHexplans } from "~/server/db/schema/_tables/agentic/run-hexplans";
 
 /**
  * Relations for map_items table
@@ -82,5 +84,17 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
   user: one(users, {
     fields: [sessions.userId],
     references: [users.id],
+  }),
+}));
+
+// Relations for Agentic tables
+export const runsRelations = relations(runs, ({ many }) => ({
+  hexplans: many(runHexplans),
+}));
+
+export const runHexplansRelations = relations(runHexplans, ({ one }) => ({
+  run: one(runs, {
+    fields: [runHexplans.runId],
+    references: [runs.id],
   }),
 }));

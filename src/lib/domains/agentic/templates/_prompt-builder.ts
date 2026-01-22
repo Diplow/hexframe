@@ -171,7 +171,8 @@ function _buildPreProcessorContext(data: PromptData): TemplateContext {
     hexplanCoords,
     mcpServerName: data.mcpServerName,
     isParentTile: data.structuralChildren.length > 0,
-    hexplanStatus: _getHexplanStatus(data.hexPlan)
+    hexplanStatus: _getHexplanStatus(data.hexPlan),
+    runId: data.runId
   }
 }
 

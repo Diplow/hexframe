@@ -3,21 +3,21 @@
 import { useState, useEffect } from 'react';
 import { ChevronDown, ChevronRight, FileText, Save, Loader2 } from 'lucide-react';
 import { api } from '~/commons/trpc/react';
-import { CoordSystem } from '~/lib/domains/mapping/utils';
 
 interface HexplanEditorProps {
   label: string;
+  runId: string;
   coords: string;
   content: string;
   onSaved?: (newContent: string) => void;
 }
 
-export function HexplanEditor({ label, coords, content, onSaved }: HexplanEditorProps) {
+export function HexplanEditor({ label, runId, coords, content, onSaved }: HexplanEditorProps) {
   const [isExpanded, setIsExpanded] = useState(!label); // Auto-expand when no label (used inside CollapsibleSection)
   const [editedContent, setEditedContent] = useState(content);
   const [hasChanges, setHasChanges] = useState(false);
 
-  const updateItemMutation = api.map.updateItem.useMutation();
+  const updateRunHexplanMutation = api.agentic.updateRunHexplan.useMutation();
 
   // Sync edited content when prop changes
   useEffect(() => {
@@ -34,12 +34,10 @@ export function HexplanEditor({ label, coords, content, onSaved }: HexplanEditor
     if (!hasChanges) return;
 
     try {
-      const parsedCoords = CoordSystem.parseId(coords);
-      await updateItemMutation.mutateAsync({
-        coords: parsedCoords,
-        data: {
-          content: editedContent,
-        },
+      await updateRunHexplanMutation.mutateAsync({
+        runId,
+        coords,
+        content: editedContent,
       });
       setHasChanges(false);
       onSaved?.(editedContent);
@@ -64,10 +62,10 @@ export function HexplanEditor({ label, coords, content, onSaved }: HexplanEditor
         <button
           type="button"
           onClick={handleSave}
-          disabled={!hasChanges || updateItemMutation.isPending}
+          disabled={!hasChanges || updateRunHexplanMutation.isPending}
           className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/50 hover:bg-amber-200 dark:hover:bg-amber-900 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {updateItemMutation.isPending ? (
+          {updateRunHexplanMutation.isPending ? (
             <Loader2 className="h-3 w-3 animate-spin" />
           ) : (
             <Save className="h-3 w-3" />
@@ -75,9 +73,9 @@ export function HexplanEditor({ label, coords, content, onSaved }: HexplanEditor
           Save
         </button>
       </div>
-      {updateItemMutation.isError && (
+      {updateRunHexplanMutation.isError && (
         <span className="text-xs text-destructive">
-          Failed to save: {updateItemMutation.error?.message}
+          Failed to save: {updateRunHexplanMutation.error?.message}
         </span>
       )}
     </div>

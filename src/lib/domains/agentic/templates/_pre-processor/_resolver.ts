@@ -40,6 +40,8 @@ export interface TemplateContext {
   isParentTile: boolean
   /** Hexplan status */
   hexplanStatus: 'pending' | 'complete' | 'blocked'
+  /** Run ID for hexplan storage - agents use this to update hexplan via updateRunHexplan */
+  runId?: string
 }
 
 // ==================== PUBLIC FUNCTIONS ====================

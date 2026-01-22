@@ -51,15 +51,15 @@ The subagent will:
 ### 4. Run the Sync Agent
 After each step completes, spawn the sync agent to update the root hexplan:
 
-1. Call hexecute on the sync agent tile with `deleteHexplan: true` to ensure fresh execution. Use the SAME MCP server prefix that you used for step execution:
+1. Call hexecute on the sync agent tile with the run's `runId`. Use the SAME MCP server prefix that you used for step execution:
    ```javascript
    mcp__{mcp_prefix}__hexecute({
      taskCoords: "fZRHqrORpUkoV14TRmtW0GA5kFV7UN0X,0:1,3",
      instruction: "root_coords={root_coords} last_step_coords={step_coords_from_subagent} hexframe_mcp={mcp_prefix}",
-     deleteHexplan: true
+     runId: "{run_id}"
    })
    ```
-   Where `{mcp_prefix}` is either `hexframe` (default) or `debughexframe` based on the MCP server being used.
+   Where `{mcp_prefix}` is either `hexframe` (default) or `debughexframe` based on the MCP server being used, and `{run_id}` is the ID of the current run.
 
 2. Spawn a subagent with the sync agent prompt (use haiku model - sync is lightweight)
 

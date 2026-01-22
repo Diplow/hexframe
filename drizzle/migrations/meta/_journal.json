@@ -127,6 +127,13 @@
       "when": 1766000000000,
       "tag": "0017_add_user_template_allowlist",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1769093003851,
+      "tag": "0018_curious_power_man",
+      "breakpoints": true
     }
   ]
 }

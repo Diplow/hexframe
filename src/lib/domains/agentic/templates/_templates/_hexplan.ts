@@ -14,6 +14,7 @@ export interface HexPlanParams {
   mcpServerName: string
   isParentTile: boolean
   taskCoords: string
+  runId?: string
 }
 
 // ==================== INTERNAL TEMPLATES ====================
@@ -49,8 +50,8 @@ function _renderPendingSection(
   }
 
   const instructions = params.isParentTile
-    ? _renderParentInstructions(coords, params.mcpServerName)
-    : _renderLeafInstructions(coords)
+    ? _renderParentInstructions(coords, params.mcpServerName, params.runId)
+    : _renderLeafInstructions(coords, params.mcpServerName, params.runId)
 
   return `<hexplan coords="${_escapeXML(coords)}">
 ${content}
@@ -63,17 +64,21 @@ ${instructions}
 </execution-instructions>`
 }
 
-function _renderParentInstructions(coords: string, mcpServerName: string): string {
+function _renderParentInstructions(coords: string, mcpServerName: string, runId?: string): string {
+  const updateInstructions = runId
+    ? `Update the hexplan using mcp__${mcpServerName}__updateRunHexplan with runId="${runId}" and coords="${_escapeXML(coords)}"`
+    : `Update the hexplan at ${_escapeXML(coords)} using updateItem`
+
   return `To execute a step:
 1. Call mcp__${mcpServerName}__hexecute with the child's coords to get its prompt
 2. Spawn a subagent using the Task tool with the resulting prompt
 
 Example for step "Execute 'Clarify the Task' → userId,0:6,1":
-  prompt = mcp__${mcpServerName}__hexecute({ taskCoords: "userId,0:6,1" })
+  prompt = mcp__${mcpServerName}__hexecute({ taskCoords: "userId,0:6,1"${runId ? `, runId: "${runId}"` : ''} })
   Task({ subagent_type: "general-purpose", prompt: prompt })
 
 After the subagent completes:
-- Update the hexplan at ${_escapeXML(coords)} using updateItem:
+- ${updateInstructions}:
    - Change the step status from \uD83D\uDCCB to \u2705
    - Add a brief note about what was done
 - Return a SHORT summary (1-2 sentences) of what you accomplished
@@ -85,11 +90,15 @@ If you cannot complete the step:
 IMPORTANT: Execute ONLY ONE step, then return. The orchestrator will call you again for the next step.`
 }
 
-function _renderLeafInstructions(coords: string): string {
+function _renderLeafInstructions(coords: string, mcpServerName: string, runId?: string): string {
+  const updateInstructions = runId
+    ? `Update the hexplan using mcp__${mcpServerName}__updateRunHexplan with runId="${runId}" and coords="${_escapeXML(coords)}"`
+    : `Update the hexplan at ${_escapeXML(coords)} using updateItem`
+
   return `Execute the task directly using the <task> content and <context> above.
 
 After completing:
-- Update the hexplan at ${_escapeXML(coords)} using updateItem:
+- ${updateInstructions}:
    - Change the step status from \uD83D\uDCCB to \u2705
    - Add a brief note about what was done
 - Return a SHORT summary (1-2 sentences) of what you accomplished

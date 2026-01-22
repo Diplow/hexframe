@@ -346,7 +346,8 @@ describe('useRun', () => {
         'Blocked Step',
         'Blocked prompt',
         'Could not proceed',
-        'Blocked hexplan'
+        'Blocked hexplan',
+        'run_123'
       )
     })
   })

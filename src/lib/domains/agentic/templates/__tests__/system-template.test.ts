@@ -63,10 +63,9 @@ describe('SYSTEM template', () => {
       expect(EXECUTION_INSTRUCTIONS_SECTION).toContain('"result": "blocked"')
     })
 
-    it('includes hexplan editing guidance', () => {
-      expect(EXECUTION_INSTRUCTIONS_SECTION).toContain('Hexplan')
-      expect(EXECUTION_INSTRUCTIONS_SECTION).toContain('Edit it to track progress')
-      expect(EXECUTION_INSTRUCTIONS_SECTION).toContain('Discussion Flow')
+    it('includes hexplan tracking guidance', () => {
+      expect(EXECUTION_INSTRUCTIONS_SECTION).toContain('Track progress in the hexplan')
+      expect(EXECUTION_INSTRUCTIONS_SECTION).toContain('execution-instructions')
     })
   })
 

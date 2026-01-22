@@ -163,6 +163,7 @@ function _invokeTemplate(
         mcpServerName: context.mcpServerName,
         isParentTile: context.isParentTile,
         taskCoords: context.task.coords,
+        runId: context.runId,
       })
     default:
       throw new TemplateError(`No handler for template "${templateName}"`, templateName, originalParams)

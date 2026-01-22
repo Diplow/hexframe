@@ -1,12 +1,15 @@
 import { nanoid } from "nanoid";
 import { RunRepository, type DrizzleClient } from "~/lib/domains/agentic/services/_run-services/_run.repository";
-import type { Run, ExecutionLogEntry, ToolCallEntry, RunStatus } from "~/lib/domains/agentic/services/_run-services/_run.types";
+import { RunHexplanRepository } from "~/lib/domains/agentic/services/_run-services/_run-hexplan.repository";
+import type { Run, ExecutionLogEntry, ToolCallEntry, RunStatus, RunHexplan } from "~/lib/domains/agentic/services/_run-services/_run.types";
 
 export class RunService {
   private readonly repository: RunRepository;
+  private readonly hexplanRepository: RunHexplanRepository;
 
   constructor(db: DrizzleClient) {
     this.repository = new RunRepository(db);
+    this.hexplanRepository = new RunHexplanRepository(db);
   }
 
   async getOrCreateRun(userId: string, rootCoords: string): Promise<Run> {
@@ -162,6 +165,32 @@ export class RunService {
       status: "open",
       blockageReason: null,
     });
+  }
+
+  // Hexplan methods
+
+  async getHexplan(runId: string, coords: string): Promise<string | null> {
+    const hexplan = await this.hexplanRepository.findByRunAndCoords(runId, coords);
+    return hexplan?.content ?? null;
+  }
+
+  async setHexplan(runId: string, coords: string, content: string): Promise<RunHexplan> {
+    return this.hexplanRepository.upsert(runId, coords, content);
+  }
+
+  async getHexplansForRun(runId: string): Promise<Map<string, string>> {
+    const hexplans = await this.hexplanRepository.findAllByRunId(runId);
+    const hexplanMap = new Map<string, string>();
+    for (const hexplan of hexplans) {
+      hexplanMap.set(hexplan.coords, hexplan.content);
+    }
+    return hexplanMap;
+  }
+
+  async getActiveRunForCoords(coords: string): Promise<Run | null> {
+    // Find any open or blocked run where rootCoords matches or is an ancestor of coords
+    // For now, simple exact match - can be extended for ancestry check if needed
+    return this.repository.findResumableByRootCoords(coords);
   }
 
   private async _getRunOrThrow(runId: string): Promise<Run> {

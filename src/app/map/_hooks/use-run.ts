@@ -12,7 +12,7 @@ interface UseRunOptions {
   /** Called when the entire run completes */
   onRunComplete?: () => void
   /** Called when execution is blocked */
-  onBlocked?: (reason: string, stepCoords: string, stepTitle: string, prompt: string, response?: string, hexplanContent?: string) => void
+  onBlocked?: (reason: string, stepCoords: string, stepTitle: string, prompt: string, response?: string, hexplanContent?: string, runId?: string) => void
   /** Called when an error occurs */
   onError?: (error: Error) => void
 }
@@ -117,7 +117,8 @@ export function useRun(options?: UseRunOptions): UseRunReturn {
             stepTitle,
             hexecutePrompt ?? '',
             agentResponse ?? undefined,
-            stepHexplanContent ?? undefined
+            stepHexplanContent ?? undefined,
+            result.runId
           )
           return
         }

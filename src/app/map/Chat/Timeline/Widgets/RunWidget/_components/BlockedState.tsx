@@ -7,6 +7,7 @@ import { HexplanEditor } from '~/app/map/Chat/Timeline/Widgets/RunWidget/_compon
 import type { ToolCallDisplay } from '~/app/map/Chat/Timeline/Widgets/RunWidget/_subsystems/StepsList';
 
 interface HexplanData {
+  runId: string;
   coords: string;
   content: string;
 }
@@ -131,6 +132,7 @@ export function BlockedState({
           >
             <HexplanEditor
               label=""
+              runId={currentStepHexplan.runId}
               coords={currentStepHexplan.coords}
               content={currentStepHexplan.content}
             />
@@ -145,6 +147,7 @@ export function BlockedState({
           >
             <HexplanEditor
               label=""
+              runId={parentHexplan.runId}
               coords={parentHexplan.coords}
               content={parentHexplan.content}
             />

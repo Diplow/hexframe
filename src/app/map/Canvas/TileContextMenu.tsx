@@ -16,7 +16,6 @@ interface TileContextMenuProps {
   onDelete?: () => void;
   onDeleteChildren?: () => void;
   onDeleteComposed?: () => void;
-  onDeleteHexplan?: () => void;
   onCreate?: () => void;
   onCompositionToggle?: (tileData: TileData) => void;
   onViewHistory?: () => void;
@@ -54,7 +53,6 @@ export function TileContextMenu({
   onDelete,
   onDeleteChildren,
   onDeleteComposed,
-  onDeleteHexplan,
   onCreate,
   onCompositionToggle,
   onViewHistory,
@@ -90,7 +88,6 @@ export function TileContextMenu({
     onDelete,
     onDeleteChildren,
     onDeleteComposed,
-    onDeleteHexplan,
     onCreate,
     onCompositionToggle,
     onViewHistory,

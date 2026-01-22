@@ -20,7 +20,6 @@ export interface TileActionsContextValue {
   onDeleteClick?: (tileData: TileData) => void;
   onDeleteChildrenClick?: (tileData: TileData) => void;
   onDeleteComposedClick?: (tileData: TileData) => void;
-  onDeleteHexplanClick?: (tileData: TileData) => void;
   onCompositionToggle?: (tileData: TileData) => void;
   onRunClick?: (tileData: TileData) => void;
   onTileDragStart: (tileData: TileData) => void;
@@ -49,7 +48,6 @@ interface TileActionsProviderProps {
   onDeleteClick?: (tileData: TileData) => void;
   onDeleteChildrenClick?: (tileData: TileData) => void;
   onDeleteComposedClick?: (tileData: TileData) => void;
-  onDeleteHexplanClick?: (tileData: TileData) => void;
   onCompositionToggle?: (tileData: TileData) => void;
   onSetVisibility?: (tileData: TileData, visibility: Visibility) => void;
   onSetVisibilityWithDescendants?: (tileData: TileData, visibility: Visibility) => void;
@@ -98,7 +96,7 @@ function useDragMenuHandlers(closeContextMenu: () => void) {
 export function TileActionsProvider(props: TileActionsProviderProps) {
   const {
     children, onSelectClick, onNavigateClick, onExpandClick, onCreateClick, onEditClick,
-    onDeleteClick, onDeleteChildrenClick, onDeleteComposedClick, onDeleteHexplanClick,
+    onDeleteClick, onDeleteChildrenClick, onDeleteComposedClick,
     onCompositionToggle, onSetVisibility, onSetVisibilityWithDescendants, hasComposition,
     isCompositionExpanded, canShowComposition, onAddFavorite, onRemoveFavorite, isFavorited, onEditShortcut,
     onRunClick,
@@ -122,12 +120,12 @@ export function TileActionsProvider(props: TileActionsProviderProps) {
   const value = useMemo(() => ({
     onTileClick, onTileDoubleClick, onTileRightClick, onTileHover, onTileDragStart, onTileDrop, isDragging,
     onSelectClick, onNavigateClick, onExpandClick, onCreateClick, onEditClick, onDeleteClick,
-    onDeleteChildrenClick, onDeleteComposedClick, onDeleteHexplanClick, onCompositionToggle, isFavorited,
+    onDeleteChildrenClick, onDeleteComposedClick, onCompositionToggle, isFavorited,
     onRunClick,
   }), [
     onTileClick, onTileDoubleClick, onTileRightClick, onTileHover, onTileDragStart, onTileDrop, isDragging,
     onSelectClick, onNavigateClick, onExpandClick, onCreateClick, onEditClick, onDeleteClick,
-    onDeleteChildrenClick, onDeleteComposedClick, onDeleteHexplanClick, onCompositionToggle, isFavorited,
+    onDeleteChildrenClick, onDeleteComposedClick, onCompositionToggle, isFavorited,
     onRunClick,
   ]);
 
@@ -145,7 +143,6 @@ export function TileActionsProvider(props: TileActionsProviderProps) {
         onDeleteClick={onDeleteClick}
         onDeleteChildrenClick={onDeleteChildrenClick}
         onDeleteComposedClick={onDeleteComposedClick}
-        onDeleteHexplanClick={onDeleteHexplanClick}
         onCopyClick={handleCopyToClick}
         onMoveClick={handleMoveToClick}
         onCopyCoordinatesSuccess={triggerSuccess}

@@ -45,4 +45,6 @@ export interface PromptData {
   wasBlocked?: boolean
   /** The reason for the previous blockage (if wasBlocked is true) */
   blockageReason?: string
+  /** Run ID for hexplan storage - agents use this to update hexplan via updateRunHexplan */
+  runId?: string
 }

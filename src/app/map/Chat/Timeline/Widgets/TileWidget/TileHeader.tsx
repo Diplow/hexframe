@@ -24,7 +24,6 @@ interface TileHeaderProps {
   onDelete?: () => void;
   onDeleteChildren?: () => void;
   onDeleteComposed?: () => void;
-  onDeleteHexplan?: () => void;
   onSetVisibility?: (visibility: Visibility) => void;
   onSetVisibilityWithDescendants?: (visibility: Visibility) => void;
   onClose?: () => void;
@@ -52,7 +51,6 @@ export function TileHeader({
   onDelete,
   onDeleteChildren,
   onDeleteComposed,
-  onDeleteHexplan,
   onSetVisibility,
   onSetVisibilityWithDescendants,
   onClose,
@@ -117,7 +115,6 @@ export function TileHeader({
           onDelete={onDelete}
           onDeleteChildren={onDeleteChildren}
           onDeleteComposed={onDeleteComposed}
-          onDeleteHexplan={onDeleteHexplan}
           onSetVisibility={onSetVisibility}
           onSetVisibilityWithDescendants={onSetVisibilityWithDescendants}
           onClose={onClose}

@@ -36,13 +36,12 @@ interface TileWidgetProps {
   tileColor?: string;
   parentName?: string;
   parentCoordId?: string;
-  directionType?: 'structural' | 'composed' | 'hexPlan';
+  directionType?: 'structural' | 'composed';
   visibility?: Visibility;
   onEdit?: () => void;
   onDelete?: () => void;
   onDeleteChildren?: () => void;
   onDeleteComposed?: () => void;
-  onDeleteHexplan?: () => void;
   onSetVisibility?: (visibility: Visibility) => void;
   onSetVisibilityWithDescendants?: (visibility: Visibility) => void;
   onSave?: (title: string, preview: string, content: string, itemType?: string) => void;
@@ -85,7 +84,6 @@ export function TileWidget({
   onDelete: _onDelete,
   onDeleteChildren,
   onDeleteComposed,
-  onDeleteHexplan,
   onSetVisibility,
   onSetVisibilityWithDescendants,
   onSave,
@@ -177,7 +175,6 @@ export function TileWidget({
         onDelete={currentMode !== 'create' ? () => setCurrentMode('delete') : undefined}
         onDeleteChildren={currentMode !== 'create' ? onDeleteChildren : undefined}
         onDeleteComposed={currentMode !== 'create' ? onDeleteComposed : undefined}
-        onDeleteHexplan={currentMode !== 'create' ? onDeleteHexplan : undefined}
         onSetVisibility={currentMode !== 'create' ? onSetVisibility : undefined}
         onSetVisibilityWithDescendants={currentMode !== 'create' ? onSetVisibilityWithDescendants : undefined}
         onClose={onClose}

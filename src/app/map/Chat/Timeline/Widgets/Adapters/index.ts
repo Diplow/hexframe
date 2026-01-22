@@ -19,7 +19,6 @@ export interface WidgetHandlers {
   handleDelete?: () => void;
   handleDeleteChildren?: () => void;
   handleDeleteComposed?: () => void;
-  handleDeleteHexplan?: () => void;
   handleSetVisibility?: (visibility: Visibility) => void;
   handleSetVisibilityWithDescendants?: (visibility: Visibility) => void;
   handleTileSave?: (title: string, preview: string, content: string, itemType?: string) => void;

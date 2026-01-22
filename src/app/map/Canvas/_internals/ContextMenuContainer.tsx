@@ -21,7 +21,6 @@ interface ContextMenuContainerProps {
   onDeleteClick?: (tileData: TileData) => void;
   onDeleteChildrenClick?: (tileData: TileData) => void;
   onDeleteComposedClick?: (tileData: TileData) => void;
-  onDeleteHexplanClick?: (tileData: TileData) => void;
   onCopyClick?: (tileData: TileData) => void;
   onMoveClick?: (tileData: TileData) => void;
   onCopyCoordinatesSuccess?: () => void;
@@ -55,7 +54,6 @@ export function ContextMenuContainer({
   onDeleteClick,
   onDeleteChildrenClick,
   onDeleteComposedClick,
-  onDeleteHexplanClick,
   onCopyClick,
   onMoveClick,
   onCopyCoordinatesSuccess,
@@ -86,7 +84,6 @@ export function ContextMenuContainer({
       onDelete={() => onDeleteClick?.(contextMenu.tileData)}
       onDeleteChildren={() => onDeleteChildrenClick?.(contextMenu.tileData)}
       onDeleteComposed={() => onDeleteComposedClick?.(contextMenu.tileData)}
-      onDeleteHexplan={() => onDeleteHexplanClick?.(contextMenu.tileData)}
       onCreate={() => onCreateClick?.(contextMenu.tileData)}
       onCopy={() => onCopyClick?.(contextMenu.tileData)}
       onMove={() => onMoveClick?.(contextMenu.tileData)}

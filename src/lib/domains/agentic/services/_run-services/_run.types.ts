@@ -34,3 +34,11 @@ export interface Run {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface RunHexplan {
+  runId: string;
+  coords: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
+}

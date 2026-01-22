@@ -38,7 +38,6 @@ interface MenuItemsConfig {
   onDelete?: () => void;
   onDeleteChildren?: () => void;
   onDeleteComposed?: () => void;
-  onDeleteHexplan?: () => void;
   onCreate?: () => void;
   onCompositionToggle?: (tileData: TileData) => void;
   onViewHistory?: () => void;
@@ -73,7 +72,6 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
     onDelete,
     onDeleteChildren,
     onDeleteComposed,
-    onDeleteHexplan,
     onCreate,
     onCompositionToggle,
     onViewHistory,
@@ -125,7 +123,6 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
       onDelete,
       onDeleteChildren,
       onDeleteComposed,
-      onDeleteHexplan,
     }),
     ..._buildCopyCoordinatesItem(onCopyCoordinates),
   ];

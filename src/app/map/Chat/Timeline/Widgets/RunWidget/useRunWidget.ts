@@ -18,6 +18,7 @@ interface UseRunWidgetOptions {
 }
 
 interface HexplanData {
+  runId: string;
   coords: string;
   content: string;
 }
@@ -92,10 +93,18 @@ export function useRunWidget(options: UseRunWidgetOptions): UseRunWidgetReturn {
         }
         // Load hexplan data for blocked state editing
         if (runState.currentStepHexplan) {
-          setCurrentStepHexplan(runState.currentStepHexplan);
+          setCurrentStepHexplan({
+            runId: runState.runId,
+            coords: runState.currentStepHexplan.coords,
+            content: runState.currentStepHexplan.content,
+          });
         }
         if (runState.parentHexplan) {
-          setParentHexplan(runState.parentHexplan);
+          setParentHexplan({
+            runId: runState.runId,
+            coords: runState.parentHexplan.coords,
+            content: runState.parentHexplan.content,
+          });
         }
       } else if (runState.status === 'closed') {
         setStatus('complete');
@@ -158,17 +167,19 @@ export function useRunWidget(options: UseRunWidgetOptions): UseRunWidgetReturn {
       // Refetch to get final state
       void refetchRunState();
     },
-    onBlocked: (_reason, stepCoords, stepTitle, prompt, response, hexplanContent) => {
+    onBlocked: (_reason, stepCoords, stepTitle, prompt, response, hexplanContent, stepRunId) => {
       setStatus('blocked');
       shouldContinueRef.current = false;
       setCurrentPrompt(prompt);
       lastPromptRef.current = prompt;
       lastResponseRef.current = response ?? null;
       lastHexplanRef.current = hexplanContent ?? null;
-      // Update hexplan state for editing
-      if (hexplanContent) {
+      // Update hexplan state for editing (runId comes from callback or fallback to runState)
+      const resolvedRunId = stepRunId ?? runState?.runId ?? '';
+      if (hexplanContent && resolvedRunId) {
         setCurrentStepHexplan({
-          coords: `${stepCoords}:0`,  // Hexplan is at direction-0
+          runId: resolvedRunId,
+          coords: stepCoords,  // Use the step coords directly (hexplan is stored per coords in run_hexplans)
           content: hexplanContent
         });
       }

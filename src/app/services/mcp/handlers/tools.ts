@@ -747,7 +747,7 @@ PROMPT STRUCTURE:
 1. <context>: Context children (-1 to -6) providing reference materials, constraints, templates
 2. <subtasks>: Subtask children (1-6) showing decomposed work units
 3. <task>: The tile's goal (title) and requirements (content)
-4. <hexplan>: Direction-0 child tracking execution state and guiding agent decisions
+4. <hexplan>: Run-linked execution state and guiding agent decisions
 
 HEXPLAN GENERATION:
 - Parent tiles (with subtasks): Hexplan is auto-generated listing children as steps
@@ -756,7 +756,7 @@ HEXPLAN GENERATION:
 
 COORDINATES FORMAT: "userId,groupId:path" (e.g., "abc123,0:6" or "userIdString,0:1,1")
 
-HEXPLAN UPDATES: Agents update direction-0 tiles using standard updateItem MCP tool with emoji-prefixed status:
+HEXPLAN UPDATES: When runId is provided, agents update hexplans using updateRunHexplan MCP tool with emoji-prefixed status:
 - 🟡 STARTED: Task began
 - ✅ COMPLETED: Task finished
 - 🔴 BLOCKED: Task stuck
@@ -773,10 +773,9 @@ Returns XML-formatted prompt ready for agent execution.`,
           type: "string",
           description: "Optional runtime instruction to include in execution"
         },
-        deleteHexplan: {
-          type: "boolean",
-          description: "If true, removes all hexplan tiles (direction-0) before execution for a fresh start. Default: false",
-          default: false
+        runId: {
+          type: "string",
+          description: "Run ID for run-linked hexplan storage. When provided, hexplans are stored per-run instead of as direction-0 tiles."
         }
       },
       required: ["taskCoords"],
@@ -785,7 +784,7 @@ Returns XML-formatted prompt ready for agent execution.`,
       const argsObj = args as Record<string, unknown>;
       const taskCoords = argsObj?.taskCoords as string;
       const instruction = argsObj?.instruction as string | undefined;
-      const deleteHexplan = argsObj?.deleteHexplan as boolean | undefined;
+      const runId = argsObj?.runId as string | undefined;
 
       if (!taskCoords) {
         throw new Error("taskCoords parameter is required");
@@ -794,7 +793,68 @@ Returns XML-formatted prompt ready for agent execution.`,
       const result = await caller.agentic.hexecute({
         taskCoords,
         instruction,
-        deleteHexplan: deleteHexplan ?? false
+        runId
+      });
+
+      return result;
+    },
+  },
+
+  {
+    name: "updateRunHexplan",
+    description: `Update hexplan content for a specific run and coordinates.
+
+Use this tool to update the hexplan when executing tasks with a runId. The hexplan tracks execution state and progress.
+
+HEXPLAN STATUS MARKERS:
+- 🟡 STARTED: Task began
+- ✅ COMPLETED: Task finished successfully
+- 🔴 BLOCKED: Task stuck, needs intervention
+
+Example usage:
+  updateRunHexplan({
+    runId: "abc123",
+    coords: "userId,0:6,3",
+    content: "✅ COMPLETED: Implemented the feature\\n📋 Review code changes"
+  })`,
+    inputSchema: {
+      type: "object",
+      properties: {
+        runId: {
+          type: "string",
+          description: "The run ID to update hexplan for"
+        },
+        coords: {
+          type: "string",
+          description: "Coordinates of the tile whose hexplan to update (format: 'userId,groupId:path')"
+        },
+        content: {
+          type: "string",
+          description: "New hexplan content with status markers"
+        }
+      },
+      required: ["runId", "coords", "content"],
+    },
+    handler: async (args: unknown, caller: TRPCCaller) => {
+      const argsObj = args as Record<string, unknown>;
+      const runId = argsObj?.runId as string;
+      const coords = argsObj?.coords as string;
+      const content = argsObj?.content as string;
+
+      if (!runId) {
+        throw new Error("runId parameter is required");
+      }
+      if (!coords) {
+        throw new Error("coords parameter is required");
+      }
+      if (content === undefined) {
+        throw new Error("content parameter is required");
+      }
+
+      const result = await caller.agentic.updateRunHexplan({
+        runId,
+        coords,
+        content
       });
 
       return result;
