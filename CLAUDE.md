@@ -19,22 +19,120 @@ Each README.md should contain:
 - **Responsibilities**: What this subsystem handles
 - **Subsystems**: Child components and their purposes
 
-## Project Overview
+## Product Presentation
 
-Hexframe transforms visions into living systems through AI-powered hexagonal maps.
+*Structure your expertise. Let AI execute.*
+
+Hexframe lets you teach AI how to decompose tasks the way you would — and then executes them automatically.
+
+The core experience:
+
+1. **Create** — Break goals into subtasks, top-down, until each is simple enough to trust AI with. Attach context where needed. Let AI help you structure.
+
+2. **Activate** — Run your system. Hexframe orchestrates subagents for each tile, delivering the right context. When something fails, you see exactly where. Refine and run again.
+
+3. **Share** — Publish systems for others to use, fork, and build upon. Learn from systems others have built.
+
+4. **Compose** — Combine systems: reuse context across tiles, use systems as tools, build on what exists.
+
+5. **Monitor** — Track which systems are used, which work well, and which need attention. The portfolio view.
+
+The structure you maintain — your Hexframe — is a living map of your expertise. It captures how you think about decomposing problems, what context matters, and where you trust AI. It evolves as you learn.
+
+Your expertise becomes executable, not just documented.
+
+### Create
+
+Creating a Hexframe is about externalizing your expertise into a structure AI can execute.
+
+The core actions:
+1. **Decompose** — Break goals into subtasks, top-down, until each is simple enough to delegate
+2. **Get help** — Let AI propose decompositions that you review and refine
+3. **Attach context** — Add constraints, examples, and reference materials where needed
+
+The result is a hierarchy of tiles where:
+- Each tile represents a unit of work
+- Parent tiles orchestrate, leaf tiles execute
+- Context flows down from ancestors to descendants
+
+Your expertise lives in the structure: what you chose to decompose, where you stopped, what context you attached, and how you organized it all.
+
+### Activate
+
+Activating a Hexframe turns your structure into execution.
+
+The core actions:
+1. **Run** — Point at a tile and execute. Hexframe orchestrates subagents automatically.
+2. **Observe** — Watch agents work through your structure, see progress tile by tile
+3. **Refine** — When something fails, see exactly where. Fix that tile. Run again.
+
+What makes this powerful:
+- The hierarchy IS the orchestration — no separate workflow to maintain
+- Context flows automatically — each agent sees what's relevant based on position
+- Failures are localized — you know exactly which tile to fix
+
+The feedback loop (run → fail → refine → run) is how your Hexframe gets better over time. Each failure teaches you something about what the AI needed that wasn't there.
+
+### Share
+
+Your Hexframe doesn't have to stay private. You can share systems with others.
+
+What sharing enables:
+- **Publish** — Make a system public so others can discover and use it
+- **Fork** — Others can copy your system and adapt it to their needs
+- **Learn** — Browse systems others have built to learn new approaches
+- **Collaborate** — Work together on shared systems with your team
+
+Why this matters:
+- Expertise becomes transferable — not just to AI, but to other people
+- Good structures get reused — you don't have to start from scratch
+- Patterns emerge — the community discovers what works
+
+Your Hexframe is your expertise made visible. Sharing it means others can benefit from how you think about problems.
+
+### Compose
+
+Systems can build on other systems. This is composition.
+
+How composition works in Hexframe:
+- **Reuse context** — Attach the same context to multiple tiles without duplicating it
+- **Systems as tools** — Give an agent access to another system it can invoke when needed
+- **Build on existing systems** — Reference or extend systems you or others have built
+
+Why this matters:
+- You don't rebuild from scratch — leverage what already works
+- Specialized systems stay focused — they do one thing well
+- Complex capabilities emerge — from combining simple, well-defined systems
+
+Example: A "code review" system might compose a "style checker" system, a "security scanner" system, and a "best practices" context — each maintained separately, combined at runtime.
+
+### Monitor
+
+As you build more systems, you need visibility into the whole portfolio.
+
+What monitoring shows you:
+- **Usage** — Which systems are being activated, how often
+- **Health** — Which systems succeed vs. fail frequently
+- **Maintenance** — Which systems haven't been updated, may be stale
+- **Impact** — Which systems deliver the most value
+
+Why this matters:
+- Focus attention where it counts — improve high-use, high-failure systems first
+- Prune what's unused — keep your Hexframe clean and navigable
+- See patterns — understand which approaches work across your systems
+
+When browsing other users' systems:
+- See which systems are actively used — active usage signals trustworthiness
+- Distinguish maintained systems from abandoned experiments
+- Make informed decisions about which systems to fork or build upon
+
+Monitor is the portfolio view. Activate is one system at a time. Monitor is all systems at once — yours and others'.
 
 ### Core Documentation
-- **Mission & Vision**: `docs/company/MISSION.md` - Why Hexframe exists
-- **Culture & Values**: `docs/company/CULTURE.md` - The tensions that guide us  
-- **Target User**: `docs/company/TARGET_USER.md` - Who we serve (system thinkers)
+
+- **Culture & Values**: `docs/company/CULTURE.md` - The tensions that guide us
 - **Main page**: `src/app/map/README.md` - The interface (web page) to the HexFrame system
-- **Domain Model**: `src/lib/domains/README.md` - Core domain structure
-- **System Philosophy**: `src/app/SYSTEM.md` - What systems mean in Hexframe
-
-## Key Principles
-
-### The Hexframe Thesis
-System thinkers can either become great visionaries or frustrated geniuses — most end up frustrated. The AI revolution changes this: AI can leverage systems better than humans, do the grunt work, and needs exactly the structured context that system thinkers naturally create. 
+- **Domain Model**: `src/lib/domains/README.md` - Core domain structure 
 
 ## Development Commands
 
