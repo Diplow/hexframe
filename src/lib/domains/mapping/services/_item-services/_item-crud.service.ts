@@ -214,12 +214,11 @@ export class ItemCrudService {
     }
 
     if (title !== undefined || content !== undefined || preview !== undefined || link !== undefined) {
-      const updateAttrs = {
-        title,
-        content,
-        preview,
-        link,
-      };
+      const updateAttrs: { title?: string; content?: string; preview?: string; link?: string } = {};
+      if (title !== undefined) updateAttrs.title = title;
+      if (content !== undefined) updateAttrs.content = content;
+      if (preview !== undefined) updateAttrs.preview = preview;
+      if (link !== undefined) updateAttrs.link = link;
       await this.actions.updateRef(item.ref, updateAttrs);
     }
     // Use SYSTEM_INTERNAL for fetching the updated item after update
