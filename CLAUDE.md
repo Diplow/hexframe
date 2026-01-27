@@ -2,22 +2,51 @@
 
 This file provides guidance to AI agents and developpers when working with code in this repository.
 
-## 📚 HIERARCHICAL DOCUMENTATION NAVIGATION
+## Subsystem Architecture
 
-**When understanding any part of the codebase, read documentation hierarchically:**
+The codebase is organized into ~80 **subsystems** — directories containing a `dependencies.json` file. Each subsystem has:
+- `dependencies.json` — declares allowed imports and subsystem type
+- `index.ts` — public API (all external imports must go through this)
+- `README.md` — mental model, responsibilities, child subsystems
 
-1. **Start here** with the root CLAUDE.md for project overview
-2. **Navigate to relevant subsystem** README.md files:
-   - `src/lib/domains/README.md` - For business logic and data persistence
-   - `src/app/map/README.md` - For frontend/UI questions
-   - `src/server/README.md` - For backend/API questions
-3. **Drill deeper** into specific subsystem README.md files as needed
-4. **Read before acting** - Always read the relevant README.md before modifying code
+**Architectural constraints** (enforced by `pnpm check:architecture`):
+- Import only through a subsystem's `index.ts`, never reach into internals
+- Only import dependencies declared in `dependencies.json`
+- No cross-domain imports (domains are isolated)
+- Subsystems exceeding 1000 LoC must have a `README.md`
 
-Each README.md should contain:
-- **Mental Model**: How to think about this subsystem
-- **Responsibilities**: What this subsystem handles
-- **Subsystems**: Child components and their purposes
+**Discovery:**
+```bash
+pnpm subsystem-tree                          # ASCII tree with types and LoC
+pnpm subsystem-tree -- --format json         # JSON output
+pnpm subsystem-tree -- src/lib/domains       # Subtree only
+```
+
+### Workflow: Feature Planning
+
+1. Run `pnpm subsystem-tree` to map the landscape
+2. Identify impacted subsystems, read each one's `README.md`
+3. Structure the plan with one step per impacted subsystem
+4. When delegating a step to a subagent (Task tool), include the subsystem's `README.md` content as context in the prompt
+5. Check `index.ts` exports and `dependencies.json` before writing code
+6. Consider whether new subsystems should be introduced (Rule of 6 exceeded, >1000 LoC, natural boundary)
+
+### Workflow: Impact Analysis
+
+1. Read the changed subsystem's `index.ts` to see public surface
+2. Grep for consumers: `grep -rn "from.*~/path/to/subsystem['\"]" src --include="*.ts" --include="*.tsx"` (reliable because architecture enforcement forces all imports through `index.ts`)
+3. Group results by subsystem, check transitive impact
+
+### Workflow: New Subsystem Introduction
+
+When to create: >6 files (Rule of 6), >1000 LoC, natural concern boundary.
+
+Checklist:
+1. Create `dependencies.json` with type and allowed dependencies
+2. Create `index.ts` as the public API
+3. Create `README.md` with mental model, responsibilities, and subsystems
+4. Add to parent's `"subsystems"` array in its `dependencies.json`
+5. Run `pnpm check:architecture` to validate
 
 ## Product Presentation
 
@@ -138,12 +167,13 @@ Monitor is the portfolio view. Activate is one system at a time. Monitor is all 
 
 ### Core Development
 ```bash
-pnpm check:lint         # Run ESLint
-pnpm typecheck    # TypeScript type checking
-pnpm test         # Run all tests with AI-friendly JSON output
-pnpm check:deadcode
-pnpm check:architecture
-pnpm check:ruleof6
+pnpm check:lint           # Run ESLint
+pnpm typecheck            # TypeScript type checking
+pnpm test                 # Run all tests with AI-friendly JSON output
+pnpm check:deadcode       # Find unused exports and files
+pnpm check:architecture   # Validate subsystem boundaries
+pnpm check:ruleof6        # Check Rule of 6 compliance
+pnpm subsystem-tree       # Show subsystem hierarchy with types and LoC
 ```
 
 ## Code Quality
@@ -154,28 +184,20 @@ Use `pnpm check:architecture` to validate architectural boundaries and coding st
 ### Dead Code Detection
 Use `pnpm check:deadcode [path]` to identify unused exports, files, and transitive dead code. See `scripts/checks/deadcode/README.md` for detection logic and AI-friendly JSON filtering commands. Always review before removing - false positives can occur with dynamic imports and framework patterns.
 
+### Subsystem Navigation
+Use `pnpm subsystem-tree` to visualize the full subsystem hierarchy. Every directory with a `dependencies.json` is a subsystem with enforced boundaries. See `scripts/subsystem-tree/README.md` for options (JSON output, subtree filtering).
+
 ## Architecture Overview
 
-### Frontend
-- **Next.js 15 App Router** with progressive enhancement
-- Static → Progressive → Dynamic component patterns
-- localStorage caching for performance
-- See: `/src/app/map/README.md`
+**Tech stack:** Next.js 15 App Router, tRPC, Drizzle ORM + PostgreSQL, Vitest.
 
-### Backend
-- **tRPC** for type-safe API
-- Server-side caching and optimizations
-- See: `/src/server/README.md`
+| Root Subsystem | Type | Role | Key README |
+|----------------|------|------|------------|
+| `src/app/` | app | Next.js pages and UI components | `src/app/map/README.md` |
+| `src/lib/` | router | Domain layer (DDD) | `src/lib/domains/README.md` |
+| `src/server/` | router | tRPC API, cross-domain orchestration | `src/server/README.md` |
 
-### Domain Layer
-- **Domain-Driven Design** in `/src/lib/domains/`
-- Clear boundaries between mapping, IAM, and other domains
-- See: `/src/lib/domains/README.md`
-
-### Data Layer
-- **Drizzle ORM + PostgreSQL**
-- Migrations in `/drizzle/migrations/`
-- localStorage for performance caching
+The domain layer (`src/lib/domains/`) contains isolated domains (mapping, IAM, agentic, etc.) with no cross-domain imports. Each domain follows DDD patterns with services, repositories, and infrastructure layers.
 
 ## Tile Hierarchy Architecture
 
