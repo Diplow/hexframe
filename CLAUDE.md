@@ -181,7 +181,7 @@ pnpm subsystem-tree       # Show subsystem hierarchy with types and LoC
 Use `pnpm check:architecture` to validate architectural boundaries and coding standards. See `scripts/checks/architecture/README.md` for comprehensive documentation on rules, error types, and AI-friendly filtering commands.
 
 ### Subsystem Navigation
-Use `pnpm subsystem-tree` to visualize the full subsystem hierarchy. Every directory with a `dependencies.json` is a subsystem with enforced boundaries. See `scripts/subsystem-tree/README.md` for options (JSON output, subtree filtering).
+Use `pnpm subsystem-tree` to visualize the full subsystem hierarchy. Every directory with a `dependencies.json` is a subsystem with enforced boundaries. See `scripts/checks/architecture/README.md` for options (JSON output, subtree filtering).
 
 ## Architecture Overview
 
