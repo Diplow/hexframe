@@ -48,6 +48,24 @@ Checklist:
 4. Add to parent's `"subsystems"` array in its `dependencies.json`
 5. Run `pnpm check:architecture` to validate
 
+### Rule of 6
+
+The codebase follows the **Rule of 6** for consistent organization (enforced by `pnpm check:ruleof6`):
+
+- **Subsystems**: Max 6 declared child subsystems per parent. Group related children into a router subsystem.
+- **Files**: Max 6 functions per file. Move extras to other files. Prefix internal functions with `_`.
+- **Functions**: Max 50 lines (warning), 100 lines (error). Refactor into max 6 function calls at the same abstraction level.
+- **Arguments**: Max 6 arguments per function, or 1 object with max 6 keys at the same abstraction level.
+
+Custom thresholds via `.ruleof6-exceptions` files:
+```
+# Function-specific: file:function:threshold
+src/path/file.ts:complexFunction: 150  # Justification for exception
+
+# File-specific: file:threshold
+src/path/file.ts: 10  # Justification for exception
+```
+
 ## Product Presentation
 
 *Structure your expertise. Let AI execute.*
