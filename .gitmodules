@@ -1,0 +1,3 @@
+[submodule "scripts/checks/architecture"]
+	path = scripts/checks/architecture
+	url = https://github.com/Diplow/subsystem-architecture.git

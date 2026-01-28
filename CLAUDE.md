@@ -170,7 +170,6 @@ Monitor is the portfolio view. Activate is one system at a time. Monitor is all 
 pnpm check:lint           # Run ESLint
 pnpm typecheck            # TypeScript type checking
 pnpm test                 # Run all tests with AI-friendly JSON output
-pnpm check:deadcode       # Find unused exports and files
 pnpm check:architecture   # Validate subsystem boundaries
 pnpm check:ruleof6        # Check Rule of 6 compliance
 pnpm subsystem-tree       # Show subsystem hierarchy with types and LoC
@@ -180,9 +179,6 @@ pnpm subsystem-tree       # Show subsystem hierarchy with types and LoC
 
 ### Architecture Enforcement
 Use `pnpm check:architecture` to validate architectural boundaries and coding standards. See `scripts/checks/architecture/README.md` for comprehensive documentation on rules, error types, and AI-friendly filtering commands.
-
-### Dead Code Detection
-Use `pnpm check:deadcode [path]` to identify unused exports, files, and transitive dead code. See `scripts/checks/deadcode/README.md` for detection logic and AI-friendly JSON filtering commands. Always review before removing - false positives can occur with dynamic imports and framework patterns.
 
 ### Subsystem Navigation
 Use `pnpm subsystem-tree` to visualize the full subsystem hierarchy. Every directory with a `dependencies.json` is a subsystem with enforced boundaries. See `scripts/subsystem-tree/README.md` for options (JSON output, subtree filtering).

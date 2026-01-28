@@ -8,15 +8,17 @@ This test suite specifically targets the known false positive issues:
 """
 
 import sys
+import os
 from pathlib import Path
 
 # Add the parent directory to the path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+# Add checks directory for architecture package access
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from checker import RuleOf6Checker
 from models import ViolationType
-from shared.typescript_parser import TypeScriptParser, FunctionInfo
+from architecture.shared.typescript_parser import TypeScriptParser, FunctionInfo
 
 
 class TestFalsePositives:

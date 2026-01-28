@@ -18,7 +18,7 @@ def test_shared_parser():
     sys.path.insert(0, str(Path(__file__).parent))
 
     try:
-        from shared.typescript_parser import TypeScriptParser
+        from architecture.shared.typescript_parser import TypeScriptParser
 
         parser = TypeScriptParser()
 
@@ -98,39 +98,6 @@ export function helper() { return 'help'; }
         return False
 
 
-def test_deadcode_checker():
-    """Test the dead code checker."""
-    sys.path.insert(0, str(Path(__file__).parent))
-
-    try:
-        from deadcode.checker import DeadCodeChecker
-
-        with tempfile.TemporaryDirectory() as temp_dir:
-            test_path = Path(temp_dir)
-
-            # Create files with dead code
-            (test_path / "used.ts").write_text("""
-export function usedFunction() { return 'used'; }
-export function unusedFunction() { return 'unused'; }
-            """.strip())
-
-            (test_path / "main.ts").write_text("""
-import { usedFunction } from './used';
-export function main() { return usedFunction(); }
-            """.strip())
-
-            checker = DeadCodeChecker(str(test_path))
-            results = checker.run_all_checks()
-            issues = results.get_all_issues()
-
-            print(f"    ✅ Dead code: {len(issues)} issues found")
-            return True
-
-    except Exception as e:
-        print(f"    ❌ Dead code error: {e}")
-        return False
-
-
 def test_ruleof6_checker():
     """Test the Rule of 6 checker."""
     original_cwd = os.getcwd()
@@ -172,7 +139,7 @@ def test_comprehensive_scenarios():
     sys.path.insert(0, str(Path(__file__).parent))
 
     try:
-        from shared.typescript_parser import TypeScriptParser
+        from architecture.shared.typescript_parser import TypeScriptParser
 
         parser = TypeScriptParser()
 
@@ -226,7 +193,6 @@ def run_all_tests():
     tests = [
         ("Shared Parser", test_shared_parser),
         ("Architecture Checker", test_architecture_checker),
-        ("Dead Code Checker", test_deadcode_checker),
         ("Rule of 6 Checker", test_ruleof6_checker),
         ("Complex Scenarios", test_comprehensive_scenarios),
     ]
@@ -261,7 +227,6 @@ def run_all_tests():
         print("  • All checkers are working correctly")
         print("  • Parser handles complex TypeScript syntax")
         print("  • Architecture boundaries are enforced")
-        print("  • Dead code detection is functional")
         print("  • Rule of 6 complexity checking works")
         print("  • Ready for production use!")
         return 0

@@ -17,7 +17,7 @@ def test_shared_parser():
     print("🔍 Testing shared TypeScript parser...")
 
     try:
-        from shared.typescript_parser import TypeScriptParser
+        from architecture.shared.typescript_parser import TypeScriptParser
 
         parser = TypeScriptParser()
         content = """
@@ -79,47 +79,6 @@ export function helper() {
         print(f"  ❌ Error: {e}")
         return False
 
-def test_deadcode_checker():
-    """Test the deadcode checker."""
-    print("🔍 Testing deadcode checker...")
-
-    try:
-        from deadcode.checker import DeadCodeChecker
-
-        # Create a temporary test structure
-        with tempfile.TemporaryDirectory() as temp_dir:
-            test_path = Path(temp_dir)
-
-            # Create files with potential dead code
-            (test_path / "used.ts").write_text("""
-export function usedFunction() {
-    return 'used';
-}
-
-export function unusedFunction() {
-    return 'unused';
-}
-            """.strip())
-
-            (test_path / "main.ts").write_text("""
-import { usedFunction } from './used';
-
-export function main() {
-    return usedFunction();
-}
-            """.strip())
-
-            checker = DeadCodeChecker(str(test_path))
-            results = checker.run_all_checks()
-
-            all_issues = results.get_all_issues()
-            print(f"  ✅ Dead code check completed with {len(all_issues)} issues")
-            return True
-
-    except Exception as e:
-        print(f"  ❌ Error: {e}")
-        return False
-
 def test_ruleof6_checker():
     """Test the Rule of 6 checker."""
     print("🔍 Testing Rule of 6 checker...")
@@ -167,7 +126,6 @@ def test_basic_functionality():
     tests = [
         ("Shared Parser", test_shared_parser),
         ("Architecture Checker", test_architecture_checker),
-        ("Dead Code Checker", test_deadcode_checker),
         ("Rule of 6 Checker", test_ruleof6_checker),
     ]
 
@@ -197,7 +155,7 @@ def test_parser_edge_cases():
     print("=" * 40)
 
     try:
-        from shared.typescript_parser import TypeScriptParser
+        from architecture.shared.typescript_parser import TypeScriptParser
         parser = TypeScriptParser()
 
         # Test template literals

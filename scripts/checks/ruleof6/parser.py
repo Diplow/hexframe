@@ -6,16 +6,16 @@ Handles extraction of functions, arguments, and object parameters from TypeScrip
 """
 
 import re
-from pathlib import Path
-from typing import List, Optional, Tuple
 import sys
 import os
+from pathlib import Path
+from typing import List, Optional, Tuple
 
 from models import FileAnalysis
 
-# Import shared TypeScript parser
+# Import shared TypeScript parser from architecture package
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
-from shared.typescript_parser import TypeScriptParser as SharedParser, FunctionInfo
+from architecture.shared.typescript_parser import TypeScriptParser as SharedParser, FunctionInfo
 
 
 class TypeScriptParser:

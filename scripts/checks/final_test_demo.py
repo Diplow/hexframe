@@ -26,7 +26,6 @@ def demo_test_infrastructure():
         "✅ Comprehensive fixture catalog (basic, edge_cases, real_world, regression)",
         "✅ Parser tests (25+ methods covering all functionality)",
         "✅ Architecture checker tests (boundary violations, domain rules)",
-        "✅ Dead code checker tests (unused exports, transitive dependencies)",
         "✅ Rule of 6 tests (complexity violations, directory structure)",
         "✅ Regression tests (template literals, comments, malformed code)",
         "✅ Performance tests (large codebases, deeply nested structures)"
@@ -45,7 +44,7 @@ def demo_parser_bug_detection():
     sys.path.insert(0, str(Path(__file__).parent))
 
     try:
-        from shared.typescript_parser import TypeScriptParser
+        from architecture.shared.typescript_parser import TypeScriptParser
 
         parser = TypeScriptParser()
 
@@ -181,17 +180,6 @@ def demo_test_categories():
             ]
         },
         {
-            "name": "Dead Code Checker Tests",
-            "coverage": "8+ patterns",
-            "scope": [
-                "Unused export detection",
-                "Unused import identification",
-                "Transitive dead code analysis",
-                "Cross-file reference tracking",
-                "React component usage patterns"
-            ]
-        },
-        {
             "name": "Rule of 6 Tests",
             "coverage": "12+ violations",
             "scope": [
@@ -287,8 +275,6 @@ scripts/checks/
 │       └── test_helpers.py              # 🆕 Unified test infrastructure
 ├── architecture/tests/                  # 🆕
 │   └── test_architecture_checker.py     # 🆕 Architecture tests
-├── deadcode/tests/                      # 🆕
-│   └── test_deadcode_checker.py         # 🆕 Dead code tests
 ├── ruleof6/tests/                       # ✨ Enhanced existing
 │   └── test_comprehensive_ruleof6.py    # 🆕 Comprehensive tests
 ├── run-all-tests.py                     # 🆕 Master test runner

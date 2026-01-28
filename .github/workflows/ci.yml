@@ -92,43 +92,6 @@ jobs:
         env:
           SKIP_ENV_VALIDATION: true
 
-  # Dead code detection job (informational only, does not block CI)
-  deadcode:
-    name: Dead Code Check (Optional)
-    needs: setup
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Setup Python 3.10
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-          run_install: false
-
-      - name: Restore node_modules cache
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ hashFiles('**/pnpm-lock.yaml') }}
-
-      - name: Run dead code check
-        run: pnpm check:deadcode
-        env:
-          SKIP_ENV_VALIDATION: true
-
   # Architecture validation job
   architecture:
     name: Architecture Check
@@ -137,6 +100,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -174,6 +139,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -405,7 +372,7 @@ jobs:
   # Note: deadcode and ruleof6 are optional (informational only)
   ci-status:
     name: CI Status Check
-    needs: [eslint, deadcode, architecture, ruleof6, typecheck, test-phase1, test-phase2, build]
+    needs: [eslint, architecture, ruleof6, typecheck, test-phase1, test-phase2, build]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -423,9 +390,6 @@ jobs:
           fi
 
           # Optional checks (informational only, logged but don't fail CI)
-          if [[ "${{ needs.deadcode.result }}" != "success" ]]; then
-            echo "⚠️ Dead code check found issues (optional, not blocking)"
-          fi
           if [[ "${{ needs.ruleof6.result }}" != "success" ]]; then
             echo "⚠️ Rule of 6 check found issues (optional, not blocking)"
           fi

@@ -88,7 +88,6 @@ def run_quick_validation():
     checkers_to_test = [
         ('shared', 'TypeScript parser'),
         ('architecture', 'Architecture boundaries'),
-        ('deadcode', 'Dead code detection'),
         ('ruleof6', 'Rule of 6 complexity')
     ]
 
@@ -188,7 +187,7 @@ def main():
         return
 
     # Run comprehensive tests
-    checkers = ['shared', 'regression', 'architecture', 'deadcode', 'ruleof6']
+    checkers = ['shared', 'regression', 'architecture', 'ruleof6']
     results = []
 
     total_start = time.time()
