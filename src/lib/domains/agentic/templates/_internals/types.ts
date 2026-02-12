@@ -26,6 +26,7 @@ export interface PromptData {
     content: string | undefined
     coords: string
     itemType?: ItemTypeValue
+    hexplan?: string
   }>
   composedChildren: Array<PromptDataTile>
   structuralChildren: Array<PromptDataTile>
@@ -40,4 +41,10 @@ export interface PromptData {
   discussion?: string
   /** For USER tiles: the user's current message/instruction */
   userMessage?: string
+  /** Whether this run is resuming from a blocked state */
+  wasBlocked?: boolean
+  /** The reason for the previous blockage (if wasBlocked is true) */
+  blockageReason?: string
+  /** Run ID for hexplan storage - agents use this to update hexplan via updateRunHexplan */
+  runId?: string
 }

@@ -18,6 +18,7 @@ import {
   mapDeleteChildrenRequestedEventSchema,
   mapCreateRequestedEventSchema,
   mapFavoritesWidgetRequestedEventSchema,
+  mapRunWidgetRequestedEventSchema,
   safeValidateEvent,
 } from '~/app/map/types';
 
@@ -393,6 +394,27 @@ function _transformOperationEvents(validEvent: AppEvent, baseEvent: Partial<Chat
             type: 'favorites',
             data: {
               editShortcutForMapItemId: payload.editShortcutForMapItemId,
+            },
+            priority: 'action',
+            timestamp: baseEvent.timestamp,
+          },
+        },
+      } as ChatEvent;
+    }
+
+    case 'map.run_widget_requested': {
+      const payload = mapRunWidgetRequestedEventSchema.parse(validEvent).payload;
+      // Create run widget for SYSTEM tile execution
+      return {
+        ...baseEvent,
+        type: 'widget_created',
+        payload: {
+          widget: {
+            id: `run-${Date.now()}`,
+            type: 'run',
+            data: {
+              tileCoords: payload.tileCoords,
+              tileTitle: payload.tileTitle,
             },
             priority: 'action',
             timestamp: baseEvent.timestamp,

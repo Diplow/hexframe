@@ -84,19 +84,6 @@ function _createMapUIHandlers(
     });
   };
 
-  const handleDeleteHexplanClick = (tileData: TileData) => {
-    eventBus.emit({
-      type: 'map.delete_children_requested',
-      source: 'canvas',
-      payload: {
-        tileId: tileData.metadata.coordId,
-        tileName: tileData.data.title,
-        directionType: 'hexPlan',
-      },
-      timestamp: new Date(),
-    });
-  };
-
   const handleCreateClick = (_tileData: TileData) => {
     // TODO: Implement create functionality
   };
@@ -109,7 +96,6 @@ function _createMapUIHandlers(
     handleDeleteClick,
     handleDeleteChildrenClick,
     handleDeleteComposedClick,
-    handleDeleteHexplanClick,
     handleCreateClick,
   };
 }
@@ -239,7 +225,6 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
     handleDeleteClick,
     handleDeleteChildrenClick,
     handleDeleteComposedClick,
-    handleDeleteHexplanClick,
     handleCreateClick,
   } = _createMapUIHandlers(
     navigateToItem,
@@ -304,6 +289,19 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
     });
   }, [eventBus]);
 
+  // Run handler for SYSTEM tiles - emits event to open RunWidget
+  const handleRunClick = useCallback((tileData: TileData) => {
+    eventBus.emit({
+      type: 'map.run_widget_requested',
+      source: 'canvas',
+      payload: {
+        tileCoords: tileData.metadata.coordId,
+        tileTitle: tileData.data.title,
+      },
+      timestamp: new Date(),
+    });
+  }, [eventBus]);
+
   // Composition state checkers
   const hasComposition = (coordId: string): boolean => {
     // Check if tile has any composed children (negative directions)
@@ -344,7 +342,6 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
       onDeleteClick={handleDeleteClick}
       onDeleteChildrenClick={handleDeleteChildrenClick}
       onDeleteComposedClick={handleDeleteComposedClick}
-      onDeleteHexplanClick={handleDeleteHexplanClick}
       onCompositionToggle={handleCompositionToggle}
       onSetVisibility={handleSetVisibility}
       onSetVisibilityWithDescendants={handleSetVisibilityWithDescendants}
@@ -355,6 +352,7 @@ export function MapUI({ centerParam: _centerParam }: MapUIProps) {
       onRemoveFavorite={handleRemoveFavorite}
       isFavorited={isFavorited}
       onEditShortcut={handleEditShortcut}
+      onRunClick={handleRunClick}
     >
       <>
         {/* Canvas layer - extends full width, positioned behind chat panel */}

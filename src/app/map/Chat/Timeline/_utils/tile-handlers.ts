@@ -74,21 +74,6 @@ export function createTileHandlers(
     });
   };
 
-  const handleDeleteHexplan = () => {
-    const previewData = widget.data as TileSelectedPayload;
-
-    eventBus?.emit({
-      type: 'map.delete_children_requested',
-      payload: {
-        tileId: previewData.tileData.coordId,
-        tileName: previewData.tileData.title,
-        directionType: 'hexPlan',
-      },
-      source: 'chat_cache',
-      timestamp: new Date(),
-    });
-  };
-  
   const handleTileClose = () => {
     chatState.closeWidget(widget.id);
     focusChatInput();
@@ -166,7 +151,6 @@ export function createTileHandlers(
     handleDelete,
     handleDeleteChildren,
     handleDeleteComposed,
-    handleDeleteHexplan,
     handleSetVisibility,
     handleSetVisibilityWithDescendants,
     handleTileSave,

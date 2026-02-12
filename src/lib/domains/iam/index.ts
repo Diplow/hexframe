@@ -1,14 +1,18 @@
 /**
  * Public API for IAM Domain
- * 
+ *
  * Consumers: App layer (auth pages), tRPC API, other domains
  */
+
+import { withLogging } from '~/lib/debug/with-logging';
 
 // Domain entities
 export { User, type UserProps, type CreateUserProps } from '~/lib/domains/iam/_objects';
 
 // Domain services
-export { IAMService, FavoritesService } from '~/lib/domains/iam/services';
+import { IAMService as _IAMService, FavoritesService as _FavoritesService } from '~/lib/domains/iam/services';
+export const IAMService = withLogging("IAMService", _IAMService);
+export const FavoritesService = withLogging("FavoritesService", _FavoritesService);
 
 // Repository interfaces (for testing/mocking)
 export type {

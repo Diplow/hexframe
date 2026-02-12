@@ -2,50 +2,186 @@
 
 This file provides guidance to AI agents and developpers when working with code in this repository.
 
-## 📚 HIERARCHICAL DOCUMENTATION NAVIGATION
+## Subsystem Architecture
 
-**When understanding any part of the codebase, read documentation hierarchically:**
+The codebase is organized into ~80 **subsystems** — directories containing a `dependencies.json` file. Each subsystem has:
+- `dependencies.json` — declares allowed imports and subsystem type
+- `index.ts` — public API (all external imports must go through this)
+- `README.md` — mental model, responsibilities, child subsystems
 
-1. **Start here** with the root CLAUDE.md for project overview
-2. **Navigate to relevant subsystem** README.md files:
-   - `src/lib/domains/README.md` - For business logic and data persistence
-   - `src/app/map/README.md` - For frontend/UI questions
-   - `src/server/README.md` - For backend/API questions
-3. **Drill deeper** into specific subsystem README.md files as needed
-4. **Read before acting** - Always read the relevant README.md before modifying code
+**Architectural constraints** (enforced by `pnpm check:architecture`):
+- Import only through a subsystem's `index.ts`, never reach into internals
+- Only import dependencies declared in `dependencies.json`
+- No cross-domain imports (domains are isolated)
+- Subsystems exceeding 1000 LoC must have a `README.md`
 
-Each README.md should contain:
-- **Mental Model**: How to think about this subsystem
-- **Responsibilities**: What this subsystem handles
-- **Subsystems**: Child components and their purposes
+**Discovery:**
+```bash
+pnpm subsystem-tree                          # ASCII tree with types and LoC
+pnpm subsystem-tree -- --format json         # JSON output
+pnpm subsystem-tree -- src/lib/domains       # Subtree only
+```
 
-## Project Overview
+### Workflow: Feature Planning
 
-Hexframe transforms visions into living systems through AI-powered hexagonal maps.
+1. Run `pnpm subsystem-tree` to map the landscape
+2. Identify impacted subsystems, read each one's `README.md`
+3. Structure the plan with one step per impacted subsystem
+4. When delegating a step to a subagent (Task tool), include the subsystem's `README.md` content as context in the prompt
+5. Check `index.ts` exports and `dependencies.json` before writing code
+6. Consider whether new subsystems should be introduced (Rule of 6 exceeded, >1000 LoC, natural boundary)
+
+### Workflow: Impact Analysis
+
+1. Read the changed subsystem's `index.ts` to see public surface
+2. Grep for consumers: `grep -rn "from.*~/path/to/subsystem['\"]" src --include="*.ts" --include="*.tsx"` (reliable because architecture enforcement forces all imports through `index.ts`)
+3. Group results by subsystem, check transitive impact
+
+### Workflow: New Subsystem Introduction
+
+When to create: >6 files (Rule of 6), >1000 LoC, natural concern boundary.
+
+Checklist:
+1. Create `dependencies.json` with type and allowed dependencies
+2. Create `index.ts` as the public API
+3. Create `README.md` with mental model, responsibilities, and subsystems
+4. Add to parent's `"subsystems"` array in its `dependencies.json`
+5. Run `pnpm check:architecture` to validate
+
+### Rule of 6
+
+The codebase follows the **Rule of 6** for consistent organization (enforced by `pnpm check:ruleof6`):
+
+- **Subsystems**: Max 6 declared child subsystems per parent. Group related children into a router subsystem.
+- **Files**: Max 6 functions per file. Move extras to other files. Prefix internal functions with `_`.
+- **Functions**: Max 50 lines (warning), 100 lines (error). Refactor into max 6 function calls at the same abstraction level.
+- **Arguments**: Max 6 arguments per function, or 1 object with max 6 keys at the same abstraction level.
+
+Custom thresholds via `.ruleof6-exceptions` files:
+```
+# Function-specific: file:function:threshold
+src/path/file.ts:complexFunction: 150  # Justification for exception
+
+# File-specific: file:threshold
+src/path/file.ts: 10  # Justification for exception
+```
+
+## Product Presentation
+
+*Structure your expertise. Let AI execute. Get paid.*
+
+Hexframe helps experts — in sales, coaching, research, strategy — turn what they know into AI-powered systems they can run, refine, and sell. What you're building when you automate your expertise is a system. Hexframe gives you the tools to build systems well, informed by decades of software engineering practice, without the engineering background.
+
+The core experience:
+
+1. **Create** — Break your expertise into tasks and subtasks, top-down, until each piece is simple enough to trust AI with. Attach context where needed. Compose systems from other systems for advanced use cases.
+
+2. **Activate** — Run your system. Hexframe orchestrates AI agents for each tile, delivering the right context. When something fails, you see exactly where. Fix that tile. Run again.
+
+3. **Sell** — Let others use your systems. Set your pricing on top of AI execution costs. Hexframe handles metering and billing. Your expertise generates revenue.
+
+4. **Share** — Open your systems for others to discover, fork, and build upon. The open-source side of the ecosystem — grow the commons, learn from what others have built.
+
+5. **Monitor** — Track usage, health, and revenue across all your systems. See what works, what breaks, and where to focus.
+
+The structure you maintain — your Hexframe — is a living map of your expertise. It captures how you decompose problems, what context matters, and where you trust AI. It evolves as you learn.
+
+### The journey
+
+Building AI systems that work means learning three things:
+
+**Your system is never finished.** There's always an edge case, a shifting environment, a new problem that surfaces because your solution changed the landscape. The moment you stop learning is the moment you fall behind.
+
+**Speed of learning is everything.** The only way to improve is to put your system in front of real users and listen. The faster you can run, observe, fix, and run again, the faster you learn. Iterate faster than your competitors.
+
+**Simplicity is your best weapon.** As your system grows, complexity compounds. AI chokes on ambiguity faster than humans do. The antidote is relentless simplicity: clear instructions, well-defined boundaries, reusable building blocks.
+
+Hexframe is built around this journey: ship something that works, learn from real usage, iterate, and keep things simple as you grow.
+
+### Create
+
+Creating in Hexframe means externalizing your expertise into a structure AI can execute.
+
+The core actions:
+1. **Decompose** — Break goals into subtasks, top-down, until each is simple enough to delegate
+2. **Get help** — Let AI propose decompositions that you review and refine
+3. **Attach context** — Add constraints, examples, and reference materials where needed
+
+The result is a hierarchy of tiles where:
+- Each tile represents a unit of work
+- Parent tiles orchestrate, leaf tiles execute
+- Context flows down from ancestors to descendants
+
+For advanced use cases, **compose** systems by using other systems as building blocks — reference existing systems as tools within tiles, share context across hierarchies, and build layered capabilities from simple parts.
+
+### Activate
+
+Activating turns your structure into execution.
+
+The core actions:
+1. **Run** — Point at a tile and execute. Hexframe orchestrates AI agents automatically.
+2. **Observe** — Watch agents work through your structure, see progress tile by tile
+3. **Refine** — When something fails, see exactly where. Fix that tile. Run again.
+
+What makes this powerful:
+- The hierarchy IS the orchestration — no separate workflow to maintain
+- Context flows automatically — each agent sees what's relevant based on position
+- Failures are localized — you know exactly which tile to fix
+
+The feedback loop (run → observe → fix → run) is how your system gets better over time.
+
+### Sell
+
+Your systems have value. Hexframe lets you capture it.
+
+How selling works:
+- **Set pricing** — Add your margin on top of AI execution costs (token-based billing)
+- **Control access** — Decide who can use your systems, offer trial credits
+- **Keep your methods** — Users get results without seeing your system internals
+- **Track revenue** — See what you earn across all your systems
+
+Why this matters: there's no path from "it works for me" to "it works for others" with raw prompts. Hexframe provides the distribution and billing infrastructure so you can focus on making your systems better.
+
+### Share
+
+Not everything needs to be monetized. You can open your systems for the community.
+
+What sharing enables:
+- **Publish** — Make a system public so others can discover and use it
+- **Fork** — Others can copy your system and adapt it to their needs
+- **Learn** — Browse systems others have built to learn new approaches
+- **Collaborate** — Work together on shared systems
+
+This is the open-source side of the Hexframe ecosystem. Good structures get reused. Patterns emerge. The community discovers what works.
+
+### Monitor
+
+As you build more systems, you need visibility into the whole portfolio.
+
+What monitoring shows you:
+- **Usage** — Which systems are being run, how often, by whom
+- **Health** — Which systems succeed vs. fail frequently
+- **Revenue** — What's earning, what's not
+- **Maintenance** — Which systems need attention or have gone stale
+
+Focus attention where it counts — improve high-use, high-failure systems first. Prune what's unused. See patterns across your systems.
 
 ### Core Documentation
-- **Mission & Vision**: `docs/company/MISSION.md` - Why Hexframe exists
-- **Culture & Values**: `docs/company/CULTURE.md` - The tensions that guide us  
-- **Target User**: `docs/company/TARGET_USER.md` - Who we serve (system thinkers)
+
+- **Culture & Values**: `docs/company/CULTURE.md` - The tensions that guide us
 - **Main page**: `src/app/map/README.md` - The interface (web page) to the HexFrame system
-- **Domain Model**: `src/lib/domains/README.md` - Core domain structure
-- **System Philosophy**: `src/app/SYSTEM.md` - What systems mean in Hexframe
-
-## Key Principles
-
-### The Hexframe Thesis
-System thinkers can either become great visionaries or frustrated geniuses — most end up frustrated. The AI revolution changes this: AI can leverage systems better than humans, do the grunt work, and needs exactly the structured context that system thinkers naturally create. 
+- **Domain Model**: `src/lib/domains/README.md` - Core domain structure 
 
 ## Development Commands
 
 ### Core Development
 ```bash
-pnpm check:lint         # Run ESLint
-pnpm typecheck    # TypeScript type checking
-pnpm test         # Run all tests with AI-friendly JSON output
-pnpm check:deadcode
-pnpm check:architecture
-pnpm check:ruleof6
+pnpm check:lint           # Run ESLint
+pnpm typecheck            # TypeScript type checking
+pnpm test                 # Run all tests with AI-friendly JSON output
+pnpm check:architecture   # Validate subsystem boundaries
+pnpm check:ruleof6        # Check Rule of 6 compliance
+pnpm subsystem-tree       # Show subsystem hierarchy with types and LoC
 ```
 
 ## Code Quality
@@ -53,31 +189,20 @@ pnpm check:ruleof6
 ### Architecture Enforcement
 Use `pnpm check:architecture` to validate architectural boundaries and coding standards. See `scripts/checks/architecture/README.md` for comprehensive documentation on rules, error types, and AI-friendly filtering commands.
 
-### Dead Code Detection
-Use `pnpm check:deadcode [path]` to identify unused exports, files, and transitive dead code. See `scripts/checks/deadcode/README.md` for detection logic and AI-friendly JSON filtering commands. Always review before removing - false positives can occur with dynamic imports and framework patterns.
+### Subsystem Navigation
+Use `pnpm subsystem-tree` to visualize the full subsystem hierarchy. Every directory with a `dependencies.json` is a subsystem with enforced boundaries. See `scripts/checks/architecture/README.md` for options (JSON output, subtree filtering).
 
 ## Architecture Overview
 
-### Frontend
-- **Next.js 15 App Router** with progressive enhancement
-- Static → Progressive → Dynamic component patterns
-- localStorage caching for performance
-- See: `/src/app/map/README.md`
+**Tech stack:** Next.js 15 App Router, tRPC, Drizzle ORM + PostgreSQL, Vitest.
 
-### Backend
-- **tRPC** for type-safe API
-- Server-side caching and optimizations
-- See: `/src/server/README.md`
+| Root Subsystem | Type | Role | Key README |
+|----------------|------|------|------------|
+| `src/app/` | app | Next.js pages and UI components | `src/app/map/README.md` |
+| `src/lib/` | router | Domain layer (DDD) | `src/lib/domains/README.md` |
+| `src/server/` | router | tRPC API, cross-domain orchestration | `src/server/README.md` |
 
-### Domain Layer
-- **Domain-Driven Design** in `/src/lib/domains/`
-- Clear boundaries between mapping, IAM, and other domains
-- See: `/src/lib/domains/README.md`
-
-### Data Layer
-- **Drizzle ORM + PostgreSQL**
-- Migrations in `/drizzle/migrations/`
-- localStorage for performance caching
+The domain layer (`src/lib/domains/`) contains isolated domains (mapping, IAM, agentic, etc.) with no cross-domain imports. Each domain follows DDD patterns with services, repositories, and infrastructure layers.
 
 ## Tile Hierarchy Architecture
 

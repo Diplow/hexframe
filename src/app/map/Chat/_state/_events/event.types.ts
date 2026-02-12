@@ -66,7 +66,7 @@ export interface Message {
 
 export interface Widget {
   id: string;
-  type: 'tile' | 'creation' | 'delete' | 'delete_children' | 'login' | 'loading' | 'error' | 'ai-response' | 'mcp-keys' | 'debug-logs' | 'favorites' | 'tool-call';
+  type: 'tile' | 'creation' | 'delete' | 'delete_children' | 'login' | 'loading' | 'error' | 'ai-response' | 'mcp-keys' | 'debug-logs' | 'favorites' | 'tool-call' | 'run' | 'runs-list';
   data: unknown;
   priority: 'info' | 'action' | 'critical';
   timestamp: Date;

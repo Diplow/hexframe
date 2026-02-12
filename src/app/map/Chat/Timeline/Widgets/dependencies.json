@@ -14,6 +14,7 @@
     "./Adapters",
     "./AIResponseWidget",
     "./LoginWidget",
+    "./RunWidget",
     "./TileWidget"
   ]
 }

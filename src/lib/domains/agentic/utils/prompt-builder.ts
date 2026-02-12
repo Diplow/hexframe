@@ -15,60 +15,33 @@ export { buildPrompt, type PromptData } from '~/lib/domains/agentic/templates'
 
 /**
  * Generates hexplan content for a parent tile (tile with subtasks).
- * This is used by the API to create/initialize the hexplan tile before prompting.
  *
- * For root tiles (when allLeafTasks is provided), generates a flat list of ALL leaf tasks
- * across the entire hierarchy. This enables single-pass execution tracking.
- *
- * For intermediate parent tiles (no allLeafTasks), generates steps for direct children only.
+ * Orchestration is handled externally by RunService - hexplan is just for
+ * instruction propagation and agent notes. The instruction propagates to
+ * all subtask prompts via ancestor context.
  */
 export function generateParentHexplanContent(
-  structuralChildren: Array<{ title: string; coords: string }>,
-  allLeafTasks?: Array<{ title: string; coords: string }>
+  _structuralChildren: Array<{ title: string; coords: string }>,
+  _allLeafTasks?: Array<{ title: string; coords: string }>,
+  instruction?: string
 ): string {
-  const lines: string[] = []
-  lines.push('🟡 STARTED')
-  lines.push('')
-
-  if (allLeafTasks && allLeafTasks.length > 0) {
-    lines.push('**Leaf Tasks:**')
-    allLeafTasks.forEach((leaf, index) => {
-      lines.push(`📋 ${index + 1}. "${leaf.title}" → ${leaf.coords}`)
-    })
-  } else {
-    lines.push('**Steps:**')
-    structuralChildren.forEach((child, index) => {
-      lines.push(`📋 ${index + 1}. Execute "${child.title}" → ${child.coords}`)
-    })
+  if (!instruction) {
+    return ''
   }
-
-  lines.push('')
-  lines.push('**Progress:**')
-  lines.push('(initialized)')
-  lines.push('')
-  lines.push('**Findings:**')
-  lines.push('(none yet)')
-  return lines.join('\n')
+  return `**Instruction:** ${instruction}`
 }
 
 /**
  * Generates hexplan content for a leaf tile (tile without subtasks).
- * This is used by the API to create/initialize the hexplan tile before prompting.
+ *
+ * Just contains the instruction if provided. Agent can add notes during execution.
  */
 export function generateLeafHexplanContent(
-  taskTitle: string,
+  _taskTitle: string,
   instruction: string | undefined
 ): string {
-  const lines: string[] = []
-  lines.push(`🟡 STARTED: "${taskTitle}"`)
-  lines.push('')
-  if (instruction) {
-    lines.push(`**Instruction:** ${instruction}`)
-    lines.push('')
+  if (!instruction) {
+    return ''
   }
-  lines.push('📋 Execute the task')
-  lines.push('')
-  lines.push('**Progress:**')
-  lines.push('(initialized)')
-  return lines.join('\n')
+  return `**Instruction:** ${instruction}`
 }

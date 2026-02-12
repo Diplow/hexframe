@@ -214,12 +214,11 @@ export class ItemCrudService {
     }
 
     if (title !== undefined || content !== undefined || preview !== undefined || link !== undefined) {
-      const updateAttrs = {
-        title,
-        content,
-        preview,
-        link,
-      };
+      const updateAttrs: { title?: string; content?: string; preview?: string; link?: string } = {};
+      if (title !== undefined) updateAttrs.title = title;
+      if (content !== undefined) updateAttrs.content = content;
+      if (preview !== undefined) updateAttrs.preview = preview;
+      if (link !== undefined) updateAttrs.link = link;
       await this.actions.updateRef(item.ref, updateAttrs);
     }
     // Use SYSTEM_INTERNAL for fetching the updated item after update
@@ -481,11 +480,12 @@ export class ItemCrudService {
       return;
     }
 
-    // Rule: ORGANIZATIONAL tiles can only be under USER or ORGANIZATIONAL
+    // Rule: ORGANIZATIONAL tiles can only be under USER, ORGANIZATIONAL, or CONTEXT
     if (childItemType === MapItemType.ORGANIZATIONAL) {
-      if (parentItemType !== MapItemType.USER && parentItemType !== MapItemType.ORGANIZATIONAL) {
+      const allowedParents = [MapItemType.USER, MapItemType.ORGANIZATIONAL, MapItemType.CONTEXT];
+      if (!allowedParents.includes(parentItemType)) {
         throw new Error(
-          "ORGANIZATIONAL tiles can only be created under USER or ORGANIZATIONAL parents. " +
+          "ORGANIZATIONAL tiles can only be created under USER, ORGANIZATIONAL, or CONTEXT parents. " +
           `Cannot create ORGANIZATIONAL tile under ${parentItemType} parent.`
         );
       }
@@ -502,9 +502,10 @@ export class ItemCrudService {
         break;
 
       case MapItemType.CONTEXT:
-        if (childItemType !== MapItemType.CONTEXT) {
+        // CONTEXT tiles can have CONTEXT or ORGANIZATIONAL children
+        if (childItemType !== MapItemType.CONTEXT && childItemType !== MapItemType.ORGANIZATIONAL) {
           throw new Error(
-            "Structural children of CONTEXT tiles must also be CONTEXT tiles. " +
+            "Structural children of CONTEXT tiles must be CONTEXT or ORGANIZATIONAL tiles. " +
             "Use composition children (negative directions) for supporting materials."
           );
         }

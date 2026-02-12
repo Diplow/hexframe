@@ -17,9 +17,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 
 from architecture.checker import ArchitectureChecker
-from deadcode.checker import DeadCodeChecker
 from ruleof6.checker import RuleOf6Checker
-from shared.typescript_parser import TypeScriptParser
+from architecture.shared.typescript_parser import TypeScriptParser
 
 
 @contextmanager
@@ -102,9 +101,6 @@ def run_checker(checker_type: str, path: Union[str, Path], **kwargs) -> Any:
     if checker_type == 'architecture':
         checker = ArchitectureChecker(str(path))
         return checker.run_all_checks()
-    elif checker_type == 'deadcode':
-        checker = DeadCodeChecker(str(path))
-        return checker.check()
     elif checker_type == 'ruleof6':
         checker = RuleOf6Checker(str(path))
         return checker.check()
@@ -136,9 +132,6 @@ def assert_no_false_positives(results: Any, expected_clean: List[str], checker_t
     if checker_type == 'architecture':
         # Architecture results have errors list
         flagged_files = {error.file_path for error in results.errors}
-    elif checker_type == 'deadcode':
-        # Dead code results have issues list
-        flagged_files = {issue.file_path for issue in results.issues}
     elif checker_type == 'ruleof6':
         # Rule of 6 results have violations list
         flagged_files = {violation.file_path for violation in results.violations}
@@ -265,8 +258,6 @@ def assert_checker_finds_issues(results: Any, expected_issues: List[str], checke
     """
     if checker_type == 'architecture':
         found_issues = [error.message for error in results.errors]
-    elif checker_type == 'deadcode':
-        found_issues = [f"{issue.symbol_name} in {issue.file_path}" for issue in results.issues]
     elif checker_type == 'ruleof6':
         found_issues = [violation.message for violation in results.violations]
     else:

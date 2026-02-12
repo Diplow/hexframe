@@ -15,7 +15,6 @@ interface HeaderActionsProps {
   onDelete?: () => void;
   onDeleteChildren?: () => void;
   onDeleteComposed?: () => void;
-  onDeleteHexplan?: () => void;
   onSetVisibility?: (visibility: Visibility) => void;
   onSetVisibilityWithDescendants?: (visibility: Visibility) => void;
   onClose?: () => void;
@@ -33,7 +32,6 @@ export function _HeaderActions({
   onDelete,
   onDeleteChildren,
   onDeleteComposed,
-  onDeleteHexplan,
   onSetVisibility,
   onSetVisibilityWithDescendants,
   onClose,
@@ -73,7 +71,6 @@ export function _HeaderActions({
       onDelete={onDelete}
       onDeleteChildren={onDeleteChildren}
       onDeleteComposed={onDeleteComposed}
-      onDeleteHexplan={onDeleteHexplan}
       onSetVisibility={onSetVisibility}
       onSetVisibilityWithDescendants={onSetVisibilityWithDescendants}
       onClose={onClose}

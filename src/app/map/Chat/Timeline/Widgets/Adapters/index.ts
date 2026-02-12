@@ -11,13 +11,14 @@ import { _renderTileWidget, _renderCreationWidget, _renderDeleteWidget, _renderD
 import { _renderLoginWidget, _renderErrorWidget } from '~/app/map/Chat/Timeline/Widgets/Adapters/_auth-error-adapters';
 import { _renderLoadingWidget, _renderAIResponseWidget, _renderMcpKeysWidget, _renderDebugLogsWidget, _renderFavoritesWidget } from '~/app/map/Chat/Timeline/Widgets/Adapters/_ai-debug-adapters';
 import { _renderToolCallWidget } from '~/app/map/Chat/Timeline/Widgets/Adapters/_tool-call-adapter';
+import { _renderRunWidget } from '~/app/map/Chat/Timeline/Widgets/Adapters/_run-adapter';
+import { _renderRunsListWidget } from '~/app/map/Chat/Timeline/Widgets/Adapters/_runs-list-adapter';
 
 export interface WidgetHandlers {
   handleEdit?: () => void;
   handleDelete?: () => void;
   handleDeleteChildren?: () => void;
   handleDeleteComposed?: () => void;
-  handleDeleteHexplan?: () => void;
   handleSetVisibility?: (visibility: Visibility) => void;
   handleSetVisibilityWithDescendants?: (visibility: Visibility) => void;
   handleTileSave?: (title: string, preview: string, content: string, itemType?: string) => void;
@@ -25,6 +26,7 @@ export interface WidgetHandlers {
   handleSave?: (name: string, preview: string, content: string) => void;
   handleCancel?: () => void;
   onInsertToChat?: (text: string) => void;
+  showRunWidget?: (coords: string, title: string) => void;
 }
 
 export function renderTileWidget(
@@ -77,4 +79,12 @@ export function renderFavoritesWidget(widget: Widget, handlers: WidgetHandlers) 
 
 export function renderToolCallWidget(widget: Widget) {
   return _renderToolCallWidget(widget);
+}
+
+export function renderRunWidget(widget: Widget, handlers: WidgetHandlers) {
+  return _renderRunWidget(widget, handlers);
+}
+
+export function renderRunsListWidget(widget: Widget, handlers: WidgetHandlers) {
+  return _renderRunsListWidget(widget, handlers);
 }

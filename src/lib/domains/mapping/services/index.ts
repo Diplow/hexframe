@@ -6,4 +6,9 @@ export { ItemQueryService } from "~/lib/domains/mapping/services/_item-services"
 export { ItemHistoryService } from "~/lib/domains/mapping/services/_item-services";
 export { ItemContextService, type HexecuteContext } from "~/lib/domains/mapping/services/_item-services";
 export { MappingUtils } from "~/lib/domains/mapping/services/_mapping-utils";
+export {
+  LeafTraversalService,
+  type NextLeafResult,
+  type LeafTraversalServiceDeps,
+} from "~/lib/domains/mapping/services/_traversal-services";
 // export * from "./adapters";

@@ -15,6 +15,8 @@ export { McpKeysWidget } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/Mcp
 export { DebugLogsWidget } from '~/app/map/Chat/Timeline/Widgets/DebugLogsWidget';
 export { FavoritesWidget } from '~/app/map/Chat/Timeline/Widgets/FavoritesWidget';
 export { ToolCallWidget } from '~/app/map/Chat/Timeline/Widgets/ToolCallWidget';
+export { RunWidget } from '~/app/map/Chat/Timeline/Widgets/RunWidget';
+export { RunsListWidget } from '~/app/map/Chat/Timeline/Widgets/RunsListWidget';
 
 // Shared Widget Components (for internal widget implementations)
 export { BaseWidget, WidgetHeader, WidgetContent } from '~/app/map/Chat/Timeline/Widgets/_shared';
@@ -43,6 +45,8 @@ export {
   renderDebugLogsWidget,
   renderFavoritesWidget,
   renderToolCallWidget,
+  renderRunWidget,
+  renderRunsListWidget,
 } from '~/app/map/Chat/Timeline/Widgets/Adapters';
 
 /**

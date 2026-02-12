@@ -1,4 +1,4 @@
-import { Edit, Trash2, Move, Copy, Plus, Layers, FolderTree, Clock } from "lucide-react";
+import { Edit, Trash2, Move, Copy, Plus, Layers, FolderTree } from "lucide-react";
 import type { MenuItem } from "~/app/map/Canvas/Menu/items-builder";
 
 // Re-export visibility actions for backward compatibility
@@ -41,18 +41,16 @@ interface DeleteSubmenuCallbacks {
   onDelete?: () => void;
   onDeleteChildren?: () => void;
   onDeleteComposed?: () => void;
-  onDeleteHexplan?: () => void;
 }
 
 export function _buildDeleteSubmenu(canEdit: boolean, callbacks: DeleteSubmenuCallbacks): MenuItem[] {
-  const { onDelete, onDeleteChildren, onDeleteComposed, onDeleteHexplan } = callbacks;
+  const { onDelete, onDeleteChildren, onDeleteComposed } = callbacks;
   if (!canEdit) return [];
 
   const submenuItems: MenuItem[] = [];
   if (onDelete) submenuItems.push({ icon: Trash2, label: "Delete Tile", shortcut: "", onClick: onDelete, variant: "destructive" });
   if (onDeleteChildren) submenuItems.push({ icon: FolderTree, label: "Delete Children", shortcut: "", onClick: onDeleteChildren, variant: "destructive" });
   if (onDeleteComposed) submenuItems.push({ icon: Layers, label: "Delete Composed", shortcut: "", onClick: onDeleteComposed, variant: "destructive" });
-  if (onDeleteHexplan) submenuItems.push({ icon: Clock, label: "Delete Hexplan", shortcut: "", onClick: onDeleteHexplan, variant: "destructive" });
 
   if (submenuItems.length === 1 && onDelete) {
     return [{ icon: Trash2, label: "Delete", shortcut: "", onClick: onDelete, variant: "destructive" }];

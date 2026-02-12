@@ -10,7 +10,8 @@
     "~/server/db"
   ],
   "subsystems": [
-    "./_item-services"
+    "./_item-services",
+    "./_traversal-services"
   ],
   "exceptions": {}
 }

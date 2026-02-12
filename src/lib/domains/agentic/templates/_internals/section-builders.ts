@@ -75,21 +75,46 @@ export function _filterSystemAncestors(ancestors: PromptData['ancestors']): Prom
 }
 
 /**
- * Build ancestor context section using GenericTile.
+ * Build ancestor context section with hexplan.
+ *
+ * For each ancestor, renders the content and hexplan (if any).
+ * The hexplan contains instructions that propagate to subtask execution.
  */
 export function _buildAncestorContextSection(ancestors: PromptData['ancestors']): string {
   const systemAncestors = _filterSystemAncestors(ancestors)
-  const ancestorsWithContent = systemAncestors.filter(ancestor =>
-    _hasContent(ancestor.content)
+  // Include ancestors that have content OR hexplan
+  const relevantAncestors = systemAncestors.filter(ancestor =>
+    _hasContent(ancestor.content) || _hasContent(ancestor.hexplan)
   )
 
-  if (ancestorsWithContent.length === 0) {
+  if (relevantAncestors.length === 0) {
     return ''
   }
 
-  const ancestorBlocks = ancestorsWithContent.map(ancestor =>
-    GenericTile(ancestor as TileData, ['title', 'content'], 'ancestor')
-  )
+  const ancestorBlocks = relevantAncestors.map(ancestor => {
+    const titleAttr = _hasContent(ancestor.title) ? ` title="${_escapeXML(ancestor.title)}"` : ''
+    const coordsAttr = _hasContent(ancestor.coords) ? ` coords="${_escapeXML(ancestor.coords)}"` : ''
+
+    const parts: string[] = []
+
+    // Add content if present (NOT escaped - preserve markdown/code)
+    if (_hasContent(ancestor.content)) {
+      parts.push(ancestor.content!)
+    }
+
+    // Add hexplan if present (contains instruction that propagates to subtasks)
+    if (_hasContent(ancestor.hexplan)) {
+      parts.push(`<hexplan>\n${ancestor.hexplan}\n</hexplan>`)
+    }
+
+    const content = parts.join('\n\n')
+
+    if (!content.trim()) {
+      return `<ancestor${titleAttr}${coordsAttr} />`
+    }
+
+    return `<ancestor${titleAttr}${coordsAttr}>\n${content.trim()}\n</ancestor>`
+  })
 
   return `<ancestor-context>\n${ANCESTOR_INTRO}\n\n${ancestorBlocks.join('\n\n')}\n</ancestor-context>`
 }

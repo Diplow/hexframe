@@ -14,7 +14,6 @@ export function _renderTileWidget(
     handleDelete = () => { /* noop */ },
     handleDeleteChildren,
     handleDeleteComposed,
-    handleDeleteHexplan,
     handleSetVisibility,
     handleSetVisibilityWithDescendants,
     handleTileSave = () => { /* noop */ },
@@ -45,7 +44,6 @@ export function _renderTileWidget(
       onDelete={handleDelete}
       onDeleteChildren={handleDeleteChildren}
       onDeleteComposed={handleDeleteComposed}
-      onDeleteHexplan={handleDeleteHexplan}
       onSetVisibility={handleSetVisibility}
       onSetVisibilityWithDescendants={handleSetVisibilityWithDescendants}
       onSave={handleTileSave}
@@ -92,7 +90,7 @@ export function _renderDeleteChildrenWidget(widget: Widget, handlers: WidgetHand
   const deleteData = widget.data as {
     tileId?: string;
     tileName?: string;
-    directionType?: 'structural' | 'composed' | 'hexPlan';
+    directionType?: 'structural' | 'composed';
   };
   const { handleCancel = () => { /* noop */ } } = handlers;
 

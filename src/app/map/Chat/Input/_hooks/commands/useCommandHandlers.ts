@@ -117,12 +117,53 @@ export function useCommandHandlers(chatState: {
     }
   }, [chatState]);
 
+  const handleRunCommand = useCallback((commandInput: string) => {
+    if (!chatState) return;
+
+    // Parse the command input to extract optional coords
+    // Format: /run or /run userId,0:1,2
+    const trimmedInput = commandInput.trim();
+    const coordsMatch = /^\/run\s+(.+)$/.exec(trimmedInput);
+
+    if (coordsMatch?.[1]) {
+      // Has coords argument - show RunWidget for specific tile
+      const tileCoords = coordsMatch[1].trim();
+      if ('showRunWidget' in chatState) {
+        const showWidget = chatState.showRunWidget as (data: { tileCoords: string; tileTitle: string }) => void;
+        // Title will be fetched by the widget itself
+        showWidget({ tileCoords, tileTitle: 'Loading...' });
+      }
+    } else {
+      // No coords - show RunsListWidget
+      if ('showRunsListWidget' in chatState && 'closeWidget' in chatState) {
+        const showWidget = chatState.showRunsListWidget as () => void;
+        const closeWidget = chatState.closeWidget as (widgetId: string) => void;
+
+        // Toggle behavior: close if already open
+        if ('getActiveWidgets' in chatState) {
+          const getActiveWidgets = chatState.getActiveWidgets as () => Array<{ id: string; type: string }>;
+          const activeWidgets = getActiveWidgets();
+          const existingRunsListWidget = activeWidgets.find(widget => widget.type === 'runs-list');
+
+          if (existingRunsListWidget) {
+            closeWidget(existingRunsListWidget.id);
+          } else {
+            showWidget();
+          }
+        } else {
+          showWidget();
+        }
+      }
+    }
+  }, [chatState]);
+
   return {
     handleLogout,
     handleLogin,
     handleRegister,
     handleClear,
     handleMcpCommand,
-    handleFavoritesCommand
+    handleFavoritesCommand,
+    handleRunCommand
   };
 }

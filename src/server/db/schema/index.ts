@@ -12,6 +12,8 @@ export {
   usersRelations,
   accountsRelations,
   sessionsRelations,
+  runsRelations,
+  runHexplansRelations,
 } from "~/server/db/schema/_relations";
 
 // Auth tables for better-auth
@@ -31,3 +33,7 @@ export * from "~/server/db/schema/_tables/mapping/map-items";
 
 // LLM job results table
 export * from "~/server/db/schema/_tables/llm-job-results";
+
+// Agentic domain tables
+export * from "~/server/db/schema/_tables/agentic/runs";
+export * from "~/server/db/schema/_tables/agentic/run-hexplans";
