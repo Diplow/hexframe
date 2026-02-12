@@ -68,29 +68,39 @@ src/path/file.ts: 10  # Justification for exception
 
 ## Product Presentation
 
-*Structure your expertise. Let AI execute.*
+*Structure your expertise. Let AI execute. Get paid.*
 
-Hexframe lets you teach AI how to decompose tasks the way you would — and then executes them automatically.
+Hexframe helps experts — in sales, coaching, research, strategy — turn what they know into AI-powered systems they can run, refine, and sell. What you're building when you automate your expertise is a system. Hexframe gives you the tools to build systems well, informed by decades of software engineering practice, without the engineering background.
 
 The core experience:
 
-1. **Create** — Break goals into subtasks, top-down, until each is simple enough to trust AI with. Attach context where needed. Let AI help you structure.
+1. **Create** — Break your expertise into tasks and subtasks, top-down, until each piece is simple enough to trust AI with. Attach context where needed. Compose systems from other systems for advanced use cases.
 
-2. **Activate** — Run your system. Hexframe orchestrates subagents for each tile, delivering the right context. When something fails, you see exactly where. Refine and run again.
+2. **Activate** — Run your system. Hexframe orchestrates AI agents for each tile, delivering the right context. When something fails, you see exactly where. Fix that tile. Run again.
 
-3. **Share** — Publish systems for others to use, fork, and build upon. Learn from systems others have built.
+3. **Sell** — Let others use your systems. Set your pricing on top of AI execution costs. Hexframe handles metering and billing. Your expertise generates revenue.
 
-4. **Compose** — Combine systems: reuse context across tiles, use systems as tools, build on what exists.
+4. **Share** — Open your systems for others to discover, fork, and build upon. The open-source side of the ecosystem — grow the commons, learn from what others have built.
 
-5. **Monitor** — Track which systems are used, which work well, and which need attention. The portfolio view.
+5. **Monitor** — Track usage, health, and revenue across all your systems. See what works, what breaks, and where to focus.
 
-The structure you maintain — your Hexframe — is a living map of your expertise. It captures how you think about decomposing problems, what context matters, and where you trust AI. It evolves as you learn.
+The structure you maintain — your Hexframe — is a living map of your expertise. It captures how you decompose problems, what context matters, and where you trust AI. It evolves as you learn.
 
-Your expertise becomes executable, not just documented.
+### The journey
+
+Building AI systems that work means learning three things:
+
+**Your system is never finished.** There's always an edge case, a shifting environment, a new problem that surfaces because your solution changed the landscape. The moment you stop learning is the moment you fall behind.
+
+**Speed of learning is everything.** The only way to improve is to put your system in front of real users and listen. The faster you can run, observe, fix, and run again, the faster you learn. Iterate faster than your competitors.
+
+**Simplicity is your best weapon.** As your system grows, complexity compounds. AI chokes on ambiguity faster than humans do. The antidote is relentless simplicity: clear instructions, well-defined boundaries, reusable building blocks.
+
+Hexframe is built around this journey: ship something that works, learn from real usage, iterate, and keep things simple as you grow.
 
 ### Create
 
-Creating a Hexframe is about externalizing your expertise into a structure AI can execute.
+Creating in Hexframe means externalizing your expertise into a structure AI can execute.
 
 The core actions:
 1. **Decompose** — Break goals into subtasks, top-down, until each is simple enough to delegate
@@ -102,14 +112,14 @@ The result is a hierarchy of tiles where:
 - Parent tiles orchestrate, leaf tiles execute
 - Context flows down from ancestors to descendants
 
-Your expertise lives in the structure: what you chose to decompose, where you stopped, what context you attached, and how you organized it all.
+For advanced use cases, **compose** systems by using other systems as building blocks — reference existing systems as tools within tiles, share context across hierarchies, and build layered capabilities from simple parts.
 
 ### Activate
 
-Activating a Hexframe turns your structure into execution.
+Activating turns your structure into execution.
 
 The core actions:
-1. **Run** — Point at a tile and execute. Hexframe orchestrates subagents automatically.
+1. **Run** — Point at a tile and execute. Hexframe orchestrates AI agents automatically.
 2. **Observe** — Watch agents work through your structure, see progress tile by tile
 3. **Refine** — When something fails, see exactly where. Fix that tile. Run again.
 
@@ -118,62 +128,43 @@ What makes this powerful:
 - Context flows automatically — each agent sees what's relevant based on position
 - Failures are localized — you know exactly which tile to fix
 
-The feedback loop (run → fail → refine → run) is how your Hexframe gets better over time. Each failure teaches you something about what the AI needed that wasn't there.
+The feedback loop (run → observe → fix → run) is how your system gets better over time.
+
+### Sell
+
+Your systems have value. Hexframe lets you capture it.
+
+How selling works:
+- **Set pricing** — Add your margin on top of AI execution costs (token-based billing)
+- **Control access** — Decide who can use your systems, offer trial credits
+- **Keep your methods** — Users get results without seeing your system internals
+- **Track revenue** — See what you earn across all your systems
+
+Why this matters: there's no path from "it works for me" to "it works for others" with raw prompts. Hexframe provides the distribution and billing infrastructure so you can focus on making your systems better.
 
 ### Share
 
-Your Hexframe doesn't have to stay private. You can share systems with others.
+Not everything needs to be monetized. You can open your systems for the community.
 
 What sharing enables:
 - **Publish** — Make a system public so others can discover and use it
 - **Fork** — Others can copy your system and adapt it to their needs
 - **Learn** — Browse systems others have built to learn new approaches
-- **Collaborate** — Work together on shared systems with your team
+- **Collaborate** — Work together on shared systems
 
-Why this matters:
-- Expertise becomes transferable — not just to AI, but to other people
-- Good structures get reused — you don't have to start from scratch
-- Patterns emerge — the community discovers what works
-
-Your Hexframe is your expertise made visible. Sharing it means others can benefit from how you think about problems.
-
-### Compose
-
-Systems can build on other systems. This is composition.
-
-How composition works in Hexframe:
-- **Reuse context** — Attach the same context to multiple tiles without duplicating it
-- **Systems as tools** — Give an agent access to another system it can invoke when needed
-- **Build on existing systems** — Reference or extend systems you or others have built
-
-Why this matters:
-- You don't rebuild from scratch — leverage what already works
-- Specialized systems stay focused — they do one thing well
-- Complex capabilities emerge — from combining simple, well-defined systems
-
-Example: A "code review" system might compose a "style checker" system, a "security scanner" system, and a "best practices" context — each maintained separately, combined at runtime.
+This is the open-source side of the Hexframe ecosystem. Good structures get reused. Patterns emerge. The community discovers what works.
 
 ### Monitor
 
 As you build more systems, you need visibility into the whole portfolio.
 
 What monitoring shows you:
-- **Usage** — Which systems are being activated, how often
+- **Usage** — Which systems are being run, how often, by whom
 - **Health** — Which systems succeed vs. fail frequently
-- **Maintenance** — Which systems haven't been updated, may be stale
-- **Impact** — Which systems deliver the most value
+- **Revenue** — What's earning, what's not
+- **Maintenance** — Which systems need attention or have gone stale
 
-Why this matters:
-- Focus attention where it counts — improve high-use, high-failure systems first
-- Prune what's unused — keep your Hexframe clean and navigable
-- See patterns — understand which approaches work across your systems
-
-When browsing other users' systems:
-- See which systems are actively used — active usage signals trustworthiness
-- Distinguish maintained systems from abandoned experiments
-- Make informed decisions about which systems to fork or build upon
-
-Monitor is the portfolio view. Activate is one system at a time. Monitor is all systems at once — yours and others'.
+Focus attention where it counts — improve high-use, high-failure systems first. Prune what's unused. See patterns across your systems.
 
 ### Core Documentation
 
