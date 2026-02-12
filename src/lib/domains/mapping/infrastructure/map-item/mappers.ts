@@ -70,6 +70,7 @@ function _buildMapItemArgs(
       itemType: dbMapItem.item_type,
       visibility: dbMapItem.visibility,
       baseItemId: dbMapItem.refItemId,
+      templateName: dbMapItem.templateName,
     },
     ref: baseItem,
     neighbors: neighbors,

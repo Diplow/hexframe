@@ -8,7 +8,6 @@ import type {
   ModelInfo,
   LLMError
 } from '~/lib/domains/agentic/types/llm.types'
-import type { ToolCallStartEvent } from '~/lib/domains/agentic/types/stream.types'
 import { loggers } from '~/lib/debug/debug-logger'
 import {
   extractSystemPrompt,
@@ -17,113 +16,14 @@ import {
   getClaudeModels
 } from '~/lib/domains/agentic/repositories/_helpers/sdk-helpers'
 import { installAnthropicNetworkInterceptor } from '~/lib/domains/agentic/repositories/_helpers/network-interceptor'
-
-// Helper function to safely extract delta text from SDK events
-function extractDeltaText(event: unknown): string | undefined {
-  if (
-    event &&
-    typeof event === 'object' &&
-    'type' in event &&
-    event.type === 'content_block_delta' &&
-    'delta' in event &&
-    event.delta &&
-    typeof event.delta === 'object' &&
-    'text' in event.delta &&
-    typeof event.delta.text === 'string'
-  ) {
-    return event.delta.text
-  }
-  return undefined
-}
-
-// Return type for extractToolCallStart including content block index for correlation
-interface ToolCallStartExtraction {
-  event: ToolCallStartEvent
-  contentBlockIndex: number
-}
-
-// Helper function to extract tool_use content block start
-function extractToolCallStart(event: unknown): ToolCallStartExtraction | undefined {
-  if (
-    event &&
-    typeof event === 'object' &&
-    'type' in event &&
-    event.type === 'content_block_start' &&
-    'index' in event &&
-    typeof event.index === 'number' &&
-    'content_block' in event &&
-    event.content_block &&
-    typeof event.content_block === 'object' &&
-    'type' in event.content_block &&
-    event.content_block.type === 'tool_use'
-  ) {
-    const block = event.content_block as { id?: string; name?: string; input?: unknown }
-    return {
-      event: {
-        type: 'tool_call_start',
-        toolCallId: block.id ?? '',
-        toolName: block.name ?? '',
-        arguments: JSON.stringify(block.input ?? {})
-      },
-      contentBlockIndex: event.index
-    }
-  }
-  return undefined
-}
-
-// Track active tool calls to correlate start/end
-interface ActiveToolCall {
-  toolCallId: string
-  toolName: string
-  inputJson: string
-  contentBlockIndex: number
-}
-
-// Helper to extract content_block_stop events that signal tool call completion
-function extractContentBlockStop(event: unknown): number | undefined {
-  if (
-    event &&
-    typeof event === 'object' &&
-    'type' in event &&
-    event.type === 'content_block_stop' &&
-    'index' in event &&
-    typeof event.index === 'number'
-  ) {
-    return event.index
-  }
-  return undefined
-}
-
-// Return type for input_json_delta extraction
-interface InputJsonDeltaExtraction {
-  contentBlockIndex: number
-  partialJson: string
-}
-
-// Helper function to extract input_json_delta from content_block_delta events
-function extractInputJsonDelta(event: unknown): InputJsonDeltaExtraction | undefined {
-  if (
-    event &&
-    typeof event === 'object' &&
-    'type' in event &&
-    event.type === 'content_block_delta' &&
-    'index' in event &&
-    typeof event.index === 'number' &&
-    'delta' in event &&
-    event.delta &&
-    typeof event.delta === 'object' &&
-    'type' in event.delta &&
-    event.delta.type === 'input_json_delta' &&
-    'partial_json' in event.delta &&
-    typeof event.delta.partial_json === 'string'
-  ) {
-    return {
-      contentBlockIndex: event.index,
-      partialJson: event.delta.partial_json
-    }
-  }
-  return undefined
-}
+import {
+  extractDeltaText,
+  extractToolCallStart,
+  extractContentBlockStop,
+  extractInputJsonDelta,
+  extractToolResult,
+  type ActiveToolCall
+} from '~/lib/domains/agentic/repositories/_helpers/stream-event-extractors'
 
 export class ClaudeAgentSDKRepository implements ILLMRepository {
   private readonly apiKey: string
@@ -370,6 +270,8 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
       let fullContent = ''
       // Track active tool calls by content block index to correlate start/stop events
       const activeToolCalls = new Map<number, ActiveToolCall>()
+      // Track pending tool calls waiting for results (by toolCallId -> toolName and arguments)
+      const pendingToolCalls = new Map<string, { toolName: string; inputJson: string }>()
 
       // Stream chunks via callback
       for await (const msg of queryResult) {
@@ -403,18 +305,33 @@ export class ClaudeAgentSDKRepository implements ILLMRepository {
             }
           }
 
-          // Extract content_block_stop events to signal tool call end
+          // Extract content_block_stop events - move tool call to pending state
           const stoppedBlockIndex = extractContentBlockStop(msg.event)
-          if (stoppedBlockIndex !== undefined && callbacks?.onToolCallEnd) {
+          if (stoppedBlockIndex !== undefined) {
             const activeCall = activeToolCalls.get(stoppedBlockIndex)
             if (activeCall) {
+              // Move to pending - we'll emit tool_call_end when we get the result
+              pendingToolCalls.set(activeCall.toolCallId, {
+                toolName: activeCall.toolName,
+                inputJson: activeCall.inputJson
+              })
               activeToolCalls.delete(stoppedBlockIndex)
+            }
+          }
+
+          // Extract tool_result events to get results/errors
+          const toolResult = extractToolResult(msg.event)
+          if (toolResult && callbacks?.onToolCallEnd) {
+            const pendingCall = pendingToolCalls.get(toolResult.toolUseId)
+            if (pendingCall) {
+              pendingToolCalls.delete(toolResult.toolUseId)
               callbacks.onToolCallEnd({
                 type: 'tool_call_end',
-                toolCallId: activeCall.toolCallId,
-                toolName: activeCall.toolName,
-                arguments: activeCall.inputJson || undefined
-                // Note: We don't have the result here; it comes later in the stream
+                toolCallId: toolResult.toolUseId,
+                toolName: pendingCall.toolName,
+                arguments: pendingCall.inputJson || undefined,
+                result: toolResult.isError ? undefined : toolResult.content,
+                error: toolResult.isError ? toolResult.content : undefined
               })
             }
           }

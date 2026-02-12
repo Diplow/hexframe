@@ -5,25 +5,11 @@
  */
 
 import type { TileData } from '~/lib/domains/agentic/templates/_pre-processor'
+import { _escapeXML, _hasContent } from '~/lib/domains/agentic/templates/_internals/utils'
 
 // ==================== PUBLIC TYPES ====================
 
 export type TileField = 'title' | 'content' | 'preview' | 'coords'
-
-// ==================== INTERNAL UTILITIES ====================
-
-function _escapeXML(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;')
-}
-
-function _hasContent(text: string | undefined): boolean {
-  return !!text && text.trim().length > 0
-}
 
 function _renderField(field: TileField, value: string): string {
   switch (field) {

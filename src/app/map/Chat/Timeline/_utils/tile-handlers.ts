@@ -1,7 +1,7 @@
 import type { Widget, TileSelectedPayload } from '~/app/map/Chat/_state';
 import { focusChatInput } from '~/app/map/Chat/Timeline/_utils/focus-helpers';
 import type { EventBusService } from '~/app/map/types';
-import type { NonUserMapItemTypeString, VisibilityString } from '~/lib/domains/mapping/utils';
+import type { VisibilityString } from '~/lib/domains/mapping/utils';
 import { Visibility } from '~/lib/domains/mapping/utils';
 
 interface TileHandlerDeps {
@@ -11,7 +11,7 @@ interface TileHandlerDeps {
     preview?: string;
     description?: string;
     visibility?: VisibilityString;
-    itemType?: NonUserMapItemTypeString;
+    itemType?: string;
   }) => Promise<void>;
   updateVisibilityWithDescendantsOptimistic: (coordId: string, visibility: VisibilityString) => Promise<unknown>;
   eventBus: EventBusService | null;
@@ -74,27 +74,12 @@ export function createTileHandlers(
     });
   };
 
-  const handleDeleteHexplan = () => {
-    const previewData = widget.data as TileSelectedPayload;
-
-    eventBus?.emit({
-      type: 'map.delete_children_requested',
-      payload: {
-        tileId: previewData.tileData.coordId,
-        tileName: previewData.tileData.title,
-        directionType: 'hexPlan',
-      },
-      source: 'chat_cache',
-      timestamp: new Date(),
-    });
-  };
-  
   const handleTileClose = () => {
     chatState.closeWidget(widget.id);
     focusChatInput();
   };
 
-  const handleTileSave = async (title: string, preview: string, content: string, itemType?: NonUserMapItemTypeString) => {
+  const handleTileSave = async (title: string, preview: string, content: string, itemType?: string) => {
     const tileData = widget.data as TileSelectedPayload;
     try {
       // updateItemOptimistic already emits map.tile_updated via MutationCoordinator
@@ -166,7 +151,6 @@ export function createTileHandlers(
     handleDelete,
     handleDeleteChildren,
     handleDeleteComposed,
-    handleDeleteHexplan,
     handleSetVisibility,
     handleSetVisibilityWithDescendants,
     handleTileSave,

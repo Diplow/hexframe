@@ -16,7 +16,6 @@ interface TileContextMenuProps {
   onDelete?: () => void;
   onDeleteChildren?: () => void;
   onDeleteComposed?: () => void;
-  onDeleteHexplan?: () => void;
   onCreate?: () => void;
   onCompositionToggle?: (tileData: TileData) => void;
   onViewHistory?: () => void;
@@ -31,6 +30,8 @@ interface TileContextMenuProps {
   onRemoveFavorite?: () => void;
   /** Callback when user selects "Edit Shortcut" from the context menu (opens favorites panel) */
   onEditShortcut?: () => void;
+  /** Callback when user selects "Run" for SYSTEM tiles */
+  onRun?: () => void;
   visibility?: Visibility;
   /** Whether this tile is currently in the user's favorites list */
   isFavorited?: boolean;
@@ -52,7 +53,6 @@ export function TileContextMenu({
   onDelete,
   onDeleteChildren,
   onDeleteComposed,
-  onDeleteHexplan,
   onCreate,
   onCompositionToggle,
   onViewHistory,
@@ -64,6 +64,7 @@ export function TileContextMenu({
   onAddFavorite,
   onRemoveFavorite,
   onEditShortcut,
+  onRun,
   visibility,
   isFavorited,
   canEdit,
@@ -87,7 +88,6 @@ export function TileContextMenu({
     onDelete,
     onDeleteChildren,
     onDeleteComposed,
-    onDeleteHexplan,
     onCreate,
     onCompositionToggle,
     onViewHistory,
@@ -99,6 +99,7 @@ export function TileContextMenu({
     onAddFavorite,
     onRemoveFavorite,
     onEditShortcut,
+    onRun,
   });
 
   return (

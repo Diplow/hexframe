@@ -17,7 +17,7 @@ import type { CompositionConfig, ChatMessageContract } from '~/lib/domains/agent
 import type { LLMResponse, StreamChunk } from '~/lib/domains/agentic/types/llm.types'
 import type { StreamCallbacks } from '~/lib/domains/agentic/repositories/llm.repository.interface'
 // Type-only imports from mapping domain (no runtime dependency)
-import type { MapItemType, Visibility } from '~/lib/domains/mapping'
+import type { ItemTypeValue, Visibility } from '~/lib/domains/mapping'
 
 // =============================================================================
 // Types
@@ -34,7 +34,7 @@ export interface TaskTile {
   content: string | undefined
   preview: string | undefined
   link: string | undefined
-  itemType: MapItemType
+  itemType: ItemTypeValue
   visibility: Visibility
   depth: number
   parentId: string | null

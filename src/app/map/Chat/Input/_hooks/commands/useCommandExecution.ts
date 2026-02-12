@@ -11,6 +11,7 @@ interface CommandHandlers {
   handleClear: () => void;
   handleMcpCommand: (commandPath: string) => void;
   handleFavoritesCommand: (commandPath: string) => void;
+  handleRunCommand: (commandInput: string) => void;
   chatState: ChatOperations;
 }
 
@@ -39,6 +40,13 @@ export function useCommandExecution(
   }, [extendedCommands]);
 
   const executeCommand = useCallback(async (commandPath: string): Promise<string> => {
+    // Handle /run command specially since it can have arguments
+    // Format: /run or /run userId,0:1,2
+    if (commandPath === '/run' || commandPath.startsWith('/run ')) {
+      handlers.handleRunCommand(commandPath);
+      return '';
+    }
+
     const command = findCommand(commandPath);
 
     if (!command) {

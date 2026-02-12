@@ -35,7 +35,7 @@ import {
   asRequesterUserId,
   type HexecuteContext
 } from '~/lib/domains/mapping'
-import { CoordSystem, Direction, MapItemType } from '~/lib/domains/mapping/utils'
+import { CoordSystem, Direction, MapItemType, isBuiltInItemType, type ItemTypeValue } from '~/lib/domains/mapping/utils'
 import {
   createAgenticServiceAsync,
   executeTaskStreaming,
@@ -203,6 +203,27 @@ async function _createAgenticService(userId: string, sandboxSessionId: string | 
 // Hexplan Management (Orchestration)
 // =============================================================================
 
+/**
+ * Check if a tile type should have hexplan auto-created.
+ *
+ * Only SYSTEM tiles and custom (non-built-in) types should have hexplans.
+ * USER tiles use "recent-history" at direction-0 instead.
+ * ORGANIZATIONAL and CONTEXT tiles are not executable.
+ */
+function _shouldAutoCreateHexplan(itemType: ItemTypeValue | null | undefined): boolean {
+  if (itemType === null || itemType === undefined) {
+    return false
+  }
+
+  // Custom (non-built-in) types are treated like SYSTEM tiles
+  if (!isBuiltInItemType(itemType)) {
+    return true
+  }
+
+  // Only SYSTEM tiles get hexplans among built-in types
+  return itemType === MapItemType.SYSTEM
+}
+
 async function _ensureHexplan(
   mappingService: MappingService,
   hexecuteContext: HexecuteContext,
@@ -297,8 +318,11 @@ export async function GET(request: NextRequest): Promise<Response> {
           return
         }
 
-        // 3. Ensure hexplan exists (mapping domain operation)
-        const hexPlanContent = await _ensureHexplan(mappingService, hexecuteContext, taskCoords, instruction)
+        // 3. Ensure hexplan exists (mapping domain operation) - only for SYSTEM/custom tiles
+        // USER tiles don't auto-create hexplans (they use "recent-history" at direction-0)
+        const hexPlanContent = _shouldAutoCreateHexplan(hexecuteContext.task.itemType)
+          ? await _ensureHexplan(mappingService, hexecuteContext, taskCoords, instruction)
+          : hexecuteContext.hexPlan ?? ''
 
         // 4. Execute task via pure agentic service
         const response = await executeTaskStreaming(

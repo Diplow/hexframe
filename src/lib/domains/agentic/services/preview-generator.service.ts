@@ -1,5 +1,5 @@
 import type { ILLMRepository } from '~/lib/domains/agentic/repositories/llm.repository.interface'
-import { PromptTemplateService } from '~/lib/domains/agentic/services/prompt-template.service'
+import { PromptTemplateService } from '~/lib/domains/agentic/services/_templates'
 import type { LLMGenerationParams } from '~/lib/domains/agentic/types'
 import { env } from '~/env'
 

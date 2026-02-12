@@ -23,9 +23,6 @@ import { CoordSystem } from '~/lib/domains/mapping/utils';
 import { getColor } from '~/app/map/types';
 import type { Visibility } from '~/lib/domains/mapping/utils';
 
-type EditableItemType = 'organizational' | 'context' | 'system';
-type ItemType = EditableItemType | 'user' | null;
-
 interface TileWidgetProps {
   mode?: 'view' | 'edit' | 'create' | 'delete' | 'delete_children' | 'history';
   tileId?: string;
@@ -33,22 +30,21 @@ interface TileWidgetProps {
   title?: string;
   preview?: string;
   content?: string;
-  itemType?: ItemType;
+  itemType?: string | null;
   forceExpanded?: boolean;
   openInEditMode?: boolean;
   tileColor?: string;
   parentName?: string;
   parentCoordId?: string;
-  directionType?: 'structural' | 'composed' | 'hexPlan';
+  directionType?: 'structural' | 'composed';
   visibility?: Visibility;
   onEdit?: () => void;
   onDelete?: () => void;
   onDeleteChildren?: () => void;
   onDeleteComposed?: () => void;
-  onDeleteHexplan?: () => void;
   onSetVisibility?: (visibility: Visibility) => void;
   onSetVisibilityWithDescendants?: (visibility: Visibility) => void;
-  onSave?: (title: string, preview: string, content: string, itemType?: EditableItemType) => void;
+  onSave?: (title: string, preview: string, content: string, itemType?: string) => void;
   onClose?: () => void;
 }
 
@@ -88,7 +84,6 @@ export function TileWidget({
   onDelete: _onDelete,
   onDeleteChildren,
   onDeleteComposed,
-  onDeleteHexplan,
   onSetVisibility,
   onSetVisibilityWithDescendants,
   onSave,
@@ -180,7 +175,6 @@ export function TileWidget({
         onDelete={currentMode !== 'create' ? () => setCurrentMode('delete') : undefined}
         onDeleteChildren={currentMode !== 'create' ? onDeleteChildren : undefined}
         onDeleteComposed={currentMode !== 'create' ? onDeleteComposed : undefined}
-        onDeleteHexplan={currentMode !== 'create' ? onDeleteHexplan : undefined}
         onSetVisibility={currentMode !== 'create' ? onSetVisibility : undefined}
         onSetVisibilityWithDescendants={currentMode !== 'create' ? onSetVisibilityWithDescendants : undefined}
         onClose={onClose}

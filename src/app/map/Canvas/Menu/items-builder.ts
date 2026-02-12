@@ -18,6 +18,7 @@ import {
   _buildVisibilitySubmenu,
 } from "~/app/map/Canvas/Menu/_builders/edit-actions";
 import { _buildFavoriteMenuItem } from "~/app/map/Canvas/Menu/_builders/favorite-actions";
+import { _buildRunItem } from "~/app/map/Canvas/Menu/_builders/run-actions";
 
 export type MenuItem = ContextMenuItemData;
 
@@ -37,7 +38,6 @@ interface MenuItemsConfig {
   onDelete?: () => void;
   onDeleteChildren?: () => void;
   onDeleteComposed?: () => void;
-  onDeleteHexplan?: () => void;
   onCreate?: () => void;
   onCompositionToggle?: (tileData: TileData) => void;
   onViewHistory?: () => void;
@@ -52,6 +52,8 @@ interface MenuItemsConfig {
   onRemoveFavorite?: () => void;
   /** Callback when user selects "Edit Shortcut" (opens favorites panel to edit this tile's shortcut) */
   onEditShortcut?: () => void;
+  /** Callback when user selects "Run" for SYSTEM tiles */
+  onRun?: () => void;
 }
 
 export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
@@ -70,7 +72,6 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
     onDelete,
     onDeleteChildren,
     onDeleteComposed,
-    onDeleteHexplan,
     onCreate,
     onCompositionToggle,
     onViewHistory,
@@ -82,6 +83,7 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
     onAddFavorite,
     onRemoveFavorite,
     onEditShortcut,
+    onRun,
   } = config;
 
   if (isEmptyTile) {
@@ -101,6 +103,7 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
       onCompositionToggle,
     ),
     ..._buildNavigateItem(onNavigate),
+    ..._buildRunItem(tileData, canEdit, onRun),
     ..._buildViewHistoryItem(onViewHistory),
     ..._buildFavoriteMenuItem({
       canEdit,
@@ -120,7 +123,6 @@ export function buildMenuItems(config: MenuItemsConfig): MenuItem[] {
       onDelete,
       onDeleteChildren,
       onDeleteComposed,
-      onDeleteHexplan,
     }),
     ..._buildCopyCoordinatesItem(onCopyCoordinates),
   ];

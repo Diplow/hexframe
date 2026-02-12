@@ -10,5 +10,8 @@
     "~/lib/utils/event-bus",
     "~/server/db"
   ],
+  "subsystems": [
+    "./_run-services"
+  ],
   "exceptions": {}
 }

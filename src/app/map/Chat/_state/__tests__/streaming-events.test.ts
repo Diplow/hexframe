@@ -413,7 +413,9 @@ describe('Message Selector Streaming Event Handling', () => {
 // =============================================================================
 describe('Widget Selector Tool Call Handling', () => {
   describe('deriveActiveWidgets with tool-call widgets', () => {
-    it('should create tool-call widget from widget_created event', () => {
+    // Tool-call widgets are now filtered out from the widget list
+    // because they are embedded inside messages instead of shown as separate timeline items
+    it('should filter out tool-call widgets (now embedded in messages)', () => {
       const events: ChatEvent[] = [
         {
           id: 'tool-call-1',
@@ -439,17 +441,11 @@ describe('Widget Selector Tool Call Handling', () => {
 
       const widgets = deriveActiveWidgets(events)
 
-      expect(widgets).toHaveLength(1)
-      expect(widgets[0]).toMatchObject({
-        id: 'tool-call-call_abc123',
-        type: 'tool-call',
-        data: expect.objectContaining({
-          status: 'running'
-        }) as unknown
-      })
+      // Tool-call widgets are filtered out - they're now embedded in messages
+      expect(widgets).toHaveLength(0)
     })
 
-    it('should handle widget_updated event to update widget status', () => {
+    it('should still track widget_updated events for tool-call widgets internally', () => {
       const baseTime = new Date()
       const events: ChatEvent[] = [
         {
@@ -488,14 +484,28 @@ describe('Widget Selector Tool Call Handling', () => {
 
       const widgets = deriveActiveWidgets(events)
 
-      expect(widgets).toHaveLength(1)
-      expect((widgets[0]!.data as { status: string }).status).toBe('completed')
-      expect((widgets[0]!.data as { result: string }).result).toBe('{"success": true}')
+      // Tool-call widgets are filtered out from the display
+      expect(widgets).toHaveLength(0)
     })
 
-    it('should keep completed tool-call widgets visible', () => {
+    it('should allow other widget types to remain visible', () => {
       const baseTime = new Date()
       const events: ChatEvent[] = [
+        {
+          id: 'ai-response-1',
+          type: 'widget_created',
+          payload: {
+            widget: {
+              id: 'ai-response-123',
+              type: 'ai-response',
+              data: { jobId: 'job_1' },
+              priority: 'info',
+              timestamp: baseTime
+            }
+          },
+          timestamp: baseTime,
+          actor: 'assistant',
+        },
         {
           id: 'tool-call-create',
           type: 'widget_created',
@@ -514,24 +524,14 @@ describe('Widget Selector Tool Call Handling', () => {
           },
           timestamp: baseTime,
           actor: 'assistant',
-        },
-        {
-          id: 'tool-call-update',
-          type: 'widget_updated',
-          payload: {
-            widgetId: 'tool-call-call_abc123',
-            updates: { status: 'completed' }
-          },
-          timestamp: new Date(baseTime.getTime() + 100),
-          actor: 'assistant',
         }
       ]
 
       const widgets = deriveActiveWidgets(events)
 
-      // Completed tool calls should still be visible (auto-hide is a UI concern)
+      // Only non-tool-call widgets should be visible
       expect(widgets).toHaveLength(1)
-      expect((widgets[0]!.data as { status: string }).status).toBe('completed')
+      expect(widgets[0]!.type).toBe('ai-response')
     })
   })
 })
@@ -620,29 +620,28 @@ describe('Streaming Message Flow Integration', () => {
         timestamp: new Date(baseTime.getTime() + 100),
         actor: 'assistant',
       },
-      // Tool call start (widget)
+      // Tool call start event (tracked in streaming state)
       {
-        id: 'tool-widget-create',
-        type: 'widget_created',
+        id: 'tool-call-start-1',
+        type: 'tool_call_start',
         payload: {
-          widget: {
-            id: 'tool-call-call_1',
-            type: 'tool-call',
-            data: { toolCallId: 'call_1', toolName: 'addItem', status: 'running' },
-            priority: 'info',
-            timestamp: new Date(baseTime.getTime() + 200)
-          }
+          streamId: 'stream_1',
+          toolCallId: 'call_1',
+          toolName: 'addItem',
+          arguments: { title: 'Test' }
         },
         timestamp: new Date(baseTime.getTime() + 200),
         actor: 'assistant',
       },
       // Tool call completes
       {
-        id: 'tool-widget-update',
-        type: 'widget_updated',
+        id: 'tool-call-end-1',
+        type: 'tool_call_end',
         payload: {
-          widgetId: 'tool-call-call_1',
-          updates: { status: 'completed', result: '{"id": "tile_1"}' }
+          streamId: 'stream_1',
+          toolCallId: 'call_1',
+          result: '{"id": "tile_1"}',
+          success: true
         },
         timestamp: new Date(baseTime.getTime() + 400),
         actor: 'assistant',
@@ -668,10 +667,18 @@ describe('Streaming Message Flow Integration', () => {
     const messages = deriveVisibleMessages(events)
     const widgets = deriveActiveWidgets(events)
 
+    // Message should have tool calls embedded
     expect(messages).toHaveLength(1)
     expect(messages[0]!.content).toBe('Let me create a tile...\n\nDone!')
-    expect(widgets).toHaveLength(1)
-    expect(widgets[0]!.type).toBe('tool-call')
+    expect(messages[0]!.toolCalls).toHaveLength(1)
+    expect(messages[0]!.toolCalls![0]).toMatchObject({
+      toolCallId: 'call_1',
+      toolName: 'addItem',
+      status: 'completed'
+    })
+
+    // No separate tool-call widgets (they're embedded in messages now)
+    expect(widgets).toHaveLength(0)
   })
 })
 

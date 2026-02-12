@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { Message, Widget } from '~/app/map/Chat/_state';
-import { DaySeparator } from '~/app/map/Chat/Timeline/_components/DaySeparator';
-import { MessageActorRenderer } from '~/app/map/Chat/Timeline/_components/MessageActorRenderer';
+import { DaySeparator, MessageActorRenderer } from '~/app/map/Chat/Timeline/_components';
 import { WidgetManager } from '~/app/map/Chat/Timeline/_core/WidgetManager';
 import { loggers } from '~/lib/debug/debug-logger';
 

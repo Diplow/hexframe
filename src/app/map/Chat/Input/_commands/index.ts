@@ -3,6 +3,7 @@ import { createNavigationCommands } from '~/app/map/Chat/Input/_commands/navigat
 import { authCommands } from '~/app/map/Chat/Input/_commands/auth-commands';
 import { mcpCommands } from '~/app/map/Chat/Input/_commands/mcp-commands';
 import { favoritesCommands } from '~/app/map/Chat/Input/_commands/favorites-commands';
+import { runCommands } from '~/app/map/Chat/Input/_commands/run-commands';
 
 export interface Command {
   description: string;
@@ -15,6 +16,7 @@ export const getAllCommands = (center: string | null): Record<string, Command> =
   ...authCommands,
   ...mcpCommands,
   ...favoritesCommands,
+  ...runCommands,
 });
 
-export { debugCommands, createNavigationCommands, authCommands, mcpCommands, favoritesCommands };
+export { debugCommands, createNavigationCommands, authCommands, mcpCommands, favoritesCommands, runCommands };

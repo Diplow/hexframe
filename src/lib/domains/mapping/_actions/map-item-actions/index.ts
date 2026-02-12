@@ -62,13 +62,12 @@ export class MapItemActions {
   }
 
   public async updateRef(ref: BaseItemWithId, attrs: UpdateMapItemAttrs) {
-    // Now using canonical field names throughout
-    const helperAttrs: Partial<BaseItemAttrs> = {
-      title: attrs.title,
-      content: attrs.content,
-      preview: attrs.preview,
-      link: attrs.link,
-    };
+    // Only include defined fields to preserve existing values for unspecified fields
+    const helperAttrs: Partial<BaseItemAttrs> = {};
+    if (attrs.title !== undefined) helperAttrs.title = attrs.title;
+    if (attrs.content !== undefined) helperAttrs.content = attrs.content;
+    if (attrs.preview !== undefined) helperAttrs.preview = attrs.preview;
+    if (attrs.link !== undefined) helperAttrs.link = attrs.link;
     const result = await this.creationHelpers.updateRef(ref, helperAttrs);
     return result;
   }

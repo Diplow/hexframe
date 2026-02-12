@@ -337,6 +337,19 @@ describe('buildPrompt - v5 Top-Down Context + Root Hexplan', () => {
   // ==================== HEXPLAN SECTION TESTS ====================
   describe('Hexplan Section', () => {
     describe('Pending Steps', () => {
+      it('should treat empty hexplan as PENDING status (not complete)', () => {
+        const data = createTestData({
+          task: { title: 'New Task', content: 'Content', coords: 'userId,0:1' },
+          hexPlan: '' // Empty hexplan = task not started yet
+        })
+
+        const result = buildPrompt(data)
+
+        // Empty hexplan should result in pending instructions, not complete
+        expect(result).not.toContain('<hexplan-status>COMPLETE</hexplan-status>')
+        expect(result).toContain('<execution-instructions>')
+      })
+
       it('should show hexplan content when plan has pending steps', () => {
         const data = createTestData({
           task: { title: 'Test', content: 'Content', coords: 'userId,0:1' },
@@ -477,7 +490,7 @@ describe('buildPrompt - v5 Top-Down Context + Root Hexplan', () => {
 // ==================== HEXPLAN CONTENT GENERATORS ====================
 describe('Hexplan Content Generators', () => {
   describe('generateParentHexplanContent', () => {
-    it('should generate hexplan with numbered steps from children', () => {
+    it('should return empty string when no instruction provided', () => {
       const children = [
         { title: 'Step One', coords: 'userId,0:1,1' },
         { title: 'Step Two', coords: 'userId,0:1,2' }
@@ -485,64 +498,54 @@ describe('Hexplan Content Generators', () => {
 
       const result = generateParentHexplanContent(children)
 
-      expect(result).toContain('🟡 STARTED')
-      expect(result).toContain('**Steps:**')
-      expect(result).toContain('📋 1. Execute "Step One" → userId,0:1,1')
-      expect(result).toContain('📋 2. Execute "Step Two" → userId,0:1,2')
-      expect(result).toContain('(initialized)')
+      expect(result).toBe('')
     })
 
-    it('should handle single child', () => {
+    it('should include instruction when provided', () => {
       const children = [{ title: 'Only Child', coords: 'userId,0:1,1' }]
 
-      const result = generateParentHexplanContent(children)
+      const result = generateParentHexplanContent(children, undefined, 'Build the feature')
 
-      expect(result).toContain('📋 1. Execute "Only Child" → userId,0:1,1')
-      expect(result).not.toContain('📋 2.')
+      expect(result).toBe('**Instruction:** Build the feature')
     })
 
-    it('should generate leaf tasks list when allLeafTasks provided', () => {
+    it('should ignore children and allLeafTasks (orchestration is external)', () => {
       const children = [
         { title: 'Parent 1', coords: 'userId,0:1,1' },
         { title: 'Parent 2', coords: 'userId,0:1,2' }
       ]
       const allLeafTasks = [
         { title: 'Leaf A', coords: 'userId,0:1,1,1' },
-        { title: 'Leaf B', coords: 'userId,0:1,1,2' },
-        { title: 'Leaf C', coords: 'userId,0:1,2,1' }
+        { title: 'Leaf B', coords: 'userId,0:1,1,2' }
       ]
 
-      const result = generateParentHexplanContent(children, allLeafTasks)
+      const result = generateParentHexplanContent(children, allLeafTasks, 'Do the work')
 
-      expect(result).toContain('🟡 STARTED')
-      expect(result).toContain('**Leaf Tasks:**')
-      expect(result).toContain('📋 1. "Leaf A" → userId,0:1,1,1')
-      expect(result).toContain('📋 2. "Leaf B" → userId,0:1,1,2')
-      expect(result).toContain('📋 3. "Leaf C" → userId,0:1,2,1')
-      expect(result).not.toContain('**Steps:**')
-      expect(result).toContain('**Findings:**')
+      // Should only contain instruction, no step listing
+      expect(result).toBe('**Instruction:** Do the work')
+      expect(result).not.toContain('Parent 1')
+      expect(result).not.toContain('Leaf A')
     })
   })
 
   describe('generateLeafHexplanContent', () => {
-    it('should generate hexplan with task title', () => {
+    it('should return empty string when no instruction provided', () => {
       const result = generateLeafHexplanContent('My Task', undefined)
 
-      expect(result).toContain('🟡 STARTED: "My Task"')
-      expect(result).toContain('📋 Execute the task')
-      expect(result).toContain('(initialized)')
+      expect(result).toBe('')
     })
 
     it('should include instruction when provided', () => {
       const result = generateLeafHexplanContent('My Task', 'Focus on performance')
 
-      expect(result).toContain('**Instruction:** Focus on performance')
+      expect(result).toBe('**Instruction:** Focus on performance')
     })
 
-    it('should not include instruction section when undefined', () => {
-      const result = generateLeafHexplanContent('My Task', undefined)
+    it('should not include task title (just instruction)', () => {
+      const result = generateLeafHexplanContent('My Task', 'Do it quickly')
 
-      expect(result).not.toContain('**Instruction:**')
+      expect(result).not.toContain('My Task')
+      expect(result).toContain('**Instruction:** Do it quickly')
     })
   })
 })
@@ -764,8 +767,8 @@ describe('Template System - Pre-processor and Templates', () => {
 
       const result = buildPrompt(data)
 
-      // Context section should have folders for organizational children
-      expect(result).toContain('<folder title="Reference Folder">')
+      // Context section should have folders for organizational children (pool-based includes coords)
+      expect(result).toContain('<folder title="Reference Folder"')
       expect(result).toContain('Ref 1')
       expect(result).toContain('Ref 2')
     })
@@ -796,11 +799,9 @@ describe('Template System - Pre-processor and Templates', () => {
       // USER template uses <sections> not <subtasks>
       expect(result).toContain('<sections>')
       expect(result).not.toContain('<subtasks>')
-      // Organizational tiles shown as type="folder"
-      expect(result).toContain('<section title="Projects" type="folder"')
+      // Pool-based template: ORGANIZATIONAL items use <folder>, others use <section>
+      expect(result).toContain('<folder title="Projects"')
       expect(result).toContain('<section title="Build App"')
-      // Does NOT recurse into children for sections
-      expect(result).not.toContain('<folder')
     })
 
     it('should mix regular and organizational context children', () => {
@@ -824,8 +825,9 @@ describe('Template System - Pre-processor and Templates', () => {
 
       const result = buildPrompt(data)
 
+      // Pool-based rendering uses <context> for regular items and <folder> for organizational
       expect(result).toContain('<context title="Regular Context"')
-      expect(result).toContain('<folder title="Folder Context">')
+      expect(result).toContain('<folder title="Folder Context"')
     })
 
     it('should include discussion section when provided', () => {
@@ -851,130 +853,78 @@ describe('Template System - Pre-processor and Templates', () => {
 
       const result = buildPrompt(data)
 
-      expect(result).toContain('<recent-history coords="userId,0:,0">')
+      // Pool-based template renders recent-history with coords
+      expect(result).toContain('<recent-history coords=')
       expect(result).toContain('Goal: Complete the tutorial')
     })
   })
 
-  describe('HEXRUN Orchestrator for SYSTEM tiles with @-mention', () => {
-    it('should use orchestrator template when SYSTEM tile has userMessage', () => {
-      const data = createTestData({
+  describe('SYSTEM template execution instructions', () => {
+    it('should always use SYSTEM template for SYSTEM tiles (with or without userMessage)', () => {
+      const dataWithMessage = createTestData({
         task: { title: 'Build API', content: 'Build a REST API', coords: 'userId,0:1' },
         itemType: MapItemType.SYSTEM,
         userMessage: 'Please build this quickly',
         hexPlan: '📋 Step 1'
       })
 
-      const result = buildPrompt(data)
+      const result = buildPrompt(dataWithMessage)
 
-      // Should use orchestrator template, not SYSTEM template
-      expect(result).toContain('<hexrun-orchestrator>')
-      expect(result).toContain('<task-info>')
-      expect(result).toContain('<execution-protocol>')
-      expect(result).not.toContain('<hexrun-intro>')
-      // Should not have the <hexplan coords="..."> section (only mentions hexplan-status in protocol)
-      expect(result).not.toContain('<hexplan coords=')
-    })
-
-    it('should include task title and coords in task-info', () => {
-      const data = createTestData({
-        task: { title: 'My Task', content: 'Content', coords: 'userId,0:1,2' },
-        itemType: MapItemType.SYSTEM,
-        userMessage: 'Run this task'
-      })
-
-      const result = buildPrompt(data)
-
-      expect(result).toContain('<title>My Task</title>')
-      expect(result).toContain('<coords>userId,0:1,2</coords>')
-    })
-
-    it('should include instruction from userMessage', () => {
-      const data = createTestData({
-        task: { title: 'Task', content: 'Content', coords: 'userId,0:1' },
-        itemType: MapItemType.SYSTEM,
-        userMessage: 'Focus on performance optimization'
-      })
-
-      const result = buildPrompt(data)
-
-      expect(result).toContain('<instruction>Focus on performance optimization</instruction>')
-    })
-
-    it('should include discussion when provided', () => {
-      const data = createTestData({
-        task: { title: 'Task', content: 'Content', coords: 'userId,0:1' },
-        itemType: MapItemType.SYSTEM,
-        userMessage: 'Run this',
-        discussion: 'User: What does this do?\nAssistant: It builds an API.'
-      })
-
-      const result = buildPrompt(data)
-
-      expect(result).toContain('<discussion>')
-      expect(result).toContain('Previous messages in this conversation:')
-      expect(result).toContain('User: What does this do?')
-      expect(result).toContain('Assistant: It builds an API.')
-    })
-
-    it('should not include discussion section when empty', () => {
-      const data = createTestData({
-        task: { title: 'Task', content: 'Content', coords: 'userId,0:1' },
-        itemType: MapItemType.SYSTEM,
-        userMessage: 'Run this',
-        discussion: ''
-      })
-
-      const result = buildPrompt(data)
-
-      expect(result).not.toContain('<discussion>')
-    })
-
-    it('should use correct MCP server name in execution protocol', () => {
-      const data = createTestData({
-        task: { title: 'Task', content: 'Content', coords: 'userId,0:1' },
-        itemType: MapItemType.SYSTEM,
-        userMessage: 'Run this',
-        mcpServerName: 'debughexframe'
-      })
-
-      const result = buildPrompt(data)
-
-      expect(result).toContain('mcp__debughexframe__hexecute')
-      expect(result).not.toContain('mcp__hexframe__hexecute')
-    })
-
-    it('should use default hexframe MCP server', () => {
-      const data = createTestData({
-        task: { title: 'Task', content: 'Content', coords: 'userId,0:1' },
-        itemType: MapItemType.SYSTEM,
-        userMessage: 'Run this'
-        // mcpServerName defaults to 'hexframe' in createTestData
-      })
-
-      const result = buildPrompt(data)
-
-      expect(result).toContain('mcp__hexframe__hexecute')
-    })
-
-    it('should NOT use orchestrator for SYSTEM tile without userMessage', () => {
-      const data = createTestData({
-        task: { title: 'Task', content: 'Content', coords: 'userId,0:1' },
-        itemType: MapItemType.SYSTEM,
-        hexPlan: '📋 Step 1'
-        // No userMessage - direct hexecute execution
-      })
-
-      const result = buildPrompt(data)
-
-      // Should use regular SYSTEM template
+      // Should use SYSTEM template, not orchestrator
       expect(result).toContain('<hexrun-intro>')
-      expect(result).toContain('<hexplan')
+      expect(result).toContain('<execution-instructions>')
       expect(result).not.toContain('<hexrun-orchestrator>')
       expect(result).not.toContain('<execution-protocol>')
     })
 
-    it('should NOT use orchestrator for USER tile with userMessage', () => {
+    it('should include concise execution instructions with status block format', () => {
+      const data = createTestData({
+        task: { title: 'Task', content: 'Content', coords: 'userId,0:1' },
+        itemType: MapItemType.SYSTEM,
+        hexPlan: '📋 Step 1'
+      })
+
+      const result = buildPrompt(data)
+
+      expect(result).toContain('<execution-instructions>')
+      expect(result).toContain('Execute this task')
+      expect(result).toContain('Track progress in the hexplan')
+      expect(result).toContain('<status>{"result": "completed"}</status>')
+      expect(result).toContain('<status>{"result": "blocked"')
+    })
+
+    it('should include blockage context when wasBlocked is true', () => {
+      const data = createTestData({
+        task: { title: 'Task', content: 'Content', coords: 'userId,0:1' },
+        itemType: MapItemType.SYSTEM,
+        hexPlan: '📋 Step 1',
+        wasBlocked: true,
+        blockageReason: 'Missing API credentials'
+      })
+
+      const result = buildPrompt(data)
+
+      expect(result).toContain('<execution-context>')
+      expect(result).toContain('<previous-blockage>')
+      expect(result).toContain('Missing API credentials')
+      expect(result).toContain('blocker has been addressed')
+    })
+
+    it('should NOT include blockage context when wasBlocked is false', () => {
+      const data = createTestData({
+        task: { title: 'Task', content: 'Content', coords: 'userId,0:1' },
+        itemType: MapItemType.SYSTEM,
+        hexPlan: '📋 Step 1',
+        wasBlocked: false
+      })
+
+      const result = buildPrompt(data)
+
+      expect(result).not.toContain('<execution-context>')
+      expect(result).not.toContain('<previous-blockage>')
+    })
+
+    it('should NOT use SYSTEM template for USER tile', () => {
       const data = createTestData({
         task: { title: 'User Tile', content: '', coords: 'userId,0:' },
         itemType: MapItemType.USER,
@@ -984,28 +934,10 @@ describe('Template System - Pre-processor and Templates', () => {
 
       const result = buildPrompt(data)
 
-      // Should use USER template, not orchestrator
+      // Should use USER template
       expect(result).toContain('<user-intro>')
-      expect(result).not.toContain('<hexrun-orchestrator>')
-    })
-
-    it('should include execution protocol instructions', () => {
-      const data = createTestData({
-        task: { title: 'Task', content: 'Content', coords: 'userId,0:1' },
-        itemType: MapItemType.SYSTEM,
-        userMessage: 'Run this'
-      })
-
-      const result = buildPrompt(data)
-
-      expect(result).toContain('Execute this loop until complete or blocked')
-      expect(result).toContain('Get the next step')
-      expect(result).toContain('Check the response')
-      expect(result).toContain('<hexplan-status>COMPLETE</hexplan-status>')
-      expect(result).toContain('<hexplan-status>BLOCKED</hexplan-status>')
-      expect(result).toContain('Execute the step')
-      expect(result).toContain('Update the hexplan')
-      expect(result).toContain('Repeat')
+      expect(result).not.toContain('<hexrun-intro>')
+      expect(result).not.toContain('<execution-instructions>')
     })
   })
 

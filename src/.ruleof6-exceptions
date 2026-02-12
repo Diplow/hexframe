@@ -4,6 +4,8 @@
 
 # Function line count exceptions
 server/email.ts:sendEmail:150 # Complex email sending with multiple providers, templating, and error handling
+repositories/_helpers/sdk-helpers.ts:getClaudeModels:150 # Static model data array - pure data definition, not logic
+repositories/claude-agent-sdk.repository.ts:onChunk:160 # Stream processing loop with multiple event types - inherent complexity in SDK integration
 
 # File function count exceptions (too many functions errors)
 test/setup.ts:25 # Test setup file requires many utility functions for comprehensive test environment
@@ -17,8 +19,8 @@ server/api/routers/map/_mcp-tools/_item-tools.ts:10 # MCP tool definition collec
 app/map/Chat/Timeline/Widgets/TileWidget/_internals/_form-utils.ts:20 # Form utility helpers module - collection of related form processing functions
 app/map/Chat/Timeline/Widgets/TileWidget/_internals/_handlers.ts:20 # Event handler utilities module - collection of related event handlers
 app/map/Chat/Input/_hooks/autocomplete/useAutocompleteLogic.ts:17 # Autocomplete logic hook - complex state machine with multiple internal helpers for commands and @favorites
-app/map/Chat/Timeline/_components/_renderers/widget-renderers.tsx:15 # Widget renderer collection - one render function per widget type for type safety
-app/map/Chat/Timeline/_components/_renderers/_markdown-components.tsx:12 # Markdown component collection - one component per markdown element type
+app/map/Chat/Timeline/Widgets/Adapters/index.ts:15 # Widget adapter collection - one adapter function per widget type for type safety
+app/map/Chat/Timeline/_components/_markdown-components.tsx:12 # Markdown component collection - one component per markdown element type
 app/map/Chat/Timeline/Widgets/TileWidget/tile-widget.tsx:12 # Complex widget orchestrator with multiple event handlers and state transitions
 
 # Function argument exceptions

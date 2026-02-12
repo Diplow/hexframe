@@ -87,3 +87,27 @@ const item = await repository.getOne(id, SYSTEM_INTERNAL);
 ```
 
 Note: Child subsystems can import from parent freely, but all other subsystems MUST go through index.ts. The CI tool `pnpm check:architecture` enforces this boundary.
+
+## Item Type System
+
+Tiles have a semantic `itemType` that guides both agent behavior and user categorization.
+
+### Built-in Types
+The `MapItemType` enum provides standard semantic types:
+- **USER**: Root tile (system-controlled, one per user)
+- **ORGANIZATIONAL**: Structural grouping for navigation
+- **CONTEXT**: Reference materials (default for new tiles)
+- **SYSTEM**: Executable capabilities
+
+### Custom Types
+Beyond built-in types, arbitrary string values are supported as custom item types. This enables domain-specific classifications like "template", "project", or "workflow".
+
+**Utilities** (in `infrastructure/map-item/item-type-utils.ts`):
+- `isBuiltInItemType()` - Type guard for MapItemType enum values
+- `isReservedItemType()` - Check if type is reserved (only "user")
+- `isCustomItemType()` - Check if type is custom (non-built-in)
+
+### Reserved Types
+- `user` - Cannot be created via API (system-controlled)
+
+See `_objects/README.md` for detailed type system documentation.

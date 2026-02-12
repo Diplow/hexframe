@@ -1,0 +1,10 @@
+{
+  "$schema": "../../../../../../scripts/checks/architecture/dependencies.schema.json",
+  "allowed": [
+    "drizzle-orm",
+    "nanoid",
+    "~/server/db",
+    "~/lib/domains/agentic/services/_templates/template-allowlist.service"
+  ],
+  "exceptions": {}
+}

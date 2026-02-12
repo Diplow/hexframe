@@ -40,8 +40,7 @@ export const BaseFrame = ({
     : false;
 
   const hasComposition = _hasCompositionChild(center, mapItems);
-  const isUserTile = centerItem?.metadata.coordinates.path.length === 0;
-  const canShowComposition = isExpanded && hasComposition && scale > 1 && !isUserTile;
+  const canShowComposition = isExpanded && hasComposition && scale > 1;
 
   if (!centerItem) {
     // Find parent item for context
@@ -466,44 +465,46 @@ const CompositionFrame = ({
           isDarkMode={isDarkMode}
         />
         <div className="flex flex-col">
-          {compositionContainer ? (
+          {/* Render the center tile itself at the center of composition expansion */}
+          {/* Previously showed direction-0 (hexplan tile), now hexplans are stored in runs */}
+          {mapItems[center] ? (
             interactive ? (
               <DynamicItemTile
-                item={compositionContainer}
+                item={mapItems[center]}
                 scale={innerScale}
                 baseHexSize={baseHexSize}
                 allExpandedItemIds={expandedItemIds}
-                hasChildren={true}
+                hasChildren={_hasCompositionChild(center, mapItems)}
                 isCenter={false}
                 urlInfo={urlInfo}
                 interactive={interactive}
               />
             ) : (
               <BaseItemTile
-                item={compositionContainer}
+                item={mapItems[center]}
                 scale={innerScale}
                 isExpanded={false}
                 isDarkMode={isDarkMode}
               />
             )
           ) : (
-            // Render empty tile for composition container when it doesn't exist
+            // Render empty tile if center doesn't exist (shouldn't happen)
             interactive ? (
               <DynamicEmptyTile
-                coordId={compositionCoordId}
+                coordId={center}
                 scale={innerScale}
                 baseHexSize={baseHexSize}
                 urlInfo={urlInfo}
                 parentItem={{
-                  id: mapItems[center]?.metadata.dbId ?? '',
-                  name: mapItems[center]?.data.title ?? 'Parent',
+                  id: '',
+                  name: 'Center',
                 }}
                 interactive={interactive}
                 currentUserId={currentUserId}
               />
             ) : (
               <BaseEmptyTile
-                coordId={compositionCoordId}
+                coordId={center}
                 scale={innerScale}
                 baseHexSize={baseHexSize}
                 isDarkMode={isDarkMode}

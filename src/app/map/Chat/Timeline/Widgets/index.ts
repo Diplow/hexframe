@@ -14,6 +14,9 @@ export { AIResponseWidget } from '~/app/map/Chat/Timeline/Widgets/AIResponseWidg
 export { McpKeysWidget } from '~/app/map/Chat/Timeline/Widgets/McpKeysWidget/McpKeysWidget';
 export { DebugLogsWidget } from '~/app/map/Chat/Timeline/Widgets/DebugLogsWidget';
 export { FavoritesWidget } from '~/app/map/Chat/Timeline/Widgets/FavoritesWidget';
+export { ToolCallWidget } from '~/app/map/Chat/Timeline/Widgets/ToolCallWidget';
+export { RunWidget } from '~/app/map/Chat/Timeline/Widgets/RunWidget';
+export { RunsListWidget } from '~/app/map/Chat/Timeline/Widgets/RunsListWidget';
 
 // Shared Widget Components (for internal widget implementations)
 export { BaseWidget, WidgetHeader, WidgetContent } from '~/app/map/Chat/Timeline/Widgets/_shared';
@@ -27,12 +30,31 @@ export * from '~/app/map/Chat/Timeline/Widgets/LoginWidget';
 // AI Response Widget Components (re-exported from their subsystem)
 export * from '~/app/map/Chat/Timeline/Widgets/AIResponseWidget';
 
+// Widget Adapters (transform Widget state → Widget components)
+export {
+  type WidgetHandlers,
+  renderTileWidget,
+  renderLoginWidget,
+  renderErrorWidget,
+  renderCreationWidget,
+  renderLoadingWidget,
+  renderDeleteWidget,
+  renderDeleteChildrenWidget,
+  renderAIResponseWidget,
+  renderMcpKeysWidget,
+  renderDebugLogsWidget,
+  renderFavoritesWidget,
+  renderToolCallWidget,
+  renderRunWidget,
+  renderRunsListWidget,
+} from '~/app/map/Chat/Timeline/Widgets/Adapters';
+
 /**
  * Chat Widgets Subsystem Public Interface
- * 
+ *
  * Provides interactive UI components for complex user operations
  * within the chat interface. Widgets handle multi-step interactions,
  * form input, and structured user flows.
- * 
+ *
  * All components are exported above for direct usage.
  */

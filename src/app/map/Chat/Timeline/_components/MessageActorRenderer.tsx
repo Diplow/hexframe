@@ -9,6 +9,7 @@ import { CollapsiblePrompt } from '~/app/map/Chat/Timeline/_components/Collapsib
 import { authClient } from '~/lib/auth';
 import { useEventBus } from '~/app/map/Services/EventBus';
 import { ThinkingIndicator } from '~/app/map/Chat/Timeline/_components/ThinkingIndicator';
+import { ToolCallWidget } from '~/app/map/Chat/Timeline/Widgets';
 
 interface StreamingMessage extends Message {
   isStreaming?: boolean;
@@ -142,6 +143,20 @@ export function MessageActorRenderer({ message }: MessageActorRendererProps) {
             />
           )}
           {renderCopyButtons()}
+          {/* Render tool calls embedded in the message */}
+          {message.toolCalls && message.toolCalls.length > 0 && (
+            <div className="mt-3 space-y-2">
+              {message.toolCalls.map(toolCall => (
+                <ToolCallWidget
+                  key={toolCall.toolCallId}
+                  toolName={toolCall.toolName}
+                  arguments={toolCall.arguments}
+                  status={toolCall.status}
+                  result={toolCall.result}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -61,12 +61,20 @@ export enum Visibility {
  */
 export type VisibilityString = "public" | "private";
 
+/**
+ * Item type can be a built-in enum (USER, ORGANIZATIONAL, CONTEXT, SYSTEM)
+ * or a custom string type (e.g., "template", "workflow").
+ * The "user" type is reserved for system-created root tiles.
+ */
+export type ItemTypeValue = MapItemType | string;
+
 export interface Attrs extends Record<string, unknown> {
   parentId: number | null; // The parent mapItem this is a child of.
   coords: Coord; // Updated to new Coord structure
   baseItemId: number; // Foreign key to the BaseItem containing title, content, etc.
-  itemType: MapItemType; // Semantic tile type: USER, ORGANIZATIONAL, CONTEXT, or SYSTEM
+  itemType: ItemTypeValue; // Semantic tile type: built-in enum or custom string
   visibility: Visibility; // Whether the tile is publicly visible
+  templateName?: string | null; // Name of template this tile was created from (optional)
 }
 
 export type ShallNotUpdate = {
@@ -124,7 +132,7 @@ export class MapItem extends GenericAggregate<
 
     // Initial validation for USER type items before super() call if possible,
     // or ensure these are checked in validate() which is called after super()
-    if (attrs.itemType === MapItemType.USER) {
+    if (attrs.itemType === (MapItemType.USER as ItemTypeValue)) {
       if (parent !== null || attrs.parentId !== null) {
         throw new Error(MAPPING_ERRORS.USER_ITEM_CANNOT_HAVE_PARENT);
       }
@@ -141,6 +149,7 @@ export class MapItem extends GenericAggregate<
         baseItemId: attrs.baseItemId ?? ref.id,
         itemType: attrs.itemType, // itemType is now mandatory
         visibility: attrs.visibility ?? Visibility.PRIVATE,
+        templateName: attrs.templateName ?? null,
       },
       relatedLists: { neighbors },
       relatedItems: { ref, parent },
@@ -166,7 +175,7 @@ export class MapItem extends GenericAggregate<
     // "Center" is now relative to a USER's root item.
     // A root USER item has no parent.
     return (
-      item.attrs.itemType === MapItemType.USER && item.attrs.parentId === null
+      item.attrs.itemType === (MapItemType.USER as ItemTypeValue) && item.attrs.parentId === null
     );
   }
 }

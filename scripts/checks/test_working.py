@@ -137,13 +137,11 @@ export function helper{i}(input: string): string {{
         try:
             print(f"Testing with {len(files)} files...")
 
-            # Test all checkers
+            # Test checkers
             arch_results = run_checker('architecture', project_path / 'src')
-            dead_results = run_checker('deadcode', project_path / 'src')
             rule_results = run_checker('ruleof6', project_path / 'src')
 
             print(f"✅ Architecture: {len(arch_results.errors)} errors")
-            print(f"✅ Dead code: {len(dead_results.get_all_issues())} issues")
             print(f"✅ Rule of 6: {len(rule_results.get_all_violations())} violations")
             print("✅ All checkers completed successfully on large project")
 

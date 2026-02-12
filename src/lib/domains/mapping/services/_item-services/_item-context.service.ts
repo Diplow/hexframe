@@ -6,6 +6,7 @@ import { MapItemActions } from "~/lib/domains/mapping/_actions";
 import { adapt, type MapItemContract } from "~/lib/domains/mapping/types/contracts";
 import {
   CoordSystem,
+  Direction,
   type ContextStrategy,
   type MapContext,
 } from "~/lib/domains/mapping/utils";
@@ -23,6 +24,8 @@ export interface HexecuteContext {
     title: string;
     content: string | undefined;
     coords: string;
+    hexplan: string | undefined;
+    itemType: string | undefined;
   }>;
   /** Composed children (-1 to -6): context materials, constraints, templates */
   composedChildren: MapItemContract[];
@@ -189,6 +192,7 @@ export class ItemContextService {
   /**
    * Fetch all ancestors from root to parent (top-down order).
    * Used for context drilling - parent content flows to children.
+   * Also fetches each ancestor's hexplan (direction-0 tile) for instruction propagation.
    */
   private async _fetchAncestors(
     coords: { path: number[]; userId: string; groupId: number },
@@ -208,11 +212,29 @@ export class ItemContextService {
           requester
         );
         const contract = adapt.mapItem(parent, userId);
+
+        // Fetch hexplan (direction-0 tile) for this ancestor
+        let hexplanContent: string | undefined;
+        try {
+          const hexplanCoord = { ...parentCoord, path: [...parentPath, Direction.Center] };
+          const hexplanTile = await this.mapItemRepository.getOneByIdr(
+            { idr: { attrs: { coords: hexplanCoord } } },
+            requester
+          );
+          const hexplanTrimmed = hexplanTile.ref.attrs.content?.trim();
+          hexplanContent = (hexplanTrimmed?.length ?? 0) > 0 ? hexplanTrimmed : undefined;
+        } catch {
+          // Hexplan doesn't exist for this ancestor - that's fine
+          hexplanContent = undefined;
+        }
+
         // Add to beginning to maintain root->parent order (top-down)
         ancestors.unshift({
           title: contract.title,
           content: contract.content ?? undefined,
           coords: contract.coords,
+          hexplan: hexplanContent,
+          itemType: contract.itemType ?? undefined,
         });
         currentPath = parentPath;
       } catch (error) {

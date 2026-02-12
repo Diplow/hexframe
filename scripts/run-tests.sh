@@ -84,6 +84,7 @@ if [[ "$PHASE" == "phase1" ]] || [[ "$PHASE" == "all" ]]; then
     --exclude "**/map-items-negative-directions.integration.test.ts" \
     --exclude "**/composition-negative-directions.test.tsx" \
     --exclude "**/frame-interior-negative-directions.test.tsx" \
+    --exclude "**/template-name-column.integration.test.ts" \
     "${STORYBOOK_EXCLUDE[@]}" 2>&1 | tee test-results/main-suite.log
 
   MAIN_EXIT_CODE=${PIPESTATUS[0]}
@@ -137,7 +138,8 @@ for file in \
   src/server/api/routers/map/__tests__/map-items-copy.integration.test.ts \
   src/server/api/routers/map/__tests__/map-items-negative-directions.integration.test.ts \
   src/app/map/Canvas/__tests__/composition-negative-directions.test.tsx \
-  src/app/map/Canvas/__tests__/frame-interior-negative-directions.test.tsx
+  src/app/map/Canvas/__tests__/frame-interior-negative-directions.test.tsx \
+  src/server/db/schema/__tests__/template-name-column.integration.test.ts
 do
   if [ -f "$file" ]; then
     REACT_TEST_FILES="$REACT_TEST_FILES $file"

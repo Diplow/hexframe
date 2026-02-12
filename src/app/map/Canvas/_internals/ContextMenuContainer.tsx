@@ -21,7 +21,6 @@ interface ContextMenuContainerProps {
   onDeleteClick?: (tileData: TileData) => void;
   onDeleteChildrenClick?: (tileData: TileData) => void;
   onDeleteComposedClick?: (tileData: TileData) => void;
-  onDeleteHexplanClick?: (tileData: TileData) => void;
   onCopyClick?: (tileData: TileData) => void;
   onMoveClick?: (tileData: TileData) => void;
   onCopyCoordinatesSuccess?: () => void;
@@ -40,6 +39,8 @@ interface ContextMenuContainerProps {
   isFavorited?: (coordId: string) => boolean;
   /** Callback when user wants to edit the shortcut for a favorited tile */
   onEditShortcut?: (tileData: TileData) => void;
+  /** Callback when user runs a SYSTEM tile */
+  onRunClick?: (tileData: TileData) => void;
 }
 
 export function ContextMenuContainer({
@@ -53,7 +54,6 @@ export function ContextMenuContainer({
   onDeleteClick,
   onDeleteChildrenClick,
   onDeleteComposedClick,
-  onDeleteHexplanClick,
   onCopyClick,
   onMoveClick,
   onCopyCoordinatesSuccess,
@@ -68,6 +68,7 @@ export function ContextMenuContainer({
   onRemoveFavorite,
   isFavorited,
   onEditShortcut,
+  onRunClick,
 }: ContextMenuContainerProps) {
   if (!contextMenu) return null;
 
@@ -83,7 +84,6 @@ export function ContextMenuContainer({
       onDelete={() => onDeleteClick?.(contextMenu.tileData)}
       onDeleteChildren={() => onDeleteChildrenClick?.(contextMenu.tileData)}
       onDeleteComposed={() => onDeleteComposedClick?.(contextMenu.tileData)}
-      onDeleteHexplan={() => onDeleteHexplanClick?.(contextMenu.tileData)}
       onCreate={() => onCreateClick?.(contextMenu.tileData)}
       onCopy={() => onCopyClick?.(contextMenu.tileData)}
       onMove={() => onMoveClick?.(contextMenu.tileData)}
@@ -111,6 +111,7 @@ export function ContextMenuContainer({
       onAddFavorite={() => onAddFavorite?.(contextMenu.tileData)}
       onRemoveFavorite={() => onRemoveFavorite?.(contextMenu.tileData)}
       onEditShortcut={() => onEditShortcut?.(contextMenu.tileData)}
+      onRun={() => onRunClick?.(contextMenu.tileData)}
     />
   );
 }

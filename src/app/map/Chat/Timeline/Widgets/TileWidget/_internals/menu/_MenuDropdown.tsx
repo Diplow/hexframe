@@ -1,6 +1,6 @@
 'use client';
 
-import { Edit, Trash2, X, Copy, History, FolderTree, Layers, Clock, Lock, Unlock, Eye } from 'lucide-react';
+import { Edit, Trash2, X, Copy, History, FolderTree, Layers, Lock, Unlock, Eye } from 'lucide-react';
 import { ContextMenu, type ContextMenuItemData } from '~/components/ui/context-menu';
 import { Visibility } from '~/lib/domains/mapping/utils';
 
@@ -10,7 +10,6 @@ interface MenuDropdownProps {
   onDelete?: () => void;
   onDeleteChildren?: () => void;
   onDeleteComposed?: () => void;
-  onDeleteHexplan?: () => void;
   onClose?: () => void;
   onCopyCoordinates?: () => void;
   onHistory?: () => void;
@@ -26,7 +25,6 @@ export function _MenuDropdown({
   onDelete,
   onDeleteChildren,
   onDeleteComposed,
-  onDeleteHexplan,
   onClose,
   onCopyCoordinates,
   onHistory,
@@ -61,15 +59,6 @@ export function _MenuDropdown({
       icon: Layers,
       label: 'Delete Composed',
       onClick: onDeleteComposed,
-      variant: 'destructive',
-    });
-  }
-
-  if (onDeleteHexplan) {
-    deleteSubmenuItems.push({
-      icon: Clock,
-      label: 'Delete Hexplan',
-      onClick: onDeleteHexplan,
       variant: 'destructive',
     });
   }

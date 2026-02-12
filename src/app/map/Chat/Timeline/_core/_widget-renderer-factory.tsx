@@ -1,8 +1,8 @@
 import type { Widget } from '~/app/map/Chat/_state';
 import type { TileData } from '~/app/map/types';
 import type { ReactNode } from 'react';
-import type { WidgetHandlers } from '~/app/map/Chat/Timeline/_components/_renderers/widget-renderers';
 import {
+  type WidgetHandlers,
   renderTileWidget,
   renderLoginWidget,
   renderErrorWidget,
@@ -13,8 +13,11 @@ import {
   renderAIResponseWidget,
   renderMcpKeysWidget,
   renderDebugLogsWidget,
-  renderFavoritesWidget
-} from '~/app/map/Chat/Timeline/_components/_renderers/widget-renderers';
+  renderFavoritesWidget,
+  renderToolCallWidget,
+  renderRunWidget,
+  renderRunsListWidget,
+} from '~/app/map/Chat/Timeline/Widgets';
 
 export function _renderWidget(
   widget: Widget,
@@ -44,6 +47,12 @@ export function _renderWidget(
       return renderDebugLogsWidget(widget, handlers);
     case 'favorites':
       return renderFavoritesWidget(widget, handlers);
+    case 'tool-call':
+      return renderToolCallWidget(widget);
+    case 'run':
+      return renderRunWidget(widget, handlers);
+    case 'runs-list':
+      return renderRunsListWidget(widget, handlers);
     default:
       return null;
   }

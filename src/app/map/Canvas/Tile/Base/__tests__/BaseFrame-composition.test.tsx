@@ -319,11 +319,10 @@ describe("BaseFrame - Composition Rendering", () => {
   });
 
   describe("Edge Cases", () => {
-    it("should handle empty composition container (no children)", () => {
+    it("should handle composition with center tile at inner frame", () => {
       const centerCoordId = "1,0:1";
       const mapItems: Record<string, TileData> = {
         [centerCoordId]: createMockItem(centerCoordId, "item-1", "Center Item"),
-        "1,0:1,0": createMockItem("1,0:1,0", "item-comp", "Empty Composition"),
       };
 
       const { container } = render(
@@ -340,9 +339,9 @@ describe("BaseFrame - Composition Rendering", () => {
         { wrapper }
       );
 
-      // Should render composition container even if empty
-      const compositionContainer = container.querySelector('[data-tile-id="1,0:1,0"]');
-      expect(compositionContainer).toBeInTheDocument();
+      // Should render the center tile in composition mode (center tile shows at inner frame)
+      const centerTile = container.querySelector('[data-tile-id="1,0:1"]');
+      expect(centerTile).toBeInTheDocument();
     });
 
     it("should handle composition when center is not expanded", () => {
@@ -371,12 +370,12 @@ describe("BaseFrame - Composition Rendering", () => {
       expect(frames.length).toBe(0);
     });
 
-    it("should NOT allow composition expansion for user tiles (empty path)", () => {
-      // User tiles have empty path (e.g., "1,0:")
+    it("should allow composition expansion for user tiles (empty path)", () => {
+      // User tiles have empty path (e.g., "1,0:") and can now show composition
       const centerCoordId = "1,0:";
       const mapItems: Record<string, TileData> = {
         [centerCoordId]: createMockItem(centerCoordId, "item-1", "User Tile"),
-        // Composition container - should not be rendered for user tiles
+        // Composition container - should be rendered for user tiles now
         "1,0:0": createMockItem("1,0:0", "item-comp", "Composition"),
         "1,0:0,1": createMockItem("1,0:0,1", "item-comp-1", "Composed Child"),
       };
@@ -395,9 +394,9 @@ describe("BaseFrame - Composition Rendering", () => {
         { wrapper }
       );
 
-      // Should NOT render composition for user tiles
+      // Should render composition for user tiles now
       const compositionTiles = container.querySelectorAll('[data-tile-id^="1,0:0"]');
-      expect(compositionTiles.length).toBe(0);
+      expect(compositionTiles.length).toBeGreaterThan(0);
     });
 
     it("should handle missing compositionExpandedIds prop (undefined)", () => {

@@ -1,5 +1,5 @@
 import type { Widget, useChatOperations } from '~/app/map/Chat/_state';
-import type { WidgetHandlers } from '~/app/map/Chat/Timeline/_components/_renderers/widget-renderers';
+import type { WidgetHandlers } from '~/app/map/Chat/Timeline/Widgets';
 import { createCreationHandlers } from '~/app/map/Chat/Timeline/_utils/creation-handlers';
 import { createTileHandlers } from '~/app/map/Chat/Timeline/_utils/tile-handlers';
 import { insertTextIntoChatInput } from '~/app/map/Chat/Timeline/_utils/focus-helpers';
@@ -54,6 +54,21 @@ export function _createWidgetHandlers(widget: Widget, deps: HandlerDependencies)
         },
         onInsertToChat: (text: string) => {
           insertTextIntoChatInput(text);
+        }
+      };
+    case 'run':
+      return _createSimpleCloseHandler(widget.id, deps.chatState, deps.focusChatInput);
+    case 'runs-list':
+      return {
+        handleCancel: () => {
+          deps.chatState.closeWidget(widget.id);
+          deps.focusChatInput();
+        },
+        showRunWidget: (coords: string, title: string) => {
+          // Close the runs-list widget first
+          deps.chatState.closeWidget(widget.id);
+          // Open the run widget for the selected run
+          deps.chatState.showRunWidget({ tileCoords: coords, tileTitle: title });
         }
       };
     default:

@@ -220,7 +220,7 @@ describe("tRPC Map Items Router - ItemType API Exposure [Integration - DB]", () 
       ).rejects.toThrow("Structural children of SYSTEM tiles must also be SYSTEM tiles");
     });
 
-    it("should enforce CONTEXT children under CONTEXT parent", async () => {
+    it("should allow ORGANIZATIONAL children under CONTEXT parent", async () => {
       const testParams = _createUniqueTestParams();
       const { userId, groupId } = testParams;
       const rootMap = await _setupBasicMap(testEnv.service, testParams);
@@ -238,21 +238,22 @@ describe("tRPC Map Items Router - ItemType API Exposure [Integration - DB]", () 
         itemType: MapItemType.CONTEXT,
       });
 
-      // Try to create an ORGANIZATIONAL child under CONTEXT parent - should fail
+      // Create an ORGANIZATIONAL child under CONTEXT parent - should succeed
       const childCoords: Coord = _createTestCoordinates({
         userId,
         groupId,
         path: [Direction.East, Direction.SouthEast],
       });
 
-      await expect(
-        testEnv.service.items.crud.addItemToMap({
-          parentId: parseInt(parent.id),
-          coords: childCoords,
-          title: "Organizational Child",
-          itemType: MapItemType.ORGANIZATIONAL,
-        })
-      ).rejects.toThrow("ORGANIZATIONAL tiles can only be created under USER or ORGANIZATIONAL parents");
+      const child = await createTestItem(testEnv, {
+        parentId: parseInt(parent.id),
+        coords: childCoords,
+        title: "Organizational Child",
+        itemType: MapItemType.ORGANIZATIONAL,
+      });
+
+      expect(child).toBeDefined();
+      expect(child.itemType).toBe(MapItemType.ORGANIZATIONAL);
     });
 
     it("should allow any non-USER itemType under ORGANIZATIONAL parent", async () => {
@@ -488,10 +489,10 @@ describe("tRPC Map Items Router - ItemType API Exposure [Integration - DB]", () 
           title: "Organizational Child",
           itemType: MapItemType.ORGANIZATIONAL,
         })
-      ).rejects.toThrow("ORGANIZATIONAL tiles can only be created under USER or ORGANIZATIONAL parents");
+      ).rejects.toThrow("ORGANIZATIONAL tiles can only be created under USER, ORGANIZATIONAL, or CONTEXT parents");
     });
 
-    it("should NOT allow creating ORGANIZATIONAL tile under CONTEXT parent", async () => {
+    it("should allow creating ORGANIZATIONAL tile under CONTEXT parent", async () => {
       const testParams = _createUniqueTestParams();
       const { userId, groupId } = testParams;
       const rootMap = await _setupBasicMap(testEnv.service, testParams);
@@ -509,21 +510,22 @@ describe("tRPC Map Items Router - ItemType API Exposure [Integration - DB]", () 
         itemType: MapItemType.CONTEXT,
       });
 
-      // Try to create ORGANIZATIONAL child under CONTEXT parent - should fail
+      // Create ORGANIZATIONAL child under CONTEXT parent - should succeed
       const childCoords: Coord = _createTestCoordinates({
         userId,
         groupId,
         path: [Direction.SouthWest, Direction.NorthWest],
       });
 
-      await expect(
-        testEnv.service.items.crud.addItemToMap({
-          parentId: parseInt(parent.id),
-          coords: childCoords,
-          title: "Organizational Child",
-          itemType: MapItemType.ORGANIZATIONAL,
-        })
-      ).rejects.toThrow("ORGANIZATIONAL tiles can only be created under USER or ORGANIZATIONAL parents");
+      const child = await createTestItem(testEnv, {
+        parentId: parseInt(parent.id),
+        coords: childCoords,
+        title: "Organizational Child",
+        itemType: MapItemType.ORGANIZATIONAL,
+      });
+
+      expect(child).toBeDefined();
+      expect(child.itemType).toBe(MapItemType.ORGANIZATIONAL);
     });
   });
 

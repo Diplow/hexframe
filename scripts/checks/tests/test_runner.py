@@ -54,9 +54,7 @@ def run_tests(
     if coverage:
         cmd.extend([
             '--cov=architecture',
-            '--cov=deadcode',
             '--cov=ruleof6',
-            '--cov=shared',
             '--cov-report=term-missing',
             '--cov-report=html:htmlcov'
         ])
@@ -98,7 +96,7 @@ def main():
     parser.add_argument('-v', '--verbose', action='store_true', help='Verbose output')
     parser.add_argument('-c', '--coverage', action='store_true', help='Generate coverage report')
     parser.add_argument('-k', '--pattern', help='Pattern to match test names')
-    parser.add_argument('--checker', choices=['architecture', 'deadcode', 'ruleof6', 'shared'],
+    parser.add_argument('--checker', choices=['architecture', 'ruleof6', 'shared'],
                       help='Run tests for specific checker only')
 
     args = parser.parse_args()

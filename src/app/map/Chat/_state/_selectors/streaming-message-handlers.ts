@@ -5,7 +5,21 @@ import type {
   StreamingMessageDeltaPayload,
   StreamingMessageEndPayload,
   StreamingMessagePromptPayload,
+  ToolCallStartPayload,
+  ToolCallEndPayload,
+  ToolCallData,
 } from '~/app/map/Chat/_state/_events';
+
+/**
+ * State for tracking a single tool call during streaming
+ */
+interface StreamingToolCallState {
+  toolCallId: string;
+  toolName: string;
+  arguments: Record<string, unknown>;
+  status: 'running' | 'completed' | 'failed';
+  result?: string;
+}
 
 /**
  * State for tracking streaming messages during derivation
@@ -17,6 +31,8 @@ export interface StreamingMessageState {
   model?: string;
   /** The hexecute prompt for task executions */
   prompt?: string;
+  /** Tool calls that occurred during this stream */
+  toolCalls: Map<string, StreamingToolCallState>;
 }
 
 /**
@@ -44,6 +60,7 @@ export function handleStreamingMessageEvents(
         startEventId: event.id,
         timestamp: event.timestamp,
         model: payload.model,
+        toolCalls: new Map(),
       });
       break;
     }
@@ -73,6 +90,41 @@ export function handleStreamingMessageEvents(
       break;
     }
 
+    case 'tool_call_start': {
+      const payload = event.payload as ToolCallStartPayload;
+      if (!payload || typeof payload !== 'object' || !('streamId' in payload) || !('toolCallId' in payload)) {
+        return;
+      }
+      const currentState = streamingState.get(payload.streamId);
+      if (currentState) {
+        // Add new tool call to the stream's tool calls
+        currentState.toolCalls.set(payload.toolCallId, {
+          toolCallId: payload.toolCallId,
+          toolName: payload.toolName,
+          arguments: payload.arguments ?? {},
+          status: 'running',
+        });
+      }
+      break;
+    }
+
+    case 'tool_call_end': {
+      const payload = event.payload as ToolCallEndPayload;
+      if (!payload || typeof payload !== 'object' || !('streamId' in payload) || !('toolCallId' in payload)) {
+        return;
+      }
+      const currentState = streamingState.get(payload.streamId);
+      if (currentState) {
+        const toolCall = currentState.toolCalls.get(payload.toolCallId);
+        if (toolCall) {
+          // Update tool call status and result
+          toolCall.status = payload.success ? 'completed' : 'failed';
+          toolCall.result = payload.result;
+        }
+      }
+      break;
+    }
+
     case 'streaming_message_end': {
       const payload = event.payload as StreamingMessageEndPayload;
       if (!payload || typeof payload !== 'object' || !('streamId' in payload)) {
@@ -84,6 +136,11 @@ export function handleStreamingMessageEvents(
       const messageTimestamp = streamState?.timestamp ?? event.timestamp;
       const messageId = streamState?.startEventId ?? event.id;
 
+      // Convert tool calls Map to array for the message
+      const toolCalls: ToolCallData[] = streamState?.toolCalls
+        ? Array.from(streamState.toolCalls.values())
+        : [];
+
       // Add finalized message to messages array with isStreaming: false
       const finalizedMessage: Message & { isStreaming: false } = {
         id: messageId,
@@ -92,6 +149,7 @@ export function handleStreamingMessageEvents(
         timestamp: messageTimestamp,
         isStreaming: false,
         prompt: streamState?.prompt,
+        toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
       };
       messages.push(finalizedMessage);
 
@@ -112,6 +170,11 @@ export function buildInProgressStreamingMessages(
   const inProgressMessages: (Message & { isStreaming?: boolean })[] = [];
 
   for (const [streamId, state] of streamingState.entries()) {
+    // Convert tool calls Map to array for the message
+    const toolCalls: ToolCallData[] = state.toolCalls
+      ? Array.from(state.toolCalls.values())
+      : [];
+
     // Include all streaming messages, even if empty (to show "streaming" indicator)
     inProgressMessages.push({
       id: `streaming-${streamId}`,
@@ -120,6 +183,7 @@ export function buildInProgressStreamingMessages(
       timestamp: state.timestamp,
       isStreaming: true,
       prompt: state.prompt,
+      toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
     });
   }
 

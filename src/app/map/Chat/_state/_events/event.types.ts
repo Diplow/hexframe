@@ -42,6 +42,17 @@ export interface ChatUIState {
   visibleMessages: Message[];
 }
 
+/**
+ * Data for a tool call associated with a message
+ */
+export interface ToolCallData {
+  toolCallId: string;
+  toolName: string;
+  arguments: Record<string, unknown>;
+  status: 'running' | 'completed' | 'failed';
+  result?: string;
+}
+
 export interface Message {
   id: string;
   content: string;
@@ -49,11 +60,13 @@ export interface Message {
   timestamp: Date;
   /** The hexecute prompt for task executions (only set for @-mention triggered messages) */
   prompt?: string;
+  /** Tool calls that occurred during this message's generation */
+  toolCalls?: ToolCallData[];
 }
 
 export interface Widget {
   id: string;
-  type: 'tile' | 'creation' | 'delete' | 'delete_children' | 'login' | 'loading' | 'error' | 'ai-response' | 'mcp-keys' | 'debug-logs' | 'favorites' | 'tool-call';
+  type: 'tile' | 'creation' | 'delete' | 'delete_children' | 'login' | 'loading' | 'error' | 'ai-response' | 'mcp-keys' | 'debug-logs' | 'favorites' | 'tool-call' | 'run' | 'runs-list';
   data: unknown;
   priority: 'info' | 'action' | 'critical';
   timestamp: Date;

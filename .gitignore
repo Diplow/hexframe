@@ -70,6 +70,7 @@ __pycache__/
 .idea
 .cursor/mcp.json
 .claude/mcp/
+.claude/archive/
 drizzle/meta/*
 .cursorignore
 .env.test
