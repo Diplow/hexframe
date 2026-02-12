@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import { api } from '~/commons/trpc/react';
-import type { RunStatus } from '~/lib/domains/agentic/services/_run-services/_run.types';
+import type { RunStatus } from '~/lib/domains/agentic';
 
 export type StatusFilter = 'active' | 'closed' | 'all';
 
